@@ -11,11 +11,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,24 +25,24 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
-import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.FixedPenaltyOffenceRepositoryService;
+import uk.gov.hmcts.opal.service.proxy.DefendantAccountFixedPenaltyServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceTest02 {
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
+    private FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
 
     // Service under test
     @InjectMocks
-    private OpalDefendantAccountService service;
+    private OpalDefendantAccountFixedPenaltyService service;
 
     @Test
     void getDefendantAccountFixedPenalty_shouldReturnVehicleFixedPenaltyResponse() {
@@ -53,10 +51,10 @@ class OpalDefendantAccountServiceTest02 {
         DefendantAccountEntity mockAccount = buildMockAccount(defendantAccountId);
         FixedPenaltyOffenceEntity mockOffence = buildMockOffence(true);
 
-        when(defendantAccountRepository.findById(defendantAccountId))
-            .thenReturn(Optional.of(mockAccount));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId))
-            .thenReturn(Optional.of(mockOffence));
+        when(defendantAccountRepositoryService.findById(defendantAccountId))
+            .thenReturn(mockAccount);
+        when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(defendantAccountId))
+            .thenReturn(mockOffence);
 
         GetDefendantAccountFixedPenaltyResponse response =
             service.getDefendantAccountFixedPenalty(defendantAccountId);
@@ -79,8 +77,8 @@ class OpalDefendantAccountServiceTest02 {
         offence.setOffenceLocation("Manchester");
         offence.setTimeOfOffence(LocalTime.parse("12:12"));
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(accountId)).thenReturn(Optional.of(offence));
+        when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
+        when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(accountId)).thenReturn(offence);
 
         GetDefendantAccountFixedPenaltyResponse response = service.getDefendantAccountFixedPenalty(accountId);
 
@@ -91,31 +89,6 @@ class OpalDefendantAccountServiceTest02 {
         assertEquals("12:12", response.getFixedPenaltyTicketDetails().getTimeOfOffence());
         assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence());
         assertNull(response.getVehicleFixedPenaltyDetails());
-    }
-
-    @Test
-    void getDefendantAccountFixedPenalty_shouldThrowWhenNoOffenceFound() {
-        Long accountId = 999L;
-        DefendantAccountEntity account = buildMockAccount(accountId);
-
-        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(accountId)).thenReturn(Optional.empty());
-
-        EntityNotFoundException ex = assertThrows(
-            EntityNotFoundException.class,
-            () -> service.getDefendantAccountFixedPenalty(accountId)
-        );
-
-        assertTrue(ex.getMessage().contains("Fixed Penalty Offence not found for account: 999"));
-        verify(fixedPenaltyOffenceRepository).findByDefendantAccountId(accountId);
-    }
-
-    @Test
-    void getDefendantAccountFixedPenalty_shouldThrowWhenAccountNotFound() {
-        Long id = 123L;
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> service.getDefendantAccountFixedPenalty(id));
     }
 
     @Test
@@ -131,8 +104,8 @@ class OpalDefendantAccountServiceTest02 {
         offence.setVehicleRegistration(null);
         offence.setTimeOfOffence(null);
 
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(account));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(id)).thenReturn(Optional.of(offence));
+        when(defendantAccountRepositoryService.findById(id)).thenReturn(account);
+        when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(id)).thenReturn(offence);
 
         var response = service.getDefendantAccountFixedPenalty(id);
         assertNotNull(response);
@@ -147,8 +120,8 @@ class OpalDefendantAccountServiceTest02 {
 
         FixedPenaltyOffenceEntity offence = buildMockOffence(false);
 
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(acc));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(id)).thenReturn(Optional.of(offence));
+        when(defendantAccountRepositoryService.findById(id)).thenReturn(acc);
+        when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(id)).thenReturn(offence);
 
         var resp = service.getDefendantAccountFixedPenalty(id);
         assertEquals(BigInteger.valueOf(5), resp.getVersion());
@@ -157,7 +130,7 @@ class OpalDefendantAccountServiceTest02 {
     @Test
     void getDefendantAccountFixedPenalty_shouldCallProxyWhenAuthorized() {
         // Arrange
-        var proxy = mock(DefendantAccountServiceProxy.class);
+        var proxy = mock(DefendantAccountFixedPenaltyServiceProxy.class);
         var userStateService = mock(UserStateService.class);
         var mockUserState = mock(UserState.class);
         var mockResponse = new GetDefendantAccountFixedPenaltyResponse();
@@ -166,7 +139,7 @@ class OpalDefendantAccountServiceTest02 {
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(proxy.getDefendantAccountFixedPenalty(123L)).thenReturn(mockResponse);
 
-        var service = new DefendantAccountService(proxy, userStateService);
+        var service = new DefendantAccountFixedPenaltyService(proxy, userStateService);
 
         // Act
         var response = service.getDefendantAccountFixedPenalty(123L, "Bearer token");
@@ -180,7 +153,7 @@ class OpalDefendantAccountServiceTest02 {
     @Test
     void getDefendantAccountFixedPenalty_shouldThrowWhenNotAuthorized() {
         // Arrange
-        var proxy = mock(DefendantAccountServiceProxy.class);
+        var proxy = mock(DefendantAccountFixedPenaltyServiceProxy.class);
         var userStateService = mock(UserStateService.class);
         var mockUserState = mock(UserState.class);
 
@@ -188,7 +161,7 @@ class OpalDefendantAccountServiceTest02 {
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
 
-        var service = new DefendantAccountService(proxy, userStateService);
+        var service = new DefendantAccountFixedPenaltyService(proxy, userStateService);
 
         // Act + Assert
         assertThrows(PermissionNotAllowedException.class,

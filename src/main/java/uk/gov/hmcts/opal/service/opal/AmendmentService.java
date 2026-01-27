@@ -7,17 +7,15 @@ import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity_;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
-import uk.gov.hmcts.opal.repository.jpa.AmendmentSpecs;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 
 @Service
 @RequiredArgsConstructor
@@ -25,36 +23,36 @@ import org.springframework.transaction.annotation.Transactional;
 @Qualifier("amendmentService")
 public class AmendmentService {
 
+    private final AmendmentRepositoryService amendmentRepositoryService;
     private final AmendmentRepository amendmentRepository;
 
-    private final AmendmentSpecs specs = new AmendmentSpecs();
-
-    public AmendmentEntity getAmendmentById(long amendmentId) {
-        return amendmentRepository.findById(amendmentId)
-            .orElseThrow(() -> new EntityNotFoundException("Amendment not found with id: " + amendmentId));
-    }
-
+    @Transactional(readOnly = true)
     public SearchDataResponse<AmendmentEntity> searchAmendments(AmendmentSearchDto criteria) {
         log.info(":searchAmendments: criteria: {}", criteria);
 
         Sort dateSort = Sort.by(Sort.Direction.DESC, AmendmentEntity_.AMENDED_DATE);
 
-        Page<AmendmentEntity> page = amendmentRepository
-            .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq
-                        .sortBy(dateSort)
-                        .page(Pageable.unpaged()));
+        Page<AmendmentEntity> page = amendmentRepositoryService.getAmendmentsByCriteriaAsPage(criteria, dateSort);
 
         return SearchDataResponse.<AmendmentEntity>builder()
             .searchData(page.getContent())
             .build();
     }
 
+    @Transactional(readOnly = true)
+    public AmendmentEntity getAmendmentById(Long amendmentId) {
+        log.info(":getAmendmentById: amendmentId: {}", amendmentId);
+
+        return amendmentRepositoryService.findById(amendmentId);
+    }
+
+    //TODO remove in favour of repository service method
     @Transactional
     public void auditInitialiseStoredProc(Long accountId, RecordType recordType) {
         amendmentRepository.auditInitialise(accountId, recordType.getType());
     }
 
+    //TODO remove in favour of repository service method
     @Transactional
     public void auditFinaliseStoredProc(Long accountId, RecordType recordType,
                                         Short businessUnitId, String postedBy, String caseRef, String functionCode) {
