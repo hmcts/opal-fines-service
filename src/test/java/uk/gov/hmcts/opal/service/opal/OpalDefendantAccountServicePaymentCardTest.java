@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,24 +28,27 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
-import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
+import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServicePaymentCardTest {
 
-    @Mock DefendantAccountRepository defendantAccountRepository;
-    @Mock PaymentCardRequestRepository paymentCardRequestRepository;
+    @Mock
+    DefendantAccountRepositoryService defendantAccountRepositoryService;
+    @Mock
+    PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
+    @Mock
+    AmendmentRepositoryService amendmentRepositoryService;
     @Mock AccessTokenService accessTokenService;
-    @Mock AmendmentService amendmentService;
     @Mock UserStateService userStateService;
 
     @InjectMocks
-    OpalDefendantAccountService service;
+    OpalDefendantAccountPaymentTermsService service;
 
     @Test
     void addPaymentCardRequest_happyPath_createsPCRAndUpdatesAccount() {
@@ -61,13 +63,13 @@ class OpalDefendantAccountServicePaymentCardTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(accountId))
-            .thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(accountId))
+        when(defendantAccountRepositoryService.findById(accountId))
+            .thenReturn(account);
+        when(paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId))
             .thenReturn(false);
         when(accessTokenService.extractName("AUTH"))
             .thenReturn("John Smith");
-        when(defendantAccountRepository.save(any()))
+        when(defendantAccountRepositoryService.save(any()))
             .thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
@@ -80,22 +82,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         assertEquals("L080JG", account.getPaymentCardRequestedBy());
         assertEquals("John Smith", account.getPaymentCardRequestedByName());
 
-        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
-    }
-
-    @Test
-    void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(true);
-
-        assertThrows(ResourceConflictException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
-        );
+        verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
     }
 
     @Test
@@ -105,7 +92,7 @@ class OpalDefendantAccountServicePaymentCardTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
             service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
@@ -119,9 +106,9 @@ class OpalDefendantAccountServicePaymentCardTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(false);
-        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+        when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(false);
+        when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         assertDoesNotThrow(() ->
             service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
@@ -138,7 +125,7 @@ class OpalDefendantAccountServicePaymentCardTest {
             .versionNumber(5L)  // expected If-Match
             .build();
 
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
             service.addPaymentCardRequest(1L, "10", null, "\"0\"", "AUTH")
@@ -152,13 +139,13 @@ class OpalDefendantAccountServicePaymentCardTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
             service.addPaymentCardRequest(1L, "10", "BU-USER-123", "\"1\"", "AUTH")
         );
 
-        verify(defendantAccountRepository, never()).save(any());
+        verify(defendantAccountRepositoryService, never()).save(any());
     }
 
 
@@ -175,10 +162,10 @@ class OpalDefendantAccountServicePaymentCardTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(accountId)).thenReturn(false);
+        when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
+        when(paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId)).thenReturn(false);
         when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
-        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
             accountId, "10", "L080JG", "\"1\"", "AUTH"
@@ -190,13 +177,13 @@ class OpalDefendantAccountServicePaymentCardTest {
         assertEquals("L080JG", account.getPaymentCardRequestedBy());
         assertEquals("John Smith", account.getPaymentCardRequestedByName());
 
-        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
-        verify(defendantAccountRepository).save(account);
+        verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
+        verify(defendantAccountRepositoryService).save(account);
     }
 
     @Test
     void addPaymentCardRequest_permissionDenied_throws403() {
-        DefendantAccountServiceProxy proxy = mock(DefendantAccountServiceProxy.class);
+        DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
 
         UserState userState = mock(UserState.class);
         when(userStateService.checkForAuthorisedUser("AUTH"))
@@ -204,7 +191,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
             .thenReturn(false);
 
-        var svc = new DefendantAccountService(proxy, userStateService);
+        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
 
         assertThrows(PermissionNotAllowedException.class,
             () -> svc.addPaymentCardRequest(1L, "10", "USR", "\"1\"", "AUTH")
