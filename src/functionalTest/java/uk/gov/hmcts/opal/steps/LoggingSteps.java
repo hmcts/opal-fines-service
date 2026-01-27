@@ -60,7 +60,7 @@ public class LoggingSteps extends BaseStepDef {
     // Core routine: poll the search endpoint separately per expectation until all are satisfied or timeout.
     private void searchAllExpectations(List<PdpoExpectation> expectations) throws Exception {
         int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
-        Instant deadline = Instant.now().plusSeconds(timeoutSeconds);
+        var deadline = Instant.now().plusSeconds(timeoutSeconds);
         String url = getLoggingTestUrl() + SEARCH_PATH;
         Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
 
