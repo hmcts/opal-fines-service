@@ -58,4 +58,25 @@ class PaymentTermsServiceTest {
         paymentTermsService.deactivateExistingActivePaymentTerms(defendantAccountId);
         verify(paymentTermsRepository).deactivateActiveByDefendantAccountId(defendantAccountId);
     }
+
+    @Test
+    void addPaymentTerm_shouldSetPostedDateIfNull() {
+        PaymentTermsEntity entity = new PaymentTermsEntity();
+        entity.setPostedBy("user2");
+        entity.setPostedByUsername("username2");
+        entity.setPostedDate(null);
+
+        PaymentTermsEntity savedEntity = new PaymentTermsEntity();
+        savedEntity.setActive(true);
+        savedEntity.setPostedBy("user2");
+        savedEntity.setPostedByUsername("username2");
+        savedEntity.setPostedDate(LocalDateTime.now());
+
+        when(paymentTermsRepository.save(any(PaymentTermsEntity.class))).thenReturn(savedEntity);
+
+        PaymentTermsEntity result = paymentTermsService.addPaymentTerm(entity);
+
+        assertNotNull(result.getPostedDate());
+        verify(paymentTermsRepository).save(any(PaymentTermsEntity.class));
+    }
 }
