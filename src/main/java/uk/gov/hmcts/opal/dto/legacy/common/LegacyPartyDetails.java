@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
 
 @Data
 @Builder
@@ -24,8 +25,17 @@ public class LegacyPartyDetails {
     private Boolean organisationFlag;
 
     @XmlElement(name = "organisation_details")
-    private OrganisationDetails organisationDetails;
+    private LegacyOrganisationDetails organisationDetails;
 
     @XmlElement(name = "individual_details")
-    private IndividualDetails individualDetails;
+    private LegacyIndividualDetails individualDetails;
+
+    public  PartyDetails toOpalDto() {
+        return PartyDetails.builder()
+            .partyId(this.getPartyId())
+            .organisationFlag(this.getOrganisationFlag())
+            .organisationDetails(this.getOrganisationDetails().toOpalDto())
+            .individualDetails(this.getIndividualDetails().toOpalDto())
+            .build();
+    }
 }

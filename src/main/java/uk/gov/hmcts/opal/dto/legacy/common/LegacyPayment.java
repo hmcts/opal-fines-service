@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.Payment;
 
 @Data
 @NoArgsConstructor
@@ -15,11 +16,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "payment", propOrder = { "isBacs", "holdPayment" })
-public class Payment {
+public class LegacyPayment {
 
     @XmlElement(name = "is_bacs", required = true)
     private boolean isBacs;
 
     @XmlElement(name = "hold_payment", required = true)
     private boolean holdPayment;
+
+    public Payment toOpalDto() {
+        return Payment.builder()
+            .isBacs(this.isBacs())
+            .holdPayment(this.isHoldPayment())
+            .build();
+    }
 }

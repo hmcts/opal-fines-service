@@ -91,17 +91,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
-import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
-import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
-import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
-import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
-import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
-import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
+import uk.gov.hmcts.opal.dto.legacy.common.*;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -492,13 +482,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     @SuppressWarnings("unchecked")
     void testGetHeaderSummary_withIndividualDetails_executesMappingBranches() {
-        uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd =
-            uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+        LegacyIndividualDetails legacyInd =
+            LegacyIndividualDetails.builder()
                 .title("Mr")
                 .firstNames("John")
                 .surname("Smith")
                 .individualAliases(new
-                    uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[0])
+                                       LegacyIndividualDetails.LegacyIndividualAlias[0])
                 .build();
 
         uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails party =
@@ -556,9 +546,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void testGetHeaderSummary_withOrganisationDetails_executesMappingBranches() {
         // Build organisation alias array (nested type inside OrganisationDetails)
-        uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] orgAliasArr =
-            new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]{
-                uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
+        LegacyOrganisationDetails.LegacyOrganisationAlias[] orgAliasArr =
+            new LegacyOrganisationDetails.LegacyOrganisationAlias[]{
+                LegacyOrganisationDetails.LegacyOrganisationAlias.builder()
                     .aliasId("ORG1")
                     .sequenceNumber(Short.valueOf("1"))
                     .organisationName("AliasCo")
@@ -566,8 +556,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             };
 
         // Organisation details with alias array
-        uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails legacyOrg =
-            uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
+        LegacyOrganisationDetails legacyOrg =
+            LegacyOrganisationDetails.builder()
                 .organisationName("MainCo")
                 .organisationAliases(orgAliasArr)
                 .build();
@@ -855,12 +845,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     @SuppressWarnings("unchecked")
     void testGetHeaderSummary_individualAliases_areMapped() {
-        var alias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
+        var alias = LegacyIndividualDetails.LegacyIndividualAlias.builder()
             .aliasId("AL1").sequenceNumber(Short.valueOf("1")).surname("AliasSurname").forenames("AliasForenames")
             .build();
-        var ind = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+        var ind = LegacyIndividualDetails.builder()
             .title("Mr").firstNames("John").surname("Smith")
-            .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[]{ alias })
+            .individualAliases(new LegacyIndividualDetails.LegacyIndividualAlias[]{ alias })
             .build();
 
         var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
@@ -1445,15 +1435,15 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getAtAGlance_mapsOrganisationBranch_withAliases() {
         // org alias element
-        OrganisationDetails.OrganisationAlias orgAlias = OrganisationDetails.OrganisationAlias.builder()
+        LegacyOrganisationDetails.LegacyOrganisationAlias orgAlias = LegacyOrganisationDetails.LegacyOrganisationAlias.builder()
             .aliasId("10")
             .sequenceNumber(Short.valueOf("2"))
             .organisationName("Alt Name Ltd")
             .build();
 
-        OrganisationDetails legacyOrg = OrganisationDetails.builder()
+        LegacyOrganisationDetails legacyOrg = LegacyOrganisationDetails.builder()
             .organisationName("Acme Ltd")
-            .organisationAliases(new OrganisationDetails.OrganisationAlias[]{ orgAlias })
+            .organisationAliases(new LegacyOrganisationDetails.LegacyOrganisationAlias[]{ orgAlias })
             .build();
 
         LegacyPartyDetails party = LegacyPartyDetails.builder()
@@ -1494,21 +1484,21 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     @SuppressWarnings("unchecked")
     void getAtAGlance_mapsIndividualBranch_withAliases_andDobFormatting() {
-        IndividualDetails.IndividualAlias alias = IndividualDetails.IndividualAlias.builder()
+        LegacyIndividualDetails.LegacyIndividualAlias alias = LegacyIndividualDetails.LegacyIndividualAlias.builder()
             .aliasId("21")
             .sequenceNumber(Short.valueOf("3"))
             .surname("Smith")
             .forenames("John")
             .build();
 
-        IndividualDetails ind = IndividualDetails.builder()
+        LegacyIndividualDetails ind = LegacyIndividualDetails.builder()
             .title("Mr")
             .firstNames("John James")
             .surname("Smith")
             .dateOfBirth(null)
             .age("34")
             .nationalInsuranceNumber("QQ123456C")
-            .individualAliases(new IndividualDetails.IndividualAlias[]{ alias })
+            .individualAliases(new LegacyIndividualDetails.LegacyIndividualAlias[]{ alias })
             .build();
 
         LegacyPartyDetails party = LegacyPartyDetails.builder()
@@ -1554,8 +1544,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getAtAGlance_mapsAddress_language_payment_enforcement_comments() {
         // --- arrange legacy inputs ---
-        uk.gov.hmcts.opal.dto.legacy.common.AddressDetails addr =
-            uk.gov.hmcts.opal.dto.legacy.common.AddressDetails.builder()
+        LegacyAddressDetails addr =
+            LegacyAddressDetails.builder()
                 .addressLine1("1 Street")
                 .addressLine2("Area")
                 .addressLine3(null)
@@ -1771,11 +1761,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         method.setAccessible(true);
 
         // --- organisation branch ---
-        var orgAlias = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
+        var orgAlias = LegacyOrganisationDetails.LegacyOrganisationAlias.builder()
             .aliasId("O1").sequenceNumber((short)1).organisationName("AliasCo").build();
-        var orgDetails = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
+        var orgDetails = LegacyOrganisationDetails.builder()
             .organisationName("MainCo")
-            .organisationAliases(new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]
+            .organisationAliases(new LegacyOrganisationDetails.LegacyOrganisationAlias[]
                 {orgAlias})
             .build();
         var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
@@ -1785,11 +1775,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(method.invoke(legacyDefendantAccountService, resp));
 
         // --- individual branch ---
-        var indAlias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
+        var indAlias = LegacyIndividualDetails.LegacyIndividualAlias.builder()
             .aliasId("I1").sequenceNumber((short)1).surname("Smith").forenames("John").build();
-        var ind = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+        var ind = LegacyIndividualDetails.builder()
             .firstNames("John").surname("Smith")
-            .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[]{indAlias})
+            .individualAliases(new LegacyIndividualDetails.LegacyIndividualAlias[]{indAlias})
             .build();
         party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
             .organisationFlag(false).individualDetails(ind).build();
@@ -3216,18 +3206,18 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void legacyAliasFilters_dropNullAliasIdAndNullOrgName() {
 
-        var alias1 = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias
+        var alias1 = LegacyOrganisationDetails.LegacyOrganisationAlias
             .builder().aliasId(null).sequenceNumber((short)1).organisationName("Name").build();
 
-        var alias2 = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias
+        var alias2 = LegacyOrganisationDetails.LegacyOrganisationAlias
             .builder().aliasId("OK").sequenceNumber((short)2).organisationName(null).build();
 
-        var alias3 = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias
+        var alias3 = LegacyOrganisationDetails.LegacyOrganisationAlias
             .builder().aliasId("GOOD").sequenceNumber((short)3).organisationName("X").build();
 
-        var org = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
+        var org = LegacyOrganisationDetails.builder()
             .organisationName("Main")
-            .organisationAliases(new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]{
+            .organisationAliases(new LegacyOrganisationDetails.LegacyOrganisationAlias[]{
                 alias1, alias2, alias3
             })
             .build();
@@ -3257,8 +3247,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void legacyIndividual_dateOfBirthFormattingBranch() {
 
-        uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails ind =
-            uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+        LegacyIndividualDetails ind =
+            LegacyIndividualDetails.builder()
                 .dateOfBirth(java.time.LocalDate.of(1990, 1, 1))
                 .surname("Smith")
                 .build();

@@ -8,7 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
-import uk.gov.hmcts.opal.dto.legacy.Defendant;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendant;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 
@@ -36,7 +36,7 @@ class LegacyMinorCreditorServiceTest {
                 .activeAccountsOnly(true)
                 .build();
 
-        Defendant defendant = Defendant.builder()
+        LegacyDefendant defendant = LegacyDefendant.builder()
                 .defendantAccountId("5L")
                 .firstnames("Jane")
                 .surname("Smith")

@@ -29,16 +29,16 @@ public class DefendantDetails {
     private Boolean organisationFlag;
 
     @XmlElement(name = "address")
-    private AddressDetails address;
+    private LegacyAddressDetails address;
 
     @XmlElement(name = "language_preferences")
     private LanguagePreferences languagePreferences;
 
     @XmlElement(name = "organisation_details")
-    private OrganisationDetails organisationDetails;
+    private LegacyOrganisationDetails organisationDetails;
 
     @XmlElement(name = "individual_details")
-    private IndividualDetails individualDetails;
+    private LegacyIndividualDetails individualDetails;
 
     @XmlElement(name = "is_youth_flag")
     private Boolean isYouthFlag;

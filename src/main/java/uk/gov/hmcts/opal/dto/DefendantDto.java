@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -19,4 +20,10 @@ public class DefendantDto {
     private String organisationName;
     private String firstnames;
     private String surname;
+
+    @JsonProperty("account_number")
+    private String accountNumber;
+
+    @JsonProperty("account_id")
+    private Long accountId;
 }

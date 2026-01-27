@@ -26,8 +26,8 @@ public class GetMinorCreditorAccountAtAGlanceResponse implements ToJsonString{
     private Long creditorAccountId;
 
     @JsonProperty("defendant")
-    private Boolean defendant;
+    private DefendantDto defendant;
 
     @JsonProperty("payment")
-    private Boolean payment;
+    private Payment payment;
 }

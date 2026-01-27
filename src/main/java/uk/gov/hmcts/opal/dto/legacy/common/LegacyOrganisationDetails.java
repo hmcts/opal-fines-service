@@ -10,6 +10,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Data
 @Builder
@@ -19,13 +25,13 @@ import lombok.extern.jackson.Jacksonized;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OrganisationDetails {
+public class LegacyOrganisationDetails {
 
     @XmlElement(name = "organisation_name")
     private String organisationName;
 
     @XmlElement(name = "organisation_aliases")
-    private OrganisationAlias[] organisationAliases;
+    private LegacyOrganisationAlias[] organisationAliases;
 
     @Data
     @Builder
@@ -34,7 +40,7 @@ public class OrganisationDetails {
     @Jacksonized
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class OrganisationAlias {
+    public static class LegacyOrganisationAlias {
 
         @XmlElement(name = "alias_id")
         private String aliasId;
@@ -45,5 +51,24 @@ public class OrganisationDetails {
         @XmlElement(name = "organisation_name")
         private String organisationName;
 
+        public OrganisationAlias toOpalDto () {
+            return OrganisationAlias.builder()
+                .aliasId(this.getAliasId())
+                .sequenceNumber(Integer.valueOf(this.getSequenceNumber()))
+                .organisationName(this.getOrganisationName())
+                .build();
+        }
+
+    }
+
+    public OrganisationDetails toOpalDto () {
+        return OrganisationDetails.builder()
+            .organisationName(this.getOrganisationName())
+            .organisationAliases(this.getOrganisationAliases() == null
+                ? Collections.emptyList()
+                : Arrays.stream(this.getOrganisationAliases())
+                    .map(LegacyOrganisationAlias::toOpalDto)
+                    .toList())
+            .build();
     }
 }

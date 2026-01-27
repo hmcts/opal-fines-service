@@ -11,9 +11,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
-import uk.gov.hmcts.opal.dto.legacy.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.Payment;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyAddressDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
 
 import java.math.BigInteger;
 
@@ -35,10 +35,10 @@ import java.math.BigInteger;
 public class  LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlString {
 
     @XmlElement(name = "party", required = false)
-    private PartyDetails party;
+    private LegacyPartyDetails party;
 
     @XmlElement(name = "address", required = false)
-    private AddressDetails address;
+    private LegacyAddressDetails address;
 
     @XmlElement(name = "creditor_account_id", required = false)
     private Long creditorAccountId; // xsd:long
@@ -47,16 +47,21 @@ public class  LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlStr
     private BigInteger creditorAccountVersion;
 
     @XmlElement(name = "defendant", required = false)
-    private Defendant defendant;
+    private LegacyDefendant defendant;
 
     @XmlElement(name = "payment", required = false)
-    private Payment payment;
+    private LegacyPayment payment;
 
     @XmlElement(name = "error_response", required = false)
     private ErrorResponse errorResponse;
 
-    public GetMinorCreditorAccountAtAGlanceResponse toOpalResponse(LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse) {
-
+    public GetMinorCreditorAccountAtAGlanceResponse toOpalResponse() {
+        return GetMinorCreditorAccountAtAGlanceResponse.builder()
+            .party(this.getParty().toOpalDto())
+            .address(this.getAddress().toOpalDto())
+            .creditorAccountId(this.getCreditorAccountId())
+            .defendant(this.getDefendant().toOpalDto())
+            .payment(this.getPayment().toOpalDto()).build();
     }
 }
 

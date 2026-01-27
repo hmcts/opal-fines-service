@@ -64,5 +64,5 @@ public class CreditorAccount {
     private double accountBalance;
 
     @XmlElement(name = "defendant", required = true)
-    private Defendant defendant;
+    private LegacyDefendant defendant;
 }
