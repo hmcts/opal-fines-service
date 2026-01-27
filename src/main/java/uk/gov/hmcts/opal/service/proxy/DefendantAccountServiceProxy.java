@@ -47,6 +47,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }
 
+    @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
                                                                      Long defendantAccountPartyId) {
         return getCurrentModeService().getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
@@ -57,6 +58,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
         return getCurrentModeService().getPaymentTerms(defendantAccountId);
     }
 
+    @Override
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         return getCurrentModeService().getAtAGlance(defendantAccountId);
     }
