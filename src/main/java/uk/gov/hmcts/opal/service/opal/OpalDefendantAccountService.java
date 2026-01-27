@@ -1113,6 +1113,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         PaymentTermsEntity paymentTermsEntity
             = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
         paymentTermsEntity.setDefendantAccount(defAccount);
+        // If not included in the request, infer these from the token/user context
+        if (paymentTermsEntity.getPostedByUsername() == null) {
+            paymentTermsEntity.setPostedByUsername(businessUnitUserId);
+        }
+        if (paymentTermsEntity.getPostedBy() == null) {
+            paymentTermsEntity.setPostedBy(businessUnitUserId);
+        }
         // Persist the new (active) PaymentTermsEntity
         PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
 

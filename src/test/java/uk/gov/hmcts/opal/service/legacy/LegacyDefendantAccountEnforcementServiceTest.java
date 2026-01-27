@@ -493,7 +493,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                     .build())
             .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
                 .lja(LjaReference.builder()
-                    .ljaId(1).ljaName("England").build())
+                    .ljaId((short) 1).ljaName("England").build())
                 .enforcer(EnforcerReference.builder()
                     .enforcerId(2L).enforcerName("Arthur").build())
                 .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
@@ -564,14 +564,17 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
         // non-null PostedDetails -> LegacyPostedDetails with copied fields
         PostedDetails pd = mock(PostedDetails.class);
-        when(pd.getPostedDate()).thenReturn(LocalDate.of(2024, 6, 1));
+        when(pd.getPostedDate())
+            .thenReturn(LocalDateTime.of(2024, 6, 1, 10, 11, 12));
         when(pd.getPostedBy()).thenReturn("u123");
         when(pd.getPostedByName()).thenReturn("User Name");
 
         Object lpd = m.invoke(legacyDefendantAccountEnforcementService, pd);
         assertNotNull(lpd);
         Class<?> lpdClass = lpd.getClass();
-        assertEquals(LocalDate.of(2024, 6, 1), lpdClass.getMethod("getPostedDate")
+        assertEquals(
+            LocalDateTime.of(2024, 6, 1, 10, 11, 12),
+            lpdClass.getMethod("getPostedDate")
             .invoke(lpd));
         assertEquals("u123", lpdClass.getMethod("getPostedBy").invoke(lpd));
         assertEquals("User Name", lpdClass.getMethod("getPostedByName").invoke(lpd));

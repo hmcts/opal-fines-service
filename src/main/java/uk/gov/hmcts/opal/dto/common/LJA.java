@@ -16,6 +16,9 @@ public class LJA implements ToJsonString {
     @JsonProperty("lja_id")
     private Integer ljaId;
 
+    @JsonProperty("lja_code")
+    private String ljaCode;
+
     @JsonProperty("lja_name")
     private String ljaName;
 }
