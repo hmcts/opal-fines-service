@@ -11,10 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class LoggingSteps extends BaseStepDef {
 
@@ -22,11 +30,15 @@ public class LoggingSteps extends BaseStepDef {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String SEARCH_PATH = "/test-support/search";
 
-    private static final int DEFAULT_TIMEOUT_SECONDS = Optional.ofNullable(System.getenv("LOG_SEARCH_TIMEOUT_SECONDS"))
-        .map(Integer::parseInt).orElse(60);
+    private static final int DEFAULT_TIMEOUT_SECONDS =
+        Optional.ofNullable(System.getenv("LOG_SEARCH_TIMEOUT_SECONDS"))
+            .map(Integer::parseInt)
+            .orElse(60);
 
-    private static final int DEFAULT_POLL_MILLIS = Optional.ofNullable(System.getenv("LOG_SEARCH_POLL_MILLIS"))
-        .map(Integer::parseInt).orElse(1000);
+    private static final int DEFAULT_POLL_MILLIS =
+        Optional.ofNullable(System.getenv("LOG_SEARCH_POLL_MILLIS"))
+            .map(Integer::parseInt)
+            .orElse(1000);
 
     // Map business_identifier -> expected individuals[].type (entity type)
     private static final Map<String, String> BUSINESS_TO_ENTITY_TYPE = Map.of(
@@ -60,7 +72,7 @@ public class LoggingSteps extends BaseStepDef {
     // Core routine: poll the search endpoint separately per expectation until all are satisfied or timeout.
     private void searchAllExpectations(List<PdpoExpectation> expectations) throws Exception {
         int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
-        var deadline = Instant.now().plusSeconds(timeoutSeconds);
+        Instant deadline = Instant.now().plusSeconds(timeoutSeconds);
         String url = getLoggingTestUrl() + SEARCH_PATH;
         Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
 
@@ -70,10 +82,13 @@ public class LoggingSteps extends BaseStepDef {
         Throwable lastException = null;
         String lastResponseBody = null;
 
-        log.info("Polling logging service {} for {} expectations up to {}s", url, expectations.size(), timeoutSeconds);
+        log.info("Polling logging service {} for {} expectations up to {}s",
+                 url, expectations.size(), timeoutSeconds);
 
         while (Instant.now().isBefore(deadline) && !remaining.isEmpty()) {
-            for (Iterator<Map.Entry<PdpoExpectation, Integer>> it = remaining.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator<Map.Entry<PdpoExpectation, Integer>> it = remaining.entrySet().iterator();
+                 it.hasNext(); ) {
+
                 Map.Entry<PdpoExpectation, Integer> entry = it.next();
                 PdpoExpectation exp = entry.getKey();
                 int need = entry.getValue();
@@ -87,7 +102,10 @@ public class LoggingSteps extends BaseStepDef {
                     payload.put("business_identifier", exp.businessIdentifier);
 
                     String createdDraftId = getCreatedDraftAccountId();
-                    if (createdDraftId != null && !createdDraftId.isBlank() && !createdDraftId.startsWith("<")) {
+                    if (createdDraftId != null
+                        && !createdDraftId.isBlank()
+                        && !createdDraftId.startsWith("<")) {
+
                         payload.put("individual_id", createdDraftId);
                     }
 
@@ -105,16 +123,24 @@ public class LoggingSteps extends BaseStepDef {
                     log.info("PDPO search returned status={} body={}", status, body);
 
                     // if empty and we have a draft id, try alternate nested key once
-                    if (status == 200 && (body == null || body.isBlank() || body.equals("[]")) && createdDraftId != null) {
+                    if (status == 200
+                        && (body == null || body.isBlank() || body.equals("[]"))
+                        && createdDraftId != null) {
+
                         Map<String,Object> altPayload = new HashMap<>(payload);
                         altPayload.remove("individual_id");
                         altPayload.put("individuals.id", createdDraftId);
-                        log.debug("Retrying with alternative payload: {}", MAPPER.writeValueAsString(altPayload));
+                        log.debug("Retrying with alternative payload: {}",
+                                  MAPPER.writeValueAsString(altPayload));
                         Response altResp = SerenityRest.given().contentType("application/json")
                             .body(MAPPER.writeValueAsString(altPayload))
                             .when().post(url);
-                        log.info("Alt search returned status={} body={}", altResp.getStatusCode(), altResp.getBody().asString());
-                        if (altResp.getStatusCode() == 200 && !altResp.getBody().asString().isBlank() && !altResp.getBody().asString().equals("[]")) {
+                        log.info("Alt search returned status={} body={}", altResp.getStatusCode(),
+                                 altResp.getBody().asString());
+                        if (altResp.getStatusCode() == 200
+                            && !altResp.getBody().asString().isBlank()
+                            && !altResp.getBody().asString().equals("[]")) {
+
                             body = altResp.getBody().asString();
                         }
                     }
@@ -127,7 +153,9 @@ public class LoggingSteps extends BaseStepDef {
                         if (entries.isArray()) {
                             String expectedDraftId = getCreatedDraftAccountId();
                             for (JsonNode rec : entries) {
-                                if (!matchesCreatedByAndBusiness(rec, exp.createdById, exp.createdByType, exp.businessIdentifier)) {
+                                if (!matchesCreatedByAndBusiness(rec, exp.createdById,
+                                                                 exp.createdByType, exp.businessIdentifier)) {
+
                                     continue;
                                 }
 
@@ -145,7 +173,8 @@ public class LoggingSteps extends BaseStepDef {
                                         }
                                     }
                                     if (!referencesExpectedDraft) {
-                                        log.debug("Record {} matches business/created_by but not draft id; skipping", rec.path("pdpo_log_id").asText());
+                                        log.debug("Record {} matches business/created_by but not draft id; skipping",
+                                                  rec.path("pdpo_log_id").asText());
                                         continue;
                                     }
                                 }
@@ -155,17 +184,20 @@ public class LoggingSteps extends BaseStepDef {
                                     foundCount++;
                                 } catch (AssertionError ae) {
                                     lastException = ae;
-                                    log.warn("Found record for {} but assertion failed: {}", exp.businessIdentifier, ae.getMessage());
+                                    log.warn("Found record for {} but assertion failed: {}",
+                                             exp.businessIdentifier, ae.getMessage());
                                 }
                             }
                         }
 
                         if (foundCount >= need) {
                             it.remove();
-                            log.info("Expectation satisfied for '{}' (found {}). Remaining expectations: {}", exp.businessIdentifier, foundCount, remaining.size());
+                            log.info("Expectation satisfied for '{}' (found {}). Remaining expectations: {}",
+                                     exp.businessIdentifier, foundCount, remaining.size());
                         } else {
                             entry.setValue(need - foundCount);
-                            log.debug("Expectation '{}' still needs {} more (found {})", exp.businessIdentifier, need - foundCount, foundCount);
+                            log.debug("Expectation '{}' still needs {} more (found {})",
+                                      exp.businessIdentifier, need - foundCount, foundCount);
                         }
                     } else {
                         lastException = new RuntimeException("status=" + status + " body=" + body);
@@ -189,8 +221,10 @@ public class LoggingSteps extends BaseStepDef {
         String outstanding = remaining.keySet().stream()
             .map(e -> e.businessIdentifier + "(need=" + remaining.get(e) + ")")
             .collect(Collectors.joining(","));
-        String err = String.format("Did not find all logging entries within %d seconds. Outstanding: %s. Last response body: %s",
-                                   DEFAULT_TIMEOUT_SECONDS, outstanding, lastResponseBody);
+        String err = String.format(
+            "Did not find all logging entries within %d seconds. Outstanding: %s. Last response body: %s",
+            DEFAULT_TIMEOUT_SECONDS, outstanding, lastResponseBody
+        );
         if (lastException != null) {
             err += ". Last exception: " + lastException.getMessage();
         }
@@ -225,10 +259,13 @@ public class LoggingSteps extends BaseStepDef {
         assertTrue(entityTypeFound, "individuals did not contain expected entity type=" + expectedEntityType);
 
         // business_identifier must match
-        assertEquals(businessIdentifier, rec.path("business_identifier").asText(null), "business_identifier should match expected");
+        assertEquals(businessIdentifier, rec.path("business_identifier").asText(null),
+                     "business_identifier should match expected");
     }
 
-    private boolean matchesCreatedByAndBusiness(JsonNode rec, String createdById, String createdByType, String businessIdentifier) {
+    private boolean matchesCreatedByAndBusiness(JsonNode rec, String createdById, String createdByType,
+                                                String businessIdentifier) {
+
         JsonNode cb = rec.path("created_by");
         String id = cb.path("id").asText(null);
         String type = cb.path("type").asText(null);
@@ -263,10 +300,13 @@ public class LoggingSteps extends BaseStepDef {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof PdpoExpectation other)) return false;
-            return Objects.equals(createdById, other.createdById) &&
-                Objects.equals(createdByType, other.createdByType) &&
-                Objects.equals(businessIdentifier, other.businessIdentifier);
+            if (!(o instanceof PdpoExpectation)) {
+                return false;
+            }
+            PdpoExpectation other = (PdpoExpectation) o;
+            return Objects.equals(createdById, other.createdById)
+                && Objects.equals(createdByType, other.createdByType)
+                && Objects.equals(businessIdentifier, other.businessIdentifier);
         }
 
         @Override
