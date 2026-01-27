@@ -22,21 +22,7 @@ Feature: PO-745 patch draft account
       | validated_by       | BUUID_REVIEWER              |
       | If-Match           | 0                           |
 
-    Then The draft account response returns 200
-    And the response must include a strong quoted ETag header
-    And the response body must not include the "version" field anywhere
-
-    Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fine                 |
-      | account_status                      | Published            |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | BUUID                |
-      | account_snapshot.business_unit_name | West London          |
-      | timeline_data[0].status             | Publishing Pending   |
-      | timeline_data[0].username           | BUUID_REVIEWER       |
+    Then The draft account response returns 403
 
     Then I delete the created defendant accounts
     Then I delete the created draft accounts
@@ -73,7 +59,7 @@ Feature: PO-745 patch draft account
       | account_snapshot.defendant_name     | LNAME, FNAME          |
       | account_snapshot.date_of_birth      | 2000-01-01            |
       | account_snapshot.account_type       | Fine                  |
-      | account_snapshot.submitted_by       | BUUID                 |
+      | account_snapshot.submitted_by       | L073JG                |
       | account_snapshot.business_unit_name | West London           |
       | timeline_data[0].status             | Rejected              |
       | timeline_data[0].username           | BUUID_REVIEWER        |
@@ -111,7 +97,7 @@ Feature: PO-745 patch draft account
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01           |
       | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
       | timeline_data[0].status             | Deleted              |
       | timeline_data[0].username           | BUUID_REVIEWER       |

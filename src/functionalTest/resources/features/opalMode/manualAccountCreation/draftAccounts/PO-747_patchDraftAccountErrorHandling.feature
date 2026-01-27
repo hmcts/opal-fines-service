@@ -97,7 +97,7 @@ Feature: PO-747 patch draft account error handling
     # First PATCH uses the "before" ETag → succeeds and increments version
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
-      | account_status   | Publishing Pending   |
+      | account_status   | Rejected             |
       | validated_by     | BUUID_REVIEWER       |
       | reason_text      | Reason for change    |
       | If-Match         | $etag:before         |
@@ -107,10 +107,8 @@ Feature: PO-747 patch draft account error handling
     # Second PATCH reuses the stale "before" eTag again → 409 Conflict
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
-      | account_status   | Submitted            |
+      | account_status   | Deleted              |
       | validated_by     | BUUID_REVIEWER       |
       | reason_text      | Revert               |
       | If-Match         | $etag:before         |
     Then The draft account response returns 409
-
-
