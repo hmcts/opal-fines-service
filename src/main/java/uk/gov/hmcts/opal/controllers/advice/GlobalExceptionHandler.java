@@ -49,6 +49,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -493,6 +494,18 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
     }
 
+    @ExceptionHandler(SubmitterCannotValidateException.class)
+    public ResponseEntity<ProblemDetail> handleSubmitterCannotValidateException(SubmitterCannotValidateException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Submitter cannot validate",
+            "A single user cannot submit and validate the same Draft Account",
+            "submitter-cannot-validate",
+            false,
+            e
+        );
+        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
+    }
     @ExceptionHandler(GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException.class)
     public ResponseEntity<ProblemDetail> handlePaymentCardRequestAlreadyExists(
         PaymentCardRequestAlreadyExistsException e) {
@@ -511,8 +524,6 @@ public class GlobalExceptionHandler {
 
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
     }
-
-
     @ExceptionHandler(FeignException.Unauthorized.class)
     public ResponseEntity<ProblemDetail> handleFeignExceptionUnauthorized(FeignException.Unauthorized e) {
         ProblemDetail problemDetail = createProblemDetail(
