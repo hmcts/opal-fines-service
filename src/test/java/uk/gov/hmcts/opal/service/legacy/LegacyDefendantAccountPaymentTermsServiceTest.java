@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -236,7 +237,7 @@ public class LegacyDefendantAccountPaymentTermsServiceTest {
     void getPaymentTerms_versionNull_defaultsToOne_and_mapsPostedDetails() {
         // Build a legacy response where version is null and postedDetails present
         LegacyPostedDetails legacyPosted = new LegacyPostedDetails();
-        legacyPosted.setPostedDate(LocalDate.of(2025, 2, 14));
+        legacyPosted.setPostedDate(LocalDateTime.of(2025, 2, 14, 9, 10, 11));
         legacyPosted.setPostedBy("u-x");
         legacyPosted.setPostedByName("User X");
 
@@ -270,7 +271,8 @@ public class LegacyDefendantAccountPaymentTermsServiceTest {
         assertNotNull(pt);
         PostedDetails pd = pt.getPostedDetails();
         assertNotNull(pd);
-        assertEquals(LocalDate.of(2025, 2, 14), pd.getPostedDate());
+        assertEquals(
+            LocalDateTime.of(2025, 2, 14, 9, 10, 11), pd.getPostedDate());
         assertEquals("u-x", pd.getPostedBy());
         assertEquals("User X", pd.getPostedByName());
     }
@@ -315,7 +317,8 @@ public class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // non-null -> PostedDetails with fields copied
         LegacyPostedDetails legacyPosted = new LegacyPostedDetails();
-        legacyPosted.setPostedDate(LocalDate.of(2023, 12, 25));
+        legacyPosted.setPostedDate(
+            LocalDateTime.of(2023, 12, 25, 9, 10, 11));
         legacyPosted.setPostedBy("user-99");
         legacyPosted.setPostedByName("Xmas User");
 
@@ -324,7 +327,8 @@ public class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // mapped is uk.gov.hmcts.opal.dto.PostedDetails
         PostedDetails pd = (PostedDetails) mapped;
-        assertEquals(LocalDate.of(2023, 12, 25), pd.getPostedDate());
+        assertEquals(LocalDateTime.of(2023, 12, 25, 9, 10, 11),
+            pd.getPostedDate());
         assertEquals("user-99", pd.getPostedBy());
         assertEquals("Xmas User", pd.getPostedByName());
     }
