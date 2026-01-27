@@ -66,7 +66,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
       | account_snapshot.account_type       | Fine        |
-      | account_snapshot.submitted_by       | BUUID       |
+      | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
     Then I delete the created draft accounts
@@ -105,7 +105,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
       | account_snapshot.account_type       | Fine        |
-      | account_snapshot.submitted_by       | BUUID       |
+      | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
     Then I delete the created draft accounts
@@ -143,7 +143,6 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_snapshot.defendant_name     | null, null    |
       | account_snapshot.date_of_birth      |               |
       | account_snapshot.account_type       | Fine          |
-      | account_snapshot.submitted_by       | BUUID         |
       | account_snapshot.business_unit_name | Hertfordshire |
 
     Then I delete the created draft accounts
@@ -179,7 +178,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01           |
       | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
 
     Then I delete the created draft accounts
@@ -213,7 +212,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
       | account_snapshot.account_type       | Fine        |
-      | account_snapshot.submitted_by       | BUUID       |
+      | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
     Then I delete the created draft accounts

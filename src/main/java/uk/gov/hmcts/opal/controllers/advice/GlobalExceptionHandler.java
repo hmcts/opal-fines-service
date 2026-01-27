@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -474,6 +475,19 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("resourceId", e.getResourceId());
         problemDetail.setProperty("conflictReason", e.getConflictReason());
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
+    }
+
+    @ExceptionHandler(SubmitterCannotValidateException.class)
+    public ResponseEntity<ProblemDetail> handleSubmitterCannotValidateException(SubmitterCannotValidateException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Submitter cannot validate",
+            "A single user cannot submit and validate the same Draft Account",
+            "submitter-cannot-validate",
+            false,
+            e
+        );
+        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
     @ExceptionHandler(FeignException.Unauthorized.class)
