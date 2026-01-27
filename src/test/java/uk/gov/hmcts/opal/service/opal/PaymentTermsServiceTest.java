@@ -33,6 +33,7 @@ class PaymentTermsServiceTest {
         PaymentTermsEntity entity = new PaymentTermsEntity();
         entity.setPostedBy("user1");
         entity.setPostedByUsername("username1");
+        entity.setPostedDate(LocalDateTime.now());
 
         PaymentTermsEntity savedEntity = new PaymentTermsEntity();
         savedEntity.setActive(true);
