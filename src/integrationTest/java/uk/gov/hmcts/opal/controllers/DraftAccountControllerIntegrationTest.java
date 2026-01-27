@@ -1,30 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
-
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +17,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -53,9 +30,52 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(
+    scripts = {
+        "classpath:db/deleteData/delete_from_draft_accounts.sql",
+        "classpath:db/insertData/insert_into_draft_accounts.sql"
+    },
+    executionPhase = BEFORE_TEST_METHOD
+)
+@Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_METHOD)
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -399,7 +419,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
     void testReplaceDraftAccount_success() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
@@ -416,7 +437,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(5))
             .andExpect(jsonPath("$.business_unit_id").value(78))
-            .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
+            .andExpect(jsonPath("$.submitted_by").value("USER01"))
+            .andExpect(jsonPath("$.submitted_by_name").value("normal@users.com"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.timeline_data").isArray());
@@ -489,7 +511,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostDraftAccount_permission() throws Exception {
 
         String validRequestBody = validRawJsonCreateRequestBody();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                                                .header("authorization", "Bearer some_value")
@@ -501,7 +524,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
+            .andExpect(jsonPath("$.submitted_by").value("USER01"))
+            .andExpect(jsonPath("$.submitted_by_name").value("normal@users.com"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
@@ -509,33 +533,35 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when submitted_by_name is blank")
+    @DisplayName("Should ignore blank submitted_by_name")
     void shouldReturn400WhenSubmittedByNameIsBlank() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by_name\": \"John\"", "\"submitted_by_name\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
                 .header("Authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isCreated());
     }
 
     @Test
-    @DisplayName("Should return 400 when submitted_by is blank")
+    @DisplayName("Should ignore blank submitted_by")
     void shouldReturn400WhenSubmittedByIsBlank() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by\": \"BUUID1\"", "\"submitted_by\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
                 .header("Authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isCreated());
     }
 
     @Test
@@ -544,7 +570,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String request = validCreateRequestBody()
             .replace("\"account_type\": \"Fines\"", "\"account_type\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
                 .header("Authorization", "Bearer some_value")
@@ -558,7 +585,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
     void testUpdateDraftAccount_success() throws Exception {
         Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
             .header("authorization", "Bearer some_value")
@@ -575,6 +603,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
+            .andExpect(jsonPath("$.validated_by").value("USER01"))
+            .andExpect(jsonPath("$.validated_by_name").value("normal@users.com"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
@@ -584,7 +614,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Update draft account - If-Match Conflict [@PO-2117]")
     void testUpdateDraftAccount_conflict() throws Exception {
         Long draftAccountId = 6L;
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
             .header("authorization", "Bearer some_value")
@@ -650,6 +681,41 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+    }
+
+    @Test
+    @DisplayName("Patch draft account - submitter cannot validate their own submission")
+    void testPatchDraftAccount_submitterCannotValidate_returns403() throws Exception {
+        Long draftAccountId = 7L; // submitted_by = user_003 in seed data
+
+        BusinessUnitUser buUser = BusinessUnitUser.builder()
+            .businessUnitUserId("user_003")
+            .businessUnitId((short)78)
+            .permissions(Set.of(Permission.builder()
+                                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
+                                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
+                                .build()))
+            .build();
+        UserState userState = UserState.builder()
+            .userId(1L)
+            .userName("normal@users.com")
+            .businessUnitUser(Set.of(buUser))
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validUpdateRequestBody("78", "Publishing Pending","A")));
+
+        resultActions.andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/submitter-cannot-validate"))
+            .andExpect(jsonPath("$.title").value("Submitter cannot validate"))
+            .andExpect(jsonPath("$.detail")
+                           .value("A single user cannot submit and validate the same Draft Account"));
     }
 
 
@@ -840,7 +906,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
                 + " found 15 validation errors:";
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                             .header("authorization", "Bearer some_value")
@@ -963,7 +1030,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void methodsShouldReturn400_whenRequestPayloadIsInvalid(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            permissionUser((short)78,
+                           FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                           FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(requestBuilder
                             .header("Authorization", "Bearer some_value")
@@ -1022,7 +1092,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         long nonExistentId = 999L;
 
         // Mock the service behavior
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            permissionUser((short)78,
+                           FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                           FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(requestBuilder
                 .header("Authorization", "Bearer some_value")
@@ -1046,7 +1119,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            permissionUser((short)78,
+                           FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                           FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         mockMvc.perform(requestBuilder
                 .header("Authorization", "Bearer some_value")
                 .header("Accept", "application/xml")
