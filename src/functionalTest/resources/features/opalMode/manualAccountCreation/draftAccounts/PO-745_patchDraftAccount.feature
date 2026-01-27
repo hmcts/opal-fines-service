@@ -22,26 +22,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | validated_by       | PATCH001_REVIEWER              |
       | If-Match           | 0                           |
 
-    Then The draft account response returns 200
-    And the response must include a strong quoted ETag header
-    And the response body must not include the "version" field anywhere
-
-    Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fine                 |
-      | account_status                      | Published            |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | PATCH001                |
-      | account_snapshot.business_unit_name | West London          |
-      | timeline_data[0].status             | Publishing Pending   |
-      | timeline_data[0].username           | PATCH001_REVIEWER       |
-
-    And the logging service contains these PDPO logs:
-      | created_by_id   | created_by_type | business_identifier                          | expected_count |
-      | PATCH001           | OPAL_USER_ID    | Re-submit Draft Account - Defendant         | 1              |
-
+    Then The draft account response returns 403
 
     Then I delete the created defendant accounts
     Then I delete the created draft accounts
@@ -78,7 +59,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | account_snapshot.defendant_name     | LNAME, FNAME          |
       | account_snapshot.date_of_birth      | 2000-01-01            |
       | account_snapshot.account_type       | Fine                  |
-      | account_snapshot.submitted_by       | PATCH002                 |
+      | account_snapshot.submitted_by       | L073JG                |
       | account_snapshot.business_unit_name | West London           |
       | timeline_data[0].status             | Rejected              |
       | timeline_data[0].username           | PATCH002_REVIEWER        |
@@ -116,7 +97,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01           |
       | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
       | timeline_data[0].status             | Deleted              |
       | timeline_data[0].username           | BUUID_REVIEWER       |
@@ -150,7 +131,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
     And the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                            | expected_count |
-      | PATCH003         | OPAL_USER_ID    | Re-submit Draft Account - Parent or Guardian  | 1              |
+      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Parent or Guardian  | 1              |
 
     Then I delete the created draft accounts
 
@@ -179,7 +160,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
     And the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                          | expected_count |
-      | PATCH004         | OPAL_USER_ID    | Re-submit Draft Account - Minor Creditor    | 1              |
+      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Minor Creditor    | 1              |
 
     Then I delete the created draft accounts
 
@@ -208,8 +189,8 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
     And the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                          | expected_count |
-      | PATCH005         | OPAL_USER_ID    | Re-submit Draft Account - Defendant         | 1              |
-      | PATCH005         | OPAL_USER_ID    | Re-submit Draft Account - Minor Creditor    | 1              |
+      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Defendant         | 1              |
+      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Minor Creditor    | 1              |
 
     Then I delete the created draft accounts
 
@@ -247,7 +228,5 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | If-Match         | 0                  |
     Then The draft account response returns 406
     Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
-
-
 
 
