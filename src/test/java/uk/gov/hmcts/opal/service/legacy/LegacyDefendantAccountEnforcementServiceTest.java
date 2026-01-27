@@ -493,7 +493,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                     .build())
             .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
                 .lja(LjaReference.builder()
-                    .ljaId(1).ljaName("England").build())
+                    .ljaId((short) 1).ljaName("England").build())
                 .enforcer(EnforcerReference.builder()
                     .enforcerId(2L).enforcerName("Arthur").build())
                 .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
