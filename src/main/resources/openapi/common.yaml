@@ -58,6 +58,8 @@ components:
       properties:
         lja_id:
           type: integer
+        lja_code:
+          type: string
         lja_name:
           type: string
       required:
