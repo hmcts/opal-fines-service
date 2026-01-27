@@ -111,7 +111,7 @@ public class DraftAccountController {
     public ResponseEntity<String> deleteDraftAccountById(
         @PathVariable Long draftAccountId,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
-        @RequestHeader(value = "If-Match") String ifMatch,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
         // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.

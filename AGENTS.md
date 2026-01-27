@@ -23,10 +23,15 @@ JUnit 5 backs unit, integration, and db tests, so mirror source packages and nam
 - Mock external dependencies (repos, clients, UUID/time sources) to keep tests fast and deterministic, and name tests `given_<precondition>_when_<action>_then_<outcome>`.
 
 ## Code Review Guidance for Agents
+- Review format: `"[Severity]: <Rule>\nProblem: ...\nWhy: ...\nFix: ..."` so comments stay actionable.
 - **P0 blockers:** security flaws (auth gaps, SQL injection risk), data corruption, or behaviour regressions such as missing transaction boundaries or unchecked nulls. Halt the review and request a fix.
 - **P1 high risk:** concurrency bugs, resource leaks, inefficient repository usage (N+1 queries, full scans), or logging sensitive data. Flag with remediation steps and confirm targeted tests exist.
 - **P2 advisory:** naming, duplicate code, or documentation gaps—note these only when they clarify future work.
-- Use the template `"[Severity]: <Rule>\nProblem: ...\nWhy: ...\nFix: ..."` so comments stay actionable.
+- Prefer descriptive names over abbreviations for classes, methods, and variables.
+- Prefer clarity over terseness: avoid dense one-liners or deep nesting that hurts readability.
+- Flag solutions that diverge from established HMCTS Opal patterns for layering, naming, or error handling.
+- Avoid duplicating validation already enforced by OpenAPI constraints or global HMCTS handlers; confirm the correct HMCTS exception type/mapper is used.
+- Prefer shared validators/handlers over bespoke checks when behavior already exists.
 - Prefer small, deterministic examples (e.g., reference `src/main/java/...Service`) and remind contributors to run local Checkstyle/PMD (`./gradlew check`) before asking for re-review.
 - Reviewers should call out duplicated logic and suggest extraction to shared utilities when the same transformation, validation, or formatting exists in multiple services; always check `src/main/java/**/util` for an existing helper before reimplementing, and propose moving new reusable methods there.
 

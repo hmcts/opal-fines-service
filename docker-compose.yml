@@ -1,4 +1,4 @@
-
+#This is a depreciated file and will be removed in future versions. Please refer to the docker-readme for more information.
 services:
   opal-fines-service:
     container_name: opal-fines-service
@@ -11,13 +11,6 @@ services:
     environment:
       # these environment variables are used by java-logging library
       - ROOT_APPENDER
-      - JSON_CONSOLE_PRETTY_PRINT
-      - ROOT_LOGGING_LEVEL
-      - REFORM_SERVICE_TYPE
-      - REFORM_SERVICE_NAME
-      - REFORM_TEAM
-      - REFORM_ENVIRONMENT
-      - LOGBACK_DATE_FORMAT
       - LOGBACK_REQUIRE_THREAD
       - LOGBACK_REQUIRE_ALERT_LEVEL=false
       - LOGBACK_REQUIRE_ERROR_CODE=false

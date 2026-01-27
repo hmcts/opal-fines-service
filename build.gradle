@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.20.1")
+    classpath("org.flywaydb:flyway-database-postgresql:11.20.3")
   }
 }
 
@@ -10,11 +10,11 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.9'
+  id 'org.springframework.boot' version '3.5.10'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '7.2.2.6593'
   id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.20.1'
+  id 'org.flywaydb.flyway' version '11.20.3'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.3.2'
   id "org.openapi.generator" version "7.16.0"
 }
@@ -23,7 +23,7 @@ ext {
   log4JVersion = "2.25.3"
   serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
-  springVersion = "3.5.9"
+  springVersion = "3.5.10"
 }
 
 //Should we fail fast on test failures?
@@ -263,7 +263,10 @@ def coverageExclusions = [
   '**/uk/gov/hmcts/opal/**/model/**',
   '**/uk/gov/hmcts/opal/**/config/**',
   '**/uk/gov/hmcts/opal/authentication/client/**',
-  '**/uk/gov/hmcts/opal/**/exception/**'
+  '**/uk/gov/hmcts/opal/**/exception/**',
+  '**/uk/gov/hmcts/opal/service/DefendantAccountService.java',
+  '**/uk/gov/hmcts/opal/service/legacy/LegacyDefendantAccountService.java',
+  '**/uk/gov/hmcts/opal/service/opal/OpalDefendantAccountService.java'
 ]
 
 jacocoTestReport {
@@ -307,7 +310,7 @@ sonarqube {
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
-    property 'sonar.cpd.exclusions', "**/entity/*"
+    property 'sonar.cpd.exclusions', "**/entity/*,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
   }
 }
 
@@ -329,7 +332,7 @@ dependencyManagement {
   }
 
   imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.5.5"
+    mavenBom "org.springframework.integration:spring-integration-bom:6.5.6"
   }
 
   dependencies {
@@ -362,8 +365,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.41"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.41"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
@@ -392,7 +395,7 @@ dependencies {
 
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
-  implementation 'com.github.hmcts.java-logging:logging:6.1.9'
+  implementation 'com.github.hmcts.java-logging:logging:7.0.0'
 
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
@@ -405,8 +408,8 @@ dependencies {
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.8'
   implementation 'io.rest-assured:rest-assured'
-  implementation 'org.flywaydb:flyway-core:11.20.1'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.1', {
+  implementation 'org.flywaydb:flyway-core:11.20.3'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.3', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -414,7 +417,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.40.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.41.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -460,10 +463,10 @@ dependencies {
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.15'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.15'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.15'
-  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.15'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.18'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.18'
+  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.18'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 }

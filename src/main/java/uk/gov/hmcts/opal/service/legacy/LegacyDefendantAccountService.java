@@ -169,6 +169,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
@@ -411,6 +412,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId) {
         log.debug(":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
@@ -854,6 +856,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
         throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
     }
@@ -901,6 +904,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    //TODO: Remove method, duplicated in refactored class
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
         String businessUnitId,
@@ -973,6 +977,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
         DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
@@ -1142,6 +1147,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    //TODO: Remove method, duplicated in refactored class
     public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
 
@@ -1272,6 +1278,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
 
     @Override
+    //TODO: Remove method, duplicated in refactored class
     public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
         log.debug(":getEnforcementStatus: id: {}", defendantAccountId);
 
