@@ -70,7 +70,16 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         } else if (response.isSuccessful()) {
             log.info(":getMinorCreditorAtAGlance: Legacy Gateway response: Success.");
         }
-        return response.responseEntity.toOpalResponse();
+        return response.responseEntity == null
+            ?
+            GetMinorCreditorAccountAtAGlanceResponse.builder()
+                .party(null)
+                .address(null)
+                .creditorAccountId(null)
+                .defendant(null)
+                .payment(null)
+                .build()
+            : response.responseEntity.toOpalResponse();
     }
 
     private PostMinorCreditorAccountsSearchResponse toMinorSearchDto(

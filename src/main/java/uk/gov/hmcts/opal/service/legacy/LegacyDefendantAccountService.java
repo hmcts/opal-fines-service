@@ -79,9 +79,7 @@ import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
-import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
+import uk.gov.hmcts.opal.dto.legacy.common.*;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -674,8 +672,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .accountNumber(src.getAccountNumber())
             .debtorType(src.getDebtorType())
             .isYouth(src.isYouth())
-            .partyDetails(toPartyDetails(src.getPartyDetails()))
-            .addressDetails(toAddress(src.getAddress()))
+            .partyDetails(src.getPartyDetails().toOpalDto())
+            .addressDetails(src.getAddress().toOpalDto())
             .languagePreferences(toLanguagePreferences(src.getLanguagePreferences()))
             .paymentTermsSummary(toPaymentTermsFromSummary(src.getPaymentTermsSummary()))
             .enforcementStatus(toEnforcementStatus(src.getEnforcementStatusSummary()))
@@ -684,105 +682,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private PartyDetails toPartyDetails(
-        LegacyPartyDetails src) {
-        if (src == null) {
-            return null;
-        }
-        Boolean org = src.getOrganisationFlag();
-        return PartyDetails.builder()
-            .partyId(src.getPartyId())
-            .organisationFlag(org)
-            .organisationDetails(Boolean.TRUE.equals(org) ? toOrganisationDetails(src.getOrganisationDetails()) : null)
-            .individualDetails(!Boolean.TRUE.equals(org) ? toIndividualDetails(src.getIndividualDetails()) : null)
-            .build();
-    }
-
-    private OrganisationDetails toOrganisationDetails(
-        uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails src) {
-        if (src == null) {
-            return null;
-        }
-        java.util.List<OrganisationAlias> aliases = java.util.Optional
-            .ofNullable(src.getOrganisationAliases())
-            .map(java.util.Arrays::asList)
-            .orElseGet(java.util.List::of)
-            .stream()
-            .map(this::toOrganisationAlias)
-            .filter(java.util.Objects::nonNull)
-            .toList();
-
-        return OrganisationDetails.builder()
-            .organisationName(src.getOrganisationName())
-            .organisationAliases(aliases.isEmpty() ? null : aliases)
-            .build();
-    }
-
-    private OrganisationAlias toOrganisationAlias(
-        uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias el) {
-        if (el == null) {
-            return null;
-        }
-        return OrganisationAlias.builder()
-            .aliasId(el.getAliasId())
-            .sequenceNumber(el.getSequenceNumber() == null ? null : el.getSequenceNumber().intValue())
-            .organisationName(el.getOrganisationName())
-            .build();
-    }
-
-    private IndividualDetails toIndividualDetails(
-        uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails src) {
-        if (src == null) {
-            return null;
-        }
-
-        java.util.List<IndividualAlias> aliases = java.util.Optional
-            .ofNullable(src.getIndividualAliases())
-            .map(java.util.Arrays::asList)
-            .orElseGet(java.util.List::of)
-            .stream()
-            .map(this::toIndividualAlias)
-            .filter(java.util.Objects::nonNull)
-            .toList();
-
-        return IndividualDetails.builder()
-            .title(src.getTitle())
-            .forenames(src.getFirstNames())
-            .surname(src.getSurname())
-            .dateOfBirth(src.getDateOfBirth() == null ? null : src.getDateOfBirth().toString())
-            .age(src.getAge())
-            .nationalInsuranceNumber(src.getNationalInsuranceNumber())
-            .individualAliases(aliases.isEmpty() ? null : aliases)
-            .build();
-    }
-
-    private IndividualAlias toIndividualAlias(
-        uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias el) {
-        if (el == null) {
-            return null;
-        }
-        return IndividualAlias.builder()
-            .aliasId(el.getAliasId())
-            .sequenceNumber(el.getSequenceNumber() == null ? null : el.getSequenceNumber().intValue())
-            .surname(el.getSurname())
-            .forenames(el.getForenames())
-            .build();
-    }
-
-    private AddressDetails toAddress(
-        uk.gov.hmcts.opal.dto.legacy.common.AddressDetails src) {
-        if (src == null) {
-            return null;
-        }
-        return AddressDetails.builder()
-            .addressLine1(src.getAddressLine1())
-            .addressLine2(src.getAddressLine2())
-            .addressLine3(src.getAddressLine3())
-            .addressLine4(src.getAddressLine4())
-            .addressLine5(src.getAddressLine5())
-            .postcode(src.getPostcode())
-            .build();
-    }
 
     private LanguagePreferences toLanguagePreferences(
         uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences src) {

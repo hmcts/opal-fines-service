@@ -6,15 +6,25 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendant;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyAddressDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyIndividualDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyOrganisationDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -124,5 +134,126 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(0, result.getCount());
         assertEquals(0, result.getCreditorAccounts().size());
+    }
+
+    @Test
+    void getMinorCreditorAtAGlance_shouldMapLegacyResponseToDto() {
+        // Arrange
+        String minorCreditorId = "EO66";
+
+        LegacyPartyDetails legacyParty = LegacyPartyDetails.builder()
+            .partyId("theEmpire")
+            .organisationFlag(true)
+            .organisationDetails(LegacyOrganisationDetails.builder().organisationName("The Empire").build())
+            .individualDetails(LegacyIndividualDetails.builder()
+                                   .title("Emperor")
+                                   .firstNames("Sheev")
+                                   .surname("Palpatine")
+                                   .dateOfBirth(LocalDate.of(3000, 12, 25))
+                                   .age("Ageless")
+                                   .nationalInsuranceNumber("66")
+                                   .individualAliases(new LegacyIndividualDetails.LegacyIndividualAlias[] {
+                                       LegacyIndividualDetails.LegacyIndividualAlias.builder()
+                                                          .aliasId("sith")
+                                                          .sequenceNumber((short) 1)
+                                                          .surname("Sidious")
+                                                          .forenames("Darth")
+                                                          .build()})
+                                   .build())
+            .build();
+
+        LegacyAddressDetails legacyAddress = LegacyAddressDetails.builder()
+            .addressLine1("The")
+            .addressLine2("Death")
+            .addressLine3("Star")
+            .addressLine4("2")
+            .addressLine5(null)
+            .postcode("SP4 C3")
+            .build();
+
+        LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
+            LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
+                .party(legacyParty)
+                .address(legacyAddress)
+                .creditorAccountId(66L)
+                .creditorAccountVersion(BigInteger.valueOf(1))
+                .defendant(null)
+                .payment(null)
+                .errorResponse(null)
+                .build();
+
+        GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
+        when(gatewayService.postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            any(),
+            any())
+        ).thenReturn(response);
+
+        // Act
+
+        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService.getMinorCreditorAtAGlance(minorCreditorId);
+
+        // Assert
+
+        assertEquals(66L, result.getCreditorAccountId());
+        assertEquals("The Empire", result.getParty().getOrganisationDetails().getOrganisationName());
+        assertEquals("SP4 C3", result.getAddress().getPostcode());
+        assertEquals("sith", result.getParty().getIndividualDetails().getIndividualAliases().getFirst().getAliasId());
+    }
+
+    @Test
+    void getMinorCreditorAtAGlance_shouldHandleGatewayException() {
+        GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> responseWithException =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
+                                          null, null, new RuntimeException("Gateway error"));
+
+        when(gatewayService.postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            any(),
+            any())
+        ).thenReturn(responseWithException);
+
+        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService.getMinorCreditorAtAGlance("test");
+
+        assertNull(result.getCreditorAccountId());
+        assertNull(result.getParty());
+        assertNull(result.getDefendant());
+        assertNull(result.getPayment());
+        assertNull(result.getAddress());
+    }
+
+    @Test
+    void getMinorCreditorAtAGlance_shouldHandleLegacyFailure() {
+        LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse = LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
+            .party(null)
+            .address(null)
+            .creditorAccountId(null)
+            .creditorAccountVersion(null)
+            .defendant(null)
+            .payment(null)
+            .errorResponse(null)
+            .build();
+
+        GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
+            new GatewayService.Response<>(HttpStatus.BAD_REQUEST, legacyResponse, null, null);
+
+        when(gatewayService.postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            any(),
+            any())
+        ).thenReturn(response);
+
+        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService.getMinorCreditorAtAGlance("test");
+
+        assertNull(result.getCreditorAccountId());
+        assertNull(result.getParty());
+        assertNull(result.getDefendant());
+        assertNull(result.getPayment());
+        assertNull(result.getAddress());
     }
 }
