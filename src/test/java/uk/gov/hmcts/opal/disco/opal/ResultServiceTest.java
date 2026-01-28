@@ -98,7 +98,7 @@ class ResultServiceTest {
 
         // Act
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ABC")),
-            false, false, false, false);
+            false, false, false, false, false);
 
         ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
             .refData(List.of(dto))
@@ -230,7 +230,7 @@ class ResultServiceTest {
 
         // Act - pass Optional.of(ids) and null for all booleans
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ABC")),
-            null, null, null, null);
+            null, null, null, null, null);
 
         // Assert - mapping and count
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -261,7 +261,7 @@ class ResultServiceTest {
 
         // Act - active true (others null)
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ACT-1")),
-            Boolean.TRUE, null, null, null);
+            Boolean.TRUE, null, null, null, null);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -292,7 +292,7 @@ class ResultServiceTest {
 
         // Act - pass explicit false
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MEF-FALSE")),
-            null, Boolean.FALSE, null, null);
+            null, Boolean.FALSE, null, null, null);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -330,7 +330,7 @@ class ResultServiceTest {
 
         // Act - mix of true/false/null
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MIXED")),
-            Boolean.TRUE, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE);
+            Boolean.TRUE, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()

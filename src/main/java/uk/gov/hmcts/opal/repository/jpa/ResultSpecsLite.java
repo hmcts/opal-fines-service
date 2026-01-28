@@ -34,7 +34,8 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         Boolean active,
         Boolean manualEnforcement,
         Boolean generatesHearing,
-        Boolean enforcement) {
+        Boolean enforcement,
+        Boolean enforcementOverride) {
 
         return Specification.allOf(specificationList(
             // optional resultIds clause

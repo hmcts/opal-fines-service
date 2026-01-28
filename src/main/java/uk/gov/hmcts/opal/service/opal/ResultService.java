@@ -57,12 +57,14 @@ public class ResultService {
         Boolean active,
         Boolean manualEnforcement,
         Boolean generatesHearing,
-        Boolean enforcement) {
+        Boolean enforcement,
+        Boolean enforcementOverride) {
 
         Sort idSort = Sort.by(Sort.Direction.ASC, "resultId");
 
         Page<Lite> page = resultRepository.findBy(
-            specsLite.referenceDataByIds(resultIds, active, manualEnforcement, generatesHearing, enforcement),
+            specsLite.referenceDataByIds(resultIds, active, manualEnforcement, generatesHearing, enforcement,
+                enforcementOverride),
             ffq -> ffq
                 .sortBy(idSort)
                 .page(Pageable.unpaged())
