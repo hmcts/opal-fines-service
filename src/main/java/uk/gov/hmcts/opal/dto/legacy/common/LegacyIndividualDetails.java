@@ -13,6 +13,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+
+import uk.gov.hmcts.opal.dto.common.IndividualAlias;
+import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
@@ -23,7 +28,7 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class IndividualDetails {
+public class LegacyIndividualDetails {
 
     @XmlElement(name = "title")
     private String title;
@@ -45,7 +50,7 @@ public class IndividualDetails {
     private String nationalInsuranceNumber;
 
     @XmlElement(name = "individual_aliases")
-    private IndividualAlias[] individualAliases;
+    private LegacyIndividualAlias[] individualAliases;
 
     @Data
     @Builder
@@ -54,7 +59,7 @@ public class IndividualDetails {
     @Jacksonized
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class IndividualAlias {
+    public static class LegacyIndividualAlias {
 
         @XmlElement(name = "alias_id")
         private String aliasId;
@@ -67,5 +72,30 @@ public class IndividualDetails {
 
         @XmlElement(name = "forenames")
         private String forenames;
+
+        public IndividualAlias toOpalDto() {
+            return IndividualAlias.builder()
+                .aliasId(this.getAliasId())
+                .sequenceNumber(Integer.valueOf(this.getSequenceNumber()))
+                .surname(this.getSurname())
+                .forenames(this.getForenames())
+                .build();
+        }
+    }
+
+    public IndividualDetails toOpalDto() {
+        return IndividualDetails.builder()
+            .title(this.getTitle())
+            .forenames(this.getFirstNames())
+            .surname(this.getSurname())
+            .dateOfBirth(String.valueOf(this.getDateOfBirth()))
+            .age(this.getAge())
+            .nationalInsuranceNumber(this.getNationalInsuranceNumber())
+            .individualAliases(this.getIndividualAliases() == null
+                ? Collections.emptyList()
+                : Arrays.stream(this.getIndividualAliases())
+                .map(LegacyIndividualAlias::toOpalDto)
+                .toList())
+            .build();
     }
 }

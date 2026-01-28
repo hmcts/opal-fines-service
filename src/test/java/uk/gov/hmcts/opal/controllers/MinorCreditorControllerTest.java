@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -75,6 +76,22 @@ class MinorCreditorControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals("OK", responseEntity.getBody());
+    }
+
+    @Test
+    void testGetMinorCreditorAccountAtAGlance_Success() {
+        // Arrange
+        GetMinorCreditorAccountAtAGlanceResponse mockResponse = new GetMinorCreditorAccountAtAGlanceResponse();
+
+        when(minorCreditorService.getMinorCreditorAtAGlance(any(), any())).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> responseEntity =
+            minorCreditorController.getMinorCreditorsAtAGlance("creditorId",  BEARER_TOKEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
     }
 
 }

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.DefendantDto;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
@@ -21,7 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Defendant {
+public class LegacyDefendant {
 
     @XmlElement(name = "defendant_account_id")
     private String defendantAccountId;
@@ -37,4 +38,22 @@ public class Defendant {
 
     @XmlElement(name = "surname", nillable = true)
     private String surname;
+
+    @XmlElement(name = "account_number")
+    private String accountNumber;
+
+    @XmlElement(name = "account_id")
+    private Long accountId;
+
+    public DefendantDto toOpalDto() {
+        return DefendantDto.builder()
+            .defendantAccountId(this.getDefendantAccountId())
+            .organisation(this.isOrganisation())
+            .organisationName(this.getOrganisationName())
+            .firstnames(this.getFirstnames())
+            .surname(this.getSurname())
+            .accountNumber(this.getAccountNumber())
+            .accountId(this.getAccountId())
+            .build();
+    }
 }

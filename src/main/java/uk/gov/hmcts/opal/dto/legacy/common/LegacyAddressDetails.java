@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import uk.gov.hmcts.opal.dto.ToXmlString;
+import uk.gov.hmcts.opal.dto.common.AddressDetails;
 
 @Data
 @Builder
@@ -18,7 +19,7 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @Jacksonized
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AddressDetails implements ToXmlString {
+public class LegacyAddressDetails implements ToXmlString {
 
     @XmlElement(name = "address_line_1")
     private String addressLine1;
@@ -37,5 +38,16 @@ public class AddressDetails implements ToXmlString {
 
     @XmlElement(name = "postcode")
     private String postcode;
+
+    public  AddressDetails toOpalDto() {
+        return AddressDetails.builder()
+            .addressLine1(this.getAddressLine1())
+            .addressLine2(this.getAddressLine2())
+            .addressLine3(this.getAddressLine3())
+            .addressLine4(this.getAddressLine4())
+            .addressLine5(this.getAddressLine5())
+            .postcode(this.getPostcode())
+            .build();
+    }
 
 }
