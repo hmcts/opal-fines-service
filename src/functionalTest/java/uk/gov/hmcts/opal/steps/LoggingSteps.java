@@ -69,6 +69,62 @@ public class LoggingSteps extends BaseStepDef {
         searchAllExpectations(expectations);
     }
 
+    @Then("no PDPO logs exist for created_by id {string}, type {string} and business_identifier {string}")
+    public void noPdpoLogsExist(String createdById,
+                                String createdByType,
+                                String businessIdentifier) throws Exception {
+
+        final int timeoutMillis = 5000;
+        String searchUrl = getLoggingTestUrl() + "/test-support/search";
+        Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+
+        Map<String, Object> payload = new HashMap<>();
+        Map<String, Object> cb = new HashMap<>();
+        cb.put("id", createdById);
+        cb.put("type", createdByType);
+        payload.put("created_by", cb);
+        payload.put("business_identifier", businessIdentifier);
+
+        // scope by draft id if available
+        try {
+            Object v = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
+            if (v != null) {
+                String createdDraftId = String.valueOf(v);
+                if (!createdDraftId.isBlank() && !createdDraftId.startsWith("<")) {
+                    payload.put("individual_id", createdDraftId);
+                }
+            }
+        } catch (Exception ignored) { }
+
+        Instant deadline = Instant.now().plusMillis(timeoutMillis);
+        String lastBody = null;
+
+        while (Instant.now().isBefore(deadline)) {
+            var given = SerenityRest.given()
+                .contentType("application/json")
+                .body(new ObjectMapper().writeValueAsString(payload));
+            optionalBearer.ifPresent(b -> given.header("Authorization", "Bearer " + b));
+
+            Response searchResp = given.when().post(searchUrl);
+            int sStatus = searchResp.getStatusCode();
+            String body = searchResp.getBody() == null ? "" : searchResp.getBody().asString();
+            lastBody = body;
+
+            if (sStatus == 200) {
+                if (body == null || body.isBlank() || body.trim().equals("[]")) {
+                    // no logs found
+                    return;
+                }
+                fail("Expected no PDPO logs but found entries: " + body);
+            }
+
+            //noinspection BusyWait
+            Thread.sleep(DEFAULT_POLL_MILLIS);
+        }
+
+        fail("Did not confirm absence of PDPO logs within " + timeoutMillis + "ms. Last response: " + lastBody);
+    }
+
     // Core routine: poll the search endpoint separately per expectation until all are satisfied or timeout.
     private void searchAllExpectations(List<PdpoExpectation> expectations) throws Exception {
         int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
@@ -300,10 +356,9 @@ public class LoggingSteps extends BaseStepDef {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof PdpoExpectation)) {
+            if (!(o instanceof PdpoExpectation other)) {
                 return false;
             }
-            PdpoExpectation other = (PdpoExpectation) o;
             return Objects.equals(createdById, other.createdById)
                 && Objects.equals(createdByType, other.createdByType)
                 && Objects.equals(businessIdentifier, other.businessIdentifier);
