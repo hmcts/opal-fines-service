@@ -24,6 +24,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final GatewayService gatewayService;
 
     private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
+    private static final String ATAGLANCE = "LIBRA.Get_At_a_Glance";
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
