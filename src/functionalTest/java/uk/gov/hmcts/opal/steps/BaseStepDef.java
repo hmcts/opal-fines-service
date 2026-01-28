@@ -9,7 +9,7 @@ import java.util.Map;
 public class BaseStepDef {
 
     private static final String TEST_URL =
-        System.getenv().getOrDefault("OPAL_FINES_SERVICE_API_URL", "http://localhost:4550");
+        System.getenv().getOrDefault("TEST_URL", "http://localhost:4550");
     private static final String LOGGING_TEST_URL =
         System.getenv().getOrDefault("OPAL_LOGGING_SERVICE_API_URL", "http://localhost:4065");
     private static final String USER_SERVICE_URL = resolveUserServiceUrl();

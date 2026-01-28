@@ -54,7 +54,6 @@ java:
     OPAL_FRONTEND_URL: "${OPAL_FRONT_END_URL}"
     OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net/"
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net/opal
-    OPAL_FINES_SERVICE_API_URL: "${OPAL_FINES_SERVICE_API_URL}"
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: false
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
@@ -89,7 +88,6 @@ opal-frontend:
     environment:
       REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-redis-master:6379
       OPAL_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
-      OPAL_FINES_SERVICE_API_URL: "${OPAL_FINES_SERVICE_API_URL}"
       OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net/opal
       OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net"
       FRONTEND_HOSTNAME: "${OPAL_FRONT_END_URL}"
