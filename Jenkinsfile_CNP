@@ -72,6 +72,8 @@ withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.STAGING_DB_SCHEMA = 'public'
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub.staging.platform.hmcts.net/opal'
+  env.LOGGING_TEST_URL = 'https://opal-logging-service.staging.platform.hmcts.net'
+  env.OPAL_FINES_SERVICE_API_URL = env.TEST_URL
   if (!env.OPAL_USER_SERVICE_API_URL && !env.CHANGE_ID) {
     env.OPAL_USER_SERVICE_API_URL = 'https://opal-user-service.staging.platform.hmcts.net'
   }
