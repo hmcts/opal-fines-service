@@ -45,7 +45,6 @@ class ResultServiceTest {
     @Test
     void testGetResult() {
         // Arrange
-
         ResultEntity.Lite resultEntity = Lite.builder().build();
         when(resultRepository.findById(any())).thenReturn(Optional.of(resultEntity));
 
@@ -54,13 +53,11 @@ class ResultServiceTest {
 
         // Assert
         assertNotNull(result);
-
     }
 
     @Test
     void testGetResultReferenceData() {
         // Arrange
-
         ResultEntity.Lite resultEntity = ResultEntity.Lite.builder().resultId("ABC").build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
             "ABC", null, null, false, null, null, null
@@ -73,7 +70,6 @@ class ResultServiceTest {
 
         // Assert
         assertNotNull(result);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -81,11 +77,12 @@ class ResultServiceTest {
     void testGetResultsByIds() {
         // Arrange
         Lite resultEntity = Lite.builder().resultId("ABC").build();
-        List<ResultEntity.Lite> resultEntities = List.of(resultEntity);
         ResultReferenceData dto = new ResultReferenceData(
             "ABC", null, null, false, null, null, null);
 
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
@@ -113,7 +110,9 @@ class ResultServiceTest {
     @Test
     void testSearchResults() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
 
         ResultEntity.Lite resultEntity = ResultEntity.Lite.builder().build();
         Page<ResultEntity.Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
@@ -133,7 +132,9 @@ class ResultServiceTest {
     @Test
     void testResultsReferenceData() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         ResultEntity.Lite entity = ResultEntity.Lite.builder().build();
@@ -214,7 +215,9 @@ class ResultServiceTest {
     @Test
     void testGetResultsByIds_allNullBooleans() {
         // Arrange - resultIds present, all Boolean flags null -> should behave like no boolean filters
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder().resultId("ABC").build();
@@ -245,7 +248,9 @@ class ResultServiceTest {
     @Test
     void testGetResultsByIds_activeTrue() {
         // Arrange - active = true, other booleans null
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder().resultId("ACT-1").active(true).build();
@@ -261,7 +266,7 @@ class ResultServiceTest {
 
         // Act - active true (others null)
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ACT-1")),
-            Boolean.TRUE, null, null, null, null);
+            true, null, null, null, null);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -275,8 +280,9 @@ class ResultServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void testGetResultsByIds_manualEnforcementFalse_explicitFilteringOmitted() {
-
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder().resultId("MEF-FALSE").manualEnforcement(false).build();
@@ -292,7 +298,7 @@ class ResultServiceTest {
 
         // Act - pass explicit false
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MEF-FALSE")),
-            null, Boolean.FALSE, null, null, null);
+            null, false, null, null, null);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -307,7 +313,9 @@ class ResultServiceTest {
     @Test
     void testGetResultsByIds_multipleBooleansMixed() {
         // Arrange - multiple booleans provided (true/false/null) to exercise combinations
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder()
@@ -328,9 +336,9 @@ class ResultServiceTest {
         ResultReferenceData dto = new ResultReferenceData("MIXED", null, null, false, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
-        // Act - mix of true/false/null
+        // Act - mix of true/false/null (six booleans)
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MIXED")),
-            Boolean.TRUE, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE);
+            true, true, false, true, false);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -340,5 +348,4 @@ class ResultServiceTest {
         assertEquals(expected.getCount(), result.getCount());
         assertEquals(expected.getRefData(), result.getRefData());
     }
-
 }

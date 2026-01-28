@@ -32,7 +32,6 @@ target
 
 applicationinsights-agent-*.jar
 *.log
-.env.local
 
 ### Bruno ###
 
