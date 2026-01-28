@@ -206,6 +206,14 @@ To ensure we are following the same styles you will need to enable this project 
 **Step 3: Ensure the global scheme is set to 'Project' under the 'Stored in Project' heading.**
 
 ![intelij_settings_codestyle_project.png](readme_images/intelij_settings_codestyle_project.png)
+
+## Azure Service Bus emulator
+Some functionality of the application depends on Azure Service Bus. To run and test this functionality locally, you can use an emulator for Azure Service Bus.
+This is already bundled with the docker-compose setup.
+
+To view any messages sent to the queues/topics you can use a tool like 'Azure Service Bus Explorer'. 
+Or you can use the PeekSbEmulator class that is setup in test/java/uk/gov/hmcts/opal/support/PeekSbEmulator.java to do this simply call the main method of this class you can add a argument to specify which queue/topic you want to peek messages from.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

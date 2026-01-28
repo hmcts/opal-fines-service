@@ -224,7 +224,6 @@ public class DefendantAccountService {
             .orElse(null);
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)) {
-
             return defendantAccountServiceProxy.addEnforcement(
                 defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeaderValue, request
             );

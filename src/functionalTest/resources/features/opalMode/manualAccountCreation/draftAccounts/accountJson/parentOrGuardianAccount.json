@@ -1,0 +1,195 @@
+{
+  "account_type": "Fine",
+  "defendant_type": "pgToPay",
+  "originator_name": "Central London County Court",
+  "originator_id": 372,
+  "prosecutor_case_reference": "33333",
+  "enforcement_court_id": 770000000001,
+  "collection_order_made": false,
+  "collection_order_made_today": true,
+  "collection_order_date": "2025-08-11",
+  "suspended_committal_date": null,
+  "payment_card_request": null,
+  "account_sentence_date": "2025-08-01",
+  "defendant": {
+    "company_flag": false,
+    "title": "Miss",
+    "surname": "LNAME",
+    "forenames": "FNAME",
+    "company_name": null,
+    "dob": "2000-01-01",
+    "address_line_1": "ADDR1",
+    "address_line_2": "Addr2",
+    "address_line_3": "Addr3",
+    "address_line_4": null,
+    "address_line_5": null,
+    "post_code": "TE12 3ST",
+    "telephone_number_home": null,
+    "telephone_number_business": null,
+    "telephone_number_mobile": null,
+    "email_address_1": null,
+    "email_address_2": null,
+    "national_insurance_number": "OT000001C",
+    "driving_licence_number": null,
+    "pnc_id": null,
+    "nationality_1": null,
+    "nationality_2": null,
+    "ethnicity_self_defined": null,
+    "ethnicity_observed": null,
+    "cro_number": null,
+    "occupation": null,
+    "gender": null,
+    "custody_status": null,
+    "prison_number": null,
+    "interpreter_lang": null,
+    "debtor_detail": null,
+    "parent_guardian": {
+      "company_flag": false,
+      "company_name": null,
+      "surname": "LNAME",
+      "forenames": "Opal parent1",
+      "dob": null,
+      "national_insurance_number": "OT000001C",
+      "address_line_1": "PG addr1",
+      "address_line_2": "PG addr2",
+      "address_line_3": "PG addr3",
+      "address_line_4": null,
+      "address_line_5": null,
+      "post_code": "PG12 3ST",
+      "telephone_number_home": "01987 123 123",
+      "telephone_number_business": "0800 000 1066",
+      "telephone_number_mobile": "07123456789",
+      "email_address_1": "PGemail1@email.com",
+      "email_address_2": "PGemail2@test.com",
+      "debtor_detail": {
+        "vehicle_make": null,
+        "vehicle_registration_mark": null,
+        "document_language": null,
+        "hearing_language": null,
+        "employee_reference": "OT0000002C",
+        "employer_company_name": "employername3",
+        "employer_address_line_1": "emp3 addr1 ",
+        "employer_address_line_2": "emp3 addr2 ",
+        "employer_address_line_3": "emp3 addr3",
+        "employer_address_line_4": "emp3 addr4",
+        "employer_address_line_5": "emp3 addr5",
+        "employer_post_code": "PG98 7ST",
+        "employer_telephone_number": "01987654321",
+        "employer_email_address": "emp@emp.com",
+        "aliases": [
+          {
+            "alias_forenames": "alias1",
+            "alias_surname": "ALIAS LNAME1",
+            "alias_company_name": null
+          }
+        ]
+      }
+    }
+  },
+  "offences": [
+    {
+      "date_of_sentence": "2025-08-01",
+      "imposing_court_id": 770000000001,
+      "offence_id": 33369,
+      "impositions": [
+        {
+          "result_id": "FCOMP",
+          "amount_imposed": 100,
+          "amount_paid": 1,
+          "major_creditor_id": 770000000021,
+          "minor_creditor": null
+        },
+        {
+          "result_id": "FVS",
+          "amount_imposed": 200,
+          "amount_paid": 2,
+          "major_creditor_id": null,
+          "minor_creditor": null
+        },
+        {
+          "result_id": "FCOST",
+          "amount_imposed": 300,
+          "amount_paid": 3,
+          "major_creditor_id": 770000000041,
+          "minor_creditor": null
+        },
+        {
+          "result_id": "FCPC",
+          "amount_imposed": 400,
+          "amount_paid": 4,
+          "major_creditor_id": null,
+          "minor_creditor": null
+        },
+        {
+          "result_id": "FO",
+          "amount_imposed": 500,
+          "amount_paid": 5,
+          "major_creditor_id": null,
+          "minor_creditor": null
+        },
+        {
+          "result_id": "FVEBD",
+          "amount_imposed": 600,
+          "amount_paid": 6,
+          "major_creditor_id": null,
+          "minor_creditor": null
+        },
+        {
+          "result_id": "FCC",
+          "amount_imposed": 700,
+          "amount_paid": 7,
+          "major_creditor_id": null,
+          "minor_creditor": null
+        },
+        {
+          "result_id": "FFR",
+          "amount_imposed": 800,
+          "amount_paid": 8,
+          "major_creditor_id": null,
+          "minor_creditor": null
+        }
+      ]
+    }
+  ],
+  "fp_ticket_detail": null,
+  "payment_terms": {
+    "payment_terms_type_code": "I",
+    "effective_date": "2025-08-31",
+    "instalment_period": "M",
+    "lump_sum_amount": 1000,
+    "instalment_amount": 100,
+    "default_days_in_jail": null,
+    "enforcements": [
+      {
+        "result_id": "COLLO",
+        "enforcement_result_responses": null
+      },
+      {
+        "result_id": "NOENF",
+        "enforcement_result_responses": [
+          {
+            "parameter_name": "reason",
+            "response": "reason 1"
+          }
+        ]
+      }
+    ]
+  },
+  "account_notes": [
+    {
+      "account_note_serial": 3,
+      "account_note_text": "scenario three comment",
+      "note_type": "AC"
+    },
+    {
+      "account_note_serial": 2,
+      "account_note_text": "scenario three note",
+      "note_type": "AA"
+    },
+    {
+      "account_note_serial": 1,
+      "account_note_text": "A collection order has been made by opal-test using Authorised Functions",
+      "note_type": "AA"
+    }
+  ]
+}

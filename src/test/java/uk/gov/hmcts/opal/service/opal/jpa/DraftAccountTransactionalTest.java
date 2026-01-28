@@ -1,7 +1,23 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,23 +40,8 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountTransactionalTest {
@@ -50,6 +51,9 @@ class DraftAccountTransactionalTest {
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
+
+    @Mock
+    private DraftAccountPdplLoggingService loggingService;
 
     @InjectMocks
     private DraftAccountTransactional draftAccountTransactional;
@@ -119,28 +123,37 @@ class DraftAccountTransactionalTest {
 
     @Test
     void testSubmitDraftAccounts_success() {
-        // Arrange
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
-        AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
-            .businessUnitId((short) 2)
+        String minimalAccountJson = createAccountString();
+
+        DraftAccountEntity saved = DraftAccountEntity.builder()
+            .account(minimalAccountJson)
+            .accountSnapshot("{}")
+            .accountType("Fine")
+            .draftAccountId(1L)
+            .createdDate(LocalDateTime.now())
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .accountStatusDate(LocalDateTime.now())
+            .build();
+
+        AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short)2)
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .account(createAccountString())
+            .account(minimalAccountJson)
             .accountType("Fine")
-            .timelineData(createTimelineDataString())
+            .timelineData("[]")
             .build();
+
         BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
             .businessUnitName("Old Bailey")
             .build();
 
         when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
-        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(saved);
 
-        // Act
-        DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(addDraftAccountDto);
+        DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
-        // Assert
-        assertEquals(draftAccountEntity.getAccount(), result.getAccount());
+        assertEquals(saved.getAccount(), result.getAccount());
     }
 
     @Test
@@ -550,4 +563,5 @@ class DraftAccountTransactionalTest {
                }
             """;
     }
+
 }
