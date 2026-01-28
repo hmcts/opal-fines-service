@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.util.LogUtil;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@Slf4j(topic = "opal.pdplLoggingService")
 public abstract class AbstractPdplLoggingService {
 
     protected final LoggingService loggingService;
@@ -25,9 +27,18 @@ public abstract class AbstractPdplLoggingService {
         ParticipantIdentifier recipient,
         DraftAccountEntity entity) {
 
-        // attempt to resolve createdBy from Spring Security
+        logPdpl(businessIdentifier, category, individuals, recipient, entity.getSubmittedBy(), entity);
+    }
+
+    protected void logPdpl(String businessIdentifier,
+        PersonalDataProcessingCategory category,
+        List<ParticipantIdentifier> individuals,
+        ParticipantIdentifier recipient,
+        String createdByIdentifier,
+        DraftAccountEntity entity) {
+
         ParticipantIdentifier createdBy = ParticipantIdentifier.builder()
-            .identifier(entity.getSubmittedBy())
+            .identifier(createdByIdentifier)
             .type(PdplIdentifierType.OPAL_USER_ID)
             .build();
 
@@ -41,6 +52,15 @@ public abstract class AbstractPdplLoggingService {
             .individuals(individuals)
             .build();
 
-        loggingService.personalDataAccessLogAsync(logDetails);
+        try {
+            boolean sent = loggingService.personalDataAccessLogAsync(logDetails);
+            if (!sent) {
+                log.error("PDPL log failed for businessIdentifier={} draftAccountId={}",
+                          businessIdentifier, entity.getDraftAccountId());
+            }
+        } catch (RuntimeException ex) {
+            log.error("PDPL log error for businessIdentifier={} draftAccountId={}",
+                      businessIdentifier, entity.getDraftAccountId(), ex);
+        }
     }
 }

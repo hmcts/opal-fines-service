@@ -8,12 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
@@ -61,6 +64,7 @@ public class DraftAccountService {
     private final DraftAccountMapper draftAccountMapper;
 
     private final DraftAccountPublishProxy accountPublishProxy;
+    private final DraftAccountPdplLoggingService draftAccountPdplLoggingService;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
@@ -178,12 +182,21 @@ public class DraftAccountService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
+        BusinessUnitUser businessUnitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId())
+            .orElseThrow(() -> new AccessDeniedException("User is not an OPAL user"));
+        if (businessUnitUser.getBusinessUnitUserId() == null || businessUnitUser.getBusinessUnitUserId().isBlank()) {
+            throw new AccessDeniedException("User is not an OPAL user");
+        }
+
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
             log.debug(":replaceDraftAccount: replaced with version: {}", replacedEntity.getVersion());
+
+            draftAccountPdplLoggingService.pdplForDraftAccount(replacedEntity, Action.UPDATE,
+                                                              businessUnitUser.getBusinessUnitUserId());
 
             return toGetResponseDto(replacedEntity);
         } else {

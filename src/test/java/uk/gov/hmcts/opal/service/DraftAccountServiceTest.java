@@ -10,6 +10,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
@@ -22,6 +23,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
@@ -37,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +57,9 @@ class DraftAccountServiceTest {
 
     @Mock
     private DraftAccountTransactional draftAccountTransactional;
+
+    @Mock
+    private DraftAccountPdplLoggingService draftAccountPdplLoggingService;
 
     @Mock
     private DraftAccountMapper draftAccountMapper;
@@ -214,7 +220,8 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act
         DraftAccountResponseDto result = draftAccountService
@@ -230,6 +237,9 @@ class DraftAccountServiceTest {
         assertEquals(createTimelineDataString(), result.getTimelineData());
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
+        verify(draftAccountPdplLoggingService).pdplForDraftAccount(eq(updatedAccount),
+                                                                  eq(DraftAccountPdplLoggingService.Action.UPDATE),
+                                                                  eq("USER01"));
 
     }
 
@@ -249,7 +259,8 @@ class DraftAccountServiceTest {
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            UserStateUtil.permissionUser((short) 1, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> draftAccountService
@@ -279,7 +290,8 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService

@@ -27,6 +27,10 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
     }
 
     public void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
+        pdplForDraftAccount(entity, action, null);
+    }
+
+    public void pdplForDraftAccount(DraftAccountEntity entity, Action action, String createdByIdentifier) {
         JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(), "");
 
         Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
@@ -37,20 +41,20 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         }
 
         switch (defendantType) {
-            case "adultOrYouthOnly" -> logForRole(entity, action, Role.DEFENDANT);
+            case "adultOrYouthOnly" -> logForRole(entity, action, Role.DEFENDANT, createdByIdentifier);
             case "pgToPay" -> {
-                logForRole(entity, action, Role.PARENT_OR_GUARDIAN);
-                logForRole(entity, action, Role.DEFENDANT);
+                logForRole(entity, action, Role.PARENT_OR_GUARDIAN, createdByIdentifier);
+                logForRole(entity, action, Role.DEFENDANT, createdByIdentifier);
             }
             default -> log.error("Unknown defendant_type '{}', skipping defendant/pg logs", defendantType);
         }
 
         if (hasAnyIndividualMinor(docContext)) {
-            logForRole(entity, action, Role.MINOR_CREDITOR);
+            logForRole(entity, action, Role.MINOR_CREDITOR, createdByIdentifier);
         }
     }
 
-    private void logForRole(DraftAccountEntity entity, Action action, Role role) {
+    private void logForRole(DraftAccountEntity entity, Action action, Role role, String createdByIdentifier) {
         String businessIdentifier = action.formatFor(role);
 
         ParticipantIdentifier individuals = ParticipantIdentifier.builder()
@@ -58,10 +62,17 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
             .type(PdplIdentifierType.DRAFT_ACCOUNT)
             .build();
 
-        logPdpl(businessIdentifier,
-            PersonalDataProcessingCategory.COLLECTION,
-            List.of(individuals),
-            null, entity);
+        if (createdByIdentifier == null) {
+            logPdpl(businessIdentifier,
+                PersonalDataProcessingCategory.COLLECTION,
+                List.of(individuals),
+                null, entity);
+        } else {
+            logPdpl(businessIdentifier,
+                PersonalDataProcessingCategory.COLLECTION,
+                List.of(individuals),
+                null, createdByIdentifier, entity);
+        }
     }
 
     private boolean hasAnyIndividualMinor(JsonPathUtil.DocContext docContext) {
@@ -94,7 +105,8 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
 
     public enum Action {
         SUBMIT("Submit Draft Account - %s"),
-        RESUBMIT("Re-submit Draft Account - %s");
+        RESUBMIT("Re-submit Draft Account - %s"),
+        UPDATE("Update Draft Account - %s");
 
         private final String template;
 

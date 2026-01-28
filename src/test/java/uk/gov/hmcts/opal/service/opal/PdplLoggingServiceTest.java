@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -210,5 +211,129 @@ class PdplLoggingServiceTest {
         assertEquals(expectedNow, minorDetails.getCreatedAt());
         assertEquals("user-min", minorDetails.getCreatedBy().getIdentifier());
         assertEquals("22", minorDetails.getIndividuals().get(0).getIdentifier());
+    }
+
+    @Test
+    @DisplayName("Update - Defendant: full payload asserted")
+    void updateDefendant_fullPayload() {
+        Long draftId = 4444L;
+        String submittedBy = "submitted-user";
+        String createdBy = "opal-user-77";
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(draftId)
+            .submittedBy(submittedBy)
+            .account("""
+                {
+                  "account_type":"Fines",
+                  "defendant_type":"adultOrYouthOnly",
+                  "originator_name":"LJS",
+                  "originator_id": 1,
+                  "offences": []
+                }
+                """)
+            .build();
+
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        String expectedBusinessIdentifier = "Update Draft Account - Defendant";
+        String expectedIp = "198.51.100.10";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2024-02-02T02:02:02Z");
+
+        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
+
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
+            pdplLoggingService.pdplForDraftAccount(entity, Action.UPDATE, createdBy);
+        }
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService, times(1)).personalDataAccessLogAsync(captor.capture());
+
+        PersonalDataProcessingLogDetails details = captor.getValue();
+        assertEquals(expectedBusinessIdentifier, details.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, details.getCategory());
+        assertEquals(expectedIp, details.getIpAddress());
+        assertEquals(expectedNow, details.getCreatedAt());
+        assertThat(details.getRecipient()).isNull();
+        assertEquals(createdBy, details.getCreatedBy().getIdentifier());
+        assertEquals(draftId.toString(), details.getIndividuals().get(0).getIdentifier());
+    }
+
+    @Test
+    @DisplayName("Update - Parent/Guardian + Defendant + Minor Creditor: three logs asserted")
+    void updatePgDefendantAndMinor_fullPayloads() {
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(55L)
+            .submittedBy("user-update")
+            .account("""
+                {
+                  "account_type":"Fines",
+                  "defendant_type":"pgToPay",
+                  "originator_name":"LJS",
+                  "originator_id":4,
+                  "offences": [
+                    {
+                      "impositions": [
+                        {
+                          "minor_creditor": {
+                            "company_flag": false,
+                            "surname": "Minor",
+                            "forenames": "Alice"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """)
+            .build();
+
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(
+            OffsetDateTime.parse("2025-05-05T05:05:05Z"));
+
+        pdplLoggingService.pdplForDraftAccount(entity, Action.UPDATE, "opal-user-88");
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService, times(3)).personalDataAccessLogAsync(captor.capture());
+
+        List<String> businessIds = captor.getAllValues().stream()
+            .map(PersonalDataProcessingLogDetails::getBusinessIdentifier)
+            .toList();
+
+        assertThat(businessIds).containsExactly(
+            "Update Draft Account - Parent or Guardian",
+            "Update Draft Account - Defendant",
+            "Update Draft Account - Minor Creditor"
+        );
+    }
+
+    @Test
+    @DisplayName("Update - Logging failures do not throw")
+    void updateLogging_failureDoesNotThrow() {
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(12L)
+            .submittedBy("user-update")
+            .account("""
+                {
+                  "account_type":"Fines",
+                  "defendant_type":"adultOrYouthOnly",
+                  "originator_name":"LJS",
+                  "originator_id": 1,
+                  "offences": []
+                }
+                """)
+            .build();
+
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new RuntimeException("PDPL unavailable"));
+
+        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(
+            OffsetDateTime.parse("2025-06-06T06:06:06Z"));
+
+        assertDoesNotThrow(() -> pdplLoggingService.pdplForDraftAccount(entity, Action.UPDATE, "opal-user-99"));
     }
 }
