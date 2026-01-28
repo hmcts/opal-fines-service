@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -7,7 +8,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.anyOf;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -1913,7 +1913,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").isEmpty())
             .andExpect(jsonPath("$.payment_terms.reason_for_extension").isEmpty())
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12T00:00:00"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
@@ -4460,7 +4460,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T09:10:11",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": { "payment_terms_type_code": "B",
                 "payment_terms_type_display_name": "By date"},
                 "instalment_period": { "instalment_period_code": "W" ,
@@ -4504,7 +4504,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_display_name")
                 .value("By date"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-11-01T09:10:11"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-11-01"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name")
                 .value("Weekly"))
