@@ -75,8 +75,8 @@ public class LoggingSteps extends BaseStepDef {
                                 String businessIdentifier) throws Exception {
 
         final int timeoutMillis = 5000;
-        String searchUrl = getLoggingTestUrl() + "/test-support/search";
-        Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+        final String searchUrl = getLoggingTestUrl() + "/test-support/search";
+        final Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
 
         Map<String, Object> payload = new HashMap<>();
         Map<String, Object> cb = new HashMap<>();
@@ -94,7 +94,10 @@ public class LoggingSteps extends BaseStepDef {
                     payload.put("individual_id", createdDraftId);
                 }
             }
-        } catch (Exception ignored) { }
+        } catch (Exception e) {
+            // safe to continue if session var is not present; log at debug so it's visible during dev runs
+            log.debug("No CREATED_DRAFT_ACCOUNT_ID in session or error reading it: {}", e.getMessage());
+        }
 
         Instant deadline = Instant.now().plusMillis(timeoutMillis);
         String lastBody = null;
@@ -106,11 +109,11 @@ public class LoggingSteps extends BaseStepDef {
             optionalBearer.ifPresent(b -> given.header("Authorization", "Bearer " + b));
 
             Response searchResp = given.when().post(searchUrl);
-            int sStatus = searchResp.getStatusCode();
+            int status = searchResp.getStatusCode();
             String body = searchResp.getBody() == null ? "" : searchResp.getBody().asString();
             lastBody = body;
 
-            if (sStatus == 200) {
+            if (status == 200) {
                 if (body == null || body.isBlank() || body.trim().equals("[]")) {
                     // no logs found
                     return;
