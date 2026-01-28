@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="../common-objects/party_details.xsd"/>
+  <xsd:include schemaLocation="../common-objects/address_details.xsd"/>
+  <xsd:include schemaLocation="../common-objects/creditor_account_payment_details.xsd"/>
+  <xsd:include schemaLocation="../common-objects/simple_type.xsd"/>
+  <xsd:include schemaLocation="../common-objects/error_response.xsd"/>
+  <xsd:element name="request">
+    <xsd:complexType>
+        <xsd:sequence>
+          <xsd:element name="creditor_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="account_version" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="party_details" type="party_details" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="address" type="address_details" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="payment" type="creditor_account_payment_details" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
