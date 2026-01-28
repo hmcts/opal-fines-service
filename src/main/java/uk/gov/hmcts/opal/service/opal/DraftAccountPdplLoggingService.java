@@ -1,0 +1,109 @@
+package uk.gov.hmcts.opal.service.opal;
+
+import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
+
+import java.time.Clock;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.util.JsonPathUtil;
+
+@Service
+@Slf4j(topic = "opal.pdplLoggingService")
+public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
+
+    private static final String JSON_DEFENDANT_TYPE = "$.defendant_type";
+    private static final String JSON_MINOR_CREDITOR = "$..minor_creditor";
+
+    public DraftAccountPdplLoggingService(LoggingService loggingService, Clock clock) {
+        super(loggingService, clock);
+    }
+
+    public void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
+        JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(), "");
+
+        Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
+        String defendantType = dtRaw == null ? "" : dtRaw.toString();
+
+        if (defendantType.equalsIgnoreCase("company")) {
+            return;
+        }
+
+        switch (defendantType) {
+            case "adultOrYouthOnly" -> logForRole(entity, action, Role.DEFENDANT);
+            case "pgToPay" -> {
+                logForRole(entity, action, Role.PARENT_OR_GUARDIAN);
+                logForRole(entity, action, Role.DEFENDANT);
+            }
+            default -> log.error("Unknown defendant_type '{}', skipping defendant/pg logs", defendantType);
+        }
+
+        if (hasAnyIndividualMinor(docContext)) {
+            logForRole(entity, action, Role.MINOR_CREDITOR);
+        }
+    }
+
+    private void logForRole(DraftAccountEntity entity, Action action, Role role) {
+        String businessIdentifier = action.formatFor(role);
+
+        ParticipantIdentifier individuals = ParticipantIdentifier.builder()
+            .identifier(entity.getDraftAccountId().toString())
+            .type(PdplIdentifierType.DRAFT_ACCOUNT)
+            .build();
+
+        logPdpl(businessIdentifier,
+            PersonalDataProcessingCategory.COLLECTION,
+            List.of(individuals),
+            null, entity);
+    }
+
+    private boolean hasAnyIndividualMinor(JsonPathUtil.DocContext docContext) {
+        List<Map<String, Object>> minorCreditors = docContext.read(JSON_MINOR_CREDITOR);
+        if (minorCreditors == null || minorCreditors.isEmpty()) {
+            return false;
+        }
+
+        return minorCreditors.stream()
+            .filter(Objects::nonNull)
+            .map(m -> m.get("company_flag"))
+            .anyMatch(flag -> !Boolean.TRUE.equals(flag));
+    }
+
+    public enum Role {
+        DEFENDANT("Defendant"),
+        PARENT_OR_GUARDIAN("Parent or Guardian"),
+        MINOR_CREDITOR("Minor Creditor");
+
+        private final String label;
+
+        Role(String label) {
+            this.label = label;
+        }
+
+        public String label() {
+            return label;
+        }
+    }
+
+    public enum Action {
+        SUBMIT("Submit Draft Account - %s"),
+        RESUBMIT("Re-submit Draft Account - %s");
+
+        private final String template;
+
+        Action(String template) {
+            this.template = template;
+        }
+
+        public String formatFor(Role role) {
+            return String.format(template, role.label());
+        }
+    }
+}
