@@ -137,15 +137,15 @@ public class DraftAccountPostSteps extends BaseStepDef {
             .statusCode(statusCode);
     }
 
-    @When("I attempt to create a draft account with an invalid token")
-    public void postDraftAccountWithInvalidToken() throws JSONException {
+    @When("I attempt to create a draft account with an invalid token using created by ID {string}")
+    public void postDraftAccountWithInvalidToken(String CreatedBy) throws JSONException {
         JSONObject postBody = new JSONObject();
 
         postBody.put("business_unit_id", "77");
         postBody.put("account", "{\"account_create_request\":{\"defendant\":{},\"account\":{}}}");
         postBody.put("account_type", "Fine");
         postBody.put("account_status", "");
-        postBody.put("submitted_by", "BUUID");
+        postBody.put("submitted_by", CreatedBy);
         postBody.put("timeline_data", JSONObject.NULL);
 
         SerenityRest
