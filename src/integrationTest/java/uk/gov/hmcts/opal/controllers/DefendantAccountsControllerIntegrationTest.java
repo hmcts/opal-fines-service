@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.anyOf;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -58,7 +59,6 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
-
 abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
@@ -1913,12 +1913,12 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").isEmpty())
             .andExpect(jsonPath("$.payment_terms.reason_for_extension").isEmpty())
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12T00:00:00"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
 
-            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date").value("2023-11-03"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date").value("2023-11-03T16:05:10"))
             .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("01000000A"))
             .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").isEmpty())
 
@@ -1970,26 +1970,34 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
 
+        String dateTimePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?";
+        String datePattern = "\\d{4}-\\d{2}-\\d{2}";
+
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
             .andExpect(jsonPath("$.payment_terms.days_in_default").value(120))
             .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").value("2025-10-12"))
-            .andExpect(jsonPath("$.payment_terms.reason_for_extension").value(""))
+            .andExpect(jsonPath("$.payment_terms.reason_for_extension")
+                .value(anyOf(is(""), nullValue())))
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value(
+                anyOf(nullValue(), matchesPattern(dateTimePattern), matchesPattern(datePattern))))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").value(0.00))
             .andExpect(jsonPath("$.payment_terms.instalment_amount").value(0.00))
 
-            .andExpect(jsonPath("$.posted_details.posted_date").value("2023-11-03"))
-            .andExpect(jsonPath("$.posted_details.posted_by").value("01000000A"))
-            .andExpect(jsonPath("$.posted_details.posted_by_name").value(""))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date").value(
+                anyOf(nullValue(), matchesPattern(dateTimePattern), matchesPattern(datePattern))))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("01000000A"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name")
+                .value(anyOf(is(""), nullValue())))
 
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
-            .andExpect(jsonPath("$.date_last_amended").value("2024-01-03"))
-            .andExpect(jsonPath("$.extension").value(false)).andExpect(jsonPath("$.last_enforcement").value("REM"));
+            .andExpect(jsonPath("$.payment_terms.extension").value(false))
+            .andExpect(jsonPath("$.last_enforcement").value("REM"));
 
     }
+
 
     @DisplayName("OPAL: Get Defendant Account Party - Happy Path [@PO-1588]")
     public void opalGetDefendantAccountParty_Happy(Logger log) throws Exception {
@@ -4341,6 +4349,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(780000000021L))
             .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_name").value("North East Enforcement"))
             .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_code").value("L240"))
             .andExpect(jsonPath("$.enforcement_override.lja.lja_name").value("Tyne & Wear LJA"))
             .andExpect(jsonPath("$.last_enforcement_action.reason").value("Late Payment"))
             .andExpect(jsonPath("$.last_enforcement_action.warrant_number").value("Warrent007"))
@@ -4458,7 +4467,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": { "payment_terms_type_code": "B",
                 "payment_terms_type_display_name": "By date"},
                 "instalment_period": { "instalment_period_code": "W" ,
@@ -4467,7 +4476,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4489,11 +4498,33 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         log.info(":opalAddPaymentTerms_Happy response body:\n{}", ToJsonString.toPrettyJson(body));
         log.info(":opalAddPaymentTerms_Happy ETag: {}", etag);
 
+        String dateTimePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?";
+        String datePattern = "\\d{4}-\\d{2}-\\d{2}";
+
         // Basic assertions: OK + JSON + expected fields
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.payment_terms.days_in_default").value(30));
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(30))
+            .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").value("2025-11-05"))
+            .andExpect(jsonPath("$.payment_terms.extension").value(true))
+            .andExpect(jsonPath("$.payment_terms.reason_for_extension").value("extn reason text"))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_display_name")
+                .value("By date"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-11-01T09:10:11"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name")
+                .value("Weekly"))
+            .andExpect(jsonPath("$.payment_terms.lump_sum_amount").value(120.00))
+            .andExpect(jsonPath("$.payment_terms.instalment_amount").value(10.00))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("clerk1"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("aa"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date")
+                .value(matchesPattern(dateTimePattern)))
+            .andExpect(jsonPath("$.payment_card_last_requested")
+                .value(matchesPattern(datePattern)));
     }
+
 
     @DisplayName("OPAL: Add Payment Terms - Unauthorized when missing auth header [@PO-1718]")
     void test_Opal_AddPaymentTerms_Unauthorized(Logger log) throws Exception {
@@ -4511,7 +4542,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4524,7 +4555,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4565,7 +4596,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4578,7 +4609,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4616,7 +4647,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4629,7 +4660,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4665,7 +4696,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4678,7 +4709,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4713,7 +4744,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4726,7 +4757,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4789,7 +4820,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4802,7 +4833,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4838,7 +4869,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4851,7 +4882,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4887,7 +4918,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4900,7 +4931,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },

@@ -8,9 +8,7 @@ import lombok.Builder;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
@@ -18,14 +16,14 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @AllArgsConstructor
 @Builder
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {"ljaId", "ljaName"})
 public class LjaReference implements ToXmlString {
 
-    @JsonProperty(value = "lja_id", required = true)
     @XmlElement(name = "lja_id", required = true)
-    private Integer ljaId;
+    private Short ljaId;
 
-    @JsonProperty(value = "lja_name", required = true)
+    // Local Justice Area code is not returned from Legacy, and needs to be populated from the Opal DB.
+    private String ljaCode;
+
     @XmlElement(name = "lja_name", required = true)
     private String ljaName;
 }

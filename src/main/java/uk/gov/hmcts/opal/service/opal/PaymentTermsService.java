@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +24,10 @@ public class PaymentTermsService implements PaymentTermsServiceInterface {
         // Set new one to active
         paymentTermsEntity.setActive(Boolean.TRUE);
 
-        // Set posted metadata
-        paymentTermsEntity.setPostedDate(LocalDate.from(LocalDateTime.now()));
+        // Set posted_details metadata
+        if (paymentTermsEntity.getPostedDate() == null) {
+            paymentTermsEntity.setPostedDate(LocalDateTime.now());
+        }
         paymentTermsEntity.setPostedBy(paymentTermsEntity.getPostedBy());
         paymentTermsEntity.setPostedByUsername(paymentTermsEntity.getPostedByUsername());
 

@@ -22,25 +22,25 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
-import uk.gov.hmcts.opal.repository.AliasRepository;
-import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceTest05 {
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private AliasRepository aliasRepo;
+    private AliasRepositoryService aliasRepoService;
 
     @Mock
-    private DebtorDetailRepository debtorRepo;
+    private DebtorDetailRepositoryService debtorRepoService;
 
     // Service under test
     @InjectMocks
-    private OpalDefendantAccountService service;
+    private OpalDefendantAccountPartyService service;
 
     @Test
     void getDefendantAccountParty_builds_individual_aliases_only() {
@@ -66,7 +66,7 @@ class OpalDefendantAccountServiceTest05 {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         // AliasEntity rows: only surname populated should be considered for individual path;
         // blanks and org-only names ignored; ensure sorting by sequenceNumber.
@@ -80,8 +80,8 @@ class OpalDefendantAccountServiceTest05 {
             .aliasId(203L).sequenceNumber(4).organisationName("Wayne Ent") // ignored for individual
             .build();
 
-        when(aliasRepo.findByParty_PartyId(10L)).thenReturn(List.of(a1, a2, blank, orgOnly));
-        when(debtorRepo.findByPartyId(10L)).thenReturn(Optional.empty());
+        when(aliasRepoService.findByPartyId(10L)).thenReturn(List.of(a1, a2, blank, orgOnly));
+        when(debtorRepoService.findByPartyId(10L)).thenReturn(Optional.empty());
 
         // --- Act
         GetDefendantAccountPartyResponse resp = service.getDefendantAccountParty(1L, 100L);
@@ -129,7 +129,7 @@ class OpalDefendantAccountServiceTest05 {
                 .businessUnitId((short) 1).build())
             .versionNumber(0L).build();
 
-        when(defendantAccountRepository.findById(2L)).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(2L)).thenReturn(account);
 
         // Only org-name-bearing aliases should be mapped; blanks ignored; sorted by seq.
         var o1 = AliasEntity.builder()
@@ -141,16 +141,16 @@ class OpalDefendantAccountServiceTest05 {
         var personOnly = AliasEntity.builder()
             .aliasId(303L).sequenceNumber(4).surname("Jones").forenames("Bob").build(); // ignored for org
 
-        when(aliasRepo.findByParty_PartyId(20L)).thenReturn(List.of(o1, o2, blank, personOnly));
-        when(debtorRepo.findByPartyId(20L)).thenReturn(Optional.empty());
+        when(aliasRepoService.findByPartyId(20L)).thenReturn(List.of(o1, o2, blank, personOnly));
+        when(debtorRepoService.findByPartyId(20L)).thenReturn(Optional.empty());
 
         try {
-            var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
+            var f1 = OpalDefendantAccountPartyService.class.getDeclaredField("aliasRepositoryService");
             f1.setAccessible(true);
-            f1.set(service, aliasRepo);
-            var f2 = OpalDefendantAccountService.class.getDeclaredField("debtorDetailRepository");
+            f1.set(service, aliasRepoService);
+            var f2 = OpalDefendantAccountPartyService.class.getDeclaredField("debtorDetailRepositoryService");
             f2.setAccessible(true);
-            f2.set(service, debtorRepo);
+            f2.set(service, debtorRepoService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -202,24 +202,24 @@ class OpalDefendantAccountServiceTest05 {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         // No valid aliases: empty list OR rows that don't have surname populated are ignored
-        when(aliasRepo.findByParty_PartyId(10L)).thenReturn(List.of(
+        when(aliasRepoService.findByPartyId(10L)).thenReturn(List.of(
             AliasEntity.builder().aliasId(1L)
                 .sequenceNumber(1).surname("   ").forenames("X").build(),
             AliasEntity.builder().aliasId(2L)
                 .sequenceNumber(2).organisationName("Some Org").build()
         ));
-        when(debtorRepo.findByPartyId(10L)).thenReturn(Optional.empty());
+        when(debtorRepoService.findByPartyId(10L)).thenReturn(Optional.empty());
 
         try {
-            var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
+            var f1 = OpalDefendantAccountPartyService.class.getDeclaredField("aliasRepositoryService");
             f1.setAccessible(true);
-            f1.set(service, aliasRepo);
-            var f2 = OpalDefendantAccountService.class.getDeclaredField("debtorDetailRepository");
+            f1.set(service, aliasRepoService);
+            var f2 = OpalDefendantAccountPartyService.class.getDeclaredField("debtorDetailRepositoryService");
             f2.setAccessible(true);
-            f2.set(service, debtorRepo);
+            f2.set(service, debtorRepoService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -257,17 +257,17 @@ class OpalDefendantAccountServiceTest05 {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(2L)).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(2L)).thenReturn(account);
 
         // No valid org aliases: empty list OR rows with blank org names are ignored;
         // person-only rows are ignored for org parties
-        when(aliasRepo.findByParty_PartyId(20L)).thenReturn(List.of(
+        when(aliasRepoService.findByPartyId(20L)).thenReturn(List.of(
             AliasEntity.builder().aliasId(10L)
                 .sequenceNumber(1).organisationName("   ").build(),
             AliasEntity.builder().aliasId(11L)
                 .sequenceNumber(2).surname("Jones").forenames("Bob").build()
         ));
-        when(debtorRepo.findByPartyId(20L)).thenReturn(Optional.empty());
+        when(debtorRepoService.findByPartyId(20L)).thenReturn(Optional.empty());
 
         var resp = service.getDefendantAccountParty(2L, 200L);
 

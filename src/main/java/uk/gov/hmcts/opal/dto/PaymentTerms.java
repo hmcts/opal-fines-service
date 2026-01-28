@@ -1,15 +1,15 @@
 package uk.gov.hmcts.opal.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Data
 @Builder
@@ -33,7 +33,7 @@ public class PaymentTerms {
     private PaymentTermsType paymentTermsType;
 
     @JsonProperty("effective_date")
-    private LocalDate effectiveDate;
+    private LocalDateTime effectiveDate;
 
     @JsonProperty("instalment_period")
     private InstalmentPeriod instalmentPeriod;

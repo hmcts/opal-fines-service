@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.persistence;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -10,9 +10,9 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 
 @Service
-@Slf4j(topic = "opal.OpalPartyService")
+@Slf4j(topic = "opal.PartyRepositoryService")
 @RequiredArgsConstructor
-public class OpalPartyService {
+public class PartyRepositoryService {
 
     private final PartyRepository repository;
 

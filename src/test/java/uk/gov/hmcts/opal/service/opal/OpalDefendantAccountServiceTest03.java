@@ -43,32 +43,34 @@ import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
-import uk.gov.hmcts.opal.repository.AliasRepository;
-import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceTest03 {
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private AmendmentService amendmentService;
+    private AmendmentRepositoryService amendmentRepositoryService;
 
     @Mock
-    private AliasRepository aliasRepo;
+    private AliasRepositoryService aliasRepoService;
 
     @Mock
-    private DebtorDetailRepository debtorRepo;
+    private DebtorDetailRepositoryService debtorRepoService;
 
     @Mock
-    private OpalPartyService opalPartyService;
+    private PartyRepositoryService partyRepositoryService;
 
     // Service under test
     @InjectMocks
-    private OpalDefendantAccountService service;
+    private OpalDefendantAccountPartyService service;
 
     @Test
     void replaceDefendantAccountParty_noExistingParty_andMissingPartyId_throws() {
@@ -84,7 +86,7 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder()
@@ -100,7 +102,7 @@ class OpalDefendantAccountServiceTest03 {
             assertThrows(IllegalArgumentException.class, () ->
                 service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", null));
 
-            verify(defendantAccountRepository, never()).saveAndFlush(any());
+            verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
         }
     }
 
@@ -121,7 +123,7 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder().partyId("999").organisationFlag(Boolean.TRUE).build())
@@ -130,7 +132,7 @@ class OpalDefendantAccountServiceTest03 {
         assertThrows(IllegalArgumentException.class, () ->
             service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", null));
 
-        verify(defendantAccountRepository, never()).saveAndFlush(any());
+        verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
     }
 
     @Test
@@ -143,13 +145,13 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
             service.replaceDefendantAccountParty(accountId, 1L,
                 DefendantAccountParty.builder().build(), "\"1\"", "10", "tester", null));
 
-        verify(defendantAccountRepository, never()).saveAndFlush(any());
+        verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
     }
 
     @Test
@@ -169,13 +171,13 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
         DebtorDetailEntity existing = new DebtorDetailEntity();
         existing.setPartyId(222L);
-        when(opalPartyService.findById(222L)).thenReturn(party);
-        when(aliasRepo.findByParty_PartyId(222L)).thenReturn(emptyList());
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(partyRepositoryService.findById(222L)).thenReturn(party);
+        when(aliasRepoService.findByPartyId(222L)).thenReturn(emptyList());
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant").isDebtor(Boolean.FALSE)
@@ -195,7 +197,7 @@ class OpalDefendantAccountServiceTest03 {
             assertNotNull(resp);
 
             // existing debtor should be deleted (we previously retrieved it via findById)
-            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(defendantAccountRepositoryService).saveAndFlush(account);
         }
     }
 
@@ -216,13 +218,13 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
 
-        when(opalPartyService.findById(444L)).thenReturn(party);
-        when(aliasRepo.findByParty_PartyId(444L)).thenReturn(emptyList());
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(partyRepositoryService.findById(444L)).thenReturn(party);
+        when(aliasRepoService.findByPartyId(444L)).thenReturn(emptyList());
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
 
-        when(debtorRepo.findById(444L)).thenReturn(Optional.of(new DebtorDetailEntity()));
+        when(debtorRepoService.findById(444L)).thenReturn(Optional.of(new DebtorDetailEntity()));
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
@@ -255,7 +257,7 @@ class OpalDefendantAccountServiceTest03 {
             verify(party).setHomeTelephoneNumber(null);
             verify(party).setWorkTelephoneNumber(null);
 
-            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(defendantAccountRepositoryService).saveAndFlush(account);
         }
     }
 
@@ -287,15 +289,15 @@ class OpalDefendantAccountServiceTest03 {
 
         account.setParties(List.of(dap));
 
-        when(aliasRepo.findByParty_PartyId(123L)).thenReturn(emptyList());
+        when(aliasRepoService.findByPartyId(123L)).thenReturn(emptyList());
 
-        when(opalPartyService.findById(123L)).thenReturn(party);
+        when(partyRepositoryService.findById(123L)).thenReturn(party);
 
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
 
-        when(debtorRepo.findById(123L)).thenReturn(Optional.of(new DebtorDetailEntity()));
+        when(debtorRepoService.findById(123L)).thenReturn(Optional.of(new DebtorDetailEntity()));
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant")
@@ -329,9 +331,9 @@ class OpalDefendantAccountServiceTest03 {
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
 
-            verify(defendantAccountRepository).saveAndFlush(account);
-            verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
-            verify(amendmentService).auditFinaliseStoredProc(
+            verify(defendantAccountRepositoryService).saveAndFlush(account);
+            verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+            verify(amendmentRepositoryService).auditFinaliseStoredProc(
                 eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
                 eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
 
@@ -341,7 +343,7 @@ class OpalDefendantAccountServiceTest03 {
             verify(party).setPrimaryEmailAddress("a@b.com");
 
             // called inside replaceAliasesForParty and again when building response
-            verify(aliasRepo, times(2)).findByParty_PartyId(123L);
+            verify(aliasRepoService, times(2)).findByPartyId(123L);
         }
     }
 
@@ -363,12 +365,12 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
 
-        when(opalPartyService.findById(300L)).thenReturn(partyProxy);
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(partyRepositoryService.findById(300L)).thenReturn(partyProxy);
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
 
-        when(aliasRepo.findByParty_PartyId(300L)).thenReturn(emptyList());
+        when(aliasRepoService.findByPartyId(300L)).thenReturn(emptyList());
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder()
@@ -386,9 +388,9 @@ class OpalDefendantAccountServiceTest03 {
 
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
-            verify(opalPartyService, times(2)).findById(300L); // main + aliases
-            verify(defendantAccountRepository).saveAndFlush(account);
-            verify(aliasRepo, times(2)).findByParty_PartyId(300L);
+            verify(partyRepositoryService, times(2)).findById(300L); // main + aliases
+            verify(defendantAccountRepositoryService).saveAndFlush(account);
+            verify(aliasRepoService, times(2)).findByPartyId(300L);
         }
     }
 
@@ -410,16 +412,16 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
-        when(opalPartyService.findById(333L)).thenReturn(party);
-        when(aliasRepo.findByParty_PartyId(333L)).thenReturn(emptyList());
+        when(partyRepositoryService.findById(333L)).thenReturn(party);
+        when(aliasRepoService.findByPartyId(333L)).thenReturn(emptyList());
 
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
-        when(debtorRepo.findById(333L)).thenReturn(Optional.empty());
-        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
+        when(debtorRepoService.findById(333L)).thenReturn(null);
+        when(debtorRepoService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        when(debtorRepo.findById(333L)).thenReturn(Optional.of(new DebtorDetailEntity()));
+        when(debtorRepoService.findById(333L)).thenReturn(Optional.of(new DebtorDetailEntity()));
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
@@ -444,7 +446,7 @@ class OpalDefendantAccountServiceTest03 {
             assertNotNull(resp);
 
             ArgumentCaptor<DebtorDetailEntity> cap = ArgumentCaptor.forClass(DebtorDetailEntity.class);
-            verify(debtorRepo).save(cap.capture());
+            verify(debtorRepoService).save(cap.capture());
             DebtorDetailEntity saved = cap.getValue();
 
             assertEquals("VW Golf", saved.getVehicleMake());
@@ -466,8 +468,8 @@ class OpalDefendantAccountServiceTest03 {
             assertNull(saved.getDocumentLanguageDate());
             assertNull(saved.getHearingLanguageDate());
 
-            verify(defendantAccountRepository).saveAndFlush(account);
-            verify(aliasRepo, times(2)).findByParty_PartyId(333L);
+            verify(defendantAccountRepositoryService).saveAndFlush(account);
+            verify(aliasRepoService, times(2)).findByPartyId(333L);
         }
     }
 

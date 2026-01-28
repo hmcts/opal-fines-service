@@ -405,8 +405,8 @@ BEGIN
 
     -- 14) REPORT_INSTANCES (1)
     INSERT INTO public.report_instances
-    (report_instance_id, report_id, business_unit_id, audit_sequence, generated_date, generated_by, report_parameters, content) VALUES
-    (99000000008000, (SELECT report_id FROM public.reports ORDER BY report_id LIMIT 1), 77, 1, CURRENT_TIMESTAMP, 'L080JG', '{"from":"auto"}'::json, XMLPARSE(DOCUMENT '<report><title>Auto Test</title></report>'))
+    (report_instance_id, report_id, business_unit_id, audit_sequence, created_timestamp, requested_by, requested_at, generation_status, requested_by_name, report_parameters, location) VALUES
+    (99000000008000, (SELECT report_id FROM public.reports ORDER BY report_id LIMIT 1), ARRAY[77]::smallint[], 1, CURRENT_TIMESTAMP, 12345678, CURRENT_TIMESTAMP, 'READY', 'opal-test', '{"from":"auto"}'::json, 'test-location')
     ON CONFLICT DO NOTHING;
 
     -- 15) REPORT_ENTRIES (10 + 3 companies = 13 total)

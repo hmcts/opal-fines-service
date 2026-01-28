@@ -3,11 +3,11 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -120,7 +120,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
             .active(Boolean.TRUE)
-            .postedDate(LocalDate.from(LocalDateTime.now()))
+            .postedDate(LocalDateTime.now())
             .postedBy(postedBy)
             .postedByUsername(postedBy)
             .build();
@@ -158,6 +158,60 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         assertNull(savedAccount.getLastEnforcement(), "Expected lastEnforcement to be cleared to null");
         // 3) Verify that reportEntryService.createExtendTtpReportEntry was called to create report entry
         verify(reportEntryService).createExtendTtpReportEntry(any(Long.class), any(short.class));
+    }
 
+    @Test
+    void addPaymentTerms_setsPostedByFields_whenNull() {
+        // Arrange
+        final Long defendantAccountId = 1L;
+        final String businessUnitId = "10";
+        final String businessUnitUserId = "userX";
+        final String ifMatch = "\"1\"";
+        final String authHeader = "Bearer token";
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
+            .thenReturn(Optional.of(account));
+
+        PaymentTerms paymentTermsDto = new PaymentTerms();
+        AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
+        request.setPaymentTerms(paymentTermsDto);
+
+        PaymentTermsEntity paymentTermsEntity = PaymentTermsEntity.builder()
+            .postedBy(null)
+            .postedByUsername(null)
+            .build();
+
+        when(paymentTermsMapper.toEntity(any(PaymentTerms.class))).thenReturn(paymentTermsEntity);
+
+        PaymentTermsEntity savedPaymentTermsEntity = PaymentTermsEntity.builder()
+            .paymentTermsId(200L)
+            .active(Boolean.TRUE)
+            .defendantAccount(account)  // ensure builder can access the account and its version
+            .postedBy(businessUnitUserId)
+            .postedByUsername(businessUnitUserId)
+            .extension(Boolean.TRUE)
+            .build();
+
+        when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
+
+        // Act
+        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
+            authHeader, request);
+
+        // Assert
+        verify(paymentTermsService).addPaymentTerm(argThat(entity ->
+            businessUnitUserId.equals(entity.getPostedBy())
+                && businessUnitUserId.equals(entity.getPostedByUsername())
+        ));
     }
 }

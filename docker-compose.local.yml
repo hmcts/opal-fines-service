@@ -1,0 +1,9 @@
+services:
+  opal-fines-service:
+    image: opal-fines-service:local
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy

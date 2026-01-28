@@ -38,19 +38,27 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
-import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
-import uk.gov.hmcts.opal.repository.EnforcerRepository;
-import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.FixedPenaltyOffenceRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceTest01 {
 
     @Mock
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
+
+    @Mock
     private DefendantAccountRepository defendantAccountRepository;
+
+    @Mock
+    private EnforcementRepository enforcementRepository;
 
     @Mock
     private DefendantAccountSummaryViewRepository dasvRepository;
@@ -59,27 +67,31 @@ class OpalDefendantAccountServiceTest01 {
     private SearchDefendantAccountRepository searchDefAccRepo;
 
     @Mock
-    private FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
+    private FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
 
     @Mock
-    private EnforcerRepository enforcerRepo;
+    private EnforcerRepositoryService enforcerRepoService;
 
     @Mock
-    private DebtorDetailRepository debtorDetailRepo;
+    private DebtorDetailRepositoryService debtorDetailRepoService;
 
     @Mock
-    private EnforcementRepository enforcementRepository;
+    private EnforcementRepositoryService enforcementRepositoryService;
 
-    // Service under test
+    // Services under test
     @InjectMocks
     private OpalDefendantAccountService service;
+    @InjectMocks
+    private OpalDefendantAccountFixedPenaltyService fpService;
+    @InjectMocks
+    private OpalDefendantAccountEnforcementService enforcementService;
 
     @Test
     void testDefendantAccountById() {
         long testId = 1L;
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
-        when(defendantAccountRepository.findById(testId)).thenReturn(java.util.Optional.of(entity));
+        when(defendantAccountRepository.findById(testId)).thenReturn(Optional.ofNullable(entity));
 
         DefendantAccountEntity result = service.getDefendantAccountById(testId);
         assertNotNull(result);
@@ -183,7 +195,7 @@ class OpalDefendantAccountServiceTest01 {
         when(c.getDefendant()).thenReturn(null);
         return c;
     }
-    
+
     @Test
     void whenReferenceOrganisationFlagProvided_appliesFilterCorrectly1() {
         // Arrange
@@ -221,11 +233,12 @@ class OpalDefendantAccountServiceTest01 {
         offence.setVehicleRegistration(null);
         offence.setVehicleFixedPenalty(false);
 
-        when(defendantAccountRepository.findById(defendantAccountId)).thenReturn(Optional.of(account));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId))
-            .thenReturn(Optional.of(offence));
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(account);
+        when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(defendantAccountId))
+            .thenReturn(offence);
 
-        GetDefendantAccountFixedPenaltyResponse response = service.getDefendantAccountFixedPenalty(defendantAccountId);
+        GetDefendantAccountFixedPenaltyResponse response =
+            fpService.getDefendantAccountFixedPenalty(defendantAccountId);
 
         assertFalse(response.isVehicleFixedPenaltyFlag(),
             "Expected flag to be false when vehicleFixedPenalty=false and registration is null");
@@ -240,11 +253,12 @@ class OpalDefendantAccountServiceTest01 {
         offence.setVehicleRegistration("NV");
         offence.setVehicleFixedPenalty(false);
 
-        when(defendantAccountRepository.findById(defendantAccountId)).thenReturn(Optional.of(account));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId))
-            .thenReturn(Optional.of(offence));
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(account);
+        when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(defendantAccountId))
+            .thenReturn(offence);
 
-        GetDefendantAccountFixedPenaltyResponse response = service.getDefendantAccountFixedPenalty(defendantAccountId);
+        GetDefendantAccountFixedPenaltyResponse response =
+            fpService.getDefendantAccountFixedPenalty(defendantAccountId);
 
         assertFalse(response.isVehicleFixedPenaltyFlag(),
             "Expected flag to be false when vehicleFixedPenalty=false and registration='NV'");
@@ -259,11 +273,12 @@ class OpalDefendantAccountServiceTest01 {
         offence.setVehicleRegistration("AB12CDE");
         offence.setVehicleFixedPenalty(false);
 
-        when(defendantAccountRepository.findById(defendantAccountId)).thenReturn(Optional.of(account));
-        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId))
-            .thenReturn(Optional.of(offence));
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(account);
+        when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(defendantAccountId))
+            .thenReturn(offence);
 
-        GetDefendantAccountFixedPenaltyResponse response = service.getDefendantAccountFixedPenalty(defendantAccountId);
+        GetDefendantAccountFixedPenaltyResponse response =
+            fpService.getDefendantAccountFixedPenalty(defendantAccountId);
 
         assertTrue(response.isVehicleFixedPenaltyFlag(),
             "Expected flag to be true when vehicleRegistration='AB12CDE' even if vehicleFixedPenalty=false");
@@ -309,14 +324,14 @@ class OpalDefendantAccountServiceTest01 {
         EnforcementEntity.Lite enforcementEntity = EnforcementEntity.Lite.builder()
                 .build();
 
-        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(defAccount));
-        when(enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(defAccount);
+        when(enforcementRepositoryService.getEnforcementMostRecent(
             any(), any())).thenReturn(Optional.of(enforcementEntity));
-        lenient().when(enforcerRepo.findByEnforcerId(any())).thenReturn(null); // enforcerRepo should not be null
-        when(debtorDetailRepo.findByPartyId(any())).thenReturn(Optional.empty());
+        lenient().when(enforcerRepoService.findById(any())).thenReturn(null); // enforcerRepo should not be null
+        when(debtorDetailRepoService.findByPartyId(any())).thenReturn(Optional.empty());
 
         // Act
-        EnforcementStatus response = service.getEnforcementStatus(1L);
+        EnforcementStatus response = enforcementService.getEnforcementStatus(1L);
 
         // Assert
         assertNotNull(response);

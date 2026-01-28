@@ -94,6 +94,9 @@ spring:
       host: ${OPAL_REDIS_HOST:localhost}
       port: ${OPAL_REDIS_PORT:6379}
   flyway:
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration/allEnvs, classpath:db/migration/devOnly, classpath:db/migration/stgOnly}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"

@@ -36,6 +36,10 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
 @RestController
@@ -45,9 +49,21 @@ import uk.gov.hmcts.opal.service.DefendantAccountService;
 public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
+    private final DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
+    private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+    private final DefendantAccountEnforcementService defendantAccountEnforcementService;
+    private final DefendantAccountPartyService defendantAccountPartyService;
 
-    public DefendantAccountController(DefendantAccountService defendantAccountService) {
+    public DefendantAccountController(DefendantAccountService defendantAccountService,
+        DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService,
+        DefendantAccountPaymentTermsService defendantAccountPaymentTermsService,
+        DefendantAccountEnforcementService defendantAccountEnforcementService,
+        DefendantAccountPartyService defendantAccountPartyService) {
         this.defendantAccountService = defendantAccountService;
+        this.defendantAccountPaymentTermsService = defendantAccountPaymentTermsService;
+        this.defendantAccountFixedPenaltyService = defendantAccountFixedPenaltyService;
+        this.defendantAccountEnforcementService = defendantAccountEnforcementService;
+        this.defendantAccountPartyService = defendantAccountPartyService;
     }
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
@@ -73,7 +89,7 @@ public class DefendantAccountController {
             defendantAccountPartyId);
 
         GetDefendantAccountPartyResponse response =
-            defendantAccountService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
+            defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
                 authHeaderValue);
 
         return buildResponse(response);
@@ -123,7 +139,7 @@ public class DefendantAccountController {
         log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
 
         return buildResponse(
-            defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
+            defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId, authHeaderValue));
     }
 
     @PostMapping("/{defendantAccountId}/payment-card-request")
@@ -137,7 +153,7 @@ public class DefendantAccountController {
     ) {
         log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);
 
-        AddPaymentCardRequestResponse response = defendantAccountService.addPaymentCardRequest(
+        AddPaymentCardRequestResponse response = defendantAccountPaymentTermsService.addPaymentCardRequest(
             defendantAccountId,
             businessUnitId,
             businessUnitUserId,
@@ -165,7 +181,7 @@ public class DefendantAccountController {
         log.debug(":GET:getDefendantAccountFixedPenalty: for defendantAccountId={}", defendantAccountId);
 
         GetDefendantAccountFixedPenaltyResponse response =
-            defendantAccountService.getDefendantAccountFixedPenalty(defendantAccountId, authHeaderValue);
+            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId, authHeaderValue);
 
         return buildResponse(response);
     }
@@ -206,7 +222,7 @@ public class DefendantAccountController {
             defendantAccountId, defendantAccountPartyId);
 
         return buildResponse(
-            defendantAccountService.replaceDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyService.replaceDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, authHeaderValue, ifMatch, businessUnitId, request));
     }
 
@@ -222,7 +238,7 @@ public class DefendantAccountController {
     ) {
         log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
 
-        AddEnforcementResponse response = defendantAccountService.addEnforcement(
+        AddEnforcementResponse response = defendantAccountEnforcementService.addEnforcement(
             defendantAccountId, businessUnitId, ifMatch, authHeaderValue, request
         );
 
