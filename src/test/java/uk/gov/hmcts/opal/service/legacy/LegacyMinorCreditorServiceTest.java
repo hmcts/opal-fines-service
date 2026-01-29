@@ -20,7 +20,6 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,8 +87,8 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(1, result.getCount());
         assertEquals(1, result.getCreditorAccounts().size());
-        assertEquals("2", result.getCreditorAccounts().get(0).getCreditorAccountId());
-        assertEquals("Jane", result.getCreditorAccounts().get(0).getDefendant().getFirstnames());
+        assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
+        assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
     }
 
     @Test
@@ -194,14 +193,19 @@ class LegacyMinorCreditorServiceTest {
 
         // Act
 
-        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService.getMinorCreditorAtAGlance(minorCreditorId);
+        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
+            .getMinorCreditorAtAGlance(minorCreditorId);
 
         // Assert
 
         assertEquals(66L, result.getCreditorAccountId());
         assertEquals("The Empire", result.getParty().getOrganisationDetails().getOrganisationName());
         assertEquals("SP4 C3", result.getAddress().getPostcode());
-        assertEquals("sith", result.getParty().getIndividualDetails().getIndividualAliases().getFirst().getAliasId());
+        assertEquals("sith", result.getParty()
+            .getIndividualDetails()
+            .getIndividualAliases()
+            .getFirst()
+            .getAliasId());
     }
 
     @Test
@@ -217,7 +221,8 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(responseWithException);
 
-        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService.getMinorCreditorAtAGlance("test");
+        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
+            .getMinorCreditorAtAGlance("test");
 
         assertNull(result.getCreditorAccountId());
         assertNull(result.getParty());
@@ -228,7 +233,8 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void getMinorCreditorAtAGlance_shouldHandleLegacyFailure() {
-        LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse = LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
+        LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
+            LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
             .party(null)
             .address(null)
             .creditorAccountId(null)
@@ -248,7 +254,8 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(response);
 
-        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService.getMinorCreditorAtAGlance("test");
+        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
+            .getMinorCreditorAtAGlance("test");
 
         assertNull(result.getCreditorAccountId());
         assertNull(result.getParty());

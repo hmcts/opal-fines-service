@@ -79,7 +79,7 @@ import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.*;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -672,8 +672,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .accountNumber(src.getAccountNumber())
             .debtorType(src.getDebtorType())
             .isYouth(src.isYouth())
-            .partyDetails(src.getPartyDetails().toOpalDto())
-            .addressDetails(src.getAddress().toOpalDto())
+            .partyDetails(src.getPartyDetails() == null ? null : src.getPartyDetails().toOpalDto())
+            .addressDetails(src.getAddress() == null ? null : src.getAddress().toOpalDto())
             .languagePreferences(toLanguagePreferences(src.getLanguagePreferences()))
             .paymentTermsSummary(toPaymentTermsFromSummary(src.getPaymentTermsSummary()))
             .enforcementStatus(toEnforcementStatus(src.getEnforcementStatusSummary()))

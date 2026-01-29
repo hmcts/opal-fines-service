@@ -34,8 +34,8 @@ public class LegacyPartyDetails {
         return PartyDetails.builder()
             .partyId(this.getPartyId())
             .organisationFlag(this.getOrganisationFlag())
-            .organisationDetails(this.getOrganisationDetails().toOpalDto())
-            .individualDetails(this.getIndividualDetails().toOpalDto())
+            .organisationDetails(this.getOrganisationDetails() == null ? null : this.getOrganisationDetails().toOpalDto())
+            .individualDetails(this.getIndividualDetails() == null ? null : this.getIndividualDetails().toOpalDto())
             .build();
     }
 }

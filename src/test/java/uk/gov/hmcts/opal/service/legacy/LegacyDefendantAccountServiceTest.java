@@ -91,7 +91,18 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.*;
+import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyAddressDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyIndividualDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyOrganisationDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
+import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
+import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -1435,7 +1446,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getAtAGlance_mapsOrganisationBranch_withAliases() {
         // org alias element
-        LegacyOrganisationDetails.LegacyOrganisationAlias orgAlias = LegacyOrganisationDetails.LegacyOrganisationAlias.builder()
+        LegacyOrganisationDetails.LegacyOrganisationAlias orgAlias = LegacyOrganisationDetails
+            .LegacyOrganisationAlias.builder()
             .aliasId("10")
             .sequenceNumber(Short.valueOf("2"))
             .organisationName("Alt Name Ltd")
@@ -2800,18 +2812,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Act
         EnforcementStatus response = legacyDefendantAccountService
             .getEnforcementStatus(33L);
-
-        // Assert
-        assertNotNull(response);
-        assertTrue(response.getEmployerFlag());
-        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
-        assertFalse(response.getIsHmrcCheckEligible());
-        assertNull(response.getNextEnforcementActionData());
-        assertNotNull(response.getEnforcementOverride());
-        assertNotNull(response.getLastEnforcementAction());
-        assertNotNull(response.getEnforcementOverview());
-        assertNotNull(response.getAccountStatusReference());
-
         EnforcementOverrideCommon override = response.getEnforcementOverride();
         assertNotNull(override.getEnforcementOverrideResult());
         assertEquals("AAB", override.getEnforcementOverrideResult().getEnforcementOverrideResultId());

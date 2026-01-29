@@ -3,7 +3,11 @@ package uk.gov.hmcts.opal.service.legacy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.*;
+import uk.gov.hmcts.opal.dto.CreditorAccountDto;
+import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
@@ -23,7 +27,8 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
     private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
 
-    private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE = "LIBRA.get_minor_creditors_account_at_a_glance";
+    private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE =
+        "LIBRA.get_minor_creditors_account_at_a_glance";
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
@@ -55,7 +60,8 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE,
                                          LegacyGetMinorCreditorAccountAtAGlanceResponse.class,
-                                         LegacyGetMinorCreditorAccountAtAGlanceRequest.createRequest(minorCreditorId), null
+                                         LegacyGetMinorCreditorAccountAtAGlanceRequest.createRequest(minorCreditorId),
+                null
             );
 
         if (response.isError()) {

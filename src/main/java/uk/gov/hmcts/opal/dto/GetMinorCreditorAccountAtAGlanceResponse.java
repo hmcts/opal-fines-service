@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GetMinorCreditorAccountAtAGlanceResponse implements ToJsonString{
+public class GetMinorCreditorAccountAtAGlanceResponse implements ToJsonString {
 
     @JsonProperty("party")
     private PartyDetails party;

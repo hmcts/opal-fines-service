@@ -15,7 +15,6 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 @Data
 @Builder
@@ -51,7 +50,7 @@ public class LegacyOrganisationDetails {
         @XmlElement(name = "organisation_name")
         private String organisationName;
 
-        public OrganisationAlias toOpalDto () {
+        public OrganisationAlias toOpalDto() {
             return OrganisationAlias.builder()
                 .aliasId(this.getAliasId())
                 .sequenceNumber(Integer.valueOf(this.getSequenceNumber()))
@@ -61,7 +60,7 @@ public class LegacyOrganisationDetails {
 
     }
 
-    public OrganisationDetails toOpalDto () {
+    public OrganisationDetails toOpalDto() {
         return OrganisationDetails.builder()
             .organisationName(this.getOrganisationName())
             .organisationAliases(this.getOrganisationAliases() == null
