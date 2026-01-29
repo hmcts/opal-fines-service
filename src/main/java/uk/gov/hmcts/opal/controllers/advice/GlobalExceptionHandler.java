@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -221,6 +222,22 @@ public class GlobalExceptionHandler {
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+    }
+
+    @ExceptionHandler(UnprocessableException.class)
+    public ResponseEntity<ProblemDetail> handleUnprocessableException(UnprocessableException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            "Unprocessable Entity",
+            "The request could not be processed",
+            "unprocessable-entity",
+            false,
+            ex
+        );
+
+        problemDetail.setProperty("unprocessableReason", ex.getMessage());
+
+        return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, problemDetail);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
