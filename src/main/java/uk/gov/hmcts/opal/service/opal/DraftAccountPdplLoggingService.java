@@ -58,8 +58,13 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
             .type(PdplIdentifierType.DRAFT_ACCOUNT)
             .build();
 
+        PersonalDataProcessingCategory category = switch (action) {
+            case SUBMIT, RESUBMIT -> PersonalDataProcessingCategory.COLLECTION;
+            case GET -> PersonalDataProcessingCategory.CONSULTATION;
+        };
+
         logPdpl(businessIdentifier,
-            PersonalDataProcessingCategory.COLLECTION,
+            category,
             List.of(individuals),
             null, entity);
     }
@@ -94,7 +99,8 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
 
     public enum Action {
         SUBMIT("Submit Draft Account - %s"),
-        RESUBMIT("Re-submit Draft Account - %s");
+        RESUBMIT("Re-submit Draft Account - %s"),
+        GET("Get Draft Account - %s");
 
         private final String template;
 
