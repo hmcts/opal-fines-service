@@ -4,7 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "result_id": { "type": "integer" },
+    "result_id": { "type": "string" },
     "result_title": { "type": "string" }
   },
   "required": ["result_id", "result_title"]
