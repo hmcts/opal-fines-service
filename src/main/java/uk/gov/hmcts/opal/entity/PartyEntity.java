@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
@@ -112,6 +113,7 @@ public class PartyEntity implements FullNameBuilder {
     @UpdateTimestamp
     private LocalDateTime lastChangedDate;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "party")
     private List<DefendantAccountPartiesEntity> defendantAccountParties;
 

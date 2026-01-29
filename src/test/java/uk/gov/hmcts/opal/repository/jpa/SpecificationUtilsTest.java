@@ -7,7 +7,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,8 +17,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyChar;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,30 +72,6 @@ class SpecificationUtilsTest {
         assertFalse(SpecificationUtils.hasText(""));
         assertFalse(SpecificationUtils.hasText("   "));
         assertTrue(SpecificationUtils.hasText("  x "));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void normalizeExpr_callsLowerThenChainedReplace_andReturnsFinalExpression() {
-        CriteriaBuilder cb = mock(CriteriaBuilder.class);
-
-        Expression<String> inputExpr = mock(Expression.class);
-
-        Expression<String> chain = mock(Expression.class);
-
-
-        when(cb.lower(any())).thenReturn(chain);
-        when(cb.function(eq("REPLACE"), eq(String.class), any(), any(), any()))
-            .thenReturn(chain);
-
-        Expression<String> out = SpecificationUtils.normalizeExpr(cb, inputExpr);
-
-        InOrder order = inOrder(cb);
-        order.verify(cb).lower(inputExpr);
-        verify(cb, atLeastOnce())
-            .function(eq("REPLACE"), eq(String.class), any(), any(), any());
-
-        assertSame(chain, out);
     }
 
     @Test

@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
@@ -44,6 +43,9 @@ import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryDtoBuilder;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -80,12 +82,14 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -102,10 +106,11 @@ import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
-import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.SearchDefendantBasicRepository;
+import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
 import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
-import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
+import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
@@ -117,13 +122,17 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalDefendantAccountService implements DefendantAccountServiceInterface {
 
+    private static final int TOO_MANY_SEARCH_RESULTS = 100;
+
     private final DefendantAccountHeaderViewRepository repository;
 
     private final DefendantAccountRepository defendantAccountRepository;
 
-    private final SearchDefendantAccountRepository searchDefendantAccountRepository;
+    private final SearchDefendantBasicRepository searchDefendantBasicRepository;
+    private final SearchDefendantConsolidatedRepository searchConsolidatedRepository;
 
-    private final SearchDefendantAccountSpecs searchDefendantAccountSpecs;
+    private final SearchBasicEntitySpecs searchBasicEntitySpecs;
+    private final SearchConsolidatedEntitySpecs searchConsolidatedEntitySpecs;
 
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
 
@@ -154,8 +163,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final PaymentCardRequestRepository paymentCardRequestRepository;
 
     private final AccessTokenService accessTokenService;
-
-    private final UserStateService userStateService;
 
     private final PartyRepositoryService partyRepositoryService;
 
@@ -207,19 +214,88 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
 
-        Specification<SearchDefendantAccountEntity> spec = SearchDefendantAccountSpecs.findBySearch(accountSearchDto);
+        boolean consolidatedSearch = accountSearchDto.isConsolidationSearch();
+        log.debug(":searchDefendantAccounts: Using {} search", consolidatedSearch ? "consolidated" : "basic");
 
-        List<SearchDefendantAccountEntity> rows = searchDefendantAccountRepository.findAll(spec);
-
-        List<DefendantAccountSummaryDto> summaries = new ArrayList<>(rows.size());
-        for (SearchDefendantAccountEntity e : rows) {
-            summaries.add(toSummaryDto(e));
-        }
+        List<DefendantAccountSummaryDto> summaries = consolidatedSearch
+            ? consolidatedSearch(accountSearchDto)
+            : basicSearch(accountSearchDto);
 
         return DefendantAccountSearchResultsDto.builder()
             .defendantAccounts(summaries)
-            .count(summaries.size())
             .build();
+    }
+
+    private List<DefendantAccountSummaryDto> consolidatedSearch(AccountSearchDto accountSearchDto) {
+        List<SearchConsolidatedEntity> results = searchConsolidatedRepository
+            .findAll(searchConsolidatedEntitySpecs.findBySearch(accountSearchDto));
+        if (results.size() > TOO_MANY_SEARCH_RESULTS) {
+            log.warn("Consolidated search returned {} results, limiting to 100", results.size());
+            throw new UnprocessableException("Search generated more than " + TOO_MANY_SEARCH_RESULTS
+                + " results. Please refine your search and try again.");
+        }
+        return results.stream()
+            .map(this::toSummaryDto)
+            .toList();
+    }
+
+    private List<DefendantAccountSummaryDto> basicSearch(AccountSearchDto accountSearchDto) {
+        return searchDefendantBasicRepository
+            .findAll(searchBasicEntitySpecs.findBySearch(accountSearchDto))
+            .stream()
+            .map(this::toSummaryDto)
+            .toList();
+    }
+
+    private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccount account) {
+        return toSummaryBuilder(account).build();
+    }
+
+    private DefendantAccountSummaryDto toSummaryDto(SearchConsolidatedEntity account) {
+        return toSummaryBuilder(account)
+            .hasCollectionOrder(account.getHasCollectionOrder())
+            .accountVersion(account.getVersion())
+            .checks(Checks.builder()
+                .errors(convertWarnErrors(account.getErrors()))
+                .warnings(convertWarnErrors(account.getWarnings()))
+                .build())
+            .build();
+    }
+
+    private List<WarnError> convertWarnErrors(List<String> fromDb) {
+        return Optional.ofNullable(fromDb)
+            .stream()
+            .flatMap(List::stream)
+            .filter(Objects::nonNull)
+            .filter(this::isNotBlank)
+            .map(WarnError::new)
+            .toList();
+    }
+
+    private boolean isNotBlank(String s) {
+        return !s.isBlank();
+    }
+
+    private DefendantAccountSummaryDtoBuilder toSummaryBuilder(SearchDefendantAccount account) {
+        boolean isOrganisation = Boolean.TRUE.equals(account.getOrganisation());
+
+        return DefendantAccountSummaryDto.builder()
+            .defendantAccountId(String.valueOf(account.getDefendantAccountId()))
+            .accountNumber(account.getAccountNumber())
+            .organisation(isOrganisation)
+            .organisationName(isOrganisation ? account.getOrganisationName() : null)
+            .defendantTitle(isOrganisation ? null : account.getTitle())
+            .defendantFirstnames(isOrganisation ? null : account.getForenames())
+            .defendantSurname(isOrganisation ? null : account.getSurname())
+            .addressLine1(OpalDefendantAccountBuilders.orEmpty(account.getAddressLine1()))
+            .postcode(account.getPostcode())
+            .businessUnitName(account.getBusinessUnitName())
+            .businessUnitId(String.valueOf(account.getBusinessUnitId()))
+            .prosecutorCaseReference(account.getProsecutorCaseReference())
+            .lastEnforcementAction(account.getLastEnforcement())
+            .accountBalance(account.getDefendantAccountBalance())
+            .birthDate(account.getBirthDate() != null ? account.getBirthDate().toString() : null)
+            .aliases(OpalDefendantAccountBuilders.buildSearchAliases(account));
     }
 
     //Deprecated - use OpalDefendantAccountPaymentTermsService
@@ -252,30 +328,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 "Fixed Penalty Offence not found for account: " + defendantAccountId));
 
         return toFixedPenaltyResponse(account, offence);
-    }
-
-
-    private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccountEntity e) {
-        boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
-
-        return DefendantAccountSummaryDto.builder()
-            .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
-            .accountNumber(e.getAccountNumber())
-            .organisation(isOrganisation)
-            .organisationName(isOrganisation ? e.getOrganisationName() : null)
-            .defendantTitle(isOrganisation ? null : e.getTitle())
-            .defendantFirstnames(isOrganisation ? null : e.getForenames())
-            .defendantSurname(isOrganisation ? null : e.getSurname())
-            .addressLine1(OpalDefendantAccountBuilders.orEmpty(e.getAddressLine1()))
-            .postcode(e.getPostcode())
-            .businessUnitName(e.getBusinessUnitName())
-            .businessUnitId(String.valueOf(e.getBusinessUnitId()))
-            .prosecutorCaseReference(e.getProsecutorCaseReference())
-            .lastEnforcementAction(e.getLastEnforcement())
-            .accountBalance(e.getDefendantAccountBalance())
-            .birthDate(e.getBirthDate() != null ? e.getBirthDate().toString() : null)
-            .aliases(OpalDefendantAccountBuilders.buildSearchAliases(e))
-            .build();
     }
 
     //Deprecated - use OpalDefendantAccountPartyService
@@ -505,13 +557,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Override
     @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
-        Long accountId,
-        Long dapId,
-        DefendantAccountParty request,
-        String ifMatch,
-        String businessUnitId,
-        String postedBy,
-        String businessUserId) {
+        Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
+        String postedBy, String businessUserId) {
+
+        log.debug(":replaceDefendantAccountParty: accountId: {}, partyId: {}", accountId, dapId);
 
         DefendantAccountEntity account = getDefendantAccountById(accountId);
 

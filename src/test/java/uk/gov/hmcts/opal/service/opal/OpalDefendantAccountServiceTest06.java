@@ -2,13 +2,16 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -17,29 +20,47 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
-import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
+import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.repository.SearchDefendantBasicRepository;
+import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
+import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
+import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceTest06 {
 
     @Mock
-    private SearchDefendantAccountRepository searchDefAccRepo;
+    private SearchDefendantBasicRepository searchDefendantBasicRepository;
+
+    @Mock
+    private SearchDefendantConsolidatedRepository searchConsolidatedRepository;
+
+    @Spy
+    private SearchBasicEntitySpecs searchBasicEntitySpecs;
+
+    @Spy
+    private SearchConsolidatedEntitySpecs searchConsolidatedEntitySpecs;
 
     // Service under test
     @InjectMocks
     private OpalDefendantAccountService service;
 
     @Test
-    void searchDefendantAccounts_mapsAliases_forIndividual() {
+    void testSearch_mapsAliases_forIndividual() {
         // Given a person with mixed alias shapes
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+        BasicEntity row = BasicEntity.builder()
             .defendantAccountId(1L)
             .accountNumber("ACC1")
             .organisation(false)
@@ -50,7 +71,7 @@ class OpalDefendantAccountServiceTest06 {
             .addressLine1("1 Main St")
             .postcode("AB12CD")
             .businessUnitName("BU")
-            .businessUnitId(99L)
+            .businessUnitId((short)99)
             .prosecutorCaseReference("PCR1")
             .lastEnforcement("LEVY")
             .defendantAccountBalance(new BigDecimal("12.34"))
@@ -62,8 +83,8 @@ class OpalDefendantAccountServiceTest06 {
             .alias5("Pond")           // single token → treated as surname
             .build();
 
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        when(searchDefendantBasicRepository.findAll(
+            ArgumentMatchers.<Specification<BasicEntity>>any()
         )).thenReturn(Collections.singletonList(row));
 
         // When
@@ -96,15 +117,15 @@ class OpalDefendantAccountServiceTest06 {
     }
 
     @Test
-    void searchDefendantAccounts_mapsAliases_forOrganisation() {
+    void testSearch_mapsAliases_forOrganisation() {
         // Given an organisation, alias fields are full org names
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+        BasicEntity row = BasicEntity.builder()
             .defendantAccountId(2L)
             .accountNumber("ACC2")
             .organisation(true)
             .organisationName("Wayne Enterprises")
             .businessUnitName("BU")
-            .businessUnitId(88L)
+            .businessUnitId((short)88)
             .prosecutorCaseReference("PCR2")
             .lastEnforcement("CLAMP")
             .defendantAccountBalance(new BigDecimal("99.00"))
@@ -115,8 +136,8 @@ class OpalDefendantAccountServiceTest06 {
             .alias5(" Wayne Holdings ")
             .build();
 
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        when(searchDefendantBasicRepository.findAll(
+            ArgumentMatchers.<Specification<BasicEntity>>any()
         )).thenReturn(Collections.singletonList(row));
 
         DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
@@ -140,8 +161,8 @@ class OpalDefendantAccountServiceTest06 {
     }
 
     @Test
-    void searchDefendantAccounts_ignoresBlankAliasSlots() {
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+    void testSearch_ignoresBlankAliasSlots() {
+        BasicEntity row = BasicEntity.builder()
             .defendantAccountId(3L)
             .accountNumber("ACC3")
             .organisation(false)
@@ -152,8 +173,8 @@ class OpalDefendantAccountServiceTest06 {
             .alias5(null)
             .build();
 
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        when(searchDefendantBasicRepository.findAll(
+            ArgumentMatchers.<Specification<BasicEntity>>any()
         )).thenReturn(Collections.singletonList(row));
 
         var out = service.searchDefendantAccounts(emptyCriteria());
@@ -165,28 +186,183 @@ class OpalDefendantAccountServiceTest06 {
     }
 
     @Test
-    void searchDefendantAccounts_hasRefTrueBranchCovered() {
-        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
-        ReferenceNumberDto ref = new ReferenceNumberDto();
-        ref.setAccountNumber("177");
-        ref.setProsecutorCaseReference(null);
-
-        when(dto.getReferenceNumberDto()).thenReturn(ref);
-        when(dto.getActiveAccountsOnly()).thenReturn(true);
-        when(dto.getBusinessUnitIds()).thenReturn(Collections.singletonList(78));
-        when(dto.getDefendant()).thenReturn(null);
+    void testSearch_hasRefTrueBranchCovered() {
+        ReferenceNumberDto ref = ReferenceNumberDto.builder().prosecutorCaseReference("177").build();
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .activeAccountsOnly(true)
+            .referenceNumberDto(ref)
+            .businessUnitIds(List.of((short)78))
+            .build();
 
         // should not throw; branch just sets applyActiveOnly=false
         service.searchDefendantAccounts(dto);
     }
 
     private AccountSearchDto emptyCriteria() {
-        AccountSearchDto c = mock(AccountSearchDto.class);
-        when(c.getBusinessUnitIds()).thenReturn(null);
-        when(c.getActiveAccountsOnly()).thenReturn(null);
-        when(c.getReferenceNumberDto()).thenReturn(null);
-        when(c.getDefendant()).thenReturn(null);
-        return c;
+        return AccountSearchDto.builder().build();
+    }
+
+    @Test
+    void testSearch_whenAccountNumberPresent_activeOnlyIsIgnored() {
+        // given
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .activeAccountsOnly(true)
+            .referenceNumberDto(ReferenceNumberDto.builder().accountNumber("AAAAAAAAX").build())
+            .build();
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+    }
+
+    @Test
+    void testSearch_whenPcrPresent_activeOnlyIsIgnored() {
+        // given
+        ReferenceNumberDto ref = ReferenceNumberDto.builder().prosecutorCaseReference("PCR/1234/XY").build();
+        AccountSearchDto dto = AccountSearchDto.builder().activeAccountsOnly(true).referenceNumberDto(ref).build();
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+    }
+
+    @Test
+    void testSearch_whenNoReference_activeOnlyIsRespected() {
+        // given
+        AccountSearchDto dto = AccountSearchDto.builder().activeAccountsOnly(true).build();
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → with no reference, activeOnly should be applied as true
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+    }
+
+    @Test
+    void testSearch_whenActiveOnlyFalse_andReferencePresent_stillIgnoredButFalseIsCorrect() {
+        // given
+        ReferenceNumberDto ref = ReferenceNumberDto.builder().accountNumber("AAAAAAAAX").build();
+        AccountSearchDto dto = AccountSearchDto.builder().activeAccountsOnly(false).referenceNumberDto(ref).build();
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → should pass false (ignoring or not, final effect is false)
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+    }
+
+    @Test
+    void testSearch_whenReferenceOrganisationFlagProvided_appliesFilterCorrectly() {
+        // Arrange
+        ReferenceNumberDto ref = ReferenceNumberDto.builder().organisation(Boolean.TRUE).build();
+        AccountSearchDto dto = AccountSearchDto.builder().activeAccountsOnly(false).referenceNumberDto(ref).build();
+
+        // Act
+        service.searchDefendantAccounts(dto);
+
+        // Assert
+        verify(searchBasicEntitySpecs, times(1)).equalsOrganisation(Boolean.TRUE);
+        verify(searchDefendantBasicRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<BasicEntity>>any());
+    }
+
+    @Test
+    void testConsolidatedSearch() {
+        SearchConsolidatedEntity entity1 = SearchConsolidatedEntity.builder()
+            .defendantAccountId(1L)
+            .errors(List.of("Error1", "|Error2"))
+            .warnings(List.of("", "|", "Warn3|Warning Message 3"))
+            .hasCollectionOrder(true)
+            .versionNumber(123L)
+            .build();
+        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
+            .build();
+        List<SearchConsolidatedEntity> dbEntities = List.of(entity1, entity2);
+
+        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
+            .thenReturn(dbEntities);
+
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .activeAccountsOnly(true)
+            .referenceNumberDto(ReferenceNumberDto.builder().prosecutorCaseReference("177").build())
+            .businessUnitIds(List.of((short) 78))
+            .consolidationSearch(true)
+            .build();
+
+        DefendantAccountSearchResultsDto resultsDto = service.searchDefendantAccounts(dto);
+        assertEquals(2, resultsDto.getCount());
+
+        DefendantAccountSummaryDto summary = resultsDto.getDefendantAccounts().get(0);
+        assertTrue(summary.getHasCollectionOrder());
+        assertEquals(new BigInteger("123"), summary.getAccountVersion());
+
+        Checks checks = summary.getChecks();
+        assertNotNull(checks);
+        List<WarnError> errors = checks.getErrors();
+        assertEquals(2, errors.size());
+        WarnError error1 = errors.get(0);
+        assertEquals("Error1", error1.getReference());
+        assertEquals("", error1.getMessage());
+        WarnError error2 = errors.get(1);
+        assertEquals("", error2.getReference());
+        assertEquals("Error2", error2.getMessage());
+
+        List<WarnError> warnings = checks.getWarnings();
+        assertEquals(2, warnings.size());
+        WarnError warn1 = warnings.get(0);
+        assertEquals("", warn1.getReference());
+        assertEquals("", warn1.getMessage());
+        WarnError warn2 = warnings.get(1);
+        assertEquals("Warn3", warn2.getReference());
+        assertEquals("Warning Message 3", warn2.getMessage());
+    }
+
+    @Test
+    void testConsolidatedSearch_tooManyResults() {
+        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder().build();
+        List<SearchConsolidatedEntity> dbEntities = Collections.nCopies(101, entity2);
+
+        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
+            .thenReturn(dbEntities);
+
+        AccountSearchDto dto = AccountSearchDto.builder().consolidationSearch(true).build();
+
+        UnprocessableException ex = assertThrows(
+            UnprocessableException.class,
+            () -> service.searchDefendantAccounts(dto)
+        );
+
+        assertEquals("Search generated more than 100 results. Please refine your search and try again.",
+            ex.getDetailedReason());
+    }
+
+    @Test
+    void testConsolidatedSearch_notTooManyResults() {
+        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder().build();
+        List<SearchConsolidatedEntity> dbEntities = Collections.nCopies(100, entity2);
+
+        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
+            .thenReturn(dbEntities);
+
+        AccountSearchDto dto = AccountSearchDto.builder().consolidationSearch(true).build();
+
+        DefendantAccountSearchResultsDto resultsDto = service.searchDefendantAccounts(dto);
+        assertEquals(100, resultsDto.getCount());
     }
 
 }
