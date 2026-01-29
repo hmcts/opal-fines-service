@@ -62,7 +62,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
@@ -81,7 +81,7 @@ class DraftAccountTransactionalTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -154,6 +154,8 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
         assertEquals(saved.getAccount(), result.getAccount());
+
+        verify(loggingService).pdplForDraftAccount(any(DraftAccountEntity.class), any());
     }
 
     @Test
@@ -441,7 +443,7 @@ class DraftAccountTransactionalTest {
 
         // Act
         DraftAccountEntity result = draftAccountTransactional.updateStatus(entity, DraftAccountStatus.PUBLISHING_FAILED,
-                                                                           draftAccountTransactional
+            draftAccountTransactional
         );
 
         Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
@@ -453,8 +455,8 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
             .draftAccountId(007L)
             .businessUnit(BusinessUnitFullEntity.builder()
-                              .businessUnitId((short)78)
-                              .build())
+                .businessUnitId((short)78)
+                .build())
             .submittedBy("BU001")
             .submittedByName("Malcolm Mclaren")
             .build();
