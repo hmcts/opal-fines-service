@@ -235,7 +235,7 @@ public class GlobalExceptionHandler {
             ex
         );
 
-        problemDetail.setProperty("unprocessableReason", ex.getMessage());
+        problemDetail.setProperty("unprocessableReason", ex.getDetailedReason());
 
         return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, problemDetail);
     }
