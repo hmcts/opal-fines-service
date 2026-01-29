@@ -44,7 +44,9 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
             Optional.ofNullable(active).map(ResultSpecsLite::hasActive),
             Optional.ofNullable(manualEnforcement).map(ResultSpecsLite::hasManualEnforcementOnly),
             Optional.ofNullable(generatesHearing).map(ResultSpecsLite::hasGeneratesHearing),
-            Optional.ofNullable(enforcement).map(ResultSpecsLite::hasEnforcement)
+            Optional.ofNullable(enforcement).map(ResultSpecsLite::hasEnforcement),
+            Optional.ofNullable(enforcementOverride).map(ResultSpecsLite::hasEnforcementOverride)
+
         ));
     }
 
@@ -111,4 +113,10 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         return (root, query, builder) -> builder.equal(root.get(
             ResultEntity_.enforcement), hasEnforcement);
     }
+
+    public static Specification<ResultEntity.Lite> hasEnforcementOverride(boolean enforcementOverride) {
+        return (root, query, builder) -> builder.equal(root.get(ResultEntity_.enforcementOverride),
+            enforcementOverride);
+    }
+
 }
