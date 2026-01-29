@@ -37,6 +37,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -85,7 +86,6 @@ import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -1023,11 +1023,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     //Deprecated - use DefendantAccountPaymentTermsService
     private void ensureNoExistingPaymentCardRequest(Long accountId) {
         if (paymentCardRequestRepository.existsByDefendantAccountId(accountId)) {
-            throw new ResourceConflictException(
+            throw new PaymentCardRequestAlreadyExistsException(
                 "DefendantAccountEntity",
-                String.valueOf(accountId),
-                "A payment card request already exists for this account.",
-                null
+                String.valueOf(accountId)
             );
         }
     }

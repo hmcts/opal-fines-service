@@ -24,10 +24,14 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -82,7 +86,22 @@ class OpalDefendantAccountServicePaymentCardTest {
         assertEquals("L080JG", account.getPaymentCardRequestedBy());
         assertEquals("John Smith", account.getPaymentCardRequestedByName());
 
-        verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
+        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
+    }
+
+    @Test
+    void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(true);
+
+        assertThrows(PaymentCardRequestAlreadyExistsException.class, () ->
+            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
+        );
     }
 
     @Test
