@@ -416,6 +416,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
+
     @Test
     @DisplayName("Enforcement override: enforcement_override=true returns only those with enforcement_override=true")
     void testEnforcementOverrideTrue() throws Exception {
