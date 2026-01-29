@@ -39,4 +39,4 @@ applicationinsights-agent-*.jar
 bruno/environments/*.env
 
 # But keep the template (example)
-!bruno/environments/env.template
+!bruno/environments/env.template.env.local
