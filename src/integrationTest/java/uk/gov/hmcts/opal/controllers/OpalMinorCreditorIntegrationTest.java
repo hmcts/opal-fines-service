@@ -208,6 +208,21 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void getHeaderSummary_timeout_returns408() throws Exception {
+        super.getHeaderSummary_timeout_returns408(log);
+    }
+
+    @Test
+    void getHeaderSummary_serviceUnavailable_returns503() throws Exception {
+        super.getHeaderSummary_serviceUnavailable_returns503(log);
+    }
+
+    @Test
+    void getHeaderSummary_serverError_returns500() throws Exception {
+        super.getHeaderSummary_serverError_returns500(log);
+    }
+
+    @Test
     void deleteMinorCreditorAccount() throws Exception {
         // Arrange
         final Long creditorAccountId = 606L;
