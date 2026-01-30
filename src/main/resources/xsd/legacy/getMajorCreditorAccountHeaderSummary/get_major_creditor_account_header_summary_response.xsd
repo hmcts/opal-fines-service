@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="../common-objects/business_unit_summary.xsd"/>
+  <xsd:include schemaLocation="../common-objects/error_response.xsd"/>
+  <xsd:include schemaLocation="../common-objects/creditor_account_type_reference.xsd"/>
+  <xsd:include schemaLocation="../common-objects/simple_type.xsd"/>
+  <xsd:element name="response">
+    <xsd:complexType>
+      <xsd:choice>
+        <xsd:sequence>
+          <xsd:element name="major_creditor" type="major_creditor" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="business_unit_details" type="business_unit_summary" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="awaiting_payout" type="xsd:decimal" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:sequence>
+          <xsd:element name="error_response" type="error_response" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+    <xsd:complexType name="major_creditor">
+        <xsd:sequence>
+            <xsd:element name="creditor_account_id" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="account_version" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="account_number" type="account_number" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="account_reference" type="creditor_account_type_reference" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

@@ -94,8 +94,16 @@
 
   <xsd:simpleType name="account_number">
     <xsd:restriction base="xsd:string">
-      <xsd:minLength value="8"/>
-      <xsd:maxLength value="9"/>
+      <xsd:minLength value="1"/>
+      <xsd:maxLength value="10"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="creditor_account_type">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="MN"/>
+      <xsd:enumeration value="MJ"/>
+      <xsd:enumeration value="CF"/>
     </xsd:restriction>
   </xsd:simpleType>
 
