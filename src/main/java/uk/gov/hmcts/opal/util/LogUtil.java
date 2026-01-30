@@ -22,6 +22,13 @@ public final class LogUtil {
 
     }
 
+    // Common error messages
+    // =====================
+    // These can be refactored to an error message mapping module for simplified
+    // error messages to be returned to clients
+
+    public static final String ERRMSG_STORED_PROC_FAILURE = "Stored Procedure Failure.";
+
     public static String getOrCreateOpalOperationId() {
         return getOperationContext()
             .map(OperationContext::getId)
