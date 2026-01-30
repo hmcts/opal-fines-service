@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import org.springframework.stereotype.Component;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -9,6 +10,8 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import java.util.List;
 import java.util.Optional;
 
+
+@Component
 public class ResultSpecsLite extends EntitySpecs<Lite> {
 
     public Specification<Lite> findBySearchCriteria(ResultSearchDto criteria) {
@@ -34,7 +37,8 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         Boolean active,
         Boolean manualEnforcement,
         Boolean generatesHearing,
-        Boolean enforcement) {
+        Boolean enforcement,
+        Boolean enforcementOverride) {
 
         return Specification.allOf(specificationList(
             // optional resultIds clause
@@ -43,7 +47,9 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
             Optional.ofNullable(active).map(ResultSpecsLite::hasActive),
             Optional.ofNullable(manualEnforcement).map(ResultSpecsLite::hasManualEnforcementOnly),
             Optional.ofNullable(generatesHearing).map(ResultSpecsLite::hasGeneratesHearing),
-            Optional.ofNullable(enforcement).map(ResultSpecsLite::hasEnforcement)
+            Optional.ofNullable(enforcement).map(ResultSpecsLite::hasEnforcement),
+            Optional.ofNullable(enforcementOverride).map(ResultSpecsLite::hasEnforcementOverride)
+
         ));
     }
 
@@ -110,4 +116,10 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         return (root, query, builder) -> builder.equal(root.get(
             ResultEntity_.enforcement), hasEnforcement);
     }
+
+    public static Specification<ResultEntity.Lite> hasEnforcementOverride(boolean enforcementOverride) {
+        return (root, query, builder) -> builder.equal(root.get(ResultEntity_.enforcementOverride),
+            enforcementOverride);
+    }
+
 }
