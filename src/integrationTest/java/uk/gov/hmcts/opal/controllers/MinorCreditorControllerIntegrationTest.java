@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -11,10 +12,8 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.util.List;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
@@ -24,6 +23,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.REQUEST_TIMEOUT;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -780,5 +782,44 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("authorization", "Bearer some_value"))
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
+    }
+
+    void getHeaderSummary_timeout_returns408(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(REQUEST_TIMEOUT, "Timeout"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_timeout_returns408: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isRequestTimeout());
+    }
+
+    void getHeaderSummary_serviceUnavailable_returns503(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "Gateway down"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_serviceUnavailable_returns503: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isServiceUnavailable());
+    }
+
+    void getHeaderSummary_serverError_returns500(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_serverError_returns500: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isInternalServerError());
     }
 }
