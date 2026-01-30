@@ -310,7 +310,7 @@ sonarqube {
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
-    property 'sonar.cpd.exclusions', "**/entity/*,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
+    property 'sonar.cpd.exclusions', "**/entity/*,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
   }
 }
 
