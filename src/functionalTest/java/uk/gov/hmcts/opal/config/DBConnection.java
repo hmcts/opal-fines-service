@@ -18,8 +18,8 @@ public class DBConnection {
         //Local connection only
         String url =  "jdbc:postgresql://localhost/";
         String database = "opal-fines-db";
-        String username = "opal-fines";
-        String password = "opal-fines";
+        String username = "opal-db-user";
+        String password = "opal-db-password";
 
         Properties props = new Properties();
         props.put("user", username);
