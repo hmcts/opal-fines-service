@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
@@ -35,6 +36,11 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             minorCreditorRepository.findAll(spec);
 
         return toResponse(results);
+    }
+
+    @Override
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
+        return null;
     }
 
     private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {
