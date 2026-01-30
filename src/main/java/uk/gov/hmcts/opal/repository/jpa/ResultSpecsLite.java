@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import org.springframework.stereotype.Component;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -9,6 +10,8 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import java.util.List;
 import java.util.Optional;
 
+
+@Component
 public class ResultSpecsLite extends EntitySpecs<Lite> {
 
     public Specification<Lite> findBySearchCriteria(ResultSearchDto criteria) {

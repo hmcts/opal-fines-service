@@ -30,7 +30,7 @@ public class ResultService {
 
     private final ResultRepository resultRepository;
     private final ResultMapper resultMapper;
-    private final ResultSpecsLite specsLite = new ResultSpecsLite();
+    private final ResultSpecsLite specsLite;
 
     @Transactional(readOnly = true)
     public ResultEntity.Lite getResultById(String resultId) {

@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.jpa.ResultSpecsLite;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +36,9 @@ class ResultServiceTest {
 
     @Mock
     private ResultRepository resultRepository;
+
+    @Mock
+    private ResultSpecsLite specsLite;
 
     @Spy
     private ResultMapper resultMapper;
@@ -105,6 +109,33 @@ class ResultServiceTest {
         assertEquals(expectedResponse.getCount(), result.getCount());
         assertEquals(expectedResponse.getRefData(), result.getRefData());
     }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetResultsByIds_enforcementOverrideTrue_passedToSpecs() {
+        // Arrange
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
+
+        Page<Lite> mockPage = new PageImpl<>(List.of(Lite.builder().resultId("NBWIT").build()),
+            Pageable.unpaged(), 1L);
+
+        when(resultRepository.findBy(
+            Mockito.<org.springframework.data.jpa.domain.Specification<Lite>>any(),
+            any()
+        )).thenReturn(mockPage);
+
+        // Act
+        resultService.getResultsByIds(Optional.of(List.of("NBWIT")),
+            null, null, null, null, Boolean.TRUE);
+
+        // Assert
+        verify(specsLite).referenceDataByIds(
+            Optional.of(List.of("NBWIT")), null, null, null, null, Boolean.TRUE
+        );
+    }
+
 
     @SuppressWarnings("unchecked")
     @Test
