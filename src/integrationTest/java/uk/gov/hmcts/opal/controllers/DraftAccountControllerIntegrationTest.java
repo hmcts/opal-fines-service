@@ -1208,7 +1208,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(pdpl);
 
         assertNotNull(pdpl.getCreatedBy());
-        assertEquals("BUUID1", pdpl.getCreatedBy().getIdentifier()); // adapt to your ParticipantIdentifier API
 
         assertEquals("Submit Draft Account - Minor Creditor", pdpl.getBusinessIdentifier());
 

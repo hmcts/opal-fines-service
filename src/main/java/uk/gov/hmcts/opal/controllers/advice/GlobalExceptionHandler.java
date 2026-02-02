@@ -506,6 +506,7 @@ public class GlobalExceptionHandler {
         );
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
+
     @ExceptionHandler(GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException.class)
     public ResponseEntity<ProblemDetail> handlePaymentCardRequestAlreadyExists(
         PaymentCardRequestAlreadyExistsException e) {
@@ -524,6 +525,7 @@ public class GlobalExceptionHandler {
 
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
     }
+
     @ExceptionHandler(FeignException.Unauthorized.class)
     public ResponseEntity<ProblemDetail> handleFeignExceptionUnauthorized(FeignException.Unauthorized e) {
         ProblemDetail problemDetail = createProblemDetail(
