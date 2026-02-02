@@ -121,6 +121,7 @@ class DraftAccountTransactionalTest {
         assertEquals(accountText, result.get(0).getAccount());
 
     }
+
     @Test
     void testSubmitDraftAccounts_success() {
         String minimalAccountJson = createAccountString();
@@ -163,13 +164,15 @@ class DraftAccountTransactionalTest {
         verify(loggingService).pdplForDraftAccount(entityCaptor.capture(), actionCaptor.capture());
 
         DraftAccountEntity capturedEntity = entityCaptor.getValue();
-        DraftAccountPdplLoggingService.Action capturedAction = actionCaptor.getValue();
 
         assertNotNull(capturedEntity, "pdplForDraftAccount should be called with a DraftAccountEntity");
         assertEquals(saved.getDraftAccountId(), capturedEntity.getDraftAccountId(),
             "pdplForDraftAccount should be called with the saved draft account id");
         assertEquals(saved.getAccount(), capturedEntity.getAccount(),
             "pdplForDraftAccount should be called with the same account JSON that was saved");
+
+        DraftAccountPdplLoggingService.Action capturedAction = actionCaptor.getValue();
+
         assertEquals(DraftAccountPdplLoggingService.Action.SUBMIT, capturedAction,
             "pdplForDraftAccount should be called with Action.SUBMIT");
     }

@@ -1060,15 +1060,15 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .content(requestBody))
             .andExpect(status().isNotAcceptable());
     }
+
     @Test
     @DisplayName("Re-submit - Defendant only -> Re-submit Draft Account - Defendant PDPL")
     void testResubmitDraftAccount_pdpl_defendantOnly() throws Exception {
-        // TODO: replace with an ID in your test fixture that has defendant_type "adultOrYouthOnly" and NO minor_creditor
-        final long DRAFT_ID_DEFENDANT = 105L;
+        final long draftIdAccount = 105L;
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
-        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + DRAFT_ID_DEFENDANT)
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1078,7 +1078,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draft_account_id").value(DRAFT_ID_DEFENDANT));
+            .andExpect(jsonPath("$.draft_account_id").value(draftIdAccount));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
 
@@ -1100,19 +1100,18 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
         assertNotNull(pdpl.getIndividuals());
         assertEquals(1, pdpl.getIndividuals().size());
-        assertEquals(Long.toString(DRAFT_ID_DEFENDANT), pdpl.getIndividuals().getFirst().getIdentifier());
+        assertEquals(Long.toString(draftIdAccount), pdpl.getIndividuals().getFirst().getIdentifier());
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
     }
 
     @Test
     @DisplayName("Re-submit - pgToPay -> Parent or Guardian then Defendant PDPLs (order)")
     void testResubmitDraftAccount_pdpl_parentOrGuardianThenDefendant() throws Exception {
-        // TODO: replace with an ID in your test fixture that has defendant_type "pgToPay" and NO minor_creditor
-        final long DRAFT_ID_PG = 104L;
+        final long draftIdAccount = 104L;
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
-        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + DRAFT_ID_PG)
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1122,7 +1121,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draft_account_id").value(DRAFT_ID_PG));
+            .andExpect(jsonPath("$.draft_account_id").value(draftIdAccount));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
 
@@ -1141,7 +1140,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PersonalDataProcessingCategory.COLLECTION, first.getCategory());
         assertNull(first.getRecipient());
         assertNotNull(first.getCreatedAt());
-        assertEquals(Long.toString(DRAFT_ID_PG), first.getIndividuals().getFirst().getIdentifier());
+        assertEquals(Long.toString(draftIdAccount), first.getIndividuals().getFirst().getIdentifier());
 
         PersonalDataProcessingLogDetails second = calls.get(1);
         assertNotNull(second);
@@ -1149,18 +1148,17 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
         assertNull(second.getRecipient());
         assertNotNull(second.getCreatedAt());
-        assertEquals(Long.toString(DRAFT_ID_PG), second.getIndividuals().getFirst().getIdentifier());
+        assertEquals(Long.toString(draftIdAccount), second.getIndividuals().getFirst().getIdentifier());
     }
 
     @Test
     @DisplayName("Re-submit - adultOrYouthOnly WITH minor -> Defendant + Minor Creditor PDPLs (order)")
     void testResubmitDraftAccount_pdpl_defendantAndMinor() throws Exception {
-        // TODO: replace with an ID in your test fixture that has defendant_type "adultOrYouthOnly" AND a minor_creditor entry
-        final long DRAFT_ID_MINOR = 8L; // previously used in your suite; confirm or replace if needed
+        final long draftIdAccount = 8L; // previously used in your suite; confirm or replace if needed
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
-        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + DRAFT_ID_MINOR)
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "2")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1171,7 +1169,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string("ETag", "\"4\""))
-            .andExpect(jsonPath("$.draft_account_id").value(DRAFT_ID_MINOR))
+            .andExpect(jsonPath("$.draft_account_id").value(draftIdAccount))
             .andExpect(jsonPath("$.business_unit_id").value(65));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
@@ -1193,7 +1191,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PersonalDataProcessingCategory.COLLECTION, defendantCall.getCategory());
         assertNull(defendantCall.getRecipient());
         assertNotNull(defendantCall.getCreatedAt());
-        assertEquals(Long.toString(DRAFT_ID_MINOR), defendantCall.getIndividuals().getFirst().getIdentifier());
+        assertEquals(Long.toString(draftIdAccount), defendantCall.getIndividuals().getFirst().getIdentifier());
 
         // Minor Creditor call
         PersonalDataProcessingLogDetails minorCall = calls.get(1);
@@ -1202,7 +1200,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PersonalDataProcessingCategory.COLLECTION, minorCall.getCategory());
         assertNull(minorCall.getRecipient());
         assertNotNull(minorCall.getCreatedAt());
-        assertEquals(Long.toString(DRAFT_ID_MINOR), minorCall.getIndividuals().getFirst().getIdentifier());
+        assertEquals(Long.toString(draftIdAccount), minorCall.getIndividuals().getFirst().getIdentifier());
     }
 
     @Test
