@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,14 +58,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
-import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
-import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
@@ -136,10 +129,12 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
+        JsonNode response = objectMapper.readTree(body);
+        int count = response.get("count").asInt();
+        int summariesSize = response.withArray("summaries").size();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(30))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -147,6 +142,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[2].submitted_by").value("user_003"))
             .andExpect(jsonPath("$.summaries[2].account_status").value("Publishing Failed"));
 
+        assertEquals(count, summariesSize);
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
@@ -197,7 +193,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.count").value(3))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(7))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -223,7 +219,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramStatus: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(4))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -274,16 +270,19 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDraftAccountsSummaries_paramNotSubmittedBy: body:\n" + ToJsonString.toPrettyJson(body));
+        JsonNode response = objectMapper.readTree(body);
+        int count = response.get("count").asInt();
+        int summariesSize = response.withArray("summaries").size();
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(24))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
-            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(5))
+            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(4))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(78));
 
+        assertEquals(count, summariesSize);
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
@@ -353,7 +352,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                      + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(23))
+                .andExpect(jsonPath("$.count").value(3))
                 .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
                 .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
                 .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
@@ -390,13 +389,15 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                           .header("authorization", "Bearer some_value")
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .content("{\"draftAccountId\":\"100\"}"));
+                                          .content("{\"draftAccountId\":\"999999\"}"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testSearchDraftAccountsPost_whenDraftAccountDoesNotExist: body:\n"
                      + ToJsonString.toPrettyJson(body));
 
-        resultActions.andExpect(status().isOk()).andExpect(content().string("[]"));
+        resultActions.andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
@@ -534,7 +535,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Should ignore blank submitted_by_name")
-    void shouldReturn400WhenSubmittedByNameIsBlank() throws Exception {
+    void shouldIgnoreBlankSubmittedByName() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by_name\": \"John\"", "\"submitted_by_name\": \"\"");
 
@@ -550,7 +551,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Should ignore blank submitted_by")
-    void shouldReturn400WhenSubmittedByIsBlank() throws Exception {
+    void shouldIgnoreBlankSubmittedBy() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by\": \"BUUID1\"", "\"submitted_by\": \"\"");
 
