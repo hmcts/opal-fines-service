@@ -495,6 +495,10 @@ rootProject.tasks.named("processIntegrationTestResources") {
   duplicatesStrategy = 'include'
 }
 
+tasks.named("bootTestRun") {
+  mainClass = 'uk.gov.hmcts.opal.dev.DevApplication'
+}
+
 wrapper {
   distributionType = Wrapper.DistributionType.ALL
 }

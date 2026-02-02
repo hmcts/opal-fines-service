@@ -12,5 +12,5 @@ echo "LAUNCH_DARKLY_SDK_KEY=$(az keyvault secret show --vault-name opal-stg --na
 
 #Some local database variables to help gradle understand flyway
 echo "FLYWAY_URL=jdbc:postgresql://localhost:5432/opal-fines-db"
-echo "FLYWAY_USER=opal-fines"
-echo "FLYWAY_PASSWORD=opal-fines"
+echo "FLYWAY_USER=opal-db-user"
+echo "FLYWAY_PASSWORD=opal-db-password"
