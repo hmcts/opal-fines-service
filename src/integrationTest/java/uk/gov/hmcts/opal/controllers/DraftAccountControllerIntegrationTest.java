@@ -475,6 +475,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
             assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
             assertNull(pdpl.getRecipient());
+            assertEquals(1, pdpl.getIndividuals().size());
             assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
             assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
         });
@@ -509,6 +510,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals("Update Draft Account - Defendant", pdpl.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
         assertNull(pdpl.getRecipient());
+        assertEquals(1, pdpl.getIndividuals().size());
         assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
@@ -557,6 +559,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         calls.forEach(pdpl -> {
             assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
             assertNull(pdpl.getRecipient());
+            assertEquals(1, pdpl.getIndividuals().size());
             assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
             assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
@@ -606,6 +609,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         calls.forEach(pdpl -> {
             assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
             assertNull(pdpl.getRecipient());
+            assertEquals(1, pdpl.getIndividuals().size());
             assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
             assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 

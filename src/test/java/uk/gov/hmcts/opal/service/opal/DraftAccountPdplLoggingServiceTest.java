@@ -29,7 +29,7 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.util.LogUtil;
 
 @ExtendWith(MockitoExtension.class)
-public class DraftAccountPdplLoggingServiceTest {
+class DraftAccountPdplLoggingServiceTest {
 
     @Mock
     private LoggingService loggingService;
