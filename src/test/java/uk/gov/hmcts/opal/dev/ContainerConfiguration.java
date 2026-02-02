@@ -27,8 +27,8 @@ public class ContainerConfiguration {
                 cmd.withHostConfig(new HostConfig().withPortBindings(DB_PORT_BINDING)))
             .withExposedPorts(DB_EXPOSED_PORT)
             .withDatabaseName("opal-fines-db")
-            .withUsername("opal-fines")
-            .withPassword("opal-fines")
+            .withUsername("opal-db-user")
+            .withPassword("opal-db-password")
             .withReuse(true);
     }
 }
