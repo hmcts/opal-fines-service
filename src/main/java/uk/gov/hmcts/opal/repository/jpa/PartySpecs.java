@@ -94,27 +94,27 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
 
     private static Predicate likeAddressLine1Predicate(
         From<?, PartyEntity> from, CriteriaBuilder builder, String addressLinePattern) {
-        return likeLowerCasePredicate(from.get(PartyEntity_.addressLine1), builder, addressLinePattern);
+        return likeLowerCaseBothPredicate(from.get(PartyEntity_.addressLine1), builder, addressLinePattern);
     }
 
     private static Predicate likeAddressLine2Predicate(
         From<?, PartyEntity> from, CriteriaBuilder builder, String addressLinePattern) {
-        return likeLowerCasePredicate(from.get(PartyEntity_.addressLine2), builder, addressLinePattern);
+        return likeLowerCaseBothPredicate(from.get(PartyEntity_.addressLine2), builder, addressLinePattern);
     }
 
     private static Predicate likeAddressLine3Predicate(
         From<?, PartyEntity> from, CriteriaBuilder builder, String addressLinePattern) {
-        return likeLowerCasePredicate(from.get(PartyEntity_.addressLine3), builder, addressLinePattern);
+        return likeLowerCaseBothPredicate(from.get(PartyEntity_.addressLine3), builder, addressLinePattern);
     }
 
     private static Predicate likeAddressLine4Predicate(
         From<?, PartyEntity> from, CriteriaBuilder builder, String addressLinePattern) {
-        return likeLowerCasePredicate(from.get(PartyEntity_.addressLine4), builder, addressLinePattern);
+        return likeLowerCaseBothPredicate(from.get(PartyEntity_.addressLine4), builder, addressLinePattern);
     }
 
     private static Predicate likeAddressLine5Predicate(
         From<?, PartyEntity> from, CriteriaBuilder builder, String addressLinePattern) {
-        return likeLowerCasePredicate(from.get(PartyEntity_.addressLine5), builder, addressLinePattern);
+        return likeLowerCaseBothPredicate(from.get(PartyEntity_.addressLine5), builder, addressLinePattern);
     }
 
     public static Specification<PartyEntity> likePostcode(String postcode) {
