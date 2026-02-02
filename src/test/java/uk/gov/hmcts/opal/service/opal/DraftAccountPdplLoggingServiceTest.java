@@ -324,4 +324,70 @@ public class DraftAccountPdplLoggingServiceTest {
         assertEquals("44", second.getIndividuals().get(0).getIdentifier());
         assertEquals("user-resubmit-pg", second.getCreatedBy().getIdentifier());
     }
+
+    @Test
+    @DisplayName("Re-submit - adultOrYouthOnly WITH minor -> Defendant + Minor Creditor PDPL in order")
+    void resubmitDefendantAndMinor_fullPayloads() {
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(77L)
+            .submittedBy("user-res-min")
+            .account("""
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id":7,
+              "offences": [
+                {
+                  "impositions": [
+                    {
+                      "minor_creditor": {
+                        "company_flag": false,
+                        "surname": "Kid",
+                        "forenames": "Bobby"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+            """)
+            .build();
+
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        String expectedIp = "198.51.100.21";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-05-05T05:05:05Z");
+
+        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
+
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
+            pdplLoggingService.pdplForDraftAccount(entity, Action.RESUBMIT);
+        }
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+
+        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
+        assertEquals(2, calls.size());
+
+        PersonalDataProcessingLogDetails first = calls.get(0);
+        assertEquals("Re-submit Draft Account - Defendant", first.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, first.getCategory());
+        assertEquals(expectedIp, first.getIpAddress());
+        assertEquals(expectedNow, first.getCreatedAt());
+        assertEquals("user-res-min", first.getCreatedBy().getIdentifier());
+        assertEquals("77", first.getIndividuals().get(0).getIdentifier());
+
+        PersonalDataProcessingLogDetails second = calls.get(1);
+        assertEquals("Re-submit Draft Account - Minor Creditor", second.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
+        assertEquals(expectedIp, second.getIpAddress());
+        assertEquals(expectedNow, second.getCreatedAt());
+        assertEquals("user-res-min", second.getCreatedBy().getIdentifier());
+        assertEquals("77", second.getIndividuals().get(0).getIdentifier());
+    }
+
 }

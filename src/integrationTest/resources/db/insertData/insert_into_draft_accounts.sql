@@ -1518,5 +1518,577 @@ ON CONFLICT (draft_account_id) DO UPDATE
         validated_by_name     = EXCLUDED.validated_by_name,
         version_number        = EXCLUDED.version_number;
 
+INSERT INTO draft_accounts (
+    draft_account_id,
+    business_unit_id,
+    created_date,
+    submitted_by,
+    validated_date,
+    validated_by,
+    account,
+    account_type,
+    account_id,
+    account_snapshot,
+    account_status,
+    timeline_data,
+    account_number,
+    submitted_by_name,
+    account_status_date,
+    status_message,
+    validated_by_name,
+    version_number
+) VALUES (
+             105,                              -- draft_account_id
+             65,                               -- business_unit_id
+             '2024-12-10',                     -- created_date (date or timestamp)
+             'user_003',                       -- submitted_by
+             NULL,                             -- validated_date
+             NULL,                             -- validated_by
+             '{
+               "account_type": "Fixed Penalty",
+               "defendant_type": "adultOrYouthOnly",
+               "originator_name": "LJS",
+               "originator_id": 12345,
+               "enforcement_court_id": 650000000045,
+               "prosecutor_case_reference": "ABC123",
+               "payment_card_request": true,
+               "account_sentence_date": "2024-12-12",
+               "collection_order_made": true,
+               "collection_order_made_today": false,
+               "collection_order_date": "2024-12-01",
+               "suspended_committal_date": "2024-12-15",
+               "defendant": {
+                 "company_flag": false,
+                 "title": "Mr",
+                 "surname": "Doe",
+                 "company_name": "",
+                 "forenames": "John",
+                 "dob": "1980-01-01",
+                 "address_line_1": "123 Main St",
+                 "address_line_2": "Apt 4B",
+                 "address_line_3": "",
+                 "address_line_4": "",
+                 "address_line_5": "",
+                 "post_code": "12345",
+                 "telephone_number_home": "555-1234",
+                 "telephone_number_business": "555-5678",
+                 "telephone_number_mobile": "555-8765",
+                 "email_address_1": "john.doe@example.com",
+                 "email_address_2": "j.doe@example.com",
+                 "national_insurance_number": "AB123456C",
+                 "driving_licence_number": "D1234567",
+                 "pnc_id": "PNC12345",
+                 "nationality_1": "British",
+                 "nationality_2": "American",
+                 "ethnicity_self_defined": "White",
+                 "ethnicity_observed": "White",
+                 "cro_number": "CRO12345",
+                 "occupation": "Engineer",
+                 "gender": "Male",
+                 "custody_status": "Released",
+                 "prison_number": "P12345",
+                 "interpreter_lang": "English",
+                 "debtor_detail": {
+                   "vehicle_make": "Toyota",
+                   "vehicle_registration_mark": "XYZ 1234",
+                   "document_language": "EN",
+                   "hearing_language": "EN",
+                   "employee_reference": "EMP123",
+                   "employer_company_name": "ABC Corp",
+                   "employer_address_line_1": "456 Corporate Blvd",
+                   "employer_address_line_2": "Suite 100",
+                   "employer_address_line_3": "",
+                   "employer_address_line_4": "",
+                   "employer_address_line_5": "",
+                   "employer_post_code": "67890",
+                   "employer_telephone_number": "555-9876",
+                   "employer_email_address": "hr@abccorp.com",
+                   "aliases": [
+                     {
+                       "alias_forenames": "Johnny",
+                       "alias_surname": "Doe",
+                       "alias_company_name": ""
+                     }
+                   ]
+                 },
+                 "parent_guardian": {
+                   "company_flag": false,
+                   "company_name": "",
+                   "surname": "Doe",
+                   "forenames": "Jane",
+                   "dob": "1950-01-01",
+                   "national_insurance_number": "AB654321C",
+                   "address_line_1": "789 Parent St",
+                   "address_line_2": "",
+                   "address_line_3": "",
+                   "address_line_4": "",
+                   "address_line_5": "",
+                   "post_code": "54321",
+                   "telephone_number_home": "555-4321",
+                   "telephone_number_business": "555-8765",
+                   "telephone_number_mobile": "555-5678",
+                   "email_address_1": "jane.doe@example.com",
+                   "email_address_2": "j.doe@example.com",
+                   "debtor_detail": {
+                     "vehicle_make": "Honda",
+                     "vehicle_registration_mark": "ABC 9876",
+                     "document_language": "English",
+                     "hearing_language": "English",
+                     "employee_reference": "EMP456",
+                     "employer_company_name": "XYZ Corp",
+                     "employer_address_line_1": "123 Business Rd",
+                     "employer_address_line_2": "Floor 2",
+                     "employer_address_line_3": "",
+                     "employer_address_line_4": "",
+                     "employer_address_line_5": "",
+                     "employer_post_code": "98765",
+                     "employer_telephone_number": "555-6789",
+                     "employer_email_address": "hr@xyzcorp.com",
+                     "aliases": [
+                       {
+                         "alias_forenames": "Janie",
+                         "alias_surname": "Doe",
+                         "alias_company_name": ""
+                       }
+                     ]
+                   }
+                 }
+               },
+               "offences": [
+                 {
+                   "date_of_sentence": "2023-01-01",
+                   "imposing_court_id": 650000000160,
+                   "offence_id": 30000,
+                   "impositions": [
+                     {
+                       "result_id": "FO",
+                       "amount_imposed": 200.00,
+                       "amount_paid": 50.00,
+                       "major_creditor_id": 101112,
+                       "minor_creditor": null
+                     },
+                     {
+                       "result_id": "FCPC",
+                       "amount_imposed": 408.00,
+                       "amount_paid": 61.00,
+                       "major_creditor_id": 101112,
+                       "minor_creditor": null
+                     }
+                   ]
+                 },
+                 {
+                   "date_of_sentence": "2024-11-21",
+                   "imposing_court_id": 650000000160,
+                   "offence_id": 30001,
+                   "impositions": [
+                     {
+                       "result_id": "FCOST",
+                       "amount_imposed": 1678.00,
+                       "amount_paid": 77.00,
+                       "major_creditor_id": 650000000041,
+                       "minor_creditor": null
+                     },
+                     {
+                       "result_id": "FCOST",
+                       "amount_imposed": 3700.00,
+                       "amount_paid": 120.00,
+                       "major_creditor_id": null,
+                       "minor_creditor": null
+                     }
+                   ]
+                 },
+                 {
+                   "date_of_sentence": "2024-11-21",
+                   "imposing_court_id": 650000000160,
+                   "offence_id": 30002,
+                   "impositions": [
+                     {
+                       "result_id": "FCMP",
+                       "amount_imposed": 6926.00,
+                       "amount_paid": 743.00,
+                       "major_creditor_id": 650000000021,
+                       "minor_creditor": null
+                     },
+                     {
+                       "result_id": "FCOMP",
+                       "amount_imposed": 836.00,
+                       "amount_paid": 183.00,
+                       "major_creditor_id": null,
+                       "minor_creditor": null
+                     }
+                   ]
+                 }
+               ],
+               "fp_ticket_detail": {
+                 "notice_number": "FP12345",
+                 "date_of_issue": "2023-06-01",
+                 "time_of_issue": "14:30",
+                 "fp_registration_number": "REG123",
+                 "notice_to_owner_hirer": "Owner",
+                 "place_of_offence": "Main Street",
+                 "fp_driving_licence_number": "D1234567"
+               },
+               "payment_terms": {
+                 "payment_terms_type_code": "B",
+                 "effective_date": null,
+                 "instalment_period": "M",
+                 "lump_sum_amount": 500.00,
+                 "instalment_amount": 50.00,
+                 "default_days_in_jail": 30,
+                 "enforcements": [
+                   {
+                     "result_id": "NOENF",
+                     "enforcement_result_responses": [
+                       {
+                         "parameter_name": "Response2",
+                         "response": "No"
+                       }
+                     ]
+                   },
+                   {
+                     "result_id": "PRIS",
+                     "enforcement_result_responses": [
+                       {
+                         "parameter_name": "Response1",
+                         "response": "Yes"
+                       }
+                     ]
+                   },
+                   {
+                     "result_id": "COLLO",
+                     "enforcement_result_responses": [
+                       {
+                         "parameter_name": "Response3",
+                         "response": "Yes"
+                       }
+                     ]
+                   }
+                 ]
+               },
+               "account_notes": [
+                 {
+                   "account_note_serial": 1,
+                   "account_note_text": "First comment",
+                   "note_type": "AC"
+                 },
+                 {
+                   "account_note_serial": 3,
+                   "account_note_text": "Second AA note",
+                   "note_type": "AA"
+                 },
+                 {
+                   "account_note_serial": 2,
+                   "account_note_text": "First AA note",
+                   "note_type": "AA"
+                 }
+               ]
+             }',                                -- account JSON (wrapped in single quotes)
+             'Fixed Penalty Registration',     -- account_type  (choose canonical value)
+             NULL,                             -- account_id
+             '{ "snapshot": "opal-test" }',    -- account_snapshot (JSON as string)
+             'SUBMITTED',                      -- account_status
+             '[
+               {
+                 "username": "opal-test",
+                 "status": "Submitted",
+                 "status_date": "2025-01-09",
+                 "reason_text": null
+               }
+             ]',                               -- timeline_data (JSON)
+             NULL,                             -- account_number
+             'Joe Bloggs',                     -- submitted_by_name
+             '2025-02-03',                     -- account_status_date (use single quotes)
+             NULL,                             -- status_message
+             NULL,                             -- validated_by_name
+             0                                 -- version_number
+         );
+
+
+INSERT INTO draft_accounts (
+    draft_account_id,
+    business_unit_id,
+    created_date,
+    submitted_by,
+    validated_date,
+    validated_by,
+    account,
+    account_type,
+    account_id,
+    account_snapshot,
+    account_status,
+    timeline_data,
+    account_number,
+    submitted_by_name,
+    account_status_date,
+    status_message,
+    validated_by_name,
+    version_number
+) VALUES (
+             104,                              -- draft_account_id
+             65,                               -- business_unit_id
+             '2024-12-10',                     -- created_date (date or timestamp)
+             'user_003',                       -- submitted_by
+             NULL,                             -- validated_date
+             NULL,                             -- validated_by
+             '{
+               "account_type": "Fixed Penalty",
+               "defendant_type": "pgToPay",
+               "originator_name": "LJS",
+               "originator_id": 12345,
+               "enforcement_court_id": 650000000045,
+               "prosecutor_case_reference": "ABC123",
+               "payment_card_request": true,
+               "account_sentence_date": "2024-12-12",
+               "collection_order_made": true,
+               "collection_order_made_today": false,
+               "collection_order_date": "2024-12-01",
+               "suspended_committal_date": "2024-12-15",
+               "defendant": {
+                 "company_flag": false,
+                 "title": "Mr",
+                 "surname": "Doe",
+                 "company_name": "",
+                 "forenames": "John",
+                 "dob": "1980-01-01",
+                 "address_line_1": "123 Main St",
+                 "address_line_2": "Apt 4B",
+                 "address_line_3": "",
+                 "address_line_4": "",
+                 "address_line_5": "",
+                 "post_code": "12345",
+                 "telephone_number_home": "555-1234",
+                 "telephone_number_business": "555-5678",
+                 "telephone_number_mobile": "555-8765",
+                 "email_address_1": "john.doe@example.com",
+                 "email_address_2": "j.doe@example.com",
+                 "national_insurance_number": "AB123456C",
+                 "driving_licence_number": "D1234567",
+                 "pnc_id": "PNC12345",
+                 "nationality_1": "British",
+                 "nationality_2": "American",
+                 "ethnicity_self_defined": "White",
+                 "ethnicity_observed": "White",
+                 "cro_number": "CRO12345",
+                 "occupation": "Engineer",
+                 "gender": "Male",
+                 "custody_status": "Released",
+                 "prison_number": "P12345",
+                 "interpreter_lang": "English",
+                 "debtor_detail": {
+                   "vehicle_make": "Toyota",
+                   "vehicle_registration_mark": "XYZ 1234",
+                   "document_language": "EN",
+                   "hearing_language": "EN",
+                   "employee_reference": "EMP123",
+                   "employer_company_name": "ABC Corp",
+                   "employer_address_line_1": "456 Corporate Blvd",
+                   "employer_address_line_2": "Suite 100",
+                   "employer_address_line_3": "",
+                   "employer_address_line_4": "",
+                   "employer_address_line_5": "",
+                   "employer_post_code": "67890",
+                   "employer_telephone_number": "555-9876",
+                   "employer_email_address": "hr@abccorp.com",
+                   "aliases": [
+                     {
+                       "alias_forenames": "Johnny",
+                       "alias_surname": "Doe",
+                       "alias_company_name": ""
+                     }
+                   ]
+                 },
+                 "parent_guardian": {
+                   "company_flag": false,
+                   "company_name": "",
+                   "surname": "Doe",
+                   "forenames": "Jane",
+                   "dob": "1950-01-01",
+                   "national_insurance_number": "AB654321C",
+                   "address_line_1": "789 Parent St",
+                   "address_line_2": "",
+                   "address_line_3": "",
+                   "address_line_4": "",
+                   "address_line_5": "",
+                   "post_code": "54321",
+                   "telephone_number_home": "555-4321",
+                   "telephone_number_business": "555-8765",
+                   "telephone_number_mobile": "555-5678",
+                   "email_address_1": "jane.doe@example.com",
+                   "email_address_2": "j.doe@example.com",
+                   "debtor_detail": {
+                     "vehicle_make": "Honda",
+                     "vehicle_registration_mark": "ABC 9876",
+                     "document_language": "English",
+                     "hearing_language": "English",
+                     "employee_reference": "EMP456",
+                     "employer_company_name": "XYZ Corp",
+                     "employer_address_line_1": "123 Business Rd",
+                     "employer_address_line_2": "Floor 2",
+                     "employer_address_line_3": "",
+                     "employer_address_line_4": "",
+                     "employer_address_line_5": "",
+                     "employer_post_code": "98765",
+                     "employer_telephone_number": "555-6789",
+                     "employer_email_address": "hr@xyzcorp.com",
+                     "aliases": [
+                       {
+                         "alias_forenames": "Janie",
+                         "alias_surname": "Doe",
+                         "alias_company_name": ""
+                       }
+                     ]
+                   }
+                 }
+               },
+               "offences": [
+                 {
+                   "date_of_sentence": "2023-01-01",
+                   "imposing_court_id": 650000000160,
+                   "offence_id": 30000,
+                   "impositions": [
+                     {
+                       "result_id": "FO",
+                       "amount_imposed": 200.00,
+                       "amount_paid": 50.00,
+                       "major_creditor_id": 101112,
+                       "minor_creditor": null
+                     },
+                     {
+                       "result_id": "FCPC",
+                       "amount_imposed": 408.00,
+                       "amount_paid": 61.00,
+                       "major_creditor_id": 101112,
+                       "minor_creditor": null
+                     }
+                   ]
+                 },
+                 {
+                   "date_of_sentence": "2024-11-21",
+                   "imposing_court_id": 650000000160,
+                   "offence_id": 30001,
+                   "impositions": [
+                     {
+                       "result_id": "FCOST",
+                       "amount_imposed": 1678.00,
+                       "amount_paid": 77.00,
+                       "major_creditor_id": 650000000041,
+                       "minor_creditor": null
+                     },
+                     {
+                       "result_id": "FCOST",
+                       "amount_imposed": 3700.00,
+                       "amount_paid": 120.00,
+                       "major_creditor_id": null,
+                       "minor_creditor": null
+                     }
+                   ]
+                 },
+                 {
+                   "date_of_sentence": "2024-11-21",
+                   "imposing_court_id": 650000000160,
+                   "offence_id": 30002,
+                   "impositions": [
+                     {
+                       "result_id": "FCMP",
+                       "amount_imposed": 6926.00,
+                       "amount_paid": 743.00,
+                       "major_creditor_id": 650000000021,
+                       "minor_creditor": null
+                     },
+                     {
+                       "result_id": "FCOMP",
+                       "amount_imposed": 836.00,
+                       "amount_paid": 183.00,
+                       "major_creditor_id": null,
+                       "minor_creditor": null
+                     }
+                   ]
+                 }
+               ],
+               "fp_ticket_detail": {
+                 "notice_number": "FP12345",
+                 "date_of_issue": "2023-06-01",
+                 "time_of_issue": "14:30",
+                 "fp_registration_number": "REG123",
+                 "notice_to_owner_hirer": "Owner",
+                 "place_of_offence": "Main Street",
+                 "fp_driving_licence_number": "D1234567"
+               },
+               "payment_terms": {
+                 "payment_terms_type_code": "B",
+                 "effective_date": null,
+                 "instalment_period": "M",
+                 "lump_sum_amount": 500.00,
+                 "instalment_amount": 50.00,
+                 "default_days_in_jail": 30,
+                 "enforcements": [
+                   {
+                     "result_id": "NOENF",
+                     "enforcement_result_responses": [
+                       {
+                         "parameter_name": "Response2",
+                         "response": "No"
+                       }
+                     ]
+                   },
+                   {
+                     "result_id": "PRIS",
+                     "enforcement_result_responses": [
+                       {
+                         "parameter_name": "Response1",
+                         "response": "Yes"
+                       }
+                     ]
+                   },
+                   {
+                     "result_id": "COLLO",
+                     "enforcement_result_responses": [
+                       {
+                         "parameter_name": "Response3",
+                         "response": "Yes"
+                       }
+                     ]
+                   }
+                 ]
+               },
+               "account_notes": [
+                 {
+                   "account_note_serial": 1,
+                   "account_note_text": "First comment",
+                   "note_type": "AC"
+                 },
+                 {
+                   "account_note_serial": 3,
+                   "account_note_text": "Second AA note",
+                   "note_type": "AA"
+                 },
+                 {
+                   "account_note_serial": 2,
+                   "account_note_text": "First AA note",
+                   "note_type": "AA"
+                 }
+               ]
+             }',                                -- account JSON (wrapped in single quotes)
+             'Fixed Penalty Registration',     -- account_type  (choose canonical value)
+             NULL,                             -- account_id
+             '{ "snapshot": "opal-test" }',    -- account_snapshot (JSON as string)
+             'SUBMITTED',                      -- account_status
+             '[
+               {
+                 "username": "opal-test",
+                 "status": "Submitted",
+                 "status_date": "2025-01-09",
+                 "reason_text": null
+               }
+             ]',                               -- timeline_data (JSON)
+             NULL,                             -- account_number
+             'Joe Bloggs',                     -- submitted_by_name
+             '2025-02-03',                     -- account_status_date (use single quotes)
+             NULL,                             -- status_message
+             NULL,                             -- validated_by_name
+             0                                 -- version_number
+         );
+
+
 -- Ensure sequence is above current ids
 SELECT setval('draft_account_id_seq', 200);
