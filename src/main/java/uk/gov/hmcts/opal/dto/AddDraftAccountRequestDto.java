@@ -56,9 +56,9 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     @JsonRawValue
     private String timelineData;
 
-    @JsonProperty(value = "submitted_by", required = true)
+    @JsonProperty("submitted_by")
     private String submittedBy;
 
-    @JsonProperty(value = "submitted_by_name", required = true)
+    @JsonProperty("submitted_by_name")
     private String submittedByName;
 }
