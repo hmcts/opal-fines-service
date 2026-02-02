@@ -27,17 +27,6 @@ public class LegacyDefendantAccountSearchResultsDtoTest {
     }
 
     @Test
-    void testControllerModelEqualsAndHashCode() {
-        // Arrange
-        DefendantAccountSearchResultsDto model1 = DefendantAccountSearchResultsDto.builder().build();
-        DefendantAccountSearchResultsDto model2 = DefendantAccountSearchResultsDto.builder().build();
-
-        // Assert
-        assertEquals(model1, model2);
-        assertEquals(model1.hashCode(), model2.hashCode());
-    }
-
-    @Test
     void testControllerModelToString() {
         // Arrange
         DefendantAccountSearchResultsDto model = DefendantAccountSearchResultsDto.builder().build();
@@ -65,7 +54,6 @@ public class LegacyDefendantAccountSearchResultsDtoTest {
 
         return DefendantAccountSearchResultsDto.builder()
             .defendantAccounts(accounts)
-            .count(accounts.size()) // ✅ manually set
             .build();
     }
 

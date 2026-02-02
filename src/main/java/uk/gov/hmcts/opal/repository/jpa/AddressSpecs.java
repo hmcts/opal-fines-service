@@ -35,17 +35,17 @@ public abstract class AddressSpecs<E extends AddressEntity> extends EntitySpecs<
 
     private Specification<E> likeAddressLine1(String addressLinePattern) {
         return (root, query, builder) ->
-            likeLowerCasePredicate(root.get(AddressEntity_.addressLine1), builder, addressLinePattern);
+            likeLowerCaseBothPredicate(root.get(AddressEntity_.addressLine1), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine2(String addressLinePattern) {
         return (root, query, builder) ->
-            likeLowerCasePredicate(root.get(AddressEntity_.addressLine2), builder, addressLinePattern);
+            likeLowerCaseBothPredicate(root.get(AddressEntity_.addressLine2), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine3(String addressLinePattern) {
         return (root, query, builder) ->
-            likeLowerCasePredicate(root.get(AddressEntity_.addressLine3), builder, addressLinePattern);
+            likeLowerCaseBothPredicate(root.get(AddressEntity_.addressLine3), builder, addressLinePattern);
     }
 
     public Specification<E> likePostcode(String postcode) {

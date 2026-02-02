@@ -1,11 +1,16 @@
 package uk.gov.hmcts.opal.dto;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 
@@ -16,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DefendantAccountSummaryDto implements ToJsonString {
 
@@ -76,4 +81,43 @@ public class DefendantAccountSummaryDto implements ToJsonString {
 
     @JsonProperty("parent_guardian_firstnames")
     private String parentGuardianFirstnames;
+
+    @JsonProperty("has_collection_order")
+    @JsonInclude(Include.NON_NULL)
+    private Boolean hasCollectionOrder;
+
+    @JsonProperty("account_version")
+    @JsonInclude(Include.NON_NULL)
+    private BigInteger accountVersion;
+
+    @JsonProperty("checks")
+    @JsonInclude(Include.NON_NULL)
+    private Checks checks;
+
+    @Builder
+    @Getter
+    public static class Checks {
+
+        @JsonProperty("warnings")
+        private List<WarnError> warnings;
+
+        @JsonProperty("errors")
+        private List<WarnError> errors;
+    }
+
+    @Getter
+    public static class WarnError {
+        public WarnError(String combined) {
+            System.out.println(combined);
+            String[] split = combined.trim().split("\\|", -1);
+            this.reference = split[0]; // Should never be an empty array
+            this.message = split.length > 1 ? split[1] : "";
+        }
+
+        @JsonProperty("reference")
+        private final String reference;
+
+        @JsonProperty("message")
+        private final String message;
+    }
 }

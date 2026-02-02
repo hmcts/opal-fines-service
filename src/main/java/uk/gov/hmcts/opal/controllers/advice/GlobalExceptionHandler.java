@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -221,6 +222,22 @@ public class GlobalExceptionHandler {
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+    }
+
+    @ExceptionHandler(UnprocessableException.class)
+    public ResponseEntity<ProblemDetail> handleUnprocessableException(UnprocessableException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            "Unprocessable Entity",
+            "The request could not be processed",
+            "unprocessable-entity",
+            false,
+            ex
+        );
+
+        problemDetail.setProperty("unprocessableReason", ex.getDetailedReason());
+
+        return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, problemDetail);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -476,6 +493,26 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
     }
 
+    @ExceptionHandler(GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handlePaymentCardRequestAlreadyExists(
+        PaymentCardRequestAlreadyExistsException e) {
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.CONFLICT,
+            "Conflict",
+            e.getMessage(),
+            "resource-conflict",
+            true,
+            e
+        );
+
+        problemDetail.setProperty("resourceType", e.getResourceType());
+        problemDetail.setProperty("resourceId", e.getResourceId());
+
+        return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
+    }
+
+
     @ExceptionHandler(FeignException.Unauthorized.class)
     public ResponseEntity<ProblemDetail> handleFeignExceptionUnauthorized(FeignException.Unauthorized e) {
         ProblemDetail problemDetail = createProblemDetail(
@@ -486,7 +523,7 @@ public class GlobalExceptionHandler {
             false,
             e
         );
-        return responseWithProblemDetail(HttpStatus.valueOf(e.status()), problemDetail);
+        return responseWithProblemDetail(HttpStatus.valueOf(e.status()),problemDetail);
     }
 
     @ExceptionHandler(FeignException.class)
@@ -562,6 +599,43 @@ public class GlobalExceptionHandler {
         return state.equals("40001")   // serialization_failure
             || state.equals("40P01")   // deadlock_detected
             || state.equals("55P03");  // lock_not_available
+    }
+
+    /**
+     * Exception type used for the specific PCR-already-exists conflict so we can return a
+     * tailored 409 Problem JSON (detail contains message, retriable=true).
+     *
+     * <p>Kept as a nested class to avoid creating a new top-level file.
+     */
+
+    public static class PaymentCardRequestAlreadyExistsException extends RuntimeException {
+
+        private final String resourceType;
+        private final String resourceId;
+        private final Versioned versioned; // may be null
+
+        public PaymentCardRequestAlreadyExistsException(String resourceType, String resourceId, Versioned versioned) {
+            super("A payment card request already exists for this account.");
+            this.resourceType = resourceType;
+            this.resourceId = resourceId;
+            this.versioned = versioned;
+        }
+
+        public PaymentCardRequestAlreadyExistsException(String resourceType, String resourceId) {
+            this(resourceType, resourceId, null);
+        }
+
+        public String getResourceType() {
+            return resourceType;
+        }
+
+        public String getResourceId() {
+            return resourceId;
+        }
+
+        public Versioned getVersioned() {
+            return versioned;
+        }
     }
 
 }

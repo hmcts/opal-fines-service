@@ -20,7 +20,7 @@ class LegacyDefendantAccountSearchCriteriaTest {
         LegacyDefendantAccountSearchCriteria criteria = constructCriteria();
 
         assertNotNull(criteria.getBusinessUnitIds());
-        assertEquals(List.of(10), criteria.getBusinessUnitIds());
+        assertEquals(List.of((short)10), criteria.getBusinessUnitIds());
 
         assertTrue(criteria.getActiveAccountsOnly());
 
@@ -38,7 +38,7 @@ class LegacyDefendantAccountSearchCriteriaTest {
     @Test
     void testFromAccountSearchDto() {
         AccountSearchDto dto = AccountSearchDto.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short)10))
             .activeAccountsOnly(true)
             .defendant(new DefendantDto())
             .build();
@@ -63,7 +63,7 @@ class LegacyDefendantAccountSearchCriteriaTest {
 
     private LegacyDefendantAccountSearchCriteria constructCriteria() {
         return LegacyDefendantAccountSearchCriteria.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short)10))
             .activeAccountsOnly(true)
             .defendant(new DefendantDto())
             .build();

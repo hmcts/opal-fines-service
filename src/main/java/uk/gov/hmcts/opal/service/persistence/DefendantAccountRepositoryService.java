@@ -17,12 +17,9 @@ public class DefendantAccountRepositoryService {
 
     @Transactional(readOnly = true)
     public DefendantAccountEntity findById(long defendantAccountId) {
-        return defendantAccountRepository
-            .findById(defendantAccountId)
+        return defendantAccountRepository.findById(defendantAccountId)
             .orElseThrow(
-                () ->
-                    new EntityNotFoundException(
-                        "Defendant Account not found with id: " + defendantAccountId));
+                () -> new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId));
     }
 
     @Transactional

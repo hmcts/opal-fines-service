@@ -38,17 +38,6 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 @ExtendWith(MockitoExtension.class)
@@ -210,7 +199,7 @@ class DefendantAccountServiceTest {
             ))
             .build();
 
-        DefendantAccountSearchResultsDto expected = DefendantAccountSearchResultsDto.builder().count(1).build();
+        DefendantAccountSearchResultsDto expected = DefendantAccountSearchResultsDto.builder().build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPerm);
         when(defendantAccountServiceProxy.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(expected);
@@ -220,7 +209,6 @@ class DefendantAccountServiceTest {
             "authHeaderValue");
 
         assertNotNull(result);
-        assertEquals(1, result.getCount().intValue());
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
     }
 

@@ -1,26 +1,29 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.search;
 
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
 
 @Getter
-@Entity
-@Table(name = "v_search_defendant_accounts")
 @Immutable
 @SuperBuilder
 @NoArgsConstructor
-public class SearchDefendantAccountEntity {
+@MappedSuperclass
+@ToString(callSuper = true)
+public abstract class SearchDefendantAccount {
 
     @Id
     @Column(name = "defendant_account_id", nullable = false)
@@ -45,7 +48,7 @@ public class SearchDefendantAccountEntity {
     private LocalDateTime completedDate;
 
     @Column(name = "business_unit_id")
-    private Long businessUnitId;
+    private Short businessUnitId;
 
     @Column(name = "business_unit_name")
     private String businessUnitName;
@@ -101,5 +104,14 @@ public class SearchDefendantAccountEntity {
 
     @Column(name = "alias5")
     private String alias5;
+
+    @Entity
+    @Getter
+    @EqualsAndHashCode(callSuper = true)
+    @Table(name = "v_search_defendant_accounts")
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class BasicEntity extends SearchDefendantAccount {
+    }
 }
 

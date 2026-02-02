@@ -55,7 +55,7 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity.Lite> {
 
     public static Specification<OffenceEntity.Lite> likeCjsCodeStartsWith(String cjsCode) {
         return (root, query, builder) ->
-            likeStartsWithPredicate(root.get(OffenceEntity_.cjsCode), builder, cjsCode);
+            likeLowerCaseBothStartsWithPredicate(root.get(OffenceEntity_.cjsCode), builder, cjsCode);
     }
 
     public static Specification<OffenceEntity.Lite> likeOffenceTitle(String offenceTitle) {

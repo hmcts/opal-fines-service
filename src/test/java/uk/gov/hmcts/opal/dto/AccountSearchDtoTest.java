@@ -20,7 +20,7 @@ public class AccountSearchDtoTest {
     void testBuilder() {
         final String dateOfBirth = "2024-01-01";
         AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(dateOfBirth, true);
-        assertEquals(List.of(78), accountEnquiryDto.getBusinessUnitIds());
+        assertEquals(List.of((short)78), accountEnquiryDto.getBusinessUnitIds());
         assertEquals("Smith", accountEnquiryDto.getDefendant().getSurname());
         assertEquals("Scotland", accountEnquiryDto.getDefendant().getAddressLine1());
         assertEquals(LocalDate.parse(dateOfBirth), accountEnquiryDto.getDefendant().getBirthDate());
@@ -69,7 +69,7 @@ public class AccountSearchDtoTest {
 
     private AccountSearchDto constructTestAccountSearchDto(String dateOfBirth, boolean useDefendant) {
         AccountSearchDto.AccountSearchDtoBuilder builder = AccountSearchDto.builder()
-            .businessUnitIds(Collections.singletonList(78))
+            .businessUnitIds(Collections.singletonList((short)78))
             .activeAccountsOnly(true);
 
         if (useDefendant) {

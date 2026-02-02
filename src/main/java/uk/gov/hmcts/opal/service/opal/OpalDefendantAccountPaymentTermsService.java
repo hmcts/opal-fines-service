@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -92,11 +92,9 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private void ensureNoExistingPaymentCardRequest(Long accountId) {
         if (paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId)) {
-            throw new ResourceConflictException(
+            throw new PaymentCardRequestAlreadyExistsException(
                 "DefendantAccountEntity",
-                String.valueOf(accountId),
-                "A payment card request already exists for this account.",
-                null
+                String.valueOf(accountId)
             );
         }
     }

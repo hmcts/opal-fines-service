@@ -12,7 +12,7 @@ import org.springframework.test.context.jdbc.Sql;
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.LegacyDefendantAccountsIntegrationTest")
+@Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")

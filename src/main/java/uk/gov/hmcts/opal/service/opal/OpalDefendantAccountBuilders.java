@@ -68,7 +68,7 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
@@ -209,7 +209,7 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static List<AliasDto> buildSearchAliases(SearchDefendantAccountEntity e) {
+    static List<AliasDto> buildSearchAliases(SearchDefendantAccount e) {
         boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
         String[] aliasValues = {e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5()};
 

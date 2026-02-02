@@ -412,7 +412,12 @@ VALUES (901, 901, 901,
         'Defendant', 'Y');
 
 INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
-VALUES (9011, 901, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg');
+VALUES
+    (9011, 901, 'AliasSurname1', 'AliasForenames1', 1, 'AliasOrg1'),
+    (9012, 901, 'AliasSurname2', 'AliasForenames2', 2, 'AliasOrg2'),
+    (9013, 901, 'AliasSurname3', 'AliasForenames3', 3, 'AliasOrg3'),
+    (9014, 901, 'AliasSurname4', 'AliasForenames4', 4, 'AliasOrg4'),
+    (9015, 901, 'AliasSurname5', 'AliasForenames5', 5, 'AliasOrg5');
 
 -- Dummy business unit to satisfy FK constraint but trigger Hibernate fallback
 INSERT INTO business_units (business_unit_id,
