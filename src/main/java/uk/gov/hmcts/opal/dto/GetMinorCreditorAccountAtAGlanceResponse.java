@@ -26,8 +26,22 @@ public class GetMinorCreditorAccountAtAGlanceResponse implements ToJsonString {
     private Long creditorAccountId;
 
     @JsonProperty("defendant")
-    private DefendantDto defendant;
+    private AtAGlanceDefendant defendant;
 
     @JsonProperty("payment")
     private Payment payment;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class AtAGlanceDefendant {
+
+        @JsonProperty("account_number")
+        private String accountNumber;
+
+        @JsonProperty("account_id")
+        private Long accountId;
+    }
 }

@@ -8,5 +8,14 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PaymentMapper {
 
-    Payment toDto(LegacyPayment legacy);
+    default Payment toDto(LegacyPayment legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        return Payment.builder()
+            .isBacs(legacy.isBacs())
+            .holdPayment(legacy.isHoldPayment())
+            .build();
+    }
 }
