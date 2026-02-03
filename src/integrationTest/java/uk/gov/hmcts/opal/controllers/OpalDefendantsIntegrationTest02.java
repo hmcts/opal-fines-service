@@ -70,6 +70,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         + "/getDefendantAccountPartyResponse.json";
     static final String DEFENDANT_FIXED_PENALTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/getDefendantAccountFixedPenaltyResponse.json";
+    static final LocalDate ACCOUNT_77_BIRTH_DATE = LocalDate.of(1980, 2, 3);
     
     @MockitoBean
     UserStateService userStateService;
@@ -146,7 +147,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": { "payment_terms_type_code": "B",
                 "payment_terms_type_display_name": "By date"},
                 "instalment_period": { "instalment_period_code": "W" ,
@@ -200,7 +201,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -255,7 +256,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -307,7 +308,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -357,7 +358,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -406,7 +407,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -484,7 +485,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -534,7 +535,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -584,7 +585,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -814,6 +815,8 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
+        String expectedAge = String.valueOf(Period.between(ACCOUNT_77_BIRTH_DATE, LocalDate.now()).getYears());
+
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));
 
@@ -847,6 +850,8 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     public void opalGetAtAGlance_Individual_ParentGuardian() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        String expectedAge = String.valueOf(Period.between(ACCOUNT_77_BIRTH_DATE, LocalDate.now()).getYears());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/10004/at-a-glance").header("authorization", "Bearer some_value"));
