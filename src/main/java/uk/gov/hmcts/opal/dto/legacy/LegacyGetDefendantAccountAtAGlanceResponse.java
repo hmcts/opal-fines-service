@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToXmlString;
-import uk.gov.hmcts.opal.dto.legacy.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences;
@@ -43,7 +42,7 @@ public class LegacyGetDefendantAccountAtAGlanceResponse implements ToXmlString {
     private LegacyPartyDetails partyDetails;
 
     @XmlElement(name = "address", required = true)
-    private AddressDetails address;
+    private AddressDetailsLegacy address;
 
     @XmlElement(name = "language_preferences")
     private LanguagePreferences languagePreferences; // optional
