@@ -817,8 +817,6 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        String expectedAge = String.valueOf(Period.between(ACCOUNT_77_BIRTH_DATE, LocalDate.now()).getYears());
-
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));
 
@@ -837,7 +835,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").exists())
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
-            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge))
+            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge()))
             .andExpect(jsonPath("$.address").exists()).andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id").value("10"))
@@ -852,8 +850,6 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     public void opalGetAtAGlance_Individual_ParentGuardian() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-        String expectedAge = String.valueOf(Period.between(ACCOUNT_77_BIRTH_DATE, LocalDate.now()).getYears());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/10004/at-a-glance").header("authorization", "Bearer some_value"));
@@ -874,7 +870,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.debtor_type").value("Parent/Guardian")).andExpect(jsonPath("$.is_youth").exists())
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
-            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge))
+            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge()))
             .andExpect(jsonPath("$.address").exists()).andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is not present (no test data added as these are optional)
@@ -882,6 +878,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ;
 
         jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
+    }
+
+    private String expectedAge() {
+        return String.valueOf(Period.between(ACCOUNT_77_BIRTH_DATE, LocalDate.now()).getYears());
     }
 
     @Test
