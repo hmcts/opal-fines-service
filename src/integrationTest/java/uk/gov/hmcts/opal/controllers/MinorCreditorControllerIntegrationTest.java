@@ -805,7 +805,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":getHeaderSummary_serviceUnavailable_returns503: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":getHeaderSummary_serviceUnavailable_returns503: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isServiceUnavailable());
     }
