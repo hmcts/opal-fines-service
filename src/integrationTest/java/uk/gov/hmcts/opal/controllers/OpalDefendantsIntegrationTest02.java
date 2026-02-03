@@ -126,7 +126,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     void test_Opal_AddPaymentTerms_Happy() throws Exception {
         // Ensure user has required permissions (pattern used across tests)
         when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
+            .thenReturn(UserStateUtil.permissionUser((short)78, FinesPermission.AMEND_PAYMENT_TERMS));
 
         // Pull the current version from DB to satisfy optimistic locking
         Integer currentVersion = jdbcTemplate.queryForObject(
@@ -181,7 +181,9 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         // Basic assertions: OK + JSON + expected fields
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.payment_terms.days_in_default").value(30));
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(30))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("USER01"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("normal@users.com"));
     }
 
     @Test
