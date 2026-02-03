@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.List;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
@@ -9,20 +12,25 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.util.List;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.REQUEST_TIMEOUT;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
@@ -36,6 +44,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     private static final String MINOR_CREDITOR_RESPONSE =
         "opal/minor-creditor/postMinorCreditorAccountSearchResponse.json";
+
+    private static final String MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE =
+        "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
+
+    @Autowired
+    protected JdbcTemplate jdbcTemplate;
 
     @MockitoBean
     UserStateService userStateService;
@@ -261,7 +275,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void postSearch_authenticatedWithoutPermission_returns403ProblemJson() throws Exception {
-        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
+        doThrow(new ResponseStatusException(FORBIDDEN, "Forbidden"))
             .when(userStateService).checkForAuthorisedUser(any());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
@@ -685,5 +699,128 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[0].address_line_1").value("Tech House"))
             .andExpect(jsonPath("$.creditor_accounts[0].postcode").value("TH1 2BC"))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Tech Solutions"));
+    }
+
+    void getHeaderSummaryImpl_Success(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        Long minorCreditorId = 99000000000800L;
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", minorCreditorId)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorCreditorHeaderSummary: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+            .andExpect(jsonPath("$.creditor_account_id").value(String.valueOf(minorCreditorId)))
+            .andExpect(jsonPath("$.account_number").value("87654321"))
+            .andExpect(jsonPath("$.creditor_account_type.type").value("MN"))
+            .andExpect(jsonPath("$.creditor_account_type.display_name").value("Minor Creditor"))
+
+            .andExpect(header().exists("ETag"))
+
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_name").value("Camberwell Green"))
+            .andExpect(jsonPath("$.business_unit_summary.welsh_speaking").value(matchesPattern("Y|N")))
+
+            .andExpect(jsonPath("$.party_details.party_id").value("99000000000900"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                .value("Minor Creditor Test Ltd"))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases")
+                .value(nullValue()))
+
+            .andExpect(jsonPath("$.awarded_amount").value(0))
+            .andExpect(jsonPath("$.paid_out_amount").value(0))
+            .andExpect(jsonPath("$.awaiting_payout_amount").value(0))
+            .andExpect(jsonPath("$.outstanding_amount").value(0))
+            .andExpect(jsonPath("$.has_associated_defendant").value(false));
+
+        jsonSchemaValidationService.validate(body, MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE);
+    }
+
+    void getHeaderSummary_notFound_returns404(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        Long missingId = 999999L;
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/header-summary", missingId)
+            .accept(MediaType.APPLICATION_JSON)
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorCreditorHeaderSummary_NotFound: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound());
+    }
+
+    void getHeaderSummary_missingAuthHeader_returns401() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    void getHeaderSummary_authenticatedWithoutPermission_returns403() throws Exception {
+        doThrow(new ResponseStatusException(FORBIDDEN, "Forbidden"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("authorization", "Bearer some_value"))
+            .andExpect(status().isForbidden())
+            .andExpect(content().string(""));
+    }
+
+    void getHeaderSummary_timeout_returns408(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(REQUEST_TIMEOUT, "Timeout"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_timeout_returns408: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isRequestTimeout());
+    }
+
+    void getHeaderSummary_serviceUnavailable_returns503(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "Gateway down"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_serviceUnavailable_returns503: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isServiceUnavailable());
+    }
+
+    void getHeaderSummary_serverError_returns500(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_serverError_returns500: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isInternalServerError());
     }
 }
