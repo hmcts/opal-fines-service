@@ -66,8 +66,12 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
     @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
-        return draftAccountRepository.findById(draftAccountId)
+        DraftAccountEntity entity = draftAccountRepository.findById(draftAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
+
+        loggingService.pdplForDraftAccount(entity, Action.GET);
+
+        return entity;
     }
 
     @Transactional(readOnly = true)
@@ -83,6 +87,9 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 businessUnitIds, statuses, submittedBy, notSubmitted, accountStatusDateFrom, accountStatusDateTo),
             ffq -> ffq.sortBy(draftIdSort).page(Pageable.unpaged()));
 
+        for (DraftAccountEntity entity : page.getContent()) {
+            loggingService.pdplForDraftAccount(entity, Action.GET);
+        }
         return page.getContent();
     }
 
