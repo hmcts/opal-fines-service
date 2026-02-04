@@ -15,6 +15,10 @@
 
 #### Environment variables
 
+**WARNING** - this info is a now (as of 2026) a bit outdated. First see the 
+[documentation about docker setup](docker-readme.md), which covers the current way to configure 
+your execution environment.
+
 The following environment variables are required to run the service.
 
 ```bash / zsh
