@@ -2,7 +2,9 @@
 
 ## opalBuild
 
-Builds the Opal docker stack from the `/Users/{currentUser}/Opal` workspace. It defaults to using
+Builds the Opal docker stack from the `/Users/{currentUser}/Opal` workspace. if this is not where you have your you will need to update the `BASE_DIR` in the script to match your workspace before installing.
+
+It defaults to using
 `-localBranches`, which fetches/pulls the current branch in each repo, runs Gradle builds, and then
 builds and starts the containers. Use `-localMaster` (`-lm`) to checkout `master` first. Use
 `-c`/`--current` to skip git updates and Gradle builds.
