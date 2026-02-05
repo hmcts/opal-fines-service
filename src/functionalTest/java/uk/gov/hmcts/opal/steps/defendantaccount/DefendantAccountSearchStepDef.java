@@ -22,7 +22,7 @@ public class DefendantAccountSearchStepDef extends BaseStepDef {
 
         String buId = m.get("business_unit_id");
         String accountNumber = m.get("account_number");
-        String consolidationSearch = m.getOrDefault("consolidation_search", "true"); // <-- key bit
+        String consolidationSearch = m.getOrDefault("consolidation_search", "true");
 
         String body = """
     {

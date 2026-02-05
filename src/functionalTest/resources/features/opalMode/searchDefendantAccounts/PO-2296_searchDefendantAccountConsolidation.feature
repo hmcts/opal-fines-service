@@ -1,7 +1,7 @@
 Feature: Defendant account search - consolidation search
 
   @Opal @PO-2966
-  Scenario: E2E.01 - consolidation_search=true returns consolidation fields
+  Scenario: consolidation_search=true returns consolidation fields
     When I search defendant accounts with consolidation_search true using:
       | active_accounts_only | true     |
       | business_unit_id     | 77       |
@@ -32,9 +32,9 @@ Feature: Defendant account search - consolidation search
   Scenario: consolidation_search=false returns only base documented fields
     Given I am testing as the "opal-test@hmcts.net" user
     When I search defendant accounts with consolidation_search true using:
-      | business_unit_id | 77       |
-      | account_number   | 12345678 |
-      | consolidation_search    | false    |
+      | business_unit_id    | 77       |
+      | account_number      | 12345678 |
+      | consolidation_search| false    |
     Then the response status code is 200
    And the response content type is "application/json"
     And the defendant account search response does not include consolidation fields
