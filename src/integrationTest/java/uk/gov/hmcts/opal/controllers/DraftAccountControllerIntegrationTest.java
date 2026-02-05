@@ -1032,6 +1032,36 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("Get Draft Account by ID [@PO-973, @PO-559]")
+    void testGetDraftAccountById_AdultOrYouthOnly() throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/8")
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountById_success: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"0\""))
+            .andExpect(jsonPath("$.draft_account_id").value(1))
+            .andExpect(jsonPath("$.business_unit_id").value(77))
+            .andExpect(jsonPath("$.account_type").value("Fixed Penalty Registration"))
+            .andExpect(jsonPath("$.submitted_by").value("user_001"))
+            .andExpect(jsonPath("$.account_status").value("Submitted"))
+            .andExpect(jsonPath("$.account_status_date").value("2024-12-10T16:27:01.023126Z"))
+            .andExpect(jsonPath("$.submitted_by_name").value("John Smith"))
+            .andExpect(jsonPath("$.version").doesNotExist())
+            .andExpect(jsonPath("$.status_message").doesNotExist())
+            .andExpect(jsonPath("$.validated_by_name").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
+    }
+
+
     private static Stream<Arguments> testCasesForResourceNotFoundProvider() {
         return Stream.of(
             Arguments.of(get(URL_BASE + "/999"), ""),
