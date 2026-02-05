@@ -1,7 +1,7 @@
 @Opal
-Feature: PO-745 patch draft account
+Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
-  @PO-745 @PO-991 @cleanUpData
+  @PO-745 @PO-991 @PO-2358 @cleanUpData
   Scenario: Patch draft account - Pending - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -125,7 +125,7 @@ Feature: PO-745 patch draft account
     Then I delete the created draft accounts
 
 
-  @PO-745 @PO-991 @cleanUpData
+  @PO-2358 @cleanUpData
   Scenario: Patch draft account - Parent or Guardian - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -154,7 +154,7 @@ Feature: PO-745 patch draft account
 
     Then I delete the created draft accounts
 
-  @PO-745 @PO-991 @cleanUpData
+  @PO-2358 @cleanUpData
   Scenario: Patch draft account - Minor Creditor - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -183,7 +183,7 @@ Feature: PO-745 patch draft account
 
     Then I delete the created draft accounts
 
-  @PO-745 @PO-991 @cleanUpData
+  @PO-2358 @cleanUpData
   Scenario: Patch draft account - Defendant + Minor Creditor creates two logs
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -213,7 +213,7 @@ Feature: PO-745 patch draft account
 
     Then I delete the created draft accounts
 
-  @PO-745 @cleanUpData
+  @PO-2358 @cleanUpData
   Scenario: Attempt to patch with invalid token - no logs created
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -235,10 +235,9 @@ Feature: PO-745 patch draft account
     Then I delete the created draft accounts
 
 
-  @Opal
-  @PO-745
+  @PO-2358
   @cleanUpData
-  Scenario: E2E.04 - Patch unknown draft account id returns 404 and does not create PDPO log
+  Scenario: Patch unknown draft account id returns 406 and does not create PDPO log
     Given I am testing as the "opal-test@hmcts.net" user
 
     When I patch the "00000000-0000-0000-0000-000000000000" draft account with the following details
