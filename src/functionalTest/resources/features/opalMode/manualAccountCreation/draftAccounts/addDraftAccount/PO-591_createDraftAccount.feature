@@ -31,7 +31,7 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
 
     Then the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                         | expected_count |
-      | L106C2        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
+      | L073JG        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
 
     Then I delete the created draft accounts
 
