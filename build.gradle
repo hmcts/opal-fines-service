@@ -60,6 +60,12 @@ sourceSets {
     }
     resources.srcDir file('src/functionalTest/resources')
   }
+  test {
+    java {
+      compileClasspath += main.output
+      runtimeClasspath += main.output
+    }
+  }
 
   integrationTest {
     java {
