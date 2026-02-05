@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
+import uk.gov.hmcts.opal.util.LogUtil;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountPublishTest {
@@ -114,10 +115,12 @@ class DraftAccountPublishTest {
         assertNull(published.getAccountId());
         assertNull(published.getAccountNumber());
         assertEquals(DraftAccountStatus.PUBLISHING_FAILED, published.getAccountStatus());
+        // verify status message set is a generic user-safe message
+        assertEquals(LogUtil.ERRMSG_STORED_PROC_FAILURE, published.getStatusMessage());
 
         TimelineData timelineData = new TimelineData();
         timelineData.insertEntry("Dave", DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                                 LocalDate.now(), "SQL Stored Procedure Error.");
+                                 LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE);
         assertEquals(timelineData.toJson(), published.getTimelineData());
 
         DraftAccountEntity expected = cloneAndModify(existingFromDB, DraftAccountStatus.PUBLISHING_FAILED);

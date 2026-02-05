@@ -25,8 +25,8 @@ SCHEMA="public"
 DATABASE="$(az keyvault secret show --vault-name opal-stg --name fines-service-POSTGRES-DATABASE | jq .value -r)"
 
 LOCAL_HOST="localhost"
-LOCAL_USER="opal-fines"
-LOCAL_PASSWORD="opal-fines"
+LOCAL_USER="opal-db-user"
+LOCAL_PASSWORD="opal-db-password"
 
 STG_HOST="$(az keyvault secret show --vault-name opal-stg --name fines-service-POSTGRES-HOST | jq .value -r)"
 STG_USER="$(az keyvault secret show --vault-name opal-stg --name fines-service-POSTGRES-USER | jq .value -r)"

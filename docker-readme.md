@@ -10,14 +10,21 @@ Start a development environment for Opal Services.
     - [opal-user-service](https://github.com/hmcts/opal-user-service)
     - [opal-logging-service](https://github.com/hmcts/opal-logging-service) 
     - [opal-shared-infrastructure](https://github.com/hmcts/opal-shared-infrastructure)
-- Ensure you have '.env.shared' file in 'opal-shared-infrastructure/docker-files/' directory. (You
-  will need to create this file as it is git ignored by default). It is recommended to include the
-  following environment variables:
-    - AAD_CLIENT_ID
-    - AAD_CLIENT_SECRET
-    - AAD_TENANT_ID
-    - LAUNCH_DARKLY_SDK_KEY
-    - OPAL_TEST_USER_PASSWORD
+- Ensure you have a `.env.shared` file in `opal-shared-infrastructure/docker-files/` directory. (You
+  will need to create this file as it is git ignored by default).
+- You can automatically create the .env.shared file by running the `create_env.sh` script located in the `opal-shared-infrastructure/bin/` directory.
+  This script requires you to have the Azure CLI installed (`brew install azure-cli`).
+```bash / zsh
+../opal-shared-infrastructure/bin/create_env.sh
+```
+- Add the following environment variables:
+```properties
+AAD_CLIENT_ID=?
+AAD_CLIENT_SECRET=?
+AAD_TENANT_ID=?
+LAUNCH_DARKLY_SDK_KEY=?
+OPAL_TEST_USER_PASSWORD=?
+```
 
 ## Starting the Services
 

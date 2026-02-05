@@ -26,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -815,6 +817,8 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));
 
+        String expectedAge = String.valueOf(Period.between(LocalDate.of(1980, 2, 3), LocalDate.now()).getYears());
+
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an individual. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -828,7 +832,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").exists())
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
-            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
+            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge))
             .andExpect(jsonPath("$.address").exists()).andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id").value("10"))
@@ -847,6 +851,8 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/10004/at-a-glance").header("authorization", "Bearer some_value"));
 
+        String expectedAge = String.valueOf(Period.between(LocalDate.of(1980, 2, 3), LocalDate.now()).getYears());
+
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). etag header: \n" + headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -861,7 +867,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.debtor_type").value("Parent/Guardian")).andExpect(jsonPath("$.is_youth").exists())
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
-            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
+            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge))
             .andExpect(jsonPath("$.address").exists()).andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is not present (no test data added as these are optional)
