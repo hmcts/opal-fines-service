@@ -130,7 +130,6 @@ For more information:
 ```bash / zsh
 ./bin/run-in-docker.sh -h
 ```
-
 Script includes bare minimum environment variables necessary to start api instance. Whenever any variable is changed or any other script regarding docker image/container build, the suggested way to ensure all is cleaned up properly is by this command:
 
 **Bash**:
@@ -152,6 +151,14 @@ docker image rm <image-id>
 
 There is no need to remove postgres and java or similar core images.
 
+
+#### Approach 4: Docker with external dependencies (e.g. Redis, postgres, azure service bus, user service, logging service, etc) - Recommended approach for development
+
+Please following the instructions in the [docker-readme](docker-readme.md) to set up the application with external dependencies using docker.
+
+```bash / zsh
+./bin/run-in-docker.sh -h
+```
 ### Verifying application startup
 
 Regardless of approach followed for starting the application, in order to test if the application is up, you can call its health endpoint:
