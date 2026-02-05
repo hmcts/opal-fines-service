@@ -32,7 +32,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
      */
     private String lastCreatedIdOrFail() {
         final List<String> all = DraftAccountUtils.getAllDraftAccountIds();
-        if (all == null || all.isEmpty()) {
+        if (all.isEmpty()) {
             throw new IllegalStateException("No recorded draft account IDs");
         }
         return all.getLast();
@@ -221,5 +221,24 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             .contentType("application/json")
             .when()
             .patch(getTestUrl() + "/draft-accounts/%20");
+    }
+
+    @When("I attempt to update the draft account with an invalid token")
+    public void patchDraftAccountWithInvalidToken() throws JSONException {
+        final String id = lastCreatedIdOrFail();
+
+        JSONObject patchBody = new JSONObject();
+        patchBody.put("account_status", "Publishing Pending");
+        patchBody.put("validated_by", "invalidToken");
+        patchBody.put("timeline_data", new JSONArray());
+
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + "invalidToken")
+            .accept("*/*")
+            .contentType("application/json")
+            .body(patchBody.toString())
+            .when()
+            .patch(getTestUrl() + "/draft-accounts/" + id);
     }
 }
