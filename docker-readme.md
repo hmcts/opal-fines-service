@@ -47,3 +47,5 @@ Docker using master version of fines (Based on the code in master)
   -f ../opal-logging-service/docker-compose.master.yml \
   up --build -d
 ```
+## Alternatively
+install and used the scripts described in [the Scripts readme](scripts/scripts-readme.md) to start the services.
