@@ -59,13 +59,13 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account_snapshot.defendant_name     | LNAME, FNAME                |
       | account_snapshot.date_of_birth      | 2000-01-01                  |
       | account_snapshot.account_type       | Fine                        |
-      | account_snapshot.submitted_by       | PG1234                      |
-      | account_snapshot.submitted_by_name  | opal-test                   |
+      | account_snapshot.submitted_by       | L077JG                      |
+      | account_snapshot.submitted_by_name  | opal-test@HMCTS.NET         |
 
     Then the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                       | expected_count |
-      | PG1234        | OPAL_USER_ID    | Submit Draft Account - Defendant          | 1              |
-      | PG1234        | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | 1              |
+      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Defendant          | 1              |
+      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | 1              |
 
     Then I delete the created draft accounts
 
@@ -93,14 +93,14 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account_status                     | Submitted                         |
       | account_snapshot.defendant_name    | LNAME, FNAME                      |
       | account_snapshot.account_type      | Fine                              |
-      | account_snapshot.submitted_by      | MC1234                            |
-      | account_snapshot.submitted_by_name | opal-test                         |
+      | account_snapshot.submitted_by      | L077JG                            |
+      | account_snapshot.submitted_by_name | opal-test@HMCTS.NET               |
 
 
     Then the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                         | expected_count |
-      | MC1234        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
-      | MC1234        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | 1              |
+      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
+      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | 1              |
 
     Then I delete the created draft accounts
 
