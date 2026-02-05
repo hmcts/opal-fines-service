@@ -9,26 +9,14 @@
 - [JDK 21](https://java.com)
 - [Docker](https://docker.com)
 
+## Environment variables
+
+As of 2026, things have changed. See the [documentation about docker setup](docker-readme.md), which covers 
+the current way to configure your execution environment.
+
 ## Building and deploying the application
 
 ### Running the application
-
-#### Environment variables
-
-**WARNING** - this info is a now (as of 2026) a bit outdated. First see the 
-[documentation about docker setup](docker-readme.md), which covers the current way to configure 
-your execution environment.
-
-The following environment variables are required to run the service.
-
-```bash / zsh
-AAD_CLIENT_ID= <Ask Team Memebers>
-AAD_CLIENT_SECRET=<Ask Team Memebers>
-AAD_TENANT_ID=<Ask Team Memebers>
-OPAL_TEST_USER_PASSWORD=<Ask Team Memebers>
-
-LAUNCH_DARKLY_SDK_KEY=<Ask Team Memebers>
-```
 
 #### Caching
 

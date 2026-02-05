@@ -19,6 +19,8 @@ services:
       - OPAL_USER_SERVICE_API_URL=http://host.docker.internal:4555/
       - TESTING_SUPPORT_ENDPOINTS_ENABLED=true
       - OPAL_REDIS_ENABLED=false
+      - OPAL_FINES_DB_USERNAME=opal-fines
+      - OPAL_FINES_DB_PASSWORD=opal-fines
 
     ports:
       - "4550:4550"
