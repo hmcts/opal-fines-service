@@ -202,8 +202,7 @@ class LegacyMinorCreditorServiceTest {
         ).thenReturn(responseWithException);
 
         // Act
-        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
-            .getMinorCreditorAtAGlance("gatewayException");
+        legacyMinorCreditorService.getMinorCreditorAtAGlance("gatewayException");
 
         // Assert
         List<ILoggingEvent> logs = listAppender.list;

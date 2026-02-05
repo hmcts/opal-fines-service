@@ -12,8 +12,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.Defendant;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse.AtAGlanceDefendant;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
@@ -68,12 +68,9 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
             .postcode("SP4 C3")
             .build();
 
-        Defendant defendant = Defendant.builder()
-            .defendantAccountId("R3B3L")
-            .organisation(true)
-            .organisationName("The Rebel Alliance")
-            .firstnames("Luke")
-            .surname("Skywalker")
+        AtAGlanceDefendant defendant = AtAGlanceDefendant.builder()
+            .accountNumber("R3B3LS")
+            .accountId(66L)
             .build();
 
         LegacyPayment payment = LegacyPayment.builder()
