@@ -105,7 +105,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     @Override
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
 
-
         GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE,
                 LegacyGetMinorCreditorAccountAtAGlanceResponse.class,
