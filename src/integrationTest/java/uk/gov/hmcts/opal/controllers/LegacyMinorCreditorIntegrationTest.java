@@ -21,4 +21,9 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
         super.legacyPostSearchMinorCreditorImpl_500Error(log);
     }
 
+    @Test
+    void testGetMinorCreditorAtAGlanceSuccess() throws Exception {
+        super.getMinorCreditorAtAGlanceImpl_Success(log);
+    }
+
 }

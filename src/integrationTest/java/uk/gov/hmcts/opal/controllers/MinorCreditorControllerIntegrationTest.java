@@ -823,4 +823,21 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         resultActions.andExpect(status().isInternalServerError());
     }
+
+    void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        String minorCreditorId = "1";
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/" + minorCreditorId + "/at-a-glance")
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testGetMinorCreditorAtAGlance_Success: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+    }
 }
