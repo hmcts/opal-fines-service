@@ -1099,3 +1099,103 @@ VALUES
     'MPSO', 'Late Payment', 21, 101, 'Warrent007',
     '{"reason":"Evasion of Prison", "supervisor":"Mordred"}'
 );
+
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number
+, imposed_hearing_date, imposing_court_id, amount_imposed
+, amount_paid, account_balance, account_status, completed_date
+, enforcing_court_id, last_hearing_court_id, last_hearing_date
+, last_movement_date, last_changed_date, last_enforcement
+, originator_name, originator_id, originator_type
+, allow_writeoffs, allow_cheques, cheque_clearance_period, credit_trans_clearance_period
+, enf_override_result_id, enf_override_enforcer_id, enf_override_tfo_lja_id
+, unit_fine_detail, unit_fine_value, collection_order, collection_order_date
+, further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date
+, consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by
+, prosecutor_case_reference, enforcement_case_status, account_type
+, account_comments, account_note_1, account_note_2, account_note_3
+, jail_days
+)
+VALUES ( 991199, 0, 78, '1989'
+       , '2023-11-03 16:05:10', 780000000185, 700.58
+       , 200.00, 500.58, 'L', NULL
+       , 780000000185, 780000000185, '2024-01-04 18:06:11'
+       , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'ABDC'
+       , 'Kingston-upon-Thames Mags Court', NULL, NULL
+       , 'N', 'N', 14, 21
+       , 'FWEC', 780000000021, 240
+       , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
+       , '2023-12-19 00:00:00', NULL, NULL, NULL
+       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , '090B', NULL, 'Fine'
+       , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
+       , 0
+       );
+
+INSERT INTO parties
+( party_id, organisation, organisation_name
+, surname, forenames, title
+, address_line_1, address_line_2, address_line_3
+, address_line_4, address_line_5, postcode
+, account_type, birth_date, age, national_insurance_number, last_changed_date)
+VALUES ( 991199, 'N', 'Sainsco'
+       , 'Surnamey', 'Forenamey', 'Mr'
+       , 'Square House', '123 Holdenhurst Close', 'Poole, Dorset'
+       , NULL, NULL, 'BH13 1PO'
+       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
+
+
+INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
+                                       association_type, debtor)
+VALUES ( 991199, 991199, 991199,
+         'Defendant', 'Y');
+
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number
+, imposed_hearing_date, imposing_court_id, amount_imposed
+, amount_paid, account_balance, account_status, completed_date
+, enforcing_court_id, last_hearing_court_id, last_hearing_date
+, last_movement_date, last_changed_date, last_enforcement
+, originator_name, originator_id, originator_type
+, allow_writeoffs, allow_cheques, cheque_clearance_period, credit_trans_clearance_period
+, enf_override_result_id, enf_override_enforcer_id, enf_override_tfo_lja_id
+, unit_fine_detail, unit_fine_value, collection_order, collection_order_date
+, further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date
+, consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by
+, prosecutor_case_reference, enforcement_case_status, account_type
+, account_comments, account_note_1, account_note_2, account_note_3
+, jail_days
+)
+VALUES ( 991198, 0, 78, '1988'
+       , '2023-11-03 16:05:10', 780000000185, 700.58
+       , 200.00, 500.58, 'L', NULL
+       , 780000000185, 780000000185, '2024-01-04 18:06:11'
+       , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'ABDC'
+       , 'Kingston-upon-Thames Mags Court', NULL, NULL
+       , 'N', 'N', 14, 21
+       , 'FWEC', 780000000021, 240
+       , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
+       , '2023-12-19 00:00:00', NULL, NULL, NULL
+       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , '090B', NULL, 'Fine'
+       , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
+       , 1
+       );
+
+INSERT INTO parties
+( party_id, organisation, organisation_name
+, surname, forenames, title
+, address_line_1, address_line_2, address_line_3
+, address_line_4, address_line_5, postcode
+, account_type, birth_date, age, national_insurance_number, last_changed_date)
+VALUES ( 991198, 'N', 'Sainsco'
+       , 'Surnamey', 'Forenamey', 'Mr'
+       , 'Square House', '123 Holdenhurst Close', 'Poole, Dorset'
+       , NULL, NULL, 'BH13 1PO'
+       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
+
+
+INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
+                                       association_type, debtor)
+VALUES ( 991198, 991198, 991198,
+         'Defendant', 'Y');
