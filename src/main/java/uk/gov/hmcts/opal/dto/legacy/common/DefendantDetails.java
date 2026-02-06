@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 
 @Data
 @Builder
@@ -29,7 +30,7 @@ public class DefendantDetails {
     private Boolean organisationFlag;
 
     @XmlElement(name = "address")
-    private AddressDetails address;
+    private AddressDetailsLegacy address;
 
     @XmlElement(name = "language_preferences")
     private LanguagePreferences languagePreferences;
