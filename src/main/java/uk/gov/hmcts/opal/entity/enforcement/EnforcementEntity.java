@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.dto.EnforcementAccountType;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -86,8 +87,8 @@ public abstract class EnforcementEntity {
     @Column(name = "hearing_court_id", insertable = false, updatable = false)
     private Long hearingCourtId;
 
-    @Column(name = "account_type", length = 20)
-    private String accountType;
+    @Column(name = "enforcement_account_type", length = 20)
+    private EnforcementAccountType enforcementAccountType;
 
     @Column(name = "posted_by_name", length = 100)
     private String postedByUsername;
