@@ -66,7 +66,8 @@ public class LegacyDefendantAccountBuilders {
 
     static LjaReferenceCommon buildLja(LjaReference lja) {
         return LjaReferenceCommon.builder()
-            .ljaId(lja.getLjaId())
+            .ljaId(lja.getLjaId().intValue())
+            .ljaCode(lja.getLjaCode())
             .ljaName(lja.getLjaName())
             .build();
     }

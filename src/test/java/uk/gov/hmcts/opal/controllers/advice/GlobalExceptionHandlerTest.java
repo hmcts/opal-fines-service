@@ -62,6 +62,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 @SpringBootTest
@@ -417,6 +418,18 @@ class GlobalExceptionHandlerTest {
         assertEquals("123", pd.getProperties().get("resourceId"));
         assertEquals("BU mismatch", pd.getProperties().get("conflictReason"));
         assertEquals("\"666\"", r.getHeaders().getETag());
+    }
+
+    @Test
+    void handleUnprocessableException() {
+        UnprocessableException ex = new UnprocessableException("Too many results");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleUnprocessableException(ex);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals("Too many results", pd.getProperties().get("unprocessableReason"));
+        assertNull(r.getHeaders().getETag());
     }
 
     // ---------- FeignException (generic handler) ----------

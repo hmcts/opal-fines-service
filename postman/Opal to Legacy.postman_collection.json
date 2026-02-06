@@ -1,0 +1,2962 @@
+{
+  "info": {
+    "_postman_id": "fdff4e5e-1327-4ef8-b7d0-a17662b5b321",
+    "name": "Opal to Legacy",
+    "description": "This probably needs to be managed in git. Adding to the other collections in the postman directory in the `opal-fines-service`\n\nTest scenarios for intial legacy testing (commenced 27/08/2025) located here:\n\n[Legacy Testing Spreadsheet](https://cgigbr-my.sharepoint.com/:x:/r/personal/cade_faulkner_cgi_com/Documents/Opal/Legacy%20Testing/Legacy%20Testing%2027-08-2025/Legacy%20testing.xlsx?d=w10b81b65e37d4faa87560febbda1e630&csf=1&web=1&e=5vzn5x)\n\nThe root folder which contains this run and the evidences can be found [here.](https://cgigbr-my.sharepoint.com/:f:/r/personal/cade_faulkner_cgi_com/Documents/Opal/Legacy%20Testing?csf=1&web=1&e=hhObZt)\n\nThis collection works by getting the tokens for `opal-test`, `opal-test-6` and `opal-test-10`. It then creates draft accounts based on the scenarios defined in the spreadsheet using the `postDraftAccount` api, following that it promotes them to defendant accounts by setting the status to `'Publish Pending'` using the `patchDraftAccount` api.\n\nIf the application is in `legacy` mode these will be sent to the configured legacy environment.\n\nIf the application is in `opal` mode these will hit the opal stored procs and inserted into the opal database.\n\nThe `env_url`can be configured in the variables tab, within this collection.\n\nThe `draft_account_ids`and the `defendant_account_ids` (assuming successful creation) can also be seen in the variables tab, these are automatically updated for each run, by the corresponding test.\n\nThis collection is intened to create new accounts each time, not update or publish already existing accounts.\n\nIf testing locally, pointing to the JCDE 'internet security' will need to be disabled in Zscaler",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48178120",
+    "_collection_link": "https://go.postman.co/collection/48178120-fdff4e5e-1327-4ef8-b7d0-a17662b5b321?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "getToken opal-test",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('token_opal-test', jsonData.access_token);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "*/*",
+            "type": "text"
+          },
+          {
+            "key": "X-User-Email",
+            "value": "opal-test@hmcts.net",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{env_token_url}}/testing-support/token/user",
+          "host": [
+            "{{env_token_url}}"
+          ],
+          "path": [
+            "testing-support",
+            "token",
+            "user"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getToken opal-test-6",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('token_opal-test-6', jsonData.access_token);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "*/*",
+            "type": "text"
+          },
+          {
+            "key": "X-User-Email",
+            "value": "opal-test-6@hmcts.net",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{env_token_url}}/testing-support/token/user",
+          "host": [
+            "{{env_token_url}}"
+          ],
+          "path": [
+            "testing-support",
+            "token",
+            "user"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getToken opal-test-10",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('token_opal-test-10', jsonData.access_token);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "*/*",
+            "type": "text"
+          },
+          {
+            "key": "X-User-Email",
+            "value": "opal-test-10@hmcts.net",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{env_token_url}}/testing-support/token/user",
+          "host": [
+            "{{env_token_url}}"
+          ],
+          "path": [
+            "testing-support",
+            "token",
+            "user"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_1_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_1_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"draft_account_id\": null,\n    \"created_at\": null,\n    \"account_snapshot\": null,\n    \"account_status_date\": null,\n    \"business_unit_id\": 77,\n    \"submitted_by\": \"L077JG\",\n    \"submitted_by_name\": \"opal-test\",\n    \"account\": {\n        \"account_type\": \"Fine\",\n        \"defendant_type\": \"adultOrYouthOnly\",\n        \"originator_name\": \"North East Wales Magistrates' Court\",\n        \"originator_id\": 3063,\n        \"prosecutor_case_reference\": \"11111\",\n        \"enforcement_court_id\": 1060000000081,\n        \"collection_order_made\": true,\n        \"collection_order_made_today\": null,\n        \"collection_order_date\": \"2025-08-01\",\n        \"suspended_committal_date\": null,\n        \"payment_card_request\": null,\n        \"account_sentence_date\": \"2025-08-01\",\n        \"defendant\": {\n            \"company_flag\": false,\n            \"title\": \"Mr\",\n            \"surname\": \"OPAL E TO E\",\n            \"forenames\": \"Opal Scenario one\",\n            \"company_name\": null,\n            \"dob\": null,\n            \"address_line_1\": \"Addr1\",\n            \"address_line_2\": \"Addr2\",\n            \"address_line_3\": \"Addr3\",\n            \"address_line_4\": null,\n            \"address_line_5\": null,\n            \"post_code\": \"TE12 3ST\",\n            \"telephone_number_home\": \"01987 123 123\",\n            \"telephone_number_business\": \"0800 000 1066\",\n            \"telephone_number_mobile\": \"07123456789\",\n            \"email_address_1\": \"email1@email.com\",\n            \"email_address_2\": \"email2@test.com\",\n            \"national_insurance_number\": \"OT000001A\",\n            \"driving_licence_number\": null,\n            \"pnc_id\": null,\n            \"nationality_1\": null,\n            \"nationality_2\": null,\n            \"ethnicity_self_defined\": null,\n            \"ethnicity_observed\": null,\n            \"cro_number\": null,\n            \"occupation\": null,\n            \"gender\": null,\n            \"custody_status\": null,\n            \"prison_number\": null,\n            \"interpreter_lang\": null,\n            \"debtor_detail\": {\n                \"vehicle_make\": \"Ford Model T\",\n                \"vehicle_registration_mark\": \"CAR 1\",\n                \"document_language\": \"EN\",\n                \"hearing_language\": \"EN\",\n                \"employee_reference\": \"OT0000002A\",\n                \"employer_company_name\": \"employername\",\n                \"employer_address_line_1\": \"emp addr1 \",\n                \"employer_address_line_2\": \"emp addr2 \",\n                \"employer_address_line_3\": \"emp addr3 Ê Î Ô Ŵ Ŷ \",\n                \"employer_address_line_4\": \"emp addr4 Ä Ë Ï Ö Ü\",\n                \"employer_address_line_5\": \"emp addr5\",\n                \"employer_post_code\": \"TE3 21ST\",\n                \"employer_telephone_number\": \"01987654321\",\n                \"employer_email_address\": \"emp@emp.com\",\n                \"aliases\": [\n                    {\n                        \"alias_forenames\": \"welsh test account\",\n                        \"alias_surname\": \"NO WELSH CHARACTERS\",\n                        \"alias_company_name\": null\n                    },\n                    {\n                        \"alias_forenames\": \"Alias 2 fn\",\n                        \"alias_surname\": \"ALIAS 2 LN\",\n                        \"alias_company_name\": null\n                    }\n                ]\n            },\n            \"parent_guardian\": null\n        },\n        \"offences\": [\n            {\n                \"date_of_sentence\": \"2025-08-01\",\n                \"imposing_court_id\": 1060000000081,\n                \"offence_id\": 32798,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FCOMP\",\n                        \"amount_imposed\": 100,\n                        \"amount_paid\": 10,\n                        \"major_creditor_id\": 1060000000042,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 200,\n                        \"amount_paid\": 20,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCOST\",\n                        \"amount_imposed\": 300,\n                        \"amount_paid\": 30,\n                        \"major_creditor_id\": 1060000000041,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCPC\",\n                        \"amount_imposed\": 400,\n                        \"amount_paid\": 40,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FO\",\n                        \"amount_imposed\": 500,\n                        \"amount_paid\": 50,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVEBD\",\n                        \"amount_imposed\": 600,\n                        \"amount_paid\": 60,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCC\",\n                        \"amount_imposed\": 700,\n                        \"amount_paid\": 70,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FFR\",\n                        \"amount_imposed\": 800,\n                        \"amount_paid\": 80,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            },\n            {\n                \"date_of_sentence\": \"2025-08-02\",\n                \"imposing_court_id\": 1060000000081,\n                \"offence_id\": 33369,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FCOMP\",\n                        \"amount_imposed\": 101,\n                        \"amount_paid\": 10,\n                        \"major_creditor_id\": 1060000000042,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 201,\n                        \"amount_paid\": 20,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCOST\",\n                        \"amount_imposed\": 301,\n                        \"amount_paid\": 30,\n                        \"major_creditor_id\": 1060000000021,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCPC\",\n                        \"amount_imposed\": 401,\n                        \"amount_paid\": 40,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FO\",\n                        \"amount_imposed\": 501,\n                        \"amount_paid\": 50,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVEBD\",\n                        \"amount_imposed\": 601,\n                        \"amount_paid\": 60,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCC\",\n                        \"amount_imposed\": 701,\n                        \"amount_paid\": 70,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FFR\",\n                        \"amount_imposed\": 801,\n                        \"amount_paid\": 80,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            },\n            {\n                \"date_of_sentence\": \"2025-08-03\",\n                \"imposing_court_id\": 1060000000081,\n                \"offence_id\": 59610,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FCOMP\",\n                        \"amount_imposed\": 102,\n                        \"amount_paid\": 10,\n                        \"major_creditor_id\": 1060000000021,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 202,\n                        \"amount_paid\": 20,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCOST\",\n                        \"amount_imposed\": 302,\n                        \"amount_paid\": 30,\n                        \"major_creditor_id\": 1060000000041,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCPC\",\n                        \"amount_imposed\": 402,\n                        \"amount_paid\": 40,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FO\",\n                        \"amount_imposed\": 502,\n                        \"amount_paid\": 50,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVEBD\",\n                        \"amount_imposed\": 602,\n                        \"amount_paid\": 60,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCC\",\n                        \"amount_imposed\": 702,\n                        \"amount_paid\": 70,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FFR\",\n                        \"amount_imposed\": 802,\n                        \"amount_paid\": 80,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            }\n        ],\n        \"fp_ticket_detail\": null,\n        \"payment_terms\": {\n            \"payment_terms_type_code\": \"I\",\n            \"effective_date\": \"2025-08-31\",\n            \"instalment_period\": \"W\",\n            \"lump_sum_amount\": 1000,\n            \"instalment_amount\": 100,\n            \"default_days_in_jail\": null,\n            \"enforcements\": [\n                {\n                    \"result_id\": \"COLLO\",\n                    \"enforcement_result_responses\": null\n                },\n                {\n                    \"result_id\": \"PRIS\",\n                    \"enforcement_result_responses\": [\n                        {\n                            \"parameter_name\": \"earliestreleasedate\",\n                            \"response\": \"2026-08-30\"\n                        },\n                        {\n                            \"parameter_name\": \"prisonandprisonnumber\",\n                            \"response\": \"pris1\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"account_notes\": [\n            {\n                \"account_note_serial\": 3,\n                \"account_note_text\": \"Account comment\",\n                \"note_type\": \"AC\"\n            },\n            {\n                \"account_note_serial\": 2,\n                \"account_note_text\": \"Account note no welsh Chars\",\n                \"note_type\": \"AA\"\n            },\n            {\n                \"account_note_serial\": 1,\n                \"account_note_text\": \"A collection order was previously made on 01/08/2025 prior to this account creation\",\n                \"note_type\": \"AA\"\n            }\n        ]\n    },\n    \"account_type\": \"Fine\",\n    \"account_status\": \"Submitted\",\n    \"timeline_data\": [\n        {\n            \"username\": \"opal-test-6\",\n            \"status\": \"Submitted\",\n            \"status_date\": \"2025-08-11\",\n            \"reason_text\": null\n        }\n    ],\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "console.log(\"ETag from response:\", etag);",
+              "",
+              "if (etag) {",
+              "  pm.collectionVariables.set(\"draft_etag\", etag);",
+              "} else {",
+              "  console.warn(\"No ETag header returned!\");",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_1_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_1_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario1",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "console.log(\"scenario_1_draft_acc_id =\", pm.collectionVariables.get(\"scenario_1_draft_acc_id\"));",
+              "console.log(\"draft_etag (env)       =\", pm.environment.get(\"draft_etag\"));",
+              "console.log(\"draft_etag (collection)=\", pm.collectionVariables.get(\"draft_etag\"));",
+              "console.log(\"draft_etag (resolved)  =\", pm.variables.get(\"draft_etag\"));",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log(\"Status:\", pm.response.code);",
+              "console.log(\"Body:\", pm.response.text());"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077JG\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_1_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_1_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_2_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_2_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"draft_account_id\": null,\n    \"created_at\": null,\n    \"account_snapshot\": null,\n    \"account_status_date\": null,\n    \"business_unit_id\": 77,\n    \"submitted_by\": \"L077JG\",\n    \"submitted_by_name\": \"opal-test\",\n    \"account\": {\n        \"account_type\": \"Fine\",\n        \"defendant_type\": \"adultOrYouthOnly\",\n        \"originator_name\": \"North East Wales Magistrates' Court\",\n        \"originator_id\": 3063,\n        \"prosecutor_case_reference\": \"11111\",\n        \"enforcement_court_id\": 1060000000081,\n        \"collection_order_made\": true,\n        \"collection_order_made_today\": null,\n        \"collection_order_date\": \"2025-08-01\",\n        \"suspended_committal_date\": \"2025-08-01\",\n        \"payment_card_request\": null,\n        \"account_sentence_date\": \"2025-08-01\",\n        \"defendant\": {\n            \"company_flag\": false,\n            \"title\": \"Mrs\",\n            \"surname\": \"OPAL E TO E\",\n            \"forenames\": \"Opal Scenario two\",\n            \"company_name\": null,\n            \"dob\": null,\n            \"address_line_1\": \"Äddr1\",\n            \"address_line_2\": \"Addr2 Ê Î Ô Ŵ Ŷ \",\n            \"address_line_3\": \"Addr3 Ä Ë Ï Ö Ü\",\n            \"address_line_4\": null,\n            \"address_line_5\": null,\n            \"post_code\": \"TE12 3ST\",\n            \"telephone_number_home\": \"01987 123 123\",\n            \"telephone_number_business\": \"0800 000 1066\",\n            \"telephone_number_mobile\": \"07123456789\",\n            \"email_address_1\": \"email1@email.com\",\n            \"email_address_2\": \"email2@test.com\",\n            \"national_insurance_number\": \"OT000001B\",\n            \"driving_licence_number\": null,\n            \"pnc_id\": null,\n            \"nationality_1\": null,\n            \"nationality_2\": null,\n            \"ethnicity_self_defined\": null,\n            \"ethnicity_observed\": null,\n            \"cro_number\": null,\n            \"occupation\": null,\n            \"gender\": null,\n            \"custody_status\": null,\n            \"prison_number\": null,\n            \"interpreter_lang\": null,\n            \"debtor_detail\": {\n                \"vehicle_make\": \"Ford Model T\",\n                \"vehicle_registration_mark\": \"CAR 1\",\n                \"document_language\": \"CY\",\n                \"hearing_language\": \"CY\",\n                \"employee_reference\": \"OT0000002A\",\n                \"employer_company_name\": \"employername\",\n                \"employer_address_line_1\": \"emp addr1 \",\n                \"employer_address_line_2\": \"emp addr2 \",\n                \"employer_address_line_3\": \"emp addr3 Ê Î Ô Ŵ Ŷ \",\n                \"employer_address_line_4\": \"emp addr4 Ä Ë Ï Ö Ü\",\n                \"employer_address_line_5\": \"emp addr5\",\n                \"employer_post_code\": \"TE3 21ST\",\n                \"employer_telephone_number\": \"01987654321\",\n                \"employer_email_address\": \"emp@emp.com\",\n                \"aliases\": [\n                    {\n                        \"alias_forenames\": \"welsh test account\",\n                        \"alias_surname\": \"HAS WELSH CHARACTERS\",\n                        \"alias_company_name\": null\n                    },\n                    {\n                        \"alias_forenames\": \"Alias 2 fn\",\n                        \"alias_surname\": \"ALIAS 2 LN\",\n                        \"alias_company_name\": null\n                    }\n                ]\n            },\n            \"parent_guardian\": null\n        },\n        \"offences\": [\n            {\n                \"date_of_sentence\": \"2025-08-01\",\n                \"imposing_court_id\": 1060000000081,\n                \"offence_id\": 32798,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FCOMP\",\n                        \"amount_imposed\": 100,\n                        \"amount_paid\": 10,\n                        \"major_creditor_id\": 1060000000042,\n                        \"minor_creditor\": {\n                            \"company_flag\": false,\n                            \"title\": \"Mr\",\n                            \"company_name\": null,\n                            \"surname\": \"LNAME\",\n                            \"forenames\": \"Opal minor creditor\",\n                            \"dob\": null,\n                            \"address_line_1\": \"mc addr1\",\n                            \"address_line_2\": \"mc addr2\",\n                            \"address_line_3\": \"mc addr3\",\n                            \"post_code\": \"TE9 87ST\",\n                            \"telephone\": null,\n                            \"email_address\": null,\n                            \"payout_hold\": true,\n                            \"pay_by_bacs\": true,\n                            \"bank_account_type\": \"1\",\n                            \"bank_sort_code\": \"102938\",\n                            \"bank_account_number\": \"12345678\",\n                            \"bank_account_name\": \"minior AC Opal\",\n                            \"bank_account_ref\": \"OPAL PAY REF\"\n                        }\n                    },\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 200,\n                        \"amount_paid\": 20,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCOST\",\n                        \"amount_imposed\": 300,\n                        \"amount_paid\": 30,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCPC\",\n                        \"amount_imposed\": 400,\n                        \"amount_paid\": 40,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FO\",\n                        \"amount_imposed\": 500,\n                        \"amount_paid\": 50,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVEBD\",\n                        \"amount_imposed\": 600,\n                        \"amount_paid\": 60,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCC\",\n                        \"amount_imposed\": 700,\n                        \"amount_paid\": 70,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FFR\",\n                        \"amount_imposed\": 800,\n                        \"amount_paid\": 80,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            },\n            {\n                \"date_of_sentence\": \"2025-08-02\",\n                \"imposing_court_id\": 1060000000081,\n                \"offence_id\": 33369,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FCOMP\",\n                        \"amount_imposed\": 101,\n                        \"amount_paid\": 10,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": {\n                            \"company_flag\": true,\n                            \"title\": null,\n                            \"company_name\": \"company minor creditor opal\",\n                            \"surname\": null,\n                            \"forenames\": null,\n                            \"dob\": null,\n                            \"address_line_1\": \"mc c addr1\",\n                            \"address_line_2\": \"mc c addr2\",\n                            \"address_line_3\": \"mc addr3\",\n                            \"post_code\": \"TE7 89ST\",\n                            \"telephone\": null,\n                            \"email_address\": null,\n                            \"payout_hold\": false,\n                            \"pay_by_bacs\": false,\n                            \"bank_account_type\": \"1\",\n                            \"bank_sort_code\": null,\n                            \"bank_account_number\": null,\n                            \"bank_account_name\": null,\n                            \"bank_account_ref\": null\n                        }\n                    },\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 201,\n                        \"amount_paid\": 20,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCOST\",\n                        \"amount_imposed\": 301,\n                        \"amount_paid\": 30,\n                        \"major_creditor_id\": 1060000000021,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCPC\",\n                        \"amount_imposed\": 401,\n                        \"amount_paid\": 40,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FO\",\n                        \"amount_imposed\": 501,\n                        \"amount_paid\": 50,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVEBD\",\n                        \"amount_imposed\": 601,\n                        \"amount_paid\": 60,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCC\",\n                        \"amount_imposed\": 701,\n                        \"amount_paid\": 70,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FFR\",\n                        \"amount_imposed\": 801,\n                        \"amount_paid\": 80,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            },\n            {\n                \"date_of_sentence\": \"2025-08-03\",\n                \"imposing_court_id\": 1060000000081,\n                \"offence_id\": 59610,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FCOMP\",\n                        \"amount_imposed\": 102,\n                        \"amount_paid\": 10,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": {\n                            \"company_flag\": true,\n                            \"title\": null,\n                            \"company_name\": \"company minor creditor opal two\",\n                            \"surname\": null,\n                            \"forenames\": null,\n                            \"dob\": null,\n                            \"address_line_1\": \"mc c2 addr1\",\n                            \"address_line_2\": \"mc c2 addr2\",\n                            \"address_line_3\": \"mc c2 addr3\",\n                            \"post_code\": \"TE4 56ST\",\n                            \"telephone\": null,\n                            \"email_address\": null,\n                            \"payout_hold\": true,\n                            \"pay_by_bacs\": true,\n                            \"bank_account_type\": \"1\",\n                            \"bank_sort_code\": \"987654\",\n                            \"bank_account_number\": \"87654321\",\n                            \"bank_account_name\": \"MC comp2 opal\",\n                            \"bank_account_ref\": \"OPAL C2 PAY REF\"\n                        }\n                    },\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 202,\n                        \"amount_paid\": 20,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                        \n                    },\n                    {\n                        \"result_id\": \"FCOST\",\n                        \"amount_imposed\": 302,\n                        \"amount_paid\": 30,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": {\n                            \"company_flag\": false,\n                            \"title\": \"Ms\",\n                            \"company_name\": null,\n                            \"surname\": \"LNAME\",\n                            \"forenames\": \"Opal minor cred two\",\n                            \"dob\": null,\n                            \"address_line_1\": \"mc2 addr1\",\n                            \"address_line_2\": \"mc2 addr2\",\n                            \"address_line_3\": \"mc2 addr3\",\n                            \"post_code\": \"TE6 54ST\",\n                            \"telephone\": null,\n                            \"email_address\": null,\n                            \"payout_hold\": false,\n                            \"pay_by_bacs\": false,\n                            \"bank_account_type\": \"1\",\n                            \"bank_sort_code\": null,\n                            \"bank_account_number\": null,\n                            \"bank_account_name\": null,\n                            \"bank_account_ref\": null\n                        }\n                    },\n                    {\n                        \"result_id\": \"FCPC\",\n                        \"amount_imposed\": 402,\n                        \"amount_paid\": 40,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FO\",\n                        \"amount_imposed\": 502,\n                        \"amount_paid\": 50,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVEBD\",\n                        \"amount_imposed\": 602,\n                        \"amount_paid\": 60,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCC\",\n                        \"amount_imposed\": 702,\n                        \"amount_paid\": 70,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FFR\",\n                        \"amount_imposed\": 802,\n                        \"amount_paid\": 80,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            }\n        ],\n        \"fp_ticket_detail\": null,\n        \"payment_terms\": {\n            \"payment_terms_type_code\": \"I\",\n            \"effective_date\": \"2025-08-31\",\n            \"instalment_period\": \"W\",\n            \"lump_sum_amount\": 1000,\n            \"instalment_amount\": 100,\n            \"default_days_in_jail\": 99999,\n            \"enforcements\": [\n                {\n                    \"result_id\": \"COLLO\",\n                    \"enforcement_result_responses\": null\n                },\n                {\n                    \"result_id\": \"NOENF\",\n                    \"enforcement_result_responses\": [\n                        {\n                            \"parameter_name\": \"reason\",\n                            \"response\": \"reason 1\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"account_notes\": [\n            {\n                \"account_note_serial\": 3,\n                \"account_note_text\": \"Account comment\",\n                \"note_type\": \"AC\"\n            },\n            {\n                \"account_note_serial\": 2,\n                \"account_note_text\": \"Account note welsh Chars Ê Î Ô Ŵ Ŷ Ä Ë Ï Ö Ü\",\n                \"note_type\": \"AA\"\n            },\n            {\n                \"account_note_serial\": 1,\n                \"account_note_text\": \"A collection order was previously made on 01/08/2025 prior to this account creation\",\n                \"note_type\": \"AA\"\n            }\n        ]\n    },\n    \"account_type\": \"Fine\",\n    \"account_status\": \"Submitted\",\n    \"timeline_data\": [\n        {\n            \"username\": \"opal-test-6\",\n            \"status\": \"Submitted\",\n            \"status_date\": \"2025-08-11\",\n            \"reason_text\": null\n        }\n    ],\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_2_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_2_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_2_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077JG\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_2_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_2_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario3",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_3_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_3_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"draft_account_id\": null,\n    \"created_at\": null,\n    \"account_snapshot\": null,\n    \"account_status_date\": null,\n    \"business_unit_id\": 77,\n    \"submitted_by\": \"L077JG\",\n    \"submitted_by_name\": \"opal-test\",\n    \"account\": {\n        \"account_type\": \"Fine\",\n        \"defendant_type\": \"pgToPay\",\n        \"originator_name\": \"Central London County Court\",\n        \"originator_id\": 372,\n        \"prosecutor_case_reference\": \"33333\",\n        \"enforcement_court_id\": 770000000001,\n        \"collection_order_made\": false,\n        \"collection_order_made_today\": true,\n        \"collection_order_date\": \"2025-08-11\",\n        \"suspended_committal_date\": null,\n        \"payment_card_request\": null,\n        \"account_sentence_date\": \"2025-08-01\",\n        \"defendant\": {\n            \"company_flag\": false,\n            \"title\": \"Miss\",\n            \"surname\": \"OPAL E TO E\",\n            \"forenames\": \"Opal Scenario three\",\n            \"company_name\": null,\n            \"dob\": \"2000-01-01\",\n            \"address_line_1\": \"ADDR1\",\n            \"address_line_2\": \"Addr2\",\n            \"address_line_3\": \"Addr3\",\n            \"address_line_4\": null,\n            \"address_line_5\": null,\n            \"post_code\": \"TE12 3ST\",\n            \"telephone_number_home\": null,\n            \"telephone_number_business\": null,\n            \"telephone_number_mobile\": null,\n            \"email_address_1\": null,\n            \"email_address_2\": null,\n            \"national_insurance_number\": \"OT000001C\",\n            \"driving_licence_number\": null,\n            \"pnc_id\": null,\n            \"nationality_1\": null,\n            \"nationality_2\": null,\n            \"ethnicity_self_defined\": null,\n            \"ethnicity_observed\": null,\n            \"cro_number\": null,\n            \"occupation\": null,\n            \"gender\": null,\n            \"custody_status\": null,\n            \"prison_number\": null,\n            \"interpreter_lang\": null,\n            \"debtor_detail\": null,\n            \"parent_guardian\": {\n                \"company_flag\": false,\n                \"company_name\": null,\n                \"surname\": \"LNAME\",\n                \"forenames\": \"Opal parent1\",\n                \"dob\": null,\n                \"national_insurance_number\": \"OT000001C\",\n                \"address_line_1\": \"PG addr1\",\n                \"address_line_2\": \"PG addr2\",\n                \"address_line_3\": \"PG addr3\",\n                \"address_line_4\": null,\n                \"address_line_5\": null,\n                \"post_code\": \"PG12 3ST\",\n                \"telephone_number_home\": \"01987 123 123\",\n                \"telephone_number_business\": \"0800 000 1066\",\n                \"telephone_number_mobile\": \"07123456789\",\n                \"email_address_1\": \"PGemail1@email.com\",\n                \"email_address_2\": \"PGemail2@test.com\",\n                \"debtor_detail\": {\n                    \"vehicle_make\": null,\n                    \"vehicle_registration_mark\": null,\n                    \"document_language\": null,\n                    \"hearing_language\": null,\n                    \"employee_reference\": \"OT0000002C\",\n                    \"employer_company_name\": \"employername3\",\n                    \"employer_address_line_1\": \"emp3 addr1 \",\n                    \"employer_address_line_2\": \"emp3 addr2 \",\n                    \"employer_address_line_3\": \"emp3 addr3\",\n                    \"employer_address_line_4\": \"emp3 addr4\",\n                    \"employer_address_line_5\": \"emp3 addr5\",\n                    \"employer_post_code\": \"PG98 7ST\",\n                    \"employer_telephone_number\": \"01987654321\",\n                    \"employer_email_address\": \"emp@emp.com\",\n                    \"aliases\": [\n                        {\n                            \"alias_forenames\": \"alias1\",\n                            \"alias_surname\": \"ALIAS LNAME1\",\n                            \"alias_company_name\": null\n                        }\n                    ]\n                }\n            }\n        },\n        \"offences\": [\n            {\n                \"date_of_sentence\": \"2025-08-01\",\n                \"imposing_court_id\": 770000000001,\n                \"offence_id\": 33369,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FCOMP\",\n                        \"amount_imposed\": 100,\n                        \"amount_paid\": 1,\n                        \"major_creditor_id\": 770000000021,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 200,\n                        \"amount_paid\": 2,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCOST\",\n                        \"amount_imposed\": 300,\n                        \"amount_paid\": 3,\n                        \"major_creditor_id\": 770000000041,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCPC\",\n                        \"amount_imposed\": 400,\n                        \"amount_paid\": 4,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FO\",\n                        \"amount_imposed\": 500,\n                        \"amount_paid\": 5,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FVEBD\",\n                        \"amount_imposed\": 600,\n                        \"amount_paid\": 6,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FCC\",\n                        \"amount_imposed\": 700,\n                        \"amount_paid\": 7,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    },\n                    {\n                        \"result_id\": \"FFR\",\n                        \"amount_imposed\": 800,\n                        \"amount_paid\": 8,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            }\n        ],\n        \"fp_ticket_detail\": null,\n        \"payment_terms\": {\n            \"payment_terms_type_code\": \"I\",\n            \"effective_date\": \"2025-08-31\",\n            \"instalment_period\": \"M\",\n            \"lump_sum_amount\": 1000,\n            \"instalment_amount\": 100,\n            \"default_days_in_jail\": null,\n            \"enforcements\": [\n                {\n                    \"result_id\": \"COLLO\",\n                    \"enforcement_result_responses\": null\n                },\n                {\n                    \"result_id\": \"NOENF\",\n                    \"enforcement_result_responses\": [\n                        {\n                            \"parameter_name\": \"reason\",\n                            \"response\": \"reason 1\"\n                        }\n                    ]\n                }\n            ]\n        },\n        \"account_notes\": [\n            {\n                \"account_note_serial\": 3,\n                \"account_note_text\": \"scenario three comment\",\n                \"note_type\": \"AC\"\n            },\n            {\n                \"account_note_serial\": 2,\n                \"account_note_text\": \"scenario three note\",\n                \"note_type\": \"AA\"\n            },\n            {\n                \"account_note_serial\": 1,\n                \"account_note_text\": \"A collection order has been made by opal-test using Authorised Functions\",\n                \"note_type\": \"AA\"\n            }\n        ]\n    },\n    \"account_type\": \"Fine\",\n    \"account_status\": \"Submitted\",\n    \"timeline_data\": [\n        {\n            \"username\": \"opal-test\",\n            \"status\": \"Submitted\",\n            \"status_date\": \"2025-08-11\",\n            \"reason_text\": null\n        }\n    ],\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario3",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_3_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_3_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario3",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_3_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_3_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_3_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario4",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_4_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_4_draft_acc_version', jsonData.version);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fine\",\n    \"defendant_type\": \"pgToPay\",\n    \"originator_name\": \"Central London County Court\",\n    \"originator_id\": 372,\n    \"prosecutor_case_reference\": \"44444\",\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": false,\n    \"collection_order_made_today\": false,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-01\",\n    \"defendant\": {\n      \"company_flag\": false,\n      \"title\": \"Mr\",\n      \"surname\": \"OPAL E TO E\",\n      \"forenames\": \"Opal Scenario four\",\n      \"company_name\": null,\n      \"dob\": \"2000-01-01\",\n      \"address_line_1\": \"ADDR1 4\",\n      \"address_line_2\": \"Addr2 4\",\n      \"address_line_3\": \"Addr3 4\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE12 3ST\",\n      \"telephone_number_home\": null,\n      \"telephone_number_business\": null,\n      \"telephone_number_mobile\": null,\n      \"email_address_1\": null,\n      \"email_address_2\": null,\n      \"national_insurance_number\": \"OT000001D\",\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": null,\n      \"parent_guardian\": {\n        \"company_flag\": false,\n        \"company_name\": null,\n        \"surname\": \"LNAME\",\n        \"forenames\": \"Opal parent2\",\n        \"dob\": null,\n        \"national_insurance_number\": \"OT000001D\",\n        \"address_line_1\": \"PG2 addr1\",\n        \"address_line_2\": \"PG2 addr2\",\n        \"address_line_3\": \"PG2 addr3\",\n        \"address_line_4\": null,\n        \"address_line_5\": null,\n        \"post_code\": \"PG12 3ST\",\n        \"telephone_number_home\": \"01987 123 123\",\n        \"telephone_number_business\": \"0800 000 1066\",\n        \"telephone_number_mobile\": \"07123456789\",\n        \"email_address_1\": \"PGemail1@email.com\",\n        \"email_address_2\": \"PGemail2@test.com\",\n        \"debtor_detail\": {\n          \"vehicle_make\": null,\n          \"vehicle_registration_mark\": null,\n          \"document_language\": null,\n          \"hearing_language\": null,\n          \"employee_reference\": \"OT0000002D\",\n          \"employer_company_name\": \"employername4\",\n          \"employer_address_line_1\": \"emp4 addr1 \",\n          \"employer_address_line_2\": \"emp4 addr2 \",\n          \"employer_address_line_3\": \"emp4 addr3\",\n          \"employer_address_line_4\": \"emp4 addr4\",\n          \"employer_address_line_5\": \"emp4 addr5\",\n          \"employer_post_code\": \"PG98 7ST\",\n          \"employer_telephone_number\": \"01987654321\",\n          \"employer_email_address\": \"emp4@emp.com\",\n          \"aliases\": [\n            {\n              \"alias_forenames\": \"alias1\",\n              \"alias_surname\": \"ALIAS LNAME1\",\n              \"alias_company_name\": null\n            },\n            {\n              \"alias_forenames\": \"aliaz2\",\n              \"alias_surname\": \"ALIAS 2 FNAME\",\n              \"alias_company_name\": null\n            }\n          ]\n        }\n      }\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-01\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 33369,\n        \"impositions\": [\n          {\n            \"result_id\": \"FCOMP\",\n            \"amount_imposed\": 100,\n            \"amount_paid\": 1,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": {\n              \"company_flag\": false,\n              \"title\": \"Mrs\",\n              \"company_name\": null,\n              \"surname\": \"LNAME\",\n              \"forenames\": \"Opal minor cred four\",\n              \"dob\": null,\n              \"address_line_1\": \"mc c addr1 4\",\n              \"address_line_2\": \"mc c addr2 4\",\n              \"address_line_3\": \"mc addr3 4\",\n              \"post_code\": \"TE9 87ST\",\n              \"telephone\": null,\n              \"email_address\": null,\n              \"payout_hold\": false,\n              \"pay_by_bacs\": false,\n              \"bank_account_type\": \"1\",\n              \"bank_sort_code\": null,\n              \"bank_account_number\": null,\n              \"bank_account_name\": null,\n              \"bank_account_ref\": null\n            }\n          },\n          {\n            \"result_id\": \"FVS\",\n            \"amount_imposed\": 200,\n            \"amount_paid\": 2,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCOST\",\n            \"amount_imposed\": 300,\n            \"amount_paid\": 3,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": {\n              \"company_flag\": true,\n              \"title\": null,\n              \"company_name\": \"company minor cred opal four\",\n              \"surname\": null,\n              \"forenames\": null,\n              \"dob\": null,\n              \"address_line_1\": \"mc c addr1 4\",\n              \"address_line_2\": \"mc c addr2 4\",\n              \"address_line_3\": \"mc c addr3 4\",\n              \"post_code\": \"TE7 89ST\",\n              \"telephone\": null,\n              \"email_address\": null,\n              \"payout_hold\": false,\n              \"pay_by_bacs\": false,\n              \"bank_account_type\": \"1\",\n              \"bank_sort_code\": null,\n              \"bank_account_number\": null,\n              \"bank_account_name\": null,\n              \"bank_account_ref\": null\n            }\n          },\n          {\n            \"result_id\": \"FCPC\",\n            \"amount_imposed\": 400,\n            \"amount_paid\": 4,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 500,\n            \"amount_paid\": 5,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVEBD\",\n            \"amount_imposed\": 600,\n            \"amount_paid\": 6,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCC\",\n            \"amount_imposed\": 700,\n            \"amount_paid\": 7,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FFR\",\n            \"amount_imposed\": 800,\n            \"amount_paid\": 8,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": null,\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"I\",\n      \"effective_date\": \"2025-08-31\",\n      \"instalment_period\": \"M\",\n      \"lump_sum_amount\": 1000,\n      \"instalment_amount\": 100,\n      \"default_days_in_jail\": null,\n      \"enforcements\": null\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"scenario four comment\",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"scenario four note\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fine\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario4",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_4_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_4_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario4",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_4_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_4_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_4_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario5",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.collectionVariables.set('scenario_5_draft_acc_id', jsonData.draft_account_id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fine\",\n    \"defendant_type\": \"pgToPay\",\n    \"originator_name\": \"Central London County Court\",\n    \"originator_id\": 372,\n    \"prosecutor_case_reference\": \"55555\",\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": false,\n    \"collection_order_made_today\": false,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": \"2025-08-01\",\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-01\",\n    \"defendant\": {\n      \"company_flag\": false,\n      \"title\": \"Ms\",\n      \"surname\": \"OPAL E TO E\",\n      \"forenames\": \"Opal Scenario five\",\n      \"company_name\": null,\n      \"dob\": \"2010-01-01\",\n      \"address_line_1\": \"ADDR1 5\",\n      \"address_line_2\": \"Addr2 5\",\n      \"address_line_3\": \"Addr3 5\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE12 3ST\",\n      \"telephone_number_home\": null,\n      \"telephone_number_business\": null,\n      \"telephone_number_mobile\": null,\n      \"email_address_1\": null,\n      \"email_address_2\": null,\n      \"national_insurance_number\": \"OT000005A\",\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": null,\n      \"parent_guardian\": {\n        \"company_flag\": false,\n        \"company_name\": null,\n        \"surname\": \"LNAME\",\n        \"forenames\": \"Opal parent3\",\n        \"dob\": null,\n        \"national_insurance_number\": \"OT000005A\",\n        \"address_line_1\": \"PG3 addr1\",\n        \"address_line_2\": \"PG3 addr2\",\n        \"address_line_3\": \"PG3 addr3\",\n        \"address_line_4\": null,\n        \"address_line_5\": null,\n        \"post_code\": \"PG12 3ST\",\n        \"telephone_number_home\": \"01987 123 123\",\n        \"telephone_number_business\": \"0800 000 1066\",\n        \"telephone_number_mobile\": \"07123456789\",\n        \"email_address_1\": \"PGemail1@email.com\",\n        \"email_address_2\": \"PGemail2@test.com\",\n        \"debtor_detail\": {\n          \"vehicle_make\": null,\n          \"vehicle_registration_mark\": null,\n          \"document_language\": null,\n          \"hearing_language\": null,\n          \"employee_reference\": \"OT0000002D\",\n          \"employer_company_name\": \"employername4\",\n          \"employer_address_line_1\": \"emp4 addr1 \",\n          \"employer_address_line_2\": \"emp4 addr2 \",\n          \"employer_address_line_3\": \"emp4 addr3\",\n          \"employer_address_line_4\": \"emp4 addr4\",\n          \"employer_address_line_5\": \"emp4 addr5\",\n          \"employer_post_code\": \"PG98 7ST\",\n          \"employer_telephone_number\": \"01987654321\",\n          \"employer_email_address\": \"emp4@emp.com\",\n          \"aliases\": [\n            {\n              \"alias_forenames\": \"alias1\",\n              \"alias_surname\": \"ALIAS LNAME1\",\n              \"alias_company_name\": null\n            },\n            {\n              \"alias_forenames\": \"aliaz2\",\n              \"alias_surname\": \"ALIAS 2 FNAME\",\n              \"alias_company_name\": null\n            }\n          ]\n        }\n      }\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-01\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 33369,\n        \"impositions\": [\n          {\n            \"result_id\": \"FVS\",\n            \"amount_imposed\": 100,\n            \"amount_paid\": 1,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVS\",\n            \"amount_imposed\": 200,\n            \"amount_paid\": 2,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCPC\",\n            \"amount_imposed\": 300,\n            \"amount_paid\": 3,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCPC\",\n            \"amount_imposed\": 400,\n            \"amount_paid\": 4,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 500,\n            \"amount_paid\": 5,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVEBD\",\n            \"amount_imposed\": 600,\n            \"amount_paid\": 6,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCC\",\n            \"amount_imposed\": 700,\n            \"amount_paid\": 7,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FFR\",\n            \"amount_imposed\": 800,\n            \"amount_paid\": 8,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": null,\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"B\",\n      \"effective_date\": \"2026-08-30\",\n      \"instalment_period\": null,\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": null,\n      \"default_days_in_jail\": 1,\n      \"enforcements\": [\n        {\n          \"result_id\": \"PRIS\",\n          \"enforcement_result_responses\": [\n            {\n              \"parameter_name\": \"earliestreleasedate\",\n              \"response\": \"2026-08-30\"\n            },\n            {\n              \"parameter_name\": \"prisonandprisonnumber\",\n              \"response\": \"pris2\"\n            }\n          ]\n        }\n      ]\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"scenario five comment this is a very long comment hopefuly more than 30 characters\",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"scenario five note this is a very long comment hopefuly more than 30 characters\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fine\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario5",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_5_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_5_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario5",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_4_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_5_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_5_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario6",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_6_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_6_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fine\",\n    \"defendant_type\": \"adultOrYouthOnly\",\n    \"originator_name\": \"Central London Magistrates' Court\",\n    \"originator_id\": 2570,\n    \"prosecutor_case_reference\": \"66666\",\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": null,\n    \"collection_order_made_today\": null,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-02\",\n    \"defendant\": {\n      \"company_flag\": false,\n      \"title\": \"Mr\",\n      \"surname\": \"OPAL E TO E\",\n      \"forenames\": \"Opal Scenario six\",\n      \"company_name\": null,\n      \"dob\": \"2010-01-01\",\n      \"address_line_1\": \"ADDR1 6\",\n      \"address_line_2\": \"Addr2 6\",\n      \"address_line_3\": \"Addr3 6\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE12 3ST\",\n      \"telephone_number_home\": \"01987 123 123\",\n      \"telephone_number_business\": \"0800 000 1066\",\n      \"telephone_number_mobile\": \"07123456789\",\n      \"email_address_1\": \"email6@email.com\",\n      \"email_address_2\": \"email6@test.com\",\n      \"national_insurance_number\": \"OT000005B\",\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": {\n        \"vehicle_make\": \"Cozy Coupe\",\n        \"vehicle_registration_mark\": \"CZY COUP\",\n        \"document_language\": null,\n        \"hearing_language\": null,\n        \"employee_reference\": null,\n        \"employer_company_name\": null,\n        \"employer_address_line_1\": null,\n        \"employer_address_line_2\": null,\n        \"employer_address_line_3\": null,\n        \"employer_address_line_4\": null,\n        \"employer_address_line_5\": null,\n        \"employer_post_code\": null,\n        \"employer_telephone_number\": null,\n        \"employer_email_address\": null,\n        \"aliases\": [\n          {\n            \"alias_forenames\": \"youth alias one\",\n            \"alias_surname\": \"ACCOUNT SIX\",\n            \"alias_company_name\": null\n          }\n        ]\n      },\n      \"parent_guardian\": null\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-02\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 59610,\n        \"impositions\": [\n          {\n            \"result_id\": \"FVS\",\n            \"amount_imposed\": 100,\n            \"amount_paid\": 10,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVS\",\n            \"amount_imposed\": 200,\n            \"amount_paid\": 20,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCPC\",\n            \"amount_imposed\": 300,\n            \"amount_paid\": 30,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCPC\",\n            \"amount_imposed\": 400,\n            \"amount_paid\": 40,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 500,\n            \"amount_paid\": 50,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVEBD\",\n            \"amount_imposed\": 600,\n            \"amount_paid\": 60,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCC\",\n            \"amount_imposed\": 700,\n            \"amount_paid\": 70,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FFR\",\n            \"amount_imposed\": 800,\n            \"amount_paid\": 80,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": null,\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"I\",\n      \"effective_date\": \"2025-08-01\",\n      \"instalment_period\": \"W\",\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": 100,\n      \"default_days_in_jail\": null,\n      \"enforcements\": [\n        {\n          \"result_id\": \"NOENF\",\n          \"enforcement_result_responses\": [\n            {\n              \"parameter_name\": \"reason\",\n              \"response\": \"opal Acc 6 no enf\"\n            }\n          ]\n        }\n      ]\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"Opal scenario 6 comment\",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"Opal scenario 6 note\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fine\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario 6",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_6_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_6_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario6",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_6_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_6_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_6_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario7",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_7_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_7_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fine\",\n    \"defendant_type\": \"company\",\n    \"originator_name\": \"Central London County Court\",\n    \"originator_id\": 372,\n    \"prosecutor_case_reference\": \"77777\",\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": null,\n    \"collection_order_made_today\": null,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-01\",\n    \"defendant\": {\n      \"company_flag\": true,\n      \"title\": null,\n      \"surname\": null,\n      \"forenames\": null,\n      \"company_name\": \"OPAL E TO E S SCENARIO SEVEN\",\n      \"dob\": null,\n      \"address_line_1\": \"addr1 7\",\n      \"address_line_2\": \"addr2 7\",\n      \"address_line_3\": \"addr3 7\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE12 3ST\",\n      \"telephone_number_home\": \"01987 123 123\",\n      \"telephone_number_business\": \"0800 000 1066\",\n      \"telephone_number_mobile\": \"07123456789\",\n      \"email_address_1\": \"compemail7@email.com\",\n      \"email_address_2\": \"compemail7@test.com\",\n      \"national_insurance_number\": null,\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": {\n        \"vehicle_make\": null,\n        \"vehicle_registration_mark\": null,\n        \"document_language\": null,\n        \"hearing_language\": null,\n        \"employee_reference\": null,\n        \"employer_company_name\": null,\n        \"employer_address_line_1\": null,\n        \"employer_address_line_2\": null,\n        \"employer_address_line_3\": null,\n        \"employer_address_line_4\": null,\n        \"employer_address_line_5\": null,\n        \"employer_post_code\": null,\n        \"employer_telephone_number\": null,\n        \"employer_email_address\": null,\n        \"aliases\": [\n          {\n            \"alias_forenames\": null,\n            \"alias_surname\": null,\n            \"alias_company_name\": \"SCENARIO SEVEN ALIAS ONE\"\n          },\n          {\n            \"alias_forenames\": null,\n            \"alias_company_name\": \"ALIAS TWO\"\n          },\n          {\n            \"alias_forenames\": null,\n            \"alias_company_name\": \"ALIAS THREE\"\n          },\n          {\n            \"alias_forenames\": null,\n            \"alias_surname\": null,\n            \"alias_company_name\": \"ALIAS FOUR\"\n          },\n          {\n            \"alias_forenames\": null,\n            \"alias_surname\": null,\n            \"alias_company_name\": \"ALIAS FIVE\"\n          }\n        ]\n      },\n      \"parent_guardian\": null\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-01\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 32798,\n        \"impositions\": [\n          {\n            \"result_id\": \"FCOMP\",\n            \"amount_imposed\": 100,\n            \"amount_paid\": 10,\n            \"major_creditor_id\": 770000000021,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVS\",\n            \"amount_imposed\": 200,\n            \"amount_paid\": 20,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCOST\",\n            \"amount_imposed\": 300,\n            \"amount_paid\": 30,\n            \"major_creditor_id\": 770000000041,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCPC\",\n            \"amount_imposed\": 400,\n            \"amount_paid\": 40,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 500,\n            \"amount_paid\": 50,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVEBD\",\n            \"amount_imposed\": 600,\n            \"amount_paid\": 60,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCC\",\n            \"amount_imposed\": 700,\n            \"amount_paid\": 70,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FFR\",\n            \"amount_imposed\": 800,\n            \"amount_paid\": 80,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      },\n      {\n        \"date_of_sentence\": \"2025-08-02\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 33369,\n        \"impositions\": [\n          {\n            \"result_id\": \"FCOMP\",\n            \"amount_imposed\": 101,\n            \"amount_paid\": 10,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": {\n              \"company_flag\": false,\n              \"title\": \"Miss\",\n              \"company_name\": null,\n              \"surname\": \"LNAME\",\n              \"forenames\": \"Opal minor creditor\",\n              \"dob\": null,\n              \"address_line_1\": \"mc addr1\",\n              \"address_line_2\": \"mc c addr2\",\n              \"address_line_3\": null,\n              \"post_code\": \"TE9 87ST\",\n              \"telephone\": null,\n              \"email_address\": null,\n              \"payout_hold\": false,\n              \"pay_by_bacs\": false,\n              \"bank_account_type\": \"1\",\n              \"bank_sort_code\": null,\n              \"bank_account_number\": null,\n              \"bank_account_name\": null,\n              \"bank_account_ref\": null\n            }\n          },\n          {\n            \"result_id\": \"FVS\",\n            \"amount_imposed\": 201,\n            \"amount_paid\": 20,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCOST\",\n            \"amount_imposed\": 301,\n            \"amount_paid\": 30,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": {\n              \"company_flag\": true,\n              \"title\": null,\n              \"company_name\": \"company minor creditor opal\",\n              \"surname\": null,\n              \"forenames\": null,\n              \"dob\": null,\n              \"address_line_1\": \"mc c addr1\",\n              \"address_line_2\": \"mc c addr2\",\n              \"address_line_3\": null,\n              \"post_code\": \"TE7 89ST\",\n              \"telephone\": null,\n              \"email_address\": null,\n              \"payout_hold\": false,\n              \"pay_by_bacs\": false,\n              \"bank_account_type\": \"1\",\n              \"bank_sort_code\": null,\n              \"bank_account_number\": null,\n              \"bank_account_name\": null,\n              \"bank_account_ref\": null\n            }\n          },\n          {\n            \"result_id\": \"FCPC\",\n            \"amount_imposed\": 401,\n            \"amount_paid\": 40,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 501,\n            \"amount_paid\": 50,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FVEBD\",\n            \"amount_imposed\": 601,\n            \"amount_paid\": 60,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FCC\",\n            \"amount_imposed\": 701,\n            \"amount_paid\": 70,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          },\n          {\n            \"result_id\": \"FFR\",\n            \"amount_imposed\": 801,\n            \"amount_paid\": 80,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": null,\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"I\",\n      \"effective_date\": \"2025-08-22\",\n      \"instalment_period\": \"M\",\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": 200,\n      \"default_days_in_jail\": 0,\n      \"enforcements\": null\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"company scenario 7 comment\",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"company scenario 7 note\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fine\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario7",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_7_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_7_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario7",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_7_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_7_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_7_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario8",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_8_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_8_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fixed Penalty\",\n    \"defendant_type\": \"adultOrYouthOnly\",\n    \"originator_name\": \"Central London Magistrates' Court\",\n    \"originator_id\": 2570,\n    \"prosecutor_case_reference\": null,\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": null,\n    \"collection_order_made_today\": null,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-01\",\n    \"defendant\": {\n      \"company_flag\": false,\n      \"title\": \"Mr\",\n      \"surname\": \"OPAL E TO E\",\n      \"forenames\": \"Opal Scenario eight\",\n      \"company_name\": null,\n      \"dob\": \"2000-01-01\",\n      \"address_line_1\": \"addr1 8\",\n      \"address_line_2\": \"addr2 8\",\n      \"address_line_3\": \"addr3 8\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE12 3ST\",\n      \"telephone_number_home\": null,\n      \"telephone_number_business\": null,\n      \"telephone_number_mobile\": null,\n      \"email_address_1\": null,\n      \"email_address_2\": null,\n      \"national_insurance_number\": null,\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": {\n        \"vehicle_make\": null,\n        \"vehicle_registration_mark\": null,\n        \"document_language\": null,\n        \"hearing_language\": null,\n        \"employee_reference\": null,\n        \"employer_company_name\": null,\n        \"employer_address_line_1\": null,\n        \"employer_address_line_2\": null,\n        \"employer_address_line_3\": null,\n        \"employer_address_line_4\": null,\n        \"employer_address_line_5\": null,\n        \"employer_post_code\": null,\n        \"employer_telephone_number\": null,\n        \"employer_email_address\": null,\n        \"aliases\": null\n      },\n      \"parent_guardian\": null\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-01\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 47883,\n        \"impositions\": [\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 3000,\n            \"amount_paid\": 0,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": {\n      \"notice_number\": \"88888\",\n      \"date_of_issue\": \"2025-08-01\",\n      \"time_of_issue\": \"11:30\",\n      \"fp_registration_number\": \"REG1\",\n      \"notice_to_owner_hirer\": \"NTO\",\n      \"place_of_offence\": \"Camberwell Green\",\n      \"fp_driving_licence_number\": \"SMITH001010JO9MS\"\n    },\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"B\",\n      \"effective_date\": null,\n      \"instalment_period\": null,\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": null,\n      \"default_days_in_jail\": null,\n      \"enforcements\": null\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"FP scenario eight comment \",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"FP scenario eight note\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fixed Penalty\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario8",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_8_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_8_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario8",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_8_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_8_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_8_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario9",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_9_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_9_draft_acc_version', jsonData.version);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fixed Penalty\",\n    \"defendant_type\": \"adultOrYouthOnly\",\n    \"originator_name\": \"Central London Magistrates' Court\",\n    \"originator_id\": 2570,\n    \"prosecutor_case_reference\": null,\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": null,\n    \"collection_order_made_today\": null,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-01\",\n    \"defendant\": {\n      \"company_flag\": false,\n      \"title\": \"Mr\",\n      \"surname\": \"OPAL E TO E\",\n      \"forenames\": \"Opal Scenario nine\",\n      \"company_name\": null,\n      \"dob\": \"2010-01-01\",\n      \"address_line_1\": \"addr1 9\",\n      \"address_line_2\": \"addr2 9\",\n      \"address_line_3\": \"addr3 9\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE12 3ST\",\n      \"telephone_number_home\": null,\n      \"telephone_number_business\": null,\n      \"telephone_number_mobile\": null,\n      \"email_address_1\": null,\n      \"email_address_2\": null,\n      \"national_insurance_number\": null,\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": {\n        \"vehicle_make\": null,\n        \"vehicle_registration_mark\": null,\n        \"document_language\": null,\n        \"hearing_language\": null,\n        \"employee_reference\": null,\n        \"employer_company_name\": null,\n        \"employer_address_line_1\": null,\n        \"employer_address_line_2\": null,\n        \"employer_address_line_3\": null,\n        \"employer_address_line_4\": null,\n        \"employer_address_line_5\": null,\n        \"employer_post_code\": null,\n        \"employer_telephone_number\": null,\n        \"employer_email_address\": null,\n        \"aliases\": null\n      },\n      \"parent_guardian\": null\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-01\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 47883,\n        \"impositions\": [\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 3001,\n            \"amount_paid\": 0,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": {\n      \"notice_number\": \"99999\",\n      \"date_of_issue\": \"2025-08-01\",\n      \"time_of_issue\": \"11:31\",\n      \"fp_registration_number\": \"REG1\",\n      \"notice_to_owner_hirer\": \"NTO\",\n      \"place_of_offence\": \"Camberwell Green\",\n      \"fp_driving_licence_number\": \"SMITH001010JO9MS\"\n    },\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"B\",\n      \"effective_date\": null,\n      \"instalment_period\": null,\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": null,\n      \"default_days_in_jail\": null,\n      \"enforcements\": null\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"FP scenario nine comment \",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"FP scenario nine note\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fixed Penalty\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario9",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_9_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_9_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario9",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_9_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_9_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_9_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario10",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_10_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_10_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fixed Penalty\",\n    \"defendant_type\": \"company\",\n    \"originator_name\": \"Central London Magistrates' Court\",\n    \"originator_id\": 2570,\n    \"prosecutor_case_reference\": null,\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": null,\n    \"collection_order_made_today\": null,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-01\",\n    \"defendant\": {\n      \"company_flag\": true,\n      \"title\": null,\n      \"surname\": null,\n      \"forenames\": null,\n      \"company_name\": \"OPAL E TO E S SCENARIO ten\",\n      \"dob\": null,\n      \"address_line_1\": \"addr1 10\",\n      \"address_line_2\": \"addr2 10\",\n      \"address_line_3\": \"addr3 10\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE1 3ST\",\n      \"telephone_number_home\": null,\n      \"telephone_number_business\": null,\n      \"telephone_number_mobile\": null,\n      \"email_address_1\": null,\n      \"email_address_2\": null,\n      \"national_insurance_number\": null,\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": {\n        \"vehicle_make\": null,\n        \"vehicle_registration_mark\": null,\n        \"document_language\": null,\n        \"hearing_language\": null,\n        \"employee_reference\": null,\n        \"employer_company_name\": null,\n        \"employer_address_line_1\": null,\n        \"employer_address_line_2\": null,\n        \"employer_address_line_3\": null,\n        \"employer_address_line_4\": null,\n        \"employer_address_line_5\": null,\n        \"employer_post_code\": null,\n        \"employer_telephone_number\": null,\n        \"employer_email_address\": null,\n        \"aliases\": null\n      },\n      \"parent_guardian\": null\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-01\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 47883,\n        \"impositions\": [\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 3002,\n            \"amount_paid\": 0,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": {\n      \"notice_number\": \"101010\",\n      \"date_of_issue\": \"2025-08-01\",\n      \"time_of_issue\": \"11:35\",\n      \"fp_registration_number\": \"REG1\",\n      \"notice_to_owner_hirer\": \"NTH\",\n      \"place_of_offence\": \"Camberwell Green\",\n      \"fp_driving_licence_number\": \"SMITH001010JO9MS\"\n    },\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"B\",\n      \"effective_date\": null,\n      \"instalment_period\": null,\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": null,\n      \"default_days_in_jail\": null,\n      \"enforcements\": null\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"Scenario 10 account comment\",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"Scenario 10 account note\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fixed Penalty\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario10",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_10_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_10_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario10",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_10_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_10_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_10_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario11",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_11_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_11_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"account_type\": \"Fixed Penalty\",\n    \"defendant_type\": \"company\",\n    \"originator_name\": \"Central London Magistrates' Court\",\n    \"originator_id\": 2570,\n    \"prosecutor_case_reference\": null,\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": null,\n    \"collection_order_made_today\": null,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-08-01\",\n    \"defendant\": {\n      \"company_flag\": true,\n      \"title\": null,\n      \"surname\": null,\n      \"forenames\": null,\n      \"company_name\": \"OPAL E TO E S SCENARIO eleven\",\n      \"dob\": null,\n      \"address_line_1\": \"addr1 10\",\n      \"address_line_2\": \"addr2 10\",\n      \"address_line_3\": \"addr3 10\",\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": \"TE1 3ST\",\n      \"telephone_number_home\": null,\n      \"telephone_number_business\": null,\n      \"telephone_number_mobile\": null,\n      \"email_address_1\": null,\n      \"email_address_2\": null,\n      \"national_insurance_number\": null,\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": {\n        \"vehicle_make\": null,\n        \"vehicle_registration_mark\": null,\n        \"document_language\": null,\n        \"hearing_language\": null,\n        \"employee_reference\": null,\n        \"employer_company_name\": null,\n        \"employer_address_line_1\": null,\n        \"employer_address_line_2\": null,\n        \"employer_address_line_3\": null,\n        \"employer_address_line_4\": null,\n        \"employer_address_line_5\": null,\n        \"employer_post_code\": null,\n        \"employer_telephone_number\": null,\n        \"employer_email_address\": null,\n        \"aliases\": null\n      },\n      \"parent_guardian\": null\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-08-01\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 47883,\n        \"impositions\": [\n          {\n            \"result_id\": \"FO\",\n            \"amount_imposed\": 3002,\n            \"amount_paid\": 0,\n            \"major_creditor_id\": null,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": {\n      \"notice_number\": \"101010\",\n      \"date_of_issue\": \"2025-08-01\",\n      \"time_of_issue\": \"11:35\",\n      \"fp_registration_number\": \"REG1\",\n      \"notice_to_owner_hirer\": null,\n      \"place_of_offence\": \"Camberwell Green\",\n      \"fp_driving_licence_number\": \"SMITH001010JO9MS\"\n    },\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"B\",\n      \"effective_date\": null,\n      \"instalment_period\": null,\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": null,\n      \"default_days_in_jail\": null,\n      \"enforcements\": null\n    },\n    \"account_notes\": [\n      {\n        \"account_note_serial\": 3,\n        \"account_note_text\": \"Scenario 10 account comment\",\n        \"note_type\": \"AC\"\n      },\n      {\n        \"account_note_serial\": 2,\n        \"account_note_text\": \"Scenario 10 account note\",\n        \"note_type\": \"AA\"\n      }\n    ]\n  },\n  \"account_type\": \"Fixed Penalty\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-08-11\",\n      \"reason_text\": null\n    }\n  ],\n  \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario11",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_11_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_11_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario11",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_11_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_11_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_11_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "postDraftAccount Scenario12",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_12_draft_acc_id', jsonData.draft_account_id);",
+              "    pm.collectionVariables.set('scenario_12_draft_acc_version', jsonData.version);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"draft_account_id\": null,\n    \"created_at\": null,\n    \"account_snapshot\": null,\n    \"account_status_date\": null,\n    \"business_unit_id\": 77,\n    \"submitted_by\": \"L077JG\",\n    \"submitted_by_name\": \"opal-test\",\n    \"account\": {\n        \"account_type\": \"Fine\",\n        \"defendant_type\": \"adultOrYouthOnly\",\n        \"originator_name\": \"Cambridge County Court\",\n        \"originator_id\": 162,\n        \"prosecutor_case_reference\": \"TWELVE12\",\n        \"enforcement_court_id\": 770000000001,\n        \"collection_order_made\": false,\n        \"collection_order_made_today\": null,\n        \"collection_order_date\": null,\n        \"suspended_committal_date\": null,\n        \"payment_card_request\": true,\n        \"account_sentence_date\": \"2025-09-01\",\n        \"defendant\": {\n            \"company_flag\": false,\n            \"title\": \"Mr\",\n            \"surname\": \"OPAL E TO E\",\n            \"forenames\": \"Opal Scenario twelve\",\n            \"company_name\": null,\n            \"dob\": null,\n            \"address_line_1\": \"addr1 12\",\n            \"address_line_2\": \"addr2 12\",\n            \"address_line_3\": \"\",\n            \"address_line_4\": null,\n            \"address_line_5\": null,\n            \"post_code\": \"TE12 3ST\",\n            \"telephone_number_home\": null,\n            \"telephone_number_business\": null,\n            \"telephone_number_mobile\": null,\n            \"email_address_1\": \"test@test.com\",\n            \"email_address_2\": null,\n            \"national_insurance_number\": null,\n            \"driving_licence_number\": null,\n            \"pnc_id\": null,\n            \"nationality_1\": null,\n            \"nationality_2\": null,\n            \"ethnicity_self_defined\": null,\n            \"ethnicity_observed\": null,\n            \"cro_number\": null,\n            \"occupation\": null,\n            \"gender\": null,\n            \"custody_status\": null,\n            \"prison_number\": null,\n            \"interpreter_lang\": null,\n            \"debtor_detail\": {\n                \"vehicle_make\": \"_=+[{]};:'@#~,<.>/?\\\\|¬`!\\\"£\",\n                \"vehicle_registration_mark\": \"$%^&*()-\",\n                \"document_language\": null,\n                \"hearing_language\": null,\n                \"employee_reference\": \"OT0000012D\",\n                \"employer_company_name\": \"emp-loyer1 -  e'm'p\",\n                \"employer_address_line_1\": \"emp addr1\",\n                \"employer_address_line_2\": null,\n                \"employer_address_line_3\": null,\n                \"employer_address_line_4\": null,\n                \"employer_address_line_5\": null,\n                \"employer_post_code\": null,\n                \"employer_telephone_number\": null,\n                \"employer_email_address\": null,\n                \"aliases\": null\n            },\n            \"parent_guardian\": null\n        },\n        \"offences\": [\n            {\n                \"date_of_sentence\": \"2025-09-01\",\n                \"imposing_court_id\": 770000000001,\n                \"offence_id\": 59610,\n                \"impositions\": [\n                    {\n                        \"result_id\": \"FVS\",\n                        \"amount_imposed\": 100,\n                        \"amount_paid\": 1,\n                        \"major_creditor_id\": null,\n                        \"minor_creditor\": null\n                    }\n                ]\n            }\n        ],\n        \"fp_ticket_detail\": null,\n        \"payment_terms\": {\n            \"payment_terms_type_code\": \"B\",\n            \"effective_date\": \"2026-09-30\",\n            \"instalment_period\": null,\n            \"lump_sum_amount\": null,\n            \"instalment_amount\": null,\n            \"default_days_in_jail\": null,\n            \"enforcements\": null\n        },\n        \"account_notes\": [\n            {\n                \"account_note_serial\": 3,\n                \"account_note_text\": \"Scenario-12 'Comment'\",\n                \"note_type\": \"AC\"\n            },\n            {\n                \"account_note_serial\": 2,\n                \"account_note_text\": \"Scenario-12 'Note'\",\n                \"note_type\": \"AA\"\n            }\n        ]\n    },\n    \"account_type\": \"Fine\",\n    \"account_status\": \"Submitted\",\n    \"account_status_message\": null,\n    \"timeline_data\": [\n        {\n            \"username\": \"opal-test\",\n            \"status\": \"Submitted\",\n            \"status_date\": \"2025-09-04\",\n            \"reason_text\": null\n        }\n    ],\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Scenario12",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const etag = pm.response.headers.get(\"ETag\");",
+              "if (etag) {",
+              "  pm.environment.set(\"draft_etag\", etag);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {},
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_12_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_12_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "patchDraftAccount Scenario12",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('scenario_11_def_acc_id', jsonData.account_number);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token_opal-test-10}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "Accept",
+            "value": "text/cmd",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "If-Match",
+            "value": "{{draft_etag}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"account_status\": \"Publishing Pending\",\n    \"business_unit_id\": 77,\n    \"reason_text\": null,\n    \"timeline_data\": [\n        {\n            \"status\": \"Submitted\",\n            \"username\": \"opal-test\",\n            \"reason_text\": null,\n            \"status_date\": \"2025-05-27\"\n        }\n    ],\n    \"validated_by\": \"L077AO\",\n    \"validated_by_name\": \"opal-test-10\",\n    \"version\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{env_url}}/draft-accounts/{{scenario_12_draft_acc_id}}",
+          "host": [
+            "{{env_url}}"
+          ],
+          "path": [
+            "draft-accounts",
+            "{{scenario_12_draft_acc_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "env_url",
+      "value": "http://localhost:4550"
+    },
+    {
+      "key": "env_url",
+      "value": "https://pr-env-url",
+      "disabled": true
+    },
+    {
+      "key": "token_opal-test",
+      "value": ""
+    },
+    {
+      "key": "token_opal-test-6",
+      "value": ""
+    },
+    {
+      "key": "token_opal-test-10",
+      "value": ""
+    },
+    {
+      "key": "scenario_1_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_2_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_3_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_4_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_5_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_6_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_7_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_8_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_9_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_10_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_11_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_1_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_2_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_3_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_4_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_5_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_6_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_7_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_8_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_9_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_10_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_11_def_acc_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scenario_12_draft_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_12_def_acc_id",
+      "value": ""
+    },
+    {
+      "key": "scenario_1_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_5_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_2_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_4_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "draft_etag",
+      "value": ""
+    },
+    {
+      "key": "scenario_12_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_3_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_6_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_7_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_8_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_9_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_10_draft_acc_version",
+      "value": ""
+    },
+    {
+      "key": "scenario_11_draft_acc_version",
+      "value": ""
+    }
+  ]
+}

@@ -17,7 +17,7 @@ public class AccountSearchDto implements ToJsonString {
     /** Business Unit IDs (optional). */
     @JsonProperty("business_unit_ids")
     @NotEmpty
-    private List<Integer> businessUnitIds;
+    private List<Short> businessUnitIds;
 
     /** Active accounts only (required). */
     @JsonProperty("active_accounts_only")
@@ -32,4 +32,7 @@ public class AccountSearchDto implements ToJsonString {
     @JsonProperty("defendant")
     @NotNull
     private DefendantDto defendant;
+
+    @JsonProperty("consolidation_search")
+    private boolean consolidationSearch;
 }

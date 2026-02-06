@@ -18,7 +18,7 @@ Feature: PO-691 post draft account error handling
   @PO-691 @cleanUpData
   Scenario: Post draft account - CEP2 - Invalid or No Access Token
     Given I am testing as the "opal-test@hmcts.net" user
-    When I attempt to create a draft account with an invalid token
+    When I attempt to create a draft account with an invalid token using created by ID "BUUID"
     Then The draft account response returns 401
 
   @PO-691 @cleanUpData

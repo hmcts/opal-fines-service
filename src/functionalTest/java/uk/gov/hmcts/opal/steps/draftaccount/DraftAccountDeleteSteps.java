@@ -157,7 +157,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
         }
         log.info("Cleaning up {} draft accounts: {}", accounts.size(), accounts);
         for (String id : accounts) {
-            this.deleteWithConcurrency(id, ignoreMissingResource);
+            this.deleteWithIfMatch(id, null, ignoreMissingResource);
         }
         try {
             DraftAccountUtils.clearDraftAccountIds();

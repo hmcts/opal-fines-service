@@ -15,6 +15,10 @@
 
 #### Environment variables
 
+**WARNING** - this info is a now (as of 2026) a bit outdated. First see the 
+[documentation about docker setup](docker-readme.md), which covers the current way to configure 
+your execution environment.
+
 The following environment variables are required to run the service.
 
 ```bash / zsh
@@ -126,7 +130,6 @@ For more information:
 ```bash / zsh
 ./bin/run-in-docker.sh -h
 ```
-
 Script includes bare minimum environment variables necessary to start api instance. Whenever any variable is changed or any other script regarding docker image/container build, the suggested way to ensure all is cleaned up properly is by this command:
 
 **Bash**:
@@ -147,6 +150,11 @@ docker image rm <image-id>
 ```
 
 There is no need to remove postgres and java or similar core images.
+
+
+#### Approach 4: Docker with external dependencies (e.g. Redis, postgres, azure service bus, user service, logging service, etc) - Recommended approach for development
+
+Please following the instructions in the [docker-readme](docker-readme.md) to set up the application with external dependencies using docker.
 
 ### Verifying application startup
 
@@ -206,6 +214,14 @@ To ensure we are following the same styles you will need to enable this project 
 **Step 3: Ensure the global scheme is set to 'Project' under the 'Stored in Project' heading.**
 
 ![intelij_settings_codestyle_project.png](readme_images/intelij_settings_codestyle_project.png)
+
+## Azure Service Bus emulator
+Some functionality of the application depends on Azure Service Bus. To run and test this functionality locally, you can use an emulator for Azure Service Bus.
+This is already bundled with the docker-compose setup.
+
+To view any messages sent to the queues/topics you can use a tool like 'Azure Service Bus Explorer'. 
+Or you can use the PeekSbEmulator class that is setup in test/java/uk/gov/hmcts/opal/support/PeekSbEmulator.java to do this simply call the main method of this class you can add a argument to specify which queue/topic you want to peek messages from.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

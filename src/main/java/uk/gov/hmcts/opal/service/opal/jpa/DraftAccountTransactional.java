@@ -1,11 +1,24 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
 
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
+import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,21 +41,9 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
-import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 
 @Service
 @Slf4j(topic = "opal.DraftAccountService")
@@ -60,6 +61,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     private final BusinessUnitRepository businessUnitRepository;
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
+
+    private final DraftAccountPdplLoggingService loggingService;
 
     @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
@@ -104,7 +107,14 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             dto.getBusinessUnitId());
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
-        return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
+
+        DraftAccountEntity draftAccountEntity = draftAccountRepository.save(
+            toEntity(dto, created, businessUnit, snapshot));
+
+        loggingService.pdplForDraftAccount(draftAccountEntity, Action.SUBMIT);
+
+        return draftAccountEntity;
+
     }
 
     @Transactional

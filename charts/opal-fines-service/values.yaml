@@ -39,6 +39,12 @@ java:
           alias: OPAL_SFTP_OUTBOUND_USER
         - name: outbound-password
           alias: OPAL_SFTP_OUTBOUND_PASSWORD
+        - name: servicebus-connection-string
+          alias: SERVICEBUS_CONNECTION_STRING
+        - name: servicebus-shared-access-key
+          alias: SERVICEBUS_SHARED_ACCESS_KEY
+        - name: servicebus-logging-pdpl-queue-name
+          alias: SERVICEBUS_LOGGING_PDPL_QUEUE_NAME
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.platform.hmcts.net
@@ -47,6 +53,7 @@ java:
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.{{ .Values.global.environment }}.platform.hmcts.net
     OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs
+    SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
   postgresql:
     enabled: false
     image:
@@ -55,15 +62,15 @@ opal-frontend:
   enabled: false
 opal-user-service:
   enabled: false
+opal-logging-service:
+  enabled: false
+servicebus:
+  enabled: false
 redis:
   image:
     registry: hmctspublic.azurecr.io
     repository: imported/bitnami/redis
   enabled: false
-userServicePostgresql:
-  enabled: false
-  image:
-    tag: '17.5.0'
 global:
   security:
     allowInsecureImages: true

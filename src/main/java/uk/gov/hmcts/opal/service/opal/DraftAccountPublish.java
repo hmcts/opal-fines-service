@@ -1,5 +1,10 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
+
+import java.time.LocalDate;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -11,12 +16,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
-
-import java.time.LocalDate;
-import java.util.Map;
-
-import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
-import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
+import uk.gov.hmcts.opal.util.LogUtil;
 
 @Service
 @Slf4j(topic = "opal.DraftAccountPublish")
@@ -49,10 +49,10 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
             TimelineData timelineData = new TimelineData(publishEntity.getTimelineData());
             timelineData.insertEntry(
                 unitUser.getBusinessUnitUserId(), DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                LocalDate.now(), e.getMessage()
+                LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE
             );
             publishEntity.setTimelineData(timelineData.toJson());
-            publishEntity.setStatusMessage(e.getMessage());
+            publishEntity.setStatusMessage(LogUtil.ERRMSG_STORED_PROC_FAILURE);
             return draftAccountTransactional.updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED,
                                                           draftAccountTransactional
             );

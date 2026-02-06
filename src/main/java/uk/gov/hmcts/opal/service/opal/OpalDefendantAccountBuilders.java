@@ -68,7 +68,7 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
@@ -209,7 +209,7 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static List<AliasDto> buildSearchAliases(SearchDefendantAccountEntity e) {
+    static List<AliasDto> buildSearchAliases(SearchDefendantAccount e) {
         boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
         String[] aliasValues = {e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5()};
 
@@ -821,6 +821,7 @@ public class OpalDefendantAccountBuilders {
     static LJA buildLja(Optional<LocalJusticeAreaEntity> entity) {
         return entity.map(lja -> LJA.builder()
                 .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
+                .ljaCode(lja.getLjaCode())
                 .ljaName(Optional.ofNullable(lja.getName()).orElse(lja.getLjaCode()))
                 .build())
             .orElse(null);
@@ -829,6 +830,7 @@ public class OpalDefendantAccountBuilders {
     static LjaReferenceCommon buildLja(LJA lja) {
         return Optional.ofNullable(lja).map(l -> LjaReferenceCommon.builder()
                 .ljaId(l.getLjaId())
+                .ljaCode(l.getLjaCode())
                 .ljaName(l.getLjaName())
                 .build())
             .orElse(null);

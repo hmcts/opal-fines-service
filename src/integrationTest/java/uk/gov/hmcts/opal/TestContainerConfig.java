@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal;
 
-
 import org.springframework.boot.test.context.TestConfiguration;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
