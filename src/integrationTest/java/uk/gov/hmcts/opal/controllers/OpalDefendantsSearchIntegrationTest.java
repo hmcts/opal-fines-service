@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -20,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -63,36 +66,43 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     private AccessTokenService accessTokenService;
 
     @BeforeEach
-    void setupUserState() {
+    void setup() {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search defendant accounts – POST with valid criteria (seed id=77)")
-    void testPostDefendantAccountsSearch_Opal() throws Exception {
+    void testPostDefendantAccountsSearch_Opal(boolean consolidated) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria2(false)));
-
+            post(DEFENDANTS_SEARCH_URL).header(
+            "authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(searchCriteria2(consolidated)));
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
-        actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        actions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
-            .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").doesNotExist())
-            .andExpect(jsonPath("$.defendant_accounts[0].account_version").doesNotExist())
-            .andExpect(jsonPath("$.defendant_accounts[0].checks").doesNotExist());
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+        if (!consolidated) {
+            actions
+                .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").doesNotExist())
+                .andExpect(jsonPath("$.defendant_accounts[0].account_version").doesNotExist())
+                .andExpect(jsonPath("$.defendant_accounts[0].checks").doesNotExist());
+        }
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search defendant accounts – POST no matches (different BU)")
-    void testPostDefendantAccountsSearch_Opal_NoResults() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_NoResults(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -115,8 +125,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": true,
                             "birth_date": "1980-02-03",
                             "national_insurance_number": "A11111A"
-                          }
-                    }"""));
+                          },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_NoResults: Response body:\n{}",
@@ -126,9 +137,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(0));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search by exact name + BU = 1 match (seed id=77)")
-    void testPostDefendantAccountsSearch_Opal_ByNameAndBU() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_ByNameAndBU(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -151,9 +163,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                            "exact_match_forenames": true,
                            "birth_date": "1980-02-03",
                            "national_insurance_number": "A11111A"
-                         }
-                    }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_ByNameAndBU: Response body:\n{}",
@@ -166,9 +178,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Postcode match ignores spaces/hyphens (MA4 1AL vs MA41AL)")
-    void testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -191,8 +204,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                                     "exact_match_forenames": true,
                                     "birth_date": "1980-02-03",
                                     "national_insurance_number": "A11111A"
-                                     }
-                    }"""));
+                                     }},
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces: Response body:\n{}",
@@ -203,9 +217,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Account number 'starts with' (177*) — active flag respected in new search view")
-    void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -220,8 +235,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                                         "organisation": false
                                       },
                                       "defendant": null
-                                    }
-                    """));
+                                    }},
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith: Response body:\n{}",
@@ -234,9 +250,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: PCR exact (090A)")
-    void testPostDefendantAccountsSearch_Opal_PcrExact() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_PcrExact(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -251,8 +268,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                    },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_PcrExact: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -264,9 +282,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: PCR no match -> 0 records")
-    void testPostDefendantAccountsSearch_Opal_PcrNoMatch() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_PcrNoMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -281,8 +300,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                    },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_PcrNoMatch: Response body:\n{}",
@@ -292,9 +312,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(0));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
-    void testPostDefendantAccountsSearch_Opal_NiStartsWith() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_NiStartsWith(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -317,9 +338,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A111"
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_NiStartsWith: Response body:\n{}",
@@ -332,9 +353,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Address line 1 starts-with (\"Lumber\") -> 1 record")
-    void testPostDefendantAccountsSearch_Opal_AddressStartsWith() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_AddressStartsWith(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -357,9 +379,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AddressStartsWith: Response body:\n{}",
@@ -374,9 +396,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("MA4 1AL"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: DOB exact (1980-02-03) -> 1 record")
-    void testPostDefendantAccountsSearch_Opal_DobExact() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_DobExact(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -399,9 +422,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                      },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_DobExact: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -417,9 +440,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].birth_date").value("1980-02-03"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Include aliases = true still returns match on main name (no alias in DB)")
-    void testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -442,9 +466,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                      },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName: Response body:\n{}",
@@ -456,9 +480,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
-    void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -481,9 +506,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse: Response body:\n{}",
@@ -496,9 +521,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
-    void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -513,8 +539,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                    },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter: Response body:\n{}",
@@ -527,9 +554,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: No defendant object in payload → party still resolved")
-    void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(boolean consolidation)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -544,8 +573,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                    },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty: Response body:\n{}",
@@ -558,9 +588,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("MA4 1AL"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search without business_unit_ids → still returns results")
-    void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -575,8 +606,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                    },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter: Response body:\n{}",
@@ -588,9 +620,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Personal party (Anna Graham) includes title, forenames, and surname")
-    void testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -613,9 +646,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "postcode": "MA4 1AL",
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                      },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails: Response body:\n{}",
@@ -628,9 +661,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Organisation returns no personal fields (awaiting seeded org data)")
-    void testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -653,9 +687,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": null,
                         "birth_date": null,
                         "national_insurance_number": null
-                      }
-                    }
-                    """));
+                      },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames: Response body:\n{}",
@@ -672,9 +706,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Alias search fallback → matches on main name when no alias exists")
-    void testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -697,9 +732,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "postcode": "MA4 1AL",
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                      },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName: Response body:\n{}",
@@ -711,9 +746,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Optional fields correctly mapped or excluded when null")
-    void testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -736,9 +772,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "postcode": "MA4 1AL",
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                      },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing: Response body:\n{}",
@@ -752,9 +788,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].parent_guardian_firstnames").doesNotExist());
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
-    void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -769,8 +806,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                    },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AliasFieldsMapped: Response body:\n{}",
@@ -786,7 +824,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC1: Multi-parameter search tests - ALL search parameters must match
 
-    public void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback() throws Exception {
+    public void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -801,15 +839,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """)).andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
+                  },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value(""))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("9999"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
-    void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -832,10 +873,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                              "postcode": "MA4 1AL",
                              "birth_date": "1980-02-03",
                              "national_insurance_number": "A11111A"
-                           }
-                         }
-                    
-                    """));
+                          },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_SurnamePartialMatch: Response body:\n{}",
@@ -845,9 +885,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Match on alias when both alias and main name exist")
-    void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent() throws Exception {
+    void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -870,9 +911,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_organisation_name": null,
                             "birth_date": "1980-01-01",
                             "national_insurance_number": "XX999999X"
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent: Response body:\n{}",
@@ -882,9 +923,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname1"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - surname + postcode (both must match) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC1_SurnameAndPostcode() throws Exception {
+    void testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with surname "Graham" AND postcode "MA4 1AL" - should match account 77
@@ -908,9 +950,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "birth_date": null,
                         "national_insurance_number": null,
                         "postcode": "MA4 1AL"
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndPostcode: Response body:\n{}",
@@ -920,9 +962,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - surname + wrong postcode (no matches expected) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode() throws Exception {
+    void testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with surname "Graham" AND wrong postcode - should return 0 results
@@ -946,9 +989,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "birth_date": null,
                         "national_insurance_number": null,
                         "postcode": "XX99 9XX"
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode: Response body:\n{}",
@@ -959,9 +1002,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC2: Business unit filtering test
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - forenames + surname + DOB + NI (all must match) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC1_CompletePersonalDetails() throws Exception {
+    void testPostDefendantAccountsSearch_AC1_CompletePersonalDetails(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -984,9 +1028,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A11111A"
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC1_CompletePersonalDetails: Response body:\n{}",
@@ -998,9 +1042,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC3a: Active accounts only filtering tests
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - address + NI number (both must match) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC1_AddressAndNI() throws Exception {
+    void testPostDefendantAccountsSearch_AC1_AddressAndNI(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with address line 1 starting "Lumber" AND NI starting "A111" - should match account 77
@@ -1024,9 +1069,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
                         "national_insurance_number": "A111"
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC1_AddressAndNI: Response body:\n{}",
@@ -1038,9 +1083,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC5a: Forenames match filtering tests
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - wrong business unit excludes otherwise matching records [@PO-710]")
-    void testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes() throws Exception {
+    void testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with correct surname but wrong business unit - should return 0 results
@@ -1064,9 +1110,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": null,
                         "birth_date": null,
                         "national_insurance_number": null
-                      }
-                    }
-                    """));
+                      },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes: Response body:\n{}",
@@ -1077,9 +1123,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC9: Multi-parameter search tests for organisations - ALL search parameters must match
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC2: Only accounts within specified business units are returned [@PO-710]")
-    void testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering() throws Exception {
+    void testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Should find accounts 77, 88, 901, 333 but filter to only return those in business unit 78
@@ -1103,9 +1150,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "postcode": null,
                         "birth_date": null,
                         "national_insurance_number": null
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering: Response body:\n{}",
@@ -1117,9 +1164,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC3a: Active accounts only filtering - false includes both active and completed accounts [@PO-710]")
-    void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse() throws Exception {
+    void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Test AC3a: active_accounts_only = false should include both active and completed accounts
@@ -1143,9 +1191,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "exact_match_forenames": null,
                         "birth_date": null,
                         "national_insurance_number": null
-                      }
-                    }
-                    """));
+                     },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = allAccountsActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse: Response body:\n{}",
@@ -1158,9 +1206,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number").value("444C"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
-    void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch() throws Exception {
+    void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -1183,10 +1232,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                              "postcode": null,
                              "birth_date": null,
                              "national_insurance_number": null
-                           }
-                         }
-                    
-                    """));
+                          },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch: Response body:\n{}",
@@ -1197,9 +1245,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - company name + address line 1 (both must match) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress() throws Exception {
+    void testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with company name "TechCorp Solutions Ltd" AND address "Business Park" - should match account 555
@@ -1223,9 +1272,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                          },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress: Response body:\n{}",
@@ -1238,9 +1287,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Business Park"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - company name + postcode (both must match) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode() throws Exception {
+    void testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with company name "TechCorp Solutions Ltd" AND postcode "B15 3TG" - should match account 555
@@ -1264,9 +1314,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode: Response body:\n{}",
@@ -1280,9 +1330,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC9a: Business unit filtering for company accounts
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - partial company name + address (both must match) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress() throws Exception {
+    void testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with partial company name "TechCorp" AND address "Business Park" - should match account 555
@@ -1306,9 +1357,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress: Response body:\n{}",
@@ -1321,9 +1372,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC9b: Active accounts only filtering for company accounts
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - correct name + wrong address (no matches expected) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress() throws Exception {
+    void testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with correct company name "TechCorp Solutions Ltd" BUT wrong address "Office Tower"
@@ -1347,9 +1399,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress: Response body:\n{}",
@@ -1358,9 +1410,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(0));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - multiple address fields (all must match) [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields() throws Exception {
+    void testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with company name AND multiple address fields - all must match
@@ -1384,9 +1437,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields: Response body:\n{}",
@@ -1399,9 +1452,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9a: Only company accounts within specified business units are returned [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering() throws Exception {
+    void testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Apply business unit filter to only BU 78 - should return only TechCorp Solutions Ltd
@@ -1425,9 +1479,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering: Response body:\n{}",
@@ -1439,9 +1493,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Solutions Ltd"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9b: Active accounts only filtering for company accounts - excludes completed accounts [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly() throws Exception {
+    void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // active_accounts_only = false should include both active and completed company accounts
@@ -1465,9 +1520,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                            "exact_match_forenames": null,
                            "birth_date": null,
                            "national_insurance_number": null
-                         }
-                       }
-                    """));
+                        },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String allBody = allAccountsActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}",
@@ -1478,9 +1533,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '777')]").exists());
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9d: Where company name or alias starts with input [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch() throws Exception {
+    void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with partial alias "TC Global" - should match "TC Global Ltd" alias (starts with)
@@ -1504,9 +1560,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch: Response body:\n{}",
@@ -1518,9 +1574,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Global Ltd"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9di: Where company name or alias results exactly matches input [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch() throws Exception {
+    void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with exact alias "TechCorp Ltd" - should match exactly
@@ -1544,9 +1601,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch: Response body:\n{}",
@@ -1558,9 +1615,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Solutions Ltd"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9e: Company address partial match - Address Line 1 starts with input value [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch() throws Exception {
+    void testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with partial address "Business" - should match "Business Park"
@@ -1584,9 +1642,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch: Response body:\n{}",
@@ -1598,9 +1656,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Business Park"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("AC9ei: Company postcode partial match - Postcode starts with input value [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch() throws Exception {
+    void testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Search with partial postcode "B15" - should match "B15 3TG"
@@ -1624,9 +1683,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "exact_match_forenames": null,
                             "birth_date": null,
                             "national_insurance_number": null
-                          }
-                        }
-                    """));
+                        },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch: Response body:\n{}",
@@ -1638,9 +1697,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; 177A and 177B returned (active flag ignored)")
-    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned() throws Exception {
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Case 1: active_accounts_only = true (ignored because account_number provided)
@@ -1656,8 +1716,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                   },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String bodyTrue = activeTrue.andReturn().getResponse().getContentAsString();
         log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
@@ -1680,8 +1741,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "organisation": false
                       },
                       "defendant": null
-                    }
-                    """));
+                   },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
 
         String bodyFalse = activeFalse.andReturn().getResponse().getContentAsString();
         log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
@@ -1692,9 +1754,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
-    void testPostDefendantAccountsSearch_OrganisationFlagRespected1() throws Exception {
+    void testPostDefendantAccountsSearch_OrganisationFlagRespected1(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // === AC1: organisation = true → only organisation defendants (e.g. 333A) ===
@@ -1714,9 +1777,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(bodyTrue, DEFENDANTS_SEARCH_RESP_SCHEMA);
     }
 
-    @Test
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
-    void testPostDefendantAccountsSearch_OrganisationFlagRespected2() throws Exception {
+    void testPostDefendantAccountsSearch_OrganisationFlagRespected2(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // === AC2: organisation = false → only individual defendants (e.g. 177A, 177B) ===
@@ -1776,9 +1840,51 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             }""".formatted(consolidation);
 
     }
-    
+
+    private String searchCriteria3(boolean consolidation) {
+        return """
+              {
+              "active_accounts_only": true,
+              "business_unit_ids": [77],
+              "reference_number": null,
+              "defendant": {
+                "include_aliases": false,
+                "organisation": false,
+                "address_line_1": null,
+                "postcode": null,
+                "organisation_name": null,
+                "exact_match_organisation_name": null,
+                "surname": "Williams",
+                "exact_match_surname": true,
+                "forenames": "Sarah Louise",
+                "exact_match_forenames": true,
+                "birth_date": null,
+                "national_insurance_number": null
+              },
+              "consolidation_search": %s
+            }""".formatted(consolidation);
+
+    }
+
+    private String searchCriteriaByAccountNumber(String accNo, boolean consolidation) {
+        return """
+              {
+              "active_accounts_only": false,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": %s
+                ,
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null,
+              "consolidation_search": %s
+            }""".formatted("\"" + accNo + "\"", consolidation);
+
+    }
+
     @Test
-    @DisplayName("PO-2966: Consolidated search of defendant accounts")
+    @DisplayName("PO-2296: Consolidated search of defendant accounts")
     void testPostDefendantAccountsConsolidatedSearch() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1800,5 +1906,85 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 .value("CON.ER.4"))
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors[0].message")
                 .value("Account has days in default"));
+    }
+
+    @Test
+    @DisplayName("PO-2966: AC3:"
+        + "consolidation_search is true API should return new fields where account has no warnings/errors")
+    void testPostDefendantAccountsConsolidatedSearch_noWarningsNoErrors() throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+
+        ResultActions actions = mockMvc.perform(
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria3(true)));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(
+                "99000000000002"))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("23456789A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("77"))
+            .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").value(false))
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.errors").isArray())
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.errors", hasSize(0)))
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.warnings").isArray())
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.warnings", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("PO-2966: AC5:"
+        + "consolidation_search is true API should return new fields where account has no errors but has warnings")
+    void testPostDefendantAccountsConsolidatedSearch_hasWarningsNoErrors() throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+
+        ResultActions actions = mockMvc.perform(
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON).content(
+                    searchCriteriaByAccountNumber("1989", true)));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(
+                "991199"))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("1989"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").value(true))
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.errors").isArray())
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.errors", hasSize(0)))
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.warnings").isArray())
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.warnings", hasSize(1)));
+    }
+
+    @Test
+    @DisplayName("PO-2966: AC6:"
+        + "consolidation_search is true API should return new fields where account has warnings and errors")
+    void testPostDefendantAccountsConsolidatedSearch_hasWarningsHasErrors() throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+
+        ResultActions actions = mockMvc.perform(
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON).content(
+                    searchCriteriaByAccountNumber("1988", true)));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(
+                "991198"))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("1988"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").value(true))
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.errors").isArray())
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.errors", hasSize(1)))
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.warnings").isArray())
+            .andExpect(jsonPath("$.defendant_accounts[0].checks.warnings", hasSize(1)));
     }
 }

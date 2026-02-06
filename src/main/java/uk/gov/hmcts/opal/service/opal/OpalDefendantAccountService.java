@@ -263,9 +263,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private List<WarnError> convertWarnErrors(List<String> fromDb) {
-        return Optional.ofNullable(fromDb)
-            .stream()
-            .flatMap(List::stream)
+        if (fromDb == null || fromDb.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return fromDb.stream()
             .filter(Objects::nonNull)
             .filter(this::isNotBlank)
             .map(WarnError::new)
