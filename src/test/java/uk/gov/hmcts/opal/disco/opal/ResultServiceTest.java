@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.jpa.ResultSpecsLite;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +36,13 @@ class ResultServiceTest {
 
     @Mock
     private ResultRepository resultRepository;
+
+    @Mock
+    private ResultSpecsLite specsLite;
+
+    private Specification<Lite> noOpSpec() {
+        return (root, query, builder) -> builder.conjunction();
+    }
 
     @Spy
     private ResultMapper resultMapper;
@@ -45,7 +53,6 @@ class ResultServiceTest {
     @Test
     void testGetResult() {
         // Arrange
-
         ResultEntity.Lite resultEntity = Lite.builder().build();
         when(resultRepository.findById(any())).thenReturn(Optional.of(resultEntity));
 
@@ -54,13 +61,11 @@ class ResultServiceTest {
 
         // Assert
         assertNotNull(result);
-
     }
 
     @Test
     void testGetResultReferenceData() {
         // Arrange
-
         ResultEntity.Lite resultEntity = ResultEntity.Lite.builder().resultId("ABC").build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
             "ABC", null, null, false, null, null, null
@@ -69,11 +74,15 @@ class ResultServiceTest {
         when(resultMapper.toRefData(resultEntity)).thenReturn(expectedRefData);
 
         // Act
-        ResultReferenceData result = resultService.getResultRefDataById("ABC");
+        ResultReferenceData result = result_service_call_getResultRefDataById();
 
         // Assert
         assertNotNull(result);
+    }
 
+    // helper to keep arrange/act style identical to original
+    private ResultReferenceData result_service_call_getResultRefDataById() {
+        return resultService.getResultRefDataById("ABC");
     }
 
     @SuppressWarnings("unchecked")
@@ -81,24 +90,29 @@ class ResultServiceTest {
     void testGetResultsByIds() {
         // Arrange
         Lite resultEntity = Lite.builder().resultId("ABC").build();
-        List<ResultEntity.Lite> resultEntities = List.of(resultEntity);
         ResultReferenceData dto = new ResultReferenceData(
             "ABC", null, null, false, null, null, null);
 
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+
+        // match the repository call with any(Specification.class), any(Function.class)
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         when(resultMapper.toRefData(any())).thenReturn(dto);
+        when(specsLite.referenceDataByIds(any(), any(), any(), any(), any(), any()))
+            .thenReturn(noOpSpec());
 
         // Act
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ABC")),
-            false, false, false, false);
+            false, false, false, false, null);
 
         ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
             .refData(List.of(dto))
@@ -111,16 +125,59 @@ class ResultServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void testGetResultsByIds_enforcementOverrideTrue() {
+        // Arrange - enforcementOverride = true, other booleans null
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
+
+        Lite resultEntity = Lite.builder().resultId("NBWIT").build();
+        Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
+
+        // repository stub executes the function argument provided by the service
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(invocation -> {
+            invocation.getArgument(1, Function.class).apply(sfq);
+            return mockPage;
+        });
+
+        // ensure specsLite is stubbed (service will call it)
+        when(specsLite.referenceDataByIds(any(), any(), any(), any(), any(), any()))
+            .thenReturn(noOpSpec());
+
+        ResultReferenceData dto = new ResultReferenceData("NBWIT", null, null, false, null, null, null);
+        when(resultMapper.toRefData(any())).thenReturn(dto);
+
+        // Act - enforcementOverride true (others null)
+        ResultReferenceDataResponse result = resultService.getResultsByIds(
+            Optional.of(List.of("NBWIT")), null, null, null, null, Boolean.TRUE);
+
+        // Assert
+        ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
+            .refData(List.of(dto))
+            .build();
+
+        assertEquals(expected.getCount(), result.getCount());
+        assertEquals(expected.getRefData(), result.getRefData());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void testSearchResults() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
 
         ResultEntity.Lite resultEntity = ResultEntity.Lite.builder().build();
         Page<ResultEntity.Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
+
+        when(specsLite.findBySearchCriteria(any())).thenReturn(noOpSpec());
 
         // Act
         List<ResultEntity.Lite> result = resultService.searchResults(ResultSearchDto.builder().build());
@@ -133,7 +190,9 @@ class ResultServiceTest {
     @Test
     void testResultsReferenceData() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         ResultEntity.Lite entity = ResultEntity.Lite.builder().build();
@@ -143,10 +202,12 @@ class ResultServiceTest {
         when(resultMapper.toRefData(entity)).thenReturn(expectedRefData);
 
         Page<ResultEntity.Lite> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
+
+        when(specsLite.referenceDataFilter(any())).thenReturn(noOpSpec());
 
         // Act
         List<ResultReferenceData> result = resultService.getReferenceData(Optional.empty());
@@ -214,23 +275,28 @@ class ResultServiceTest {
     @Test
     void testGetResultsByIds_allNullBooleans() {
         // Arrange - resultIds present, all Boolean flags null -> should behave like no boolean filters
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder().resultId("ABC").build();
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
+
+        when(specsLite.referenceDataByIds(any(), any(), any(), any(), any(), any()))
+            .thenReturn(noOpSpec());
 
         ResultReferenceData dto = new ResultReferenceData("ABC", null, null, false, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - pass Optional.of(ids) and null for all booleans
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ABC")),
-            null, null, null, null);
+            null, null, null, null, null);
 
         // Assert - mapping and count
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -245,23 +311,28 @@ class ResultServiceTest {
     @Test
     void testGetResultsByIds_activeTrue() {
         // Arrange - active = true, other booleans null
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder().resultId("ACT-1").active(true).build();
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
+
+        when(specsLite.referenceDataByIds(any(), any(), any(), any(), any(), any()))
+            .thenReturn(noOpSpec());
 
         ResultReferenceData dto = new ResultReferenceData("ACT-1", null, null, false, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - active true (others null)
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ACT-1")),
-            Boolean.TRUE, null, null, null);
+            Boolean.TRUE, null, null, null, null);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -275,24 +346,29 @@ class ResultServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void testGetResultsByIds_manualEnforcementFalse_explicitFilteringOmitted() {
-
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        // Arrange
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder().resultId("MEF-FALSE").manualEnforcement(false).build();
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
+
+        when(specsLite.referenceDataByIds(any(), any(), any(), any(), any(), any()))
+            .thenReturn(noOpSpec());
 
         ResultReferenceData dto = new ResultReferenceData("MEF-FALSE", null, null, false, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - pass explicit false
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MEF-FALSE")),
-            null, Boolean.FALSE, null, null);
+            null, Boolean.FALSE, null, null, null);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -307,7 +383,9 @@ class ResultServiceTest {
     @Test
     void testGetResultsByIds_multipleBooleansMixed() {
         // Arrange - multiple booleans provided (true/false/null) to exercise combinations
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        @SuppressWarnings("unchecked")
+        SpecificationFluentQuery<Lite> sfq = (SpecificationFluentQuery<Lite>)
+            Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Lite resultEntity = Lite.builder()
@@ -320,17 +398,20 @@ class ResultServiceTest {
 
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
+
+        when(specsLite.referenceDataByIds(any(), any(), any(), any(), any(), any()))
+            .thenReturn(noOpSpec());
 
         ResultReferenceData dto = new ResultReferenceData("MIXED", null, null, false, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - mix of true/false/null
         ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MIXED")),
-            Boolean.TRUE, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE);
+            Boolean.TRUE, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE);
 
         // Assert
         ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
@@ -340,5 +421,4 @@ class ResultServiceTest {
         assertEquals(expected.getCount(), result.getCount());
         assertEquals(expected.getRefData(), result.getRefData());
     }
-
 }
