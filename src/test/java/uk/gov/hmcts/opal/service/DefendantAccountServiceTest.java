@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,6 +34,9 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.PaymentTerms;
+import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -210,6 +214,54 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
+    }
+
+    @Test
+    void addPaymentTerms_overwritesPostedDetailsFromUserState() {
+        Long defendantAccountId = 77L;
+        String businessUnitId = "78";
+        String ifMatch = "\"1\"";
+        String authHeader = "Bearer token";
+
+        UserState userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userWithPerm);
+
+        AddDefendantAccountPaymentTermsRequest request = AddDefendantAccountPaymentTermsRequest.builder()
+            .paymentTerms(PaymentTerms.builder()
+                .postedDetails(PostedDetails.builder()
+                    .postedBy("FE_USER")
+                    .postedByName("FE_NAME")
+                    .build())
+                .build())
+            .build();
+
+        GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
+        when(defendantAccountServiceProxy.addPaymentTerms(eq(defendantAccountId),
+            eq(businessUnitId),
+            eq("USER01"),
+            eq(ifMatch),
+            eq(authHeader),
+            any(AddDefendantAccountPaymentTermsRequest.class)))
+            .thenReturn(proxyResponse);
+
+        GetDefendantAccountPaymentTermsResponse result = defendantAccountService.addPaymentTerms(
+            defendantAccountId, businessUnitId, ifMatch, authHeader, request);
+
+        assertSame(proxyResponse, result);
+
+        ArgumentCaptor<AddDefendantAccountPaymentTermsRequest> captor =
+            ArgumentCaptor.forClass(AddDefendantAccountPaymentTermsRequest.class);
+        verify(defendantAccountServiceProxy).addPaymentTerms(eq(defendantAccountId),
+            eq(businessUnitId),
+            eq("USER01"),
+            eq(ifMatch),
+            eq(authHeader),
+            captor.capture());
+
+        PostedDetails postedDetails = captor.getValue().getPaymentTerms().getPostedDetails();
+        assertNotNull(postedDetails);
+        assertEquals("USER01", postedDetails.getPostedBy());
+        assertEquals("normal@users.com", postedDetails.getPostedByName());
     }
 
     @Test
