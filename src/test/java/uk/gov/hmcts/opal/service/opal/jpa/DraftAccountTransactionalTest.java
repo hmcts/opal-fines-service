@@ -38,6 +38,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
@@ -396,6 +397,34 @@ class DraftAccountTransactionalTest {
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testUpdateDraftAccount_submitterCannotValidate() {
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING.getLabel())
+            .validatedBy("BUUID1")
+            .validatedByName("User One")
+            .timelineData(createTimelineDataString())
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .submittedBy("BUUID1")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
+            .timelineData(createTimelineDataString())
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+
+        assertThrows(SubmitterCannotValidateException.class, () ->
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
+                BigInteger.ZERO)
+        );
     }
 
     @Test
