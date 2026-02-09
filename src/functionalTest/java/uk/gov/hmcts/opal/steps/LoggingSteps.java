@@ -41,10 +41,15 @@ public class LoggingSteps extends BaseStepDef {
             .orElse(1000);
 
     // Map business_identifier -> expected individuals[].type (entity type)
-    private static final Map<String, String> BUSINESS_TO_ENTITY_TYPE = Map.of(
-        "Submit Draft Account - Defendant", "DRAFT_ACCOUNT",
-        "Submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT",
-        "Submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT"
+    private static final Map<String, String> BUSINESS_TO_ENTITY_TYPE = Map.ofEntries(
+        Map.entry("Submit Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
+
+        // put (update) variants
+        Map.entry("Update Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Update Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Update Draft Account - Minor Creditor", "DRAFT_ACCOUNT")
     );
 
     /**
