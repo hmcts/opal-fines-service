@@ -48,12 +48,13 @@ public class ResultController {
         @RequestParam(name = "active", required = false) Boolean active,
         @RequestParam(name = "manual_enforcement_only", required = false) Boolean manualEnforcementOnly,
         @RequestParam(name = "generates_hearing", required = false) Boolean generatesHearing,
-        @RequestParam(name = "enforcement", required = false) Boolean enforcement) {
+        @RequestParam(name = "enforcement", required = false) Boolean enforcement,
+        @RequestParam(name = "enforcement_override", required = false) Boolean enforcementOverride) {
 
         log.debug("GET:getResults: resultIds: {}", resultIds);
 
         return buildResponse(resultService.getResultsByIds(resultIds, active, manualEnforcementOnly, generatesHearing,
-            enforcement));
+            enforcement, enforcementOverride));
     }
 
 }
