@@ -1,68 +1,55 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opal-fines-service/getMinorCreditorAccountHeaderSummaryResponse.json",
   "type": "object",
   "required": [
-    "party",
-    "business_unit",
-    "creditor",
-    "financials"
+    "creditor_account_id",
+    "account_number",
+    "creditor_account_type",
+    "business_unit_summary",
+    "party_details",
+    "awarded_amount",
+    "paid_out_amount",
+    "awaiting_payout_amount",
+    "outstanding_amount",
+    "has_associated_defendant"
   ],
   "properties": {
-    "party": {
-      "$ref": "../common-objects/partyDetails.json"
+    "creditor_account_id": {
+      "type": "string"
     },
-    "business_unit": {
+    "account_number": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10
+    },
+    "creditor_account_type": {
+      "$ref": "../common-objects/creditorAccountTypeReference.json"
+    },
+    "business_unit_summary": {
       "$ref": "../common-objects/businessUnitSummary.json"
     },
-    "creditor": {
-      "type": "object",
-      "required": [
-        "account_id",
-        "account_number",
-        "account_type"
-      ],
-      "properties": {
-        "account_id": {
-          "$ref": "../../types/bigint_value.json"
-        },
-        "account_number": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 10
-        },
-        "account_type": {
-          "$ref": "../common-objects/creditorAccountTypeReference.json"
-        }
-      }
+    "party_details": {
+      "$ref": "../common-objects/partyDetails.json"
     },
-    "financials": {
-      "type": "object",
-      "required": [
-        "awarded",
-        "paid_out",
-        "awaiting_payout",
-        "outstanding"
-      ],
-      "properties": {
-        "awarded": {
-          "$ref": "../../types/positive_monetary_value.json",
-          "description": "Total of all impositions related to that minor creditor"
-        },
-        "paid_out": {
-          "$ref": "../../types/positive_monetary_value.json",
-          "description": "Total sum of Creditor Transactions where payment_processed is TRUE and transaction_type is 'PAYMNT'."
-        },
-        "awaiting_payout": {
-          "$ref": "../../types/positive_monetary_value.json",
-          "description": "This is the sum of all payment transactions that have been paid by the defendant which has not been paid out to the minor creditor. So transaction_amount in creditor_transactions that are related to the minor creditor where payment_processed is FALSE and transaction_type = 'PAYMNT'"
-        },
-        "outstanding": {
-          "$ref": "../../types/monetary_value.json",
-          "description": "Total amount that associated defendant has not paid to the minor creditor  - so it is Imposed amounts minus Paid amounts."
-        }
-      }
+    "awarded_amount": {
+      "$ref": "../../types/positive_monetary_value.json",
+      "description": "Total of all impositions related to that minor creditor."
     },
-    "additionalProperties": false
-  }
+    "paid_out_amount": {
+      "$ref": "../../types/positive_monetary_value.json",
+      "description": "Total sum of Creditor Transactions where payment_processed is TRUE and transaction_type is 'PAYMNT'."
+    },
+    "awaiting_payout_amount": {
+      "$ref": "../../types/positive_monetary_value.json",
+      "description": "Sum of payment transactions paid by the defendant but not paid out to the minor creditor."
+    },
+    "outstanding_amount": {
+      "$ref": "../../types/monetary_value.json",
+      "description": "Imposed amounts minus paid amounts for the associated defendant."
+    },
+    "has_associated_defendant": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
 }

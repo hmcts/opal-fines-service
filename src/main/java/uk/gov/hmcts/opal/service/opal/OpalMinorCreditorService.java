@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
@@ -7,9 +8,12 @@ import org.springframework.stereotype.Service;
 
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -23,6 +27,7 @@ import java.util.List;
 public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     private final MinorCreditorRepository minorCreditorRepository;
+    private final MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
 
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
@@ -36,6 +41,20 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         return toResponse(results);
     }
+
+    @Override
+    public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
+        log.debug(":getHeaderSummary (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
+
+        MinorCreditorAccountHeaderEntity entity =
+            minorCreditorAccountHeaderRepository.findById(minorCreditorAccountId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                    "Minor creditor account not found: " + minorCreditorAccountId
+                ));
+
+        return GetMinorCreditorAccountHeaderSummaryResponse.fromEntity(entity);
+    }
+
 
     private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {
         return CreditorAccountDto.builder()
@@ -77,4 +96,5 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .creditorAccounts(accounts.isEmpty() ? null : accounts)
             .build();
     }
+
 }
