@@ -1,0 +1,445 @@
+Timing is on.
+psql:p_create_defendant_account_unit_tests_v5.sql:78: NOTICE:  === Cleanup data before tests ===
+psql:p_create_defendant_account_unit_tests_v5.sql:78: NOTICE:  Data cleanup before tests completed
+DO
+Time: 21.517 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:311: NOTICE:  === TEST 1: Basic account creation with minimum required fields ===
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000001D, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_defendant_account: defendant_account_id: 60000000000019. Generated account number: 26000001D
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000019, party_id = 60000000000018
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000019, party_id = 60000000000018
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000018
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000018
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_fp_offences: There were no FP ticket details to process for defendant_account_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_get_creditor_account: Found creditor_account_id = 65 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_impositions: Processed 1 offences, 1 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_impositions: defendant_transactions has been updated. defendant_transaction_id = 60000000000005, transaction_amount = 50.00
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_payment_terms: defendant_accounts.jail_days [<NULL>] has been updated. defendant_account_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_enforcements: There were no enforcements to process for defendant_account_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_account_notes: There were no account notes to process for defendant_account_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_defendant_account: Created document_instances records for defendant_account_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:311: INFO:  p_create_defendant_account: Created report_entries record for defendant_account_id = 60000000000019, report_id = tfo_in_register
+psql:p_create_defendant_account_unit_tests_v5.sql:311: NOTICE:  TEST 1 PASSED: Created account 26000001D with ID 60000000000019
+DO
+Time: 18.638 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:564: NOTICE:  === TEST 2: Basic account creation with minimum required fields and account_type = "Fixed Penalty", payment_terms "B" with effective_date = NULL and jail_days
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  v_account_type                = Fixed Penalty
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  v_enforcement_court_id        = 470000000013
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000001D, BU: 47
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_defendant_account: defendant_account_id: 60000000000020. Generated account number: 26000001D
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000020, party_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000020, party_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000019
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_get_creditor_account: Found creditor_account_id = 47 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_impositions: Processed 1 offences, 1 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_impositions: defendant_transactions has been updated. defendant_transaction_id = 60000000000006, transaction_amount = 50.00
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_payment_terms: defendant_accounts.jail_days [14] has been updated. defendant_account_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_enforcements: There were no enforcements to process for defendant_account_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_account_notes: There were no account notes to process for defendant_account_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_defendant_account: Created document_instances records for defendant_account_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:564: INFO:  p_create_defendant_account: Created report_entries record for defendant_account_id = 60000000000020, report_id = fp_register
+psql:p_create_defendant_account_unit_tests_v5.sql:564: NOTICE:  TEST 2 PASSED: Created account 26000001D with ID 60000000000020
+DO
+Time: 5.426 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: NOTICE:  === TEST 3: Full account creation with all fields including payment card request - account_type = "Fixed Penalty", debtor is the parent/guardian ===
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  v_account_type                = Fixed Penalty
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  v_defendant_type              = pgToPay
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  v_enforcement_court_id        = 470000000013
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 47
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_defendant_account: defendant_account_id: 60000000000021. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000021, party_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000021, party_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000020
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_aliases: Created aliases for party_id = 60000000000020 - Alias count = 2
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_defendant_parties: Created parties record for the parent_guardian. defendant_account_id = 60000000000021, party_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the parent_guardian. defendant_account_id = 60000000000021, party_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_aliases: Created aliases for party_id = 60000000000021 - Alias count = 1
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_get_creditor_account: Found creditor_account_id = 47 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_minor_creditor: Created parties record for the minor_creditor. party_id = 60000000000022
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000003S, BU: 47
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_minor_creditor: Created creditor_accounts record for the minor_creditor. creditor_account_id = 60000000000000
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_get_creditor_account: Created creditor_account_id = 60000000000000 - result_id = FCOMP, imposition_creditor = Any
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_impositions: Processed 1 offences, 2 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_impositions: defendant_transactions has been updated. defendant_transaction_id = 60000000000007, transaction_amount = 40.00
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_payment_terms: defendant_accounts.jail_days [14] has been updated. defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_enforcements: last enforcement result ID = NOENF
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_enforcements: Inserted 3 enforcements records for defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_enforcements: defendant_accounts.last_enforcement [NOENF] has been updated. defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_account_notes: Inserted 2 AA notes records, out of 3, for defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_account_notes: defendant_accounts has been updated with account comments. defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_defendant_account: Created document_instances records for defendant_account_id = 60000000000021
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: INFO:  p_create_defendant_account: Created report_entries record for defendant_account_id = 60000000000021, report_id = fp_register
+psql:p_create_defendant_account_unit_tests_v5.sql:1560: NOTICE:  TEST 3 PASSED: Created account 26000002W with ID 60000000000021 and payment card request
+DO
+Time: 24.567 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: NOTICE:  === TEST 4: Test handling of missing required fields ===
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: INFO:  v_account_type                = <NULL>
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: INFO:  v_defendant_type              = <NULL>
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: INFO:  v_account_sentence_date       = <NULL>
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: NOTICE:  Error in p_create_defendant_account: 23502 - null value in column "account_type" of relation "defendant_accounts" violates not-null constraint
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: NOTICE:  Error details: Failing row contains (60000000000022, 65, 26000002W, null, null, 0.00, 0.00, 0.00, L, null, 650000000045, null, null, 2026-02-03 18:56:54.514992, null, null, LJS, null, t, t, 10, 0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 12345, null, null, null, null, null, null, 1, null, LJS).
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: NOTICE:  Expected error caught: Error in p_create_defendant_account: 23502 - null value in column "account_type" of relation "defendant_accounts" violates not-null constraint
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:1640: NOTICE:  TEST 4 PASSED: Error handling works correctly for missing required fields
+DO
+Time: 1.036 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: NOTICE:  === TEST 5: Test handling da_account_type_cc check constraint violation ===
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: INFO:  v_account_type                = fine
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000001D, BU: 60
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: NOTICE:  Error in p_create_defendant_account: 23514 - new row for relation "defendant_accounts" violates check constraint "da_account_type_cc"
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: NOTICE:  Error details: Failing row contains (60000000000023, 60, 26000001D, 2024-12-12 00:00:00, null, 0.00, 0.00, 0.00, L, null, 650000000045, null, null, 2026-02-03 18:56:54.516337, null, null, LJS, null, t, t, 10, 0, null, null, null, null, null, null, null, null, null, null, null, null, t, 2026-02-03 18:56:54.516337, L045EO, null, null, 12345, fine, null, null, null, null, null, 1, Tester 1, LJS).
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:1757: NOTICE:  TEST 5 PASSED: Error handling works correctly for da_account_type_cc check constraint violation.
+DO
+Time: 0.942 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: NOTICE:  === TEST 6: Test handling when defendant_type = "pgToPay" AND parent_guardian Json is missing = P2002 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  v_defendant_type              = pgToPay
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  p_create_defendant_account: defendant_account_id: 60000000000024. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000024, party_id = 60000000000023
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000024, party_id = 60000000000023
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000023
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: INFO:  p_create_aliases: Created aliases for party_id = 60000000000023 - Alias count = 2
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: NOTICE:  Error in p_create_defendant_parties: P2002 - Missing parent/guardian
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: NOTICE:  Error in p_create_defendant_account: P2002 - Missing parent/guardian
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: NOTICE:  Expected error caught: P2002 - Missing parent/guardian
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:1898: NOTICE:  TEST 6 PASSED: Error handling works correctly for missing parent_guardian details
+DO
+Time: 1.690 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: NOTICE:  === TEST 7: Test handling when account_type = "Fixed Penalty" but notice_number field is missing (Json null) = P2011 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  v_account_type                = Fixed Penalty
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  p_create_defendant_account: defendant_account_id: 60000000000025. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000025, party_id = 60000000000024
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000025, party_id = 60000000000024
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000024
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: INFO:  p_create_aliases: Created aliases for party_id = 60000000000024 - Alias count = 2
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: NOTICE:  Error in p_create_fp_offences: P2011 - Missing ticket number
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: NOTICE:  Error in p_create_defendant_account: P2011 - Missing ticket number
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: NOTICE:  Expected error caught: P2011 - Missing ticket number
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2049: NOTICE:  TEST 7 PASSED: Error handling works correctly for missing notice_number field
+DO
+Time: 1.563 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  === TEST 8A: Test handling when the passed payment terms are invalid = P2003 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  ===          When payment_terms_type_code is not B, I or P                   ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_account: defendant_account_id: 60000000000026. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000026, party_id = 60000000000025
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000026, party_id = 60000000000025
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000025
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000025
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000026
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_get_creditor_account: Found creditor_account_id = 65 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_impositions: Processed 1 offences, 1 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000026
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Error in p_create_defendant_account: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Test 8A: Expected error caught: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Test 8A: ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  TEST 8A PASSED: Error handling works correctly when the passed payment terms are invalid
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  === TEST 8B: Test handling when the passed payment terms are invalid = P2003                           ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  ===    When payment_terms_type_code = B, effective_date IS NOT NULL, account_type is NOT Fixed Penalty ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_account: defendant_account_id: 60000000000027. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000027, party_id = 60000000000026
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000027, party_id = 60000000000026
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000026
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000026
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000027
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_get_creditor_account: Found creditor_account_id = 65 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_impositions: Processed 1 offences, 1 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000027
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Error in p_create_defendant_account: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Test 8B: Expected error caught: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Test 8B: ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  TEST 8B PASSED: Error handling works correctly when the passed payment terms are invalid
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  === TEST 8C: Test handling when the passed payment terms are invalid = P2003                         ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  ===    When payment_terms_type_code = I, effective_date IS NOT NULL but instalment_amount is missing ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_account: defendant_account_id: 60000000000028. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000028, party_id = 60000000000027
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000028, party_id = 60000000000027
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000027
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000027
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000028
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_get_creditor_account: Found creditor_account_id = 65 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_impositions: Processed 1 offences, 1 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000028
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Error in p_create_defendant_account: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Test 8C: Expected error caught: P2003 - Invalid payment terms
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  Test 8C: ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2352: NOTICE:  TEST 8C PASSED: Error handling works correctly when the passed payment terms are invalid
+DO
+Time: 4.667 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: NOTICE:  === TEST 9: Test handling when the passed imposition result ID is invalid = P2004 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  p_create_defendant_account: defendant_account_id: 60000000000029. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000029, party_id = 60000000000028
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000029, party_id = 60000000000028
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000028
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000028
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000029
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: NOTICE:  Error in p_get_creditor_account: P2004 - Result ZZZZZZ is not valid
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: NOTICE:  Error in p_create_impositions: P2004 - Result ZZZZZZ is not valid
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: NOTICE:  Error in p_create_defendant_account: P2004 - Result ZZZZZZ is not valid
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: NOTICE:  Expected error caught: P2004 - Result ZZZZZZ is not valid
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2507: NOTICE:  TEST 9 PASSED: Error handling works correctly when the passed imposition result ID is invalid
+DO
+Time: 1.472 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: NOTICE:  === TEST 10: Test handling when the passed creditor information is missing = P2005 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  p_create_defendant_account: defendant_account_id: 60000000000030. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000030, party_id = 60000000000029
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000030, party_id = 60000000000029
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000029
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000029
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000030
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: NOTICE:  Error in p_get_creditor_account: P2005 - Missing creditor
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: NOTICE:  Error in p_create_impositions: P2005 - Missing creditor
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: NOTICE:  Error in p_create_defendant_account: P2005 - Missing creditor
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: NOTICE:  Expected error caught: P2005 - Missing creditor
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2662: NOTICE:  TEST 10 PASSED: Error handling works correctly when the passed creditor information is missing
+DO
+Time: 1.296 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: NOTICE:  === TEST 11: Test handling when the passed major_creditor_id cannot be found = P2006 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  p_create_defendant_account: defendant_account_id: 60000000000031. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000031, party_id = 60000000000030
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000031, party_id = 60000000000030
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000030
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000030
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000031
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: NOTICE:  Error in p_get_creditor_account: P2006 - Creditor 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: NOTICE:  Error in p_create_impositions: P2006 - Creditor 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: NOTICE:  Error in p_create_defendant_account: P2006 - Creditor 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: NOTICE:  Expected error caught: P2006 - Creditor 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2817: NOTICE:  TEST 11 PASSED: Error handling works correctly when the passed major_creditor_id cannot be found
+DO
+Time: 1.348 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: NOTICE:  === TEST 12: Test handling when the passed enforcement court cannot be found = P2007 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: INFO:  v_enforcement_court_id        = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: NOTICE:  Error in p_create_defendant_account: 23503 - insert or update on table "defendant_accounts" violates foreign key constraint "da_enforcing_court_id_fk"
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: NOTICE:  Error details: Key (enforcing_court_id)=(0) is not present in table "courts".
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: NOTICE:  Expected error caught: P2007 - Enforcement court 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:2972: NOTICE:  TEST 12 PASSED: Error handling works correctly when the passed enforcement court cannot be found
+DO
+Time: 1.067 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: NOTICE:  === TEST 13: Test handling when the passed imposing court is not found = P2008 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  p_create_defendant_account: defendant_account_id: 60000000000033. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000033, party_id = 60000000000031
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000033, party_id = 60000000000031
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000031
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000031
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000033
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: INFO:  p_get_creditor_account: Found creditor_account_id = 65 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: NOTICE:  Error in p_create_impositions: 23503 - insert or update on table "impositions" violates foreign key constraint "imp_imposing_court_id_fk"
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: NOTICE:  Error details: Key (imposing_court_id)=(0) is not present in table "courts".
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: NOTICE:  Error in p_create_defendant_account: P2008 - Imposing court '0' not found
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: NOTICE:  Expected error caught: P2008 - Imposing court '0' not found
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:3126: NOTICE:  TEST 13 PASSED: Error handling works correctly when imposing court is not found
+DO
+Time: 1.506 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: NOTICE:  === TEST 14: Test handling when the passed offence cannot be found = P2009 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  p_create_defendant_account: defendant_account_id: 60000000000034. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000034, party_id = 60000000000032
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000034, party_id = 60000000000032
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000032
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000032
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000034
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: NOTICE:  Error in p_create_impositions: P2009 - Offence 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: NOTICE:  Error in p_create_defendant_account: P2009 - Offence 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: NOTICE:  Expected error caught: P2009 - Offence 0 not found
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:3281: NOTICE:  TEST 14 PASSED: Error handling works correctly when the passed offence cannot be found
+DO
+Time: 1.229 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  === TEST 15: Test handling when the passed minor creditor bank details are missing = P2010 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  p_create_defendant_account: defendant_account_id: 60000000000035. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000035, party_id = 60000000000033
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000035, party_id = 60000000000033
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000033
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000033
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000035
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  Error in p_create_minor_creditor: P2010 - Missing bank detail
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  Error in p_get_creditor_account: P2010 - Missing bank detail
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  Error in p_create_impositions: P2010 - Missing bank detail
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  Error in p_create_defendant_account: P2010 - Missing bank detail
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  Expected error caught: P2010 - Missing bank detail
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:3454: NOTICE:  TEST 15 PASSED: Error handling works correctly when the passed minor creditor bank details are missing
+DO
+Time: 1.435 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: NOTICE:  === TEST 16: Test handling when the passed Notes Json contains an invalid note_type = P2012 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_defendant_account: defendant_account_id: 60000000000036. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000036, party_id = 60000000000034
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000036, party_id = 60000000000034
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000034
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000034
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000036
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_get_creditor_account: Found creditor_account_id = 65 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_impositions: Processed 1 offences, 1 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_impositions: defendant_transactions has been updated. defendant_transaction_id = 60000000000008, transaction_amount = 40.00
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000036
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 60000000000036
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_payment_terms: defendant_accounts.jail_days [14] has been updated. defendant_account_id = 60000000000036
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: INFO:  p_create_enforcements: There were no enforcements to process for defendant_account_id = 60000000000036
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: NOTICE:  Error in p_create_account_notes: P2012 - Note_type ZZ is not valid
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: NOTICE:  Error in p_create_defendant_account: P2012 - Note_type ZZ is not valid
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: NOTICE:  Expected error caught: P2012 - Note_type ZZ is not valid
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:3679: NOTICE:  TEST 16 PASSED: Error handling works correctly when the passed Notes Json contains an invalid note_type
+DO
+Time: 2.073 ms
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  === TEST 17: Test handling when the passed Notes Json contains more than 1 AC entries = P2013 ===
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  v_account_type                = Fine
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  v_defendant_type              = adultOrYouthOnly
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  v_account_sentence_date       = 2024-12-12 00:00:00
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  v_enforcement_court_id        = 650000000045
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  v_originator_name             = LJS
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  v_originator_id               = 12345
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  Inserting record into ACCOUNT_NUMBER_INDEX for account_number: 26000002W, BU: 65
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_defendant_account: defendant_account_id: 60000000000037. Generated account number: 26000002W
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = 60000000000037, party_id = 60000000000035
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = 60000000000037, party_id = 60000000000035
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_debtor_details: Created debtor_detail record for party_id = 60000000000035
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_aliases: There were no aliases to process for party_id = 60000000000035
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_fp_offences: Created fixed_penalty_offences record for defendant_account_id = 60000000000037
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_get_creditor_account: Found creditor_account_id = 65 - result_id = FO, imposition_creditor = CF
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_impositions: Processed 1 offences, 1 impositions
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_impositions: defendant_transactions has been updated. defendant_transaction_id = 60000000000009, transaction_amount = 40.00
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_impositions: defendant_accounts has been updated. defendant_account_id = 60000000000037
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 60000000000037
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_payment_terms: defendant_accounts.jail_days [14] has been updated. defendant_account_id = 60000000000037
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_enforcements: There were no enforcements to process for defendant_account_id = 60000000000037
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: INFO:  p_create_account_notes: Inserted 2 AA notes records, out of 3, for defendant_account_id = 60000000000037
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  Error in p_create_account_notes: P2013 - Only one AC note type is expected. Number of AC entries = 2
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  Error in p_create_defendant_account: P2013 - Only one AC note type is expected. Number of AC entries = 2
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  Expected error caught: P2013 - Only one AC note type is expected. Number of AC entries = 2
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  ACCOUNT_NUMBER_INDEX row count = 0
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  TEST 17 PASSED: Error handling works correctly when the passed Notes Json contains more than 1 AC entries
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  === All tests completed and passed for p_create_defendant_account ===
+psql:p_create_defendant_account_unit_tests_v5.sql:3911: NOTICE:  === All tests completed and passed for p_create_defendant_account ===
+DO
+Time: 2.233 ms
+Timing is off.
