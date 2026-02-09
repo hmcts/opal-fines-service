@@ -2,7 +2,7 @@ services:
   opal-fines-service:
     image: opal-fines-service:local
     build:
-      context: .
+      context: ../opal-fines-service
       args:
         - http_proxy
         - https_proxy

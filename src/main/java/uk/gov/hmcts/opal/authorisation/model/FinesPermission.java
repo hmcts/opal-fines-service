@@ -20,7 +20,8 @@ public enum FinesPermission implements PermissionDescriptor {
     SEARCH_AND_VIEW_ACCOUNTS(6L, "Search and View Accounts"),
     ACCOUNT_MAINTENANCE(7L, "Account Maintenance"),
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
-    ENTER_ENFORCEMENT(10L, "Enter Enforcement");
+    ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
+    CONSOLIDATE(13L, "Consolidate");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account
