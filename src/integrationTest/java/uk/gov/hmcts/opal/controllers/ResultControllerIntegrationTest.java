@@ -417,5 +417,43 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
+    @Test
+    @DisplayName("Enforcement override: enforcement_override=true returns only those with enforcement_override=true")
+    void testEnforcementOverrideTrue() throws Exception {
+        // Use real IDs: NBWT has enforcement_override = true, NAP has enforcement_override = false
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=NBWT,NAP&enforcement_override=true"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testEnforcementOverrideTrue: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // Expect only NBWT to be returned when enforcement_override=true
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].result_id").value("NBWT"))
+            .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("NAP"))));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Enforcement override: enforcement_override=false returns only those with enforcement_override=false")
+    void testEnforcementOverrideFalse() throws Exception {
+        // Use real IDs: NBWT (true) and NAP (false) — expect only NAP when enforcement_override=false
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=NBWT,NAP&enforcement_override=false"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testEnforcementOverrideFalse: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // Expect only NAP to be returned when enforcement_override=false
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].result_id").value("NAP"))
+            .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("NBWT"))));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
 }
 

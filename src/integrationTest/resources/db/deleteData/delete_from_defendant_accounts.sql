@@ -19,7 +19,7 @@ WHERE party_id IN (
 -- Remove defendant_account_parties links
 DELETE FROM defendant_account_parties
 WHERE defendant_account_party_id IN (
-                                     77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                                     991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
                                      20010, 22004         -- NEW
     );
 
@@ -72,7 +72,7 @@ WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001,
 -- Remove main defendant accounts
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
-                               77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                               991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
                                20010, 22004,
                                262901, 262902
     );
@@ -88,7 +88,7 @@ WHERE party_id IN (
 -- Remove inserted parties
 DELETE FROM parties
 WHERE party_id IN (
-                   77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
+                   991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
                    20010, 22004,
                    262901, 262902
     );
