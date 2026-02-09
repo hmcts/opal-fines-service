@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_DIR="$HOME/Opal"
+MODE="localBranches"
+SKIP_UPDATE=false
+
+usage() {
+  cat <<'USAGE'
+Usage: opalBuild [-localBranches|-lb|-localMaster|-lm] [-c|--current]
+
+-localBranches, -lb (default): fetch/pull current branches in each repo then ./gradlew clean assemble
+-localMaster, -lm: checkout master, then fetch/pull in each repo then ./gradlew clean assemble
+--current, -c: build without fetch/pull or ./gradlew clean assemble
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -localBranches|-lb) MODE="localBranches" ;;
+    -localMaster|-lm) MODE="localMaster" ;;
+    -c|--current) SKIP_UPDATE=true ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+if [[ ! -d "$BASE_DIR" ]]; then
+  echo "Base directory not found: $BASE_DIR" >&2
+  exit 1
+fi
+
+cd "$BASE_DIR"
+
+REPOS=(
+  opal-fines-service
+  opal-user-service
+  opal-logging-service
+  opal-shared-infrastructure
+)
+
+for repo in "${REPOS[@]}"; do
+  if [[ ! -d "$repo" ]]; then
+    echo "Missing repo: $BASE_DIR/$repo" >&2
+    exit 1
+  fi
+
+  if [[ "$SKIP_UPDATE" == "false" ]]; then
+    if [[ "$MODE" == "localMaster" ]]; then
+      (cd "$repo" && git checkout master)
+    fi
+
+    (cd "$repo" && git fetch && git pull)
+  fi
+done
+
+GRADLE_REPOS=(
+  opal-fines-service
+  opal-user-service
+  opal-logging-service
+)
+
+if [[ "$SKIP_UPDATE" == "false" ]]; then
+  for repo in "${GRADLE_REPOS[@]}"; do
+    (cd "$repo" && ./gradlew clean assemble)
+  done
+fi
+
+PROJECT=opal-stack
+
+COMPOSE_FILES=(
+  -f "$BASE_DIR/opal-fines-service/docker-compose.base.yml"
+  -f "$BASE_DIR/opal-fines-service/docker-compose.local.yml"
+  -f "$BASE_DIR/opal-user-service/docker-compose.base.yml"
+  -f "$BASE_DIR/opal-user-service/docker-compose.local.yml"
+  -f "$BASE_DIR/opal-logging-service/docker-compose.base.yml"
+  -f "$BASE_DIR/opal-logging-service/docker-compose.local.yml"
+)
+
+docker compose -p "$PROJECT" \
+  "${COMPOSE_FILES[@]}" \
+  up --build -d

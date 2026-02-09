@@ -4,7 +4,7 @@
   "type": ["object", "null"],
   "additionalProperties": false,
   "properties": {
-    "posted_date": { "type": "string", "format": "date" },
+    "posted_date": { "type": "string", "format": "date-time" },
     "posted_by": { "type": ["string", "null"] },
     "posted_by_name": { "type": ["string", "null"] }
   },

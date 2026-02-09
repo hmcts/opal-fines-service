@@ -15,8 +15,8 @@ plugins {
   id 'org.sonarqube' version '7.2.2.6593'
   id 'uk.gov.hmcts.java' version '0.12.67'
   id 'org.flywaydb.flyway' version '11.20.3'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.1.0'
-  id "org.openapi.generator" version "7.16.0"
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.2.2'
+  id "org.openapi.generator" version "7.19.0"
 }
 
 ext {
@@ -310,7 +310,7 @@ sonarqube {
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
-    property 'sonar.cpd.exclusions', "**/entity/*,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
+    property 'sonar.cpd.exclusions', "**/entity/*,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
   }
 }
 
@@ -417,7 +417,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.41.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.42.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -461,7 +461,7 @@ dependencies {
 
   testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
-  testImplementation 'com.azure:azure-messaging-servicebus:7.17.16'
+  testImplementation 'com.azure:azure-messaging-servicebus:7.17.17'
 
   //Added to override dependency version to resolve vulnerability
   implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'

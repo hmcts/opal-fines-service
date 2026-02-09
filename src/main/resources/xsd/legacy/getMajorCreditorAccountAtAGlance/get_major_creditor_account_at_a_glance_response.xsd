@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="../common-objects/business_unit_summary.xsd"/>
+  <xsd:include schemaLocation="../common-objects/error_response.xsd"/>
+  <xsd:include schemaLocation="../common-objects/major_creditor_address_details.xsd"/>
+  <xsd:element name="response">
+    <xsd:complexType>
+      <xsd:choice>
+        <xsd:sequence>
+          <xsd:element name="major_creditor" type="major_creditor" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:sequence>
+          <xsd:element name="error_response" type="error_response" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+    <xsd:complexType name="major_creditor">
+        <xsd:sequence>
+            <xsd:element name="creditor_account_id" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="creditor_account_version" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="code" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="address" type="major_creditor_address_details" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="pay_by_bacs" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
