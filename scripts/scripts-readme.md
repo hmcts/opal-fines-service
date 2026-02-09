@@ -37,3 +37,9 @@ Run this from the project root to copy the scripts into `$HOME/bin` this will al
 mkdir -p "$HOME/bin"
 install -m 755 ./opalBuild ./opalDown "$HOME/bin/"
 ```
+
+This assumes you have the `~/bin` directory in your path, if you do not it can be added by running
+```bash
+sudo nano ~/.zshrc
+```
+and adding `export PATH="/opt/homebrew/bin:$PATH"`.
