@@ -362,4 +362,123 @@ class DraftAccountPdplLoggingServiceTest {
             "66");
     }
 
+    @Test
+    @DisplayName("Get - Defendant: full payload asserted")
+    void getDefendant_fullPayload() {
+        Long draftId = 77777777L;
+        String submittedBy = "opal-user-get";
+        DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id": 9,
+              "offences": []
+            }
+            """);
+
+        String expectedIp = "198.51.100.77";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-05-05T05:05:05Z");
+
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.GET, expectedIp, expectedNow, 1);
+
+        PersonalDataProcessingLogDetails details = calls.get(0);
+
+        assertPdplCommon(details,
+            "Get Draft Account - Defendant",
+            PersonalDataProcessingCategory.CONSULTATION,
+            expectedIp,
+            expectedNow,
+            /* expectedCreatedByIdentifier */ null,
+            draftId.toString());
+    }
+
+    @Test
+    @DisplayName("Get - Parent/Guardian and Defendant: asserted order and payloads")
+    void getPg_thenDefendant_fullPayloads() {
+        DraftAccountEntity entity = makeEntity(88L, "user-get-pg", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"pgToPay",
+              "originator_name":"LJS",
+              "originator_id":10,
+              "offences": []
+            }
+            """);
+
+        String expectedIp = "203.0.113.21";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-06-06T06:06:06Z");
+
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.GET, expectedIp, expectedNow, 2);
+
+        PersonalDataProcessingLogDetails first = calls.get(0);
+        assertPdplCommon(first,
+            "Get Draft Account - Parent or Guardian",
+            PersonalDataProcessingCategory.CONSULTATION,
+            expectedIp,
+            expectedNow,
+            /* expectedCreatedByIdentifier */ null,
+            "88");
+
+        PersonalDataProcessingLogDetails second = calls.get(1);
+        assertPdplCommon(second,
+            "Get Draft Account - Defendant",
+            PersonalDataProcessingCategory.CONSULTATION,
+            expectedIp,
+            expectedNow,
+            /* expectedCreatedByIdentifier */ null,
+            "88");
+    }
+
+    @Test
+    @DisplayName("Get - Minor Creditor present -> logs Defendant then Minor Creditor; both payloads asserted")
+    void getDefendantAndMinor_fullPayloads() {
+        DraftAccountEntity entity = makeEntity(99L, "user-get-min", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id":11,
+              "offences": [
+                {
+                  "impositions": [
+                    {
+                      "minor_creditor": {
+                        "company_flag": false,
+                        "surname": "Minor",
+                        "forenames": "Bob"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
+
+        String expectedIp = "192.0.2.99";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-07-07T07:07:07Z");
+
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.GET, expectedIp, expectedNow, 2);
+
+        PersonalDataProcessingLogDetails defendantDetails = calls.get(0);
+        assertPdplCommon(defendantDetails,
+            "Get Draft Account - Defendant",
+            PersonalDataProcessingCategory.CONSULTATION,
+            expectedIp,
+            expectedNow,
+            /* expectedCreatedByIdentifier */ null,
+            "99");
+
+        PersonalDataProcessingLogDetails minorDetails = calls.get(1);
+        assertPdplCommon(minorDetails,
+            "Get Draft Account - Minor Creditor",
+            PersonalDataProcessingCategory.CONSULTATION,
+            expectedIp,
+            expectedNow,
+            /* expectedCreatedByIdentifier */ null,
+            "99");
+    }
 }
