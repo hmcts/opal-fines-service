@@ -190,9 +190,20 @@ class LegacyMinorCreditorServiceTest {
         listAppender.start();
         logger.addAppender(listAppender);
 
+        LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
+            LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
+                .party(null)
+                .address(null)
+                .creditorAccountId(66L)
+                .creditorAccountVersion(BigInteger.valueOf(1))
+                .defendant(null)
+                .payment(null)
+                .errorResponse(null)
+                .build();
+
         GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> responseWithException =
             new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
-                null, null, new RuntimeException("Gateway error"));
+                legacyResponse, null, new RuntimeException("Gateway error"));
 
         when(gatewayService.postToGateway(
             any(),
@@ -200,6 +211,17 @@ class LegacyMinorCreditorServiceTest {
             any(),
             any())
         ).thenReturn(responseWithException);
+
+        GetMinorCreditorAccountAtAGlanceResponse mapperResponse =
+            GetMinorCreditorAccountAtAGlanceResponse.builder()
+                .party(null)
+                .address(null)
+                .creditorAccountId(66L)
+                .defendant(null)
+                .payment(null)
+                .build();
+
+        when(atAGlanceResponseMapper.toDto(legacyResponse)).thenReturn(mapperResponse);
 
         // Act
         legacyMinorCreditorService.getMinorCreditorAtAGlance("gatewayException");
@@ -248,6 +270,17 @@ class LegacyMinorCreditorServiceTest {
             any(),
             any())
         ).thenReturn(responseWithFailure);
+
+        GetMinorCreditorAccountAtAGlanceResponse mapperResponse =
+            GetMinorCreditorAccountAtAGlanceResponse.builder()
+                .party(null)
+                .address(null)
+                .creditorAccountId(66L)
+                .defendant(null)
+                .payment(null)
+                .build();
+
+        when(atAGlanceResponseMapper.toDto(legacyResponse)).thenReturn(mapperResponse);
 
         // Act
         GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
