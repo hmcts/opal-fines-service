@@ -37,7 +37,16 @@ public class MinorCreditorService {
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId,
         String authHeaderValue) {
-        return null;
+
+        log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return minorCreditorSearchProxy.getMinorCreditorAtAGlance(minorCreditorId);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
     }
 
     public GetMinorCreditorAccountHeaderSummaryResponse getMinorCreditorAccountHeaderSummary(
