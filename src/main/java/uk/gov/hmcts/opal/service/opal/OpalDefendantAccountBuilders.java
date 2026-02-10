@@ -16,9 +16,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import uk.gov.hmcts.opal.dto.CollectionOrderDto;
-import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -844,13 +843,6 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static CollectionOrderDto buildCollectionOrder(DefendantAccountEntity entity) {
-        return CollectionOrderDto.builder()
-            .collectionOrderFlag(entity.getCollectionOrder())
-            .collectionOrderDate(String.valueOf(entity.getCollectionOrderEffectiveDate()))
-            .build();
-    }
-
     static CollectionOrderCommon buildCollectionOrderCommon(DefendantAccountEntity entity) {
         return CollectionOrderCommon.builder()
             .collectionOrderFlag(entity.getCollectionOrder())
@@ -858,14 +850,40 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static CourtReferenceDto buildCourtReference(CourtEntity.Lite court) {
+    static DefendantAccountResponse.EnforcementCourtResponse buildUpdateEnforcementCourt(CourtEntity.Lite court) {
         return Optional.ofNullable(court)
             .filter(c -> safeInt(c.getCourtId()) != null)
-            .map(c -> CourtReferenceDto.builder()
-                .courtId(safeInt(c.getCourtId()))
+            .map(c -> DefendantAccountResponse.EnforcementCourtResponse.builder()
+                .enforcingCourtId(safeInt(c.getCourtId()))
                 .courtName(c.getName())
                 .build())
             .orElse(null);
+    }
+
+    static DefendantAccountResponse.CollectionOrderResponse buildUpdateCollectionOrder(DefendantAccountEntity entity) {
+        return DefendantAccountResponse.CollectionOrderResponse.builder()
+            .collectionOrder(entity.getCollectionOrder())
+            .collectionOrderDate(entity.getCollectionOrderEffectiveDate() != null
+                ? entity.getCollectionOrderEffectiveDate().toString()
+                : null)
+            .build();
+    }
+
+    static DefendantAccountResponse.EnforcementOverrideResponse buildUpdateEnforcementOverride(
+        DefendantAccountEntity entity) {
+        if (entity.getEnforcementOverrideResultId() == null
+            && entity.getEnforcementOverrideEnforcerId() == null
+            && entity.getEnforcementOverrideTfoLjaId() == null) {
+            return null;
+        }
+
+        return DefendantAccountResponse.EnforcementOverrideResponse.builder()
+            .enforcementOverrideResultId(entity.getEnforcementOverrideResultId())
+            .enforcementOverrideEnforcerId(entity.getEnforcementOverrideEnforcerId() == null
+                ? null : entity.getEnforcementOverrideEnforcerId().intValue())
+            .enforcementOverrideTfoLjaId(entity.getEnforcementOverrideTfoLjaId() == null
+                ? null : entity.getEnforcementOverrideTfoLjaId().intValue())
+            .build();
     }
 
     static CourtReferenceCommon buildCourtReferenceCommon(CourtEntity.Lite court) {

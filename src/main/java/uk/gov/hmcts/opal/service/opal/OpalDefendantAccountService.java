@@ -1,9 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCollectionOrder;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCommentsAndNotes;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildContactDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCourtReference;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEmployerDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
@@ -452,9 +450,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return DefendantAccountResponse.builder()
             .id(entity.getDefendantAccountId())
             .commentsAndNotes(buildCommentsAndNotes(entity))
-            .enforcementCourt(buildCourtReference(entity.getEnforcingCourt()))
-            .collectionOrder(buildCollectionOrder(entity))
-            .enforcementOverride(buildEnforcementOverride(entity))
+            .enforcementCourt(OpalDefendantAccountBuilders.buildUpdateEnforcementCourt(entity.getEnforcingCourt()))
+            .collectionOrder(OpalDefendantAccountBuilders.buildUpdateCollectionOrder(entity))
+            .enforcementOverride(OpalDefendantAccountBuilders.buildUpdateEnforcementOverride(entity))
             .version(newVersion)
             .build();
     }
