@@ -27,7 +27,7 @@ LAUNCH_DARKLY_SDK_KEY=<Ask Team Memebers>
 ```
 
 You can also create a shared .env.shred file with these variables you can use the `create_env.sh` script from opal-shared-infrastructure:
-But these will only get picked up when running the application with docker. 
+But these will only get picked up when running the application with docker.
 So for local development, you will need to set these environment variables in your IDE run configuration or terminal session.
 ```bash / zsh
 ../opal-shared-infrastructure/bin/create_env.sh
@@ -105,7 +105,7 @@ Create docker image:
   docker-compose build
 ```
 **Zsh**:
-```zsh 
+```zsh
   docker compose build
 ```
 
@@ -173,7 +173,10 @@ Finally to run the application with all external dependencies using docker you c
 ```bash / zsh
 ../opal-shared-infrastructure/bin/opalBuild.sh -lb
 ```
-Full details of this script and the arguments can be found within the opal-shared-infrastructure repository [here](../opal-shared-infrastructure/docker-files/scripts/scripts-readme.md)
+Full details of this script and the arguments can be found within the opal-shared-infrastructure repository
+
+* [Link to file on Github](https://github.com/hmcts/opal-shared-infrastructure/blob/master/docker-files/scripts/scripts-readme.md)
+* [Link to file locally](../opal-shared-infrastructure/docker-files/scripts/scripts-readme.md)
 
 ### Verifying application startup
 
@@ -238,7 +241,7 @@ To ensure we are following the same styles you will need to enable this project 
 Some functionality of the application depends on Azure Service Bus. To run and test this functionality locally, you can use an emulator for Azure Service Bus.
 This is already bundled with the docker-compose setup.
 
-To view any messages sent to the queues/topics you can use a tool like 'Azure Service Bus Explorer'. 
+To view any messages sent to the queues/topics you can use a tool like 'Azure Service Bus Explorer'.
 Or you can use the PeekSbEmulator class that is setup in test/java/uk/gov/hmcts/opal/support/PeekSbEmulator.java to do this simply call the main method of this class you can add a argument to specify which queue/topic you want to peek messages from.
 
 ## License
