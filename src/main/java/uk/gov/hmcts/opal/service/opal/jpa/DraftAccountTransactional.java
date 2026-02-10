@@ -71,8 +71,6 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         loggingService.pdplForDraftAccount(entity, Action.GET);
 
-        System.out.println("calling GET");
-
         return entity;
     }
 
