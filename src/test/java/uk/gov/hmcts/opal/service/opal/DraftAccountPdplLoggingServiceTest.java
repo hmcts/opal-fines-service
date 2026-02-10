@@ -114,6 +114,9 @@ class DraftAccountPdplLoggingServiceTest {
             }
             """);
 
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        String expectedBusinessIdentifier = "Submit Draft Account - Defendant";
         String expectedIp = "192.0.2.33";
         OffsetDateTime expectedNow = OffsetDateTime.parse("2023-01-02T03:04:05Z");
 
@@ -358,4 +361,5 @@ class DraftAccountPdplLoggingServiceTest {
             "user-replace-pg",
             "66");
     }
+
 }

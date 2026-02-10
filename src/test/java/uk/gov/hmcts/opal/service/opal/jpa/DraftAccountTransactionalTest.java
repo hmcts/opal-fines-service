@@ -21,6 +21,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -62,7 +63,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
@@ -81,7 +82,7 @@ class DraftAccountTransactionalTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -154,6 +155,26 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
         assertEquals(saved.getAccount(), result.getAccount());
+
+        // Capture the arguments passed to pdplForDraftAccount and assert their contents
+        ArgumentCaptor<DraftAccountEntity> entityCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        ArgumentCaptor<DraftAccountPdplLoggingService.Action> actionCaptor =
+            ArgumentCaptor.forClass(DraftAccountPdplLoggingService.Action.class);
+
+        verify(loggingService).pdplForDraftAccount(entityCaptor.capture(), actionCaptor.capture());
+
+        DraftAccountEntity capturedEntity = entityCaptor.getValue();
+
+        assertNotNull(capturedEntity, "pdplForDraftAccount should be called with a DraftAccountEntity");
+        assertEquals(saved.getDraftAccountId(), capturedEntity.getDraftAccountId(),
+            "pdplForDraftAccount should be called with the saved draft account id");
+        assertEquals(saved.getAccount(), capturedEntity.getAccount(),
+            "pdplForDraftAccount should be called with the same account JSON that was saved");
+
+        DraftAccountPdplLoggingService.Action capturedAction = actionCaptor.getValue();
+
+        assertEquals(DraftAccountPdplLoggingService.Action.SUBMIT, capturedAction,
+            "pdplForDraftAccount should be called with Action.SUBMIT");
     }
 
     @Test
@@ -441,7 +462,7 @@ class DraftAccountTransactionalTest {
 
         // Act
         DraftAccountEntity result = draftAccountTransactional.updateStatus(entity, DraftAccountStatus.PUBLISHING_FAILED,
-                                                                           draftAccountTransactional
+            draftAccountTransactional
         );
 
         Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
@@ -453,8 +474,8 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
             .draftAccountId(007L)
             .businessUnit(BusinessUnitFullEntity.builder()
-                              .businessUnitId((short)78)
-                              .build())
+                .businessUnitId((short)78)
+                .build())
             .submittedBy("BU001")
             .submittedByName("Malcolm Mclaren")
             .build();
