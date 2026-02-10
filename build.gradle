@@ -401,7 +401,7 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
   implementation 'com.google.guava:guava:33.5.0-jre'
 
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.10.2'
+  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.11.0'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:2.10.0'
