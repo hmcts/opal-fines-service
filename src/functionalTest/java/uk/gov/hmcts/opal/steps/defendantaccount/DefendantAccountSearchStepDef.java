@@ -25,18 +25,18 @@ public class DefendantAccountSearchStepDef extends BaseStepDef {
         String consolidationSearch = m.getOrDefault("consolidation_search", "true");
 
         String body = """
-    {
-      "active_accounts_only": true,
-      "business_unit_ids": [%s],
-      "reference_number": {
-        "account_number": "%s",
-        "prosecutor_case_reference": null,
-        "organisation": false
-      },
-      "defendant": null,
-      "consolidation_search": %s
-    }
-    """.formatted(buId, accountNumber, consolidationSearch);
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [%s],
+              "reference_number": {
+                "account_number": "%s",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null,
+              "consolidation_search": %s
+            }
+            """.formatted(buId, accountNumber, consolidationSearch);
 
         SerenityRest.given()
             .accept("*/*")
@@ -72,7 +72,8 @@ public class DefendantAccountSearchStepDef extends BaseStepDef {
 
         // if count > 0, check the first result has the new fields
         if (count > 0) {
-            Boolean hasCollectionOrder = then().extract().jsonPath().getBoolean("defendant_accounts[0].has_collection_order");
+            Boolean hasCollectionOrder = then().extract().jsonPath()
+                    .getBoolean("defendant_accounts[0].has_collection_order");
             Integer accountVersion = then().extract().jsonPath().getInt("defendant_accounts[0].account_version");
 
             assertNotNull("has_collection_order should be present", hasCollectionOrder);
@@ -91,7 +92,8 @@ public class DefendantAccountSearchStepDef extends BaseStepDef {
 
     @Then("the first result has error reference {string}")
     public void firstResultHasErrorReference(String expectedRef) {
-        String actualRef = then().extract().jsonPath().getString("defendant_accounts[0].checks.errors[0].reference");
+        String actualRef = then().extract().jsonPath()
+                .getString("defendant_accounts[0].checks.errors[0].reference");
         assertEquals(expectedRef, actualRef);
     }
 
