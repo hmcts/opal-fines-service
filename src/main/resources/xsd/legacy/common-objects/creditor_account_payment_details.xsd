@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:include schemaLocation="../common-objects/simple_type.xsd"/>
+    <xsd:complexType name="creditor_account_payment_details">
+    <xsd:sequence>
+
+        <xsd:element name="account_name" minOccurs="0" maxOccurs="1">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:minLength value="1"/>
+                    <xsd:maxLength value="18"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+
+        <xsd:element name="sort_code" minOccurs="0" maxOccurs="1">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:minLength value="1"/>
+                    <xsd:maxLength value="6"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+
+      <xsd:element name="account_number" minOccurs="0" maxOccurs="1">
+          <xsd:simpleType>
+              <xsd:restriction base="xsd:string">
+                  <xsd:minLength value="1"/>
+                  <xsd:maxLength value="10"/>
+              </xsd:restriction>
+          </xsd:simpleType>
+      </xsd:element>
+
+        <xsd:element name="account_reference" minOccurs="0" maxOccurs="1">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:minLength value="1"/>
+                    <xsd:maxLength value="18"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+
+      <xsd:element name="pay_by_bacs" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="hold_payment" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

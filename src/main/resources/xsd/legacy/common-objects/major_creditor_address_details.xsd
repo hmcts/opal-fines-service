@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="major_creditor_address_details">
+    <xsd:sequence>
+      <xsd:element name="line_1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="line_2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="line_3" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="postcode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

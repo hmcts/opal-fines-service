@@ -100,6 +100,7 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
     public enum Action {
         SUBMIT("Submit Draft Account - %s"),
         RESUBMIT("Re-submit Draft Account - %s"),
+        REPLACE("Update Draft Account - %s"),
         GET("Get Draft Account - %s");
 
         private final String template;
