@@ -33,7 +33,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
 @Builder
 public class  LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlString {
 
-    @XmlElement(name = "party", required = true)
+    @XmlElement(name = "party_details", required = true)
     private LegacyPartyDetails party;
 
     @XmlElement(name = "address", required = true)
