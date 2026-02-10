@@ -49,7 +49,12 @@ public class LoggingSteps extends BaseStepDef {
         // put (update) variants
         Map.entry("Update Draft Account - Defendant", "DRAFT_ACCOUNT"),
         Map.entry("Update Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
-        Map.entry("Update Draft Account - Minor Creditor", "DRAFT_ACCOUNT")
+        Map.entry("Update Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
+
+        // PATCH (Re-submit) variants
+        Map.entry("Re-submit Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Re-submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Re-submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT")
     );
 
     /**
@@ -73,6 +78,7 @@ public class LoggingSteps extends BaseStepDef {
 
         searchAllExpectations(expectations);
     }
+
 
     @Then("no PDPO logs exist for created_by id {string}, type {string} and business_identifier {string}")
     public void noPdpoLogsExist(String createdById,
@@ -377,4 +383,5 @@ public class LoggingSteps extends BaseStepDef {
             return Objects.hash(createdById, createdByType, businessIdentifier);
         }
     }
+
 }
