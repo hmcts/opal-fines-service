@@ -46,6 +46,11 @@ public class LoggingSteps extends BaseStepDef {
         Map.entry("Submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
         Map.entry("Submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
 
+        // put (update) variants
+        Map.entry("Update Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Update Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Update Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
+
         // PATCH (Re-submit) variants
         Map.entry("Re-submit Draft Account - Defendant", "DRAFT_ACCOUNT"),
         Map.entry("Re-submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),

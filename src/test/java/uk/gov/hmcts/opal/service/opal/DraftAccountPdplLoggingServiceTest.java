@@ -39,24 +39,80 @@ class DraftAccountPdplLoggingServiceTest {
         return new DraftAccountPdplLoggingService(loggingService, fixedClock);
     }
 
+    private DraftAccountEntity makeEntity(Long draftId, String submittedBy, String accountJson) {
+        return DraftAccountEntity.builder()
+            .draftAccountId(draftId)
+            .submittedBy(submittedBy)
+            .account(accountJson)
+            .build();
+    }
+
+    private List<PersonalDataProcessingLogDetails> runAndCapturePdpl(
+        DraftAccountEntity entity,
+        Action action,
+        String expectedIp,
+        OffsetDateTime expectedNow,
+        int expectedCalls
+    ) {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
+
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
+            svc.pdplForDraftAccount(entity, action);
+        }
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+
+        verify(loggingService, times(expectedCalls)).personalDataAccessLogAsync(captor.capture());
+
+        return captor.getAllValues();
+    }
+
+    private void assertPdplCommon(
+        PersonalDataProcessingLogDetails pdpl,
+        String expectedBusinessIdentifier,
+        PersonalDataProcessingCategory expectedCategory,
+        String expectedIp,
+        OffsetDateTime expectedNow,
+        String expectedCreatedByIdentifier,
+        String expectedIndividualIdentifier
+    ) {
+        assertEquals(expectedBusinessIdentifier, pdpl.getBusinessIdentifier());
+        assertEquals(expectedCategory, pdpl.getCategory());
+        assertEquals(expectedIp, pdpl.getIpAddress());
+        assertEquals(expectedNow, pdpl.getCreatedAt());
+        assertThat(pdpl.getRecipient()).isNull();
+
+        assertThat(pdpl.getCreatedBy()).isNotNull();
+        if (expectedCreatedByIdentifier != null) {
+            assertEquals(expectedCreatedByIdentifier, pdpl.getCreatedBy().getIdentifier());
+        }
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
+
+        List<ParticipantIdentifier> individuals = pdpl.getIndividuals();
+        assertThat(individuals).hasSize(1);
+        ParticipantIdentifier ind = individuals.get(0);
+        assertEquals(expectedIndividualIdentifier, ind.getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, ind.getType());
+    }
+
     @Test
     @DisplayName("Submit - Defendant: full payload asserted")
     void submitDefendant_fullPayload() {
         Long draftId = 11111111L;
         String submittedBy = "opal-user-99";
-        DraftAccountEntity entity = DraftAccountEntity.builder()
-            .draftAccountId(draftId)
-            .submittedBy(submittedBy)
-            .account("""
-                {
-                  "account_type":"Fines",
-                  "defendant_type":"adultOrYouthOnly",
-                  "originator_name":"LJS",
-                  "originator_id": 1,
-                  "offences": []
-                }
-                """)
-            .build();
+        DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id": 1,
+              "offences": []
+            }
+            """);
 
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
@@ -64,330 +120,246 @@ class DraftAccountPdplLoggingServiceTest {
         String expectedIp = "192.0.2.33";
         OffsetDateTime expectedNow = OffsetDateTime.parse("2023-01-02T03:04:05Z");
 
-        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.SUBMIT, expectedIp, expectedNow, 1);
 
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            pdplLoggingService.pdplForDraftAccount(entity, Action.SUBMIT);
-        }
+        PersonalDataProcessingLogDetails details = calls.get(0);
 
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(1)).personalDataAccessLogAsync(captor.capture());
-
-        PersonalDataProcessingLogDetails details = captor.getValue();
-
-        assertEquals(expectedBusinessIdentifier, details.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, details.getCategory());
-        assertEquals(expectedIp, details.getIpAddress());
-        assertEquals(expectedNow, details.getCreatedAt());
-        assertThat(details.getRecipient()).isNull();
-
-        ParticipantIdentifier by = details.getCreatedBy();
-        assertThat(by).isNotNull();
-        assertEquals(submittedBy, by.getIdentifier());
-        assertEquals(PdplIdentifierType.OPAL_USER_ID, by.getType());
-
-        List<ParticipantIdentifier> individuals = details.getIndividuals();
-        assertThat(individuals).hasSize(1);
-        ParticipantIdentifier ind = individuals.get(0);
-        assertEquals(draftId.toString(), ind.getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, ind.getType());
+        assertPdplCommon(details,
+            "Submit Draft Account - Defendant",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            submittedBy,
+            draftId.toString());
     }
 
     @Test
     @DisplayName("Submit - Parent/Guardian and Defendant: asserted order and payloads")
     void submitPg_thenDefendant_fullPayloads() {
-        DraftAccountEntity entity = DraftAccountEntity.builder()
-            .draftAccountId(33L)
-            .submittedBy("user-pg")
-            .account("""
-                {
-                  "account_type":"Fines",
-                  "defendant_type":"pgToPay",
-                  "originator_name":"LJS",
-                  "originator_id":4,
-                  "offences": []
-                }
-                """)
-            .build();
-
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+        DraftAccountEntity entity = makeEntity(33L, "user-pg", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"pgToPay",
+              "originator_name":"LJS",
+              "originator_id":4,
+              "offences": []
+            }
+            """);
 
         String expectedIp = "203.0.113.5";
         OffsetDateTime expectedNow = OffsetDateTime.parse("2025-04-04T04:04:04Z");
 
-        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
-
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            pdplLoggingService.pdplForDraftAccount(entity, Action.SUBMIT);
-        }
-
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
-
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        assertEquals(2, calls.size());
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.SUBMIT, expectedIp, expectedNow, 2);
 
         PersonalDataProcessingLogDetails first = calls.get(0);
-        assertEquals("Submit Draft Account - Parent or Guardian", first.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, first.getCategory());
-        assertEquals(expectedIp, first.getIpAddress());
-        assertEquals(expectedNow, first.getCreatedAt());
-        assertThat(first.getRecipient()).isNull();
-        assertEquals("33", first.getIndividuals().get(0).getIdentifier());
-        assertEquals("user-pg", first.getCreatedBy().getIdentifier());
+        assertPdplCommon(first,
+            "Submit Draft Account - Parent or Guardian",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-pg",
+            "33");
 
         PersonalDataProcessingLogDetails second = calls.get(1);
-        assertEquals("Submit Draft Account - Defendant", second.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
-        assertEquals(expectedIp, second.getIpAddress());
-        assertEquals(expectedNow, second.getCreatedAt());
-        assertThat(second.getRecipient()).isNull();
-        assertEquals("33", second.getIndividuals().get(0).getIdentifier());
-        assertEquals("user-pg", second.getCreatedBy().getIdentifier());
+        assertPdplCommon(second,
+            "Submit Draft Account - Defendant",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-pg",
+            "33");
     }
 
     @Test
     @DisplayName("Submit - Minor Creditor present -> logs Defendant then Minor Creditor; both payloads asserted")
     void submitDefendantAndMinor_fullPayloads() {
-        DraftAccountEntity entity = DraftAccountEntity.builder()
-            .draftAccountId(22L)
-            .submittedBy("user-min")
-            .account("""
-                {
-                  "account_type":"Fines",
-                  "defendant_type":"adultOrYouthOnly",
-                  "originator_name":"LJS",
-                  "originator_id":3,
-                  "offences": [
-                    {
-                      "impositions": [
-                        {
-                          "minor_creditor": {
-                            "company_flag": false,
-                            "surname": "Minor",
-                            "forenames": "Alice"
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-                """)
-            .build();
-
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
-
-        String expectedIp = "192.0.2.1";
-        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-03-03T03:03:03Z");
-
-        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
-
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            pdplLoggingService.pdplForDraftAccount(entity, Action.SUBMIT);
-        }
-
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
-
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-
-        PersonalDataProcessingLogDetails defendantDetails = calls.get(0);
-        assertEquals("Submit Draft Account - Defendant", defendantDetails.getBusinessIdentifier());
-        assertEquals(expectedIp, defendantDetails.getIpAddress());
-        assertEquals(expectedNow, defendantDetails.getCreatedAt());
-        assertEquals("user-min", defendantDetails.getCreatedBy().getIdentifier());
-        assertEquals("22", defendantDetails.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails minorDetails = calls.get(1);
-        assertEquals("Submit Draft Account - Minor Creditor", minorDetails.getBusinessIdentifier());
-        assertEquals(expectedIp, minorDetails.getIpAddress());
-        assertEquals(expectedNow, minorDetails.getCreatedAt());
-        assertEquals("user-min", minorDetails.getCreatedBy().getIdentifier());
-        assertEquals("22", minorDetails.getIndividuals().get(0).getIdentifier());
-    }
-
-    // ---- RESUBMIT tests added below ----
-
-    @Test
-    @DisplayName("Re-submit - Defendant: full payload asserted")
-    void resubmitDefendant_fullPayload() {
-        Long draftId = 12121212L;
-        String submittedBy = "opal-user-resubmit";
-        DraftAccountEntity entity = DraftAccountEntity.builder()
-            .draftAccountId(draftId)
-            .submittedBy(submittedBy)
-            .account("""
-                {
-                  "account_type":"Fines",
-                  "defendant_type":"adultOrYouthOnly",
-                  "originator_name":"LJS",
-                  "originator_id": 2,
-                  "offences": []
-                }
-                """)
-            .build();
-
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
-
-        String expectedBusinessIdentifier = "Re-submit Draft Account - Defendant";
-        String expectedIp = "198.51.100.7";
-        OffsetDateTime expectedNow = OffsetDateTime.parse("2024-06-06T06:06:06Z");
-
-        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
-
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            pdplLoggingService.pdplForDraftAccount(entity, Action.RESUBMIT);
-        }
-
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(1)).personalDataAccessLogAsync(captor.capture());
-
-        PersonalDataProcessingLogDetails details = captor.getValue();
-
-        assertEquals(expectedBusinessIdentifier, details.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, details.getCategory());
-        assertEquals(expectedIp, details.getIpAddress());
-        assertEquals(expectedNow, details.getCreatedAt());
-        assertThat(details.getRecipient()).isNull();
-
-        ParticipantIdentifier by = details.getCreatedBy();
-        assertThat(by).isNotNull();
-        assertEquals(submittedBy, by.getIdentifier());
-        assertEquals(PdplIdentifierType.OPAL_USER_ID, by.getType());
-
-        List<ParticipantIdentifier> individuals = details.getIndividuals();
-        assertThat(individuals).hasSize(1);
-        ParticipantIdentifier ind = individuals.get(0);
-        assertEquals(draftId.toString(), ind.getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, ind.getType());
-    }
-
-    @Test
-    @DisplayName("Re-submit - Parent/Guardian and Defendant: asserted order and payloads")
-    void resubmitPg_thenDefendant_fullPayloads() {
-        DraftAccountEntity entity = DraftAccountEntity.builder()
-            .draftAccountId(44L)
-            .submittedBy("user-resubmit-pg")
-            .account("""
-                {
-                  "account_type":"Fines",
-                  "defendant_type":"pgToPay",
-                  "originator_name":"LJS",
-                  "originator_id":5,
-                  "offences": []
-                }
-                """)
-            .build();
-
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
-
-        String expectedIp = "203.0.113.9";
-        OffsetDateTime expectedNow = OffsetDateTime.parse("2024-12-12T12:12:12Z");
-
-        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
-
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            pdplLoggingService.pdplForDraftAccount(entity, Action.RESUBMIT);
-        }
-
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
-
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        assertEquals(2, calls.size());
-
-        PersonalDataProcessingLogDetails first = calls.get(0);
-        assertEquals("Re-submit Draft Account - Parent or Guardian", first.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, first.getCategory());
-        assertEquals(expectedIp, first.getIpAddress());
-        assertEquals(expectedNow, first.getCreatedAt());
-        assertThat(first.getRecipient()).isNull();
-        assertEquals("44", first.getIndividuals().get(0).getIdentifier());
-        assertEquals("user-resubmit-pg", first.getCreatedBy().getIdentifier());
-
-        PersonalDataProcessingLogDetails second = calls.get(1);
-        assertEquals("Re-submit Draft Account - Defendant", second.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
-        assertEquals(expectedIp, second.getIpAddress());
-        assertEquals(expectedNow, second.getCreatedAt());
-        assertThat(second.getRecipient()).isNull();
-        assertEquals("44", second.getIndividuals().get(0).getIdentifier());
-        assertEquals("user-resubmit-pg", second.getCreatedBy().getIdentifier());
-    }
-
-    @Test
-    @DisplayName("Re-submit - adultOrYouthOnly WITH minor -> Defendant + Minor Creditor PDPL in order")
-    void resubmitDefendantAndMinor_fullPayloads() {
-        DraftAccountEntity entity = DraftAccountEntity.builder()
-            .draftAccountId(77L)
-            .submittedBy("user-res-min")
-            .account("""
+        DraftAccountEntity entity = makeEntity(22L, "user-min", """
             {
               "account_type":"Fines",
               "defendant_type":"adultOrYouthOnly",
               "originator_name":"LJS",
-              "originator_id":7,
+              "originator_id":3,
               "offences": [
                 {
                   "impositions": [
                     {
                       "minor_creditor": {
                         "company_flag": false,
-                        "surname": "Kid",
-                        "forenames": "Bobby"
+                        "surname": "Minor",
+                        "forenames": "Alice"
                       }
                     }
                   ]
                 }
               ]
             }
-            """)
-            .build();
+            """);
 
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+        String expectedIp = "192.0.2.1";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-03-03T03:03:03Z");
 
-        String expectedIp = "198.51.100.21";
-        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-05-05T05:05:05Z");
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.SUBMIT, expectedIp, expectedNow, 2);
 
-        DraftAccountPdplLoggingService pdplLoggingService = serviceWithNow(expectedNow);
+        PersonalDataProcessingLogDetails defendantDetails = calls.get(0);
+        assertPdplCommon(defendantDetails,
+            "Submit Draft Account - Defendant",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-min",
+            "22");
 
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            pdplLoggingService.pdplForDraftAccount(entity, Action.RESUBMIT);
-        }
+        PersonalDataProcessingLogDetails minorDetails = calls.get(1);
+        assertPdplCommon(minorDetails,
+            "Submit Draft Account - Minor Creditor",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-min",
+            "22");
+    }
 
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+    @Test
+    @DisplayName("Re-submit - Defendant: full payload asserted")
+    void resubmitDefendant_fullPayload() {
+        Long draftId = 12121212L;
+        String submittedBy = "opal-user-resubmit";
+        DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id": 2,
+              "offences": []
+            }
+            """);
 
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        assertEquals(2, calls.size());
+        String expectedIp = "198.51.100.7";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2024-06-06T06:06:06Z");
+
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.RESUBMIT, expectedIp, expectedNow, 1);
+
+        PersonalDataProcessingLogDetails details = calls.get(0);
+
+        assertPdplCommon(details,
+            "Re-submit Draft Account - Defendant",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            submittedBy,
+            draftId.toString());
+    }
+
+    @Test
+    @DisplayName("Re-submit - Parent/Guardian and Defendant: asserted order and payloads")
+    void resubmitPg_thenDefendant_fullPayloads() {
+        DraftAccountEntity entity = makeEntity(44L, "user-resubmit-pg", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"pgToPay",
+              "originator_name":"LJS",
+              "originator_id":5,
+              "offences": []
+            }
+            """);
+
+        String expectedIp = "203.0.113.9";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2024-12-12T12:12:12Z");
+
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.RESUBMIT, expectedIp, expectedNow, 2);
 
         PersonalDataProcessingLogDetails first = calls.get(0);
-        assertEquals("Re-submit Draft Account - Defendant", first.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, first.getCategory());
-        assertEquals(expectedIp, first.getIpAddress());
-        assertEquals(expectedNow, first.getCreatedAt());
-        assertEquals("user-res-min", first.getCreatedBy().getIdentifier());
-        assertEquals("77", first.getIndividuals().get(0).getIdentifier());
+        assertPdplCommon(first,
+            "Re-submit Draft Account - Parent or Guardian",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-resubmit-pg",
+            "44");
 
         PersonalDataProcessingLogDetails second = calls.get(1);
-        assertEquals("Re-submit Draft Account - Minor Creditor", second.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
-        assertEquals(expectedIp, second.getIpAddress());
-        assertEquals(expectedNow, second.getCreatedAt());
-        assertEquals("user-res-min", second.getCreatedBy().getIdentifier());
-        assertEquals("77", second.getIndividuals().get(0).getIdentifier());
+        assertPdplCommon(second,
+            "Re-submit Draft Account - Defendant",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-resubmit-pg",
+            "44");
+    }
+
+    @Test
+    @DisplayName("Update - Defendant: full payload asserted")
+    void replaceDefendant_fullPayload() {
+        Long draftId = 55555555L;
+        String submittedBy = "opal-user-replace";
+        DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id": 7,
+              "offences": []
+            }
+            """);
+
+        String expectedIp = "198.51.100.9";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-01-01T01:01:01Z");
+
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.REPLACE, expectedIp, expectedNow, 1);
+
+        PersonalDataProcessingLogDetails details = calls.get(0);
+
+        assertPdplCommon(details,
+            "Update Draft Account - Defendant",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            submittedBy,
+            draftId.toString());
+    }
+
+    @Test
+    @DisplayName("Update - Parent/Guardian and Defendant: asserted order and payloads")
+    void replacePg_thenDefendant_fullPayloads() {
+        DraftAccountEntity entity = makeEntity(66L, "user-replace-pg", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"pgToPay",
+              "originator_name":"LJS",
+              "originator_id":8,
+              "offences": []
+            }
+            """);
+
+        String expectedIp = "203.0.113.11";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-02-02T02:02:02Z");
+
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdpl(entity, Action.REPLACE, expectedIp, expectedNow, 2);
+
+        PersonalDataProcessingLogDetails first = calls.get(0);
+        assertPdplCommon(first,
+            "Update Draft Account - Parent or Guardian",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-replace-pg",
+            "66");
+
+        PersonalDataProcessingLogDetails second = calls.get(1);
+        assertPdplCommon(second,
+            "Update Draft Account - Defendant",
+            PersonalDataProcessingCategory.COLLECTION,
+            expectedIp,
+            expectedNow,
+            "user-replace-pg",
+            "66");
     }
 
 }
