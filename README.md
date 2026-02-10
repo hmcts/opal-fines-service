@@ -15,10 +15,6 @@
 
 #### Environment variables
 
-**WARNING** - this info is a now (as of 2026) a bit outdated. First see the 
-[documentation about docker setup](docker-readme.md), which covers the current way to configure 
-your execution environment.
-
 The following environment variables are required to run the service.
 
 ```bash / zsh
@@ -30,6 +26,12 @@ OPAL_TEST_USER_PASSWORD=<Ask Team Memebers>
 LAUNCH_DARKLY_SDK_KEY=<Ask Team Memebers>
 ```
 
+You can also create a shared .env.shred file with these variables you can use the `create_env.sh` script from opal-shared-infrastructure:
+But these will only get picked up when running the application with docker. 
+So for local development, you will need to set these environment variables in your IDE run configuration or terminal session.
+```bash / zsh
+../opal-shared-infrastructure/bin/create_env.sh
+```
 #### Caching
 
 Redis has been configured as the default caching provider. When running docker-compose with the local configuration a Redis container will be started.
@@ -52,8 +54,7 @@ brew install --cask another-redis-desktop-manager
 sudo xattr -rd com.apple.quarantine /Applications/Another\ Redis\ Desktop\ Manager.app
 ```
 
-You can also run redis container in local docker:
-
+You can also run redis container in local docker: (Not required if using Approach 4 as this spins up all your dependencies)
 **Bash**:
 ```bash
   docker-compose up redis
@@ -63,6 +64,7 @@ You can also run redis container in local docker:
   docker compose up redis
 ```
 
+**WARNING** - As of 10/02/2026 the recommended docker approach is "Approach 4: Docker with external dependencies"
 #### Approach 1: Dev Application (No existing dependencies)
 
 The simplest way to run the application is using the `bootTestRun` Gradle task:
@@ -154,7 +156,24 @@ There is no need to remove postgres and java or similar core images.
 
 #### Approach 4: Docker with external dependencies (e.g. Redis, postgres, azure service bus, user service, logging service, etc) - Recommended approach for development
 
-Please following the instructions in the [docker-readme](docker-readme.md) to set up the application with external dependencies using docker.
+Ensure you have pulled opal-shared-infrasturcutre as this contains scripts to support docker.
+
+First you will need to ensure you have all repositories downloaded in the same parent direcotry.
+To do this automatically you can run the following command from the opal-shared-infrastructure directory:
+```bash / zsh
+../opal-shared-infrastructure/bin/pull_all_repos.sh
+```
+
+Secondly you will need to ensure you have the required environment variables set up in a .env.shared file in the opal-shared-infrastructure/docker-files/ directory. You can use the following command to create this file with the required variables:
+```bash / zsh
+../opal-shared-infrastructure/bin/create_env.sh
+```
+
+Finally to run the application with all external dependencies using docker you can run the following command from the opal-shared-infrastructure directory:
+```bash / zsh
+../opal-shared-infrastructure/bin/opalBuild.sh -lb
+```
+Full details of this script and the arguments can be found within the opal-shared-infrastructure repository [here](../opal-shared-infrastructure/docker-files/scripts/scripts-readme.md)
 
 ### Verifying application startup
 
