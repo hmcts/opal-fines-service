@@ -5,10 +5,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
+import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UpdateDefendantAccountRequestMapper {
@@ -26,7 +28,7 @@ public interface UpdateDefendantAccountRequestMapper {
 
         // nested groups from body
         @Mapping(target = "commentAndNotes",       source = "request.commentsAndNotes"),
-        @Mapping(target = "enforcementCourtId",    source = "request.enforcementCourt.courtId",
+        @Mapping(target = "enforcementCourtId",    source = "request.enforcementCourt.enforcingCourtId",
             qualifiedByName = "numberToString"),
         @Mapping(target = "collectionOrder",       source = "request.collectionOrder"),
         @Mapping(target = "enforcementOverride",   source = "request.enforcementOverride")
@@ -50,11 +52,46 @@ public interface UpdateDefendantAccountRequestMapper {
     })
     uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes map(CommentsAndNotes src);
 
-    // API CollectionOrderDto -> Legacy CollectionOrder (extend as fields evolve)
-    uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder map(CollectionOrderDto src);
+    // API CollectionOrderRequest -> Legacy CollectionOrder (extend as fields evolve)
+    @Mappings({
+        @Mapping(target = "collectionOrderFlag", source = "collectionOrder")
+    })
+    uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder map(
+        UpdateDefendantAccountRequest.CollectionOrderRequest src);
 
-    // API EnforcementOverride -> Legacy EnforcementOverride (extend as needed)
-    uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride map(EnforcementOverride src);
+    // API EnforcementOverrideRequest -> Legacy EnforcementOverride (extend as needed)
+    default EnforcementOverride map(UpdateDefendantAccountRequest.EnforcementOverrideRequest src) {
+        if (src == null) {
+            return null;
+        }
+
+        EnforcementOverrideResultReference result = src.getEnforcementOverrideResultId() == null
+            ? null
+            : EnforcementOverrideResultReference.builder()
+                .enforcementOverrideResultId(src.getEnforcementOverrideResultId())
+                .enforcementOverrideResultName("")
+                .build();
+
+        EnforcerReference enforcer = src.getEnforcementOverrideEnforcerId() == null
+            ? null
+            : EnforcerReference.builder()
+                .enforcerId(src.getEnforcementOverrideEnforcerId().longValue())
+                .enforcerName("")
+                .build();
+
+        LjaReference lja = src.getEnforcementOverrideTfoLjaId() == null
+            ? null
+            : LjaReference.builder()
+                .ljaId(src.getEnforcementOverrideTfoLjaId().shortValue())
+                .ljaName("")
+                .build();
+
+        return EnforcementOverride.builder()
+            .enforcementOverrideResult(result)
+            .enforcer(enforcer)
+            .lja(lja)
+            .build();
+    }
 
     /* ----------- Converters ----------- */
     @Named("numberToString")
