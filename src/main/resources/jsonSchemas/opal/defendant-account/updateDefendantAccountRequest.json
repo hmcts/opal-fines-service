@@ -8,13 +8,53 @@
       "$ref": "../common-objects/commentsAndNotes.json"
     },
     "enforcement_court": {
-      "$ref": "../common-objects/courtReference.json"
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enforcing_court_id": {
+          "type": "integer",
+          "description": "Identifier for the enforcing court (required by TDIA)"
+        },
+        "court_name": {
+          "type": "string",
+          "description": "Optional human readable court name"
+        }
+      },
+      "required": ["enforcing_court_id"]
     },
     "collection_order": {
-      "$ref": "../common-objects/collectionOrder.json"
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "collection_order": {
+          "type": "boolean",
+          "description": "Flag indicating if a collection order is applied to the account"
+        },
+        "collection_order_date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date when the collection order was applied"
+        }
+      },
+      "required": ["collection_order"]
     },
     "enforcement_override": {
-      "$ref": "../common-objects/enforcementOverride.json"
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enf_override_result_id": {
+          "type": "string",
+          "description": "Result identifier to use for the enforcement override (e.g. result code)"
+        },
+        "enf_override_enforcer_id": {
+          "type": "integer",
+          "description": "Identifier of the enforcer used for the enforcement override"
+        },
+        "enf_override_tfo_lja_id": {
+          "type": "integer",
+          "description": "TFO / LJA identifier used for the enforcement override"
+        }
+      }
     }
   },
   "oneOf": [
