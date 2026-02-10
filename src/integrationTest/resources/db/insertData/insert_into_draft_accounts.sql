@@ -35,6 +35,7 @@ VALUES
             "forenames": "FNAME"
         },
         "originator_id": 1234,
+        "originator_type": "NEW",
         "offences": [
             {
                 "offence_id": 30002,
@@ -101,6 +102,7 @@ VALUES
             "forenames": "FNAME"
         },
         "originator_id": 1234,
+        "originator_type": "NEW",
         "offences": [
             {
                 "offence_id": 30002,
@@ -167,6 +169,7 @@ VALUES
             "forenames": "FNAME"
         },
         "originator_id": 1234,
+        "originator_type": "NEW",
         "offences": [
             {
                 "offence_id": 30002,
@@ -233,6 +236,7 @@ VALUES
             "forenames": "FNAME"
         },
         "originator_id": 1234,
+        "originator_type": "NEW",
         "offences": [
             {
                 "offence_id": 30002,
@@ -299,6 +303,7 @@ VALUES
             "forenames": "FNAME"
         },
         "originator_id": 1234,
+        "originator_type": "NEW",
         "offences": [
             {
                 "offence_id": 30002,
@@ -365,6 +370,7 @@ VALUES
             "forenames": "FNAME"
         },
         "originator_id": 1234,
+        "originator_type": "NEW",
         "offences": [
             {
                 "offence_id": 30002,
@@ -434,6 +440,7 @@ VALUES
             "forenames": "FNAME"
         },
         "originator_id": 1234,
+        "originator_type": "NEW",
         "offences": [
             {
                 "offence_id": 30002,
@@ -476,6 +483,7 @@ VALUES
         "defendant_type": "Adult",
         "originator_name": "LJS",
         "originator_id": 12345,
+        "originator_type": "NEW",
         "enforcement_court_id": 650000000045,
         "prosecutor_case_reference": "ABC123",
         "payment_card_request": true,
@@ -818,6 +826,7 @@ VALUES
             "defendant_type": "Adult",
             "originator_name": "LJS",
             "originator_id": 12345,
+            "originator_type": "NEW",
             "enforcement_court_id": 650000000045,
             "prosecutor_case_reference": "ABC123",
             "payment_card_request": true,

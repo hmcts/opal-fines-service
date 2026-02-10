@@ -449,6 +449,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
               "defendant_type": "Adult",
               "originator_name": "Police Force",
               "originator_id": 12345,
+              "originator_type": "NEW",
               "enforcement_court_id": 101,
               "payment_card_request": true,
               "account_sentence_date": "2023-12-01",
@@ -505,7 +506,9 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
-                           .value("LNAME"));
+                           .value("LNAME"))
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"))
+        ;
     }
 
     @Test
@@ -553,6 +556,50 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("Should return 400 when originator_type is missing")
+    void shouldReturn400WhenOriginatorTypeIsMissing() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\",", "");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when originator_type is blank")
+    void shouldReturn400WhenOriginatorTypeIsBlank() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when originator_type has invalid value")
+    void shouldReturn400WhenOriginatorTypeIsInvalid() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
 
     @Test
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
@@ -1147,6 +1194,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "Adult",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "NEW",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -1248,6 +1296,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "Adult",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "NEW",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -1409,6 +1458,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "adultOrYouthOnly",
                 "originator_name": "LJS",
                 "originator_id": 123,
+                "originator_type": "NEW",
                 "prosecutor_case_reference": null,
                 "enforcement_court_id": 456,
                 "collection_order_made": null,
