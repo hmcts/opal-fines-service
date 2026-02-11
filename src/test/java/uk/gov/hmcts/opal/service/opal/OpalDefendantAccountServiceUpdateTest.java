@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -26,18 +25,12 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.EnforcerRepository;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceUpdateTest {
@@ -51,11 +44,6 @@ class OpalDefendantAccountServiceUpdateTest {
     @Mock
     private CourtRepository courtRepo;
 
-    @Mock
-    private LocalJusticeAreaRepository ljaRepo;
-
-    @Mock
-    private EnforcerRepository enforcerRepo;
 
     @Mock
     private AmendmentService amendmentService;
@@ -63,8 +51,6 @@ class OpalDefendantAccountServiceUpdateTest {
     @Mock
     private EntityManager entityManager;
 
-    @Mock
-    private ResultRepository resultRepo;
 
     // Service under test
     @InjectMocks
@@ -99,18 +85,6 @@ class OpalDefendantAccountServiceUpdateTest {
 
         when(courtRepo.findById(100L)).thenReturn(Optional.of(court));
 
-        // Reference entities: stub getters so the service can copy IDs onto the account
-        ResultEntity.Lite eor = mock(ResultEntity.Lite.class);
-        when(eor.getResultId()).thenReturn("EO-1");
-        when(resultRepo.findById("EO-1")).thenReturn(Optional.of(eor));
-
-        EnforcerEntity enforcer = mock(EnforcerEntity.class);
-        when(enforcer.getEnforcerId()).thenReturn(22L);
-        when(enforcerRepo.findById(22L)).thenReturn(Optional.of(enforcer));
-
-        LocalJusticeAreaEntity lja = mock(LocalJusticeAreaEntity.class);
-        when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
-        when(ljaRepo.findById((short) 33)).thenReturn(Optional.of(lja));
         when(noteRepository.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 

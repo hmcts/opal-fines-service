@@ -431,10 +431,8 @@ public class OpalDefendantAccountBuilders {
 
     static LanguagePreference buildLanguagePreference(DebtorDetailEntity debtorDetail,
         Function<DebtorDetailEntity, String> getter) {
-        if (debtorDetail == null) {
-            return null;
-        }
-        return LanguagePreference.fromCode(getter.apply(debtorDetail));
+        String code = debtorDetail == null ? null : getter.apply(debtorDetail);
+        return LanguagePreference.fromCode(code);
     }
 
     static VehicleDetails buildVehicleDetails(DebtorDetailEntity debtorDetail) {
