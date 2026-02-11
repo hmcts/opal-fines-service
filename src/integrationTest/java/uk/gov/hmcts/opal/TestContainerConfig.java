@@ -25,12 +25,14 @@ public class TestContainerConfig {
 
         POSTGRES_CONTAINER.start();
 
+        //Check if the port is available before starting the legacy stub container.
+        //This allows a local version of the legacy stub to be used for testing.
         if (isPortAvailable(4553)) {
-            final GenericContainer<?> LEGACY_STUB_CONTAINER =
+            final GenericContainer<?> legacyStubContainer =
                 new GenericContainer<>(DockerImageName.parse("sdshmctspublic.azurecr.io/opal/legacy-db-stub:latest"))
                     .withExposedPorts(4553);
-            LEGACY_STUB_CONTAINER.setPortBindings(List.of("4553:4553"));
-            LEGACY_STUB_CONTAINER.start();
+            legacyStubContainer.setPortBindings(List.of("4553:4553"));
+            legacyStubContainer.start();
         }
     }
 
