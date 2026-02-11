@@ -18,9 +18,8 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
         @Mapping(target = "id", source = "defendantAccountId", qualifiedByName = "stringToLong"),
         @Mapping(target = "version", source = "version", qualifiedByName = "intToLong"),
         @Mapping(target = "commentsAndNotes", source = "commentAndNotes"),
-        @Mapping(target = "enforcementCourt.enforcingCourtId",
-            expression = "java(legacy.getEnforcementCourtId() == null ? null "
-                + ": Integer.valueOf(legacy.getEnforcementCourtId().trim()))"),
+        @Mapping(target = "enforcementCourt.enforcingCourtId", source = "enforcementCourtId",
+            qualifiedByName = "stringToInteger"),
         @Mapping(target = "collectionOrder", source = "collectionOrder"),
         @Mapping(target = "enforcementOverride", source = "enforcementOverride")
     })
@@ -74,6 +73,18 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
     @Named("intToLong")
     default Long intToLong(Integer i) {
         return i == null ? null : i.longValue();
+    }
+
+    @Named("stringToInteger")
+    default Integer stringToInteger(String v) {
+        if (v == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(v.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
 }

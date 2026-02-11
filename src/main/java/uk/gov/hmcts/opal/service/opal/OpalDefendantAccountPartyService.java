@@ -98,7 +98,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
 
         PartyEntity party = partyEntity.getParty();
-        Optional<DebtorDetailEntity> debtorDetail = debtorDetailRepositoryService.findByPartyId(party.getPartyId());
+        DebtorDetailEntity debtorDetail = debtorDetailRepositoryService.findByPartyId(party.getPartyId()).orElse(null);
 
         return DefendantAccountParty.builder()
             .defendantAccountPartyType(partyEntity.getAssociationType())
@@ -431,4 +431,3 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     }
 
 }
-
