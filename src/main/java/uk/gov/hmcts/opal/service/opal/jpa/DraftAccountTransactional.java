@@ -87,10 +87,6 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 businessUnitIds, statuses, submittedBy, notSubmitted, accountStatusDateFrom, accountStatusDateTo),
             ffq -> ffq.sortBy(draftIdSort).page(Pageable.unpaged()));
 
-        for (DraftAccountEntity entity : page.getContent()) {
-            loggingService.pdplForDraftAccount(entity, Action.GET);
-        }
-
         return page.getContent();
     }
 

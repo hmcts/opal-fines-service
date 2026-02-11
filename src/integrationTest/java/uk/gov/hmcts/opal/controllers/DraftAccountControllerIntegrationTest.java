@@ -198,131 +198,51 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
             PersonalDataProcessingLogDetails.class);
 
-        verify(loggingService, times(20)).personalDataAccessLogAsync(captor.capture());
+        verify(loggingService, times(4)).personalDataAccessLogAsync(captor.capture());
 
         List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        assertEquals(20, logs.size());
+        assertEquals(4, logs.size());
 
         PersonalDataProcessingLogDetails l0 = logs.get(0);
         assertEquals("Get Draft Account - Parent or Guardian", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
         assertEquals("BUUID1", l0.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
+        assertNull(l0.getIpAddress());
+        assertEquals(1, l0.getIndividuals().size());
         assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
 
         PersonalDataProcessingLogDetails l1 = logs.get(1);
         assertEquals("Get Draft Account - Defendant", l1.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l1.getCategory());
         assertEquals("BUUID1", l1.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
+        assertNull(l1.getIpAddress());
+        assertEquals(1, l1.getIndividuals().size());
         assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
 
         PersonalDataProcessingLogDetails l2 = logs.get(2);
         assertEquals("Get Draft Account - Defendant", l2.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l2.getCategory());
-        assertEquals("user_003", l2.getCreatedBy().getIdentifier());
-        assertEquals("8", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals("BUUID1", l2.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
+        assertNull(l2.getIpAddress());
+        assertEquals(1, l2.getIndividuals().size());
+        assertEquals("201", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
 
         PersonalDataProcessingLogDetails l3 = logs.get(3);
         assertEquals("Get Draft Account - Minor Creditor", l3.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l3.getCategory());
-        assertEquals("user_003", l3.getCreatedBy().getIdentifier());
-        assertEquals("8", l3.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l4 = logs.get(4);
-        assertEquals("Get Draft Account - Minor Creditor", l4.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l4.getCategory());
-        assertEquals("user_003", l4.getCreatedBy().getIdentifier());
-        assertEquals("9", l4.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l5 = logs.get(5);
-        assertEquals("Get Draft Account - Parent or Guardian", l5.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l5.getCategory());
-        assertEquals("user_003", l5.getCreatedBy().getIdentifier());
-        assertEquals("104", l5.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l6 = logs.get(6);
-        assertEquals("Get Draft Account - Defendant", l6.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l6.getCategory());
-        assertEquals("user_003", l6.getCreatedBy().getIdentifier());
-        assertEquals("104", l6.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l7 = logs.get(7);
-        assertEquals("Get Draft Account - Defendant", l7.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l7.getCategory());
-        assertEquals("user_003", l7.getCreatedBy().getIdentifier());
-        assertEquals("105", l7.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l8 = logs.get(8);
-        assertEquals("Get Draft Account - Defendant", l8.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l8.getCategory());
-        assertEquals("BUUID1", l8.getCreatedBy().getIdentifier());
-        assertEquals("201", l8.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l9 = logs.get(9);
-        assertEquals("Get Draft Account - Minor Creditor", l9.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l9.getCategory());
-        assertEquals("BUUID1", l9.getCreatedBy().getIdentifier());
-        assertEquals("201", l9.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l10 = logs.get(10);
-        assertEquals("Get Draft Account - Defendant", l10.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l10.getCategory());
-        assertEquals("L077JG", l10.getCreatedBy().getIdentifier());
-        assertEquals("100000", l10.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l11 = logs.get(11);
-        assertEquals("Get Draft Account - Defendant", l11.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l11.getCategory());
-        assertEquals("L077JG", l11.getCreatedBy().getIdentifier());
-        assertEquals("100003", l11.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l12 = logs.get(12);
-        assertEquals("Get Draft Account - Defendant", l12.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l12.getCategory());
-        assertEquals("L077JG", l12.getCreatedBy().getIdentifier());
-        assertEquals("100004", l12.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l13 = logs.get(13);
-        assertEquals("Get Draft Account - Defendant", l13.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l13.getCategory());
-        assertEquals("L077JG", l13.getCreatedBy().getIdentifier());
-        assertEquals("100005", l13.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l14 = logs.get(14);
-        assertEquals("Get Draft Account - Defendant", l14.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l14.getCategory());
-        assertEquals("L077JG", l14.getCreatedBy().getIdentifier());
-        assertEquals("100008", l14.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l15 = logs.get(15);
-        assertEquals("Get Draft Account - Defendant", l15.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l15.getCategory());
-        assertEquals("L077JG", l15.getCreatedBy().getIdentifier());
-        assertEquals("100011", l15.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l16 = logs.get(16);
-        assertEquals("Get Draft Account - Defendant", l16.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l16.getCategory());
-        assertEquals("L077JG", l16.getCreatedBy().getIdentifier());
-        assertEquals("100012", l16.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l17 = logs.get(17);
-        assertEquals("Get Draft Account - Defendant", l17.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l17.getCategory());
-        assertEquals("L077JG", l17.getCreatedBy().getIdentifier());
-        assertEquals("100015", l17.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l18 = logs.get(18);
-        assertEquals("Get Draft Account - Defendant", l18.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l18.getCategory());
-        assertEquals("L077JG", l18.getCreatedBy().getIdentifier());
-        assertEquals("100018", l18.getIndividuals().get(0).getIdentifier());
-
-        PersonalDataProcessingLogDetails l19 = logs.get(19);
-        assertEquals("Get Draft Account - Defendant", l19.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l19.getCategory());
-        assertEquals("L077JG", l19.getCreatedBy().getIdentifier());
-        assertEquals("100019", l19.getIndividuals().get(0).getIdentifier());
+        assertEquals("BUUID1", l3.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l3.getCreatedBy().getType());
+        assertNull(l3.getIpAddress());
+        assertEquals(1, l3.getIndividuals().size());
+        assertEquals("201", l3.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l3.getIndividuals().get(0).getType());
     }
 
     @Test
