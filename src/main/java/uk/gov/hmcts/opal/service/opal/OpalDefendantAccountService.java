@@ -1072,9 +1072,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (paymentTermsEntity.getPostedBy() == null) {
             paymentTermsEntity.setPostedBy(businessUnitUserId);
         }
-        // Persist the new (active) PaymentTermsEntity
-        PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
-
         // Update defendant account with any payment term related attributes
         addPaymentTerm(defAccount, addPaymentTermsRequest);
 
@@ -1100,12 +1097,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 defAccount.getBusinessUnit().getBusinessUnitId());
         }
 
+        // Persist the new (active) PaymentTermsEntity
+        PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
+        Long savedPaymentTermsId = savedPaymentTerms.getPaymentTermsId();
+
         // Create report entry for the Extension of Time to Pay report
-        reportEntryService.createExtendTtpReportEntry(savedPaymentTerms.getPaymentTermsId(),
+        reportEntryService.createExtendTtpReportEntry(savedPaymentTermsId,
             defAccount.getBusinessUnit().getBusinessUnitId());
 
         log.debug(":addPaymentTerms: saved payment terms id={} for account {}",
-            savedPaymentTerms.getPaymentTermsId(), defAccount.getDefendantAccountId());
+            savedPaymentTermsId, defAccount.getDefendantAccountId());
 
         amendmentService.auditFinaliseStoredProc(
             defAccount.getDefendantAccountId(),
