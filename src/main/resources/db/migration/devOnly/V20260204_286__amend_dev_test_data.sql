@@ -4,6 +4,7 @@
 * MODULE      : amend_dev_test_data.sql
 *
 * DESCRIPTION : Amend the DRAFT_ACCOUNTS test data, to be used by Frontend for development testing, to include originator_type (set to NEW) in the account json. 
+*               Update DEFENDANT_ACCOUNTS test data for records related to those that are going to be deleted from LOCAL_JUSTICE_AREAS.
 *
 * VERSION HISTORY:
 *
@@ -11,8 +12,27 @@
 * ----------    -----------    --------    -------------------------------------------------------------------------------------------------------------------------------
 * 10/02/2026    T McCallion    1.0         PO-2751 - Populate new column DEFENDANT_ACCOUNTS.IMPOSED_BY_NAME and amend how DEFENDANT_ACCOUNTS.ORIGINATOR_TYPE is populated.
 *                                          Original script: V20260116_285__create_dev_test_data.sql
+*                                          PO-2752 - Amend reference data in the LOCAL_JUSTICE_AREAS table
 *
 **/
+
+--Update FK column on defendant_accounts for related local_justice_areas records that are going to be deleted
+UPDATE defendant_accounts 
+   SET enf_override_tfo_lja_id = 401
+ WHERE enf_override_tfo_lja_id = 101;
+ 
+UPDATE defendant_accounts 
+   SET enf_override_tfo_lja_id = 402
+ WHERE enf_override_tfo_lja_id = 102;
+ 
+UPDATE defendant_accounts 
+   SET enf_override_tfo_lja_id = 403
+ WHERE enf_override_tfo_lja_id = 103;
+ 
+UPDATE defendant_accounts 
+   SET enf_override_tfo_lja_id = 404
+ WHERE enf_override_tfo_lja_id = 106;
+
 
 DO $$
 DECLARE
