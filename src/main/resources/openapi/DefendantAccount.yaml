@@ -135,7 +135,50 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/defendantAccountEnforcementStatusResponse'
+                title: Get Enforcement Status Response
+                type: object
+                x-extendable: true
+                additionalProperties: false
+                properties:
+                  enforcement_overview:
+                    $ref: '#/components/schemas/enforcementOverview'
+                  enforcement_override:
+                    $ref: './common.yaml#/components/schemas/enforcementOverride'
+                  last_enforcement_action:
+                    $ref: '#/components/schemas/enforcementAction'
+                  next_enforcement_action_data:
+                    type: string
+                    pattern: '^(?i:all|[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*|)$'
+                    description: 'A comma-separated list of result IDs, ''all'' , or null .'
+                  defendant_account_type:
+                    type: string
+                    enum:
+                      - adult
+                      - company
+                      - youth
+                  account_status_reference:
+                    $ref: './common.yaml#/components/schemas/accountStatusReference'
+                  employer_flag:
+                    type: boolean
+                  is_hmrc_check_eligible:
+                    type: boolean
+                    description: |
+                      This field will return true if all of the following are met, else will return false.
+                      - The defendant account has a date of birth
+                      - The defendant account has a national insurance number
+                      - The defendant account has a first name
+                      - The defendant account has a last name
+                      - The defendant account does not have zero balance
+                      - The defendant account type is not one of the following
+                      -- Company 
+                      -- Youth
+                      -- Parent / guardian to pay
+                required:
+                  - enforcement_overview
+                  - defendant_account_type
+                  - account_status_reference
+                  - employer_flag
+                  - is_hmrc_check_eligible
 
         400:
           description: Bad request
@@ -194,7 +237,97 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/defendantAccountHeaderSummaryResponse'
+                type: object
+                required:
+                  - defendant_account_id
+                  - account_number
+                  - defendant_party_id
+                  - debtor_type
+                  - is_youth
+                  - has_consolidated_accounts
+                  - account_status_reference
+                  - account_type
+                  - originator_type
+                  - originator_name
+                  - business_unit_summary
+                  - payment_state_summary
+                  - party_details
+                properties:
+                  defendant_account_id:
+                    type: string
+                    description: DB Mapping - defendant_accounts.defendant_account_id
+                  account_number:
+                    type: string
+                    description: DB Mapping - defendant_accounts.account_number
+                  defendant_party_id:
+                    type: string
+                    description: defendant_account_parties.defendant_account_party_id (where defendant_account_parties.association_type = 'Defendant')
+                  parent_guardian_party_id:
+                    type: string
+                    description: |
+                      Only provided if a parent/guardian has been associated with the account, during account creation.
+                      DB Mapping - defendant_account_parties.defendant_account_party_id (where defendant_account_parties.association_type = 'Parent/Guardian')
+                  debtor_type:
+                    type: string
+                    enum:
+                      - Defendant
+                      - Parent/Guardian
+                    description: |
+                      This field will be set to 'Defendant' if defendant_account_parties.debtor = 'TRUE', otherwise if this is null and a Parent/Guardian is on the account with defendant_account_parties.debtor = 'TRUE', then the value returned is 'Parent/Guardian'.
+                      DB Mapping - defendant_account_parties.debtor (where debtor = True)
+                  is_youth:
+                    type: boolean
+                    description: |
+                      DERIVED FROM THE DEFENDANT
+                      The BE will need to check the defendants DOB via (parties.birth_date) and if:
+                      parties.birth_date ≥ 18, then value is FALSE
+                      I.e. An Adult defendant
+                      parties.birth_date < 18, then value is TRUE
+                      I.e. A Youth defendant
+                      If parties.birth_date = null, then the defendants age (parties.age) should be observed:
+                      parties.age ≥ 18, then the value is ‘FALSE’
+                      parties.age < 18, then the value is ‘TRUE’
+                      parties.age = null, then the value is ‘FALSE’
+
+                      DB Mapping - parties.birth_date The defendants DOB is derived from this database field, but is not returned. Instead the BE will set the is_youth flag depending on the DOB value parties.age
+                  has_consolidated_accounts:
+                    type: boolean
+                    description: This field will return true if the account has had accounts consolidated into it or false if it has not.
+                  account_status_reference:
+                    $ref: './common.yaml#/components/schemas/accountStatusReference'
+                  account_type:
+                    type: string
+                    description: DB Mapping - defendant_accounts.account_type
+                    enum:
+                      - Fine
+                      - Conditional Caution
+                      - Confiscation
+                      - Fixed Penalty
+                  originator_type:
+                    type: string
+                    description: NEW - DB Mapping - defendant_accounts.originator_type
+                    enum:
+                      - TFO
+                      - FP
+                      - CASE
+                      - MAC
+                  originator_name:
+                    type: string
+                    description: NEW - DB Mapping - defendant.accounts.originator_name
+                  prosecutor_case_reference:
+                    type: string
+                    description: DB Mapping - defendant.accounts.prosecutor_case_reference
+                  fixed_penalty_ticket_number:
+                    type: string
+                    description: |
+                      Only provided for Fixed Penalty accounts
+                      DB Mapping - fixed_penalty_offences.ticket_number
+                  business_unit_summary:
+                    $ref: './common.yaml#/components/schemas/businessUnitSummary'
+                  payment_state_summary:
+                    $ref: './common.yaml#/components/schemas/paymentStateSummary'
+                  party_details:
+                    $ref: './common.yaml#/components/schemas/partyDetails'
         400:
           description: Bad request
           content:
@@ -365,141 +498,6 @@ components:
           type: integer
         enf_override_tfo_lja_id:
           type: integer
-    defendantAccountEnforcementStatusResponse:
-      type: object
-      additionalProperties: false
-      properties:
-        enforcement_overview:
-          $ref: '#/components/schemas/enforcementOverview'
-        enforcement_override:
-          $ref: './common.yaml#/components/schemas/enforcementOverride'
-        last_enforcement_action:
-          $ref: '#/components/schemas/enforcementAction'
-        next_enforcement_action_data:
-          type: string
-          pattern: '^(?i:all|[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*|)$'
-          description: 'A comma-separated list of result IDs, ''all'' , or null .'
-        defendant_account_type:
-          type: string
-          enum:
-            - adult
-            - company
-            - youth
-        account_status_reference:
-          $ref: './common.yaml#/components/schemas/accountStatusReference'
-        employer_flag:
-          type: boolean
-        is_hmrc_check_eligible:
-          type: boolean
-          description: |
-            This field will return true if all of the following are met, else will return false.
-            - The defendant account has a date of birth
-            - The defendant account has a national insurance number
-            - The defendant account has a first name
-            - The defendant account has a last name
-            - The defendant account does not have zero balance
-            - The defendant account type is not one of the following
-            -- Company 
-            -- Youth
-            -- Parent / guardian to pay
-      required:
-        - enforcement_overview
-        - defendant_account_type
-        - account_status_reference
-        - employer_flag
-        - is_hmrc_check_eligible
-    defendantAccountHeaderSummaryResponse:
-      type: object
-      required:
-        - defendant_account_id
-        - account_number
-        - defendant_party_id
-        - debtor_type
-        - is_youth
-        - has_consolidated_accounts
-        - account_status_reference
-        - account_type
-        - originator_type
-        - originator_name
-        - business_unit_summary
-        - payment_state_summary
-        - party_details
-      properties:
-        defendant_account_id:
-          type: string
-          description: DB Mapping - defendant_accounts.defendant_account_id
-        account_number:
-          type: string
-          description: DB Mapping - defendant_accounts.account_number
-        defendant_party_id:
-          type: string
-          description: defendant_account_parties.defendant_account_party_id (where defendant_account_parties.association_type = 'Defendant')
-        parent_guardian_party_id:
-          type: string
-          description: |
-            Only provided if a parent/guardian has been associated with the account, during account creation.
-            DB Mapping - defendant_account_parties.defendant_account_party_id (where defendant_account_parties.association_type = 'Parent/Guardian')
-        debtor_type:
-          type: string
-          enum:
-            - Defendant
-            - Parent/Guardian
-          description: |
-            This field will be set to 'Defendant' if defendant_account_parties.debtor = 'TRUE', otherwise if this is null and a Parent/Guardian is on the account with defendant_account_parties.debtor = 'TRUE', then the value returned is 'Parent/Guardian'.
-            DB Mapping - defendant_account_parties.debtor (where debtor = True)
-        is_youth:
-          type: boolean
-          description: |
-            DERIVED FROM THE DEFENDANT
-            The BE will need to check the defendants DOB via (parties.birth_date) and if:
-            parties.birth_date ≥ 18, then value is FALSE
-            I.e. An Adult defendant
-            parties.birth_date < 18, then value is TRUE
-            I.e. A Youth defendant
-            If parties.birth_date = null, then the defendants age (parties.age) should be observed:
-            parties.age ≥ 18, then the value is ‘FALSE’
-            parties.age < 18, then the value is ‘TRUE’
-            parties.age = null, then the value is ‘FALSE’
-
-            DB Mapping - parties.birth_date The defendants DOB is derived from this database field, but is not returned. Instead the BE will set the is_youth flag depending on the DOB value parties.age
-        has_consolidated_accounts:
-          type: boolean
-          description: This field will return true if the account has had accounts consolidated into it or false if it has not.
-        account_status_reference:
-          $ref: './common.yaml#/components/schemas/accountStatusReference'
-        account_type:
-          type: string
-          description: DB Mapping - defendant_accounts.account_type
-          enum:
-            - Fine
-            - Conditional Caution
-            - Confiscation
-            - Fixed Penalty
-        originator_type:
-          type: string
-          description: NEW - DB Mapping - defendant_accounts.originator_type
-          enum:
-            - TFO
-            - FP
-            - CASE
-            - MAC
-        originator_name:
-          type: string
-          description: NEW - DB Mapping - defendant.accounts.originator_name
-        prosecutor_case_reference:
-          type: string
-          description: DB Mapping - defendant.accounts.prosecutor_case_reference
-        fixed_penalty_ticket_number:
-          type: string
-          description: |
-            Only provided for Fixed Penalty accounts
-            DB Mapping - fixed_penalty_offences.ticket_number
-        business_unit_summary:
-          $ref: './common.yaml#/components/schemas/businessUnitSummary'
-        payment_state_summary:
-          $ref: './common.yaml#/components/schemas/paymentStateSummary'
-        party_details:
-          $ref: './common.yaml#/components/schemas/partyDetails'
     enforcementOverview:
       type: object
       additionalProperties: false
