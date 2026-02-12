@@ -152,8 +152,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     private void injectGatewayService(
-        LegacyDefendantAccountService legacyDefendantAccountService, GatewayService gatewayService)
-    {
+        LegacyDefendantAccountService legacyDefendantAccountService, GatewayService gatewayService) {
         try {
             Field field = LegacyDefendantAccountService.class.getDeclaredField("gatewayService");
             field.setAccessible(true);
