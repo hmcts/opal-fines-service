@@ -24,7 +24,7 @@ Feature: PO-746 put/update draft account
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
       | account_snapshot.account_type       | Fine        |
-      | account_snapshot.submitted_by       | BUUID       |
+      | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
     When I update the draft account that was just created with the following details
@@ -47,7 +47,7 @@ Feature: PO-746 put/update draft account
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01           |
       | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
 
     Then I see the created at time hasn't changed
@@ -56,7 +56,7 @@ Feature: PO-746 put/update draft account
     Then I delete the created draft accounts
 
   @PO-947 @cleanUpData
-  Scenario: Update draft account - update account details submitted by name is required
+  Scenario: Update draft account - update account details ignores submitted by name
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
@@ -79,7 +79,7 @@ Feature: PO-746 put/update draft account
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
       | account_snapshot.account_type       | Fine        |
-      | account_snapshot.submitted_by       | BUUID       |
+      | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
     When I update the draft account that was just created with the following details
@@ -91,20 +91,20 @@ Feature: PO-746 put/update draft account
       | timeline_data    | draftAccounts/timelineJson/default.json     |
       | If-Match         | 0                                           |
 
-    Then The draft account response returns 400
+    Then The draft account response returns 200
 
     And I get the single created draft account and the response contains
-      | business_unit_id                    | 73          |
-      | account_type                        | Fine        |
-      | account_status                      | Submitted   |
-      | account_snapshot.defendant_name     | null, null  |
-      | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       | Fine        |
-      | account_snapshot.submitted_by       | BUUID       |
-      | account_snapshot.business_unit_name | West London |
+      | business_unit_id                    | 73                   |
+      | account_type                        | Fine                 |
+      | account_status                      | Resubmitted          |
+      | account_snapshot.defendant_name     | LNAME, FNAME         |
+      | account_snapshot.date_of_birth      | 2000-01-01           |
+      | account_snapshot.account_type       | Fine                 |
+      | account_snapshot.submitted_by       | L073JG               |
+      | account_snapshot.business_unit_name | West London          |
 
     Then I see the created at time hasn't changed
-    And I see the account status date hasn't changed
+    And I see the account status date is now after the initial account status date
 
     Then I delete the created draft accounts
 
@@ -135,7 +135,7 @@ Feature: PO-746 put/update draft account
 
     And the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                       | expected_count |
-      | UPDATE001         | OPAL_USER_ID    | Update Draft Account - Defendant         | 1              |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant         | 1              |
 
     Then I delete the created draft accounts
 
@@ -168,7 +168,7 @@ Feature: PO-746 put/update draft account
 
     And the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                          | expected_count |
-      | UPDATE002         | OPAL_USER_ID    | Update Draft Account - Defendant             | 1              |
-      | UPDATE002         | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | 1              |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant             | 1              |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | 1              |
 
     Then I delete the created draft accounts
