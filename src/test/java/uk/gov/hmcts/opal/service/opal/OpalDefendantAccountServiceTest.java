@@ -193,7 +193,7 @@ class OpalDefendantAccountServiceTest {
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(defAccount);
         when(enforcementRepositoryService.getEnforcementMostRecent(
             any(), any())).thenReturn(Optional.of(enforcementEntity));
-        lenient().when(enforcerRepoService.findById(any())).thenReturn(null); // enforcerRepo should not be null
+        lenient().when(enforcerRepoService.findById(any())).thenReturn(Optional.empty());
         when(debtorDetailRepoService.findByPartyId(any())).thenReturn(Optional.empty());
 
         // Act
