@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
@@ -22,8 +23,8 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
     private static final String JSON_DEFENDANT_TYPE = "$.defendant_type";
     private static final String JSON_MINOR_CREDITOR = "$..minor_creditor";
 
-    public DraftAccountPdplLoggingService(LoggingService loggingService, Clock clock) {
-        super(loggingService, clock);
+    public DraftAccountPdplLoggingService(LoggingService loggingService, UserStateService user, Clock clock) {
+        super(loggingService, user, clock);
     }
 
     public void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
@@ -58,10 +59,15 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
             .type(PdplIdentifierType.DRAFT_ACCOUNT)
             .build();
 
+        PersonalDataProcessingCategory category = switch (action) {
+            case SUBMIT, RESUBMIT, REPLACE -> PersonalDataProcessingCategory.COLLECTION;
+            case GET -> PersonalDataProcessingCategory.CONSULTATION;
+        };
+
         logPdpl(businessIdentifier,
-            PersonalDataProcessingCategory.COLLECTION,
+            category,
             List.of(individuals),
-            null, entity);
+            null);
     }
 
     private boolean hasAnyIndividualMinor(JsonPathUtil.DocContext docContext) {
@@ -95,6 +101,7 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
     public enum Action {
         SUBMIT("Submit Draft Account - %s"),
         RESUBMIT("Re-submit Draft Account - %s"),
+        GET("Get Draft Account - %s"),
         REPLACE("Update Draft Account - %s");
 
         private final String template;
