@@ -102,10 +102,10 @@ public class DefendantAccountDeletionService {
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
-        ReportEntryEntity entity = reportEntryRepository.getAllByAssociatedRecordId(String.valueOf(defendantAccountId));
-        String reportId = entity.getReportId(); // stores the reportId for deletion
+        //ReportEntryEntity entity = reportEntryRepository.getAllByAssociatedRecordId(String.valueOf(defendantAccountId));
+        //String reportId = entity.getReportId(); // stores the reportId for deletion
         reportEntryRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
-        reportRepository.deleteByReportId(reportId);
+        //reportRepository.deleteByReportId(reportId);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 
