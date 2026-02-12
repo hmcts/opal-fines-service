@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyShort;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
@@ -62,7 +61,6 @@ class DraftAccountPublishTest {
         draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository,
             pdplLoggingService));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
-        doNothing().when(pdplLoggingService).pdplForDraftAccount(any(), any());
     }
 
     private void injectDraftTransactionsService(

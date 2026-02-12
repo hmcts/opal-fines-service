@@ -74,6 +74,8 @@ public class DraftAccountService {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
 
+            loggingService.pdplForDraftAccount(response, Action.GET);
+
             if (userState.hasBusinessUnitUserWithAnyPermission(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
                 return toGetResponseDto(response);
 
