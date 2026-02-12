@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DefendantAccountResponse implements ToJsonString, Versioned {
 
     @JsonProperty("id")

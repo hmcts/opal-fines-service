@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonIgnoreProperties
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyUpdateDefendantAccountRequest {
@@ -47,7 +47,7 @@ public class LegacyUpdateDefendantAccountRequest {
     @JsonProperty("version")
     @XmlElement(name = "version")
     @NotNull
-    private Integer version;
+    private String version;
 
     @JsonProperty("comment_and_notes")
     @XmlElement(name = "comment_and_notes")
@@ -68,7 +68,7 @@ public class LegacyUpdateDefendantAccountRequest {
 
     @AssertTrue(message = "Exactly one of comment_and_notes, enforcement_court_id, collection_order "
         + "or enforcement_override must be present")
-    private boolean isExactlyOneUpdateFieldPresent() {
+    boolean isExactlyOneUpdateFieldPresent() {
         return ValidationUtils.hasExactlyOneNonNull(commentAndNotes,
             enforcementCourtId,
             collectionOrder,

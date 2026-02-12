@@ -16,7 +16,7 @@
       "minLength": 1
     },
     "version": {
-      "type": "integer"
+      "type": "string"
     },
     "comment_and_notes": {
       "$ref": "./common-objects/commentsAndNotesLegacy.json"
@@ -81,4 +81,3 @@
     }
   ]
 }
-
