@@ -5,29 +5,32 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.LogUtil;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractPdplLoggingService {
 
     protected final LoggingService loggingService;
+    private final UserStateService userStateService;
     protected final Clock clock;
 
     protected void logPdpl(String businessIdentifier,
         PersonalDataProcessingCategory category,
         List<ParticipantIdentifier> individuals,
-        ParticipantIdentifier recipient,
-        DraftAccountEntity entity) {
+        ParticipantIdentifier recipient) {
+
+        UserState userState = userStateService.checkForAuthorisedUser(businessIdentifier);
 
         // attempt to resolve createdBy from Spring Security
         ParticipantIdentifier createdBy = ParticipantIdentifier.builder()
-            .identifier(entity.getSubmittedBy())
+            .identifier(userState.getUserId().toString())
             .type(PdplIdentifierType.OPAL_USER_ID)
             .build();
 

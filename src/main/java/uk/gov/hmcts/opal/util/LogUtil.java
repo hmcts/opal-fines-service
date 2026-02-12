@@ -5,6 +5,7 @@ import com.microsoft.applicationinsights.telemetry.BaseTelemetry;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import com.microsoft.applicationinsights.web.internal.RequestTelemetryContext;
 import com.microsoft.applicationinsights.web.internal.ThreadContext;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -14,6 +15,8 @@ import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Slf4j
 public final class LogUtil {
@@ -59,6 +62,21 @@ public final class LogUtil {
     }
 
     public static String getIpAddress() {
+
+        ServletRequestAttributes attributes =
+            (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (attributes == null) {
+            return null;
+        }
+
+        HttpServletRequest request = attributes.getRequest();
+        String headerIp = request.getHeader("X-User-IP");
+
+        if (headerIp != null && !headerIp.isBlank()) {
+            return headerIp;
+        }
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null) {

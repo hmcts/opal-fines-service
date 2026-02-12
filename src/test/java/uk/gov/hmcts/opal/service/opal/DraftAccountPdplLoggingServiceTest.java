@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,24 +20,32 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.util.LogUtil;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountPdplLoggingServiceTest {
 
+    private static final long TEST_USER_ID = 999L;
+    private static final String TEST_USER_ID_STR = Long.toString(TEST_USER_ID);
+
     @Mock
     private LoggingService loggingService;
 
+    @Mock
+    private UserStateService userStateService;
+
     private DraftAccountPdplLoggingService serviceWithNow(OffsetDateTime now) {
         Clock fixedClock = Clock.fixed(now.toInstant(), ZoneOffset.UTC);
-        return new DraftAccountPdplLoggingService(loggingService, fixedClock);
+        return new DraftAccountPdplLoggingService(loggingService, userStateService, fixedClock);
     }
 
     private DraftAccountEntity makeEntity(Long draftId, String submittedBy, String accountJson) {
@@ -55,6 +64,11 @@ class DraftAccountPdplLoggingServiceTest {
         int expectedCalls
     ) {
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        // Always return a non-null UserState so production code does not NPE.
+        UserState userState = Mockito.mock(UserState.class);
+        when(userState.getUserId()).thenReturn(TEST_USER_ID);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
 
         DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
 
@@ -86,10 +100,9 @@ class DraftAccountPdplLoggingServiceTest {
         assertEquals(expectedNow, pdpl.getCreatedAt());
         assertThat(pdpl.getRecipient()).isNull();
 
+        // production code always sets createdBy from UserState, so assert it exists and matches expected
         assertThat(pdpl.getCreatedBy()).isNotNull();
-        if (expectedCreatedByIdentifier != null) {
-            assertEquals(expectedCreatedByIdentifier, pdpl.getCreatedBy().getIdentifier());
-        }
+        assertEquals(expectedCreatedByIdentifier, pdpl.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
         List<ParticipantIdentifier> individuals = pdpl.getIndividuals();
@@ -114,9 +127,6 @@ class DraftAccountPdplLoggingServiceTest {
             }
             """);
 
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
-
-        String expectedBusinessIdentifier = "Submit Draft Account - Defendant";
         String expectedIp = "192.0.2.33";
         OffsetDateTime expectedNow = OffsetDateTime.parse("2023-01-02T03:04:05Z");
 
@@ -130,7 +140,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            submittedBy,
+            /* createdBy */ TEST_USER_ID_STR,
             draftId.toString());
     }
 
@@ -159,7 +169,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-pg",
+            TEST_USER_ID_STR,
             "33");
 
         PersonalDataProcessingLogDetails second = calls.get(1);
@@ -168,7 +178,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-pg",
+            TEST_USER_ID_STR,
             "33");
     }
 
@@ -209,7 +219,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-min",
+            TEST_USER_ID_STR,
             "22");
 
         PersonalDataProcessingLogDetails minorDetails = calls.get(1);
@@ -218,7 +228,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-min",
+            TEST_USER_ID_STR,
             "22");
     }
 
@@ -250,7 +260,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            submittedBy,
+            TEST_USER_ID_STR,
             draftId.toString());
     }
 
@@ -279,7 +289,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-resubmit-pg",
+            TEST_USER_ID_STR,
             "44");
 
         PersonalDataProcessingLogDetails second = calls.get(1);
@@ -288,7 +298,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-resubmit-pg",
+            TEST_USER_ID_STR,
             "44");
     }
 
@@ -320,7 +330,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            submittedBy,
+            TEST_USER_ID_STR,
             draftId.toString());
     }
 
@@ -349,7 +359,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-replace-pg",
+            TEST_USER_ID_STR,
             "66");
 
         PersonalDataProcessingLogDetails second = calls.get(1);
@@ -358,7 +368,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.COLLECTION,
             expectedIp,
             expectedNow,
-            "user-replace-pg",
+            TEST_USER_ID_STR,
             "66");
     }
 
@@ -385,12 +395,13 @@ class DraftAccountPdplLoggingServiceTest {
 
         PersonalDataProcessingLogDetails details = calls.get(0);
 
+        // updated: createdBy now expected to be present and equal to TEST_USER_ID_STR
         assertPdplCommon(details,
             "Get Draft Account - Defendant",
             PersonalDataProcessingCategory.CONSULTATION,
             expectedIp,
             expectedNow,
-            /* expectedCreatedByIdentifier */ null,
+            /* createdBy */ TEST_USER_ID_STR,
             draftId.toString());
     }
 
@@ -419,7 +430,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.CONSULTATION,
             expectedIp,
             expectedNow,
-            /* expectedCreatedByIdentifier */ null,
+            /* createdBy */ TEST_USER_ID_STR,
             "88");
 
         PersonalDataProcessingLogDetails second = calls.get(1);
@@ -428,7 +439,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.CONSULTATION,
             expectedIp,
             expectedNow,
-            /* expectedCreatedByIdentifier */ null,
+            /* createdBy */ TEST_USER_ID_STR,
             "88");
     }
 
@@ -469,7 +480,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.CONSULTATION,
             expectedIp,
             expectedNow,
-            /* expectedCreatedByIdentifier */ null,
+            /* createdBy */ TEST_USER_ID_STR,
             "99");
 
         PersonalDataProcessingLogDetails minorDetails = calls.get(1);
@@ -478,7 +489,7 @@ class DraftAccountPdplLoggingServiceTest {
             PersonalDataProcessingCategory.CONSULTATION,
             expectedIp,
             expectedNow,
-            /* expectedCreatedByIdentifier */ null,
+            /* createdBy */ TEST_USER_ID_STR,
             "99");
     }
 }
