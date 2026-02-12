@@ -6,7 +6,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-//import uk.gov.hmcts.opal.entity.ReportEntryEntity;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
@@ -103,10 +102,7 @@ public class DefendantAccountDeletionService {
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
         //ReportEntryEntity entity = reportEntryRepository
-        // .getAllByAssociatedRecordId(String.valueOf(defendantAccountId));
-        //String reportId = entity.getReportId(); // stores the reportId for deletion
         reportEntryRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
-        //reportRepository.deleteByReportId(reportId);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 
