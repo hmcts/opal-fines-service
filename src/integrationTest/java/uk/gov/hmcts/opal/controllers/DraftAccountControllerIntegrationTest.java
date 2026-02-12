@@ -350,6 +350,23 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get Draft Account : Deterministic GET results include originator type")
+    void testGetDraftAccountById_deterministic() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        ResultActions resultActions1 = mockMvc.perform(get(URL_BASE + "/1")
+                .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"));
+        String body1 = resultActions1.andReturn().getResponse().getContentAsString();
+        ResultActions resultActions2 = mockMvc.perform(get(URL_BASE + "/1")
+                .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"));
+        String body2 = resultActions2.andReturn().getResponse().getContentAsString();
+        assertEquals(body1, body2);
+    }
+
+    @Test
     @DisplayName("Search draft accounts - POST with draftAccountId - Should return matching draft account"
         + " [@PO-973, @PO-559]")
     void testSearchDraftAccountsPost() throws Exception {
