@@ -135,7 +135,7 @@ Feature: PO-746 put/update draft account
 
     And the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                       | expected_count |
-      | UPDATE001         | OPAL_USER_ID    | Update Draft Account - Defendant         | 1              |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant         | 1              |
 
     Then I delete the created draft accounts
 
@@ -168,7 +168,7 @@ Feature: PO-746 put/update draft account
 
     And the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                          | expected_count |
-      | UPDATE002         | OPAL_USER_ID    | Update Draft Account - Defendant             | 1              |
-      | UPDATE002         | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | 1              |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant             | 1              |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | 1              |
 
     Then I delete the created draft accounts

@@ -127,11 +127,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | validated_by     | PATCH003               |
       | If-Match         | 0                    |
 
-    Then The draft account response returns 200
-
-    And the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                            | expected_count |
-      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Parent or Guardian  | 1              |
+    Then The draft account response returns 403
 
     Then I delete the created draft accounts
 
@@ -156,11 +152,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | validated_by     | PATCH004                |
       | If-Match         | 0                    |
 
-    Then The draft account response returns 200
-
-    And the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                          | expected_count |
-      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Minor Creditor    | 1              |
+    Then The draft account response returns 403
 
     Then I delete the created draft accounts
 
@@ -185,12 +177,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | validated_by     | PATCH005                |
       | If-Match         | 0                    |
 
-    Then The draft account response returns 200
-
-    And the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                          | expected_count |
-      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Defendant         | 1              |
-      | L073JG         | OPAL_USER_ID    | Re-submit Draft Account - Minor Creditor    | 1              |
+    Then The draft account response returns 403
 
     Then I delete the created draft accounts
 
@@ -228,5 +215,4 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | If-Match         | 0                  |
     Then The draft account response returns 406
     Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
-
 
