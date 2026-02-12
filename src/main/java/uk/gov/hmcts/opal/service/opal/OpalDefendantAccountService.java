@@ -447,14 +447,25 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         );
 
         // ---- Build response ----
-        return DefendantAccountResponse.builder()
+        DefendantAccountResponse.DefendantAccountResponseBuilder responseBuilder = DefendantAccountResponse.builder()
             .id(entity.getDefendantAccountId())
-            .commentsAndNotes(buildCommentsAndNotes(entity))
-            .enforcementCourt(OpalDefendantAccountBuilders.buildUpdateEnforcementCourt(entity.getEnforcingCourt()))
-            .collectionOrder(OpalDefendantAccountBuilders.buildUpdateCollectionOrder(entity))
-            .enforcementOverride(OpalDefendantAccountBuilders.buildUpdateEnforcementOverride(entity))
-            .version(newVersion)
-            .build();
+            .version(newVersion);
+
+        if (request.getCommentsAndNotes() != null) {
+            responseBuilder.commentsAndNotes(buildCommentsAndNotes(entity));
+        }
+        if (request.getEnforcementCourt() != null) {
+            responseBuilder.enforcementCourt(
+                OpalDefendantAccountBuilders.buildUpdateEnforcementCourt(entity.getEnforcingCourt()));
+        }
+        if (request.getCollectionOrder() != null) {
+            responseBuilder.collectionOrder(OpalDefendantAccountBuilders.buildUpdateCollectionOrder(entity));
+        }
+        if (request.getEnforcementOverride() != null) {
+            responseBuilder.enforcementOverride(OpalDefendantAccountBuilders.buildUpdateEnforcementOverride(entity));
+        }
+
+        return responseBuilder.build();
     }
 
     /**

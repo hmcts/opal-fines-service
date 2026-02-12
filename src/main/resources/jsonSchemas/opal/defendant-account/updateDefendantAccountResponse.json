@@ -7,7 +7,7 @@
     "id": { "type": "integer" },
     "comment_and_notes": { "$ref": "../common-objects/commentsAndNotes.json" },
     "enforcement_court": {
-      "type": ["object", "null"],
+      "type": "object",
       "additionalProperties": false,
       "properties": {
         "enforcing_court_id": {
@@ -21,7 +21,7 @@
       }
     },
     "collection_order": {
-      "type": ["object", "null"],
+      "type": "object",
       "additionalProperties": false,
       "properties": {
         "collection_order": {
@@ -36,7 +36,7 @@
       }
     },
     "enforcement_override": {
-      "type": ["object", "null"],
+      "type": "object",
       "additionalProperties": false,
       "properties": {
         "enf_override_result_id": {
@@ -54,5 +54,10 @@
       }
     }
   },
-  "required": ["id"]
+  "oneOf": [
+    { "required": ["id", "comment_and_notes"] },
+    { "required": ["id", "enforcement_court"] },
+    { "required": ["id", "collection_order"] },
+    { "required": ["id", "enforcement_override"] }
+  ]
 }

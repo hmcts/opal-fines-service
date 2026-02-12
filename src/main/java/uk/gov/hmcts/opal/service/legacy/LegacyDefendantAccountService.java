@@ -89,7 +89,6 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -124,8 +123,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     /* ---- Mappers ---- */
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
-
-    private final UserStateService userStateService;
 
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -312,26 +309,27 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         if (input == null) {
             return BigDecimal.ZERO;
         }
-        if (input instanceof BigDecimal) {
-            return (BigDecimal) input;
-        }
-        if (input instanceof CharSequence) {
-            String s = input.toString().trim();
-            if (s.isEmpty()) {
-                return BigDecimal.ZERO;
+        return switch (input) {
+            case BigDecimal value -> value;
+            case CharSequence chars -> {
+                String s = chars.toString().trim();
+                if (s.isEmpty()) {
+                    yield BigDecimal.ZERO;
+                }
+                try {
+                    yield new BigDecimal(s);
+                } catch (NumberFormatException e) {
+                    log.warn(":toBigDecimalOrZero: Invalid number format for input '{}'. Defaulting to ZERO.", s, e);
+                    yield BigDecimal.ZERO;
+                }
             }
-            try {
-                return new BigDecimal(s);
-            } catch (NumberFormatException e) {
-                log.warn(":toBigDecimalOrZero: Invalid number format for input '{}'. Defaulting to ZERO.", s, e);
-                return BigDecimal.ZERO;
+            case Number number -> BigDecimal.valueOf(number.doubleValue());
+            default -> {
+                log.warn(":toBigDecimalOrZero: Unsupported type {}. Defaulting to ZERO.",
+                    input.getClass().getName());
+                yield BigDecimal.ZERO;
             }
-        }
-        if (input instanceof Number) {
-            return BigDecimal.valueOf(((Number) input).doubleValue());
-        }
-        log.warn(":toBigDecimalOrZero: Unsupported type {}. Defaulting to ZERO.", input.getClass().getName());
-        return BigDecimal.ZERO;
+        };
     }
 
     private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
@@ -343,7 +341,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return GetDefendantAccountPaymentTermsResponse.builder()
             .version(Optional.ofNullable(legacy.getVersion())
-                  .map(v -> BigInteger.valueOf(v.longValue())).orElse(BigInteger.ONE))
+                  .map(BigInteger::valueOf).orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
@@ -461,11 +459,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         PartyDetailsLegacy pd = src.getPartyDetails();
         boolean isOrg = Boolean.TRUE.equals(mapSafe(pd, PartyDetailsLegacy::getOrganisationFlag));
 
+        OrganisationDetailsLegacy orgDetails = mapSafe(pd, PartyDetailsLegacy::getOrganisationDetails);
+        IndividualDetailsLegacy indDetails = mapSafe(pd, PartyDetailsLegacy::getIndividualDetails);
+
         OrganisationDetails opalOrg = null;
         if (isOrg) {
             opalOrg = OrganisationDetails.builder()
-                .organisationName(mapSafe(pd != null ? pd.getOrganisationDetails() : null,
-                    OrganisationDetailsLegacy::getOrganisationName))
+                .organisationName(mapSafe(orgDetails, OrganisationDetailsLegacy::getOrganisationName))
                 // arrays must not be null (schema expects an array)
                 .organisationAliases(java.util.Collections.emptyList())
                 .build();
@@ -474,16 +474,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         IndividualDetails opalInd = null;
         if (!isOrg) {
             opalInd = IndividualDetails.builder()
-                .title(mapSafe(pd != null ? pd.getIndividualDetails() : null, IndividualDetailsLegacy::getTitle))
-                .forenames(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getForenames))
-                .surname(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getSurname))
-                .dateOfBirth(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getDateOfBirth))
-                .age(mapSafe(pd != null ? pd.getIndividualDetails() : null, IndividualDetailsLegacy::getAge))
-                .nationalInsuranceNumber(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getNationalInsuranceNumber))
+                .title(mapSafe(indDetails, IndividualDetailsLegacy::getTitle))
+                .forenames(mapSafe(indDetails, IndividualDetailsLegacy::getForenames))
+                .surname(mapSafe(indDetails, IndividualDetailsLegacy::getSurname))
+                .dateOfBirth(mapSafe(indDetails, IndividualDetailsLegacy::getDateOfBirth))
+                .age(mapSafe(indDetails, IndividualDetailsLegacy::getAge))
+                .nationalInsuranceNumber(mapSafe(indDetails, IndividualDetailsLegacy::getNationalInsuranceNumber))
                 // arrays must not be null (schema expects an array)
                 .individualAliases(java.util.Collections.emptyList())
                 .build();
@@ -874,7 +870,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
 
         // in legacy system, If-Match header value is passed in as version.
-        Integer version = Integer.parseInt(ifMatch);
+        String version = VersionUtils.extractBigInteger(ifMatch).toString();
 
         // build legacy request object with mapped fields from UpdateDefendantAccountRequest
         // pass 'version' into the mapper/to-legacy request builder
@@ -893,7 +889,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         if (gwResponse.isError()) {
             log.error(":updateDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", gwResponse.code);
             if (gwResponse.isException()) {
-                log.error(":updateDefendantAccount: Legacy Gateway response exception: {}", gwResponse.exception);
+                log.error(":updateDefendantAccount: Legacy Gateway response exception", gwResponse.exception);
             } else if (gwResponse.isLegacyFailure()) {
                 log.error(":updateDefendantAccount: Legacy Gateway: body: \n{}", gwResponse.body);
                 LegacyUpdateDefendantAccountResponse responseEntity = gwResponse.responseEntity;
@@ -1305,8 +1301,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             }
 
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
-            populateCourtCode(enforcementStatus);
-            populateLjaCode(enforcementStatus);
+            populateCourtCodeFromStatus(enforcementStatus);
+            populateLjaCodeFromStatus(enforcementStatus);
             return toEnforcementStatusResponse(enforcementStatus);
 
         } catch (RuntimeException e) {
@@ -1316,20 +1312,22 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
     }
 
-    private void populateCourtCode(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
+    private void populateCourtCodeFromStatus(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
         Optional.ofNullable(enforcementStatus)
-            .map(es -> es.getEnforcementOverview())
-            .map(eo -> eo.getEnforcementCourt()).ifPresent(this::populateCourtCode);
+            .map(LegacyGetDefendantAccountEnforcementStatusResponse::getEnforcementOverview)
+            .map(LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview::getEnforcementCourt)
+            .ifPresent(this::populateCourtCode);
     }
 
     private void populateCourtCode(CourtReference courtRef) {
         courtRef.setCourtCode(courtService.getCourtById(courtRef.getCourtId()).getCourtCode());
     }
 
-    private void populateLjaCode(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
+    private void populateLjaCodeFromStatus(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
         Optional.ofNullable(enforcementStatus)
-            .map(es -> es.getEnforcementOverride())
-            .map(eo -> eo.getLja()).ifPresent(this::populateLjaCode);
+            .map(LegacyGetDefendantAccountEnforcementStatusResponse::getEnforcementOverride)
+            .map(uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride::getLja)
+            .ifPresent(this::populateLjaCode);
     }
 
     private void populateLjaCode(LjaReference ljaRef) {

@@ -3,8 +3,10 @@ package uk.gov.hmcts.opal.mapper.request;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 
 public class UpdateDefendantAccountRequestMapperTest {
     // The mapper is an interface with a default method, so we need to use the implementation class
@@ -36,5 +38,21 @@ public class UpdateDefendantAccountRequestMapperTest {
     void numberToString_negative_values() {
         assertEquals("-5", mapper.numberToString(-5));
         assertEquals("-9", mapper.numberToString(-9.3));
+    }
+
+    @Test
+    @DisplayName("collectionOrder maps collection_order_date to LocalDate")
+    void collectionOrder_mapsDateToLocalDate() {
+        UpdateDefendantAccountRequest.CollectionOrderRequest src =
+            UpdateDefendantAccountRequest.CollectionOrderRequest.builder()
+                .collectionOrder(true)
+                .collectionOrderDate("2025-01-01")
+                .build();
+
+        uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder result = mapper.map(src);
+
+        assertEquals(Boolean.TRUE, result.getCollectionOrderFlag());
+        assertEquals(LocalDate.parse("2025-01-01"), result.getCollectionOrderDate());
+        assertEquals(LocalDate.parse("2025-01-01"), mapper.stringToLocalDate("2025-01-01"));
     }
 }

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.request;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
+import java.time.LocalDate;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
@@ -38,7 +39,7 @@ public interface UpdateDefendantAccountRequestMapper {
         String defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        Integer version
+        String version
     );
 
     /* ----------- Nested type mappings ----------- */
@@ -54,7 +55,8 @@ public interface UpdateDefendantAccountRequestMapper {
 
     // API CollectionOrderRequest -> Legacy CollectionOrder (extend as fields evolve)
     @Mappings({
-        @Mapping(target = "collectionOrderFlag", source = "collectionOrder")
+        @Mapping(target = "collectionOrderFlag", source = "collectionOrder"),
+        @Mapping(target = "collectionOrderDate", source = "collectionOrderDate", qualifiedByName = "stringToLocalDate")
     })
     uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder map(
         UpdateDefendantAccountRequest.CollectionOrderRequest src);
@@ -97,5 +99,10 @@ public interface UpdateDefendantAccountRequestMapper {
     @Named("numberToString")
     default String numberToString(Number n) {
         return n == null ? null : String.valueOf(n.longValue());
+    }
+
+    @Named("stringToLocalDate")
+    default LocalDate stringToLocalDate(String value) {
+        return value == null ? null : LocalDate.parse(value);
     }
 }
