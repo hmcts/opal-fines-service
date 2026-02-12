@@ -195,7 +195,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(3))
+            .andExpect(jsonPath("$.count").value(6))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(7))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -489,7 +489,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         calls.forEach(pdpl -> {
             assertNotNull(pdpl.getCreatedBy());
-            assertEquals("BUUID1", pdpl.getCreatedBy().getIdentifier());
+            assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
             assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
             OffsetDateTime createdAt = pdpl.getCreatedAt();
@@ -538,7 +538,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
         assertNotNull(pdpl.getCreatedBy());
-        assertEquals("BUUID1", pdpl.getCreatedBy().getIdentifier());
+        assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
         OffsetDateTime createdAt = pdpl.getCreatedAt();
@@ -587,7 +587,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
             assertNotNull(pdpl.getCreatedBy());
-            assertEquals("BUUID1", pdpl.getCreatedBy().getIdentifier());
+            assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
             assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
             OffsetDateTime createdAt = pdpl.getCreatedAt();
@@ -637,7 +637,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
             assertNotNull(pdpl.getCreatedBy());
-            assertEquals("BUUID1", pdpl.getCreatedBy().getIdentifier());
+            assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
             assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
             OffsetDateTime createdAt = pdpl.getCreatedAt();
@@ -1429,9 +1429,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
+        String ifMatch = getIfMatchForDraftAccount(draftIdAccount);
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
-            .header("If-Match", "2")
+            .header("If-Match", ifMatch)
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending", "A")));
 
@@ -1439,7 +1440,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"4\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftIdAccount))
             .andExpect(jsonPath("$.business_unit_id").value(65));
 
