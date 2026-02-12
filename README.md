@@ -171,7 +171,7 @@ Secondly you will need to ensure you have the required environment variables set
 
 Finally to run the application with all external dependencies using docker you can run the following command from the opal-shared-infrastructure directory:
 ```bash / zsh
-../opal-shared-infrastructure/bin/opalBuild.sh -lb
+../opal-shared-infrastructure/docker-files/scripts/opalBuild.sh -lb
 ```
 Full details of this script and the arguments can be found within the opal-shared-infrastructure repository
 
