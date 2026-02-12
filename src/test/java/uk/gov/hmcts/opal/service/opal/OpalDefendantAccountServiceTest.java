@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ class OpalDefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
+
 
     @Mock
     private DefendantAccountSummaryViewRepository dasvRepository;
@@ -191,7 +193,7 @@ class OpalDefendantAccountServiceTest {
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(defAccount);
         when(enforcementRepositoryService.getEnforcementMostRecent(
             any(), any())).thenReturn(Optional.of(enforcementEntity));
-        when(enforcerRepoService.findById(any())).thenReturn(Optional.empty());
+        lenient().when(enforcerRepoService.findById(any())).thenReturn(null); // enforcerRepo should not be null
         when(debtorDetailRepoService.findByPartyId(any())).thenReturn(Optional.empty());
 
         // Act
