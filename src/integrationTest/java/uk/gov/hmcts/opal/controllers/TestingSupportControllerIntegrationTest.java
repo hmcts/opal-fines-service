@@ -179,7 +179,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(count("defendant_accounts", "defendant_account_id = 1001")).isZero();
         assertThat(count("defendant_account_parties", "defendant_account_id = 1001")).isZero();
         assertThat(count("payment_terms", "defendant_account_id = 1001")).isZero();
-        assertThat(count("reports", "report_id = '10001'")).isZero();
+        assertThat(count("reports", "report_id = '10001'")).as("Rows in Reports should not be deleted").isEqualTo(1);
         assertThat(count("report_entries", "associated_record_id = '1001'")
         ).isZero();
         assertThat(count("defendant_transactions", "defendant_account_id = 1001")).isZero();
