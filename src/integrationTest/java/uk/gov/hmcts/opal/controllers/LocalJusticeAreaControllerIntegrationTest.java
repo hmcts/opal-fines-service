@@ -139,7 +139,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @DisplayName("Verify search result for LocalJusticeAreasRefData created by GET request with single lja_type param [@PO-2757]")
+    @DisplayName("Verify search result for LocalJusticeAreasRefData GET request single lja_type param [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterBySingleLjaType() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param("lja_type", "TYPE_1"));
 
@@ -154,7 +154,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @DisplayName("Verify search result for LocalJusticeAreasRefData created by GET request with unknown lja_type param [@PO-2757]")
+    @DisplayName("Verify search result for LocalJusticeAreasRefData GET request with unknown lja_type [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterByUnknownLjaType() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param("lja_type", "UNKNOWN"));
 
@@ -167,10 +167,11 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @DisplayName("Verify search result for LocalJusticeAreasRefData created by GET request with known and unknown lja_type param [@PO-2757]")
+    @DisplayName("Verify search result for LocalJusticeAreasRefData GET request with known/unknown lja_type [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterByKnownAndUnknownLjaTypes() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param("lja_type", "UNKNOWN", "TYPE_1"));
-        String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByKnownAndUnknownLjaTypes:");
+        String body =
+            getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByKnownAndUnknownLjaTypes:");
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -182,11 +183,12 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
 
     @ParameterizedTest
     @MethodSource("testCasesForQueryParameterInput")
-    @DisplayName("Verify search result for LocalJusticeAreasRefData created by GET request with single lja_type param [@PO-2757]")
+    @DisplayName("Verify search result for LocalJusticeAreasRefData GET request multiple lja_type [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes(MockHttpServletRequestBuilder requestBuilder)
         throws Exception {
         ResultActions actions = mockMvc.perform(requestBuilder);
-        String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByMultipleLjaTypes:");
+        String body =
+            getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByMultipleLjaTypes:");
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(org.hamcrest.Matchers.greaterThan(2)))
