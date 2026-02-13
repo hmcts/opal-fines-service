@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +39,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     private static final String URL_BASE = "/local-justice-areas";
     private static final String GET_LJAS_REF_DATA_RESPONSE =
         SchemaPaths.REFERENCE_DATA + "/getLJARefDataResponse.json";
+
+    @MockitoSpyBean
+    CacheManager cacheManager;
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -197,14 +202,18 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @Test
     @DisplayName("Verify deterministic results for LocalJusticeAreasRefData created by multiple GET requests")
     void testGetLocalJusticeAreasRefData_returnsSameResultsInStableOrderForMultipleCalls() throws Exception {
-
+        String cacheName = "ljaReferenceDataCache";
         var actions1 = mockMvc.perform(get(URL_BASE).param("lja_type", "CTYCRT", "TYPE_2"));
         String body1 = actions1.andReturn().getResponse().getContentAsString();
+        var cache1 = cacheManager.getCache(cacheName);
 
         var actions2 = mockMvc.perform(get(URL_BASE).param("lja_type", "TYPE_2", "CTYCRT"));
         String body2 = actions2.andReturn().getResponse().getContentAsString();
+        var cache2 = cacheManager.getCache(cacheName);
 
         assertEquals(body1, body2);
+        assertNotNull(cache1);
+        assertEquals(cache1, cache2);
     }
 
     @Test

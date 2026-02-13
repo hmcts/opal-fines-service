@@ -1,9 +1,12 @@
 package uk.gov.hmcts.opal.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
@@ -119,30 +122,31 @@ public class CacheConfig {
     @Bean("KeyGeneratorForOptionalList")
     public KeyGenerator generateKeyFromList() {
         return (target, method, params) -> {
-            List<String> key = new ArrayList<>();
-            for (Object param : params) {
-                if (param instanceof Optional) {
-                    ((Optional<?>) param).ifPresentOrElse(
-                        filter -> generateKey(filter, key), () -> key.add("noFilter"));
-                } else {
-                    generateKey(param, key);
-                }
-            }
-            return String.join("_", key);
+            return Arrays.stream(params)
+                .flatMap(param -> {
+                    if (param instanceof Optional<?> optional) {
+                        return optional.map(this::generateKeyParts)
+                            .orElseGet(() -> Stream.of("noFilter"));
+                    }
+                    return generateKeyParts(param);
+                })
+                .collect(Collectors.joining("_"));
         };
     }
 
-    private void generateKey(Object filter, List<String> sb) {
-        if (filter instanceof String) {
-            sb.add((String) filter);
+    private Stream<String> generateKeyParts(Object filter) {
+        List<String> key = new ArrayList<>();
+        if (filter instanceof String s) {
+            key.add(s);
         }
-        if (filter instanceof List) {
-            List<String> stringStream = ((List<?>) filter)
-                .stream()
-                .map((obj) -> Objects.toString(obj, null))
-                .sorted()
-                .toList();
-            sb.addAll(stringStream);
+        if (filter instanceof List<?> list) {
+            key.addAll(
+                list.stream()
+                    .map(obj -> Objects.toString(obj, null))
+                    .sorted()
+                    .toList()
+            );
         }
+        return key.stream();
     }
 }
