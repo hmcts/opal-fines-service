@@ -115,7 +115,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         if (response.isError()) {
             log.error(":getMinorCreditorAtAGlance: Legacy Gateway response: HTTP Response Code: {}", response.code);
             if (response.isException()) {
-                log.error(":getMinorCreditorAtAGlance:", response.exception);
+                log.error(":getMinorCreditorAtAGlance: Exception Message: {}", response.exception.getMessage());
             } else if (response.isLegacyFailure()) {
                 log.error(":getMinorCreditorAtAGlance: Legacy Gateway: body: \n{}", response.body);
                 LegacyGetMinorCreditorAccountAtAGlanceResponse responseEntity = response.responseEntity;

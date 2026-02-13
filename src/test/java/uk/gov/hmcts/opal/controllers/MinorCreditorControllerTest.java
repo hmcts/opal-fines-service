@@ -69,7 +69,7 @@ class MinorCreditorControllerTest {
         // Arrange
         GetMinorCreditorAccountAtAGlanceResponse mockResponse = new GetMinorCreditorAccountAtAGlanceResponse();
 
-        when(minorCreditorService.getMinorCreditorAtAGlance(any(), any())).thenReturn(mockResponse);
+        when(minorCreditorService.getMinorCreditorAtAGlance("creditorId", BEARER_TOKEN)).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> responseEntity =

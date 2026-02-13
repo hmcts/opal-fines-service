@@ -45,7 +45,9 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     @Override
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
-        return null;
+
+        // To do as a part of PO-1914
+        throw new UnsupportedOperationException("Opal endpoint not supported yet.");
     }
 
     @Override
