@@ -1,5 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyShort;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -7,21 +16,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyShort;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LocalJusticeAreaControllerTest {
@@ -40,7 +39,7 @@ class LocalJusticeAreaControllerTest {
         when(localJusticeAreaService.getLocalJusticeAreaById(anyShort())).thenReturn(entity);
 
         // Act
-        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short)1);
+        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short) 1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -95,7 +94,7 @@ class LocalJusticeAreaControllerTest {
 
             @Override
             public Short getLocalJusticeAreaId() {
-                return (short)1;
+                return (short) 1;
             }
 
             @Override
@@ -104,7 +103,9 @@ class LocalJusticeAreaControllerTest {
             }
 
             @Override
-            public String getLjaType() { return "LJA_TYPE"; }
+            public String getLjaType() {
+                return "LJA_TYPE";
+            }
 
             @Override
             public String getName() {
