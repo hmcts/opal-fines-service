@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.Defendant;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -158,7 +159,7 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(
             any(),
             eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
-            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId("happyPath").build()),
             any())
         ).thenReturn(gatewayResponse);
 
@@ -234,7 +235,7 @@ class LegacyMinorCreditorServiceTest {
         assertEquals(":getMinorCreditorAtAGlance: Legacy Gateway response: HTTP Response Code: "
             + "500 INTERNAL_SERVER_ERROR", logs.getFirst().getFormattedMessage());
         assertEquals(Level.ERROR, logs.get(1).getLevel());
-        assertEquals(":getMinorCreditorAtAGlance:", logs.get(1).getFormattedMessage());
+        assertEquals(":getMinorCreditorAtAGlance: Exception Message: Gateway error", logs.get(1).getFormattedMessage());
 
         logger.detachAppender(listAppender);
         listAppender.stop();
