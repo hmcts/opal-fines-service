@@ -90,7 +90,8 @@ class LocalJusticeAreaServiceTest {
         });
 
         // Act
-        List<LjaReferenceData> result = localJusticeAreaService.getReferenceData(Optional.empty());
+        List<LjaReferenceData> result = localJusticeAreaService.getReferenceData(
+            Optional.empty(), Optional.empty());
 
         // Assert
         assertEquals(List.of(localJAEntity), result);

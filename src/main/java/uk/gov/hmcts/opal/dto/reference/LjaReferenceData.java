@@ -12,6 +12,9 @@ public interface LjaReferenceData {
     @JsonProperty("lja_code")
     String getLjaCode();
 
+    @JsonProperty("lja_type")
+    String getLjaType();
+
     @JsonProperty("name")
     String getName();
 

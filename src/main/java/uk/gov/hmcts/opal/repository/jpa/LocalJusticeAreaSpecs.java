@@ -22,12 +22,16 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
         ));
     }
 
-    public Specification<LocalJusticeAreaEntity> referenceDataFilter(Optional<String> filter) {
+    public Specification<LocalJusticeAreaEntity> referenceDataFilter(Optional<String> filter,
+        Optional<List<String>> ljaTypesFilter) {
+
+        Optional<Specification<LocalJusticeAreaEntity>> ljaTypeSpec =
+            ljaTypesFilter.filter(s -> !s.isEmpty()).map(this::containsLocalJusticeAreaTypes);
+        Optional<Specification<LocalJusticeAreaEntity>> filterSpec =
+            filter.filter(s -> !s.isBlank()).map(this::likeAnyLocalJusticeArea);
+
         return Specification.allOf(specificationList(
-            List.of(
-                filter.filter(s -> !s.isBlank()).map(this::likeAnyLocalJusticeArea)),
-            endDateGreaterThenEqualToDate(LocalDateTime.now())
-        ));
+            List.of(filterSpec, ljaTypeSpec), endDateGreaterThenEqualToDate(LocalDateTime.now())));
     }
 
     public static Specification<LocalJusticeAreaEntity> equalsLocalJusticeAreaId(Short localJusticeAreaId) {
@@ -57,5 +61,12 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
             builder.isNull(root.get(LocalJusticeAreaEntity_.endDate)),
             builder.greaterThanOrEqualTo(root.get(LocalJusticeAreaEntity_.endDate), expiryDate)
         );
+    }
+
+    public Specification<LocalJusticeAreaEntity> containsLocalJusticeAreaTypes(
+        List<String> ljaTypes) {
+        return
+            (root, query, builder) ->
+                root.get(LocalJusticeAreaEntity_.ljaType).in(ljaTypes);
     }
 }
