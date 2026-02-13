@@ -46,13 +46,13 @@ public class LocalJusticeAreaService {
         return page.getContent();
     }
 
-    @Cacheable(cacheNames = "ljaReferenceDataCache", key = "#filter.orElse('noFilter')")
-    public List<LjaReferenceData> getReferenceData(Optional<String> filter) {
+    @Cacheable(cacheNames = "ljaReferenceDataCache", keyGenerator = "KeyGeneratorForOptionalList")
+    public List<LjaReferenceData> getReferenceData(Optional<String> filter, Optional<List<String>> ljaType) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, LocalJusticeAreaEntity_.NAME);
 
         Page<LjaReferenceData> page = localJusticeAreaRepository
-            .findBy(specs.referenceDataFilter(filter),
+            .findBy(specs.referenceDataFilter(filter, ljaType),
                     ffq -> ffq
                         .sortBy(nameSort)
                         .as(LjaReferenceData.class)

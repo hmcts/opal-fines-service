@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.config;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
@@ -8,6 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -109,5 +114,35 @@ public class CacheConfig {
             cacheManager.getCacheNames().forEach(cacheName -> log.debug("- {}", cacheName));
         }
         log.info("------------------------------");
+    }
+
+    @Bean("KeyGeneratorForOptionalList")
+    public KeyGenerator generateKeyFromList() {
+        return (target, method, params) -> {
+            List<String> key = new ArrayList<>();
+            for (Object param : params) {
+                if (param instanceof Optional) {
+                    ((Optional<?>) param).ifPresentOrElse(
+                        filter -> generateKey(filter, key), () -> key.add("noFilter"));
+                } else {
+                    generateKey(param, key);
+                }
+            }
+            return String.join("_", key);
+        };
+    }
+
+    private void generateKey(Object filter, List<String> sb) {
+        if (filter instanceof String) {
+            sb.add((String) filter);
+        }
+        if (filter instanceof List) {
+            List<String> stringStream = ((List<?>) filter)
+                .stream()
+                .map((obj) -> Objects.toString(obj, null))
+                .sorted()
+                .toList();
+            sb.addAll(stringStream);
+        }
     }
 }

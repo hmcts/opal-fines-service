@@ -74,19 +74,20 @@ class LocalJusticeAreaControllerTest {
         LjaReferenceData entity = createLjaReferenceData();
         List<LjaReferenceData> localJusticeAreaList = List.of(entity);
 
-        when(localJusticeAreaService.getReferenceData(any())).thenReturn(localJusticeAreaList);
+        when(localJusticeAreaService.getReferenceData(any(), any())).thenReturn(localJusticeAreaList);
 
         // Act
         Optional<String> filter = Optional.empty();
+        Optional<List<String>> ljaTypes = Optional.empty();
         ResponseEntity<LjaReferenceDataResults> response = localJusticeAreaController
-            .getLocalJusticeAreaRefData(filter);
+            .getLocalJusticeAreaRefData(filter, ljaTypes);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         LjaReferenceDataResults refDataResults = response.getBody();
         assertEquals(1, refDataResults.getCount());
         assertEquals(localJusticeAreaList, refDataResults.getRefData());
-        verify(localJusticeAreaService, times(1)).getReferenceData(any());
+        verify(localJusticeAreaService, times(1)).getReferenceData(any(), any());
     }
 
     private LjaReferenceData createLjaReferenceData() {
@@ -101,6 +102,9 @@ class LocalJusticeAreaControllerTest {
             public String getLjaCode() {
                 return "MAIN";
             }
+
+            @Override
+            public String getLjaType() { return "LJA_TYPE"; }
 
             @Override
             public String getName() {
