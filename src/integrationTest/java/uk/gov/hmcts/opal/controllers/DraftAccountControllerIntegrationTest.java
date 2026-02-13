@@ -102,6 +102,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account_status_date").value("2024-12-10T16:27:01.023126Z"))
             .andExpect(jsonPath("$.submitted_by_name").value("John Smith"))
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"))
             .andExpect(jsonPath("$.version").doesNotExist())
             .andExpect(jsonPath("$.status_message").doesNotExist())
             .andExpect(jsonPath("$.validated_by_name").doesNotExist());
@@ -349,6 +350,23 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get Draft Account : Deterministic GET results include originator type")
+    void testGetDraftAccountById_deterministic() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        ResultActions resultActions1 = mockMvc.perform(get(URL_BASE + "/1")
+                .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"));
+        String body1 = resultActions1.andReturn().getResponse().getContentAsString();
+        ResultActions resultActions2 = mockMvc.perform(get(URL_BASE + "/1")
+                .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"));
+        String body2 = resultActions2.andReturn().getResponse().getContentAsString();
+        assertEquals(body1, body2);
+    }
+
+    @Test
     @DisplayName("Search draft accounts - POST with draftAccountId - Should return matching draft account"
         + " [@PO-973, @PO-559]")
     void testSearchDraftAccountsPost() throws Exception {
@@ -423,10 +441,59 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
+            .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray());
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when originator_type is missing")
+    void testReplaceDraftAccount_originatorTypeIsMissing() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\",", "");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when originator_type is blank")
+    void testReplaceDraftAccount_originatorTypeIsBlank() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when originator_type has invalid value")
+    void testReplaceDraftAccount_originatorTypeIsInvalid() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(request))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -649,6 +716,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
               "defendant_type": "Adult",
               "originator_name": "Police Force",
               "originator_id": 12345,
+              "originator_type": "NEW",
               "enforcement_court_id": 101,
               "payment_card_request": true,
               "account_sentence_date": "2023-12-01",
@@ -705,7 +773,9 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
-                .value("LNAME"));
+                           .value("LNAME"))
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"))
+        ;
     }
 
     @Test
@@ -753,6 +823,50 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("Should return 400 when originator_type is missing")
+    void shouldReturn400WhenOriginatorTypeIsMissing() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\",", "");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when originator_type is blank")
+    void shouldReturn400WhenOriginatorTypeIsBlank() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when originator_type has invalid value")
+    void shouldReturn400WhenOriginatorTypeIsInvalid() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
 
     @Test
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
@@ -1520,6 +1634,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "Adult",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "NEW",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -1621,6 +1736,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "adultOrYouthOnly",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "TFO",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -1782,6 +1898,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "adultOrYouthOnly",
                 "originator_name": "LJS",
                 "originator_id": 123,
+                "originator_type": "NEW",
                 "prosecutor_case_reference": null,
                 "enforcement_court_id": 456,
                 "collection_order_made": null,
@@ -1902,6 +2019,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "pgToPay",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "NEW",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -1983,6 +2101,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "adultOrYouthOnly",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "NEW",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -2049,6 +2168,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "pgToPay",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "NEW",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -2123,6 +2243,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "defendant_type": "adultOrYouthOnly",
                 "originator_name": "Police Force",
                 "originator_id": 12345,
+                "originator_type": "NEW",
                 "enforcement_court_id": 101,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
