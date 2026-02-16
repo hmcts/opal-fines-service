@@ -10,6 +10,7 @@
         "defendant_type",
         "originator_name",
         "originator_id",
+        "originator_type",
         "enforcement_court_id",
         "payment_card_request",
         "account_sentence_date",
@@ -33,6 +34,10 @@
         "originator_id": {
             "type": "integer",
             "description": "ID for the originator"
+        },
+        "originator_type": {
+            "type": "string",
+            "enum": ["NEW", "TFO", "FP"]
         },
         "prosecutor_case_reference": {
             "type": ["string", "null"],

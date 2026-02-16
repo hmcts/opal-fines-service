@@ -386,6 +386,7 @@ class DraftAccountServiceTest {
                     "defendant_type": "Adult",
                     "originator_name": "Police Force",
                     "originator_id": 12345,
+                    "originator_type": "NEW",
                     "enforcement_court_id": 101,
                     "collection_order_made": true,
                     "collection_order_made_today": false,
