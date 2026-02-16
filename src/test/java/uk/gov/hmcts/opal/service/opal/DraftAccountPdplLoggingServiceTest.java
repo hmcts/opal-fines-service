@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,7 +26,6 @@ import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.util.LogUtil;
 
@@ -40,12 +38,9 @@ class DraftAccountPdplLoggingServiceTest {
     @Mock
     private LoggingService loggingService;
 
-    @Mock
-    private UserStateService userStateService;
-
     private DraftAccountPdplLoggingService serviceWithNow(OffsetDateTime now) {
         Clock fixedClock = Clock.fixed(now.toInstant(), ZoneOffset.UTC);
-        return new DraftAccountPdplLoggingService(loggingService, userStateService, fixedClock);
+        return new DraftAccountPdplLoggingService(loggingService, fixedClock);
     }
 
     private DraftAccountEntity makeEntity(Long draftId, String submittedBy, String accountJson) {
@@ -68,13 +63,12 @@ class DraftAccountPdplLoggingServiceTest {
         // Always return a non-null UserState so production code does not NPE.
         UserState userState = Mockito.mock(UserState.class);
         when(userState.getUserId()).thenReturn(TEST_USER_ID);
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
 
         DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
 
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            svc.pdplForDraftAccount(entity, action);
+            svc.pdplForDraftAccount(entity, action, userState);
         }
 
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor =

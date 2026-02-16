@@ -8,12 +8,12 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
@@ -23,11 +23,11 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
     private static final String JSON_DEFENDANT_TYPE = "$.defendant_type";
     private static final String JSON_MINOR_CREDITOR = "$..minor_creditor";
 
-    public DraftAccountPdplLoggingService(LoggingService loggingService, UserStateService user, Clock clock) {
-        super(loggingService, user, clock);
+    public DraftAccountPdplLoggingService(LoggingService loggingService, Clock clock) {
+        super(loggingService, clock);
     }
 
-    public void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
+    public void pdplForDraftAccount(DraftAccountEntity entity, Action action, UserState userState) {
         JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(), "");
 
         Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
@@ -38,20 +38,20 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         }
 
         switch (defendantType) {
-            case "adultOrYouthOnly" -> logForRole(entity, action, Role.DEFENDANT);
+            case "adultOrYouthOnly" -> logForRole(entity, action, Role.DEFENDANT, userState);
             case "pgToPay" -> {
-                logForRole(entity, action, Role.PARENT_OR_GUARDIAN);
-                logForRole(entity, action, Role.DEFENDANT);
+                logForRole(entity, action, Role.PARENT_OR_GUARDIAN, userState);
+                logForRole(entity, action, Role.DEFENDANT, userState);
             }
             default -> log.error("Unknown defendant_type '{}', skipping defendant/pg logs", defendantType);
         }
 
         if (hasAnyIndividualMinor(docContext)) {
-            logForRole(entity, action, Role.MINOR_CREDITOR);
+            logForRole(entity, action, Role.MINOR_CREDITOR, userState);
         }
     }
 
-    private void logForRole(DraftAccountEntity entity, Action action, Role role) {
+    private void logForRole(DraftAccountEntity entity, Action action, Role role, UserState userState) {
         String businessIdentifier = action.formatFor(role);
 
         ParticipantIdentifier individuals = ParticipantIdentifier.builder()
@@ -67,7 +67,7 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         logPdpl(businessIdentifier,
             category,
             List.of(individuals),
-            null);
+            null, userState);
     }
 
     private boolean hasAnyIndividualMinor(JsonPathUtil.DocContext docContext) {

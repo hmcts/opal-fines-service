@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
-import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
@@ -40,16 +39,10 @@ class DraftAccountPublishTest {
     DraftAccountMapper mapper = Mappers.getMapper(DraftAccountMapper.class);
 
     @Mock
-    private LoggingService loggingService;
-
-    @Mock
     DraftAccountRepository draftRepository;
 
     @Mock
     BusinessUnitRepository businessRepository;
-
-    @Mock
-    DraftAccountPdplLoggingService pdplLoggingService;
 
     private DraftAccountTransactional draftAccountTransactional;
 
@@ -58,8 +51,7 @@ class DraftAccountPublishTest {
 
     @BeforeEach
     void openMocks() throws Exception {
-        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository,
-            pdplLoggingService));
+        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 

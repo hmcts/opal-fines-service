@@ -11,22 +11,20 @@ import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.LogUtil;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractPdplLoggingService {
 
     protected final LoggingService loggingService;
-    private final UserStateService userStateService;
     protected final Clock clock;
 
     protected void logPdpl(String businessIdentifier,
         PersonalDataProcessingCategory category,
         List<ParticipantIdentifier> individuals,
-        ParticipantIdentifier recipient) {
+        ParticipantIdentifier recipient,
+        UserState userState) {
 
-        UserState userState = userStateService.checkForAuthorisedUser(businessIdentifier);
 
         // attempt to resolve createdBy from Spring Security
         ParticipantIdentifier createdBy = ParticipantIdentifier.builder()

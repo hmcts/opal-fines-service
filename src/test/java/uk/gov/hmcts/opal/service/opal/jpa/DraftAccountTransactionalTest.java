@@ -21,7 +21,6 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -41,7 +40,6 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
-import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -52,9 +50,6 @@ class DraftAccountTransactionalTest {
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
-
-    @Mock
-    private DraftAccountPdplLoggingService loggingService;
 
     @InjectMocks
     private DraftAccountTransactional draftAccountTransactional;
@@ -156,25 +151,6 @@ class DraftAccountTransactionalTest {
 
         assertEquals(saved.getAccount(), result.getAccount());
 
-        // Capture the arguments passed to pdplForDraftAccount and assert their contents
-        ArgumentCaptor<DraftAccountEntity> entityCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
-        ArgumentCaptor<DraftAccountPdplLoggingService.Action> actionCaptor =
-            ArgumentCaptor.forClass(DraftAccountPdplLoggingService.Action.class);
-
-        verify(loggingService).pdplForDraftAccount(entityCaptor.capture(), actionCaptor.capture());
-
-        DraftAccountEntity capturedEntity = entityCaptor.getValue();
-
-        assertNotNull(capturedEntity, "pdplForDraftAccount should be called with a DraftAccountEntity");
-        assertEquals(saved.getDraftAccountId(), capturedEntity.getDraftAccountId(),
-            "pdplForDraftAccount should be called with the saved draft account id");
-        assertEquals(saved.getAccount(), capturedEntity.getAccount(),
-            "pdplForDraftAccount should be called with the same account JSON that was saved");
-
-        DraftAccountPdplLoggingService.Action capturedAction = actionCaptor.getValue();
-
-        assertEquals(DraftAccountPdplLoggingService.Action.SUBMIT, capturedAction,
-            "pdplForDraftAccount should be called with Action.SUBMIT");
     }
 
     @Test

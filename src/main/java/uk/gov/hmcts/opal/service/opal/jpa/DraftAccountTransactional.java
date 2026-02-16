@@ -41,8 +41,6 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
-import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
-import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
@@ -61,8 +59,6 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     private final BusinessUnitRepository businessUnitRepository;
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
-
-    private final DraftAccountPdplLoggingService loggingService;
 
     @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
@@ -108,12 +104,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
 
-        DraftAccountEntity draftAccountEntity = draftAccountRepository.save(
+        return draftAccountRepository.save(
             toEntity(dto, created, businessUnit, snapshot));
-
-        loggingService.pdplForDraftAccount(draftAccountEntity, Action.SUBMIT);
-
-        return draftAccountEntity;
 
     }
 
@@ -147,11 +139,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
                   draftAccountId, newSnapshot);
-        DraftAccountEntity entity = draftAccountRepository.save(existingAccount);
-
-        loggingService.pdplForDraftAccount(entity, Action.REPLACE);
-
-        return entity;
+        return draftAccountRepository.save(existingAccount);
 
     }
 
@@ -195,11 +183,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
                   draftAccountId, existingAccount.getAccountStatus());
 
-        DraftAccountEntity entity = draftAccountRepository.save(existingAccount);
+        return draftAccountRepository.save(existingAccount);
 
-        loggingService.pdplForDraftAccount(entity, Action.RESUBMIT);
-
-        return entity;
     }
 
     @Transactional

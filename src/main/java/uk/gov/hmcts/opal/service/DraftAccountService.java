@@ -74,7 +74,7 @@ public class DraftAccountService {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
 
-            loggingService.pdplForDraftAccount(response, Action.GET);
+            loggingService.pdplForDraftAccount(response, Action.GET, userState);
 
             if (userState.hasBusinessUnitUserWithAnyPermission(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
                 return toGetResponseDto(response);
@@ -125,7 +125,7 @@ public class DraftAccountService {
             filtered.forEach(draft -> log.debug(":getDraftAccounts: {}", draft.toString()));
 
             for (DraftAccountEntity draftAccount : filtered) {
-                loggingService.pdplForDraftAccount(draftAccount, Action.GET);
+                loggingService.pdplForDraftAccount(draftAccount, Action.GET, userState);
             }
 
             return
@@ -174,6 +174,8 @@ public class DraftAccountService {
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
             log.debug(":submitDraftAccount: created in DB: {}", entity);
 
+            loggingService.pdplForDraftAccount(entity, Action.SUBMIT, userState);
+
             return toGetResponseDto(entity);
 
         } else {
@@ -194,6 +196,9 @@ public class DraftAccountService {
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
             log.debug(":replaceDraftAccount: replaced with version: {}", replacedEntity.getVersion());
+
+            loggingService.pdplForDraftAccount(replacedEntity, Action.REPLACE, userState);
+
 
             return toGetResponseDto(replacedEntity);
         } else {
@@ -218,6 +223,8 @@ public class DraftAccountService {
             DraftAccountEntity updatedEntity = draftAccountTransactional
                 .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, updateVersion);
             verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
+
+            loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
 
             if (updatedEntity.getAccountStatus().isPublishingPending()) {
                 log.info(":updateDraftAccount: publishing: ");
