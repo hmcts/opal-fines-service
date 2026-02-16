@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,6 +47,7 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
@@ -690,6 +692,39 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             assertNotNull(createdAt);
             assertTrue(!createdAt.isBefore(before.minusSeconds(5)) && !createdAt.isAfter(after.plusSeconds(5)));
         });
+    }
+
+    @Test
+    @DisplayName("Put Draft Account : Deterministic and includes originator type")
+    void testPutDraft_deterministic() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        String requestBody = validReplaceRequestBody(3L);
+
+        String first = mockMvc.perform(put(URL_BASE + "/" + 5)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", getIfMatchForDraftAccount(5L))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse().getContentAsString();
+
+        String second = mockMvc.perform(put(URL_BASE + "/" + 5)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", getIfMatchForDraftAccount(5L))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse().getContentAsString();
+
+        DraftAccountResponseDto r1 = objectMapper.readValue(first, DraftAccountResponseDto.class);
+        DraftAccountResponseDto r2 = objectMapper.readValue(second, DraftAccountResponseDto.class);
+
+        assertThat(r1)
+            .usingRecursiveComparison()
+            .ignoringFields("accountStatusDate")
+            .isEqualTo(r2);
     }
 
     private String validRawJsonCreateRequestBody() {
