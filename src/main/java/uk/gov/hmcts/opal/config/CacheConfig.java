@@ -1,9 +1,7 @@
 package uk.gov.hmcts.opal.config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -135,18 +133,10 @@ public class CacheConfig {
     }
 
     private Stream<String> generateKeyParts(Object filter) {
-        List<String> key = new ArrayList<>();
-        if (filter instanceof String s) {
-            key.add(s);
-        }
-        if (filter instanceof List<?> list) {
-            key.addAll(
-                list.stream()
-                    .map(obj -> Objects.toString(obj, null))
-                    .sorted()
-                    .toList()
-            );
-        }
-        return key.stream();
+        return switch (filter) {
+            case String s -> Stream.of(s);
+            case List<?> l -> l.stream().map(Object::toString).sorted();
+            default -> Stream.empty();
+        };
     }
 }
