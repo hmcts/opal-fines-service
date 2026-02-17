@@ -1,33 +1,46 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.LockModeType;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.UpdateMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
+import uk.gov.hmcts.opal.service.iface.MinorCreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
-
-import java.math.BigDecimal;
-import java.util.List;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @Slf4j(topic = "opal.OpalMinorCreditorService")
 @RequiredArgsConstructor
-public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
+public class OpalMinorCreditorService implements MinorCreditorServiceInterface, MinorCreditorAccountServiceInterface {
 
     private final MinorCreditorRepository minorCreditorRepository;
     private final MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
+
+    private final CreditorAccountRepository creditorAccountRepository;
+    private final AmendmentService amendmentService;
+    private final EntityManager em;
 
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
@@ -53,6 +66,57 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
                 ));
 
         return GetMinorCreditorAccountHeaderSummaryResponse.fromEntity(entity);
+    }
+
+    @Override
+    @Transactional
+    public MinorCreditorAccountResponse updateMinorCreditorAccount(Long minorCreditorAccountId,
+                                                                   UpdateMinorCreditorAccountRequest request,
+                                                                   String ifMatch,
+                                                                   String postedBy) {
+        log.debug(":updateMinorCreditorAccount (Opal): id={}", minorCreditorAccountId);
+
+        if (request == null || request.getPayoutHold() == null || request.getPayoutHold().getPayoutHold() == null) {
+            throw new IllegalArgumentException("payout_hold group must be provided");
+        }
+
+        CreditorAccountEntity.Lite entity = creditorAccountRepository.findById(minorCreditorAccountId)
+            .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                "Minor creditor account not found: " + minorCreditorAccountId));
+
+        if (entity.getCreditorAccountType() == null || !entity.getCreditorAccountType().isMinorCreditor()) {
+            throw new jakarta.persistence.EntityNotFoundException(
+                "Minor creditor account not found: " + minorCreditorAccountId);
+        }
+
+        VersionUtils.verifyIfMatch(entity, ifMatch, minorCreditorAccountId, "updateMinorCreditorAccount");
+
+        amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, RecordType.CREDITOR_ACCOUNTS);
+
+        entity.setHoldPayout(request.getPayoutHold().getPayoutHold());
+        creditorAccountRepository.save(entity);
+
+        em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        em.flush();
+
+        BigInteger newVersion = entity.getVersion();
+
+        amendmentService.auditFinaliseStoredProc(
+            minorCreditorAccountId,
+            RecordType.CREDITOR_ACCOUNTS,
+            entity.getBusinessUnitId(),
+            postedBy,
+            null,
+            "ACCOUNT_ENQUIRY"
+        );
+
+        return MinorCreditorAccountResponse.builder()
+            .creditorAccountId(entity.getCreditorAccountId())
+            .payoutHold(MinorCreditorAccountResponse.PayoutHold.builder()
+                            .payoutHold(entity.isHoldPayout())
+                            .build())
+            .version(newVersion)
+            .build();
     }
 
 

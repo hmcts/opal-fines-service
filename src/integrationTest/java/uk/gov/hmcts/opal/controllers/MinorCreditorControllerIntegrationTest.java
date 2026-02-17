@@ -28,12 +28,15 @@ import static org.springframework.http.HttpStatus.REQUEST_TIMEOUT;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
@@ -47,6 +50,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     private static final String MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE =
         "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
+
+    private static final String MINOR_CREDITOR_UPDATE_RESPONSE =
+        "opal/minor-creditor/updateMinorCreditorAccountResponse.json";
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
@@ -290,6 +296,64 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
+    }
+
+    void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short)10, uk.gov.hmcts.opal.authorisation.model.FinesPermission
+                .ADD_AND_REMOVE_PAYMENT_HOLD));
+
+        Integer currentVersion =
+            jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
+                Integer.class, 607L);
+
+        String requestJson = "{\"payout_hold\":{\"payout_hold\":true}}";
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/607")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer some_value")
+                .header("If-Match", "\"" + currentVersion + "\"")
+                .content(requestJson));
+
+        String body = a.andReturn().getResponse().getContentAsString();
+
+        log.info(":patchMinorCreditor_payoutHold_success body:\n{}", ToJsonString.toPrettyJson(body));
+
+        a.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.creditor_account_id").value(607))
+            .andExpect(jsonPath("$.payout_hold.payout_hold").value(true));
+
+        jsonSchemaValidationService.validate(body, MINOR_CREDITOR_UPDATE_RESPONSE);
+    }
+
+    void patchMinorCreditor_withoutPermission_returns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(noPermissionsUser());
+
+        mockMvc.perform(patch(URL_BASE + "/606")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer some_value")
+                            .header("If-Match", "\"1\"")
+                            .content("{\"payout_hold\":{\"payout_hold\":false}}"))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_missingPayload_returns400() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short)10, uk.gov.hmcts.opal.authorisation.model.FinesPermission
+                .ADD_AND_REMOVE_PAYMENT_HOLD));
+
+        mockMvc.perform(patch(URL_BASE + "/606")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer some_value")
+                            .header("If-Match", "\"1\"")
+                            .content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value

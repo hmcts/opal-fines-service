@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "payout_hold"
+  ],
+  "properties": {
+    "payout_hold": {
+      "type": "object",
+      "required": [
+        "payout_hold"
+      ],
+      "properties": {
+        "payout_hold": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

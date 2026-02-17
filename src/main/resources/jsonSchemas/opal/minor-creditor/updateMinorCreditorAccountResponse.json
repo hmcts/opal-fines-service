@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "creditor_account_id",
+    "payout_hold"
+  ],
+  "properties": {
+    "creditor_account_id": {
+      "type": "integer"
+    },
+    "payout_hold": {
+      "type": "object",
+      "required": [
+        "payout_hold"
+      ],
+      "properties": {
+        "payout_hold": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

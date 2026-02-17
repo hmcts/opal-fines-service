@@ -36,6 +36,12 @@ public class SchemaPaths {
     public static final String PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE =
         DEFENDANT_ACCOUNT + "/updateDefendantAccountResponse.json";
 
+    public static final String PATCH_UPDATE_MINOR_CREDITOR_ACCOUNT_REQUEST = MINOR_CREDITORS
+        + "/updateMinorCreditorAccountRequest.json";
+
+    public static final String PATCH_UPDATE_MINOR_CREDITOR_ACCOUNT_RESPONSE = MINOR_CREDITORS
+        + "/updateMinorCreditorAccountResponse.json";
+
     private SchemaPaths() {
         // Utility class — prevent instantiation
     }
