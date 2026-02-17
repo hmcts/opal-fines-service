@@ -1,5 +1,5 @@
 @Opal
-Feature: PO-2292 Access token identity is used and ignores supplied submitted_by and validated_by values.
+Feature: Access token identity is used and ignores supplied submitted_by and validated_by values.
 
   @PO-2292 @cleanUpData
   Scenario: Get Draft Accounts - Fields are populated using the access token ignore request that includes submitted_by or validated_by
