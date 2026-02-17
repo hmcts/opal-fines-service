@@ -2113,7 +2113,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
               "submitted_by": "BUUID1",
               "submitted_by_name": "Business User 1"
             }
-            
+
             """;
     }
 
