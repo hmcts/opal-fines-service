@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
@@ -247,6 +248,13 @@ public class DefendantAccountService {
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
+
+        if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
+            addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
+                .postedBy(businessUnitUserId)
+                .postedByName(userState.getUserName())
+                .build());
+        }
 
         if (userState.hasBusinessUnitUserWithPermission(buId,
             FinesPermission.AMEND_PAYMENT_TERMS)) {

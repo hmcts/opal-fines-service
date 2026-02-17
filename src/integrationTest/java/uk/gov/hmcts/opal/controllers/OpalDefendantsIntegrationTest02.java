@@ -70,6 +70,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         + "/getDefendantAccountPartyResponse.json";
     static final String DEFENDANT_FIXED_PENALTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/getDefendantAccountFixedPenaltyResponse.json";
+    static final LocalDate ACCOUNT_77_BIRTH_DATE = LocalDate.of(1980, 2, 3);
     
     @MockitoBean
     UserStateService userStateService;
@@ -125,7 +126,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     void test_Opal_AddPaymentTerms_Happy() throws Exception {
         // Ensure user has required permissions (pattern used across tests)
         when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
+            .thenReturn(UserStateUtil.permissionUser((short)78, FinesPermission.AMEND_PAYMENT_TERMS));
 
         // Pull the current version from DB to satisfy optimistic locking
         Integer currentVersion = jdbcTemplate.queryForObject(
@@ -146,7 +147,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": { "payment_terms_type_code": "B",
                 "payment_terms_type_display_name": "By date"},
                 "instalment_period": { "instalment_period_code": "W" ,
@@ -180,7 +181,9 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         // Basic assertions: OK + JSON + expected fields
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.payment_terms.days_in_default").value(30));
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(30))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("USER01"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("normal@users.com"));
     }
 
     @Test
@@ -200,7 +203,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -255,7 +258,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -307,7 +310,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -357,7 +360,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -406,7 +409,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -484,7 +487,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -534,7 +537,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -584,7 +587,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01T10:11:12",
+                "effective_date": "2025-11-01",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -832,7 +835,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").exists())
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
-            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge))
+            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge()))
             .andExpect(jsonPath("$.address").exists()).andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id").value("10"))
@@ -867,7 +870,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.debtor_type").value("Parent/Guardian")).andExpect(jsonPath("$.is_youth").exists())
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
-            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge))
+            .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge()))
             .andExpect(jsonPath("$.address").exists()).andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is not present (no test data added as these are optional)
@@ -875,6 +878,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ;
 
         jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
+    }
+
+    private String expectedAge() {
+        return String.valueOf(Period.between(ACCOUNT_77_BIRTH_DATE, LocalDate.now()).getYears());
     }
 
     @Test

@@ -107,3 +107,68 @@ Feature: PO-746 put/update draft account
     And I see the account status date is now after the initial account status date
 
     Then I delete the created draft accounts
+
+  @PO-2359 @cleanUpData
+  Scenario: Update draft account - Update (Defendant) logs PDPO
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I create a draft account with the following details
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | UPDATE001                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I update the draft account that was just created with the following details
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | UPDATE001                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+      | If-Match          | 0                                           |
+    Then The draft account response returns 200
+
+    And the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                       | expected_count |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant         | 1              |
+
+    Then I delete the created draft accounts
+
+
+
+  @PO-2359 @cleanUpData
+  Scenario: Update draft account - Parent + MinorCreditor yields two PDPO logs
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I create a draft account with the following details
+      | business_unit_id  | 73                                                    |
+      | account           | draftAccounts/accountJson/minorCreditorAccount.json   |
+      | account_type      | Fine                                                  |
+      | account_status    | Submitted                                             |
+      | submitted_by      | UPDATE002                                                 |
+      | submitted_by_name | Laura Clerk                                           |
+      | timeline_data     | draftAccounts/timelineJson/default.json               |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I update the draft account that was just created with the following details
+      | business_unit_id  | 73                                                    |
+      | account           | draftAccounts/accountJson/minorCreditorAccount.json   |
+      | account_type      | Fine                                                  |
+      | account_status    | Submitted                                             |
+      | submitted_by      | UPDATE002                                                 |
+      | submitted_by_name | Laura Clerk                                           |
+      | timeline_data     | draftAccounts/timelineJson/default.json               |
+      | If-Match          | 0                                                     |
+    Then The draft account response returns 200
+
+    And the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                          | expected_count |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant             | 1              |
+      | L073JG         | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | 1              |
+
+    Then I delete the created draft accounts
