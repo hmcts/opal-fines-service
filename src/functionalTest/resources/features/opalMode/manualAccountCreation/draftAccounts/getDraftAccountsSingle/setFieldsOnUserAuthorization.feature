@@ -1,16 +1,16 @@
 @Opal
-Feature: PO-559 get draft account
+Feature: Access token identity is used and ignores supplied submitted_by and validated_by values.
 
-  @PO-559 @cleanUpData
-  Scenario: Get draft account - happy path
+  @PO-2292 @cleanUpData
+  Scenario: Get Draft Accounts - Fields are populated using the access token ignore request that includes submitted_by or validated_by
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    |                                             |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
+      | submitted_by      | L071JG                                       |
+      | submitted_by_name | opal-test                              |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -24,9 +24,15 @@ Feature: PO-559 get draft account
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
-
     Then The draft account response returns 200
-    And the response must include a strong quoted ETag header
-    And the response body must not include the "version" field anywhere
+
+
+    When I patch the draft account with the following details
+      | business_unit_id | 73                  |
+      | account_status   | Deleted             |
+      | validated_by     | L072JG              |
+      | reason_text      | Reason for deletion |
+      | If-Match         | 0                   |
+    Then The draft account response returns 200
 
     Then I delete the created draft accounts

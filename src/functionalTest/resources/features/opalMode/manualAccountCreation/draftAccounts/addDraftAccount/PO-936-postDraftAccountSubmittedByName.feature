@@ -22,8 +22,8 @@
         | account_snapshot.defendant_name     | LNAME, FNAME         |
         | account_snapshot.date_of_birth      | 2000-01-01           |
         | account_snapshot.account_type       | Fine                 |
-        | account_snapshot.submitted_by       | BUUID                |
-        | account_snapshot.submitted_by_name  | Laura Clerk1         |
+        | account_snapshot.submitted_by       | L073JG               |
+        | account_snapshot.submitted_by_name  | opal-test@HMCTS.NET  |
         | account_snapshot.business_unit_name | West London          |
 
       Then I delete the created draft accounts

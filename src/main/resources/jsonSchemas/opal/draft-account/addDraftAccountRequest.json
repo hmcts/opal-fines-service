@@ -9,12 +9,10 @@
     },
     "submitted_by": {
       "type": "string",
-      "minLength": 1,
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "submitted_by_name": {
       "type": "string",
-      "minLength": 1,
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "account": {
@@ -43,8 +41,6 @@
   },
   "required": [
     "business_unit_id",
-    "submitted_by",
-    "submitted_by_name",
     "account",
     "account_type",
     "timeline_data"

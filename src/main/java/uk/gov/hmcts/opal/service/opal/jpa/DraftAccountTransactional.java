@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
@@ -183,6 +184,11 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setVersionNumber(updateVersion.longValueExact());
 
         if (newStatus.isPublishingPending()) {
+            if (existingAccount.getSubmittedBy() != null
+                && existingAccount.getSubmittedBy().equals(dto.getValidatedBy())) {
+                throw new SubmitterCannotValidateException(
+                    "A single user cannot submit and validate the same Draft Account");
+            }
             existingAccount.setValidatedDate(LocalDateTime.now());
             existingAccount.setValidatedBy(dto.getValidatedBy());
             existingAccount.setValidatedByName(dto.getValidatedByName());
