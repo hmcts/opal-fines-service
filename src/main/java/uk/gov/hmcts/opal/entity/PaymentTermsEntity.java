@@ -18,11 +18,13 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Entity
@@ -61,9 +63,9 @@ public class PaymentTermsEntity {
     private String termsTypeCode;
 
     @Column(name = "effective_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-    private LocalDateTime effectiveDate;
+    @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    private LocalDate effectiveDate;
 
     @Column(name = "instalment_period")
     private String instalmentPeriod;

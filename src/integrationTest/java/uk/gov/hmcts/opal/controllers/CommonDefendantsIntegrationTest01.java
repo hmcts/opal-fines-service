@@ -195,7 +195,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
             .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").isEmpty())
             .andExpect(jsonPath("$.payment_terms.reason_for_extension").isEmpty())
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12T00:00:00"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())

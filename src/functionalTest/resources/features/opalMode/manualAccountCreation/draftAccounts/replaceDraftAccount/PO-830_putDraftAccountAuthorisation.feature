@@ -224,3 +224,25 @@ Feature: PO-830 - Authorisation for put/update draft account
         | account_snapshot.business_unit_name | West London |
 
       Then I delete the created draft accounts
+
+
+  @PO-2359 @cleanUpData
+  Scenario: Update draft account - unauthorized user produces 401 and no PDPO logs
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I create a draft account with the following details
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I attempt to put a draft account with an invalid token
+    Then The draft account response returns 401
+
+    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
+
+    Then I delete the created draft accounts

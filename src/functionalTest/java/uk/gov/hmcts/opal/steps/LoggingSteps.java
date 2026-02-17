@@ -41,10 +41,20 @@ public class LoggingSteps extends BaseStepDef {
             .orElse(1000);
 
     // Map business_identifier -> expected individuals[].type (entity type)
-    private static final Map<String, String> BUSINESS_TO_ENTITY_TYPE = Map.of(
-        "Submit Draft Account - Defendant", "DRAFT_ACCOUNT",
-        "Submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT",
-        "Submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT"
+    private static final Map<String, String> BUSINESS_TO_ENTITY_TYPE = Map.ofEntries(
+        Map.entry("Submit Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
+
+        // put (update) variants
+        Map.entry("Update Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Update Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Update Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
+
+        // PATCH (Re-submit) variants
+        Map.entry("Re-submit Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Re-submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Re-submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT")
     );
 
     /**
@@ -68,6 +78,7 @@ public class LoggingSteps extends BaseStepDef {
 
         searchAllExpectations(expectations);
     }
+
 
     @Then("no PDPO logs exist for created_by id {string}, type {string} and business_identifier {string}")
     public void noPdpoLogsExist(String createdById,
@@ -372,4 +383,5 @@ public class LoggingSteps extends BaseStepDef {
             return Objects.hash(createdById, createdByType, businessIdentifier);
         }
     }
+
 }
