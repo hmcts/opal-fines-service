@@ -21,6 +21,8 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -122,18 +124,18 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // at least one item present
             .andExpect(jsonPath("$.count").isNumber())
-            .andExpect(jsonPath("$.count").value(org.hamcrest.Matchers.greaterThan(1)))
+            .andExpect(jsonPath("$.count").value(greaterThan(1)))
             // verify the seeded LJA exists somewhere in the array (don’t rely on index 0)
             .andExpect(jsonPath("$.refData[?(@.name == 'AAAA Trial Court')].local_justice_area_id",
-                org.hamcrest.Matchers.hasItem(1)))
+                hasItem(1)))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].address_line_1",
-                org.hamcrest.Matchers.hasItem("Alpha Trial Courts")))
+                hasItem("Alpha Trial Courts")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
-                org.hamcrest.Matchers.hasItem("0007")))
+                hasItem("0007")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                org.hamcrest.Matchers.hasItem("TYPE_1")))
+                hasItem("TYPE_1")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type",
-                org.hamcrest.Matchers.hasItem("TYPE_2")));
+                hasItem("TYPE_2")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
@@ -148,7 +150,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                org.hamcrest.Matchers.hasItem("TYPE_1")));
+                hasItem("TYPE_1")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
@@ -176,7 +178,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                org.hamcrest.Matchers.hasItem("TYPE_1")));
+                hasItem("TYPE_1")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
@@ -191,11 +193,11 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
             getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByMultipleLjaTypes:");
 
         actions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(org.hamcrest.Matchers.greaterThan(2)))
+            .andExpect(jsonPath("$.count").value(greaterThan(2)))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                org.hamcrest.Matchers.hasItem("TYPE_1")))
+                hasItem("TYPE_1")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type",
-                org.hamcrest.Matchers.hasItem("TYPE_2")));
+                hasItem("TYPE_2")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
 
@@ -231,9 +233,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
             // at least one item present
             .andExpect(jsonPath("$.count").isNumber())
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
-                org.hamcrest.Matchers.hasItem("0007")))
+                hasItem("0007")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                org.hamcrest.Matchers.hasItem("TYPE_1")));
+                hasItem("TYPE_1")));
     }
 
     private @NonNull String getResponseBody(ResultActions actions, String methodName)
