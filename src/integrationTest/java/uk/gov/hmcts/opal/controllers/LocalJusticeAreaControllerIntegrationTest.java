@@ -41,6 +41,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     private static final String URL_BASE = "/local-justice-areas";
     private static final String GET_LJAS_REF_DATA_RESPONSE =
         SchemaPaths.REFERENCE_DATA + "/getLJARefDataResponse.json";
+    public static final String LJA_TYPE_PARAM = "lja_type";
 
     @MockitoSpyBean
     CacheManager cacheManager;
@@ -50,9 +51,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
 
     private static Stream<Arguments> testCasesForQueryParameterInput() {
         return Stream.of(
-            Arguments.of(get(URL_BASE).param("lja_type", "TYPE_1", "TYPE_2")),
-            Arguments.of(get(URL_BASE).param("lja_type", "TYPE_1")
-                .param("lja_type", "TYPE_2")),
+            Arguments.of(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_1", "TYPE_2")),
+            Arguments.of(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_1")
+                .param(LJA_TYPE_PARAM, "TYPE_2")),
             Arguments.of(get(URL_BASE + "?lja_type=TYPE_1,TYPE_2"))
         );
     }
@@ -143,7 +144,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @Test
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request single lja_type param [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterBySingleLjaType() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param("lja_type", "TYPE_1"));
+        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_1"));
 
         String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterBySingleLjaType");
 
@@ -158,7 +159,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @Test
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request with unknown lja_type [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterByUnknownLjaType() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param("lja_type", "UNKNOWN"));
+        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN"));
 
         String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByUnknownLjaType:");
 
@@ -171,7 +172,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @Test
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request with known/unknown lja_type [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterByKnownAndUnknownLjaTypes() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param("lja_type", "UNKNOWN", "TYPE_1"));
+        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN", "TYPE_1"));
         String body =
             getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByKnownAndUnknownLjaTypes:");
 
@@ -207,11 +208,11 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify deterministic results for LocalJusticeAreasRefData created by multiple GET requests")
     void testGetLocalJusticeAreasRefData_returnsSameResultsInStableOrderForMultipleCalls() throws Exception {
         String cacheName = "ljaReferenceDataCache";
-        var actions1 = mockMvc.perform(get(URL_BASE).param("lja_type", "CTYCRT", "TYPE_2"));
+        var actions1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CTYCRT", "TYPE_2"));
         String body1 = actions1.andReturn().getResponse().getContentAsString();
         var cache1 = cacheManager.getCache(cacheName);
 
-        var actions2 = mockMvc.perform(get(URL_BASE).param("lja_type", "TYPE_2", "CTYCRT"));
+        var actions2 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_2", "CTYCRT"));
         String body2 = actions2.andReturn().getResponse().getContentAsString();
         var cache2 = cacheManager.getCache(cacheName);
 
@@ -225,7 +226,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     public void testGetLocalJusticeAreasRefData_whenAllQueryParamsPresent() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE)
             .param("q", "0007")
-            .param("lja_type", "TYPE_1", "NOT_VALID"));
+            .param(LJA_TYPE_PARAM, "TYPE_1", "NOT_VALID"));
         getResponseBody(actions, ":testGetLocalJusticeAreasRefData:whenAllQueryParamsPresent");
 
         actions.andExpect(status().isOk())
@@ -241,7 +242,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     private @NonNull String getResponseBody(ResultActions actions, String methodName)
         throws UnsupportedEncodingException {
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info("{} Response body: /n{}", methodName, ToJsonString.toPrettyJson(body));
+        log.info("{} Response body: \n{}", methodName, ToJsonString.toPrettyJson(body));
         return body;
     }
 }
