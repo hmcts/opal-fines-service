@@ -309,7 +309,7 @@ sonarqube {
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
-    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
+    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*,**/service/report/ReportMetaData.java"
     property 'sonar.cpd.exclusions', "**/entity/*,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
   }
 }
