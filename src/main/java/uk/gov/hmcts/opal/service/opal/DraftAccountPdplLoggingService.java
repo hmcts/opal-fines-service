@@ -6,6 +6,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -59,13 +60,8 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
             .type(PdplIdentifierType.DRAFT_ACCOUNT)
             .build();
 
-        PersonalDataProcessingCategory category = switch (action) {
-            case SUBMIT, RESUBMIT, REPLACE -> PersonalDataProcessingCategory.COLLECTION;
-            case GET -> PersonalDataProcessingCategory.CONSULTATION;
-        };
-
         logPdpl(businessIdentifier,
-            category,
+            action.getCategory(),
             List.of(individuals),
             null, userState);
     }
@@ -99,19 +95,25 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
     }
 
     public enum Action {
-        SUBMIT("Submit Draft Account - %s"),
-        RESUBMIT("Re-submit Draft Account - %s"),
-        GET("Get Draft Account - %s"),
-        REPLACE("Update Draft Account - %s");
+        SUBMIT("Submit Draft Account - %s", PersonalDataProcessingCategory.COLLECTION),
+        RESUBMIT("Re-submit Draft Account - %s", PersonalDataProcessingCategory.COLLECTION),
+        REPLACE("Update Draft Account - %s", PersonalDataProcessingCategory.COLLECTION),
+        GET("Get Draft Account - %s", PersonalDataProcessingCategory.CONSULTATION);
 
         private final String template;
 
-        Action(String template) {
+        @Getter
+        private final PersonalDataProcessingCategory category;
+
+        Action(String template, PersonalDataProcessingCategory category) {
             this.template = template;
+            this.category = category;
         }
 
         public String formatFor(Role role) {
             return String.format(template, role.label());
         }
+
     }
+
 }
