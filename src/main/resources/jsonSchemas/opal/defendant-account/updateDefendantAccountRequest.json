@@ -66,5 +66,27 @@
     { "required": ["enforcement_override"] }
   ],
   "minProperties": 1,
-  "maxProperties": 1
+  "maxProperties": 1,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "collection_order": {
+            "properties": {
+              "collection_order": { "const": true }
+            },
+            "required": ["collection_order"]
+          }
+        },
+        "required": ["collection_order"]
+      },
+      "then": {
+        "properties": {
+          "collection_order": {
+            "required": ["collection_order_date"]
+          }
+        }
+      }
+    }
+  ]
 }

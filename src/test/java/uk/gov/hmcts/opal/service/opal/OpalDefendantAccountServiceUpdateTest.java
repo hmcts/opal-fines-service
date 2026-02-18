@@ -103,6 +103,38 @@ class OpalDefendantAccountServiceUpdateTest {
     }
 
     @Test
+    void updateDefendantAccount_collectionOrderTrue_defaultsDateWhenMissing() {
+        Long id = 3L;
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(id)
+            .businessUnit(bu)
+            .build();
+
+        entity.setVersionNumber(1L);
+
+        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .collectionOrder(UpdateDefendantAccountRequest.CollectionOrderRequest.builder()
+                .collectionOrder(true)
+                .build())
+            .build();
+
+        var resp = service.updateDefendantAccount(id, "10", req, "1", "UNIT_TEST");
+
+        assertNotNull(resp.getCollectionOrder());
+        assertTrue(entity.getCollectionOrder());
+        assertNotNull(entity.getCollectionOrderEffectiveDate());
+        assertEquals(LocalDate.now(), entity.getCollectionOrderEffectiveDate());
+    }
+
+    @Test
     void updateDefendantAccount_happyPath_updatesEnforcementCourt_andReturnsEnforcementCourtOnly() {
         // ---------- Arrange ----------
         Long id = 2L;
