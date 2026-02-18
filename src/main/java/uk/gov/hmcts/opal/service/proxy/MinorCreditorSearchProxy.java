@@ -1,18 +1,19 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.math.BigInteger;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMinorCreditorService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorService;
 
 @Service
@@ -22,6 +23,7 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
     MinorCreditorAccountServiceInterface {
 
     private final OpalMinorCreditorService opalMinorCreditorService;
+    private final OpalMinorCreditorAccountService opalMinorCreditorAccountService;
     private final LegacyMinorCreditorService legacyMinorCreditorService;
     private final DynamicConfigService dynamicConfigService;
 
@@ -45,8 +47,11 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         PatchMinorCreditorAccountRequest request,
         BigInteger etag,
         String postedBy) {
-        return ((MinorCreditorAccountServiceInterface) getCurrentModeService()).updateMinorCreditorAccount(
-            minorCreditorAccountId, request, etag, postedBy
-        );
+        if (isLegacyMode(dynamicConfigService)) {
+            return legacyMinorCreditorService.updateMinorCreditorAccount(minorCreditorAccountId, request, etag,
+                postedBy);
+        }
+        return opalMinorCreditorAccountService.updateMinorCreditorAccount(minorCreditorAccountId, request, etag,
+            postedBy);
     }
 }

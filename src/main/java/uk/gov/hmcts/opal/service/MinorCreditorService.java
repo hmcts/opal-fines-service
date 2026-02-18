@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
@@ -63,12 +64,12 @@ public class MinorCreditorService {
         log.debug(":updateMinorCreditorAccount:");
 
         if (etag == null) {
-            throw new uk.gov.hmcts.opal.exception.ResourceConflictException(
+            throw new ResourceConflictException(
                 "CreditorAccount", minorCreditorId, "ETag header is required", null);
         }
 
         if (request == null || request.getPayment() == null || request.getPayment().getHoldPayment() == null) {
-            throw new IllegalArgumentException("payment group must be provided");
+            throw new IllegalArgumentException("Payment group must be provided");
         }
 
         CreditorAccountEntity.Lite account = creditorAccountRepository.findById(minorCreditorId)
