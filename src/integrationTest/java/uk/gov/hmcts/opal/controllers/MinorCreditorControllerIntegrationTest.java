@@ -329,7 +329,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             patch(URL_BASE + "/607")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer some_value")
-                .header("If-Match", "\"" + currentVersion + "\"")
+                .header("ETag", currentVersion)
                 .content(requestJson));
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -355,7 +355,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(patch(URL_BASE + "/606")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("If-Match", "\"" + currentVersion + "\"")
+                            .header("ETag", currentVersion)
                             .content("""
                                 {
                                   "party_details": {
@@ -391,7 +391,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(patch(URL_BASE + "/607")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("If-Match", "\"" + currentVersion + "\"")
+                            .header("ETag", currentVersion)
                             .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(org.hamcrest.Matchers.anything()));

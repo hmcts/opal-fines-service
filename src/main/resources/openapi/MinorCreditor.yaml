@@ -24,12 +24,6 @@ paths:
             type: integer
             format: int64
           required: true
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: OK
@@ -87,17 +81,10 @@ paths:
             format: int64
           required: true
         - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
-        - in: header
-          name: If-Match
+          name: ETag
           description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
           schema:
-            type: string
-          required: false
+            $ref: "./types.yaml#/components/schemas/BigInt"
       requestBody:
         content:
           application/json:
@@ -116,8 +103,8 @@ paths:
                 payment:
                   $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
       responses:
-        '200':
-          description: OK
+        '201':
+          description: CREATED
           headers:
             ETag:
               description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
