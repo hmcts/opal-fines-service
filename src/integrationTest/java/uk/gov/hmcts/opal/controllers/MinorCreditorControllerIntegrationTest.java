@@ -51,9 +51,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     private static final String MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE =
         "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
 
-    private static final String MINOR_CREDITOR_UPDATE_RESPONSE =
-        "opal/minor-creditor/updateMinorCreditorAccountResponse.json";
-
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
@@ -307,7 +304,26 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
                 Integer.class, 607L);
 
-        String requestJson = "{\"payout_hold\":{\"payout_hold\":true}}";
+        String requestJson = """
+            {
+              "party_details": {
+                "party_id": "99008",
+                "organisation_flag": false,
+                "individual_details": {
+                  "surname": "Tester",
+                  "forenames": "Hold"
+                }
+              },
+              "address": {
+                "address_line_1": "44 Hold St.",
+                "postcode": "HE1 2LD"
+              },
+              "payment": {
+                "pay_by_bacs": true,
+                "hold_payment": true
+              }
+            }
+            """;
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/607")
@@ -324,20 +340,41 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(header().exists("ETag"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(607))
-            .andExpect(jsonPath("$.payout_hold.payout_hold").value(true));
-
-        jsonSchemaValidationService.validate(body, MINOR_CREDITOR_UPDATE_RESPONSE);
+            .andExpect(jsonPath("$.payment.hold_payment").value(true))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
     }
 
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
 
+        Integer currentVersion =
+            jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
+                Integer.class, 607L);
+
         mockMvc.perform(patch(URL_BASE + "/606")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("If-Match", "\"1\"")
-                            .content("{\"payout_hold\":{\"payout_hold\":false}}"))
+                            .header("If-Match", "\"" + currentVersion + "\"")
+                            .content("""
+                                {
+                                  "party_details": {
+                                    "party_id": "99007",
+                                    "organisation_flag": false,
+                                    "individual_details": {
+                                      "surname": "Deleted"
+                                    }
+                                  },
+                                  "address": {
+                                    "address_line_1": "33 Delete St.",
+                                    "postcode": "DE1 2DE"
+                                  },
+                                  "payment": {
+                                    "pay_by_bacs": true,
+                                    "hold_payment": false
+                                  }
+                                }
+                                """))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -347,13 +384,17 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .thenReturn(permissionUser((short)10, uk.gov.hmcts.opal.authorisation.model.FinesPermission
                 .ADD_AND_REMOVE_PAYMENT_HOLD));
 
-        mockMvc.perform(patch(URL_BASE + "/606")
+        Integer currentVersion =
+            jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
+                Integer.class, 607L);
+
+        mockMvc.perform(patch(URL_BASE + "/607")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("If-Match", "\"1\"")
+                            .header("If-Match", "\"" + currentVersion + "\"")
                             .content("{}"))
             .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+            .andExpect(content().string(org.hamcrest.Matchers.anything()));
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value

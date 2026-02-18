@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,14 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.UpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
-import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 
 @RestController
 @RequestMapping("/minor-creditor-accounts")
@@ -94,22 +89,4 @@ public class MinorCreditorController {
         return buildResponse(response);
     }
 
-    @PatchMapping(value = "/{minorCreditorId}", consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Update minor creditor account (payout hold)")
-    public ResponseEntity<MinorCreditorAccountResponse> updateMinorCreditorAccount(
-        @PathVariable Long minorCreditorId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @JsonSchemaValidated(schemaPath = SchemaPaths.PATCH_UPDATE_MINOR_CREDITOR_ACCOUNT_REQUEST)
-        @RequestBody UpdateMinorCreditorAccountRequest request
-    ) {
-        log.debug(":PATCH:updateMinorCreditorAccount: id={}", minorCreditorId);
-
-        MinorCreditorAccountResponse response = minorCreditorService.updateMinorCreditorAccount(
-            minorCreditorId, request, ifMatch, authHeaderValue
-        );
-
-        return buildResponse(response);
-    }
 }

@@ -7,9 +7,6 @@ public class SchemaPaths {
     public static final String PAYMENT_TERMS = "opal/payment-terms";
     public static final String REFERENCE_DATA = "opal/reference-data";
     public static final String TIMELINE = "opal/timeline";
-    public static final String MINOR_CREDITORS = "opal/minor-creditor-accounts";
-
-
     public static final String ADD_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/addDraftAccountRequest.json";
     public static final String REPLACE_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json";
     public static final String UPDATE_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/updateDraftAccountRequest.json";
@@ -35,12 +32,6 @@ public class SchemaPaths {
 
     public static final String PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE =
         DEFENDANT_ACCOUNT + "/updateDefendantAccountResponse.json";
-
-    public static final String PATCH_UPDATE_MINOR_CREDITOR_ACCOUNT_REQUEST = MINOR_CREDITORS
-        + "/updateMinorCreditorAccountRequest.json";
-
-    public static final String PATCH_UPDATE_MINOR_CREDITOR_ACCOUNT_RESPONSE = MINOR_CREDITORS
-        + "/updateMinorCreditorAccountResponse.json";
 
     private SchemaPaths() {
         // Utility class — prevent instantiation

@@ -17,14 +17,21 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.UpdateMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -39,6 +46,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface, 
     private final MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
 
     private final CreditorAccountRepository creditorAccountRepository;
+    private final PartyRepository partyRepository;
     private final AmendmentService amendmentService;
     private final EntityManager em;
 
@@ -70,14 +78,15 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface, 
 
     @Override
     @Transactional
-    public MinorCreditorAccountResponse updateMinorCreditorAccount(Long minorCreditorAccountId,
-                                                                   UpdateMinorCreditorAccountRequest request,
-                                                                   String ifMatch,
-                                                                   String postedBy) {
+    public MinorCreditorAccountResponse updateMinorCreditorAccount(
+        Long minorCreditorAccountId,
+        PatchMinorCreditorAccountRequest request,
+        BigInteger etag,
+        String postedBy) {
         log.debug(":updateMinorCreditorAccount (Opal): id={}", minorCreditorAccountId);
 
-        if (request == null || request.getPayoutHold() == null || request.getPayoutHold().getPayoutHold() == null) {
-            throw new IllegalArgumentException("payout_hold group must be provided");
+        if (request == null || request.getPayment() == null || request.getPayment().getHoldPayment() == null) {
+            throw new IllegalArgumentException("payment group must be provided");
         }
 
         CreditorAccountEntity.Lite entity = creditorAccountRepository.findById(minorCreditorAccountId)
@@ -89,11 +98,11 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface, 
                 "Minor creditor account not found: " + minorCreditorAccountId);
         }
 
-        VersionUtils.verifyIfMatch(entity, ifMatch, minorCreditorAccountId, "updateMinorCreditorAccount");
+        VersionUtils.verifyIfMatch(entity, etag, minorCreditorAccountId, "updateMinorCreditorAccount");
 
         amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, RecordType.CREDITOR_ACCOUNTS);
 
-        entity.setHoldPayout(request.getPayoutHold().getPayoutHold());
+        entity.setHoldPayout(request.getPayment().getHoldPayment());
         creditorAccountRepository.save(entity);
 
         em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
@@ -110,13 +119,53 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface, 
             "ACCOUNT_ENQUIRY"
         );
 
-        return MinorCreditorAccountResponse.builder()
-            .creditorAccountId(entity.getCreditorAccountId())
-            .payoutHold(MinorCreditorAccountResponse.PayoutHold.builder()
-                            .payoutHold(entity.isHoldPayout())
-                            .build())
-            .version(newVersion)
-            .build();
+        MinorCreditorAccountResponse response = buildMinorCreditorAccountResponse(entity);
+        response.setVersion(newVersion);
+        return response;
+    }
+
+    private MinorCreditorAccountResponse buildMinorCreditorAccountResponse(
+        CreditorAccountEntity.Lite account) {
+        PartyEntity party = partyRepository.findById(account.getMinorCreditorPartyId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Party not found for minor creditor account: " + account.getCreditorAccountId()));
+
+        PartyDetailsCommon partyDetails = new PartyDetailsCommon()
+            .partyId(String.valueOf(party.getPartyId()))
+            .organisationFlag(party.isOrganisation());
+
+        if (party.isOrganisation()) {
+            partyDetails.organisationDetails(new OrganisationDetailsCommon()
+                                                 .organisationName(party.getOrganisationName()));
+        } else {
+            partyDetails.individualDetails(new IndividualDetailsCommon()
+                                               .surname(party.getSurname())
+                                               .forenames(party.getForenames())
+                                               .title(party.getTitle()));
+        }
+
+        AddressDetailsCommon address = new AddressDetailsCommon()
+            .addressLine1(party.getAddressLine1())
+            .addressLine2(party.getAddressLine2())
+            .addressLine3(party.getAddressLine3())
+            .addressLine4(party.getAddressLine4())
+            .addressLine5(party.getAddressLine5())
+            .postcode(party.getPostcode());
+
+        MinorCreditorAccountResponseMinorCreditorPayment payment =
+            new MinorCreditorAccountResponseMinorCreditorPayment()
+            .accountName(account.getBankAccountName())
+            .sortCode(account.getBankSortCode())
+            .accountNumber(account.getBankAccountNumber())
+            .accountReference(account.getBankAccountReference())
+            .payByBacs(account.isPayByBacs())
+            .holdPayment(account.isHoldPayout());
+
+        return (MinorCreditorAccountResponse) new MinorCreditorAccountResponse()
+            .creditorAccountId(account.getCreditorAccountId())
+            .partyDetails(partyDetails)
+            .address(address)
+            .payment(payment);
     }
 
 
