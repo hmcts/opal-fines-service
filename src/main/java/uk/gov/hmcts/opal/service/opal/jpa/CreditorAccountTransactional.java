@@ -70,7 +70,6 @@ public class CreditorAccountTransactional implements CreditorAccountTransactiona
 
             impositionRepository.delete(ImpositionSpecs.equalsCreditorAccountId(creditorAccId));
             creditorAccountRepository.delete(creditorAcc);
-            creditorAccountRepository.flush();
 
             // A creditor account for a minor creditor will have an associated party that only exists within
             // the context of that creditor account - so needs to be deleted as well.
@@ -78,7 +77,6 @@ public class CreditorAccountTransactional implements CreditorAccountTransactiona
             partyId.flatMap(partyRepository::findById).ifPresent(partyEntity -> {
                 try {
                     partyRepository.delete(partyEntity);
-                    partyRepository.flush();
                 } catch (DataIntegrityViolationException ex) {
                     log.debug(":deleteMinorCreditorAccountAndRelatedData: party {} still referenced, skipping delete",
                         partyEntity.getPartyId());
