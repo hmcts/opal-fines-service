@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.iface;
+package uk.gov.hmcts.opal.service.report;
 
 import groovy.io.FileType;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;

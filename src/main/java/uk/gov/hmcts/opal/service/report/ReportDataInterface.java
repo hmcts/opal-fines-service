@@ -1,6 +1,4 @@
-package uk.gov.hmcts.opal.service.iface;
-
-import uk.gov.hmcts.opal.service.report.ReportMetaData;
+package uk.gov.hmcts.opal.service.report;
 
 public interface ReportDataInterface {
 
