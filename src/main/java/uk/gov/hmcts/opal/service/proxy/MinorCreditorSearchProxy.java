@@ -45,11 +45,8 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         PatchMinorCreditorAccountRequest request,
         BigInteger etag,
         String postedBy) {
-        if (getCurrentModeService() instanceof MinorCreditorAccountServiceInterface accountService) {
-            return accountService.updateMinorCreditorAccount(minorCreditorAccountId, request, etag, postedBy);
-        }
-
-        throw new UnsupportedOperationException(
-            "Legacy mode not implemented for PATCH /minor-creditor-accounts/{id}");
+        return ((MinorCreditorAccountServiceInterface) getCurrentModeService()).updateMinorCreditorAccount(
+            minorCreditorAccountId, request, etag, postedBy
+        );
     }
 }
