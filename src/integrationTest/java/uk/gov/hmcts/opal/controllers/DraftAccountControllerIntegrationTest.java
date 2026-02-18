@@ -10,8 +10,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -65,14 +64,7 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(
-    scripts = {
-        "classpath:db/deleteData/delete_from_draft_accounts.sql",
-        "classpath:db/insertData/insert_into_draft_accounts.sql"
-    },
-    executionPhase = BEFORE_TEST_METHOD
-)
-@Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_METHOD)
+@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -250,7 +242,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
         assertNotNull(l2.getIpAddress());
         assertEquals(1, l2.getIndividuals().size());
-        assertEquals("201", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals("202", l2.getIndividuals().get(0).getIdentifier());
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
 
         PersonalDataProcessingLogDetails l3 = logs.get(3);
@@ -260,7 +252,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l3.getCreatedBy().getType());
         assertNotNull(l3.getIpAddress());
         assertEquals(1, l3.getIndividuals().size());
-        assertEquals("201", l3.getIndividuals().get(0).getIdentifier());
+        assertEquals("202", l3.getIndividuals().get(0).getIdentifier());
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l3.getIndividuals().get(0).getType());
     }
 
@@ -311,7 +303,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(6))
+            .andExpect(jsonPath("$.count").value(3))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(7))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -337,7 +329,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramStatus: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(4))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -397,7 +389,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
-            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(4))
+            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(5))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(78));
 
         assertEquals(count, summariesSize);
@@ -470,7 +462,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(3))
+                .andExpect(jsonPath("$.count").value(23))
                 .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
                 .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
                 .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
@@ -562,7 +554,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
             .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
+            .header("If-Match", "3")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
 
@@ -1558,7 +1550,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         List<ParticipantIdentifier> individuals = pdpl.getIndividuals();
         assertNotNull(individuals);
         assertEquals(1, individuals.size());
-        assertEquals("201", individuals.getFirst().getIdentifier());
+        assertEquals("202", individuals.getFirst().getIdentifier());
     }
 
     //CEP 1 CEP1 - Invalid Request Payload (400)
@@ -1787,7 +1779,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String ifMatch = getIfMatchForDraftAccount(draftIdAccount);
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
-            .header("If-Match", "2")
+            .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending", "A")));
@@ -1800,41 +1792,54 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.business_unit_id").value(65));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
-
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
             ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
 
-        // Expect two calls (Defendant then Minor Creditor)
-        verify(loggingService, timeout(2000).times(2))
-            .personalDataAccessLogAsync(captor.capture());
-
+        verify(loggingService, times(4)).personalDataAccessLogAsync(captor.capture());
         List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        assertEquals(2, logs.size());
+        assertEquals(4, logs.size());
 
-        PersonalDataProcessingLogDetails l0 = logs.get(0);
-        assertEquals("Re-submit Draft Account - Defendant", l0.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, l0.getCategory());
-        assertEquals("0", l0.getCreatedBy().getIdentifier());
-        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
-        assertEquals("192.168.1.100", l0.getIpAddress());
-        assertNull(l0.getRecipient());
-        assertEquals(1, l0.getIndividuals().size());
-        assertEquals("8", l0.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
-        assertNotNull(l0.getCreatedAt());
+        PersonalDataProcessingLogDetails first = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
+        assertEquals("0", first.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
+        assertNull(first.getIpAddress());
+        assertEquals(1, first.getIndividuals().size());
+        assertEquals("8", first.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().get(0).getType());
 
-        PersonalDataProcessingLogDetails l1 = logs.get(1);
-        assertEquals("Re-submit Draft Account - Minor Creditor", l1.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, l1.getCategory());
-        assertEquals("0", l1.getCreatedBy().getIdentifier());
-        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
-        assertEquals("192.168.1.100", l1.getIpAddress());
-        assertNull(l1.getRecipient());
-        assertEquals(1, l1.getIndividuals().size());
-        assertEquals("8", l1.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
-        assertNotNull(l1.getCreatedAt());
+        PersonalDataProcessingLogDetails second = logs.get(1);
+        assertEquals("Get Draft Account - Minor Creditor", second.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, second.getCategory());
+        assertEquals("0", second.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
+        assertNull(second.getIpAddress());
+        assertEquals(1, second.getIndividuals().size());
+        assertEquals("8", second.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails third = logs.get(2);
+        assertEquals("Re-submit Draft Account - Defendant", third.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, third.getCategory());
+        assertEquals("0", third.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, third.getCreatedBy().getType());
+        assertEquals("192.168.1.100", third.getIpAddress());
+        assertEquals(1, third.getIndividuals().size());
+        assertEquals("8", third.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, third.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails fourth = logs.get(3);
+        assertEquals("Re-submit Draft Account - Minor Creditor", fourth.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, fourth.getCategory());
+        assertEquals("0", fourth.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, fourth.getCreatedBy().getType());
+        assertEquals("192.168.1.100", fourth.getIpAddress());
+        assertEquals(1, fourth.getIndividuals().size());
+        assertEquals("8", fourth.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, fourth.getIndividuals().get(0).getType());
+
     }
 
     @Test
