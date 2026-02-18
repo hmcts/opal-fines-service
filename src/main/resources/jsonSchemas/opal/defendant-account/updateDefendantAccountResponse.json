@@ -12,6 +12,7 @@
       "properties": {
         "enforcing_court_id": {
           "type": "integer",
+          "format": "int64",
           "description": "Identifier for the enforcing court (required by TDIA)"
         },
         "court_name": {
@@ -45,6 +46,7 @@
         },
         "enf_override_enforcer_id": {
           "type": "integer",
+          "format": "int64",
           "description": "Identifier of the enforcer used for the enforcement override"
         },
         "enf_override_tfo_lja_id": {

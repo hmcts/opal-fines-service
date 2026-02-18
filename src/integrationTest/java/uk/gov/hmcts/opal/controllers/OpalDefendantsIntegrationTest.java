@@ -1113,6 +1113,24 @@ class OpalDefendantsIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Unauthorized when missing auth header [@PO-1854]")
+    void patch_unauthorized_whenMissingAuthHeader() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+
+        String body = commentAndNotesPayload("hello");
+
+        mockMvc.perform(
+                patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Forbidden when user lacks permission [@PO-1565]")
     void patch_forbidden_whenUserLacksAccountMaintenance() throws Exception {
         // user without ACCOUNT_MAINTENANCE

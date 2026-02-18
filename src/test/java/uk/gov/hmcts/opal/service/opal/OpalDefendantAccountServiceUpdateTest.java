@@ -7,13 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -49,10 +47,6 @@ class OpalDefendantAccountServiceUpdateTest {
     @Mock
     private AmendmentService amendmentService;
 
-    @Mock
-    private EntityManager entityManager;
-
-
     // Service under test
     @InjectMocks
     private OpalDefendantAccountService service;
@@ -78,8 +72,6 @@ class OpalDefendantAccountServiceUpdateTest {
         when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
         // Echo the saved entity (so assertions see updated values)
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        doNothing().when(entityManager).lock(any(), any());
 
         // Request DTO
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
@@ -135,11 +127,9 @@ class OpalDefendantAccountServiceUpdateTest {
             .build();
 
         when(courtRepo.findById(100L)).thenReturn(Optional.of(court));
-        doNothing().when(entityManager).lock(any(), any());
-
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .enforcementCourt(UpdateDefendantAccountRequest.EnforcementCourtRequest.builder()
-                .enforcingCourtId(100)
+                .enforcingCourtId(100L)
                 .courtName("Central Magistrates")
                 .build())
             .build();
@@ -150,7 +140,7 @@ class OpalDefendantAccountServiceUpdateTest {
         // ---------- Assert ----------
         assertEquals(id, resp.getId());
         assertNotNull(resp.getEnforcementCourt());
-        assertEquals(100, resp.getEnforcementCourt().getEnforcingCourtId());
+        assertEquals(100L, resp.getEnforcementCourt().getEnforcingCourtId());
         assertEquals("Central Magistrates", resp.getEnforcementCourt().getCourtName());
         assertNull(resp.getCommentsAndNotes());
         assertNull(resp.getCollectionOrder());
@@ -170,6 +160,25 @@ class OpalDefendantAccountServiceUpdateTest {
             service.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST")
         );
         assertTrue(ex.getMessage().contains("At least one update group"));
+        verifyNoInteractions(defendantAccountRepository);
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenMultipleUpdateGroupsProvided() {
+        Long id = 1L;
+        String buHeader = "10";
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build())
+            .enforcementCourt(UpdateDefendantAccountRequest.EnforcementCourtRequest.builder()
+                .enforcingCourtId(100L)
+                .build())
+            .build();
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+            service.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST")
+        );
+        assertTrue(ex.getMessage().contains("Only one update group"));
         verifyNoInteractions(defendantAccountRepository);
     }
 
@@ -291,9 +300,6 @@ class OpalDefendantAccountServiceUpdateTest {
             .defendantAccountId(77L).businessUnit(bu).versionNumber(0L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
         when(noteRepository.save(any())).thenReturn(null);
-        doNothing().when(entityManager).lock(any(), any());
-
-
         var req = UpdateDefendantAccountRequest.builder()
             .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("hello").build()).build();
 
@@ -311,19 +317,45 @@ class OpalDefendantAccountServiceUpdateTest {
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
             .versionNumber(0L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
-        doNothing().when(entityManager).lock(any(), any());
-
-
         var req = UpdateDefendantAccountRequest.builder()
             .enforcementOverride(UpdateDefendantAccountRequest.EnforcementOverrideRequest.builder()
                 .enforcementOverrideResultId("NOPE")
-                .enforcementOverrideEnforcerId(999999)
+                .enforcementOverrideEnforcerId(999999L)
                 .enforcementOverrideTfoLjaId(9999)
                 .build())
             .build();
 
         var resp = service.updateDefendantAccount(77L, "78", req, "0", "tester");
         assertNotNull(resp.getEnforcementOverride());
+    }
+
+    @Test
+    void updateDefendantAccount_enforcementOverrideEmpty_returnsEmptyGroup() {
+        Long id = 77L;
+        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
+        var entity = DefendantAccountEntity.builder().defendantAccountId(id).businessUnit(bu)
+            .versionNumber(1L).build();
+        entity.setEnforcementOverrideResultId("FWEC");
+        entity.setEnforcementOverrideEnforcerId(21L);
+        entity.setEnforcementOverrideTfoLjaId((short) 240);
+
+        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .enforcementOverride(UpdateDefendantAccountRequest.EnforcementOverrideRequest.builder().build())
+            .build();
+
+        var resp = service.updateDefendantAccount(id, "78", req, "1", "tester");
+
+        assertNotNull(resp.getEnforcementOverride());
+        assertNull(resp.getEnforcementOverride().getEnforcementOverrideResultId());
+        assertNull(resp.getEnforcementOverride().getEnforcementOverrideEnforcerId());
+        assertNull(resp.getEnforcementOverride().getEnforcementOverrideTfoLjaId());
+
+        assertNull(entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
     }
 
 }

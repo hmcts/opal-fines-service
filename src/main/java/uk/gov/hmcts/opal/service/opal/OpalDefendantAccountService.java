@@ -15,7 +15,6 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.mapToD
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -397,11 +396,25 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     ) {
         log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        if (request.getCommentsAndNotes() == null
-            && request.getEnforcementCourt() == null
-            && request.getCollectionOrder() == null
-            && request.getEnforcementOverride() == null) {
+        int updateGroupCount = 0;
+        if (request.getCommentsAndNotes() != null) {
+            updateGroupCount++;
+        }
+        if (request.getEnforcementCourt() != null) {
+            updateGroupCount++;
+        }
+        if (request.getCollectionOrder() != null) {
+            updateGroupCount++;
+        }
+        if (request.getEnforcementOverride() != null) {
+            updateGroupCount++;
+        }
+
+        if (updateGroupCount == 0) {
             throw new IllegalArgumentException("At least one update group must be provided");
+        }
+        if (updateGroupCount > 1) {
+            throw new IllegalArgumentException("Only one update group must be provided");
         }
 
         DefendantAccountEntity entity = getDefendantAccountById(defendantAccountId);
@@ -432,7 +445,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         defendantAccountRepository.save(entity);
 
-        em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         em.flush();
         BigInteger newVersion = entity.getVersion();
 
@@ -714,11 +726,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private void applyEnforcementCourt(DefendantAccountEntity entity,
         UpdateDefendantAccountRequest.EnforcementCourtRequest courtRef) {
-        Integer courtId = courtRef.getEnforcingCourtId();
+        Long courtId = courtRef.getEnforcingCourtId();
         if (courtId == null) {
             throw new IllegalArgumentException("enforcement_court.enforcing_court_id is required");
         }
-        CourtEntity court = courtRepository.findById(courtId.longValue())
+        CourtEntity court = courtRepository.findById(courtId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found: " + courtId));
         entity.setEnforcingCourt(OpalDefendantAccountBuilders.asLite(court));
         log.debug(":applyEnforcementCourt: accountId={}, courtId={}",

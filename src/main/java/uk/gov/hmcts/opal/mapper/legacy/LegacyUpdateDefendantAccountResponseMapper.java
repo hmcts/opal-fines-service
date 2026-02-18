@@ -19,7 +19,7 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
         @Mapping(target = "version", source = "version", qualifiedByName = "intToLong"),
         @Mapping(target = "commentsAndNotes", source = "commentAndNotes"),
         @Mapping(target = "enforcementCourt.enforcingCourtId", source = "enforcementCourtId",
-            qualifiedByName = "stringToInteger"),
+            qualifiedByName = "stringToLong"),
         @Mapping(target = "collectionOrder", source = "collectionOrder"),
         @Mapping(target = "enforcementOverride", source = "enforcementOverride")
     })
@@ -52,7 +52,7 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
         return DefendantAccountResponse.EnforcementOverrideResponse.builder()
             .enforcementOverrideResultId(result != null ? result.getEnforcementOverrideResultId() : null)
             .enforcementOverrideEnforcerId(enforcer != null && enforcer.getEnforcerId() != null
-                ? enforcer.getEnforcerId().intValue() : null)
+                ? enforcer.getEnforcerId() : null)
             .enforcementOverrideTfoLjaId(lja != null && lja.getLjaId() != null
                 ? lja.getLjaId().intValue() : null)
             .build();
@@ -73,18 +73,6 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
     @Named("intToLong")
     default Long intToLong(Integer i) {
         return i == null ? null : i.longValue();
-    }
-
-    @Named("stringToInteger")
-    default Integer stringToInteger(String v) {
-        if (v == null) {
-            return null;
-        }
-        try {
-            return Integer.valueOf(v.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
 }

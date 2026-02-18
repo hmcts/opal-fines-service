@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -10,42 +10,55 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.TestContainerConfig;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.AmendmentService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.AmendmentControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_amendments.sql", executionPhase = BEFORE_TEST_CLASS)
+@SpringBootTest
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {TestContainerConfig.class})
 @DisplayName("AmendmentController Integration Test")
 class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/amendments";
 
-    @Autowired
-    TransactionalContext transactionalContext;
+    private TransactionalContext transactionalContext;
 
     @MockitoSpyBean
-    @Autowired
     OpalDefendantAccountService opalDefendantAccountService;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private DefendantAccountRepository defendantAccountRepository;
+
+    @BeforeEach
+    void loadBeans(ApplicationContext applicationContext) {
+        this.transactionalContext = applicationContext.getBean(TransactionalContext.class);
+        this.defendantAccountRepository = applicationContext.getBean(DefendantAccountRepository.class);
+    }
 
     @Test
     void testGetAmendmentById() throws Exception {
@@ -122,9 +135,9 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
         transactionalContext.callTheStoredProcedures(defAccId, busUnitId);
 
-        String sql = "SELECT * FROM defendant_accounts WHERE defendant_account_id = ?";
-        Map<String, Object> rowData = jdbcTemplate.queryForMap(sql, defAccId);
-        log.info(":testAuditStoredProcedures: defendant account: {}", rowData);
+        DefendantAccountEntity account = defendantAccountRepository.findById(defAccId)
+            .orElseThrow(() -> new AssertionError("Defendant account not found: " + defAccId));
+        log.info(":testAuditStoredProcedures: defendant account: {}", account);
 
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
             .contentType(MediaType.APPLICATION_JSON)
@@ -149,16 +162,47 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
             .andReturn();
     }
 
+    @Test
+    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_amendments.sql", executionPhase = AFTER_TEST_METHOD)
+    void testAuditStoredProcedures_enforcementFields() throws Exception {
+        Long defAccId = 77L;
+        Short busUnitId = (short)78;
+
+        transactionalContext.callTheStoredProceduresForEnforcementFields(defAccId, busUnitId);
+        log.info(":testAuditStoredProcedures_enforcementFields: found defendant:{} in business unit: {}",
+            defAccId, busUnitId);
+
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testAuditStoredProcedures_enforcementFields: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(4))
+            .andExpect(jsonPath("$.searchData[*].field_code", containsInAnyOrder(14, 15, 16, 26)))
+            .andReturn();
+    }
+
     @Component
     @Transactional
     public static class TransactionalContext {
 
-        @Autowired
-        private JdbcTemplate jdbcTemplate;
+        private final DefendantAccountRepository defendantAccountRepository;
+        private final CourtRepository courtRepository;
+        private final AmendmentService amendmentService;
 
-        @MockitoSpyBean
-        @Autowired
-        AmendmentService amendmentService;
+        public TransactionalContext(DefendantAccountRepository defendantAccountRepository,
+            CourtRepository courtRepository,
+            AmendmentService amendmentService) {
+            this.defendantAccountRepository = defendantAccountRepository;
+            this.courtRepository = courtRepository;
+            this.amendmentService = amendmentService;
+        }
 
         /* In order for the stored procedures to work, the initialise, update and finalise calls all need
         to be executed within the same transaction context. */
@@ -167,14 +211,30 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
             // Initialize before making a change to defendant_accounts table
             amendmentService.auditInitialiseStoredProc(defAccId, RecordType.DEFENDANT_ACCOUNTS);
 
-            // Directly update a defendant_accounts table row - this should cause insertions in the amendments table
-            String sql = "UPDATE defendant_accounts SET cheque_clearance_period = ?, "
-                + " credit_trans_clearance_period = ? WHERE defendant_account_id = ?";
-            int rowsAffected = jdbcTemplate.update(sql, 400, 500, defAccId);
-            log.info(":callTheStoredProcedures: directly updated: {} rows", rowsAffected);
-            assertEquals(1, rowsAffected);
+            DefendantAccountEntity account = defendantAccountRepository.findById(defAccId)
+                .orElseThrow(() -> new AssertionError("Defendant account not found: " + defAccId));
+            account.setChequeClearancePeriod((short) 400);
+            account.setCreditTransferClearancePeriod((short) 500);
+            defendantAccountRepository.saveAndFlush(account);
 
             // Finalize after making a change to defendant_accounts table
+            amendmentService.auditFinaliseStoredProc(
+                defAccId, RecordType.DEFENDANT_ACCOUNTS, busUnitId,
+                "Tester_A", "Case_Ref", "Func_Code");
+        }
+
+        public void callTheStoredProceduresForEnforcementFields(Long defAccId, Short busUnitId) {
+            amendmentService.auditInitialiseStoredProc(defAccId, RecordType.DEFENDANT_ACCOUNTS);
+
+            DefendantAccountEntity account = defendantAccountRepository.findById(defAccId)
+                .orElseThrow(() -> new AssertionError("Defendant account not found: " + defAccId));
+            account.setEnforcingCourt(courtRepository.findById(100L)
+                .orElseThrow(() -> new AssertionError("Court not found: 100")));
+            account.setEnforcementOverrideEnforcerId(21L);
+            account.setEnforcementOverrideResultId("ABDC");
+            account.setEnforcementOverrideTfoLjaId((short) 101);
+            defendantAccountRepository.saveAndFlush(account);
+
             amendmentService.auditFinaliseStoredProc(
                 defAccId, RecordType.DEFENDANT_ACCOUNTS, busUnitId,
                 "Tester_A", "Case_Ref", "Func_Code");

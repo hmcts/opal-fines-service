@@ -48,7 +48,7 @@ public class DefendantAccountResponse implements ToJsonString, Versioned {
     public static class EnforcementCourtResponse implements ToJsonString {
 
         @JsonProperty("enforcing_court_id")
-        private Integer enforcingCourtId;
+        private Long enforcingCourtId;
 
         @JsonProperty("court_name")
         private String courtName;
@@ -79,7 +79,7 @@ public class DefendantAccountResponse implements ToJsonString, Versioned {
         private String enforcementOverrideResultId;
 
         @JsonProperty("enf_override_enforcer_id")
-        private Integer enforcementOverrideEnforcerId;
+        private Long enforcementOverrideEnforcerId;
 
         @JsonProperty("enf_override_tfo_lja_id")
         private Integer enforcementOverrideTfoLjaId;

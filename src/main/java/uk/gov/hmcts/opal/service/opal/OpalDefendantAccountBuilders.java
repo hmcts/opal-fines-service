@@ -557,17 +557,6 @@ public class OpalDefendantAccountBuilders {
         return v != null ? v : BigDecimal.ZERO;
     }
 
-    static Integer safeInt(Long v) {
-        if (v == null) {
-            return null;
-        }
-        if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE) {
-            // Optional: log a warning here if you want visibility
-            return null; // drop it rather than overflow
-        }
-        return v.intValue();
-    }
-
     static PaymentTermsType.PaymentTermsTypeCode safePaymentTermsTypeCode(String dbValue) {
         if (dbValue == null) {
             return null;
@@ -850,9 +839,8 @@ public class OpalDefendantAccountBuilders {
 
     static DefendantAccountResponse.EnforcementCourtResponse buildUpdateEnforcementCourt(CourtEntity.Lite court) {
         return Optional.ofNullable(court)
-            .filter(c -> safeInt(c.getCourtId()) != null)
             .map(c -> DefendantAccountResponse.EnforcementCourtResponse.builder()
-                .enforcingCourtId(safeInt(c.getCourtId()))
+                .enforcingCourtId(c.getCourtId())
                 .courtName(c.getName())
                 .build())
             .orElse(null);
@@ -869,16 +857,10 @@ public class OpalDefendantAccountBuilders {
 
     static DefendantAccountResponse.EnforcementOverrideResponse buildUpdateEnforcementOverride(
         DefendantAccountEntity entity) {
-        if (entity.getEnforcementOverrideResultId() == null
-            && entity.getEnforcementOverrideEnforcerId() == null
-            && entity.getEnforcementOverrideTfoLjaId() == null) {
-            return null;
-        }
-
         return DefendantAccountResponse.EnforcementOverrideResponse.builder()
             .enforcementOverrideResultId(entity.getEnforcementOverrideResultId())
             .enforcementOverrideEnforcerId(entity.getEnforcementOverrideEnforcerId() == null
-                ? null : entity.getEnforcementOverrideEnforcerId().intValue())
+                ? null : entity.getEnforcementOverrideEnforcerId())
             .enforcementOverrideTfoLjaId(entity.getEnforcementOverrideTfoLjaId() == null
                 ? null : entity.getEnforcementOverrideTfoLjaId().intValue())
             .build();
@@ -1011,8 +993,7 @@ public class OpalDefendantAccountBuilders {
     static void applyEnforcementOverride(DefendantAccountEntity entity,
         UpdateDefendantAccountRequest.EnforcementOverrideRequest override) {
         entity.setEnforcementOverrideResultId(override.getEnforcementOverrideResultId());
-        entity.setEnforcementOverrideEnforcerId(override.getEnforcementOverrideEnforcerId() == null
-            ? null : override.getEnforcementOverrideEnforcerId().longValue());
+        entity.setEnforcementOverrideEnforcerId(override.getEnforcementOverrideEnforcerId());
         entity.setEnforcementOverrideTfoLjaId(override.getEnforcementOverrideTfoLjaId() == null
             ? null : override.getEnforcementOverrideTfoLjaId().shortValue());
     }
