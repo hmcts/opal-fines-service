@@ -29,8 +29,9 @@ public class MinorCreditorApiController implements MinorCreditorApi {
 
     @Override
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
-        Long id, Long etag, PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest
-    ) {
+        Long id,
+        Long etag,
+        PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest) {
 
         log.debug(":PATCH:patchMinorCreditorAccount: id={}", id);
 
