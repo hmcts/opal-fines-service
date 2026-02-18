@@ -170,6 +170,9 @@ public class DraftAccountService {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
+            BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
+            applySubmittedBy(dto, userState, unitUser);
+
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
             log.debug(":submitDraftAccount: created in DB: {}", entity);
@@ -188,10 +191,13 @@ public class DraftAccountService {
                                                        String authHeaderValue, String ifMatch) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-        jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+            BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
+            applySubmittedBy(dto, userState, unitUser);
+            jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
+
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
@@ -210,13 +216,14 @@ public class DraftAccountService {
                                                        String authHeaderValue, String ifMatch) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
 
         log.info(":updateDraftAccount: unit user: {}", unitUser);
 
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+            applyValidatedBy(dto, userState, unitUser.orElseThrow());
+            jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             BigInteger updateVersion = extractBigInteger(ifMatch);
 
@@ -264,5 +271,27 @@ public class DraftAccountService {
 
     public DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
         return draftAccountMapper.toDto(entity);
+    }
+
+    private BusinessUnitUser getBusinessUnitUserOrThrow(UserState userState, Short businessUnitId) {
+        return userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .orElseThrow(() -> new PermissionNotAllowedException(businessUnitId,
+                                                                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+    }
+
+    private void applySubmittedBy(AddDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+        dto.setSubmittedBy(unitUser.getBusinessUnitUserId());
+        dto.setSubmittedByName(userState.getUserName());
+        dto.setValidatedBy(null);
+    }
+
+    private void applySubmittedBy(ReplaceDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+        dto.setSubmittedBy(unitUser.getBusinessUnitUserId());
+        dto.setSubmittedByName(userState.getUserName());
+    }
+
+    private void applyValidatedBy(UpdateDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+        dto.setValidatedBy(unitUser.getBusinessUnitUserId());
+        dto.setValidatedByName(userState.getUserName());
     }
 }
