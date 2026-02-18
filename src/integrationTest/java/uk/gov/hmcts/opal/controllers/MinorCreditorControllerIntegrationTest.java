@@ -304,26 +304,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
                 Integer.class, 607L);
 
-        String requestJson = """
-            {
-              "party_details": {
-                "party_id": "99008",
-                "organisation_flag": false,
-                "individual_details": {
-                  "surname": "Tester",
-                  "forenames": "Hold"
-                }
-              },
-              "address": {
-                "address_line_1": "44 Hold St.",
-                "postcode": "HE1 2LD"
-              },
-              "payment": {
-                "pay_by_bacs": true,
-                "hold_payment": true
-              }
-            }
-            """;
+        String requestJson = patchMinorCreditorPayoutHoldRequestJson();
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/607")
@@ -356,25 +337,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
                             .header("ETag", currentVersion)
-                            .content("""
-                                {
-                                  "party_details": {
-                                    "party_id": "99007",
-                                    "organisation_flag": false,
-                                    "individual_details": {
-                                      "surname": "Deleted"
-                                    }
-                                  },
-                                  "address": {
-                                    "address_line_1": "33 Delete St.",
-                                    "postcode": "DE1 2DE"
-                                  },
-                                  "payment": {
-                                    "pay_by_bacs": true,
-                                    "hold_payment": false
-                                  }
-                                }
-                                """))
+                            .content(patchMinorCreditorWithoutPermissionRequestJson()))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -395,6 +358,51 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(org.hamcrest.Matchers.anything()));
+    }
+
+    private String patchMinorCreditorPayoutHoldRequestJson() {
+        return """
+            {
+              "party_details": {
+                "party_id": "99008",
+                "organisation_flag": false,
+                "individual_details": {
+                  "surname": "Tester",
+                  "forenames": "Hold"
+                }
+              },
+              "address": {
+                "address_line_1": "44 Hold St.",
+                "postcode": "HE1 2LD"
+              },
+              "payment": {
+                "pay_by_bacs": true,
+                "hold_payment": true
+              }
+            }
+            """;
+    }
+
+    private String patchMinorCreditorWithoutPermissionRequestJson() {
+        return """
+            {
+              "party_details": {
+                "party_id": "99007",
+                "organisation_flag": false,
+                "individual_details": {
+                  "surname": "Deleted"
+                }
+              },
+              "address": {
+                "address_line_1": "33 Delete St.",
+                "postcode": "DE1 2DE"
+              },
+              "payment": {
+                "pay_by_bacs": true,
+                "hold_payment": false
+              }
+            }
+            """;
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
