@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +29,6 @@ public class OpalMinorCreditorAccountService implements MinorCreditorAccountServ
     private final CreditorAccountRepository creditorAccountRepository;
     private final PartyRepository partyRepository;
     private final AmendmentService amendmentService;
-    private final EntityManager em;
 
     @Override
     @Transactional
@@ -60,10 +57,8 @@ public class OpalMinorCreditorAccountService implements MinorCreditorAccountServ
         amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, RecordType.CREDITOR_ACCOUNTS);
 
         entity.setHoldPayout(request.getPayment().getHoldPayment());
+        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
         creditorAccountRepository.save(entity);
-
-        em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        em.flush();
 
         BigInteger newVersion = entity.getVersion();
 
