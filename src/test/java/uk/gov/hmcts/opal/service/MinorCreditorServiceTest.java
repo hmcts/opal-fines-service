@@ -177,6 +177,7 @@ class MinorCreditorServiceTest {
 
     @Test
     void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
+        // Arrange
         CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(1L)
             .creditorAccountType(CreditorAccountType.MN)
@@ -202,8 +203,10 @@ class MinorCreditorServiceTest {
         PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
 
+        // Act
         minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue");
 
+        // Assert
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
         verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE),
             postedByCaptor.capture());
