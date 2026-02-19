@@ -720,29 +720,27 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
-            .andExpect(jsonPath("$.creditor_account_id").value(String.valueOf(minorCreditorId)))
-            .andExpect(jsonPath("$.account_number").value("87654321"))
-            .andExpect(jsonPath("$.creditor_account_type.type").value("MN"))
-            .andExpect(jsonPath("$.creditor_account_type.display_name").value("Minor Creditor"))
+            .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorId)))
+            .andExpect(jsonPath("$.creditor.account_number").value("87654321"))
+            .andExpect(jsonPath("$.creditor.account_type.type").value("MN"))
 
             .andExpect(header().exists("ETag"))
 
-            .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("77"))
-            .andExpect(jsonPath("$.business_unit_summary.business_unit_name").value("Camberwell Green"))
-            .andExpect(jsonPath("$.business_unit_summary.welsh_speaking").value(matchesPattern("Y|N")))
+            .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
+            .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))
 
-            .andExpect(jsonPath("$.party_details.party_id").value("99000000000900"))
-            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
-            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+            .andExpect(jsonPath("$.party.party_id").value("99000000000900"))
+            .andExpect(jsonPath("$.party.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party.organisation_details.organisation_name")
                 .value("Minor Creditor Test Ltd"))
-            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases")
+            .andExpect(jsonPath("$.party.organisation_details.organisation_aliases")
                 .value(nullValue()))
 
-            .andExpect(jsonPath("$.awarded_amount").value(0))
-            .andExpect(jsonPath("$.paid_out_amount").value(0))
-            .andExpect(jsonPath("$.awaiting_payout_amount").value(0))
-            .andExpect(jsonPath("$.outstanding_amount").value(0))
-            .andExpect(jsonPath("$.has_associated_defendant").value(false));
+            .andExpect(jsonPath("$.financials.awarded").value(0))
+            .andExpect(jsonPath("$.financials.paid_out").value(0))
+            .andExpect(jsonPath("$.financials.awaiting_payout").value(0))
+            .andExpect(jsonPath("$.financials.outstanding").value(0));
 
         jsonSchemaValidationService.validate(body, MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE);
     }
