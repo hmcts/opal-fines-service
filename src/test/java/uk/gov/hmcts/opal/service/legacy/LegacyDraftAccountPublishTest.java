@@ -40,6 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish.ERROR_MESSAGE_TEMPLATE;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDraftAccountPublishTest {
@@ -157,10 +158,12 @@ class LegacyDraftAccountPublishTest {
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
         // Assert
+        String expectedMessage = String.format(ERROR_MESSAGE_TEMPLATE, opId);
+        assertEquals(published.getStatusMessage(), expectedMessage);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(published.getTimelineData());
         String reasonText = root.get(0).path("reason_text").asText(); // Returns "JUnit Test"
-        assertEquals(reasonText, "An error was encountered during publication of the account, please contact the service desk. Error code: [1234]");
+        assertEquals(reasonText, expectedMessage);
     }
 
     @SuppressWarnings("unchecked")
