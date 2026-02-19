@@ -77,33 +77,6 @@ withPipeline(type, product, component) {
     env.OPAL_USER_SERVICE_API_URL = 'https://opal-user-service.staging.platform.hmcts.net'
   }
 //  enableSlackNotifications('#opal-fines-builds')
-
-  stage('Functional Tests - DEV') {
-    try {
-      builder.gradle('Functional')
-    } catch (Error) {
-      steps.echo "Functional tests failed, but continuing with the pipeline. Error: " + Error.message
-    } finally {
-      steps.junit '**/test-results/functional/*.xml'
-      steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
-      publishHTML target: [
-              allowMissing         : true,
-              alwaysLinkToLastBuild: true,
-              keepAll              : true,
-              reportDir            : "functional-test-report/",
-              reportFiles          : "index.html",
-              reportName           : "Serenity Functional Test Report"
-      ]
-      publishHTML target: [
-              allowMissing         : true,
-              alwaysLinkToLastBuild: true,
-              keepAll              : true,
-              reportDir            : "functional-test-report/htmlReport/",
-              reportFiles          : "test-summary.html",
-              reportName           : "Test Summary Report"
-      ]
-    }
-  }
   before('akschartsinstall') {
     onPR {
       determineDevEnvironmentDeployment()
@@ -188,6 +161,33 @@ withPipeline(type, product, component) {
         reportFiles          : "test-summary.html",
         reportName           : "Test Summary Report"
     ]
+
+    stage('Functional Tests - DEV') {
+      try {
+        builder.gradle('Functional')
+      } catch (Error) {
+        steps.echo "Functional tests failed, but continuing with the pipeline. Error: " + Error.message
+      } finally {
+        steps.junit '**/test-results/functional/*.xml'
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
+        publishHTML target: [
+                allowMissing         : true,
+                alwaysLinkToLastBuild: true,
+                keepAll              : true,
+                reportDir            : "functional-test-report/",
+                reportFiles          : "index.html",
+                reportName           : "Serenity Functional Test Report"
+        ]
+        publishHTML target: [
+                allowMissing         : true,
+                alwaysLinkToLastBuild: true,
+                keepAll              : true,
+                reportDir            : "functional-test-report/htmlReport/",
+                reportFiles          : "test-summary.html",
+                reportName           : "Test Summary Report"
+        ]
+      }
+    }
   }
 
   afterAlways('smoketest:dev') {
