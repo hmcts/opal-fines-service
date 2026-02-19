@@ -1,5 +1,10 @@
 package uk.gov.hmcts.opal.config;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
@@ -8,6 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -109,5 +115,28 @@ public class CacheConfig {
             cacheManager.getCacheNames().forEach(cacheName -> log.debug("- {}", cacheName));
         }
         log.info("------------------------------");
+    }
+
+    @Bean("KeyGeneratorForOptionalList")
+    public KeyGenerator generateKeyFromList() {
+        return (target, method, params) -> {
+            return Arrays.stream(params)
+                .flatMap(param -> {
+                    if (param instanceof Optional<?> optional) {
+                        return optional.map(this::generateKeyParts)
+                            .orElseGet(() -> Stream.of("noFilter"));
+                    }
+                    return generateKeyParts(param);
+                })
+                .collect(Collectors.joining("_"));
+        };
+    }
+
+    private Stream<String> generateKeyParts(Object filter) {
+        return switch (filter) {
+            case String s -> Stream.of(s);
+            case List<?> l -> l.stream().map(Object::toString).sorted();
+            default -> Stream.empty();
+        };
     }
 }

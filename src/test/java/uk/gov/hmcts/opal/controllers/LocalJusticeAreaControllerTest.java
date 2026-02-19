@@ -1,5 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyShort;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -7,21 +16,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyShort;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LocalJusticeAreaControllerTest {
@@ -40,7 +39,7 @@ class LocalJusticeAreaControllerTest {
         when(localJusticeAreaService.getLocalJusticeAreaById(anyShort())).thenReturn(entity);
 
         // Act
-        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short)1);
+        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short) 1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -74,19 +73,20 @@ class LocalJusticeAreaControllerTest {
         LjaReferenceData entity = createLjaReferenceData();
         List<LjaReferenceData> localJusticeAreaList = List.of(entity);
 
-        when(localJusticeAreaService.getReferenceData(any())).thenReturn(localJusticeAreaList);
+        when(localJusticeAreaService.getReferenceData(any(), any())).thenReturn(localJusticeAreaList);
 
         // Act
         Optional<String> filter = Optional.empty();
+        Optional<List<String>> ljaTypes = Optional.empty();
         ResponseEntity<LjaReferenceDataResults> response = localJusticeAreaController
-            .getLocalJusticeAreaRefData(filter);
+            .getLocalJusticeAreaRefData(filter, ljaTypes);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         LjaReferenceDataResults refDataResults = response.getBody();
         assertEquals(1, refDataResults.getCount());
         assertEquals(localJusticeAreaList, refDataResults.getRefData());
-        verify(localJusticeAreaService, times(1)).getReferenceData(any());
+        verify(localJusticeAreaService, times(1)).getReferenceData(any(), any());
     }
 
     private LjaReferenceData createLjaReferenceData() {
@@ -94,12 +94,17 @@ class LocalJusticeAreaControllerTest {
 
             @Override
             public Short getLocalJusticeAreaId() {
-                return (short)1;
+                return (short) 1;
             }
 
             @Override
             public String getLjaCode() {
                 return "MAIN";
+            }
+
+            @Override
+            public String getLjaType() {
+                return "LJA_TYPE";
             }
 
             @Override

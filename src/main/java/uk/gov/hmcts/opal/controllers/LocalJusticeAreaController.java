@@ -61,10 +61,10 @@ public class LocalJusticeAreaController {
     @GetMapping
     @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
     public ResponseEntity<LjaReferenceDataResults> getLocalJusticeAreaRefData(
-        @RequestParam("q") Optional<String> filter) {
-        log.debug(":GET:getLocalJusticeAreaRefData: query: \n{}", filter);
+        @RequestParam("q") Optional<String> filter, @RequestParam("lja_type") Optional<List<String>> ljaType) {
+        log.debug(":GET:getLocalJusticeAreaRefData: filter: {}  ljaType: {}", filter, ljaType);
 
-        List<LjaReferenceData> refData = opalLocalJusticeAreaService.getReferenceData(filter);
+        List<LjaReferenceData> refData = opalLocalJusticeAreaService.getReferenceData(filter, ljaType);
 
         log.debug(":GET:getLocalJusticeAreaRefData: local justice area reference data count: {}", refData.size());
         return ResponseEntity.ok(LjaReferenceDataResults.builder().refData(refData).build());
