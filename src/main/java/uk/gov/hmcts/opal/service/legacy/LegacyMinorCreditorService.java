@@ -6,12 +6,15 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
+import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -107,6 +110,20 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         throw new UnsupportedOperationException(
             "Legacy mode not implemented for GET /minor-creditor-accounts/{id}/header-summary");
+    }
+
+    @Override
+    public MinorCreditorAccountResponse updateMinorCreditorAccount(
+        Long minorCreditorAccountId,
+        PatchMinorCreditorAccountRequest request,
+        BigInteger etag,
+        String postedBy
+    ) {
+        log.debug(":updateMinorCreditorAccount: Legacy mode not implemented. minorCreditorAccountId={}",
+            minorCreditorAccountId);
+
+        throw new UnsupportedOperationException(
+            "Legacy mode not implemented for PATCH /minor-creditor-accounts/{id}");
     }
 
 }

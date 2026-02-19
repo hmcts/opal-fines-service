@@ -10,6 +10,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -28,12 +29,15 @@ import static org.springframework.http.HttpStatus.REQUEST_TIMEOUT;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
@@ -290,6 +294,116 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
+    }
+
+    void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short)10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
+
+        String requestJson = patchMinorCreditorPayoutHoldRequestJson();
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/607")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer some_value")
+                .header("ETag", currentVersion)
+                .content(requestJson));
+
+        String body = a.andReturn().getResponse().getContentAsString();
+
+        log.info(":patchMinorCreditor_payoutHold_success body:\n{}", ToJsonString.toPrettyJson(body));
+
+        a.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.creditor_account_id").value(607))
+            .andExpect(jsonPath("$.payment.hold_payment").value(true))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
+    }
+
+    void patchMinorCreditor_withoutPermission_returns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(noPermissionsUser());
+
+        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
+
+        mockMvc.perform(patch(URL_BASE + "/606")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer some_value")
+                            .header("ETag", currentVersion)
+                            .content(patchMinorCreditorWithoutPermissionRequestJson()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_missingPayload_returns400() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short)10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
+
+        mockMvc.perform(patch(URL_BASE + "/607")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer some_value")
+                            .header("ETag", currentVersion)
+                            .content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(org.hamcrest.Matchers.anything()));
+    }
+
+    private String patchMinorCreditorPayoutHoldRequestJson() {
+        return """
+            {
+              "party_details": {
+                "party_id": "99008",
+                "organisation_flag": false,
+                "individual_details": {
+                  "surname": "Tester",
+                  "forenames": "Hold"
+                }
+              },
+              "address": {
+                "address_line_1": "44 Hold St.",
+                "postcode": "HE1 2LD"
+              },
+              "payment": {
+                "pay_by_bacs": true,
+                "hold_payment": true
+              }
+            }
+            """;
+    }
+
+    private String patchMinorCreditorWithoutPermissionRequestJson() {
+        return """
+            {
+              "party_details": {
+                "party_id": "99007",
+                "organisation_flag": false,
+                "individual_details": {
+                  "surname": "Deleted"
+                }
+              },
+              "address": {
+                "address_line_1": "33 Delete St.",
+                "postcode": "DE1 2DE"
+              },
+              "payment": {
+                "pay_by_bacs": true,
+                "hold_payment": false
+              }
+            }
+            """;
+    }
+
+    private Integer getCurrentCreditorAccountVersion(Long creditorAccountId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
+            Integer.class,
+            creditorAccountId
+        );
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value

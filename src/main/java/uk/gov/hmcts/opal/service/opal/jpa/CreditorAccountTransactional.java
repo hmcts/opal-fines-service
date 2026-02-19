@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -74,8 +73,7 @@ public class CreditorAccountTransactional implements CreditorAccountTransactiona
             // A creditor account for a minor creditor will have an associated party that only exists within
             // the context of that creditor account - so needs to be deleted as well.
             Optional<Long> partyId = Optional.ofNullable(creditorAcc.getMinorCreditorPartyId());
-            Optional<PartyEntity> partyEntity = partyId.flatMap(partyRepository::findById);
-            partyEntity.ifPresent(partyRepository::delete);
+            partyId.flatMap(partyRepository::findById).ifPresent(partyRepository::delete);
         }
 
         return true;

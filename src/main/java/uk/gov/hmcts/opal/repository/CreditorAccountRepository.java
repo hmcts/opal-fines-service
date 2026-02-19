@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CreditorAccountRepository extends JpaRepository<CreditorAccountEntity.Lite, Long>,
     JpaSpecificationExecutor<CreditorAccountEntity.Lite> {
+
+    long countByMinorCreditorPartyId(Long partyId);
 }
