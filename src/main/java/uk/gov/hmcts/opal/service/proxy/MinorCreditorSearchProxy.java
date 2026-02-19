@@ -47,9 +47,9 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         PatchMinorCreditorAccountRequest request,
         BigInteger etag,
         String postedBy) {
-        if (isLegacyMode(dynamicConfigService)) {
-            return legacyMinorCreditorService.updateMinorCreditorAccount(minorCreditorAccountId, request, etag,
-                postedBy);
+        MinorCreditorServiceInterface modeService = getCurrentModeService();
+        if (modeService instanceof MinorCreditorAccountServiceInterface accountService) {
+            return accountService.updateMinorCreditorAccount(minorCreditorAccountId, request, etag, postedBy);
         }
         return opalMinorCreditorAccountService.updateMinorCreditorAccount(minorCreditorAccountId, request, etag,
             postedBy);
