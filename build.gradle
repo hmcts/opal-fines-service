@@ -367,7 +367,7 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.1'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.2'
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
@@ -550,7 +550,8 @@ tasks.register('createJiraTicketsFromCucumberReport', JavaExec) {
             "jira-project-id=33305",
             "jira-default-user=Ben.Edwards",
             "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
-            "jira-epic-link-custom-field-id=customfield_10008"
+            "jira-epic-link-custom-field-id=customfield_10008",
+            "jira-default-components=opal-fines-service"
     ]
 }
 
@@ -577,7 +578,8 @@ tasks.register('updateJiraTicketsFromCucumberReport', JavaExec) {
           "jira-project-id=33305",
           "jira-default-user=Ben.Edwards",
           "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
-          "jira-epic-link-custom-field-id=customfield_10008"
+          "jira-epic-link-custom-field-id=customfield_10008",
+          "jira-default-components=opal-fines-service"
   ]
 }
 
