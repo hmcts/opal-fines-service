@@ -249,18 +249,18 @@ class OpalMinorCreditorServiceTest {
 
         // Assert
         assertNotNull(res);
-        assertEquals(String.valueOf(id), res.getCreditorAccountId());
-        assertEquals("87654321", res.getAccountNumber());
-        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
+        assertEquals(String.valueOf(id), res.getCreditor().getAccountId());
+        assertEquals("87654321", res.getCreditor().getAccountNumber());
+        assertCreditorAccountType(res.getCreditor().getAccountType(), "MN", "Minor Creditor");
         assertEquals(BigInteger.valueOf(5L), res.getVersion());
 
-        BusinessUnitSummary bu = res.getBusinessUnitSummary();
+        BusinessUnitSummary bu = res.getBusinessUnit();
         assertNotNull(bu);
         assertEquals("77", bu.getBusinessUnitId());
         assertEquals("Camberwell Green", bu.getBusinessUnitName());
         assertEquals("N", bu.getWelshSpeaking()); // welshLanguage=false -> "N"
 
-        PartyDetails party = res.getPartyDetails();
+        PartyDetails party = res.getParty();
         assertNotNull(party);
         assertEquals("99000000000900", party.getPartyId());
         assertTrue(party.getOrganisationFlag());
@@ -270,13 +270,9 @@ class OpalMinorCreditorServiceTest {
         assertEquals("Minor Creditor Test Ltd", org.getOrganisationName());
         assertNull(party.getIndividualDetails());
 
-        assertEquals(BigDecimal.ZERO, res.getAwardedAmount());
-        assertEquals(BigDecimal.ZERO, res.getPaidOutAmount());
-        assertEquals(BigDecimal.ZERO, res.getAwaitingPayoutAmount());
-        assertEquals(BigDecimal.ZERO, res.getOutstandingAmount());
-
-        // hasAssociatedDefendant() is based on awarded/outstanding > 0
-        assertFalse(res.getHasAssociatedDefendant());
+        assertEquals(BigDecimal.ZERO, res.getFinancials().getAwarded());
+        assertEquals(BigDecimal.ZERO, res.getFinancials().getPaidOut());
+        assertEquals(BigDecimal.ZERO, res.getFinancials().getAwaitingPayout());
 
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
     }
@@ -313,18 +309,18 @@ class OpalMinorCreditorServiceTest {
 
         // Assert
         assertNotNull(res);
-        assertEquals(String.valueOf(id), res.getCreditorAccountId());
-        assertEquals("87654322", res.getAccountNumber());
-        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
+        assertEquals(String.valueOf(id), res.getCreditor().getAccountId());
+        assertEquals("87654322", res.getCreditor().getAccountNumber());
+        assertCreditorAccountType(res.getCreditor().getAccountType(), "MN", "Minor Creditor");
         assertNull(res.getVersion());
 
-        BusinessUnitSummary bu = res.getBusinessUnitSummary();
+        BusinessUnitSummary bu = res.getBusinessUnit();
         assertNotNull(bu);
         assertEquals("77", bu.getBusinessUnitId());
         assertEquals("Camberwell Green", bu.getBusinessUnitName());
         assertEquals("Y", bu.getWelshSpeaking());
 
-        PartyDetails party = res.getPartyDetails();
+        PartyDetails party = res.getParty();
         assertNotNull(party);
         assertEquals("99000000000901", party.getPartyId());
         assertFalse(party.getOrganisationFlag());
@@ -336,8 +332,7 @@ class OpalMinorCreditorServiceTest {
         assertEquals("Smith", ind.getSurname());
         assertNull(party.getOrganisationDetails());
 
-        assertEquals(new BigDecimal("10.00"), res.getAwardedAmount());
-        assertTrue(res.getHasAssociatedDefendant());
+        assertEquals(new BigDecimal("10.00"), res.getFinancials().getAwarded());
 
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
     }
@@ -357,37 +352,6 @@ class OpalMinorCreditorServiceTest {
         assertTrue(ex.getMessage().contains("Minor creditor account not found: " + missingId));
 
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(missingId);
-    }
-
-    @Test
-    void getHeaderSummary_hasAssociatedDefendant_trueWhenOutstandingPositive_evenIfAwardedNull() {
-        // Arrange
-        long id = 222L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("X")
-            .creditorAccountType("MN")
-            .versionNumber(null)
-            .partyId(333L)
-            .organisation(true)
-            .organisationName("Org")
-            .businessUnitId((short) 77)
-            .businessUnitName("BU")
-            .welshLanguage(false)
-            .awarded(null)
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(new BigDecimal("0.01"))
-            .build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
-
-        // Assert
-        assertTrue(res.getHasAssociatedDefendant());
     }
 
     @Test
@@ -422,32 +386,31 @@ class OpalMinorCreditorServiceTest {
 
         // Assert (top level)
         assertNotNull(resp);
-        assertEquals(String.valueOf(id), resp.getCreditorAccountId());
-        assertEquals("87654321", resp.getAccountNumber());
-        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
+        assertEquals(String.valueOf(id), resp.getCreditor().getAccountId());
+        assertEquals("87654321", resp.getCreditor().getAccountNumber());
+        assertCreditorAccountType(resp.getCreditor().getAccountType(), "MN", "Minor Creditor");
         assertNull(resp.getVersion());
 
         // business unit mapping
-        assertNotNull(resp.getBusinessUnitSummary());
-        assertEquals("77", resp.getBusinessUnitSummary().getBusinessUnitId());
-        assertEquals("Camberwell Green", resp.getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals("N", resp.getBusinessUnitSummary().getWelshSpeaking());
+        assertNotNull(resp.getBusinessUnit());
+        assertEquals("77", resp.getBusinessUnit().getBusinessUnitId());
+        assertEquals("Camberwell Green", resp.getBusinessUnit().getBusinessUnitName());
+        assertEquals("N", resp.getBusinessUnit().getWelshSpeaking());
 
         // party mapping - organisation branch
-        assertNotNull(resp.getPartyDetails());
-        assertEquals("99000000000900", resp.getPartyDetails().getPartyId());
-        assertEquals(Boolean.TRUE, resp.getPartyDetails().getOrganisationFlag());
+        assertNotNull(resp.getParty());
+        assertEquals("99000000000900", resp.getParty().getPartyId());
+        assertEquals(Boolean.TRUE, resp.getParty().getOrganisationFlag());
 
-        assertNotNull(resp.getPartyDetails().getOrganisationDetails());
-        assertEquals("Minor Creditor Test Ltd", resp.getPartyDetails().getOrganisationDetails().getOrganisationName());
-        assertNull(resp.getPartyDetails().getIndividualDetails());
+        assertNotNull(resp.getParty().getOrganisationDetails());
+        assertEquals("Minor Creditor Test Ltd", resp.getParty().getOrganisationDetails().getOrganisationName());
+        assertNull(resp.getParty().getIndividualDetails());
 
-        // amounts + defendant flag
-        assertEquals(BigDecimal.ZERO, resp.getAwardedAmount());
-        assertEquals(BigDecimal.ZERO, resp.getPaidOutAmount());
-        assertEquals(BigDecimal.ZERO, resp.getAwaitingPayoutAmount());
-        assertEquals(BigDecimal.ZERO, resp.getOutstandingAmount());
-        assertEquals(Boolean.FALSE, resp.getHasAssociatedDefendant());
+        // amounts
+        assertEquals(BigDecimal.ZERO, resp.getFinancials().getAwarded());
+        assertEquals(BigDecimal.ZERO, resp.getFinancials().getPaidOut());
+        assertEquals(BigDecimal.ZERO, resp.getFinancials().getAwaitingPayout());
+        assertEquals(BigDecimal.ZERO, resp.getFinancials().getOutstanding());
 
         verify(minorCreditorAccountHeaderRepository).findById(id);
     }
@@ -484,90 +447,26 @@ class OpalMinorCreditorServiceTest {
 
         // Assert
         assertNotNull(resp);
-        assertEquals("123", resp.getCreditorAccountId());
-        assertEquals("ACC123", resp.getAccountNumber());
-        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
+        assertEquals("123", resp.getCreditor().getAccountId());
+        assertEquals("ACC123", resp.getCreditor().getAccountNumber());
+        assertCreditorAccountType(resp.getCreditor().getAccountType(), "MN", "Minor Creditor");
         assertNotNull(resp.getVersion());
         assertEquals(new java.math.BigInteger("5"), resp.getVersion());
 
-        assertNotNull(resp.getBusinessUnitSummary());
-        assertEquals("10", resp.getBusinessUnitSummary().getBusinessUnitId());
-        assertEquals("Derbyshire", resp.getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals("Y", resp.getBusinessUnitSummary().getWelshSpeaking());
+        assertNotNull(resp.getBusinessUnit());
+        assertEquals("10", resp.getBusinessUnit().getBusinessUnitId());
+        assertEquals("Derbyshire", resp.getBusinessUnit().getBusinessUnitName());
+        assertEquals("Y", resp.getBusinessUnit().getWelshSpeaking());
 
-        assertNotNull(resp.getPartyDetails());
-        assertEquals("456", resp.getPartyDetails().getPartyId());
-        assertEquals(Boolean.FALSE, resp.getPartyDetails().getOrganisationFlag());
+        assertNotNull(resp.getParty());
+        assertEquals("456", resp.getParty().getPartyId());
+        assertEquals(Boolean.FALSE, resp.getParty().getOrganisationFlag());
 
-        assertNull(resp.getPartyDetails().getOrganisationDetails());
-        assertNotNull(resp.getPartyDetails().getIndividualDetails());
-        assertEquals("Mr", resp.getPartyDetails().getIndividualDetails().getTitle());
-        assertEquals("John", resp.getPartyDetails().getIndividualDetails().getForenames());
-        assertEquals("Smith", resp.getPartyDetails().getIndividualDetails().getSurname());
-    }
-
-    @Test
-    void getHeaderSummary_hasAssociatedDefendant_true_whenAwardedPositive() {
-        // Arrange
-        long id = 200L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC200")
-            .creditorAccountType("MN")
-            .versionNumber(null)
-            .partyId(300L)
-            .organisation(true)
-            .organisationName("Org")
-            .businessUnitId((short) 1)
-            .businessUnitName("BU")
-            .welshLanguage(false)
-            .awarded(new BigDecimal("0.01")) // awarded > 0 => true branch
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
-            .build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
-
-        // Assert
-        assertEquals(Boolean.TRUE, resp.getHasAssociatedDefendant());
-    }
-
-    @Test
-    void getHeaderSummary_hasAssociatedDefendant_true_whenOutstandingPositive_evenIfAwardedNull() {
-        // Arrange
-        long id = 201L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC201")
-            .creditorAccountType("MN")
-            .versionNumber(null)
-            .partyId(301L)
-            .organisation(false)
-            .title("Ms")
-            .forenames("A")
-            .surname("B")
-            .businessUnitId((short) 2)
-            .businessUnitName("BU2")
-            .welshLanguage(false)
-            .awarded(null) // covers null check on awarded
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(new BigDecimal("1.00")) // outstanding > 0 => true
-            .build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
-
-        // Assert
-        assertEquals(Boolean.TRUE, resp.getHasAssociatedDefendant());
+        assertNull(resp.getParty().getOrganisationDetails());
+        assertNotNull(resp.getParty().getIndividualDetails());
+        assertEquals("Mr", resp.getParty().getIndividualDetails().getTitle());
+        assertEquals("John", resp.getParty().getIndividualDetails().getForenames());
+        assertEquals("Smith", resp.getParty().getIndividualDetails().getSurname());
     }
 
     @Test
