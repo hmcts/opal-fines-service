@@ -26,12 +26,10 @@ public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccount
     @JsonProperty(value = "business_unit_id", required = true)
     private Short businessUnitId;
 
-    @NotBlank
-    @JsonProperty(value = "submitted_by", required = true)
+    @JsonProperty("submitted_by")
     private String submittedBy;
 
-    @NotBlank
-    @JsonProperty(value = "submitted_by_name", required = true)
+    @JsonProperty("submitted_by_name")
     private String submittedByName;
 
     @NotBlank

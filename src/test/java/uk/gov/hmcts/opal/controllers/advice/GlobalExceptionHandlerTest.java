@@ -63,6 +63,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 @SpringBootTest
@@ -430,6 +431,21 @@ class GlobalExceptionHandlerTest {
         assertEquals(false, pd.getProperties().get("retriable"));
         assertEquals("Too many results", pd.getProperties().get("unprocessableReason"));
         assertNull(r.getHeaders().getETag());
+    }
+
+    @Test
+    void handleSubmitterCannotValidate_forbidden() {
+        SubmitterCannotValidateException ex =
+            new SubmitterCannotValidateException("A single user cannot submit and validate the same Draft Account");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleSubmitterCannotValidateException(ex);
+
+        assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
+        assertEquals("Submitter cannot validate", pd.getTitle());
+        assertEquals("A single user cannot submit and validate the same Draft Account", pd.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/submitter-cannot-validate"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     // ---------- FeignException (generic handler) ----------
