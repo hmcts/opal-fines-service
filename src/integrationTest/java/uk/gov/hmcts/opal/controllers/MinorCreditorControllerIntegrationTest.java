@@ -300,9 +300,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .thenReturn(permissionUser((short)10, uk.gov.hmcts.opal.authorisation.model.FinesPermission
                 .ADD_AND_REMOVE_PAYMENT_HOLD));
 
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
-                Integer.class, 607L);
+        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
 
         String requestJson = patchMinorCreditorPayoutHoldRequestJson();
 
@@ -329,9 +327,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
 
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
-                Integer.class, 607L);
+        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
 
         mockMvc.perform(patch(URL_BASE + "/606")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -347,9 +343,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .thenReturn(permissionUser((short)10, uk.gov.hmcts.opal.authorisation.model.FinesPermission
                 .ADD_AND_REMOVE_PAYMENT_HOLD));
 
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
-                Integer.class, 607L);
+        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
 
         mockMvc.perform(patch(URL_BASE + "/607")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -403,6 +397,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
               }
             }
             """;
+    }
+
+    private Integer getCurrentCreditorAccountVersion(Long creditorAccountId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
+            Integer.class,
+            creditorAccountId
+        );
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
