@@ -68,7 +68,23 @@ def determineDevEnvironmentDeployment() {
   echo "Deploying Opal logging service (${env.OPAL_LOGGING_SERVICE_API_URL} - ${env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
 }
 
+def secrets = [
+        'opal-${env}': [
+                secret('jiraAuthToken', 'JIRA_AUTH_TOKEN'),
+        ],
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+    [$class     : 'AzureKeyVaultSecret',
+     secretType : 'Secret',
+     name       : secretName,
+     version    : '',
+     envVariable: envVar
+    ]
+}
+
 withPipeline(type, product, component) {
+  loadVaultSecrets(secrets)
   env.FAIL_FAST = true
   env.STAGING_DB_SCHEMA = 'public'
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub.staging.platform.hmcts.net/opal'
