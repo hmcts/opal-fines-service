@@ -12,7 +12,6 @@ import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.service.iface.MinorCreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
 import java.math.BigInteger;
@@ -23,7 +22,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyMinorCreditorService")
-public class LegacyMinorCreditorService implements MinorCreditorServiceInterface, MinorCreditorAccountServiceInterface {
+public class LegacyMinorCreditorService implements MinorCreditorServiceInterface {
 
     private final GatewayService gatewayService;
 

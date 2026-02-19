@@ -24,10 +24,12 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
+import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 
 @ExtendWith(MockitoExtension.class)
-class OpalMinorCreditorAccountServiceTest {
+class OpalMinorCreditorServiceUpdateTest {
 
     @Mock
     private CreditorAccountRepository creditorAccountRepository;
@@ -36,10 +38,16 @@ class OpalMinorCreditorAccountServiceTest {
     private PartyRepository partyRepository;
 
     @Mock
+    private MinorCreditorRepository minorCreditorRepository;
+
+    @Mock
+    private MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
+
+    @Mock
     private AmendmentService amendmentService;
 
     @InjectMocks
-    private OpalMinorCreditorAccountService service;
+    private OpalMinorCreditorService service;
 
     @Test
     void updateMinorCreditorAccount_success_updatesHoldAndVersionAndReturnsResponse() {
