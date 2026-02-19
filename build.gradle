@@ -1,29 +1,30 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
-  dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.20.3")
-  }
+    dependencies {
+        classpath("org.flywaydb:flyway-database-postgresql:11.20.3")
+    }
 }
 
 plugins {
-  id 'application'
-  id 'jacoco'
-  id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.10'
-  id 'com.github.ben-manes.versions' version '0.53.0'
-  id 'org.sonarqube' version '7.2.2.6593'
-  id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.20.3'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.2.2'
-  id "org.openapi.generator" version "7.19.0"
+    id 'application'
+    id 'jacoco'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springframework.boot' version '3.5.10'
+    id 'com.github.ben-manes.versions' version '0.53.0'
+    id 'org.sonarqube' version '7.2.2.6593'
+    id 'uk.gov.hmcts.java' version '0.12.67'
+    id 'org.flywaydb.flyway' version '11.20.3'
+    id 'net.serenity-bdd.serenity-gradle-plugin' version '5.2.2'
+    id "org.openapi.generator" version "7.19.0"
 }
 
 ext {
-  log4JVersion = "2.25.3"
-  serenityVersion = "4.3.4"
-  cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
-  springVersion = "3.5.10"
+    log4JVersion = "2.25.3"
+    serenityVersion = "4.3.4"
+    cucumberVersion = "7.23.0"
+    // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
+    springVersion = "3.5.10"
 }
 
 //Should we fail fast on test failures?
@@ -34,329 +35,331 @@ group = 'uk.gov.hmcts'
 version = '0.0.1'
 
 java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
-  }
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 sourceSets {
-  openapi {
-    java {
-      srcDir file('src/openApi/java')
+    openapi {
+        java {
+            srcDir file('src/openApi/java')
+        }
+        resources.srcDir file('src/openApi/resources')
     }
-    resources.srcDir file('src/openApi/resources')
-  }
-  main {
-    java {
-      srcDir "$buildDir/generated/openapi/src/main/java"
+    main {
+        java {
+            srcDir "$buildDir/generated/openapi/src/main/java"
+        }
     }
-  }
 
-  functionalTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/functionalTest/java')
+    functionalTest {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+            srcDir file('src/functionalTest/java')
+        }
+        resources.srcDir file('src/functionalTest/resources')
     }
-    resources.srcDir file('src/functionalTest/resources')
-  }
 
-  integrationTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/integrationTest/java')
+    integrationTest {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+            srcDir file('src/integrationTest/java')
+        }
+        resources.srcDir file('src/integrationTest/resources')
     }
-    resources.srcDir file('src/integrationTest/resources')
-  }
 }
 
 configurations {
-  openapiImplementation.extendsFrom implementation
-  openapiRuntimeOnly.extendsFrom runtimeOnly
+    openapiImplementation.extendsFrom implementation
+    openapiRuntimeOnly.extendsFrom runtimeOnly
 
-  functionalTestImplementation.extendsFrom testImplementation
-  functionalTestRuntimeOnly.extendsFrom runtimeOnly
+    functionalTestImplementation.extendsFrom testImplementation
+    functionalTestRuntimeOnly.extendsFrom runtimeOnly
 
-  integrationTestImplementation.extendsFrom testImplementation
-  integrationTestRuntimeOnly.extendsFrom runtimeOnly
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom runtimeOnly
 
-  smokeTestImplementation.extendsFrom testImplementation
-  smokeTestRuntimeOnly.extendsFrom runtimeOnly
+    smokeTestImplementation.extendsFrom testImplementation
+    smokeTestRuntimeOnly.extendsFrom runtimeOnly
 
-  zephyrCucumberReportProcessor
+    zephyrCucumberReportProcessor
 }
 
 configurations.configureEach {
-  resolutionStrategy {
-    force "io.cucumber:cucumber-core:${cucumberVersion}"
-    force "io.cucumber:cucumber-java:${cucumberVersion}"
-    force "io.cucumber:cucumber-junit:${cucumberVersion}"
-  }
+    resolutionStrategy {
+        force "io.cucumber:cucumber-core:${cucumberVersion}"
+        force "io.cucumber:cucumber-java:${cucumberVersion}"
+        force "io.cucumber:cucumber-junit:${cucumberVersion}"
+    }
 }
 
 tasks.register("bundleOpenApi", JavaExec) {
-  dependsOn 'compileOpenapiJava'
-  classpath = sourceSets.openapi.runtimeClasspath
-  group = "openapi"
-  description = "Bundle multiple OpenAPI YAML files into one"
-  mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
-  args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
+    dependsOn 'compileOpenapiJava'
+    classpath = sourceSets.openapi.runtimeClasspath
+    group = "openapi"
+    description = "Bundle multiple OpenAPI YAML files into one"
+    mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
+    args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
 }
 
 openApiGenerate {
-  generatorName = "spring"
-  inputSpec = layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath
-  outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
-  apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
-  modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
-  // Point to your customized mustache templates
-  templateDir = "$rootDir/openapi/templates".toString()
-  generateApiTests = false
-  generateModelTests = false
-  skipOperationExample = true
-  openapiNormalizer = [
-    REF_AS_PARENT_IN_ALLOF: "true"
-  ]
-  configOptions = [
-    dateLibrary                         : "java8-localdatetime",
-    interfaceOnly                       : "true",
-    useTags                             : "true",
-    useSpringBoot3                      : "true",
-    containerDefaultToNull              : "true",
-    generatedConstructorWithRequiredArgs: "false",
-    useBeanValidation                   : "true",
-    useLombokAnnotations                : "true",
-    generateBuilders                    : "true"
-  ]
+    generatorName = "spring"
+    inputSpec = layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath
+    outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
+    apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
+    modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
+    // Point to your customized mustache templates
+    templateDir = "$rootDir/openapi/templates".toString()
+    generateApiTests = false
+    generateModelTests = false
+    skipOperationExample = true
+    openapiNormalizer = [
+            REF_AS_PARENT_IN_ALLOF: "true"
+    ]
+    configOptions = [
+            dateLibrary                         : "java8-localdatetime",
+            interfaceOnly                       : "true",
+            useTags                             : "true",
+            useSpringBoot3                      : "true",
+            containerDefaultToNull              : "true",
+            generatedConstructorWithRequiredArgs: "false",
+            useBeanValidation                   : "true",
+            useLombokAnnotations                : "true",
+            generateBuilders                    : "true"
+    ]
 }
 // (Temp?) Fix to solve the issue:
 // Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
 gradle.taskGraph.whenReady { taskGraph ->
-  def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
-  if (task instanceof JavaExec) {
-    task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
-  }
+    def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
+    if (task instanceof JavaExec) {
+        task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
+    }
 }
 
 
 tasks.withType(JavaCompile).configureEach {
-  options.compilerArgs << "-Xlint:unchecked"
+    options.compilerArgs << "-Xlint:unchecked"
 //  Enable the following to highlight all deprecated build errors
-  options.compilerArgs << "-Xlint:deprecation"
+    options.compilerArgs << "-Xlint:deprecation"
 //  Enable the following to stop the build on any warning messages (not just error messages)
-  options.compilerArgs << "-Werror"
+    options.compilerArgs << "-Werror"
 //  Change the maximum number of reported compiler errors (default 100)
-  options.compilerArgs.addAll("-Xmaxerrs", "200")
+    options.compilerArgs.addAll("-Xmaxerrs", "200")
 }
 
 // https://github.com/gradle/gradle/issues/16791
 tasks.withType(JavaExec).configureEach {
-  javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
 tasks.withType(Test).configureEach {
-  useJUnitPlatform()
+    useJUnitPlatform()
 
-  testLogging {
-    exceptionFormat = 'full'
-  }
-  if (failFast) {
-    failFast = true
-  }
+    testLogging {
+        exceptionFormat = 'full'
+    }
+    if (failFast) {
+        failFast = true
+    }
 }
 
 
 tasks.register('integration', Test) {
-  description = "Runs integration tests"
-  group = "Verification"
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
+    description = "Runs integration tests"
+    group = "Verification"
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
 }
 
 tasks.register('functionalOpal', Test) {
 
-  description = "Runs functional tests against Opal mode"
-  group = "Verification"
-  testClassesDirs = sourceSets.functionalTest.output.classesDirs
-  classpath = sourceSets.functionalTest.runtimeClasspath
-  outputs.upToDateWhen { false }
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
-  testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
-  environment("DEFAULT_APP_MODE", "opal")
-  include '**/OpalTestRunner.class'
+    description = "Runs functional tests against Opal mode"
+    group = "Verification"
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    outputs.upToDateWhen { false }
+    reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
+    testLogging.showStandardStreams = true
+    gradle.startParameter.continueOnFailure = true
+    environment("DEFAULT_APP_MODE", "opal")
+    include '**/OpalTestRunner.class'
 
+    finalizedBy 'copyOpalCucumberJson'
 }
 
 tasks.register('functionalLegacy', Test) {
-  description = "Runs functional tests against Legacy mode"
-  group = "Verification"
-  testClassesDirs = sourceSets.functionalTest.output.classesDirs
-  classpath = sourceSets.functionalTest.runtimeClasspath
-  outputs.upToDateWhen { false }
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
-  gradle.startParameter.continueOnFailure = true
-  testLogging.showStandardStreams = true
-  environment("DEFAULT_APP_MODE", "legacy")
+    description = "Runs functional tests against Legacy mode"
+    group = "Verification"
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    outputs.upToDateWhen { false }
+    reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
+    gradle.startParameter.continueOnFailure = true
+    testLogging.showStandardStreams = true
+    environment("DEFAULT_APP_MODE", "legacy")
 
-  include '**/LegacyTestRunner.class'
+    include '**/LegacyTestRunner.class'
+    finalizedBy 'copyLegacyCucumberJson'
 }
 tasks.register('copyFunctionalReport', Copy) {
-  from("${rootDir}/target/site/serenity")
-  into("${rootDir}/functional-test-report")
-  logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
+    from("${rootDir}/target/site/serenity")
+    into("${rootDir}/functional-test-report")
+    logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
 }
 tasks.register('mergeFunctionalResults', Copy) {
-  from layout.buildDirectory.dir("test-results/functional/opal")
-  from layout.buildDirectory.dir("test-results/functional/legacy")
-  into layout.buildDirectory.dir("test-results/functional")
-  include '*.xml'
+    from layout.buildDirectory.dir("test-results/functional/opal")
+    from layout.buildDirectory.dir("test-results/functional/legacy")
+    into layout.buildDirectory.dir("test-results/functional")
+    include '*.xml'
 }
 tasks.register('generateTestSummary', JavaExec) {
-  group = "Reporting"
-  description = "Generate an HTML summary from test result XMLs"
-  classpath = sourceSets.functionalTest.runtimeClasspath
-  mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
+    group = "Reporting"
+    description = "Generate an HTML summary from test result XMLs"
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
 }
 
 tasks.register('functional') {
-  description = "Runs functional tests"
-  group = "Verification"
-  gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
-  tasks.functionalOpal.mustRunAfter clearReports
-  tasks.functionalLegacy.mustRunAfter functionalOpal
-  tasks.mergeFunctionalResults.mustRunAfter functionalLegacy
-  tasks.aggregate.mustRunAfter functionalLegacy
-  tasks.copyFunctionalReport.mustRunAfter aggregate
-  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+    description = "Runs functional tests"
+    group = "Verification"
+    gradle.startParameter.continueOnFailure = true
+    dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
+    tasks.functionalOpal.mustRunAfter clearReports
+    tasks.functionalLegacy.mustRunAfter functionalOpal
+    tasks.mergeFunctionalResults.mustRunAfter functionalLegacy
+    tasks.aggregate.mustRunAfter functionalLegacy
+    tasks.copyFunctionalReport.mustRunAfter aggregate
+    tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 }
 
 
 tasks.register('smokeOpal', Test) {
-  description = "Runs Smoke Tests"
-  group = "Verification"
-  testClassesDirs = sourceSets.functionalTest.output.classesDirs
-  classpath = sourceSets.functionalTest.runtimeClasspath
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
-  testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
+    description = "Runs Smoke Tests"
+    group = "Verification"
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
+    testLogging.showStandardStreams = true
+    gradle.startParameter.continueOnFailure = true
 
-  include '**/SmokeTestRunner.class'
+    include '**/SmokeTestRunner.class'
 
 }
 tasks.register('copySmokeReport', Copy) {
-  from("${rootDir}/target/site/serenity")
-  into("${rootDir}/smoke-test-report")
-  logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
+    from("${rootDir}/target/site/serenity")
+    into("${rootDir}/smoke-test-report")
+    logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
 }
 
 tasks.register('smoke') {
-  description = "Runs Smoke Tests"
-  group = "Verification"
-  gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'smokeOpal', 'aggregate', 'copySmokeReport')
-  tasks.smokeOpal.mustRunAfter clearReports
-  tasks.aggregate.mustRunAfter smokeOpal
-  tasks.copySmokeReport.mustRunAfter aggregate
+    description = "Runs Smoke Tests"
+    group = "Verification"
+    gradle.startParameter.continueOnFailure = true
+    dependsOn('clearReports', 'smokeOpal', 'aggregate', 'copySmokeReport')
+    tasks.smokeOpal.mustRunAfter clearReports
+    tasks.aggregate.mustRunAfter smokeOpal
+    tasks.copySmokeReport.mustRunAfter aggregate
 
 }
 
 def coverageExclusions = [
-  '**/uk/gov/hmcts/opal/**/model/**',
-  '**/uk/gov/hmcts/opal/**/config/**',
-  '**/uk/gov/hmcts/opal/authentication/client/**',
-  '**/uk/gov/hmcts/opal/**/exception/**',
-  '**/uk/gov/hmcts/opal/service/DefendantAccountService.java',
-  '**/uk/gov/hmcts/opal/service/legacy/LegacyDefendantAccountService.java',
-  '**/uk/gov/hmcts/opal/service/opal/OpalDefendantAccountService.java'
+        '**/uk/gov/hmcts/opal/**/model/**',
+        '**/uk/gov/hmcts/opal/**/config/**',
+        '**/uk/gov/hmcts/opal/authentication/client/**',
+        '**/uk/gov/hmcts/opal/**/exception/**',
+        '**/uk/gov/hmcts/opal/service/DefendantAccountService.java',
+        '**/uk/gov/hmcts/opal/service/legacy/LegacyDefendantAccountService.java',
+        '**/uk/gov/hmcts/opal/service/opal/OpalDefendantAccountService.java'
 ]
 
 jacocoTestReport {
-  executionData(test, integration)
-  reports {
-    xml.required = true
-    html.required = true
-    csv.required = false
-    html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
-  }
-  afterEvaluate {
-    classDirectories.setFrom(files(classDirectories.files.collect {
-      fileTree(dir: it, exclude: jacocoExclusionArray(coverageExclusions)
-      )
-    }))
-  }
+    executionData(test, integration)
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+        html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExclusionArray(coverageExclusions)
+            )
+        }))
+    }
 }
 
 static String[] jacocoExclusionArray(ArrayList<String> exclusions) {
-  final def lst = new ArrayList<String>()
+    final def lst = new ArrayList<String>()
 
-  exclusions.stream().forEach { it.endsWith(".java") ? lst.add(it.replace(".java", ".class")) : lst.add(it) }
+    exclusions.stream().forEach { it.endsWith(".java") ? lst.add(it.replace(".java", ".class")) : lst.add(it) }
 
-  return lst.toArray()
+    return lst.toArray()
 }
 
 tasks.named("sonarqube") {
-  dependsOn(tasks.named("jacocoTestReport"))
+    dependsOn(tasks.named("jacocoTestReport"))
 }
 tasks.named("check") {
-  dependsOn(tasks.named("integration"))
+    dependsOn(tasks.named("integration"))
 }
 
 jacocoTestReport.dependsOn check
 jacocoTestCoverageVerification.dependsOn jacocoTestReport
 
 sonarqube {
-  properties {
-    property "sonar.projectName", "HMCTS :: opal-fines-service"
-    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
-    property "sonar.gradle.skipCompile", "true"
-    property "sonar.exclusions", coverageExclusions.join(', ')
-    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
-    property 'sonar.cpd.exclusions', "**/entity/*,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
-  }
+    properties {
+        property "sonar.projectName", "HMCTS :: opal-fines-service"
+        property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
+        property "sonar.gradle.skipCompile", "true"
+        property "sonar.exclusions", coverageExclusions.join(', ')
+        property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
+        property 'sonar.cpd.exclusions', "**/entity/*,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
+    }
 }
 
 // before committing a change, make sure task still works
 dependencyUpdates {
-  def isNonStable = { String version ->
-    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { qualifier -> version.toUpperCase().contains(qualifier) }
-    def regex = /^[0-9,.v-]+$/
-    return !stableKeyword && !(version ==~ regex)
-  }
-  rejectVersionIf { selection -> // <---- notice how the closure argument is named
-    return isNonStable(selection.candidate.version) && !isNonStable(selection.currentVersion)
-  }
+    def isNonStable = { String version ->
+        def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { qualifier -> version.toUpperCase().contains(qualifier) }
+        def regex = /^[0-9,.v-]+$/
+        return !stableKeyword && !(version ==~ regex)
+    }
+    rejectVersionIf { selection -> // <---- notice how the closure argument is named
+        return isNonStable(selection.candidate.version) && !isNonStable(selection.currentVersion)
+    }
 }
 
 dependencyManagement {
-  imports {
-    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
-  }
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
+    }
 
-  imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.5.6"
-  }
+    imports {
+        mavenBom "org.springframework.integration:spring-integration-bom:6.5.6"
+    }
 
-  dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.5.0-jre'
-  }
+    dependencies {
+        dependency group: 'com.google.guava', name: 'guava', version: '33.5.0-jre'
+    }
 }
 
 dependencyCheck {
-  suppressionFile = 'config/owasp/suppressions.xml'
-  nvd {
-    apiKey = 'ffb77792-47ae-41ff-a95f-e5bd172663b4'
-  }
+    suppressionFile = 'config/owasp/suppressions.xml'
+    nvd {
+        apiKey = 'ffb77792-47ae-41ff-a95f-e5bd172663b4'
+    }
 }
 
 repositories {
-  mavenLocal()
-  mavenCentral()
-  maven {
-    url = 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
-  }
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url = 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
+    }
 }
 
 
@@ -367,167 +370,253 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.2'
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
-  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
+    zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.2'
+    implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
+    openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
+    openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
+    openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
+    openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
-  implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
-  implementation "org.springframework.boot:spring-boot-starter-web:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-actuator:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-aop:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-json:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-security:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-oauth2-client:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-quartz:${springVersion}"
-  implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-  implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
+    implementation "org.springframework.boot:spring-boot-starter-web:${springVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:${springVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-aop:${springVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-json:${springVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-security:${springVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-oauth2-client:${springVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-quartz:${springVersion}"
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
 
-  implementation 'org.springframework.boot:spring-boot-starter-integration'
-  implementation 'org.springframework.integration:spring-integration-sftp'
-  implementation 'org.springframework.integration:spring-integration-file'
+    implementation 'org.springframework.boot:spring-boot-starter-integration'
+    implementation 'org.springframework.integration:spring-integration-sftp'
+    implementation 'org.springframework.integration:spring-integration-file'
 
-  implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.5.5'
+    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.5.5'
 
-  implementation 'org.springframework:spring-aspects'
-  implementation 'commons-fileupload:commons-fileupload:1.6.0'
-  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign', {
-    exclude group: 'commons-fileupload', module: 'commons-fileupload'
-  }
+    implementation 'org.springframework:spring-aspects'
+    implementation 'commons-fileupload:commons-fileupload:1.6.0'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign', {
+        exclude group: 'commons-fileupload', module: 'commons-fileupload'
+    }
 
-  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
-  implementation 'com.github.hmcts.java-logging:logging:7.0.0'
+    implementation 'com.github.hmcts.java-logging:logging:7.0.0'
 
-  implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
-  implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
-  implementation 'com.google.guava:guava:33.5.0-jre'
+    implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
+    implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
+    implementation 'com.google.guava:guava:33.5.0-jre'
 
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.11.0'
+    implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.11.0'
 
-  implementation 'com.networknt:json-schema-validator:1.5.9'
-  implementation 'com.jayway.jsonpath:json-path:2.10.0'
+    implementation 'com.networknt:json-schema-validator:1.5.9'
+    implementation 'com.jayway.jsonpath:json-path:2.10.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.9'
-  implementation 'io.rest-assured:rest-assured'
-  implementation 'org.flywaydb:flyway-core:11.20.3'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.3', {
-    exclude group: 'org.flywaydb', module: 'flyway-core'
-  }
-  implementation 'org.postgresql:postgresql'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.9'
+    implementation 'io.rest-assured:rest-assured'
+    implementation 'org.flywaydb:flyway-core:11.20.3'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.3', {
+        exclude group: 'org.flywaydb', module: 'flyway-core'
+    }
+    implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
-  compileOnly 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.42.Final'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.42.Final'
 
-  // MapStruct
-  implementation 'org.mapstruct:mapstruct:1.6.3'
-  annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-  testCompileOnly 'org.projectlombok:lombok:1.18.42'
-  testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+    testCompileOnly 'org.projectlombok:lombok:1.18.42'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
 
-  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.42'
-  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+    integrationTestCompileOnly 'org.projectlombok:lombok:1.18.42'
+    integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
 
-  implementation 'org.mapstruct:mapstruct:1.6.3'
-  annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-  implementation 'org.apache.xmlgraphics:fop:2.11'
-  implementation 'org.apache.xmlgraphics:fop-core:2.11'
-  implementation 'org.apache.xmlgraphics:fop-events:2.11'
-  implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
-  implementation 'org.apache.pdfbox:pdfbox:3.0.6'
-  implementation 'net.sf.saxon:Saxon-HE:12.9'
+    implementation 'org.apache.xmlgraphics:fop:2.11'
+    implementation 'org.apache.xmlgraphics:fop-core:2.11'
+    implementation 'org.apache.xmlgraphics:fop-events:2.11'
+    implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
+    implementation 'org.apache.pdfbox:pdfbox:3.0.6'
+    implementation 'net.sf.saxon:Saxon-HE:12.9'
 
-  testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
-  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-  testImplementation 'org.springframework.boot:spring-boot-devtools'
-  testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-  testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
-  testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:6.0.2'))
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-  testImplementation 'org.springframework.boot:spring-boot-starter-test', {
-    exclude group: 'junit', module: 'junit'
-    exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-  }
-  testImplementation 'org.junit.platform:junit-platform-suite:6.0.2'
-  testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+    testImplementation 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation(platform('org.junit:junit-bom:6.0.2'))
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test', {
+        exclude group: 'junit', module: 'junit'
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'org.junit.platform:junit-platform-suite:6.0.2'
+    testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
-  testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
-  testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
-  testImplementation "net.serenity-bdd:serenity-report-resources:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-report-resources:${serenityVersion}"
 
-  testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
-  testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
-  testImplementation 'com.azure:azure-messaging-servicebus:7.17.17'
+    testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
+    testImplementation 'com.azure:azure-messaging-servicebus:7.17.17'
 
-  //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.18'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.18'
-  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.18'
-  implementation 'org.apache.commons:commons-lang3:3.20.0'
+    //Added to override dependency version to resolve vulnerability
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.18'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.18'
+    implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.18'
+    implementation 'org.apache.commons:commons-lang3:3.20.0'
 
-  implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5'
+    implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5'
 
 }
 
 application {
-  mainClass.set('uk.gov.hmcts.opal.Application')
+    mainClass.set('uk.gov.hmcts.opal.Application')
 }
 
 bootJar {
-  archiveFileName = "opal-fines-service.jar"
+    archiveFileName = "opal-fines-service.jar"
 
-  manifest {
-    attributes('Implementation-Version': project.version.toString())
-  }
+    manifest {
+        attributes('Implementation-Version': project.version.toString())
+    }
 }
 
 // Gradle 7.x issue, workaround from: https://github.com/gradle/gradle/issues/17236#issuecomment-894768083
 rootProject.tasks.named("processFunctionalTestResources") {
-  duplicatesStrategy = 'include'
+    duplicatesStrategy = 'include'
 }
 
 rootProject.tasks.named("processIntegrationTestResources") {
-  duplicatesStrategy = 'include'
+    duplicatesStrategy = 'include'
 }
 
 tasks.named("bootTestRun") {
-  mainClass = 'uk.gov.hmcts.opal.dev.DevApplication'
+    mainClass = 'uk.gov.hmcts.opal.dev.DevApplication'
 }
 
 wrapper {
-  distributionType = Wrapper.DistributionType.ALL
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 flyway {
-  url = System.getenv('FLYWAY_URL')
-  user = System.getenv('FLYWAY_USER')
-  password = System.getenv('FLYWAY_PASSWORD')
-  baselineOnMigrate = true
-  baselineVersion = '000'
+    url = System.getenv('FLYWAY_URL')
+    user = System.getenv('FLYWAY_USER')
+    password = System.getenv('FLYWAY_PASSWORD')
+    baselineOnMigrate = true
+    baselineVersion = '000'
 
 }
 checkstyle {
-  checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
+    checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
 }
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
-  baselineOnMigrate = true
-  if (project.hasProperty("dburl")) {
-    url = "jdbc:postgresql://${dburl}"
-  }
-  println "Flyway jbdc property 'url' (derived from System property 'FLYWAY_URL'?) is: ${url}"
+    baselineOnMigrate = true
+    if (project.hasProperty("dburl")) {
+        url = "jdbc:postgresql://${dburl}"
+    }
+    println "Flyway jbdc property 'url' (derived from System property 'FLYWAY_URL'?) is: ${url}"
 }
 
+tasks.register('runAllStyleChecks') {
+    dependsOn 'checkstyleMain'
+    dependsOn 'checkstyleTest'
+    dependsOn 'checkstyleIntegrationTest'
+    dependsOn 'checkstyleFunctionalTest'
+    dependsOn 'checkstyleOpenapi'
+}
+tasks.named("openApiGenerate") {
+    dependsOn 'bundleOpenApi'
+}
+tasks.named("compileJava") {
+    dependsOn 'openApiGenerate'
+}
+
+//Zephyr Automation
+
+var zephyrBaseArgs = [
+        //Main Config
+        "process-type=CUCUMBER_JSON_REPORT",
+        "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
+        //Jira Config
+        "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
+        "jira-project-id=33305",
+        "jira-default-user=Ben.Edwards",
+        "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
+        "jira-epic-link-custom-field-id=customfield_10008",
+        "jira-default-components=opal-fines-service"
+]
+// helper that returns a NEW list each time
+def zephyrArgs = { String actionType, String basePath, String reportPath ->
+    zephyrBaseArgs + [
+            "action-type=${actionType}",
+            "base-path=${basePath}",
+            "report-path=${reportPath}"
+    ]
+}
+
+tasks.register('functionalWithZephyrReporting') {
+    description = "Runs functional tests"
+    group = "Verification"
+    gradle.startParameter.continueOnFailure = true
+
+    dependsOn('clearReports',
+            'functionalOpal','copyOpalCucumberJson', 'createJiraExecutionFromOpalCucumberReport',
+            'functionalLegacy','copyLegacyCucumberJson', 'createJiraExecutionFromLegacyCucumberReport',
+            'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
+
+    tasks.functionalOpal.mustRunAfter clearReports
+    tasks.copyOpalCucumberJson.mustRunAfter functionalOpal
+    tasks.createJiraExecutionFromOpalCucumberReport.mustRunAfter copyOpalCucumberJson
+
+    tasks.functionalLegacy.mustRunAfter createJiraExecutionFromOpalCucumberReport
+    tasks.copyLegacyCucumberJson.mustRunAfter functionalLegacy
+    tasks.createJiraExecutionFromLegacyCucumberReport.mustRunAfter copyLegacyCucumberJson
+    tasks.mergeFunctionalResults.mustRunAfter createJiraExecutionFromLegacyCucumberReport
+    tasks.aggregate.mustRunAfter createJiraExecutionFromLegacyCucumberReport
+    tasks.copyFunctionalReport.mustRunAfter aggregate
+    tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+}
+tasks.register('copyOpalCucumberJson', Copy) {
+    from("target/cucumber.json")
+    into("target/zephyr")
+    rename { "cucumber-opal.json" }
+    outputs.upToDateWhen { false }
+}
+
+tasks.register('copyLegacyCucumberJson', Copy) {
+    from("target/cucumber.json")
+    into("target/zephyr")
+    rename { "cucumber-legacy.json" }
+    outputs.upToDateWhen { false }
+}
 tasks.register('createJiraTicketsFromCucumberReport', JavaExec) {
+    group = "Zephyr Reporting"
+    description = "Processes cucumber.json after functional runs"
+    def cucumberJson = file("target/cucumber.json")
+    def functionalSrcDir = file("src/functionalTest")
+
+    inputs.file(cucumberJson)
+
+    classpath = configurations.zephyrCucumberReportProcessor
+    mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+
+    args = zephyrArgs("CREATE_TICKETS", functionalSrcDir.absolutePath, cucumberJson.absolutePath)
+}
+
+tasks.register('updateJiraTicketsFromCucumberReport', JavaExec) {
     group = "Zephyr Reporting"
 
     description = "Processes cucumber.json after functional runs"
@@ -538,49 +627,7 @@ tasks.register('createJiraTicketsFromCucumberReport', JavaExec) {
 
     classpath = configurations.zephyrCucumberReportProcessor
     mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
-    args = [
-            //Main Config
-            "action-type=CREATE_TICKETS",
-            "process-type=CUCUMBER_JSON_REPORT",
-            "base-path=${functionalSrcDir.absolutePath}",
-            "report-path=${cucumberJson.absolutePath}",
-            "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
-            //Jira Config
-            "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
-            "jira-project-id=33305",
-            "jira-default-user=Ben.Edwards",
-            "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
-            "jira-epic-link-custom-field-id=customfield_10008",
-            "jira-default-components=opal-fines-service"
-    ]
-}
-
-tasks.register('updateJiraTicketsFromCucumberReport', JavaExec) {
-  group = "Zephyr Reporting"
-
-  description = "Processes cucumber.json after functional runs"
-  def cucumberJson = file("target/cucumber.json")
-  def functionalSrcDir = file("src/functionalTest")
-
-  inputs.file(cucumberJson)
-
-  classpath = configurations.zephyrCucumberReportProcessor
-  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
-  args = [
-          //Main Config
-          "action-type=UPDATE_TICKETS",
-          "process-type=CUCUMBER_JSON_REPORT",
-          "base-path=${functionalSrcDir.absolutePath}",
-          "report-path=${cucumberJson.absolutePath}",
-          "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
-          //Jira Config
-          "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
-          "jira-project-id=33305",
-          "jira-default-user=Ben.Edwards",
-          "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
-          "jira-epic-link-custom-field-id=customfield_10008",
-          "jira-default-components=opal-fines-service"
-  ]
+    args = zephyrArgs("UPDATE_TICKETS", functionalSrcDir.absolutePath, cucumberJson.absolutePath)
 }
 
 tasks.register('createJiraExecutionFromCucumberReport', JavaExec) {
@@ -594,63 +641,60 @@ tasks.register('createJiraExecutionFromCucumberReport', JavaExec) {
 
     classpath = configurations.zephyrCucumberReportProcessor
     mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
-    args = [
-            //Main Config
-            "action-type=CREATE_TICKETS",
-            "process-type=CUCUMBER_JSON_REPORT",
-            "base-path=${functionalSrcDir.absolutePath}",
-            "report-path=${cucumberJson.absolutePath}",
-            "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
-            //Jira Config
-            "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
-            "jira-project-id=33305",
-            "jira-default-user=Ben.Edwards",
-            "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
-            "jira-epic-link-custom-field-id=customfield_10008"
-    ]
+    args = zephyrArgs("CREATE_EXECUTION", functionalSrcDir.absolutePath, cucumberJson.absolutePath)
+}
+
+tasks.register('createJiraExecutionFromLegacyCucumberReport', JavaExec) {
+    group = "Zephyr Reporting"
+    classpath = configurations.zephyrCucumberReportProcessor
+    mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+    def legacyCucumberJson = file("target/zephyr/cucumber-legacy.json")
+    def functionalSrcDir = file("src/functionalTest")
+    inputs.file(legacyCucumberJson)
+
+    args = zephyrArgs("CREATE_EXECUTION", functionalSrcDir.absolutePath, legacyCucumberJson.absolutePath)
+}
+
+tasks.register('createJiraExecutionFromOpalCucumberReport', JavaExec) {
+    group = "Zephyr Reporting"
+    classpath = configurations.zephyrCucumberReportProcessor
+    mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+    def opalCucumberJson = file("target/zephyr/cucumber-opal.json")
+    def functionalSrcDir = file("src/functionalTest")
+    inputs.file(opalCucumberJson)
+
+    args = zephyrArgs("CREATE_EXECUTION", functionalSrcDir.absolutePath, opalCucumberJson.absolutePath)
 }
 
 tasks.register('functionalOpalWithZephyrExecution') {
     group = "Zephyr Reporting"
     description = "Runs functionalOpal then creates the Zephyr execution from the cucumber report"
 
-    dependsOn tasks.named('functionalOpal')
-    finalizedBy tasks.named('createJiraExecutionFromCucumberReport')
+    dependsOn('functionalOpal','copyOpalCucumberJson', 'createJiraExecutionFromOpalCucumberReport')
+
+    tasks.copyOpalCucumberJson.mustRunAfter functionalOpal
+    tasks.createJiraExecutionFromOpalCucumberReport.mustRunAfter copyOpalCucumberJson
 }
 
 tasks.register('functionalLegacyWithZephyrExecution') {
     group = "Zephyr Reporting"
-    description = "Runs functionalOpal then creates the Zephyr execution from the cucumber report"
+    description = "Runs functionalLegacy then creates the Zephyr execution from the cucumber report"
 
-    dependsOn tasks.named('functionalLegacy')
-    finalizedBy tasks.named('createJiraExecutionFromCucumberReport')
+    dependsOn('functionalLegacy','copyLegacyCucumberJson', 'createJiraExecutionFromLegacyCucumberReport')
+
+    tasks.copyLegacyCucumberJson.mustRunAfter functionalLegacy
+    tasks.createJiraExecutionFromLegacyCucumberReport.mustRunAfter copyLegacyCucumberJson
 }
 
 tasks.register('functionalWithZephyrExecution') {
-  group = "Zephyr Reporting"
-  description = "Runs functional tests and creates Zephyr execution from cucumber report"
-  gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
-  tasks.functionalOpal.mustRunAfter clearReports
-  createJiraExecutionFromCucumberReport.mustRunAfter functionalOpal
-  tasks.functionalLegacy.mustRunAfter createJiraExecutionFromCucumberReport
-  createJiraExecutionFromCucumberReport.mustRunAfter functionalLegacy
-  tasks.mergeFunctionalResults.mustRunAfter createJiraExecutionFromCucumberReport
-  tasks.aggregate.mustRunAfter functionalLegacy
-  tasks.copyFunctionalReport.mustRunAfter aggregate
-  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
-}
-
-tasks.register('runAllStyleChecks') {
-  dependsOn 'checkstyleMain'
-  dependsOn 'checkstyleTest'
-  dependsOn 'checkstyleIntegrationTest'
-  dependsOn 'checkstyleFunctionalTest'
-  dependsOn 'checkstyleOpenapi'
-}
-tasks.named("openApiGenerate") {
-  dependsOn 'bundleOpenApi'
-}
-tasks.named("compileJava") {
-  dependsOn 'openApiGenerate'
+    description = "Runs functional tests"
+    group = "Verification"
+    gradle.startParameter.continueOnFailure = true
+    dependsOn('clearReports', 'functionalOpalWithZephyrExecution', 'functionalLegacyWithZephyrExecution', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
+    tasks.functionalOpalWithZephyrExecution.mustRunAfter clearReports
+    tasks.functionalLegacyWithZephyrExecution.mustRunAfter functionalOpalWithZephyrExecution
+    tasks.mergeFunctionalResults.mustRunAfter functionalLegacyWithZephyrExecution
+    tasks.aggregate.mustRunAfter functionalLegacyWithZephyrExecution
+    tasks.copyFunctionalReport.mustRunAfter aggregate
+    tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 }
