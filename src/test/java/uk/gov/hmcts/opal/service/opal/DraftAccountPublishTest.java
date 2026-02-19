@@ -51,7 +51,7 @@ class DraftAccountPublishTest {
 
     @BeforeEach
     void openMocks() throws Exception {
-        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository, null));
+        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 
@@ -68,7 +68,6 @@ class DraftAccountPublishTest {
     @SuppressWarnings("unchecked")
     @Test
     void testPublishDefendantAccount_success() {
-        // Arrange
         DraftAccountEntity existingFromDB = createPendingDraft();
         when(draftRepository.findById(any())).thenReturn(Optional.of(existingFromDB));
         when(draftRepository.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
@@ -77,12 +76,10 @@ class DraftAccountPublishTest {
         when(draftRepository.createDefendantAccount(anyLong(), anyShort(), any(), any()))
             .thenReturn(procResponse);
 
-        // Act
         BusinessUnitUser buu = createBUU();
         DraftAccountEntity pending = cloneAndModify(existingFromDB, null);
         DraftAccountEntity published = draftAccountPublish.publishDefendantAccount(pending, buu);
 
-        // Assert
         assertEquals(8L, published.getAccountId());
         assertEquals("ACC-008", published.getAccountNumber());
         assertEquals(DraftAccountStatus.PUBLISHED, published.getAccountStatus());
@@ -91,14 +88,11 @@ class DraftAccountPublishTest {
         expected.setAccountId(8L);
         expected.setAccountNumber("ACC-008");
         assertEquals(expected, published);
-
     }
 
     @SuppressWarnings("unchecked")
     @Test
     void testPublishDefendantAccount_procFailure() {
-
-        // Arrange
         DraftAccountEntity existingFromDB = createPendingDraft();
         when(draftRepository.findById(any())).thenReturn(Optional.of(existingFromDB));
         when(draftRepository.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
@@ -106,21 +100,18 @@ class DraftAccountPublishTest {
         when(draftRepository.createDefendantAccount(anyLong(), anyShort(), any(), any()))
             .thenThrow(new JpaSystemException(new RuntimeException("SQL Stored Procedure Error.")));
 
-        // Act
         BusinessUnitUser buu = createBUU();
         DraftAccountEntity pending = cloneAndModify(existingFromDB, null);
         DraftAccountEntity published = draftAccountPublish.publishDefendantAccount(pending, buu);
 
-        // Assert
         assertNull(published.getAccountId());
         assertNull(published.getAccountNumber());
         assertEquals(DraftAccountStatus.PUBLISHING_FAILED, published.getAccountStatus());
-        // verify status message set is a generic user-safe message
         assertEquals(LogUtil.ERRMSG_STORED_PROC_FAILURE, published.getStatusMessage());
 
         TimelineData timelineData = new TimelineData();
         timelineData.insertEntry("Dave", DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                                 LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE);
+            LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE);
         assertEquals(timelineData.toJson(), published.getTimelineData());
 
         DraftAccountEntity expected = cloneAndModify(existingFromDB, DraftAccountStatus.PUBLISHING_FAILED);

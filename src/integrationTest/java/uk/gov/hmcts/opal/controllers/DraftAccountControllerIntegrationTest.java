@@ -10,8 +10,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -65,14 +64,7 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(
-    scripts = {
-        "classpath:db/deleteData/delete_from_draft_accounts.sql",
-        "classpath:db/insertData/insert_into_draft_accounts.sql"
-    },
-    executionPhase = BEFORE_TEST_METHOD
-)
-@Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_METHOD)
+@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -123,6 +115,53 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
     }
 
+
+    @Test
+    @DisplayName("Get Draft Account by ID PDPL Logging")
+    void testGetDraftAccountById_PdplLogging() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/5")
+            .header("authorization", "Bearer some_value")
+            .header("X-User-IP", "192.168.1.100")
+            .contentType(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+
+        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
+
+        assertEquals(2, logs.size());
+
+        PersonalDataProcessingLogDetails first = logs.get(0);
+        assertEquals("Get Draft Account - Parent or Guardian", first.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
+        assertEquals("1", first.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
+        assertEquals("192.168.1.100", first.getIpAddress());
+        assertEquals(1, first.getIndividuals().size());
+        assertEquals("5", first.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails second = logs.get(1);
+        assertEquals("Get Draft Account - Defendant", second.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, second.getCategory());
+        assertEquals("1", second.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
+        assertEquals("192.168.1.100", second.getIpAddress());
+        assertEquals(1, second.getIndividuals().size());
+        assertEquals("5", second.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().get(0).getType());
+    }
+
+
     @Test
     @DisplayName("Get draft accounts summaries - No query params [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_noParams() throws Exception {
@@ -149,6 +188,72 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(count, summariesSize);
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get draft accounts - Should return list and call PDPLLoggingService")
+    void testGetDraftAccounts_success_and_pdplServiceCalled() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
+            .header("authorization", "Bearer some_value")
+            .header("X-User-IP", "192.168.1.100")
+            .contentType(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
+            PersonalDataProcessingLogDetails.class);
+
+        verify(loggingService, times(4)).personalDataAccessLogAsync(captor.capture());
+
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
+
+        assertEquals(4, logs.size());
+
+        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        assertEquals("Get Draft Account - Parent or Guardian", l0.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
+        assertEquals("1", l0.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
+        assertNotNull(l0.getIpAddress());
+        assertEquals(1, l0.getIndividuals().size());
+        assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails l1 = logs.get(1);
+        assertEquals("Get Draft Account - Defendant", l1.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l1.getCategory());
+        assertEquals("1", l1.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
+        assertNotNull(l1.getIpAddress());
+        assertEquals(1, l1.getIndividuals().size());
+        assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails l2 = logs.get(2);
+        assertEquals("Get Draft Account - Defendant", l2.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l2.getCategory());
+        assertEquals("1", l2.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
+        assertNotNull(l2.getIpAddress());
+        assertEquals(1, l2.getIndividuals().size());
+        assertEquals("202", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails l3 = logs.get(3);
+        assertEquals("Get Draft Account - Minor Creditor", l3.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l3.getCategory());
+        assertEquals("1", l3.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l3.getCreatedBy().getType());
+        assertNotNull(l3.getIpAddress());
+        assertEquals(1, l3.getIndividuals().size());
+        assertEquals("202", l3.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l3.getIndividuals().get(0).getType());
     }
 
     @Test
@@ -198,7 +303,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(6))
+            .andExpect(jsonPath("$.count").value(3))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(7))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -224,7 +329,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramStatus: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(4))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -284,7 +389,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
-            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(4))
+            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(5))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(78));
 
         assertEquals(count, summariesSize);
@@ -357,7 +462,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(3))
+                .andExpect(jsonPath("$.count").value(23))
                 .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
                 .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
                 .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
@@ -449,7 +554,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
             .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
+            .header("If-Match", "3")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
 
@@ -529,48 +634,84 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
             .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
-        final OffsetDateTime after = OffsetDateTime.now();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
             PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(3)).personalDataAccessLogAsync(captor.capture());
+        verify(loggingService, times(5)).personalDataAccessLogAsync(captor.capture());
 
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        assertEquals(3, calls.size());
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        List<String> businessIdentifiers = calls.stream()
-            .map(PersonalDataProcessingLogDetails::getBusinessIdentifier)
-            .toList();
+        assertEquals(5, logs.size());
 
-        assertTrue(businessIdentifiers.contains("Update Draft Account - Parent or Guardian"));
-        assertTrue(businessIdentifiers.contains("Update Draft Account - Defendant"));
-        assertTrue(businessIdentifiers.contains("Update Draft Account - Minor Creditor"));
+        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
+        assertEquals("1", l0.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
+        assertNull(l0.getIpAddress());
+        assertNull(l0.getRecipient());
+        assertEquals(1, l0.getIndividuals().size());
+        assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+        assertNotNull(l0.getCreatedAt());
 
-        calls.forEach(pdpl -> {
-            assertNotNull(pdpl.getCreatedBy());
-            assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
-            assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
+        PersonalDataProcessingLogDetails l1 = logs.get(1);
+        assertEquals("Get Draft Account - Minor Creditor", l1.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l1.getCategory());
+        assertEquals("1", l1.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
+        assertNull(l1.getIpAddress());
+        assertNull(l1.getRecipient());
+        assertEquals(1, l1.getIndividuals().size());
+        assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+        assertNotNull(l1.getCreatedAt());
 
-            OffsetDateTime createdAt = pdpl.getCreatedAt();
-            assertNotNull(createdAt);
-            assertTrue(!createdAt.isBefore(before.minusSeconds(5)) && !createdAt.isAfter(after.plusSeconds(5)));
+        PersonalDataProcessingLogDetails l2 = logs.get(2);
+        assertEquals("Update Draft Account - Parent or Guardian", l2.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
+        assertEquals("1", l2.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l2.getIpAddress());
+        assertNull(l2.getRecipient());
+        assertEquals(1, l2.getIndividuals().size());
+        assertEquals("5", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
+        assertNotNull(l2.getCreatedAt());
 
-            assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
-            assertNull(pdpl.getRecipient());
-            assertEquals(1, pdpl.getIndividuals().size());
-            assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
-            assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
-        });
+        PersonalDataProcessingLogDetails l3 = logs.get(3);
+        assertEquals("Update Draft Account - Defendant", l3.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l3.getCategory());
+        assertEquals("1", l3.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l3.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l3.getIpAddress());
+        assertNull(l3.getRecipient());
+        assertEquals(1, l3.getIndividuals().size());
+        assertEquals("5", l3.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l3.getIndividuals().get(0).getType());
+        assertNotNull(l3.getCreatedAt());
+
+        PersonalDataProcessingLogDetails l4 = logs.get(4);
+        assertEquals("Update Draft Account - Minor Creditor", l4.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l4.getCategory());
+        assertEquals("1", l4.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l4.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l4.getIpAddress());
+        assertNull(l4.getRecipient());
+        assertEquals(1, l4.getIndividuals().size());
+        assertEquals("5", l4.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l4.getIndividuals().get(0).getType());
+        assertNotNull(l4.getCreatedAt());
     }
 
     @Test
@@ -587,6 +728,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
             .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
         final OffsetDateTime after = OffsetDateTime.now();
@@ -607,7 +749,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
         assertNotNull(pdpl.getCreatedBy());
-        assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
+        assertEquals("1", pdpl.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
         OffsetDateTime createdAt = pdpl.getCreatedAt();
@@ -629,6 +771,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
             .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
         final OffsetDateTime after = OffsetDateTime.now();
@@ -638,31 +781,48 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
             PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+        verify(loggingService, times(3)).personalDataAccessLogAsync(captor.capture());
 
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        List<String> businessIdentifiers = calls.stream()
-            .map(PersonalDataProcessingLogDetails::getBusinessIdentifier)
-            .toList();
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        assertTrue(businessIdentifiers.contains("Update Draft Account - Parent or Guardian"));
-        assertTrue(businessIdentifiers.contains("Update Draft Account - Defendant"));
+        assertEquals(3, logs.size());
 
-        calls.forEach(pdpl -> {
-            assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
-            assertNull(pdpl.getRecipient());
-            assertEquals(1, pdpl.getIndividuals().size());
-            assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
-            assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
+        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
+        assertEquals("1", l0.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
+        assertNull(l0.getIpAddress());
+        assertNull(l0.getRecipient());
+        assertEquals(1, l0.getIndividuals().size());
+        assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+        assertNotNull(l0.getCreatedAt());
 
-            assertNotNull(pdpl.getCreatedBy());
-            assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
-            assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
+        PersonalDataProcessingLogDetails l1 = logs.get(1);
+        assertEquals("Update Draft Account - Parent or Guardian", l1.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l1.getCategory());
+        assertEquals("1", l1.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l1.getIpAddress());
+        assertNull(l1.getRecipient());
+        assertEquals(1, l1.getIndividuals().size());
+        assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+        assertNotNull(l1.getCreatedAt());
 
-            OffsetDateTime createdAt = pdpl.getCreatedAt();
-            assertNotNull(createdAt);
-            assertTrue(!createdAt.isBefore(before.minusSeconds(5)) && !createdAt.isAfter(after.plusSeconds(5)));
-        });
+        PersonalDataProcessingLogDetails l2 = logs.get(2);
+        assertEquals("Update Draft Account - Defendant", l2.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
+        assertEquals("1", l2.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l2.getIpAddress());
+        assertNull(l2.getRecipient());
+        assertEquals(1, l2.getIndividuals().size());
+        assertEquals("5", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
+        assertNotNull(l2.getCreatedAt());
+
     }
 
     @Test
@@ -679,6 +839,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
             .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
         final OffsetDateTime after = OffsetDateTime.now();
@@ -688,31 +849,48 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
             PersonalDataProcessingLogDetails.class);
-        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+        verify(loggingService, times(3)).personalDataAccessLogAsync(captor.capture());
 
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        List<String> businessIdentifiers = calls.stream()
-            .map(PersonalDataProcessingLogDetails::getBusinessIdentifier)
-            .toList();
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        assertTrue(businessIdentifiers.contains("Update Draft Account - Minor Creditor"));
-        assertTrue(businessIdentifiers.contains("Update Draft Account - Defendant"));
+        assertEquals(3, logs.size());
 
-        calls.forEach(pdpl -> {
-            assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
-            assertNull(pdpl.getRecipient());
-            assertEquals(1, pdpl.getIndividuals().size());
-            assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
-            assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
+        PersonalDataProcessingLogDetails first = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
+        assertEquals("1", first.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
+        assertNull(first.getIpAddress());
+        assertNull(first.getRecipient());
+        assertEquals(1, first.getIndividuals().size());
+        assertEquals("5", first.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().get(0).getType());
+        assertNotNull(first.getCreatedAt());
 
-            assertNotNull(pdpl.getCreatedBy());
-            assertEquals("USER01", pdpl.getCreatedBy().getIdentifier());
-            assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
+        PersonalDataProcessingLogDetails second = logs.get(1);
+        assertEquals("Update Draft Account - Defendant", second.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
+        assertEquals("1", second.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
+        assertEquals("192.168.1.100", second.getIpAddress());
+        assertNull(second.getRecipient());
+        assertEquals(1, second.getIndividuals().size());
+        assertEquals("5", second.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().get(0).getType());
+        assertNotNull(second.getCreatedAt());
 
-            OffsetDateTime createdAt = pdpl.getCreatedAt();
-            assertNotNull(createdAt);
-            assertTrue(!createdAt.isBefore(before.minusSeconds(5)) && !createdAt.isAfter(after.plusSeconds(5)));
-        });
+        PersonalDataProcessingLogDetails third = logs.get(2);
+        assertEquals("Update Draft Account - Minor Creditor", third.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, third.getCategory());
+        assertEquals("1", third.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, third.getCreatedBy().getType());
+        assertEquals("192.168.1.100", third.getIpAddress());
+        assertNull(third.getRecipient());
+        assertEquals(1, third.getIndividuals().size());
+        assertEquals("5", third.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, third.getIndividuals().get(0).getType());
+        assertNotNull(third.getCreatedAt());
+
     }
 
     @Test
@@ -1340,6 +1518,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
 
@@ -1357,6 +1536,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(pdpl);
 
         assertNotNull(pdpl.getCreatedBy());
+        assertEquals("0", pdpl.getCreatedBy().getIdentifier()); // adapt to your ParticipantIdentifier API
 
         assertEquals("Submit Draft Account - Minor Creditor", pdpl.getBusinessIdentifier());
 
@@ -1370,7 +1550,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         List<ParticipantIdentifier> individuals = pdpl.getIndividuals();
         assertNotNull(individuals);
         assertEquals(1, individuals.size());
-        assertEquals("201", individuals.getFirst().getIdentifier());
+        assertEquals("202", individuals.getFirst().getIdentifier());
     }
 
     //CEP 1 CEP1 - Invalid Request Payload (400)
@@ -1491,6 +1671,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending", "X")));
 
@@ -1508,20 +1689,28 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         // For defendant-only we expect a single PDPL call (Re-submit Draft Account - Defendant)
         verify(loggingService, timeout(2000).times(1)).personalDataAccessLogAsync(captor.capture());
 
-        PersonalDataProcessingLogDetails pdpl = captor.getValue();
-        assertNotNull(pdpl);
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        // Full contents assertions (deterministic fields)
-        assertEquals("Re-submit Draft Account - Defendant", pdpl.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
-        assertNull(pdpl.getRecipient());
-        assertNotNull(pdpl.getCreatedAt());
-        assertNotNull(pdpl.getCreatedBy());
-        assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
-        assertNotNull(pdpl.getIndividuals());
-        assertEquals(1, pdpl.getIndividuals().size());
-        assertEquals(Long.toString(draftIdAccount), pdpl.getIndividuals().getFirst().getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
+        assertEquals(1, logs.size());
+
+        PersonalDataProcessingLogDetails log = logs.get(0);
+
+        assertEquals("Re-submit Draft Account - Defendant", log.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, log.getCategory());
+
+        assertNotNull(log.getCreatedBy());
+        assertEquals("0", log.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, log.getCreatedBy().getType());
+
+        assertEquals("192.168.1.100", log.getIpAddress());
+
+        assertNull(log.getRecipient());
+
+        assertEquals(1, log.getIndividuals().size());
+        assertEquals("105", log.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, log.getIndividuals().get(0).getType());
+
+        assertNotNull(log.getCreatedAt());
     }
 
     @Test
@@ -1534,6 +1723,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending", "Y")));
 
@@ -1550,25 +1740,33 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         // Expect two calls: Parent or Guardian, then Defendant
         verify(loggingService, timeout(2000).times(2)).personalDataAccessLogAsync(captor.capture());
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        assertEquals(2, calls.size());
+        assertEquals(2, logs.size());
 
-        PersonalDataProcessingLogDetails first = calls.get(0);
-        assertNotNull(first);
-        assertEquals("Re-submit Draft Account - Parent or Guardian", first.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, first.getCategory());
-        assertNull(first.getRecipient());
-        assertNotNull(first.getCreatedAt());
-        assertEquals(Long.toString(draftIdAccount), first.getIndividuals().getFirst().getIdentifier());
+        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        assertEquals("Re-submit Draft Account - Parent or Guardian", l0.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l0.getCategory());
+        assertEquals("0", l0.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l0.getIpAddress());
+        assertNull(l0.getRecipient());
+        assertEquals(1, l0.getIndividuals().size());
+        assertEquals("104", l0.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+        assertNotNull(l0.getCreatedAt());
 
-        PersonalDataProcessingLogDetails second = calls.get(1);
-        assertNotNull(second);
-        assertEquals("Re-submit Draft Account - Defendant", second.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
-        assertNull(second.getRecipient());
-        assertNotNull(second.getCreatedAt());
-        assertEquals(Long.toString(draftIdAccount), second.getIndividuals().getFirst().getIdentifier());
+        PersonalDataProcessingLogDetails l1 = logs.get(1);
+        assertEquals("Re-submit Draft Account - Defendant", l1.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l1.getCategory());
+        assertEquals("0", l1.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l1.getIpAddress());
+        assertNull(l1.getRecipient());
+        assertEquals(1, l1.getIndividuals().size());
+        assertEquals("104", l1.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+        assertNotNull(l1.getCreatedAt());
     }
 
     @Test
@@ -1582,6 +1780,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
             .header("authorization", "Bearer some_value")
             .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending", "A")));
 
@@ -1593,34 +1792,54 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.business_unit_id").value(65));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
-
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
             ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
 
-        // Expect two calls (Defendant then Minor Creditor)
-        verify(loggingService, timeout(2000).times(2))
-            .personalDataAccessLogAsync(captor.capture());
+        verify(loggingService, times(4)).personalDataAccessLogAsync(captor.capture());
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
 
-        List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-        assertEquals(2, calls.size(), "expected two PDPL log calls");
+        assertEquals(4, logs.size());
 
-        // Defendant call
-        PersonalDataProcessingLogDetails defendantCall = calls.get(0);
-        assertNotNull(defendantCall);
-        assertEquals("Re-submit Draft Account - Defendant", defendantCall.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, defendantCall.getCategory());
-        assertNull(defendantCall.getRecipient());
-        assertNotNull(defendantCall.getCreatedAt());
-        assertEquals(Long.toString(draftIdAccount), defendantCall.getIndividuals().getFirst().getIdentifier());
+        PersonalDataProcessingLogDetails first = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
+        assertEquals("0", first.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
+        assertNull(first.getIpAddress());
+        assertEquals(1, first.getIndividuals().size());
+        assertEquals("8", first.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().get(0).getType());
 
-        // Minor Creditor call
-        PersonalDataProcessingLogDetails minorCall = calls.get(1);
-        assertNotNull(minorCall);
-        assertEquals("Re-submit Draft Account - Minor Creditor", minorCall.getBusinessIdentifier());
-        assertEquals(PersonalDataProcessingCategory.COLLECTION, minorCall.getCategory());
-        assertNull(minorCall.getRecipient());
-        assertNotNull(minorCall.getCreatedAt());
-        assertEquals(Long.toString(draftIdAccount), minorCall.getIndividuals().getFirst().getIdentifier());
+        PersonalDataProcessingLogDetails second = logs.get(1);
+        assertEquals("Get Draft Account - Minor Creditor", second.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, second.getCategory());
+        assertEquals("0", second.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
+        assertNull(second.getIpAddress());
+        assertEquals(1, second.getIndividuals().size());
+        assertEquals("8", second.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails third = logs.get(2);
+        assertEquals("Re-submit Draft Account - Defendant", third.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, third.getCategory());
+        assertEquals("0", third.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, third.getCreatedBy().getType());
+        assertEquals("192.168.1.100", third.getIpAddress());
+        assertEquals(1, third.getIndividuals().size());
+        assertEquals("8", third.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, third.getIndividuals().get(0).getType());
+
+        PersonalDataProcessingLogDetails fourth = logs.get(3);
+        assertEquals("Re-submit Draft Account - Minor Creditor", fourth.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, fourth.getCategory());
+        assertEquals("0", fourth.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, fourth.getCreatedBy().getType());
+        assertEquals("192.168.1.100", fourth.getIpAddress());
+        assertEquals(1, fourth.getIndividuals().size());
+        assertEquals("8", fourth.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, fourth.getIndividuals().get(0).getType());
+
     }
 
     @Test
@@ -1633,6 +1852,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
+            .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending", "B")));
 

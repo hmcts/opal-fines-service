@@ -1,19 +1,26 @@
 package uk.gov.hmcts.opal.service;
 
 
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
+import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
+
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
@@ -26,16 +33,11 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
-
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
-import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 @Service
 @Slf4j(topic = "opal.DraftAccountService")
@@ -62,6 +64,8 @@ public class DraftAccountService {
 
     private final DraftAccountPublishProxy accountPublishProxy;
 
+    private final DraftAccountPdplLoggingService loggingService;
+
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -69,6 +73,8 @@ public class DraftAccountService {
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
+
+            loggingService.pdplForDraftAccount(response, Action.GET, userState);
 
             if (userState.hasBusinessUnitUserWithAnyPermission(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
                 return toGetResponseDto(response);
@@ -117,6 +123,10 @@ public class DraftAccountService {
 
             log.debug(":getDraftAccounts: filtered summaries count: {}", filtered.size());
             filtered.forEach(draft -> log.debug(":getDraftAccounts: {}", draft.toString()));
+
+            for (DraftAccountEntity draftAccount : filtered) {
+                loggingService.pdplForDraftAccount(draftAccount, Action.GET, userState);
+            }
 
             return
                 DraftAccountsResponseDto.builder()
@@ -167,6 +177,8 @@ public class DraftAccountService {
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
             log.debug(":submitDraftAccount: created in DB: {}", entity);
 
+            loggingService.pdplForDraftAccount(entity, Action.SUBMIT, userState);
+
             return toGetResponseDto(entity);
 
         } else {
@@ -190,6 +202,9 @@ public class DraftAccountService {
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
             log.debug(":replaceDraftAccount: replaced with version: {}", replacedEntity.getVersion());
+
+            loggingService.pdplForDraftAccount(replacedEntity, Action.REPLACE, userState);
+
 
             return toGetResponseDto(replacedEntity);
         } else {
@@ -215,6 +230,8 @@ public class DraftAccountService {
             DraftAccountEntity updatedEntity = draftAccountTransactional
                 .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, updateVersion);
             verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
+
+            loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
 
             if (updatedEntity.getAccountStatus().isPublishingPending()) {
                 log.info(":updateDraftAccount: publishing: ");
