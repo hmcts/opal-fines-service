@@ -15,6 +15,8 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,7 @@ import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import java.lang.reflect.Field;
 import uk.gov.hmcts.opal.util.LogUtil;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -43,6 +46,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish.ERROR_MESSAGE_TEMPLATE;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(OutputCaptureExtension.class)
 class LegacyDraftAccountPublishTest {
 
     @Spy
@@ -116,10 +120,11 @@ class LegacyDraftAccountPublishTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void testPublishDefendantAccount_serverError() throws JsonProcessingException {
+    void testPublishDefendantAccount_serverError(CapturedOutput capturedOutput) throws JsonProcessingException {
 
         // Arrange
         String opId = "1234";
+        String sensitiveErrorMessage = "Something went wrong on the server.";
         MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class);
         logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opId);
 
@@ -138,7 +143,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
             .errorResponse(ErrorResponse.builder()
                 .errorCode("some code")
-                .errorMessage("Something went wrong on the server.")
+                .errorMessage(sensitiveErrorMessage)
                 .build())
             .build();
 
@@ -158,11 +163,15 @@ class LegacyDraftAccountPublishTest {
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
         // Assert
+        ObjectMapper mapper = new ObjectMapper();
+        String publishedAsJson = mapper.writeValueAsString(published);
+        assertThat(publishedAsJson).doesNotContain(sensitiveErrorMessage);
+        assertThat(capturedOutput.getOut()).contains(sensitiveErrorMessage);
+
         String expectedMessage = String.format(ERROR_MESSAGE_TEMPLATE, opId);
         assertEquals(published.getStatusMessage(), expectedMessage);
-        ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(published.getTimelineData());
-        String reasonText = root.get(0).path("reason_text").asText(); // Returns "JUnit Test"
+        String reasonText = root.get(0).path("reason_text").asText();
         assertEquals(reasonText, expectedMessage);
     }
 
