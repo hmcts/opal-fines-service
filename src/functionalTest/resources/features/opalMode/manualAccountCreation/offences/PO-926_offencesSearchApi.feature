@@ -1,6 +1,7 @@
 @Opal @PO-926
 Feature: PO-926 Offences Search API
 
+  @JIRA-KEY:POT-245
   Scenario: Offence Search API - Search by CJS code
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -16,6 +17,7 @@ Feature: PO-926 Offences Search API
       | cjs_code      | TH68002     |
       | offence_title | in dwelling |
 
+  @JIRA-KEY:POT-246
   Scenario: Offence Search API - Search Title
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -29,6 +31,7 @@ Feature: PO-926 Offences Search API
     And the offences in the response contain the following data
       | offence_title | in dwelling other |
 
+  @JIRA-KEY:POT-247
   Scenario: Offence Search API - Search by Act and Section
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -42,6 +45,7 @@ Feature: PO-926 Offences Search API
     And the offences in the response contain the following data
       | offence_oas | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
+  @JIRA-KEY:POT-248
   Scenario: Offence Search API - Search by all fields
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -57,6 +61,7 @@ Feature: PO-926 Offences Search API
       | offence_title | personal injury and endangering safe operation                                   |
       | offence_oas   | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
+  @JIRA-KEY:POT-249
   Scenario: Offence Search API - Max results
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -79,6 +84,7 @@ Feature: PO-926 Offences Search API
     Then The offence search response returns 200
     And there are 20 offences in the response
 
+  @JIRA-KEY:POT-250
   Scenario: Offence Search API - Search by Active Date
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -91,6 +97,7 @@ Feature: PO-926 Offences Search API
     Then The offence search response returns 200
     Then the offences in the response are before "1920-03-12T00:00:00Z" only
 
+  @JIRA-KEY:POT-251
   Scenario: Offence Search API - Inactive Offences - Active Date Null - Inactive offences returned
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -102,6 +109,7 @@ Feature: PO-926 Offences Search API
     Then The offence search response returns 200
     And there are 3 offences in the response
 
+  @JIRA-KEY:POT-252
   Scenario: Offence Search API - Inactive Offences - Active Date populated - Inactive offences not returned
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -113,6 +121,7 @@ Feature: PO-926 Offences Search API
     Then The offence search response returns 200
     And there are 0 offences in the response
 
+  @JIRA-KEY:POT-253
   Scenario: Offence Search API - No Results
       ### need to test no results are returned when no offences match the search criteria and the status is 200
     Given I am testing as the "opal-test@hmcts.net" user

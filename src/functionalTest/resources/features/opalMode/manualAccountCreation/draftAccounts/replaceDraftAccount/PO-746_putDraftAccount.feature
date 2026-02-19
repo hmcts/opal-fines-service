@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-746 put/update draft account
 
-  @PO-746 @cleanUpData
+  @PO-746 @cleanUpData @JIRA-KEY:POT-226
   Scenario: Update draft account - update account details
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -55,7 +55,7 @@ Feature: PO-746 put/update draft account
 
     Then I delete the created draft accounts
 
-  @PO-947 @cleanUpData
+  @PO-947 @cleanUpData @JIRA-KEY:POT-227
   Scenario: Update draft account - update account details ignores submitted by name
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -108,7 +108,7 @@ Feature: PO-746 put/update draft account
 
     Then I delete the created draft accounts
 
-  @PO-2359 @cleanUpData
+  @PO-2359 @cleanUpData @JIRA-KEY:POT-228
   Scenario: Update draft account - Update (Defendant) logs PDPO
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -141,7 +141,7 @@ Feature: PO-746 put/update draft account
 
 
 
-  @PO-2359 @cleanUpData
+  @PO-2359 @cleanUpData @JIRA-KEY:POT-229
   Scenario: Update draft account - Parent + MinorCreditor yields two PDPO logs
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details

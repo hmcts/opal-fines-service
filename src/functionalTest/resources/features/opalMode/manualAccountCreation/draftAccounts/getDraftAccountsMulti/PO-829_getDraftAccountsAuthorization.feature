@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-829 Authorization for Get Draft Accounts
 
-  @PO-829 @cleanUpData
+  @PO-829 @cleanUpData @JIRA-KEY:POT-214
   Scenario: Get Draft Accounts - No Permission
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -25,7 +25,7 @@ Feature: PO-829 Authorization for Get Draft Accounts
     Then I delete the created draft accounts
 
 
-  @PO-829 @cleanUpData
+  @PO-829 @cleanUpData @JIRA-KEY:POT-215
   Scenario: Get Draft Accounts - account created in BU requesting user doesn't have permission to
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details

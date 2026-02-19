@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-830 - Authorisation for put/update draft account
 
-  @PO-830 @cleanUpData
+  @PO-830 @cleanUpData @JIRA-KEY:POT-236
   Scenario: Update draft account - no auth
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -30,7 +30,7 @@ Feature: PO-830 - Authorisation for put/update draft account
 
     Then I am testing as the "opal-test@hmcts.net" user
 
-  @PO-830 @cleanUpData
+  @PO-830 @cleanUpData @JIRA-KEY:POT-237
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -70,7 +70,7 @@ Feature: PO-830 - Authorisation for put/update draft account
 
     Then I delete the created draft accounts
 
-  @PO-830 @cleanUpData
+  @PO-830 @cleanUpData @JIRA-KEY:POT-238
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -110,7 +110,7 @@ Feature: PO-830 - Authorisation for put/update draft account
 
     Then I delete the created draft accounts
 
-  @PO-830 @cleanUpData
+  @PO-830 @cleanUpData @JIRA-KEY:POT-239
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@hmcts.net" user
     When I create a draft account with the following details
@@ -149,7 +149,7 @@ Feature: PO-830 - Authorisation for put/update draft account
 
     Then I delete the created draft accounts
 
-  @PO-830 @cleanUpData
+  @PO-830 @cleanUpData @JIRA-KEY:POT-240
   Scenario: Update draft account - user with permissions in same business unit
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -187,7 +187,7 @@ Feature: PO-830 - Authorisation for put/update draft account
 
     Then I delete the created draft accounts
 
-    @PO-830 @cleanUpData
+    @PO-830 @cleanUpData @JIRA-KEY:POT-241
     Scenario: Update draft account - user with permissions in same business unit - updating business unit
       Given I am testing as the "opal-test@hmcts.net" user
       When I create a draft account with the following details
@@ -226,7 +226,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       Then I delete the created draft accounts
 
 
-  @PO-2359 @cleanUpData
+  @PO-2359 @cleanUpData @JIRA-KEY:POT-242
   Scenario: Update draft account - unauthorized user produces 401 and no PDPO logs
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details

@@ -1,6 +1,6 @@
 Feature: Major Creditors Api returns Business unit level Data
 
-  @Opal @PO-421
+  @Opal @PO-421 @JIRA-KEY:POT-164
   Scenario: Major Creditors Api returns Business unit level Data
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the major creditors ref data api filter by major creditor id 1300000000075
@@ -11,7 +11,7 @@ Feature: Major Creditors Api returns Business unit level Data
       | business_unit_id    | 130                         |
 
 
-  @Opal @PO-421
+  @Opal @PO-421 @JIRA-KEY:POT-165
   Scenario: Major Creditors Api returns Business unit level Data - negative test
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the major creditors ref data api filter by major creditor id 1300000000076

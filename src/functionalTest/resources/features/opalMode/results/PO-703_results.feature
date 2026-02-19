@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-703 results happy path
 
-  @PO-703
+  @PO-703 @JIRA-KEY:POT-259
   Scenario: get results - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to get the results ""
@@ -35,7 +35,7 @@ Feature: PO-703 results happy path
       | imposition_creditor         | Any          |
       | imposition_allocation_order | 1            |
 
-  @PO-703
+  @PO-703 @JIRA-KEY:POT-260
   Scenario: get results - happy path filtered by result id
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to get the results "FO,ABDC"

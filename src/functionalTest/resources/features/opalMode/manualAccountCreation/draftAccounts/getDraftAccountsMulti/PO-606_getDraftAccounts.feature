@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-606 get draft accounts
 
-  @PO-606 @cleanUpData
+  @PO-606 @cleanUpData @JIRA-KEY:POT-207
   Scenario: Get draft accounts - filtering on business unit
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -66,7 +66,7 @@ Feature: PO-606 get draft accounts
 
     Then I delete the created draft accounts
 
-  @PO-606 @cleanUpData
+  @PO-606 @cleanUpData @JIRA-KEY:POT-208
   Scenario: Get draft accounts - filtering on status
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -125,7 +125,7 @@ Feature: PO-606 get draft accounts
 
     Then I delete the created draft accounts
 
-  @PO-606 @cleanUpData
+  @PO-606 @cleanUpData @JIRA-KEY:POT-209
   Scenario: Get draft accounts - filtering on submitted_by
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -174,7 +174,7 @@ Feature: PO-606 get draft accounts
 
     Then I delete the created draft accounts
 
-  @PO-606 @cleanUpData
+  @PO-606 @cleanUpData @JIRA-KEY:POT-210
   Scenario: Get draft accounts - filtering on multiple fields
     Given I am testing as the "opal-test@HMCTS.net" user
     When I create a draft account with the following details

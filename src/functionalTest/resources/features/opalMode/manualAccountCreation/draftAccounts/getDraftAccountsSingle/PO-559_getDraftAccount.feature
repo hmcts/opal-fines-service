@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-559 get draft account
 
-  @PO-559 @cleanUpData
+  @PO-559 @cleanUpData @JIRA-KEY:POT-216
   Scenario: Get draft account - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details

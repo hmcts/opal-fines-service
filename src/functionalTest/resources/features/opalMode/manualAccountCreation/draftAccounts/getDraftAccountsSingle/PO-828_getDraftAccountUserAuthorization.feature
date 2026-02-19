@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-828 Authorization for Get Draft Account
 
-  @PO-828 @cleanUpData
+  @PO-828 @cleanUpData @JIRA-KEY:POT-222
   Scenario: Get Draft Account - No Permission
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -32,6 +32,7 @@ Feature: PO-828 Authorization for Get Draft Account
 
   @PO-828 @cleanUpData
     ### This test is currently ignored as the permissions are not quite right for this test to pass.
+  @JIRA-KEY:POT-223
   Scenario: Get Draft Account - No Permission in same BU
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -58,7 +59,7 @@ Feature: PO-828 Authorization for Get Draft Account
       | account_snapshot.business_unit_name |  |
     Then The draft account response returns 403
 
-  @PO-828 @cleanUpData
+  @PO-828 @cleanUpData @JIRA-KEY:POT-224
   Scenario: Get Draft Account - Permission in different BU
     Given I am testing as the "opal-test@HMCTS.NET" user
     When I create a draft account with the following details

@@ -1,6 +1,6 @@
 @Opal
   Feature: PO-936 post draft account submitted by name
-    @PO-936 @cleanUpData
+    @PO-936 @cleanUpData @JIRA-KEY:POT-204
     Scenario: Post draft account - Submitted By Name populates snapshot
       Given I am testing as the "opal-test@hmcts.net" user
       When I create a draft account with the following details

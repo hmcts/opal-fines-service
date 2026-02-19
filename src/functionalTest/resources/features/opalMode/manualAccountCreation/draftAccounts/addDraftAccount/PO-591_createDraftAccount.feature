@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-591 create draft account / @PO-2357 validate logging
 
-  @PO-591 @PO-2357 @cleanUpData
+  @PO-591 @PO-2357 @cleanUpData @JIRA-KEY:POT-191
   Scenario: Create draft account - Adult
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -35,7 +35,7 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
 
     Then I delete the created draft accounts
 
-  @PO-2357 @cleanUpData
+  @PO-2357 @cleanUpData @JIRA-KEY:POT-192
   Scenario: Create draft account - parent or guardian to pay
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -70,7 +70,7 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
     Then I delete the created draft accounts
 
 
-  @PO-2357 @cleanUpData
+  @PO-2357 @cleanUpData @JIRA-KEY:POT-193
   Scenario: Create draft account - company with minor creditor
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -104,7 +104,7 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
 
     Then I delete the created draft accounts
 
-  @PO-2357 @cleanUpData
+  @PO-2357 @cleanUpData @JIRA-KEY:POT-194
   Scenario: Attempt to create a draft with an invalid token - no logs created
     Given I am testing as the "opal-test@hmcts.net" user
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"

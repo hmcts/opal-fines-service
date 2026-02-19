@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
-  @PO-745 @PO-991 @PO-2358 @cleanUpData
+  @PO-745 @PO-991 @PO-2358 @cleanUpData @JIRA-KEY:POT-170
   Scenario: Patch draft account - Pending - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -28,7 +28,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
     Then I delete the created draft accounts
 
 
-  @PO-745 @cleanUpData
+  @PO-745 @cleanUpData @JIRA-KEY:POT-171
   Scenario: Patch draft account - Rejected - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -67,7 +67,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
     Then I delete the created draft accounts
 
-  @PO-745 @cleanUpData
+  @PO-745 @cleanUpData @JIRA-KEY:POT-172
   Scenario: Patch draft account - Deleted - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -106,7 +106,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
     Then I delete the created draft accounts
 
 
-  @PO-2358 @cleanUpData
+  @PO-2358 @cleanUpData @JIRA-KEY:POT-173
   Scenario: Patch draft account - Parent or Guardian - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -131,7 +131,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
     Then I delete the created draft accounts
 
-  @PO-2358 @cleanUpData
+  @PO-2358 @cleanUpData @JIRA-KEY:POT-174
   Scenario: Patch draft account - Minor Creditor - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -156,7 +156,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
     Then I delete the created draft accounts
 
-  @PO-2358 @cleanUpData
+  @PO-2358 @cleanUpData @JIRA-KEY:POT-175
   Scenario: Patch draft account - Defendant + Minor Creditor creates two logs
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -181,7 +181,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
     Then I delete the created draft accounts
 
-  @PO-2358 @cleanUpData
+  @PO-2358 @cleanUpData @JIRA-KEY:POT-176
   Scenario: Attempt to patch with invalid token - no logs created
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
@@ -204,7 +204,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
 
   @PO-2358
-  @cleanUpData
+  @cleanUpData @JIRA-KEY:POT-177
   Scenario: Patch unknown draft account id returns 406 and does not create PDPO log
     Given I am testing as the "opal-test@hmcts.net" user
 

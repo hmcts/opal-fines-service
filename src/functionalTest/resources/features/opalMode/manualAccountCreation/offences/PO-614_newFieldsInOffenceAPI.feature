@@ -1,6 +1,6 @@
 Feature: PO-614 Introduce the new OFFENCE table columns into the OFFENCES entity
 
-  @Opal @PO-614
+  @Opal @PO-614 @JIRA-KEY:POT-244
   Scenario: Checking additional columns are presented in the Offence API
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence ref data api filtering by cjs code "AA06001"
