@@ -9,7 +9,7 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fines                                       |
       | account_status    | Submitted                                   |
-      | submitted_by      | L106C2                                       |
+      | submitted_by      | L106C2                                      |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
 
@@ -28,6 +28,7 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.submitted_by_name  | opal-test@HMCTS.NET  |
       | account_snapshot.business_unit_name | West London          |
+      | account.originator_type             | TFO                  |
 
     Then the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                         | expected_count |
