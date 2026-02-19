@@ -771,7 +771,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     private AddressDetails toAddress(
-        uk.gov.hmcts.opal.dto.legacy.common.AddressDetails src) {
+        AddressDetailsLegacy src) {
         if (src == null) {
             return null;
         }

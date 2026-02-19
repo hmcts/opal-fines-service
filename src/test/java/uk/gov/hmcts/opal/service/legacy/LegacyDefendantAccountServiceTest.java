@@ -1554,8 +1554,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getAtAGlance_mapsAddress_language_payment_enforcement_comments() {
         // --- arrange legacy inputs ---
-        uk.gov.hmcts.opal.dto.legacy.common.AddressDetails addr =
-            uk.gov.hmcts.opal.dto.legacy.common.AddressDetails.builder()
+        AddressDetailsLegacy addr =
+            AddressDetailsLegacy.builder()
                 .addressLine1("1 Street")
                 .addressLine2("Area")
                 .addressLine3(null)

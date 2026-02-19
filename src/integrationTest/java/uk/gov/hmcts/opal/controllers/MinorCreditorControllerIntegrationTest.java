@@ -823,4 +823,83 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         resultActions.andExpect(status().isInternalServerError());
     }
+
+    void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testGetMinorCreditorAtAGlance_Success: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+            // party
+            .andExpect(jsonPath("$.party.party_id").value("JEDI-1977"))
+            .andExpect(jsonPath("$.party.organisation_flag").value(false))
+
+            // individual_details
+            .andExpect(jsonPath("$.party.individual_details.title").value("Mr"))
+            .andExpect(jsonPath("$.party.individual_details.forenames").value("Luke"))
+            .andExpect(jsonPath("$.party.individual_details.surname").value("Skywalker"))
+            .andExpect(jsonPath("$.party.individual_details.date_of_birth").value("1977-05-27"))
+            .andExpect(jsonPath("$.party.individual_details.age").value("23"))
+            .andExpect(jsonPath("$.party.individual_details.national_insurance_number").value("LS1977SW"))
+
+            // individual_aliases[0]
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].alias_id").value("AL-001"))
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].sequence_number").value(1))
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].surname").value("Skywalker"))
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].forenames").value("Red Five"))
+
+            // individual_aliases[1]
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].alias_id").value("AL-002"))
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].sequence_number").value(2))
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].surname").value("Skywalker"))
+            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].forenames").value("Jedi Knight"))
+
+            // address
+            .andExpect(jsonPath("$.address.address_line_1").value("Lars Homestead"))
+            .andExpect(jsonPath("$.address.address_line_2").value("Dune Sea"))
+            .andExpect(jsonPath("$.address.address_line_3").value("Tatooine"))
+            .andExpect(jsonPath("$.address.address_line_4").value("Outer Rim Territories"))
+            .andExpect(jsonPath("$.address.address_line_5").value("Desert Planet"))
+            .andExpect(jsonPath("$.address.postcode").value("TAT-1977"))
+
+            // creditor_account_id
+            .andExpect(jsonPath("$.creditor_account_id").value(900000000000456L))
+
+            // defendant
+            .andExpect(jsonPath("$.defendant.account_number").value("12345678"))
+            .andExpect(jsonPath("$.defendant.account_id").value(456789123))
+
+            // payment
+            .andExpect(jsonPath("$.payment.bacs").value(true))
+            .andExpect(jsonPath("$.payment.is_bacs").value(true))
+            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+    }
+
+    void legacyGetMinorCreditorAtAGlanceImpl_500Error(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "500")
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorGcreditorAtAGlance: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(
+            status().is5xxServerError()).andExpect(
+            content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+
 }
