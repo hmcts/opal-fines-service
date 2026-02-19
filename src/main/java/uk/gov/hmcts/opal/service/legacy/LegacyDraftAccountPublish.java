@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.ErrorResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -50,8 +49,6 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         try {
             Response<LegacyCreateDefendantAccountResponse> response = future.get();
 
-            String errorMessage = String.format(ERROR_MESSAGE_TEMPLATE, LogUtil.getOrCreateOpalOperationId());
-
             log.error(":publishDefendantAccount: 1: {}", response.isException());
             log.error(":publishDefendantAccount: 2: {}", response.code.isError());
             log.error(":publishDefendantAccount: 3: {}", response.hasErrorResponse());
@@ -63,6 +60,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
                     log.error(":publishDefendantAccount: Legacy Gateway: body: \n{}", response.body);
                     LegacyCreateDefendantAccountResponse responseEntity = response.responseEntity;
                     log.error(":publishDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+
+                    String errorMessage = String.format(ERROR_MESSAGE_TEMPLATE, LogUtil.getOrCreateOpalOperationId());
 
                     TimelineData timelineData = new TimelineData(publishEntity.getTimelineData());
                     timelineData.insertEntry(
