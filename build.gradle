@@ -83,6 +83,8 @@ configurations {
 
   smokeTestImplementation.extendsFrom testImplementation
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
+
+  zephyrCucumberReportProcessor
 }
 
 configurations.configureEach {
@@ -186,6 +188,7 @@ tasks.register('functionalOpal', Test) {
   include '**/OpalTestRunner.class'
 
 }
+
 tasks.register('functionalLegacy', Test) {
   description = "Runs functional tests against Legacy mode"
   group = "Verification"
@@ -228,8 +231,9 @@ tasks.register('functional') {
   tasks.aggregate.mustRunAfter functionalLegacy
   tasks.copyFunctionalReport.mustRunAfter aggregate
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
-
 }
+
+
 tasks.register('smokeOpal', Test) {
   description = "Runs Smoke Tests"
   group = "Verification"
@@ -363,6 +367,7 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.1'
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
@@ -520,6 +525,118 @@ tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
     url = "jdbc:postgresql://${dburl}"
   }
   println "Flyway jbdc property 'url' (derived from System property 'FLYWAY_URL'?) is: ${url}"
+}
+
+tasks.register('createJiraTicketsFromCucumberReport', JavaExec) {
+    group = "Zephyr Reporting"
+
+    description = "Processes cucumber.json after functional runs"
+    def cucumberJson = file("target/cucumber.json")
+    def functionalSrcDir = file("src/functionalTest")
+
+    inputs.file(cucumberJson)
+
+    classpath = configurations.zephyrCucumberReportProcessor
+    mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+    args = [
+            //Main Config
+            "action-type=CREATE_TICKETS",
+            "process-type=CUCUMBER_JSON_REPORT",
+            "base-path=${functionalSrcDir.absolutePath}",
+            "report-path=${cucumberJson.absolutePath}",
+            "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
+            //Jira Config
+            "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
+            "jira-project-id=33305",
+            "jira-default-user=Ben.Edwards",
+            "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
+            "jira-epic-link-custom-field-id=customfield_10008"
+    ]
+}
+
+tasks.register('updateJiraTicketsFromCucumberReport', JavaExec) {
+  group = "Zephyr Reporting"
+
+  description = "Processes cucumber.json after functional runs"
+  def cucumberJson = file("target/cucumber.json")
+  def functionalSrcDir = file("src/functionalTest")
+
+  inputs.file(cucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = [
+          //Main Config
+          "action-type=UPDATE_TICKETS",
+          "process-type=CUCUMBER_JSON_REPORT",
+          "base-path=${functionalSrcDir.absolutePath}",
+          "report-path=${cucumberJson.absolutePath}",
+          "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
+          //Jira Config
+          "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
+          "jira-project-id=33305",
+          "jira-default-user=Ben.Edwards",
+          "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
+          "jira-epic-link-custom-field-id=customfield_10008"
+  ]
+}
+
+tasks.register('createJiraExecutionFromCucumberReport', JavaExec) {
+    group = "Zephyr Reporting"
+
+    description = "Processes cucumber.json after functional runs"
+    def cucumberJson = file("target/cucumber.json")
+    def functionalSrcDir = file("src/functionalTest")
+
+    inputs.file(cucumberJson)
+
+    classpath = configurations.zephyrCucumberReportProcessor
+    mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+    args = [
+            //Main Config
+            "action-type=CREATE_TICKETS",
+            "process-type=CUCUMBER_JSON_REPORT",
+            "base-path=${functionalSrcDir.absolutePath}",
+            "report-path=${cucumberJson.absolutePath}",
+            "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
+            //Jira Config
+            "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
+            "jira-project-id=33305",
+            "jira-default-user=Ben.Edwards",
+            "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
+            "jira-epic-link-custom-field-id=customfield_10008"
+    ]
+}
+
+tasks.register('functionalOpalWithZephyrExecution') {
+    group = "Zephyr Reporting"
+    description = "Runs functionalOpal then creates the Zephyr execution from the cucumber report"
+
+    dependsOn tasks.named('functionalOpal')
+    finalizedBy tasks.named('createJiraExecutionFromCucumberReport')
+}
+
+tasks.register('functionalLegacyWithZephyrExecution') {
+    group = "Zephyr Reporting"
+    description = "Runs functionalOpal then creates the Zephyr execution from the cucumber report"
+
+    dependsOn tasks.named('functionalLegacy')
+    finalizedBy tasks.named('createJiraExecutionFromCucumberReport')
+}
+
+tasks.register('functionalWithZephyrExecution') {
+  group = "Zephyr Reporting"
+  description = "Runs functional tests and creates Zephyr execution from cucumber report"
+  gradle.startParameter.continueOnFailure = true
+  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
+  tasks.functionalOpal.mustRunAfter clearReports
+  createJiraExecutionFromCucumberReport.mustRunAfter functionalOpal
+  tasks.functionalLegacy.mustRunAfter createJiraExecutionFromCucumberReport
+  createJiraExecutionFromCucumberReport.mustRunAfter functionalLegacy
+  tasks.mergeFunctionalResults.mustRunAfter createJiraExecutionFromCucumberReport
+  tasks.aggregate.mustRunAfter functionalLegacy
+  tasks.copyFunctionalReport.mustRunAfter aggregate
+  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 }
 
 tasks.register('runAllStyleChecks') {
