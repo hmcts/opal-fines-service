@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
 @RestController
@@ -24,7 +24,7 @@ public class DefendantAccountApiController {
         value = "/defendant-accounts/{id}/enforcement-status",
         produces = {MediaType.APPLICATION_JSON_VALUE, "application/json+problem"}
     )
-    public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(
+    public ResponseEntity<GetEnforcementStatusResponseDefendantAccount> getEnforcementStatus(
         @PathVariable("id") Long id,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);

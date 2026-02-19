@@ -171,7 +171,7 @@ class DefendantAccountEnforcementServiceTest {
     @Test
     void testGetEnforcementStatus() {
         // Arrange
-        EnforcementStatus status = EnforcementStatus.builder()
+        EnforcementStatus status = EnforcementStatus.newBuilder()
             .employerFlag(true)
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))

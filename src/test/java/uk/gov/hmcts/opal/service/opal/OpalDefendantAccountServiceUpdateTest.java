@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -42,6 +43,9 @@ class OpalDefendantAccountServiceUpdateTest {
 
     @Mock
     private CourtRepository courtRepo;
+
+    @Mock
+    private EntityManager em;
 
 
     @Mock
@@ -88,6 +92,7 @@ class OpalDefendantAccountServiceUpdateTest {
 
         // ---------- Assert ----------
         verify(defendantAccountRepository).save(entity);
+        verify(em).flush();
         assertEquals(id, resp.getId());
 
         assertNull(resp.getCommentsAndNotes());
@@ -128,6 +133,7 @@ class OpalDefendantAccountServiceUpdateTest {
 
         var resp = service.updateDefendantAccount(id, "10", req, "1", "UNIT_TEST");
 
+        verify(em).flush();
         assertNotNull(resp.getCollectionOrder());
         assertTrue(entity.getCollectionOrder());
         assertNotNull(entity.getCollectionOrderEffectiveDate());
@@ -170,6 +176,7 @@ class OpalDefendantAccountServiceUpdateTest {
         var resp = service.updateDefendantAccount(id, "10", req, "1", "UNIT_TEST");
 
         // ---------- Assert ----------
+        verify(em).flush();
         assertEquals(id, resp.getId());
         assertNotNull(resp.getEnforcementCourt());
         assertEquals(100L, resp.getEnforcementCourt().getEnforcingCourtId());
@@ -337,6 +344,7 @@ class OpalDefendantAccountServiceUpdateTest {
 
         service.updateDefendantAccount(77L, "78", req, "0", "11111111A");
 
+        verify(em).flush();
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
             eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
@@ -358,6 +366,7 @@ class OpalDefendantAccountServiceUpdateTest {
             .build();
 
         var resp = service.updateDefendantAccount(77L, "78", req, "0", "tester");
+        verify(em).flush();
         assertNotNull(resp.getEnforcementOverride());
     }
 
@@ -380,6 +389,7 @@ class OpalDefendantAccountServiceUpdateTest {
 
         var resp = service.updateDefendantAccount(id, "78", req, "1", "tester");
 
+        verify(em).flush();
         assertNotNull(resp.getEnforcementOverride());
         assertNull(resp.getEnforcementOverride().getEnforcementOverrideResultId());
         assertNull(resp.getEnforcementOverride().getEnforcementOverrideEnforcerId());
