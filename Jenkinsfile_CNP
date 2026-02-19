@@ -180,6 +180,8 @@ withPipeline(type, product, component) {
 
     stage('Functional Tests - Zephyr') {
       try {
+        env.TEST_URL = 'https://opal-fines-service.staging.platform.hmcts.net'
+        env.OPAL_LOGGING_SERVICE_API_URL = 'https://opal-logging-service.staging.platform.hmcts.net'
         steps.echo "Functional tests started"
         builder.gradle('Functional')
 
