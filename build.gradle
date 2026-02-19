@@ -22,8 +22,7 @@ plugins {
 ext {
     log4JVersion = "2.25.3"
     serenityVersion = "4.3.4"
-    cucumberVersion = "7.23.0"
-    // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
+    cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
     springVersion = "3.5.10"
 }
 
@@ -223,18 +222,6 @@ tasks.register('generateTestSummary', JavaExec) {
     mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
 }
 
-tasks.register('functional') {
-    description = "Runs functional tests"
-    group = "Verification"
-    gradle.startParameter.continueOnFailure = true
-    dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
-    tasks.functionalOpal.mustRunAfter clearReports
-    tasks.functionalLegacy.mustRunAfter functionalOpal
-    tasks.mergeFunctionalResults.mustRunAfter functionalLegacy
-    tasks.aggregate.mustRunAfter functionalLegacy
-    tasks.copyFunctionalReport.mustRunAfter aggregate
-    tasks.generateTestSummary.mustRunAfter copyFunctionalReport
-}
 
 
 tasks.register('smokeOpal', Test) {
@@ -567,9 +554,9 @@ def zephyrArgs = { String actionType, String basePath, String reportPath ->
     ]
 }
 
-tasks.register('functionalWithZephyrReporting') {
+tasks.register('functional') {
+    group = "Zephyr Reporting"
     description = "Runs functional tests"
-    group = "Verification"
     gradle.startParameter.continueOnFailure = true
 
     dependsOn('clearReports',
@@ -684,17 +671,4 @@ tasks.register('functionalLegacyWithZephyrExecution') {
 
     tasks.copyLegacyCucumberJson.mustRunAfter functionalLegacy
     tasks.createJiraExecutionFromLegacyCucumberReport.mustRunAfter copyLegacyCucumberJson
-}
-
-tasks.register('functionalWithZephyrExecution') {
-    description = "Runs functional tests"
-    group = "Verification"
-    gradle.startParameter.continueOnFailure = true
-    dependsOn('clearReports', 'functionalOpalWithZephyrExecution', 'functionalLegacyWithZephyrExecution', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
-    tasks.functionalOpalWithZephyrExecution.mustRunAfter clearReports
-    tasks.functionalLegacyWithZephyrExecution.mustRunAfter functionalOpalWithZephyrExecution
-    tasks.mergeFunctionalResults.mustRunAfter functionalLegacyWithZephyrExecution
-    tasks.aggregate.mustRunAfter functionalLegacyWithZephyrExecution
-    tasks.copyFunctionalReport.mustRunAfter aggregate
-    tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 }
