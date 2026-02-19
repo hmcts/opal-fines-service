@@ -2,8 +2,11 @@ package uk.gov.hmcts.opal.steps;
 
 
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import net.serenitybdd.rest.SerenityRest;
 import org.apache.http.HttpStatus;
 import static org.hamcrest.Matchers.equalTo;
 import org.json.JSONArray;
@@ -18,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -40,7 +45,7 @@ public class RefDataStepDef extends BaseStepDef {
     @When("I make a request to the business unit ref data api filtering by business unit type {string}")
     public void getRequestToBusinessUnitRefData(String filter) {
 
-        methods.getRequest(BUSINESS_UNIT_REF_DATA_URI  + "?q=" + filter);
+        methods.getRequest(BUSINESS_UNIT_REF_DATA_URI + "?q=" + filter);
 
     }
 
@@ -51,7 +56,7 @@ public class RefDataStepDef extends BaseStepDef {
 
     @When("I make a request to the offence ref data api filtering by cjs code {string}")
     public void getRequestToOffencesRefDataCjsCode(String cjsCode) {
-        methods.getRequest(OFFENCES_REF_DATA_URI  + "?q=" + cjsCode);
+        methods.getRequest(OFFENCES_REF_DATA_URI + "?q=" + cjsCode);
     }
 
     @When("I make a request to the offence ref data api filtering with the offence title {string}")
@@ -61,7 +66,7 @@ public class RefDataStepDef extends BaseStepDef {
 
     @When("I make a request to the major creditors ref data api filter by major creditor id {long}")
     public void getRequestToMajorCreditorsBy(long majorCreditorId) {
-        methods.getRequest(MAJOR_CREDITORS_URI  + "/" + majorCreditorId);
+        methods.getRequest(MAJOR_CREDITORS_URI + "/" + majorCreditorId);
     }
 
     @When("I make a request to the LJA ref data api with")
@@ -81,7 +86,7 @@ public class RefDataStepDef extends BaseStepDef {
 
     @When("I make a request to the court ref data api with a filter of {string} and a business unit of {int}")
     public void getRequestToCourtsRefDataWithFilterAndBU(String filter, int businessUnitId) {
-        methods.getRequest(COURTS_REF_DATA_URI + "?q="  + filter + "?business_unit=" + businessUnitId);
+        methods.getRequest(COURTS_REF_DATA_URI + "?q=" + filter + "?business_unit=" + businessUnitId);
     }
 
     @When("I make a request to the court ref data api with a business unit of {int}")
@@ -138,10 +143,14 @@ public class RefDataStepDef extends BaseStepDef {
         Map<String, String> expected = data.asMap(String.class, String.class);
         then().assertThat().statusCode(200);
 
-        assertEquals(expected.get("majorCreditorId"),
-                     then().extract().jsonPath().getString("major_creditor_id"));
-        assertEquals(expected.get("majorCreditorCode"),
-                     then().extract().jsonPath().getString("major_creditor_code"));
+        assertEquals(
+            expected.get("majorCreditorId"),
+            then().extract().jsonPath().getString("major_creditor_id")
+        );
+        assertEquals(
+            expected.get("majorCreditorCode"),
+            then().extract().jsonPath().getString("major_creditor_code")
+        );
         assertEquals(expected.get("name"), then().extract().jsonPath().getString("name"));
         assertEquals(
             expected.get("business_unit_d"),
@@ -154,10 +163,14 @@ public class RefDataStepDef extends BaseStepDef {
         Map<String, String> expected = data.asMap(String.class, String.class);
         then().assertThat().statusCode(200);
 
-        assertNotEquals(expected.get("major_creditor_id"),
-                        then().extract().jsonPath().getString("major_creditor_id"));
-        assertNotEquals(expected.get("major_creditor_code"),
-                        then().extract().jsonPath().getString("major_creditor_code"));
+        assertNotEquals(
+            expected.get("major_creditor_id"),
+            then().extract().jsonPath().getString("major_creditor_id")
+        );
+        assertNotEquals(
+            expected.get("major_creditor_code"),
+            then().extract().jsonPath().getString("major_creditor_code")
+        );
         assertNotEquals(expected.get("name"), then().extract().jsonPath().getString("name"));
         assertNotEquals(
             expected.get("business_unit_id"),
@@ -321,4 +334,45 @@ public class RefDataStepDef extends BaseStepDef {
             Assert.assertEquals("Values are not equal : ", expectedData.get(key), apiResponseValue);
         }
     }
+
+    @When("I make a request to the LJA ref data api with lja_type {string}")
+    public void getRequestToLjaRefDataWithLjaType(String ljaTypeOrCsv) {
+        methods.getRequest(LJA_REF_DATA_URI + "?lja_type=" + ljaTypeOrCsv);
+    }
+
+    @Then("all returned LJAs have lja_type {string}")
+    public void allReturnedLjasHaveLjaType(String expectedType) {
+        List<String> types = then().extract().jsonPath().getList("refData.lja_type");
+
+        org.hamcrest.MatcherAssert.assertThat(
+            "Expected at least one result", types,
+            org.hamcrest.Matchers.not(org.hamcrest.Matchers.empty())
+        );
+        org.hamcrest.MatcherAssert.assertThat(
+            types,
+            org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.equalTo(expectedType))
+        );
+    }
+
+    @Then("all returned LJAs have lja_type in {string}")
+    public void allReturnedLjasHaveTypeIn(String allowedTypesCsv) {
+        List<String> allowed = Arrays.stream(allowedTypesCsv.split(","))
+            .map(String::trim)
+            .toList();
+
+        List<String> types = then().extract().jsonPath().getList("refData.lja_type");
+
+        assertThat("Expected at least one result", types, not(empty()));
+
+        boolean allAllowed = types.stream().allMatch(allowed::contains);
+        assertThat("Found lja_type not in allowed set. Allowed=" + allowed + ", Actual=" + types,
+                   allAllowed, is(true));
+    }
+
 }
+
+
+
+
+
+
