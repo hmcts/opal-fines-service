@@ -10,6 +10,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -297,8 +298,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short)10, uk.gov.hmcts.opal.authorisation.model.FinesPermission
-                .ADD_AND_REMOVE_PAYMENT_HOLD));
+            .thenReturn(permissionUser((short)10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
 
         Integer currentVersion = getCurrentCreditorAccountVersion(607L);
 
@@ -340,8 +340,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short)10, uk.gov.hmcts.opal.authorisation.model.FinesPermission
-                .ADD_AND_REMOVE_PAYMENT_HOLD));
+            .thenReturn(permissionUser((short)10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
 
         Integer currentVersion = getCurrentCreditorAccountVersion(607L);
 
