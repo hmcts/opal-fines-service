@@ -357,7 +357,7 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-    zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.2'
+    zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.3'
     implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
     openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
     openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
