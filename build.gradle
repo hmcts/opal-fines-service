@@ -385,7 +385,7 @@ dependencies {
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
 
-  implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.5.5'
+  implementation 'org.springframework.security:spring-security-oauth2-authorization-server:7.0.3'
 
   implementation 'org.springframework:spring-aspects'
   implementation 'commons-fileupload:commons-fileupload:1.6.0'
