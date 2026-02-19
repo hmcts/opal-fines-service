@@ -6,11 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.mockito.ArgumentMatchers;
+import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
@@ -25,6 +29,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 
 import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
@@ -118,6 +124,68 @@ class CreditorAccountTransactionalTest {
         assertTrue(result);
         verify(proxy, times(2)).deleteMinorCreditorAccountAndRelatedData(any(Long.class), eq(proxy));
         verify(impositionRepository).deleteAll(remainingImpositions);
+    }
+
+    @Test
+    void deleteMinorCreditorAccountAndRelatedData_deletesAssociatedPartyWhenPresent() {
+        // Arrange
+        Long creditorAccountId = 11L;
+        Long partyId = 201L;
+
+        CreditorAccountEntity.Lite creditorAccount = CreditorAccountEntity.Lite.builder()
+            .creditorAccountId(creditorAccountId)
+            .creditorAccountType(CreditorAccountType.MN)
+            .minorCreditorPartyId(partyId)
+            .build();
+        PartyEntity party = PartyEntity.builder().partyId(partyId).build();
+
+        when(creditorAccountRepository.findById(creditorAccountId)).thenReturn(Optional.of(creditorAccount));
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(creditorTransactionRepository.delete(
+            ArgumentMatchers.<Specification<CreditorTransactionEntity>>any())).thenReturn(1L);
+
+        // Act
+        boolean result = creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(
+            creditorAccountId,
+            creditorAccountTransactional
+        );
+
+        // Assert
+        assertTrue(result);
+        verify(impositionRepository).delete(ArgumentMatchers.<Specification<ImpositionEntity.Lite>>any());
+        verify(creditorAccountRepository).delete(creditorAccount);
+        verify(partyRepository).delete(party);
+    }
+
+    @Test
+    void deleteMinorCreditorAccountAndRelatedData_partyStillReferenced_skipsDeleteAndReturnsTrue() {
+        // Arrange
+        Long creditorAccountId = 12L;
+        Long partyId = 202L;
+
+        CreditorAccountEntity.Lite creditorAccount = CreditorAccountEntity.Lite.builder()
+            .creditorAccountId(creditorAccountId)
+            .creditorAccountType(CreditorAccountType.MN)
+            .minorCreditorPartyId(partyId)
+            .build();
+        PartyEntity party = PartyEntity.builder().partyId(partyId).build();
+
+        when(creditorAccountRepository.findById(creditorAccountId)).thenReturn(Optional.of(creditorAccount));
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(creditorTransactionRepository.delete(
+            ArgumentMatchers.<Specification<CreditorTransactionEntity>>any())).thenReturn(1L);
+        doThrow(new DataIntegrityViolationException("still referenced")).when(partyRepository).delete(party);
+
+        // Act
+        boolean result = creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(
+            creditorAccountId,
+            creditorAccountTransactional
+        );
+
+        // Assert
+        assertTrue(result);
+        verify(creditorAccountRepository).delete(creditorAccount);
+        verify(partyRepository).delete(party);
     }
 
 }
