@@ -158,7 +158,7 @@ class CreditorAccountTransactionalTest {
     }
 
     @Test
-    void deleteMinorCreditorAccountAndRelatedData_partyStillReferenced_skipsDeleteAndReturnsTrue() {
+    void deleteMinorCreditorAccountAndRelatedData_partyStillReferenced_throwsDataIntegrityViolationException() {
         // Arrange
         Long creditorAccountId = 12L;
         Long partyId = 202L;
@@ -177,13 +177,16 @@ class CreditorAccountTransactionalTest {
         doThrow(new DataIntegrityViolationException("still referenced")).when(partyRepository).delete(party);
 
         // Act
-        boolean result = creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(
-            creditorAccountId,
-            creditorAccountTransactional
+        DataIntegrityViolationException ex = assertThrows(
+            DataIntegrityViolationException.class,
+            () -> creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(
+                creditorAccountId,
+                creditorAccountTransactional
+            )
         );
 
         // Assert
-        assertTrue(result);
+        assertEquals("still referenced", ex.getMessage());
         verify(creditorAccountRepository).delete(creditorAccount);
         verify(partyRepository).delete(party);
     }
