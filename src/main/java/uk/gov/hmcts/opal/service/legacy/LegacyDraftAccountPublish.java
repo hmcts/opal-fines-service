@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import uk.gov.hmcts.opal.util.LogUtil;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,9 @@ import java.util.concurrent.ExecutionException;
 public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
     public static final String CREATE_DEFENDANT_ACCOUNT = "createAccount";
+
+    public static final String ERROR_MESSAGE_TEMPLATE = """
+    An error was encountered during publication of the account, please contact the service desk. Error code: [%s]""";
 
     private final GatewayService gatewayService;
     private final DraftAccountTransactional draftAccountTransactional;
@@ -46,6 +50,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         try {
             Response<LegacyCreateDefendantAccountResponse> response = future.get();
 
+            String errorMessage = String.format(ERROR_MESSAGE_TEMPLATE, LogUtil.getOrCreateOpalOperationId());
+
             log.error(":publishDefendantAccount: 1: {}", response.isException());
             log.error(":publishDefendantAccount: 2: {}", response.code.isError());
             log.error(":publishDefendantAccount: 3: {}", response.hasErrorResponse());
@@ -57,15 +63,14 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
                     log.error(":publishDefendantAccount: Legacy Gateway: body: \n{}", response.body);
                     LegacyCreateDefendantAccountResponse responseEntity = response.responseEntity;
                     log.error(":publishDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-                    ErrorResponse errorResponse = responseEntity.getErrorResponse();
 
                     TimelineData timelineData = new TimelineData(publishEntity.getTimelineData());
                     timelineData.insertEntry(
                         unitUser.getBusinessUnitUserId(), DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                        LocalDate.now(), errorResponse.getErrorMessage()
+                        LocalDate.now(), errorMessage
                     );
                     publishEntity.setTimelineData(timelineData.toJson());
-                    publishEntity.setStatusMessage(errorResponse.getErrorMessage());
+                    publishEntity.setStatusMessage(errorMessage);
 
                     publishEntity = draftAccountTransactional
                         .updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional);
