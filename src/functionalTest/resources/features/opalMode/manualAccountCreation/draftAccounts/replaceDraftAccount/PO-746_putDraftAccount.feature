@@ -49,6 +49,7 @@ Feature: PO-746 put/update draft account
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
+      | account.originator_type             | TFO                  |
 
     Then I see the created at time hasn't changed
     And I see the account status date is now after the initial account status date
@@ -102,6 +103,7 @@ Feature: PO-746 put/update draft account
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
+
 
     Then I see the created at time hasn't changed
     And I see the account status date is now after the initial account status date
