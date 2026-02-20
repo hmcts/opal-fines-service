@@ -52,8 +52,7 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
             courtService,
             ljaService,
             updateDefendantAccountRequestMapper,
-            legacyUpdateDefendantAccountResponseMapper,
-            userStateService
+            legacyUpdateDefendantAccountResponseMapper
         );
 
         updateDefendantAccountRequest = mock(UpdateDefendantAccountRequest.class, RETURNS_DEEP_STUBS);
