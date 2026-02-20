@@ -24,30 +24,38 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.TestContainerConfig;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.LegacyDefendantsIntegrationTest02")
-class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
+@SpringBootTest
+@org.junit.jupiter.api.extension.ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {TestContainerConfig.class})
+@Slf4j(topic = "opal.LegacyDefendantsIntegrationTest")
+class LegacyDefendantsIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";
     static final String DEFENDANT_PARTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
@@ -56,8 +64,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     @MockitoBean
     UserStateService userStateService;
 
-    @Autowired
-    JdbcTemplate jdbcTemplate;
+    private DefendantAccountRepository defendantAccountRepository;
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
@@ -68,34 +75,28 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     @MockitoBean
     AccessTokenService accessTokenService;
 
-    static String commentAndNotesPayload(String accountComment, String note1, String note2, String note3) {
-        return """
-            {
-              "comment_and_notes": {
-                "account_comment": %s,
-                "free_text_note_1": %s,
-                "free_text_note_2": %s,
-                "free_text_note_3": %s
-              }
-            }
-            """.formatted(jsonValue(accountComment), jsonValue(note1), jsonValue(note2), jsonValue(note3));
-    }
-
-    /**
-     * Renders a JSON value: quoted string if not null, otherwise JSON null.
-     */
-    private static String jsonValue(String s) {
-        if (s == null) {
-            return "null";
+    private static final String COMMENT_NOTES_PAYLOAD = """
+        {
+          "comment_and_notes": {
+            "account_comment": "patch DefAcc comment legacy test",
+            "free_text_note_1": "patch DefAcc note one legacy test",
+            "free_text_note_2": "patch DefAcc note two legacy test",
+            "free_text_note_3": "patch DefAcc note three legacy test"
+          }
         }
-        // basic escape for quotes; good enough for tests
-        return "\"" + s.replace("\"", "\\\"") + "\"";
+        """;
+
+    private int getCurrentVersion() {
+        DefendantAccountEntity account = defendantAccountRepository.findByDefendantAccountId(77L)
+            .orElseThrow(() -> new AssertionError("Defendant account not found: 77"));
+        return account.getVersion().intValue();
     }
 
     @BeforeEach
-    void setupUserState() {
+    void setupUserState(ApplicationContext applicationContext) {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
+        this.defendantAccountRepository = applicationContext.getBean(DefendantAccountRepository.class);
     }
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
@@ -105,10 +106,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Read the current version to avoid optimistic locking conflicts
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class, 77L
-        );
+        int currentVersion = getCurrentVersion();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
@@ -116,22 +114,15 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion)); // use actual version
 
         // create patch request with CommentsAndNotes payload
-        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
-            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
-            "patch DefAcc note three legacy test");
-
         ResultActions resultActions = mockMvc.perform(
                 patch(URL_BASE + "/77")
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson)
+                    .content(COMMENT_NOTES_PAYLOAD)
             )
             .andDo(MockMvcResultHandlers.print());
 
-        String body = resultActions.andReturn().getResponse().getContentAsString();
         String etag = resultActions.andReturn().getResponse().getHeader("ETag");
-        long version = objectMapper.readTree(body).path("version").asLong();
-
         log.info(":legacy_UpdateDefendantAccount_CommentsNotes_Success ETag: {}", etag);
 
         // Verify the response
@@ -149,6 +140,110 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(header().string("ETag", "\"" + ++currentVersion + "\""));
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Enforcement Court [@PO-1908]")
+    void test_Legacy_UpdateDefendantAccount_EnforcementCourt_Success() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        int currentVersion = getCurrentVersion();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
+
+        ResultActions actions = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "enforcement_court": {
+                        "enforcing_court_id": 100,
+                        "court_name": "Central Magistrates"
+                      }
+                    }
+                    """)
+        );
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value("77"))
+            .andExpect(jsonPath("$.enforcement_court.enforcing_court_id").value(100))
+            .andExpect(jsonPath("$.enforcement_court.court_name").value("Central Magistrates"));
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Collection Order [@PO-1908]")
+    void test_Legacy_UpdateDefendantAccount_CollectionOrder_Success() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        int currentVersion = getCurrentVersion();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
+
+        ResultActions actions = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "collection_order": {
+                        "collection_order": true,
+                        "collection_order_date": "2025-01-01"
+                      }
+                    }
+                    """)
+        );
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value("77"))
+            .andExpect(jsonPath("$.collection_order.collection_order").value(true))
+            .andExpect(jsonPath("$.collection_order.collection_order_date").value("2025-01-01"));
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Enforcement Override [@PO-1908]")
+    void test_Legacy_UpdateDefendantAccount_EnforcementOverride_Success() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        int currentVersion = getCurrentVersion();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
+
+        ResultActions actions = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "enforcement_override": {
+                        "enf_override_result_id": "FWEC",
+                        "enf_override_enforcer_id": 21,
+                        "enf_override_tfo_lja_id": 240
+                      }
+                    }
+                    """)
+        );
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value("77"))
+            .andExpect(jsonPath("$.enforcement_override.enf_override_result_id").value("FWEC"))
+            .andExpect(jsonPath("$.enforcement_override.enf_override_enforcer_id").value(21))
+            .andExpect(jsonPath("$.enforcement_override.enf_override_tfo_lja_id").value(240));
+    }
+
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
@@ -157,15 +252,11 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // create patch request with CommentsAndNotes payload
-        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
-            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
-            "patch DefAcc note three legacy test");
-
         ResultActions actions = mockMvc.perform(
             patch(URL_BASE + "/500")
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(COMMENT_NOTES_PAYLOAD)
         );
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -183,17 +274,13 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).checkForAuthorisedUser(any());
 
-        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
-            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
-            "patch DefAcc note three legacy test");
-
         mockMvc.perform(
                 patch(URL_BASE + "/77")
                     .header("authorization", "Bearer invalid_token")
                     .header("Business-Unit-Id", "78")
                     .header(HttpHeaders.IF_MATCH, "0")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson)
+                    .content(COMMENT_NOTES_PAYLOAD)
             )
             .andExpect(status().isUnauthorized())
             .andExpect(content().string(""));
@@ -206,17 +293,13 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
             .when(userStateService).checkForAuthorisedUser(any());
 
-        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
-            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
-            "patch DefAcc note three legacy test");
-
         mockMvc.perform(
                 patch(URL_BASE + "/77")
                     .header("authorization", "Bearer some_value")
                     .header("Business-Unit-Id", "78")
                     .header(HttpHeaders.IF_MATCH, "0")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson)
+                    .content(COMMENT_NOTES_PAYLOAD)
             )
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
@@ -566,7 +649,6 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
-        long version = objectMapper.readTree(body).path("version").asLong();
 
         log.info(":legacy_getDefendantAccountParty_Happy body:\n{}", ToJsonString.toPrettyJson(body));
         log.info(":legacy_getDefendantAccountParty_Happy ETag: {}", etag);
@@ -595,7 +677,6 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
-        final Long version = objectMapper.readTree(body).path("version").asLong();
 
         log.info(":legacy_getDefendantAccountParty_Organisation body:\n{}", ToJsonString.toPrettyJson(body));
         log.info(":legacy_getDefendantAccountParty_Organisation ETag: {}", etag);
@@ -721,6 +802,9 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    @DisplayName("LEGACY: Get Payment Terms - Happy Path")
     void testLegacyGetPaymentTerms() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -729,7 +813,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             mockMvc.perform(get(URL_BASE + "/77/payment-terms/latest").header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetPaymentTerms: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
@@ -753,6 +837,9 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     }
 
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    @DisplayName("LEGACY: Get Defendant Account At A Glance - Happy Path")
     void testLegacyGetDefendantAtAGlance() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -761,7 +848,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetPaymentTerms: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))

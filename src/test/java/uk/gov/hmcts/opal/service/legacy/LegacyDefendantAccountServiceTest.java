@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -26,6 +25,8 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -143,7 +144,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     private UpdateDefendantAccountRequest updateDefendantAccountRequest;
 
     @BeforeEach
-    void openMocks() throws Exception {
+    void openMocks() {
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDefendantAccountService, gatewayService);
 
@@ -151,16 +152,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     private void injectGatewayService(
-        LegacyDefendantAccountService legacyDefendantAccountService, GatewayService gatewayService)
-        throws NoSuchFieldException, IllegalAccessException {
-
-        Field field = LegacyDefendantAccountService.class.getDeclaredField("gatewayService");
-        field.setAccessible(true);
-        field.set(legacyDefendantAccountService, gatewayService);
-
+        LegacyDefendantAccountService legacyDefendantAccountService, GatewayService gatewayService) {
+        try {
+            Field field = LegacyDefendantAccountService.class.getDeclaredField("gatewayService");
+            field.setAccessible(true);
+            field.set(legacyDefendantAccountService, gatewayService);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalStateException("Failed to inject gatewayService for tests", e);
+        }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetHeaderSummary_success() {
         // Arrange
@@ -223,7 +224,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testSearchDefendantAccounts_success() {
         AccountSearchDto searchDto = AccountSearchDto.builder().build();
 
@@ -242,38 +242,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             legacyDefendantAccountService.searchDefendantAccounts(searchDto);
 
         assertEquals(DefendantAccountSearchResultsDto.class, result.getClass());
-    }
-
-
-    private DefendantAccountHeaderSummary createHeaderSummaryDto() {
-        return DefendantAccountHeaderSummary.builder()
-            .accountNumber("SAMPLE")
-            .accountType("Fine")
-            .accountStatusReference(
-                AccountStatusReference.builder()
-                    .accountStatusCode("L")
-                    .accountStatusDisplayName("Live")
-                    .build()
-            )
-            .businessUnitSummary(
-                BusinessUnitSummary.builder()
-                    .businessUnitId("1")
-                    .businessUnitName("Test BU")
-                    .welshSpeaking("N")
-                    .build()
-            )
-            .paymentStateSummary(
-                PaymentStateSummary.builder()
-                    .imposedAmount(BigDecimal.ZERO)
-                    .arrearsAmount(BigDecimal.ZERO)
-                    .paidAmount(BigDecimal.ZERO)
-                    .accountBalance(BigDecimal.ZERO)
-                    .build()
-            )
-            .partyDetails(
-                PartyDetails.builder().build()
-            )
-            .build();
     }
 
 
@@ -345,11 +313,30 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                     </defendant_accounts_element>
                   </defendant_accounts>
             </response>
-               """;
+            """;
+    }
+
+    private static Method getDeclaredMethod(Class<?> type, String name, Class<?>... params) {
+        try {
+            Method method = type.getDeclaredMethod(name, params);
+            method.setAccessible(true);
+            return method;
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException("Method not found: " + name, e);
+        }
+    }
+
+    private static Object invoke(Method method, Object target, Object... args) {
+        try {
+            return method.invoke(target, args);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Cannot access method: " + method.getName(), e);
+        } catch (InvocationTargetException e) {
+            throw new IllegalStateException("Invocation failed: " + method.getName(), e.getCause());
+        }
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_nonZeroAmounts_andCustomBu() {
         // Arrange
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
@@ -412,13 +399,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_setsDefendantPartyIdCorrectly() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
         responseBody.setDefendantPartyId("77");
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(Mockito.<ParameterizedTypeReference
             <LegacyGetDefendantAccountHeaderSummaryResponse>>any()))
             .thenReturn(responseBody);
@@ -433,7 +417,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_blankAmounts_defaultToZero() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
@@ -490,7 +473,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_withIndividualDetails_executesMappingBranches() {
         uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd =
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
@@ -525,7 +507,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_whenCommonSectionsNull_executesNullBranches() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
@@ -553,7 +534,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_withOrganisationDetails_executesMappingBranches() {
         // Build organisation alias array (nested type inside OrganisationDetails)
         uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] orgAliasArr =
@@ -597,9 +577,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Fine", published.getAccountType());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_success_spyGatewayAndRestClientStub() throws Exception {
+    void getPaymentTerms_success_spyGatewayAndRestClientStub() {
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
@@ -641,9 +620,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("REM", out.getLastEnforcement());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_legacyFailure5xx_withEntity_mapsAnyway() throws Exception {
+    void getPaymentTerms_legacyFailure5xx_withEntity_mapsAnyway() {
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
@@ -677,9 +655,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                      out.getPaymentTerms().getInstalmentPeriod().getInstalmentPeriodCode());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_error5xx_returnsNull() throws Exception {
+    void getPaymentTerms_error5xx_returnsNull() {
 
         when(restClient.responseSpec.body(
             Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
@@ -693,9 +670,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNull(out);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_success_withNullEntity_returnsEmptyDto() throws Exception {
+    void getPaymentTerms_success_withNullEntity_returnsEmptyDto() {
 
         when(restClient.responseSpec.body(
             Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
@@ -713,9 +689,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNull(out.getLastEnforcement());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_mapsNullNestedObjects_toNulls() throws Exception {
+    void getPaymentTerms_mapsNullNestedObjects_toNulls() {
 
         uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms legacyTerms =
             uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
@@ -754,7 +729,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     // --- NEW: cover error -> legacy failure branch (5xx) for getHeaderSummary ---
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_legacyFailure5xx_logsAndMaps() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
@@ -772,7 +746,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     // --- NEW: cover error -> exception branch for getHeaderSummary (gateway returns Response with exception) ---
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_exceptionBranch_rethrows() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
@@ -789,7 +762,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     // --- NEW: cover Number branch in toBigDecimalOrZero via public API ---
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_numberInputs_mapToBigDecimal() {
         // Arrange: build a legacy response with numeric values (BigDecimal + Number variants)
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
@@ -831,7 +803,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     // --- NEW: cover unsupported-type branch → defaults to ZERO (and logs warn) ---
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_unsupportedPaymentType_defaultsZero() {
         var pay = uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
             .imposedAmount("0")
@@ -853,7 +824,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     // --- NEW: cover individual aliases mapping (non-empty array) ---
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_individualAliases_areMapped() {
         var alias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
             .aliasId("AL1").sequenceNumber(Short.valueOf("1")).surname("AliasSurname").forenames("AliasForenames")
@@ -1368,7 +1338,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_success_mapsTopLevelAndNulls() {
         LegacyGetDefendantAccountAtAGlanceResponse body = LegacyGetDefendantAccountAtAGlanceResponse.builder()
             .defendantAccountId("123")
@@ -1379,9 +1348,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             // leave nested sections null to cover null branches
             .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse>>any()))
+            .thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
@@ -1402,14 +1371,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_legacyFailure5xx_withEntity_mapsAnyway() {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder().version(0L).defendantAccountId("456").build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse>>any()))
+            .thenReturn(body);
         // simulate 5xx but with a body (service should still map)
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
@@ -1420,11 +1388,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_error5xx_noEntity_returnsNull() {
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse>>any()))
+            .thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
@@ -1442,7 +1409,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_mapsOrganisationBranch_withAliases() {
         // org alias element
         OrganisationDetails.OrganisationAlias orgAlias = OrganisationDetails.OrganisationAlias.builder()
@@ -1468,9 +1434,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .version(0L)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse>>any()))
+            .thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
@@ -1485,14 +1451,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Acme Ltd", pd.getOrganisationDetails().getOrganisationName());
         assertNotNull(pd.getOrganisationDetails().getOrganisationAliases());
         assertEquals(1, pd.getOrganisationDetails().getOrganisationAliases().size());
-        assertEquals("10", pd.getOrganisationDetails().getOrganisationAliases().get(0).getAliasId());
-        assertEquals(2, pd.getOrganisationDetails().getOrganisationAliases().get(0).getSequenceNumber());
-        assertEquals("Alt Name Ltd", pd.getOrganisationDetails()
-            .getOrganisationAliases().get(0).getOrganisationName());
+        var mappedAlias = pd.getOrganisationDetails().getOrganisationAliases().getFirst();
+        assertEquals("10", mappedAlias.getAliasId());
+        assertEquals(2, mappedAlias.getSequenceNumber());
+        assertEquals("Alt Name Ltd", mappedAlias.getOrganisationName());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_mapsIndividualBranch_withAliases_andDobFormatting() {
         IndividualDetails.IndividualAlias alias = IndividualDetails.IndividualAlias.builder()
             .aliasId("21")
@@ -1523,9 +1488,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .version(0L)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse>>any()))
+            .thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
@@ -1544,14 +1509,14 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("QQ123456C", pd.getIndividualDetails().getNationalInsuranceNumber());
         assertNotNull(pd.getIndividualDetails().getIndividualAliases());
         assertEquals(1, pd.getIndividualDetails().getIndividualAliases().size());
-        assertEquals("21", pd.getIndividualDetails().getIndividualAliases().get(0).getAliasId());
-        assertEquals(3, pd.getIndividualDetails().getIndividualAliases().get(0).getSequenceNumber());
-        assertEquals("Smith", pd.getIndividualDetails().getIndividualAliases().get(0).getSurname());
-        assertEquals("John", pd.getIndividualDetails().getIndividualAliases().get(0).getForenames());
+        var indAlias = pd.getIndividualDetails().getIndividualAliases().getFirst();
+        assertEquals("21", indAlias.getAliasId());
+        assertEquals(3, indAlias.getSequenceNumber());
+        assertEquals("Smith", indAlias.getSurname());
+        assertEquals("John", indAlias.getForenames());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_mapsAddress_language_payment_enforcement_comments() {
         // --- arrange legacy inputs ---
         uk.gov.hmcts.opal.dto.legacy.common.AddressDetails addr =
@@ -1614,9 +1579,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .version(0L)
                 .build();
 
-        ParameterizedTypeReference<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse>>any()))
+            .thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
@@ -1662,7 +1627,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_paymentTerms_nullEnumsHandled() {
         uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary legacyPtsNulls =
             uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary.builder()
@@ -1676,9 +1640,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .version(0L)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse>>any()))
+            .thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
@@ -1689,52 +1653,52 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void toBigDecimalOrZero_handlesAllBranches() throws Exception {
-        var method = LegacyDefendantAccountService.class.getDeclaredMethod("toBigDecimalOrZero", Object.class);
-        method.setAccessible(true);
+    void toBigDecimalOrZero_handlesAllBranches() {
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "toBigDecimalOrZero", Object.class);
 
         // null input → ZERO
-        assertEquals(BigDecimal.ZERO, method.invoke(null, (Object) null));
+        assertEquals(BigDecimal.ZERO, invoke(method, null, (Object) null));
 
         // BigDecimal instance → returns as-is
         BigDecimal value = new BigDecimal("123.45");
-        assertEquals(value, method.invoke(null, value));
+        assertEquals(value, invoke(method, null, value));
 
         // CharSequence good → parses correctly
-        assertEquals(new BigDecimal("77"), method.invoke(null, "77"));
+        assertEquals(new BigDecimal("77"), invoke(method, null, "77"));
 
         // CharSequence bad → logs and defaults to ZERO
-        assertEquals(BigDecimal.ZERO, method.invoke(null, "NaN"));
+        assertEquals(BigDecimal.ZERO, invoke(method, null, "NaN"));
 
         // Number instance (Integer) → converted
-        assertEquals(new BigDecimal("5.0"), method.invoke(null, 5));
+        assertEquals(new BigDecimal("5.0"), invoke(method, null, 5));
 
         // Unsupported type → defaults ZERO
-        assertEquals(BigDecimal.ZERO, method.invoke(null, new Object()));
+        assertEquals(BigDecimal.ZERO, invoke(method, null, new Object()));
     }
 
     @Test
-    void toPaymentTermsType_and_toInstalmentPeriod_coverNonNullCodes() throws Exception {
-        var ptt = LegacyDefendantAccountService.class.getDeclaredMethod(
-            "toPaymentTermsType", uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.class);
-        var ip  = LegacyDefendantAccountService.class.getDeclaredMethod(
-            "toInstalmentPeriod", uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.class);
-        ptt.setAccessible(true);
-        ip.setAccessible(true);
+    void toPaymentTermsType_and_toInstalmentPeriod_coverNonNullCodes() {
+        Method ptt = getDeclaredMethod(
+            LegacyDefendantAccountService.class,
+            "toPaymentTermsType",
+            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.class);
+        Method ip = getDeclaredMethod(
+            LegacyDefendantAccountService.class,
+            "toInstalmentPeriod",
+            uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.class);
 
         var legacyType = new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
             uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B);
         var legacyInst = new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
             uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W);
 
-        var out1 = ptt.invoke(null, legacyType);
-        var out2 = ip.invoke(null, legacyInst);
+        var out1 = invoke(ptt, null, legacyType);
+        var out2 = invoke(ip, null, legacyInst);
         assertNotNull(out1);
         assertNotNull(out2);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getHeaderSummary_errorAndSuccessBranches_triggerLogging() {
         // Arrange a fake response entity
         uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse legacyEntity =
@@ -1764,11 +1728,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void toHeaderSumaryDto_mapsOrgAndIndBranches() throws Exception {
-        var method = LegacyDefendantAccountService.class.getDeclaredMethod(
+    void toHeaderSumaryDto_mapsOrgAndIndBranches() {
+        Method method = getDeclaredMethod(
+            LegacyDefendantAccountService.class,
             "toHeaderSumaryDto",
             uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class);
-        method.setAccessible(true);
 
         // --- organisation branch ---
         var orgAlias = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
@@ -1782,7 +1746,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .organisationFlag(true).organisationDetails(orgDetails).build();
         var resp = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
             .partyDetails(party).build();
-        assertNotNull(method.invoke(legacyDefendantAccountService, resp));
+        assertNotNull(invoke(method, legacyDefendantAccountService, resp));
 
         // --- individual branch ---
         var indAlias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
@@ -1795,11 +1759,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .organisationFlag(false).individualDetails(ind).build();
         resp = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
             .partyDetails(party).build();
-        assertNotNull(method.invoke(legacyDefendantAccountService, resp));
+        assertNotNull(invoke(method, legacyDefendantAccountService, resp));
     }
 
     @Test
-    void toHeaderSumaryDto_populatesDisplayNameFromCodeWhenMissing() throws Exception {
+    void toHeaderSumaryDto_populatesDisplayNameFromCodeWhenMissing() {
         // Arrange – legacy response has status code but no display name
         var legacyResponse = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
             .accountStatusReference(
@@ -1814,17 +1778,19 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .build();
 
         // Reflectively access the private mapping method
-        var method = LegacyDefendantAccountService.class.getDeclaredMethod(
+        Method method = getDeclaredMethod(
+            LegacyDefendantAccountService.class,
             "toHeaderSumaryDto",
-            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class
-        );
-        method.setAccessible(true);
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class);
 
         // Act
         var result = (uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary)
-            method.invoke(legacyDefendantAccountService, legacyResponse);
+            invoke(method, legacyDefendantAccountService, legacyResponse);
 
         // Assert
+        assertNotNull(result);
+        assertEquals("177A", result.getAccountNumber());
+        assertEquals("77", result.getDefendantAccountId());
     }
 
     @Test
@@ -1839,11 +1805,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
             .businessUnitUserId(postedBy)
-            .version(3)
+            .version("3")
             .build();
 
         when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(
-            any(), anyString(), anyString(), anyString(), anyInt())
+            any(), anyString(), anyString(), anyString(), anyString())
         ).thenReturn(legacyReq);
 
         // arrange: gateway returns OK with an entity
@@ -1877,7 +1843,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // assert: request mapper called with parsed version = 3 and proper ids
         verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(
-            same(updateDefendantAccountRequest), eq("77"), eq("78"), eq(postedBy), eq(3)
+            same(updateDefendantAccountRequest), eq("77"), eq("78"), eq(postedBy), eq("3")
         );
 
         // assert: gateway call & response mapping
@@ -1900,7 +1866,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // arrange: mapper builds the legacy request
         when(updateDefendantAccountRequestMapper
-            .toLegacyUpdateDefendantAccountRequest(any(), anyString(), anyString(), anyString(), anyInt()))
+            .toLegacyUpdateDefendantAccountRequest(any(), anyString(), anyString(), anyString(), anyString()))
             .thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
 
         // service stubbed to throw exception
@@ -1927,13 +1893,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testUpdateDefendantAccount_error5xx_noEntity_returnsNull() {
         // stubbed to return error 5xx
-        ParameterizedTypeReference<LegacyUpdateDefendantAccountResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyUpdateDefendantAccountResponse>>any()))
+            .thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response><error/></response>", HttpStatus.INTERNAL_SERVER_ERROR));
 
@@ -2056,24 +2020,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Test
     void replaceDefendantAccountParty_exceptionBranch_rethrows() {
-
-        LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
-            .defendantAccountParty(
-                DefendantAccountPartyLegacy.builder()
-                    .defendantAccountPartyType("Defendant")
-                    .isDebtor(true)
-                    .partyDetails(
-                        PartyDetailsLegacy.builder()
-                            .partyId("300")
-                            .organisationFlag(true)
-                            .organisationDetails(null)
-                            .build()
-                    )
-                    .build()
-            )
-            .build();
-
         // We no longer return a response; instead we make the gateway throw a RuntimeException
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
@@ -2523,8 +2469,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
 
     @Test
-    @SuppressWarnings("unchecked")
-    void addEnforcement_withRequest_sendsLegacyRequestContainingMappedCollectionsAndPaymentTerms() throws Exception {
+    void addEnforcement_withRequest_sendsLegacyRequestContainingMappedCollectionsAndPaymentTerms() {
         // Arrange: mock modern request with one ResultResponse and a PaymentTerms object
         AddDefendantAccountEnforcementRequest request = mock(AddDefendantAccountEnforcementRequest.class);
         ResultResponse rr = mock(ResultResponse.class);
@@ -2552,7 +2497,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
 
         // stub gateway to capture the legacy request and return the response
-        @SuppressWarnings("unchecked")
         ArgumentCaptor<Object> reqCaptor = ArgumentCaptor.forClass(Object.class);
         doReturn(resp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
@@ -2577,24 +2521,24 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Use reflection to verify the legacy request's fields (getters created by builder)
         var clazz = sentLegacyRequest.getClass();
-        var defId = clazz.getMethod("getDefendantAccountId").invoke(sentLegacyRequest);
-        var buId = clazz.getMethod("getBusinessUnitId").invoke(sentLegacyRequest);
-        var buUser = clazz.getMethod("getBusinessUnitUserId").invoke(sentLegacyRequest);
+        Object defId = invoke(getDeclaredMethod(clazz, "getDefendantAccountId"), sentLegacyRequest);
+        Object buId = invoke(getDeclaredMethod(clazz, "getBusinessUnitId"), sentLegacyRequest);
+        Object buUser = invoke(getDeclaredMethod(clazz, "getBusinessUnitUserId"), sentLegacyRequest);
 
 
         assertEquals("999", defId);
         assertEquals("BU-TEST", buId);
         assertEquals("user-test", buUser);
-        var version = clazz.getMethod("getVersion").invoke(sentLegacyRequest);
+        Object version = invoke(getDeclaredMethod(clazz, "getVersion"), sentLegacyRequest);
 
         assertEquals(11, ((Number) version).intValue());
 
-        var enforcementList = clazz.getMethod("getEnforcementResultResponses").invoke(sentLegacyRequest);
+        Object enforcementList = invoke(getDeclaredMethod(clazz, "getEnforcementResultResponses"), sentLegacyRequest);
 
         assertNotNull(enforcementList);
-        assertTrue(((java.util.Collection<?>) enforcementList).size() >= 1);
+        assertFalse(((java.util.Collection<?>) enforcementList).isEmpty());
 
-        var paymentTermsLegacy = clazz.getMethod("getPaymentTerms").invoke(sentLegacyRequest);
+        Object paymentTermsLegacy = invoke(getDeclaredMethod(clazz, "getPaymentTerms"), sentLegacyRequest);
 
         assertNotNull(paymentTermsLegacy);
     }
@@ -2649,31 +2593,29 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void mapLegacyPostedDetails_null_returnsNull() throws Exception {
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapLegacyPostedDetails", PostedDetails.class);
-        method.setAccessible(true);
+    void mapLegacyPostedDetails_null_returnsNull() {
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapLegacyPostedDetails",
+            PostedDetails.class);
 
-        Object result = method.invoke(legacyDefendantAccountService, (Object) null);
+        Object result = invoke(method, legacyDefendantAccountService, (Object) null);
 
         assertNull(result, "Null input must return null");
     }
 
     @Test
-    void mapLegacyPostedDetails_mapsFieldsCorrectly() throws Exception {
+    void mapLegacyPostedDetails_mapsFieldsCorrectly() {
         // Arrange
         PostedDetails pd = new PostedDetails();
         pd.setPostedBy("tester");
         pd.setPostedByName("Test User");
         pd.setPostedDate(java.time.LocalDateTime.of(2024, 1, 1, 10, 31, 45));
 
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapLegacyPostedDetails", PostedDetails.class);
-        method.setAccessible(true);
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapLegacyPostedDetails",
+            PostedDetails.class);
 
         // Act
         LegacyPostedDetails out =
-            (LegacyPostedDetails) method.invoke(legacyDefendantAccountService, pd);
+            (LegacyPostedDetails) invoke(method, legacyDefendantAccountService, pd);
 
         // Assert
         assertNotNull(out);
@@ -2683,113 +2625,106 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void mapLegacyPaymentTermsType_nullOrMissingCode_returnsNull() throws Exception {
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapLegacyPaymentTermsType", PaymentTermsType.class);
-        method.setAccessible(true);
+    void mapLegacyPaymentTermsType_nullOrMissingCode_returnsNull() {
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapLegacyPaymentTermsType",
+            PaymentTermsType.class);
 
         // null → null
-        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+        assertNull(invoke(method, legacyDefendantAccountService, (Object) null));
 
         // PaymentTermsType with null code → null
         PaymentTermsType pt = mock(PaymentTermsType.class);
         when(pt.getPaymentTermsTypeCode()).thenReturn(null);
-        assertNull(method.invoke(legacyDefendantAccountService, pt));
+        assertNull(invoke(method, legacyDefendantAccountService, pt));
     }
 
     @Test
-    void mapLegacyPaymentTermsType_validCode_mapsCorrectEnum() throws Exception {
+    void mapLegacyPaymentTermsType_validCode_mapsCorrectEnum() {
         PaymentTermsType pt = mock(PaymentTermsType.class);
         when(pt.getPaymentTermsTypeCode()).thenReturn(PaymentTermsType.PaymentTermsTypeCode.B);
 
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapLegacyPaymentTermsType", PaymentTermsType.class);
-        method.setAccessible(true);
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapLegacyPaymentTermsType",
+            PaymentTermsType.class);
 
         LegacyPaymentTermsType out =
-            (LegacyPaymentTermsType) method.invoke(legacyDefendantAccountService, pt);
+            (LegacyPaymentTermsType) invoke(method, legacyDefendantAccountService, pt);
 
         assertNotNull(out);
         assertEquals(LegacyPaymentTermsType.PaymentTermsTypeCode.B, out.getPaymentTermsTypeCode());
     }
 
     @Test
-    void mapLegacyInstalmentPeriod_nullOrMissingCode_returnsNull() throws Exception {
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapLegacyInstalmentPeriod", InstalmentPeriod.class);
-        method.setAccessible(true);
+    void mapLegacyInstalmentPeriod_nullOrMissingCode_returnsNull() {
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapLegacyInstalmentPeriod",
+            InstalmentPeriod.class);
 
         // null → null
-        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+        assertNull(invoke(method, legacyDefendantAccountService, (Object) null));
 
         InstalmentPeriod ip = mock(InstalmentPeriod.class);
         when(ip.getInstalmentPeriodCode()).thenReturn(null);
-        assertNull(method.invoke(legacyDefendantAccountService, ip));
+        assertNull(invoke(method, legacyDefendantAccountService, ip));
     }
 
     @Test
-    void mapLegacyInstalmentPeriod_validCode_mapsCorrectEnum() throws Exception {
+    void mapLegacyInstalmentPeriod_validCode_mapsCorrectEnum() {
         InstalmentPeriod ip = mock(InstalmentPeriod.class);
         when(ip.getInstalmentPeriodCode()).thenReturn(
             InstalmentPeriod.InstalmentPeriodCode.W
         );
 
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapLegacyInstalmentPeriod", InstalmentPeriod.class);
-        method.setAccessible(true);
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapLegacyInstalmentPeriod",
+            InstalmentPeriod.class);
 
         LegacyInstalmentPeriod out =
-            (LegacyInstalmentPeriod) method.invoke(legacyDefendantAccountService, ip);
+            (LegacyInstalmentPeriod) invoke(method, legacyDefendantAccountService, ip);
 
         assertNotNull(out);
         assertEquals(LegacyInstalmentPeriod.InstalmentPeriodCode.W, out.getInstalmentPeriodCode());
     }
 
     @Test
-    void mapPaymentTermsTypeCodeEnum_validAndInvalid() throws Exception {
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapPaymentTermsTypeCodeEnum", String.class);
-        method.setAccessible(true);
+    void mapPaymentTermsTypeCodeEnum_validAndInvalid() {
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapPaymentTermsTypeCodeEnum",
+            String.class);
 
         assertEquals(
             LegacyPaymentTermsType.PaymentTermsTypeCode.B,
-            method.invoke(legacyDefendantAccountService, "B")
+            invoke(method, legacyDefendantAccountService, "B")
         );
 
         assertEquals(
             LegacyPaymentTermsType.PaymentTermsTypeCode.P,
-            method.invoke(legacyDefendantAccountService, "p")
+            invoke(method, legacyDefendantAccountService, "p")
         );
 
-        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+        assertNull(invoke(method, legacyDefendantAccountService, (Object) null));
 
         // Invalid code → IllegalArgumentException (wrapped in InvocationTargetException)
-        assertThrows(Exception.class, () -> method.invoke(legacyDefendantAccountService, "X"));
+        assertThrows(IllegalStateException.class, () -> invoke(method, legacyDefendantAccountService, "X"));
     }
 
     @Test
-    void mapInstalmentPeriodCodeEnum_validAndInvalid() throws Exception {
-        var method = LegacyDefendantAccountService.class
-            .getDeclaredMethod("mapInstalmentPeriodCodeEnum", String.class);
-        method.setAccessible(true);
+    void mapInstalmentPeriodCodeEnum_validAndInvalid() {
+        Method method = getDeclaredMethod(LegacyDefendantAccountService.class, "mapInstalmentPeriodCodeEnum",
+            String.class);
 
         assertEquals(
             LegacyInstalmentPeriod.InstalmentPeriodCode.W,
-            method.invoke(legacyDefendantAccountService, "W")
+            invoke(method, legacyDefendantAccountService, "W")
         );
 
         assertEquals(
             LegacyInstalmentPeriod.InstalmentPeriodCode.M,
-            method.invoke(legacyDefendantAccountService, "m")
+            invoke(method, legacyDefendantAccountService, "m")
         );
 
-        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+        assertNull(invoke(method, legacyDefendantAccountService, (Object) null));
 
-        assertThrows(Exception.class, () -> method.invoke(legacyDefendantAccountService, "Z"));
+        assertThrows(IllegalStateException.class, () -> invoke(method, legacyDefendantAccountService, "Z"));
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_success() {
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -2865,7 +2800,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_successMinimal() {
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -2918,7 +2852,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertThrows(RuntimeException.class, () -> legacyDefendantAccountService.getEnforcementStatus(1L));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_returnsNull() {
         // Arrange
@@ -2934,7 +2867,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNull(response);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_returnsFailure() {
 
@@ -2957,7 +2889,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNull(response.getNextEnforcementActionData());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_courtNotFoundInOpalDB() {
 
@@ -2978,7 +2909,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Court not found", error.getMessage());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_ljaNotFoundInOpalDB() {
 
@@ -3250,8 +3180,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(5L);
 
         assertEquals(1, out.getPartyDetails().getOrganisationDetails().getOrganisationAliases().size());
-        assertEquals("GOOD", out.getPartyDetails().getOrganisationDetails()
-            .getOrganisationAliases().get(0).getAliasId());
+        var alias = out.getPartyDetails().getOrganisationDetails().getOrganisationAliases().getFirst();
+        assertEquals("GOOD", alias.getAliasId());
     }
 
     @Test

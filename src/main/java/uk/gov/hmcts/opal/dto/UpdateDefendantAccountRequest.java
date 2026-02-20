@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 
 /**
@@ -24,11 +23,56 @@ public class UpdateDefendantAccountRequest implements ToJsonString {
     private CommentsAndNotes commentsAndNotes;
 
     @JsonProperty("enforcement_court")
-    private CourtReferenceDto enforcementCourt;
+    private EnforcementCourtRequest enforcementCourt;
 
     @JsonProperty("collection_order")
-    private CollectionOrderDto collectionOrder;
+    private CollectionOrderRequest collectionOrder;
 
     @JsonProperty("enforcement_override")
-    private EnforcementOverride enforcementOverride;
+    private EnforcementOverrideRequest enforcementOverride;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class EnforcementCourtRequest implements ToJsonString {
+
+        @JsonProperty("enforcing_court_id")
+        private Long enforcingCourtId;
+
+        @JsonProperty("court_name")
+        private String courtName;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CollectionOrderRequest implements ToJsonString {
+
+        @JsonProperty("collection_order")
+        private Boolean collectionOrder;
+
+        @JsonProperty("collection_order_date")
+        private String collectionOrderDate;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class EnforcementOverrideRequest implements ToJsonString {
+
+        @JsonProperty("enf_override_result_id")
+        private String enforcementOverrideResultId;
+
+        @JsonProperty("enf_override_enforcer_id")
+        private Long enforcementOverrideEnforcerId;
+
+        @JsonProperty("enf_override_tfo_lja_id")
+        private Integer enforcementOverrideTfoLjaId;
+    }
 }

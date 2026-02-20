@@ -42,7 +42,7 @@ public class LegacyDefendantAccountBuilders {
             return null;
         }
 
-        return EnforcementStatus.builder()
+        return EnforcementStatus.newBuilder()
             .employerFlag(Boolean.valueOf(legacy.getEmployerFlag())) // Legacy response is true/false
             .accountStatusReference(buildAccountStatusReferenceCommon(legacy.getAccountStatusReference()))
             .defendantAccountType(null) // Not returned from Legacy

@@ -9,18 +9,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.util.Versioned;
 
 /**
  * Response returned after updating a defendant account.
- * Uses Common Objects shape (nested groups).
+ * Uses endpoint-specific groups to match the update schema.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DefendantAccountResponse implements ToJsonString, Versioned {
 
     @JsonProperty("id")
@@ -30,15 +29,59 @@ public class DefendantAccountResponse implements ToJsonString, Versioned {
     private CommentsAndNotes commentsAndNotes;
 
     @JsonProperty("enforcement_court")
-    private CourtReferenceDto enforcementCourt;
+    private EnforcementCourtResponse enforcementCourt;
 
     @JsonProperty("collection_order")
-    private CollectionOrderDto collectionOrder;
+    private CollectionOrderResponse collectionOrder;
 
     @JsonProperty("enforcement_override")
-    private EnforcementOverride enforcementOverride;
+    private EnforcementOverrideResponse enforcementOverride;
 
     @JsonIgnore
     private BigInteger version;
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class EnforcementCourtResponse implements ToJsonString {
+
+        @JsonProperty("enforcing_court_id")
+        private Long enforcingCourtId;
+
+        @JsonProperty("court_name")
+        private String courtName;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CollectionOrderResponse implements ToJsonString {
+
+        @JsonProperty("collection_order")
+        private Boolean collectionOrder;
+
+        @JsonProperty("collection_order_date")
+        private String collectionOrderDate;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class EnforcementOverrideResponse implements ToJsonString {
+
+        @JsonProperty("enf_override_result_id")
+        private String enforcementOverrideResultId;
+
+        @JsonProperty("enf_override_enforcer_id")
+        private Long enforcementOverrideEnforcerId;
+
+        @JsonProperty("enf_override_tfo_lja_id")
+        private Integer enforcementOverrideTfoLjaId;
+    }
 }

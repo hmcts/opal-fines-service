@@ -133,9 +133,8 @@ class DefendantAccountServiceTest {
             .build();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        Assertions.assertThrows(PermissionNotAllowedException.class, () -> {
-            defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
-        });
+        Assertions.assertThrows(PermissionNotAllowedException.class,
+            () -> defendantAccountService.getHeaderSummary(1L, "authHeaderValue"));
     }
 
     @Test
@@ -179,9 +178,8 @@ class DefendantAccountServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         AccountSearchDto dto = AccountSearchDto.builder().build();
-        Assertions.assertThrows(PermissionNotAllowedException.class, () -> {
-            defendantAccountService.searchDefendantAccounts(dto, "authHeaderValue");
-        });
+        Assertions.assertThrows(PermissionNotAllowedException.class,
+            () -> defendantAccountService.searchDefendantAccounts(dto, "authHeaderValue"));
     }
 
     @Test
@@ -436,7 +434,7 @@ class DefendantAccountServiceTest {
     @Test
     void testGetEnforcementStatus() {
         // Arrange
-        EnforcementStatus status = EnforcementStatus.builder()
+        EnforcementStatus status = EnforcementStatus.newBuilder()
             .employerFlag(true)
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))

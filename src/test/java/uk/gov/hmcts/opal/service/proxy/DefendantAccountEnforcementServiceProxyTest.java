@@ -51,7 +51,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
     void testGetEnforcementStatus(DefendantAccountEnforcementServiceInterface targetService,
                                   DefendantAccountEnforcementServiceInterface otherService) {
         // Given: a Entity is returned from the target service
-        EnforcementStatus entity = EnforcementStatus.builder()
+        EnforcementStatus entity = EnforcementStatus.newBuilder()
             .build();
         when(targetService.getEnforcementStatus(anyLong())).thenReturn(entity);
 

@@ -6,9 +6,60 @@
   "properties": {
     "id": { "type": "integer" },
     "comment_and_notes": { "$ref": "../common-objects/commentsAndNotes.json" },
-    "enforcement_court": { "$ref": "../common-objects/courtReference.json" },
-    "collection_order": { "$ref": "../common-objects/collectionOrder.json" },
-    "enforcement_override": { "$ref": "../common-objects/enforcementOverride.json" }
+    "enforcement_court": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enforcing_court_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Identifier for the enforcing court (required by TDIA)"
+        },
+        "court_name": {
+          "type": "string",
+          "description": "Optional human readable court name"
+        }
+      }
+    },
+    "collection_order": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "collection_order": {
+          "type": "boolean",
+          "description": "Flag indicating if a collection order is applied to the account"
+        },
+        "collection_order_date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date when the collection order was applied"
+        }
+      }
+    },
+    "enforcement_override": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enf_override_result_id": {
+          "type": "string",
+          "description": "Result identifier to use for the enforcement override (e.g. result code)"
+        },
+        "enf_override_enforcer_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Identifier of the enforcer used for the enforcement override"
+        },
+        "enf_override_tfo_lja_id": {
+          "type": "integer",
+          "description": "TFO / LJA identifier used for the enforcement override"
+        }
+      }
+    }
   },
-  "required": ["id"]
+  "oneOf": [
+    { "required": ["id", "comment_and_notes"] },
+    { "required": ["id", "enforcement_court"] },
+    { "required": ["id", "collection_order"] },
+    { "required": ["id", "enforcement_override"] }
+  ]
 }

@@ -16,15 +16,15 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import uk.gov.hmcts.opal.dto.CollectionOrderDto;
-import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.AddressDetails.AddressDetailsBuilder;
@@ -71,7 +71,6 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
@@ -83,7 +82,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponseDefendantAccount.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
@@ -405,7 +404,7 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static LanguagePreferences buildLanguagePreferences(Optional<DebtorDetailEntity> debtorDetail) {
+    static LanguagePreferences buildLanguagePreferences(DebtorDetailEntity debtorDetail) {
         return LanguagePreferences.builder()
             .documentLanguagePreference(buildLanguagePreference(debtorDetail, DebtorDetailEntity::getDocumentLanguage))
             .hearingLanguagePreference(buildLanguagePreference(debtorDetail, DebtorDetailEntity::getHearingLanguage))
@@ -430,18 +429,18 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static LanguagePreference buildLanguagePreference(Optional<DebtorDetailEntity> debtorDetail,
+    static LanguagePreference buildLanguagePreference(DebtorDetailEntity debtorDetail,
         Function<DebtorDetailEntity, String> getter) {
-
-        return LanguagePreference.fromCode(debtorDetail.map(getter).orElse(null));
+        String code = debtorDetail == null ? null : getter.apply(debtorDetail);
+        return LanguagePreference.fromCode(code);
     }
 
-    static VehicleDetails buildVehicleDetails(Optional<DebtorDetailEntity> debtorDetail) {
+    static VehicleDetails buildVehicleDetails(DebtorDetailEntity debtorDetail) {
         VehicleDetailsBuilder builder = VehicleDetails.builder();
-        debtorDetail.ifPresent(entity -> {
-            builder.vehicleMakeAndModel(entity.getVehicleMake())
-                .vehicleRegistration(entity.getVehicleRegistration());
-        });
+        if (debtorDetail != null) {
+            builder.vehicleMakeAndModel(debtorDetail.getVehicleMake())
+                .vehicleRegistration(debtorDetail.getVehicleRegistration());
+        }
         return builder.build();
     }
 
@@ -455,32 +454,34 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static EmployerDetails buildEmployerDetails(Optional<DebtorDetailEntity> debtorDetail) {
+    static EmployerDetails buildEmployerDetails(DebtorDetailEntity debtorDetail) {
 
         AddressDetails employerAddress = OpalDefendantAccountBuilders.buildEmployerAddressDetails(debtorDetail);
         EmployerDetailsBuilder builder = EmployerDetails.builder();
 
-        debtorDetail.ifPresent(entity -> {
-            builder.employerName(entity.getEmployerName())
-                .employerReference(entity.getEmployeeReference())
-                .employerEmailAddress(entity.getEmployerEmail())
-                .employerTelephoneNumber(entity.getEmployerTelephone());
-        });
+        if (debtorDetail != null) {
+            builder.employerName(debtorDetail.getEmployerName())
+                .employerReference(debtorDetail.getEmployeeReference())
+                .employerEmailAddress(debtorDetail.getEmployerEmail())
+                .employerTelephoneNumber(debtorDetail.getEmployerTelephone());
+        }
 
         return builder.employerAddress(employerAddress).build();
     }
 
-    static AddressDetails buildEmployerAddressDetails(Optional<DebtorDetailEntity> debtorDetail) {
+    static AddressDetails buildEmployerAddressDetails(DebtorDetailEntity debtorDetail) {
         AddressDetailsBuilder builder = AddressDetails.builder();
 
-        debtorDetail.ifPresentOrElse(entity -> {
-            builder.addressLine1(entity.getEmployerAddressLine1())
-                .addressLine2(entity.getEmployerAddressLine2())
-                .addressLine3(entity.getEmployerAddressLine3())
-                .addressLine4(entity.getEmployerAddressLine4())
-                .addressLine5(entity.getEmployerAddressLine5())
-                .postcode(entity.getEmployerPostcode());
-        }, () -> builder.addressLine1(""));
+        if (debtorDetail != null) {
+            builder.addressLine1(debtorDetail.getEmployerAddressLine1())
+                .addressLine2(debtorDetail.getEmployerAddressLine2())
+                .addressLine3(debtorDetail.getEmployerAddressLine3())
+                .addressLine4(debtorDetail.getEmployerAddressLine4())
+                .addressLine5(debtorDetail.getEmployerAddressLine5())
+                .postcode(debtorDetail.getEmployerPostcode());
+        } else {
+            builder.addressLine1("");
+        }
 
         return builder.build();
     }
@@ -556,17 +557,6 @@ public class OpalDefendantAccountBuilders {
         return v != null ? v : BigDecimal.ZERO;
     }
 
-    static Integer safeInt(Long v) {
-        if (v == null) {
-            return null;
-        }
-        if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE) {
-            // Optional: log a warning here if you want visibility
-            return null; // drop it rather than overflow
-        }
-        return v.intValue();
-    }
-
     static PaymentTermsType.PaymentTermsTypeCode safePaymentTermsTypeCode(String dbValue) {
         if (dbValue == null) {
             return null;
@@ -621,7 +611,7 @@ public class OpalDefendantAccountBuilders {
      */
     static Optional<ParsedAlias> parseAliasRaw(String raw, boolean isOrganisation) {
         String[] parts = Arrays.stream(raw.split("\\|", -1))
-            .map(p -> p == null ? null : p.trim())
+            .map(String::trim)
             .toArray(String[]::new);
 
         try {
@@ -692,12 +682,14 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static Enforcer buildEnforcer(Optional<EnforcerEntity> enforcer) {
-        return enforcer.map(enf -> Enforcer.builder()
-                .enforcerId(enf.getEnforcerId())
-                .enforcerName(enf.getName())
-                .build())
-            .orElse(null);
+    static Enforcer buildEnforcer(EnforcerEntity enforcer) {
+        if (enforcer == null) {
+            return null;
+        }
+        return Enforcer.builder()
+            .enforcerId(enforcer.getEnforcerId())
+            .enforcerName(enforcer.getName())
+            .build();
     }
 
     static EnforcerReferenceCommon buildEnforcer(Enforcer enforcer) {
@@ -708,12 +700,14 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static EnforcementOverrideResult buildEnforcementOverrideResult(Optional<ResultEntity.Lite> entity) {
-        return entity.map(r -> EnforcementOverrideResult.builder()
-                .enforcementOverrideId(r.getResultId())
-                .enforcementOverrideTitle(r.getResultTitle())
-                .build())
-            .orElse(null);
+    static EnforcementOverrideResult buildEnforcementOverrideResult(ResultEntity.Lite entity) {
+        if (entity == null) {
+            return null;
+        }
+        return EnforcementOverrideResult.builder()
+            .enforcementOverrideId(entity.getResultId())
+            .enforcementOverrideTitle(entity.getResultTitle())
+            .build();
     }
 
     static EnforcementOverrideResultReferenceCommon buildEnforcementOverrideResultReferenceCommon(
@@ -745,52 +739,51 @@ public class OpalDefendantAccountBuilders {
     }
 
     static EnforcementStatus buildEnforcementStatus(DefendantAccountEntity defendantEntity,
-        DefendantAccountPartiesEntity defendantParty, Optional<DebtorDetailEntity> debtDetails,
-        Optional<ResultEntity.Lite> recentResult, EnforcementOverride override,
+        DefendantAccountPartiesEntity defendantParty, DebtorDetailEntity debtDetails,
+        ResultEntity.Lite recentResult, EnforcementOverride override,
         EnforcementActionDefendantAccount enfActDefAcc) {
 
-        return EnforcementStatus.builder()
+        return EnforcementStatus.newBuilder()
             .enforcementOverview(buildEnforcementOverview(defendantEntity))
             .enforcementOverride(buildEnforcementOverrideCommon(override))
             .lastEnforcementAction(enfActDefAcc)
-            .nextEnforcementActionData(recentResult.map(ResultEntity::getEnfNextPermittedActions).orElse(null))
+            .nextEnforcementActionData(recentResult != null ? recentResult.getEnfNextPermittedActions() : null)
             .accountStatusReference(buildAccountStatusReferenceCommon(defendantEntity.getAccountStatus()))
             .defendantAccountType(determineAccountType(defendantParty))
-            .employerFlag(Objects.nonNull(debtDetails.map(DebtorDetailEntity::getEmployerName).orElse(null)))
+            .employerFlag(debtDetails != null && debtDetails.getEmployerName() != null)
             .isHmrcCheckEligible(false)  // TODO: See PO-2370
             .version(defendantEntity.getVersion())
             .build();
     }
 
-    static EnforcementActionDefendantAccount buildEnforcementAction(Optional<Lite> recentEnforcement,
-        Optional<EnforcerEntity> recentEnforcer) {
+    static EnforcementActionDefendantAccount buildEnforcementAction(Lite recentEnforcement,
+        EnforcerEntity recentEnforcer) {
+        if (recentEnforcement == null) {
+            return null;
+        }
 
-        return recentEnforcement.map(enforcement -> {
+        ResultEntity.Lite recentResult = recentEnforcement.getResult();
 
-            Optional<ResultEntity.Lite> recentResult = recentEnforcement.map(EnforcementEntity::getResult);
-
-            return EnforcementActionDefendantAccount.builder()
-                .enforcementAction(ResultReferenceCommon.builder()
-                    .resultId(recentEnforcement.get().getResultId())
-                    .resultTitle(recentResult.map(ResultEntity::getResultTitle).orElse(null))
-                    .build())
-                .enforcer(EnforcerReferenceCommon.builder()
-                    .enforcerId(recentEnforcer.map(EnforcerEntity::getEnforcerId).orElse(null))
-                    .enforcerName(recentEnforcer.map(EnforcerEntity::getName).orElse(null))
-                    .build())
-                .dateAdded(recentEnforcement.get().getPostedDate())
-                .reason(recentEnforcement.get().getReason())
-                .warrantNumber(recentEnforcement.get().getWarrantReference())
-                .resultResponses(
-                    buildResultResponses(recentResult.map(ResultEntity::getResultParameters),
-                        ToJsonString.toOptionalJsonNode(enforcement.getResultResponses())))
-                .build();
-
-        }).orElse(null);
+        return EnforcementActionDefendantAccount.builder()
+            .enforcementAction(ResultReferenceCommon.builder()
+                .resultId(recentEnforcement.getResultId())
+                .resultTitle(recentResult != null ? recentResult.getResultTitle() : null)
+                .build())
+            .enforcer(EnforcerReferenceCommon.builder()
+                .enforcerId(recentEnforcer != null ? recentEnforcer.getEnforcerId() : null)
+                .enforcerName(recentEnforcer != null ? recentEnforcer.getName() : null)
+                .build())
+            .dateAdded(recentEnforcement.getPostedDate())
+            .reason(recentEnforcement.getReason())
+            .warrantNumber(recentEnforcement.getWarrantReference())
+            .resultResponses(
+                buildResultResponses(
+                    recentResult != null ? recentResult.getResultParameters() : null,
+                    ToJsonString.toOptionalJsonNode(recentEnforcement.getResultResponses()).orElse(null)))
+            .build();
     }
 
-    static List<ResultResponsesCommon> buildResultResponses(
-        Optional<String> resultParameters, Optional<JsonNode> responses) {
+    static List<ResultResponsesCommon> buildResultResponses(String resultParameters, JsonNode responses) {
 
         return convertStringToStreamOfJsonNodes(resultParameters) // resultParameters is a String of Json
             .map(OpalDefendantAccountBuilders::getNameTextValueAsString) // Just need the 'name' value from each node
@@ -802,9 +795,8 @@ public class OpalDefendantAccountBuilders {
             .toList();
     }
 
-    static Stream<JsonNode> convertStringToStreamOfJsonNodes(Optional<String> json) {
-        return json
-            .flatMap(ToJsonString::toOptionalJsonNode)
+    static Stream<JsonNode> convertStringToStreamOfJsonNodes(String json) {
+        return ToJsonString.toOptionalJsonNode(json)
             .map(JsonNode::spliterator)  // A JsonNode is Iterable
             .map(s -> StreamSupport.stream(s, false))
             .orElse(Stream.empty());
@@ -814,17 +806,19 @@ public class OpalDefendantAccountBuilders {
         return Optional.ofNullable(node.findValue("name")).map(JsonNode::textValue);
     }
 
-    static Optional<String> getTextValueFromJsonNode(Optional<JsonNode> node, String key) {
-        return node.flatMap(r -> Optional.ofNullable(r.findValue(key))).map(JsonNode::asText);
+    static Optional<String> getTextValueFromJsonNode(JsonNode node, String key) {
+        return Optional.ofNullable(node).map(n -> n.findValue(key)).map(JsonNode::asText);
     }
 
-    static LJA buildLja(Optional<LocalJusticeAreaEntity> entity) {
-        return entity.map(lja -> LJA.builder()
-                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
-                .ljaCode(lja.getLjaCode())
-                .ljaName(Optional.ofNullable(lja.getName()).orElse(lja.getLjaCode()))
-                .build())
-            .orElse(null);
+    static LJA buildLja(LocalJusticeAreaEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        return LJA.builder()
+            .ljaId(Optional.ofNullable(entity.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
+            .ljaCode(entity.getLjaCode())
+            .ljaName(Optional.ofNullable(entity.getName()).orElse(entity.getLjaCode()))
+            .build();
     }
 
     static LjaReferenceCommon buildLja(LJA lja) {
@@ -836,13 +830,6 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static CollectionOrderDto buildCollectionOrder(DefendantAccountEntity entity) {
-        return CollectionOrderDto.builder()
-            .collectionOrderFlag(entity.getCollectionOrder())
-            .collectionOrderDate(String.valueOf(entity.getCollectionOrderEffectiveDate()))
-            .build();
-    }
-
     static CollectionOrderCommon buildCollectionOrderCommon(DefendantAccountEntity entity) {
         return CollectionOrderCommon.builder()
             .collectionOrderFlag(entity.getCollectionOrder())
@@ -850,14 +837,33 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static CourtReferenceDto buildCourtReference(CourtEntity.Lite court) {
+    static DefendantAccountResponse.EnforcementCourtResponse buildUpdateEnforcementCourt(CourtEntity.Lite court) {
         return Optional.ofNullable(court)
-            .filter(c -> safeInt(c.getCourtId()) != null)
-            .map(c -> CourtReferenceDto.builder()
-                .courtId(safeInt(c.getCourtId()))
+            .map(c -> DefendantAccountResponse.EnforcementCourtResponse.builder()
+                .enforcingCourtId(c.getCourtId())
                 .courtName(c.getName())
                 .build())
             .orElse(null);
+    }
+
+    static DefendantAccountResponse.CollectionOrderResponse buildUpdateCollectionOrder(DefendantAccountEntity entity) {
+        return DefendantAccountResponse.CollectionOrderResponse.builder()
+            .collectionOrder(entity.getCollectionOrder())
+            .collectionOrderDate(entity.getCollectionOrderEffectiveDate() != null
+                ? entity.getCollectionOrderEffectiveDate().toString()
+                : null)
+            .build();
+    }
+
+    static DefendantAccountResponse.EnforcementOverrideResponse buildUpdateEnforcementOverride(
+        DefendantAccountEntity entity) {
+        return DefendantAccountResponse.EnforcementOverrideResponse.builder()
+            .enforcementOverrideResultId(entity.getEnforcementOverrideResultId())
+            .enforcementOverrideEnforcerId(entity.getEnforcementOverrideEnforcerId() == null
+                ? null : entity.getEnforcementOverrideEnforcerId())
+            .enforcementOverrideTfoLjaId(entity.getEnforcementOverrideTfoLjaId() == null
+                ? null : entity.getEnforcementOverrideTfoLjaId().intValue())
+            .build();
     }
 
     static CourtReferenceCommon buildCourtReferenceCommon(CourtEntity.Lite court) {
@@ -969,29 +975,32 @@ public class OpalDefendantAccountBuilders {
     }
 
 
-    static void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderDto co) {
-        if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {
-            throw new IllegalArgumentException("collection_order_flag and collection_order_date are required");
+    static void applyCollectionOrder(DefendantAccountEntity entity,
+        UpdateDefendantAccountRequest.CollectionOrderRequest co) {
+        if (co.getCollectionOrder() == null) {
+            throw new IllegalArgumentException("collection_order is required");
         }
-        entity.setCollectionOrder(Boolean.TRUE.equals(co.getCollectionOrderFlag()));
-        try {
-            entity.setCollectionOrderEffectiveDate(LocalDate.parse(co.getCollectionOrderDate()));
-        } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException("collection_order_date must be ISO date (yyyy-MM-dd)", ex);
+        entity.setCollectionOrder(co.getCollectionOrder());
+        if (Boolean.TRUE.equals(co.getCollectionOrder()) && co.getCollectionOrderDate() == null) {
+            entity.setCollectionOrderEffectiveDate(LocalDate.now());
+            return;
+        }
+
+        if (co.getCollectionOrderDate() != null) {
+            try {
+                entity.setCollectionOrderEffectiveDate(LocalDate.parse(co.getCollectionOrderDate()));
+            } catch (DateTimeParseException ex) {
+                throw new IllegalArgumentException("collection_order_date must be ISO date (yyyy-MM-dd)", ex);
+            }
         }
     }
 
-    static void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverride override) {
-        if (override.getEnforcementOverrideResult() != null) {
-            entity.setEnforcementOverrideResultId(
-                override.getEnforcementOverrideResult().getEnforcementOverrideId());
-        }
-        if (override.getEnforcer() != null && override.getEnforcer().getEnforcerId() != null) {
-            entity.setEnforcementOverrideEnforcerId(override.getEnforcer().getEnforcerId());
-        }
-        if (override.getLja() != null && override.getLja().getLjaId() != null) {
-            entity.setEnforcementOverrideTfoLjaId(override.getLja().getLjaId().shortValue());
-        }
+    static void applyEnforcementOverride(DefendantAccountEntity entity,
+        UpdateDefendantAccountRequest.EnforcementOverrideRequest override) {
+        entity.setEnforcementOverrideResultId(override.getEnforcementOverrideResultId());
+        entity.setEnforcementOverrideEnforcerId(override.getEnforcementOverrideEnforcerId());
+        entity.setEnforcementOverrideTfoLjaId(override.getEnforcementOverrideTfoLjaId() == null
+            ? null : override.getEnforcementOverrideTfoLjaId().shortValue());
     }
 
     static Long safeParseLong(String s) {
@@ -1171,7 +1180,7 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static record ParsedAlias(
+    record ParsedAlias(
         String aliasId,
         Integer sequenceNumber,
         String forenames,

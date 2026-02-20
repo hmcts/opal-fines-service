@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
 
@@ -31,19 +31,19 @@ class DefendantAccountApiControllerTest {
     @Test
     void testGetDefendantAccountEnforcementStatus_Success() {
         // Arrange
-        EnforcementStatus status = EnforcementStatus.builder()
+        EnforcementStatus status = EnforcementStatus.newBuilder()
             .build();
         when(defendantAccountService.getEnforcementStatus(anyLong(), any()))
             .thenReturn(status);
 
         // Act
-        ResponseEntity<GetEnforcementStatusResponse> response =
+        ResponseEntity<GetEnforcementStatusResponseDefendantAccount> response =
             defendantAccountApiController.getEnforcementStatus(1L, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        GetEnforcementStatusResponse body = response.getBody();
+        GetEnforcementStatusResponseDefendantAccount body = response.getBody();
         assertEquals(status, body);
     }
 

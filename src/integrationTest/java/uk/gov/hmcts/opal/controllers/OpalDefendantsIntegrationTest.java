@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -29,39 +30,50 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.TestContainerConfig;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.AliasEntity;
+import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.repository.AliasRepository;
+import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.OpalDefendantsIntegrationTest02")
-class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
+@SpringBootTest
+@org.junit.jupiter.api.extension.ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {TestContainerConfig.class})
+@Slf4j(topic = "opal.OpalDefendantsIntegrationTest")
+class OpalDefendantsIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";
     static final String DEFENDANT_GLANCE_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
@@ -75,33 +87,32 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     @MockitoBean
     UserStateService userStateService;
 
-    @Autowired
-    JdbcTemplate jdbcTemplate;
-
-    @MockitoSpyBean
-    JsonSchemaValidationService jsonSchemaValidationService;
-
     @MockitoBean
     private UserState userState;
 
     @MockitoBean
     AccessTokenService accessTokenService;
 
-    static String commentAndNotesPayload(String accountComment) {
-        return commentAndNotesPayload(accountComment, null, null, null);
-    }
+    private DefendantAccountRepository defendantAccountRepository;
 
-    static String commentAndNotesPayload(String accountComment, String note1, String note2, String note3) {
+    private AliasRepository aliasRepository;
+
+    private DebtorDetailRepository debtorDetailRepository;
+
+    @MockitoSpyBean
+    JsonSchemaValidationService jsonSchemaValidationService;
+
+    static String commentAndNotesPayload(String accountComment) {
         return """
             {
               "comment_and_notes": {
                 "account_comment": %s,
-                "free_text_note_1": %s,
-                "free_text_note_2": %s,
-                "free_text_note_3": %s
+                "free_text_note_1": null,
+                "free_text_note_2": null,
+                "free_text_note_3": null
               }
             }
-            """.formatted(jsonValue(accountComment), jsonValue(note1), jsonValue(note2), jsonValue(note3));
+            """.formatted(jsonValue(accountComment));
     }
 
     /**
@@ -116,9 +127,12 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    void setupUserState() {
+    void setupUserState(ApplicationContext applicationContext) {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
+        this.defendantAccountRepository = applicationContext.getBean(DefendantAccountRepository.class);
+        this.aliasRepository = applicationContext.getBean(AliasRepository.class);
+        this.debtorDetailRepository = applicationContext.getBean(DebtorDetailRepository.class);
     }
 
     @Test
@@ -129,11 +143,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .thenReturn(UserStateUtil.permissionUser((short)78, FinesPermission.AMEND_PAYMENT_TERMS));
 
         // Pull the current version from DB to satisfy optimistic locking
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            77L
-        );
+        int currentVersion = getCurrentVersion(77L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
@@ -642,7 +652,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/77/defendant-account-parties/77").header("Authorization", "Bearer test-token"));
 
-        log.info("Opal happy path response:\n" + actions.andReturn().getResponse().getContentAsString());
+        log.info("Opal happy path response:\n{}", actions.andReturn().getResponse().getContentAsString());
 
         actions.andExpect(status().isOk()).andExpect(header().string("ETag", matchesPattern("\"\\d+\"")))
             .andExpectAll(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"),
@@ -735,7 +745,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/555/defendant-account-parties/555").header("Authorization", "Bearer test-token"));
 
-        log.info("Organisation response:\n" + actions.andReturn().getResponse().getContentAsString());
+        log.info("Organisation response:\n{}", actions.andReturn().getResponse().getContentAsString());
 
         actions.andExpect(status().isOk())
             .andExpectAll(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"),
@@ -804,7 +814,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     public void opalGetDefendantAccountParty_NullFields() throws Exception {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/88/defendant-account-parties/88").header("Authorization", "Bearer test-token"));
-        log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
+        log.info("Null fields response:\n{}", actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status(
             ).isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
@@ -819,8 +829,6 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));
-
-        String expectedAge = String.valueOf(Period.between(LocalDate.of(1980, 2, 3), LocalDate.now()).getYears());
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an individual. etag header: \n{}", headers);
@@ -854,14 +862,11 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/10004/at-a-glance").header("authorization", "Bearer some_value"));
 
-        String expectedAge = String.valueOf(Period.between(LocalDate.of(1980, 2, 3), LocalDate.now()).getYears());
-
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(
-            ":testGetAtAGlance: Party is an individual (Parent/Guardian). Response body:\n" + ToJsonString.toPrettyJson(
-                body));
+        log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // verify the header contains an ETag value
@@ -875,13 +880,24 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is not present (no test data added as these are optional)
             .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
-        ;
-
         jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
     }
 
     private String expectedAge() {
         return String.valueOf(Period.between(ACCOUNT_77_BIRTH_DATE, LocalDate.now()).getYears());
+    }
+
+    private int getCurrentVersion(long defendantAccountId) {
+        DefendantAccountEntity account = defendantAccountRepository.findByDefendantAccountId(defendantAccountId)
+            .orElseThrow(() -> new AssertionError("Defendant account not found: " + defendantAccountId));
+        assertNotNull(account.getVersion());
+        return account.getVersion().intValue();
+    }
+
+    private List<AliasEntity> findAliasesByPartyId(long partyId) {
+        return aliasRepository.findByParty_PartyId(partyId).stream()
+            .sorted(java.util.Comparator.comparing(AliasEntity::getSequenceNumber))
+            .toList();
     }
 
     @Test
@@ -894,9 +910,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             mockMvc.perform(get(URL_BASE + "/10001/at-a-glance").header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // verify the header contains an ETag value
@@ -921,9 +938,11 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation. \n"
-        + "No language preferences set (as these are optional) \n"
-        + "No account comments or notes set (as these are optional)")
+    @DisplayName("""
+        OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation.
+        No language preferences set (as these are optional)
+        No account comments or notes set (as these are optional)
+        """)
     public void opalGetAtAGlance_Organisation_NoLanguagePrefs() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -932,9 +951,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             mockMvc.perform(get(URL_BASE + "/10002/at-a-glance").header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // verify the header contains an ETag value
@@ -963,9 +983,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // verify the header contains an ETag value
@@ -984,8 +1005,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName(
-        "OPAL: Get Defendant Account At A Glance [@PO-1564] - 401 Unauthorized \n" + "when no auth header provided \n")
+    @DisplayName("""
+        OPAL: Get Defendant Account At A Glance [@PO-1564] - 401 Unauthorized
+        when no auth header provided
+        """)
     void opalGetAtAGlance_missingAuthHeader_returns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized")).when(userStateService)
             .checkForAuthorisedUser(any());
@@ -995,7 +1018,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 403 Forbidden\n" + "No auth header provided \n")
+    @DisplayName("""
+        OPAL: Get Defendant Account At A Glance [@PO-1564] - 403 Forbidden
+        No auth header provided
+        """)
     void opalGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
         doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden")).when(
             userStateService).checkForAuthorisedUser(any());
@@ -1010,9 +1036,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Read the current version to avoid optimistic locking conflicts
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 77L);
+        int currentVersion = getCurrentVersion(77L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
@@ -1089,6 +1113,24 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Unauthorized when missing auth header [@PO-1854]")
+    void patch_unauthorized_whenMissingAuthHeader() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+
+        String body = commentAndNotesPayload("hello");
+
+        mockMvc.perform(
+                patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Forbidden when user lacks permission [@PO-1565]")
     void patch_forbidden_whenUserLacksAccountMaintenance() throws Exception {
         // user without ACCOUNT_MAINTENANCE
@@ -1144,7 +1186,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
                   {
                     "comment_and_notes":{"account_comment":"x"},
-                    "collection_order":{"collection_order_flag":true}
+                    "collection_order":{"collection_order":true}
                   }
                 """)).andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
@@ -1172,9 +1214,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // 🔑 Get the current version number from DB for account 77
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 77L);
+        int currentVersion = getCurrentVersion(77L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -1184,7 +1224,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         String body = """
             {
               "enforcement_court": {
-                "court_id": 100,
+                "enforcing_court_id": 100,
                 "court_name": "Central Magistrates"
               }
             }
@@ -1198,7 +1238,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
         a.andExpect(status().isOk()).andExpect(header().exists("ETag"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.id").value(77))
-            .andExpect(jsonPath("$.enforcement_court.court_id").value(100))
+            .andExpect(jsonPath("$.enforcement_court.enforcing_court_id").value(100))
             .andExpect(jsonPath("$.enforcement_court.court_name").value("Central Magistrates"));
 
         jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
@@ -1211,18 +1251,22 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Use the live version from DB to avoid 409 conflicts
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 77L);
+        int currentVersion = getCurrentVersion(77L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
-        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-              {"collection_order":{"collection_order_flag":true,"collection_order_date":"2025-01-01"}}
-            """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
+        ResultActions call = mockMvc.perform(
+            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
+              {"collection_order":{"collection_order":true,"collection_order_date":"2025-01-01"}}
+            """));
+
+        call.andExpect(status().isOk()).andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.collection_order.collection_order").value(true))
+            .andExpect(jsonPath("$.collection_order.collection_order_date").value("2025-01-01"));
     }
 
     @Test
@@ -1231,9 +1275,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Use the live version from DB to avoid 409 conflicts
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 77L);
+        int currentVersion = getCurrentVersion(77L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -1243,18 +1285,9 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         String body = """
             {
               "enforcement_override": {
-                "enforcement_override_result": {
-                  "enforcement_override_result_id": "FWEC",
-                "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
-                },
-                "enforcer": {
-                  "enforcer_id": 21,
-                  "enforcer_name": "North East Enforcement"
-                },
-                "lja": {
-                  "lja_id": 240,
-                  "lja_name": "Tyne & Wear LJA"
-                }
+                "enf_override_result_id": "FWEC",
+                "enf_override_enforcer_id": 21,
+                "enf_override_tfo_lja_id": 240
               }
             }
             """;
@@ -1266,7 +1299,10 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         log.info("enforcement_override update resp:\n{}", ToJsonString.toPrettyJson(resp));
 
         a.andExpect(status().isOk()).andExpect(header().exists("ETag"))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.enforcement_override.enf_override_result_id").value("FWEC"))
+            .andExpect(jsonPath("$.enforcement_override.enf_override_enforcer_id").value(21))
+            .andExpect(jsonPath("$.enforcement_override.enf_override_tfo_lja_id").value(240));
 
         jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
     }
@@ -1277,9 +1313,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Pull the current version from DB to satisfy optimistic locking
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 77L);
+        int currentVersion = getCurrentVersion(77L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -1462,11 +1496,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Use the known test account we seed below: 20010 in BU=78
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            20010L
-        );
+        int currentVersion = getCurrentVersion(20010L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -1505,11 +1535,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Get current version so we can set If-Match and then assert ETag bumped
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            20010L
-        );
+        int currentVersion = getCurrentVersion(20010L);
 
         String etag = "\"" + currentVersion + "\"";
         HttpHeaders headers = new HttpHeaders();
@@ -1578,11 +1604,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     void put_notFound_whenDapMissing() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            20010L
-        );
+        int currentVersion = getCurrentVersion(20010L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -1621,11 +1643,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            901L
-        );
+        int currentVersion = getCurrentVersion(901L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
@@ -1657,11 +1675,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .thenReturn(allPermissionsUser());
 
         // Get correct version so request passes optimistic locking
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            88L
-        );
+        int currentVersion = getCurrentVersion(88L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
@@ -1763,11 +1777,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .thenReturn("TEST_USER_DISPLAY_NAME");   // <-- REQUIRED FIX
 
         // ---- FIRST CALL ----
-        Integer version1 = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            88L
-        );
+        int version1 = getCurrentVersion(88L);
         log.info("INITIAL VERSION = {}", version1);
 
         HttpHeaders headers1 = new HttpHeaders();
@@ -1784,11 +1794,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         ).andExpect(status().isOk());
 
         // ---- SECOND CALL ----
-        Integer version2 = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            88L
-        );
+        int version2 = getCurrentVersion(88L);
 
         HttpHeaders headers2 = new HttpHeaders();
         headers2.setBearerAuth("some_value");
@@ -1822,9 +1828,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Get current version → ETag
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 22004L);
+        int currentVersion = getCurrentVersion(22004L);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
@@ -1868,31 +1872,29 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
         // Verify DB aliases now: should be two rows, seq 1..2; id 2200401 updated + one new row
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-            "SELECT alias_id, sequence_number, forenames, surname, organisation_name "
-                + "FROM aliases WHERE party_id = ? ORDER BY sequence_number", 22004L);
+        List<AliasEntity> aliases = findAliasesByPartyId(22004L);
 
         // Exactly 2 aliases
-        assertEquals(2, rows.size());
+        assertEquals(2, aliases.size());
 
         // Row 1 (updated)
-        assertEquals(1, ((Number) rows.get(0).get("sequence_number")).intValue());
-        assertEquals(2200401L, ((Number) rows.get(0).get("alias_id")).longValue());
-        assertEquals("Jane", rows.get(0).get("forenames"));
-        assertEquals("Doe", rows.get(0).get("surname"));
-        assertNull(rows.get(0).get("organisation_name"));
+        AliasEntity firstAlias = aliases.getFirst();
+        assertEquals(1, firstAlias.getSequenceNumber());
+        assertEquals(2200401L, firstAlias.getAliasId());
+        assertEquals("Jane", firstAlias.getForenames());
+        assertEquals("Doe", firstAlias.getSurname());
+        assertNull(firstAlias.getOrganisationName());
 
         // Row 2 (newly created, id != 2200401)
-        assertEquals(2, ((Number) rows.get(1).get("sequence_number")).intValue());
-        assertNotNull(rows.get(1).get("alias_id"));
-        assertNotEquals(2200401L, ((Number) rows.get(1).get("alias_id")).longValue());
-        assertEquals("J.", rows.get(1).get("forenames"));
-        assertEquals("Smith", rows.get(1).get("surname"));
-        assertNull(rows.get(1).get("organisation_name"));
+        AliasEntity secondAlias = aliases.get(1);
+        assertEquals(2, secondAlias.getSequenceNumber());
+        assertNotNull(secondAlias.getAliasId());
+        assertNotEquals(2200401L, secondAlias.getAliasId());
+        assertEquals("J.", secondAlias.getForenames());
+        assertEquals("Smith", secondAlias.getSurname());
+        assertNull(secondAlias.getOrganisationName());
 
-        Integer updatedVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 22004L);
+        int updatedVersion = getCurrentVersion(22004L);
 
         assertEquals(currentVersion + 1, updatedVersion);
     }
@@ -1904,10 +1906,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // 1) ETag for If-Match
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
-        assertNotNull(currentVersion);
+        int currentVersion = getCurrentVersion(20010L);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
@@ -1959,44 +1958,38 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
         // 5) Verify DB: only updated (200101) + new remain; 200102 must be gone; order by sequence_number
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-            "SELECT alias_id, sequence_number, organisation_name, surname, forenames "
-                + "FROM aliases WHERE party_id = ? ORDER BY sequence_number ASC", 20010L);
+        List<AliasEntity> aliases = findAliasesByPartyId(20010L);
 
-        assertEquals(2, rows.size(), "Expected exactly 2 aliases after upsert+trim");
+        assertEquals(2, aliases.size(), "Expected exactly 2 aliases after upsert+trim");
 
         // Row #1: updated 200101
         {
-            Map<String, Object> r0 = rows.get(0);
-            assertEquals(2, ((Number) r0.get("sequence_number")).intValue());
-            assertEquals(200101L, ((Number) r0.get("alias_id")).longValue());
-            assertEquals("PutCo Alias One (updated)", r0.get("organisation_name"));
-            assertNull(r0.get("surname"));
-            assertNull(r0.get("forenames"));
+            AliasEntity r0 = aliases.getFirst();
+            assertEquals(2, r0.getSequenceNumber());
+            assertEquals(200101L, r0.getAliasId());
+            assertEquals("PutCo Alias One (updated)", r0.getOrganisationName());
+            assertNull(r0.getSurname());
+            assertNull(r0.getForenames());
         }
 
         // Row #2: new alias (db-generated id, not 200102)
         {
-            Map<String, Object> r1 = rows.get(1);
-            assertEquals(3, ((Number) r1.get("sequence_number")).intValue());
-            Long newId = ((Number) r1.get("alias_id")).longValue();
+            AliasEntity r1 = aliases.get(1);
+            assertEquals(3, r1.getSequenceNumber());
+            Long newId = r1.getAliasId();
             assertNotNull(newId);
             assertNotEquals(200102L, newId, "Omitted alias 200102 must have been deleted");
-            assertEquals("PutCo Alias Three (new)", r1.get("organisation_name"));
-            assertNull(r1.get("surname"));
-            assertNull(r1.get("forenames"));
+            assertEquals("PutCo Alias Three (new)", r1.getOrganisationName());
+            assertNull(r1.getSurname());
+            assertNull(r1.getForenames());
         }
 
         // Safety: verify 200102 deleted
-        Integer stillThere =
-            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM aliases WHERE party_id = ? AND alias_id = 200102",
-                Integer.class, 20010L);
+        boolean stillThere = aliases.stream()
+            .anyMatch(alias -> Long.valueOf(200102L).equals(alias.getAliasId()));
+        assertFalse(stillThere, "Alias 200102 should be trimmed");
 
-        assertEquals(0, stillThere, "Alias 200102 should be trimmed");
-
-        Integer updatedVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
+        int updatedVersion = getCurrentVersion(20010L);
 
         assertEquals(currentVersion + 1, updatedVersion);
     }
@@ -2008,10 +2001,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // 1) ETag for If-Match
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
-        assertNotNull(currentVersion);
+        int currentVersion = getCurrentVersion(20010L);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
@@ -2059,21 +2049,16 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
         // 5) Verify DB: debtor_detail row still exists but key fields cleared (vehicle, employer, language)
-        Map<String, Object> row = jdbcTemplate.queryForMap(
-            "SELECT party_id, vehicle_make, vehicle_registration, employer_name, document_language "
-                + "FROM debtor_detail WHERE party_id = ?",
-            20010L);
-
-        assertEquals(20010L, ((Number) row.get("party_id")).longValue());
-        assertNull(row.get("vehicle_make"), "vehicle_make should be cleared to null");
-        assertNull(row.get("vehicle_registration"), "vehicle_registration should be cleared to null");
-        assertNull(row.get("employer_name"), "employer_name should be cleared to null");
-        assertNull(row.get("document_language"), "document_language should be cleared to null");
+        DebtorDetailEntity debtorDetail = debtorDetailRepository.findByPartyId(20010L).orElse(null);
+        assertNotNull(debtorDetail);
+        assertEquals(20010L, debtorDetail.getPartyId());
+        assertNull(debtorDetail.getVehicleMake(), "vehicle_make should be cleared to null");
+        assertNull(debtorDetail.getVehicleRegistration(), "vehicle_registration should be cleared to null");
+        assertNull(debtorDetail.getEmployerName(), "employer_name should be cleared to null");
+        assertNull(debtorDetail.getDocumentLanguage(), "document_language should be cleared to null");
 
         // Version bump verification
-        Integer updatedVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
+        int updatedVersion = getCurrentVersion(20010L);
         assertEquals(currentVersion + 1, updatedVersion);
     }
 
@@ -2084,10 +2069,7 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // 1) ETag for If-Match
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
-        assertNotNull(currentVersion);
+        int currentVersion = getCurrentVersion(20010L);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
@@ -2140,23 +2122,17 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 .value("Defendant"));
 
         // 5) Verify DB: debtor_detail row updated/inserted with vehicle & employer & document_language
-        Map<String, Object> row = jdbcTemplate.queryForMap(
-            "SELECT party_id, vehicle_make, vehicle_registration, "
-                + "employer_name, employer_address_line_1, employee_reference, employer_telephone, "
-                + "employer_email, document_language FROM debtor_detail WHERE party_id = ?",
-            20010L);
-
-        assertEquals(20010L, ((Number) row.get("party_id")).longValue());
-        assertEquals("VW Golf", row.get("vehicle_make"));
-        assertEquals("PU70ABC", row.get("vehicle_registration"));
-        assertEquals("Put Employer", row.get("employer_name"));
-        assertEquals("1 Employer Way", row.get("employer_address_line_1"));
-        assertEquals("EN", row.get("document_language"));
+        DebtorDetailEntity debtorDetail = debtorDetailRepository.findByPartyId(20010L).orElse(null);
+        assertNotNull(debtorDetail);
+        assertEquals(20010L, debtorDetail.getPartyId());
+        assertEquals("VW Golf", debtorDetail.getVehicleMake());
+        assertEquals("PU70ABC", debtorDetail.getVehicleRegistration());
+        assertEquals("Put Employer", debtorDetail.getEmployerName());
+        assertEquals("1 Employer Way", debtorDetail.getEmployerAddressLine1());
+        assertEquals("EN", debtorDetail.getDocumentLanguage());
 
         // Version bump verification
-        Integer updatedVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
+        int updatedVersion = getCurrentVersion(20010L);
         assertEquals(currentVersion + 1, updatedVersion);
     }
 

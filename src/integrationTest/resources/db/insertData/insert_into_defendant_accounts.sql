@@ -53,11 +53,12 @@ INSERT INTO enforcers (enforcer_id, business_unit_id, enforcer_code, name, warra
 VALUES (21, 78, 21, 'North East Enforcement', NULL, NULL)
 ON CONFLICT (enforcer_id) DO NOTHING;
 
--- Local Justice Area referenced by enf_override_tfo_lja_id = 240
+-- Local Justice Areas referenced by enf_override_tfo_lja_id
 INSERT INTO local_justice_areas
   (local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date)
 VALUES
-  (240, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', NULL, NULL, NULL)
+  (240, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', NULL, NULL, NULL),
+  (241, 'L241', 'Wearside LJA', 'Test LJA Address Line 2', NULL, NULL, NULL)
 ON CONFLICT (local_justice_area_id) DO UPDATE
   SET lja_code = EXCLUDED.lja_code,
       name     = EXCLUDED.name,
