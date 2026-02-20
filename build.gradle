@@ -548,7 +548,7 @@ tasks.named("compileJava") {
 var zephyrBaseArgs = [
         //Main Config
         "process-type=CUCUMBER_JSON_REPORT",
-        "github-repo-base-src-dir=https://github.com/hmcts/opal-frontend/tree/master",
+        "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
         //Jira Config
         "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
         "jira-project-id=33305",
@@ -605,7 +605,7 @@ tasks.register('createJiraTicketsFromCucumberReport', JavaExec) {
   group = "Zephyr Reporting"
   description = "Processes cucumber.json after functional runs"
   def cucumberJson = file("target/cucumber.json")
-  def functionalSrcDir = file("src/functionalTest")
+  def functionalSrcDir = file("src/functionalTest/resources")
 
   inputs.file(cucumberJson)
 
