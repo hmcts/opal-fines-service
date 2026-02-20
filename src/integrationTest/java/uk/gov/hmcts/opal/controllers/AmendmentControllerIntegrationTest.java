@@ -232,7 +232,8 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
                 .orElseThrow(() -> new AssertionError("Court not found: 100")));
             account.setEnforcementOverrideEnforcerId(21L);
             account.setEnforcementOverrideResultId("ABDC");
-            account.setEnforcementOverrideTfoLjaId((short) 101);
+            // Use an LJA seeded by insert_into_defendant_accounts.sql to satisfy FK.
+            account.setEnforcementOverrideTfoLjaId((short) 241);
             defendantAccountRepository.saveAndFlush(account);
 
             amendmentService.auditFinaliseStoredProc(
