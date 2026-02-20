@@ -184,6 +184,7 @@ printservice:
 
 logging:
   level:
+    root: ${ROOT_LOG_LEVEL:INFO}
     opal: ${OPAL_LOG_LEVEL:INFO}
     org:
       hibernate:
@@ -197,7 +198,6 @@ logging:
         orm:
           jdbc:
             bind: INFO
-
 
 
 user:
