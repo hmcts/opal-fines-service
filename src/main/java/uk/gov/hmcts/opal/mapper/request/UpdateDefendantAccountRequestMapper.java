@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.mapper.request;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 import java.time.LocalDate;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
@@ -20,20 +19,17 @@ public interface UpdateDefendantAccountRequestMapper {
      * - API body (UpdateDefendantAccountRequest), and
      * - path/header-derived values (defendantAccountId, businessUnitId, businessUnitUserId, version).
      */
-    @Mappings({
-        // header/path values
-        @Mapping(target = "defendantAccountId",    source = "defendantAccountId"),
-        @Mapping(target = "businessUnitId",        source = "businessUnitId"),
-        @Mapping(target = "businessUnitUserId",    source = "businessUnitUserId"),
-        @Mapping(target = "version",               source = "version"),
-
-        // nested groups from body
-        @Mapping(target = "commentAndNotes",       source = "request.commentsAndNotes"),
-        @Mapping(target = "enforcementCourtId",    source = "request.enforcementCourt.enforcingCourtId",
-            qualifiedByName = "numberToString"),
-        @Mapping(target = "collectionOrder",       source = "request.collectionOrder"),
-        @Mapping(target = "enforcementOverride",   source = "request.enforcementOverride")
-    })
+    // header/path values
+    @Mapping(target = "defendantAccountId",    source = "defendantAccountId")
+    @Mapping(target = "businessUnitId",        source = "businessUnitId")
+    @Mapping(target = "businessUnitUserId",    source = "businessUnitUserId")
+    @Mapping(target = "version",               source = "version")
+    // nested groups from body
+    @Mapping(target = "commentAndNotes",       source = "request.commentsAndNotes")
+    @Mapping(target = "enforcementCourtId",    source = "request.enforcementCourt.enforcingCourtId",
+        qualifiedByName = "numberToString")
+    @Mapping(target = "collectionOrder",       source = "request.collectionOrder")
+    @Mapping(target = "enforcementOverride",   source = "request.enforcementOverride")
     uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest toLegacyUpdateDefendantAccountRequest(
         UpdateDefendantAccountRequest request,
         String defendantAccountId,
@@ -45,19 +41,15 @@ public interface UpdateDefendantAccountRequestMapper {
     /* ----------- Nested type mappings ----------- */
 
     // API CommentsAndNotes -> Legacy CommentsAndNotes
-    @Mappings({
-        @Mapping(target = "accountComment",  source = "accountNotesAccountComments"),
-        @Mapping(target = "freeTextNote1",   source = "accountNotesFreeTextNote1"),
-        @Mapping(target = "freeTextNote2",   source = "accountNotesFreeTextNote2"),
-        @Mapping(target = "freeTextNote3",   source = "accountNotesFreeTextNote3")
-    })
+    @Mapping(target = "accountComment",  source = "accountNotesAccountComments")
+    @Mapping(target = "freeTextNote1",   source = "accountNotesFreeTextNote1")
+    @Mapping(target = "freeTextNote2",   source = "accountNotesFreeTextNote2")
+    @Mapping(target = "freeTextNote3",   source = "accountNotesFreeTextNote3")
     uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes map(CommentsAndNotes src);
 
     // API CollectionOrderRequest -> Legacy CollectionOrder (extend as fields evolve)
-    @Mappings({
-        @Mapping(target = "collectionOrderFlag", source = "collectionOrder"),
-        @Mapping(target = "collectionOrderDate", source = "collectionOrderDate", qualifiedByName = "stringToLocalDate")
-    })
+    @Mapping(target = "collectionOrderFlag", source = "collectionOrder")
+    @Mapping(target = "collectionOrderDate", source = "collectionOrderDate", qualifiedByName = "stringToLocalDate")
     uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder map(
         UpdateDefendantAccountRequest.CollectionOrderRequest src);
 
@@ -77,7 +69,7 @@ public interface UpdateDefendantAccountRequestMapper {
         EnforcerReference enforcer = src.getEnforcementOverrideEnforcerId() == null
             ? null
             : EnforcerReference.builder()
-                .enforcerId(src.getEnforcementOverrideEnforcerId().longValue())
+                .enforcerId(src.getEnforcementOverrideEnforcerId())
                 .enforcerName("")
                 .build();
 

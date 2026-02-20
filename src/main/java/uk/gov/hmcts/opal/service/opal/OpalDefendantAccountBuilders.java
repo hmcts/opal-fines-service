@@ -981,11 +981,9 @@ public class OpalDefendantAccountBuilders {
             throw new IllegalArgumentException("collection_order is required");
         }
         entity.setCollectionOrder(co.getCollectionOrder());
-        if (Boolean.TRUE.equals(co.getCollectionOrder())) {
-            if (co.getCollectionOrderDate() == null) {
-                entity.setCollectionOrderEffectiveDate(LocalDate.now());
-                return;
-            }
+        if (Boolean.TRUE.equals(co.getCollectionOrder()) && co.getCollectionOrderDate() == null) {
+            entity.setCollectionOrderEffectiveDate(LocalDate.now());
+            return;
         }
 
         if (co.getCollectionOrderDate() != null) {
