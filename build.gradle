@@ -548,7 +548,7 @@ tasks.named("compileJava") {
 var zephyrBaseArgs = [
         //Main Config
         "process-type=CUCUMBER_JSON_REPORT",
-        "github-repo-base-src-dir=https://github.com/hmcts/opal-fines-service/tree/master/src/functionalTest",
+        "github-repo-base-src-dir=https://github.com/hmcts/opal-frontend/tree/master",
         //Jira Config
         "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
         "jira-project-id=33305",
