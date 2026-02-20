@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.LegacyDefendantsUtil.getPaymentTermsRequestSampleAsJson;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     static final String URL_BASE = "/defendant-accounts";
     static final String DEFENDANT_PARTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/getDefendantAccountPartyResponse.json";
-    
+
     @MockitoBean
     UserStateService userStateService;
 
@@ -832,5 +833,59 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.comments_and_notes.free_text_note_2").value("Preferred contact: letter.")).andExpect(
                 jsonPath("$.comments_and_notes.free_text_note_3").value("Next review due after three payments."));
 
+    }
+
+    @Test
+    @DisplayName("LEGACY: POST Add Payment Terms - Success")
+    void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        // headers
+        var headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "69");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        var response = mockMvc.perform(
+            post("/defendant-accounts/69/payment-terms")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getPaymentTermsRequestSampleAsJson())
+        );
+
+        response.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(14))
+            .andExpect(jsonPath("$.payment_card_last_requested").value("2026-02-20"))
+            .andExpect(jsonPath("$.last_enforcement").value("NOTICE_SENT"));
+    }
+
+    @Test
+    @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
+    void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        // headers
+        var headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "500");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        var response = mockMvc.perform(
+            post("/defendant-accounts/500/payment-terms")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getPaymentTermsRequestSampleAsJson())
+        );
+
+        response.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.payment_terms").doesNotExist())
+            .andExpect(jsonPath("$.payment_terms.days_in_default").doesNotExist())
+            .andExpect(jsonPath("$.payment_card_last_requested").doesNotExist())
+            .andExpect(jsonPath("$.last_enforcement").doesNotExist());
     }
 }
