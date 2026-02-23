@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
@@ -40,6 +41,13 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             minorCreditorRepository.findAll(spec);
 
         return toResponse(results);
+    }
+
+    @Override
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
+
+        // To do as a part of PO-1914
+        throw new UnsupportedOperationException("Opal endpoint not supported yet.");
     }
 
     @Override
@@ -96,5 +104,4 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .creditorAccounts(accounts.isEmpty() ? null : accounts)
             .build();
     }
-
 }
