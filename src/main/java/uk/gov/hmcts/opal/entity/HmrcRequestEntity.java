@@ -46,7 +46,6 @@ public class HmrcRequestEntity {
     private String uuid;
 
     @Column(name = "requested_date", nullable = false)
-    @Temporal(TemporalType.DATE)
     private LocalDate requestedDate;
 
     @Column(name = "requested_by", nullable = false)
@@ -68,14 +67,12 @@ public class HmrcRequestEntity {
     private String niNumber;
 
     @Column(name = "dob", nullable = false)
-    @Temporal(TemporalType.DATE)
     private LocalDate dob;
 
     @Column(name = "last_enforcement", length = 24)
     private String lastEnforcement;
 
     @Column(name = "response_date")
-    @Temporal(TemporalType.DATE)
     private LocalDate responseDate;
 
     @Column(name = "response_data")

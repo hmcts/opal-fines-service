@@ -47,7 +47,6 @@ public class ChequeEntity {
     private Long chequeNumber;
 
     @Column(name = "issue_date", nullable = false)
-    @Temporal(TemporalType.DATE)
     private LocalDate issueDate;
 
     @Column(name = "creditor_transaction_id")
@@ -63,7 +62,6 @@ public class ChequeEntity {
     private String allocationType;
 
     @Column(name = "reminder_date")
-    @Temporal(TemporalType.DATE)
     private LocalDate reminderDate;
 
     @Column(name = "status", length = 1, nullable = false)

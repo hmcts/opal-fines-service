@@ -47,7 +47,6 @@ public class LogAuditDetailEntity {
     private Long userId;
 
     @Column(name = "log_timestamp", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime logTimestamp;
 

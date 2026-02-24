@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.util;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,10 +19,10 @@ public class HttpUtil {
         """
     { "error": "Not Found", "message": "No resource found at provided URI"}""";
 
-    private static final MultiValueMap<String, String> HEADERS;
+    private static final HttpHeaders HEADERS;
 
     static {
-        HEADERS = new LinkedMultiValueMap<>();
+        HEADERS = new HttpHeaders();
         HEADERS.add("content-type", "application/json");
     }
 

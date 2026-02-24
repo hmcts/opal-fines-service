@@ -47,7 +47,6 @@ public class BacsPaymentEntity {
     private Long bacsNumber;
 
     @Column(name = "issue_date", nullable = false)
-    @Temporal(TemporalType.DATE)
     private LocalDate issueDate;
 
     @Column(name = "creditor_transaction_id")

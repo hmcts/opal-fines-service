@@ -48,7 +48,6 @@ public class CreditorTransactionEntity {
     private Long creditorAccountId;
 
     @Column(name = "posted_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime postedDate;
 
@@ -77,7 +76,6 @@ public class CreditorTransactionEntity {
     private String status;
 
     @Column(name = "status_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime statusDate;
 

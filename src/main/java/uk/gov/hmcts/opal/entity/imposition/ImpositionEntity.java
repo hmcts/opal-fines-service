@@ -50,7 +50,6 @@ public abstract class ImpositionEntity {
     private Long defendantAccountId;
 
     @Column(name = "posted_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime postedDate;
 
@@ -61,7 +60,6 @@ public abstract class ImpositionEntity {
     private String postedByUsername;
 
     @Column(name = "original_posted_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime originalPostedDate;
 
@@ -72,7 +70,6 @@ public abstract class ImpositionEntity {
     private Long imposingCourtId;
 
     @Column(name = "imposed_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime imposedDate;
 

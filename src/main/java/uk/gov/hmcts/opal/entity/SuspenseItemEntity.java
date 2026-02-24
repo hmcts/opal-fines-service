@@ -56,7 +56,6 @@ public class SuspenseItemEntity {
     private String suspenseItemType;
 
     @Column(name = "created_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime createdDate;
 

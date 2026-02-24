@@ -20,5 +20,5 @@ public record ProsecutorReferenceData(
     @JsonProperty("address_line_4") String addressLine4,
     @JsonProperty("address_line_5") String addressLine5,
     @JsonProperty("postcode") String postcode,
-    @JsonProperty("end_date") @Temporal(TemporalType.TIMESTAMP) LocalDateTime endDate) {
+    @JsonProperty("end_date") LocalDateTime endDate) {
 }

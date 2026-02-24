@@ -50,7 +50,6 @@ public class PaymentInEntity {
     private BigDecimal paymentAmount;
 
     @Column(name = "payment_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime paymentDate;
 

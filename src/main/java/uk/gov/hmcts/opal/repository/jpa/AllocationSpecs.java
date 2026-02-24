@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
 
+import org.springframework.data.jpa.domain.DeleteSpecification;
 import uk.gov.hmcts.opal.entity.AllocationEntity;
 import uk.gov.hmcts.opal.entity.AllocationEntity_;
 import uk.gov.hmcts.opal.entity.DefendantTransactionEntity;
@@ -12,12 +13,12 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class AllocationSpecs extends EntitySpecs<AllocationEntity> {
 
-    public static Specification<AllocationEntity> equalsDefendantTransactionAccountId(Long defendantAccountId) {
+    public static DeleteSpecification<AllocationEntity> equalsDefendantTransactionAccountId(Long defendantAccountId) {
         return (root, query, builder) -> DefendantTransactionSpecs.equalsDefendantAccountIdPredicate(
             joinDefendantTransaction(root), builder, defendantAccountId);
     }
 
-    public static Specification<AllocationEntity> equalsImpositionDefendantAccountId(Long defendantAccountId) {
+    public static DeleteSpecification<AllocationEntity> equalsImpositionDefendantAccountId(Long defendantAccountId) {
         return (root, query, builder) -> ImpositionFullSpecs.equalsDefendantAccountIdPredicate(
             joinImposition(root), builder, defendantAccountId);
     }

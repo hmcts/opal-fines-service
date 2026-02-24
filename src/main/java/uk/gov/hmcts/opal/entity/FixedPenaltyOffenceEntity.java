@@ -48,7 +48,6 @@ public class FixedPenaltyOffenceEntity {
     private String noticeNumber;
 
     @Column(name = "issued_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate issuedDate;
 

@@ -91,7 +91,6 @@ public abstract class CreditorAccountEntity {
     private String bankAccountType;
 
     @Column(name = "last_changed_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime lastChangedDate;
 

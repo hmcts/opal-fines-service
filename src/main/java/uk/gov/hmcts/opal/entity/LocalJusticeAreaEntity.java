@@ -60,7 +60,6 @@ public class LocalJusticeAreaEntity extends AddressEntity {
     private String addressLine5;
 
     @Column(name = "end_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime endDate;
 

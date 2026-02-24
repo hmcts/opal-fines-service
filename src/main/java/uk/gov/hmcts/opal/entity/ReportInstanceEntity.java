@@ -50,7 +50,6 @@ public class ReportInstanceEntity {
     private Long auditSequence;
 
     @Column(name = "generated_date", nullable = false)
-    @Temporal(TemporalType.DATE)
     private LocalDate generatedDate;
 
     @Column(name = "generated_by", length = 20, nullable = false)

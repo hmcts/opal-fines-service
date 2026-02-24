@@ -50,7 +50,6 @@ public abstract class EnforcementEntity {
     private Long defendantAccountId;
 
     @Column(name = "posted_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime postedDate;
 
@@ -80,7 +79,6 @@ public abstract class EnforcementEntity {
     private String caseReference;
 
     @Column(name = "hearing_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime hearingDate;
 

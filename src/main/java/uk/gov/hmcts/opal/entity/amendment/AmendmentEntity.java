@@ -51,7 +51,6 @@ public class AmendmentEntity {
 
     @Column(name = "amended_date", nullable = false)
     @JsonProperty("amended_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate amendedDate;
 

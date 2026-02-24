@@ -77,7 +77,6 @@ public class DebtorDetailEntity {
     private String documentLanguage;
 
     @Column(name = "document_language_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate documentLanguageDate;
 
@@ -85,7 +84,6 @@ public class DebtorDetailEntity {
     private String hearingLanguage;
 
     @Column(name = "hearing_language_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate hearingLanguageDate;
 }

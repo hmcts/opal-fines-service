@@ -45,11 +45,9 @@ public class ReportEntryEntity {
     private String reportId;
 
     @Column(name = "entry_timestamp")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime entryTimestamp;
 
     @Column(name = "reported_timestamp")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime reportedTimestamp;
 
     @Column(name = "associated_record_type", length = 30)

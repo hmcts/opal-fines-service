@@ -52,7 +52,6 @@ public class NoteEntity {
     private String noteText;
 
     @Column(name = "posted_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime postedDate;
 

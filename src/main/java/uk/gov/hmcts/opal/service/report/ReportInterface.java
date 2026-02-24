@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.report;
 
-import groovy.io.FileType;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 
 public interface ReportInterface<T extends ReportDataInterface> {

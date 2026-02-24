@@ -56,7 +56,6 @@ public class DocumentInstanceEntity {
     private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "generated_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime generatedDate;
 
@@ -74,7 +73,6 @@ public class DocumentInstanceEntity {
     private DocumentEntityStatus status;
 
     @Column(name = "printed_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime printedDate;
 

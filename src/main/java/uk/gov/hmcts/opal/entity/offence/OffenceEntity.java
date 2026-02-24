@@ -57,12 +57,10 @@ public abstract class OffenceEntity {
     private String offenceTitleCy;
 
     @Column(name = "date_used_from")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime dateUsedFrom;
 
     @Column(name = "date_used_to")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime dateUsedTo;
 

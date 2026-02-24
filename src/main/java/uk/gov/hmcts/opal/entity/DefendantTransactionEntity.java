@@ -46,7 +46,6 @@ public class DefendantTransactionEntity {
     private Long defendantAccountId;
 
     @Column(name = "posted_date", nullable = false)
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate postedDate;
 
@@ -72,7 +71,6 @@ public class DefendantTransactionEntity {
     private String status;
 
     @Column(name = "status_date", nullable = false)
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate statusDate;
 

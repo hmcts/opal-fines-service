@@ -73,6 +73,5 @@ public class ProsecutorEntity {
 
     @Column(name = "end_date")
     @JsonProperty("end_date")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime endDate;
 }

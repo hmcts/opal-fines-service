@@ -54,7 +54,6 @@ public class AccountTransferEntity {
     private DefendantAccountEntity defendantAccount;
 
     @Column(name = "initiated_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime initiatedDate;
 
@@ -62,7 +61,6 @@ public class AccountTransferEntity {
     private String initiatedBy;
 
     @Column(name = "printed_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime printedDate;
 
@@ -79,7 +77,6 @@ public class AccountTransferEntity {
     private String reason;
 
     @Column(name = "reminder_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime reminderDate;
 
