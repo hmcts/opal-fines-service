@@ -24,6 +24,7 @@ Feature: PO-559 get draft account
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
+      | account.originator_type             | TFO                  |
 
     Then The draft account response returns 200
     And the response must include a strong quoted ETag header

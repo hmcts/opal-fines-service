@@ -50,6 +50,9 @@ public class LocalJusticeAreaEntity extends AddressEntity {
     @Column(name = "lja_code", length = 4)
     private String ljaCode;
 
+    @Column(name = "lja_type", length = 50)
+    private String ljaType;
+
     @Column(name = "address_line_4", length = 35)
     private String addressLine4;
 
