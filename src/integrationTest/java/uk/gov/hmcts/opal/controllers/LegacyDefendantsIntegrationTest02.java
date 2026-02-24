@@ -52,7 +52,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     static final String URL_BASE = "/defendant-accounts";
     static final String DEFENDANT_PARTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/getDefendantAccountPartyResponse.json";
-    
+
     @MockitoBean
     UserStateService userStateService;
 
@@ -832,5 +832,113 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.comments_and_notes.free_text_note_2").value("Preferred contact: letter.")).andExpect(
                 jsonPath("$.comments_and_notes.free_text_note_3").value("Next review due after three payments."));
 
+    }
+
+    @Test
+    @DisplayName("LEGACY: POST Add Payment Terms - Success")
+    void addPaymentTerms_Success() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        // headers
+        var headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "69");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        var body = """
+            {
+              "payment_terms": {
+                "days_in_default": 14,
+                "date_days_in_default_imposed": "2026-02-23",
+                "extension": false,
+                "reason_for_extension": null,
+                "payment_terms_type": {
+                  "payment_terms_type_code": "I",
+                  "payment_terms_type_display_name": "Instalments"
+                },
+                "effective_date": "2026-03-01",
+                "instalment_period": {
+                  "instalment_period_code": "M",
+                  "instalment_period_display_name": "Monthly"
+                },
+                "lump_sum_amount": 100.00,
+                "instalment_amount": 25.00,
+                "posted_details": {
+                  "posted_date": "2026-02-23T10:30:00Z",
+                  "posted_by": "SYSTEM",
+                  "posted_by_name": "System User"
+                }
+              },
+              "request_payment_card": false,
+              "generate_payment_terms_change_letter": true
+            }
+            """;
+
+        var response = mockMvc.perform(
+            post("/defendant-accounts/69/payment-terms")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        response.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(14))
+            .andExpect(jsonPath("$.payment_card_last_requested").value("2026-02-20"))
+            .andExpect(jsonPath("$.last_enforcement").value("NOTICE_SENT"));
+    }
+
+    @Test
+    @DisplayName("LEGACY: POST Add Payment Terms - 500 Error")
+    void addPaymentTerms_500Error() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        // headers
+        var headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "500");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        var body = """
+            {
+              "payment_terms": {
+                "days_in_default": 14,
+                "date_days_in_default_imposed": "2026-02-23",
+                "extension": false,
+                "reason_for_extension": null,
+                "payment_terms_type": {
+                  "payment_terms_type_code": "I",
+                  "payment_terms_type_display_name": "Instalments"
+                },
+                "effective_date": "2026-03-01",
+                "instalment_period": {
+                  "instalment_period_code": "M",
+                  "instalment_period_display_name": "Monthly"
+                },
+                "lump_sum_amount": 100.00,
+                "instalment_amount": 25.00,
+                "posted_details": {
+                  "posted_date": "2026-02-23T10:30:00Z",
+                  "posted_by": "SYSTEM",
+                  "posted_by_name": "System User"
+                }
+              },
+              "request_payment_card": false,
+              "generate_payment_terms_change_letter": true
+            }
+            """;
+
+        var response = mockMvc.perform(
+            post("/defendant-accounts/500/payment-terms")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        response.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 }
