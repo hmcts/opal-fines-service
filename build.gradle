@@ -552,7 +552,7 @@ var zephyrBaseArgs = [
         //Jira Config
         "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
         "jira-project-id=33305",
-        "jira-default-user=Ben.Edwards",
+        "jira-default-user=OPAL.Zephyr.automation",
         "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
         "jira-epic-link-custom-field-id=customfield_10008",
         "jira-default-components=opal-fines-service"
