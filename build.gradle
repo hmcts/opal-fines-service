@@ -10,7 +10,7 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.10'
+  id 'org.springframework.boot' version '4.0.3'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '7.2.2.6593'
   id 'uk.gov.hmcts.java' version '0.12.67'
@@ -23,7 +23,7 @@ ext {
   log4JVersion = "2.25.3"
   serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
-  springVersion = "3.5.10"
+  springVersion = "4.0.3"
 }
 
 //Should we fail fast on test failures?
