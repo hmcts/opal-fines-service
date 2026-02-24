@@ -834,6 +834,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
     void addPaymentTerms_Success() throws Exception {
@@ -890,6 +891,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.last_enforcement").value("NOTICE_SENT"));
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - 500 Error")
     void addPaymentTerms_500Error() throws Exception {
