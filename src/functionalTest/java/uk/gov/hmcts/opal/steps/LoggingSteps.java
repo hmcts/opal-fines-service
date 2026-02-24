@@ -196,8 +196,6 @@ public class LoggingSteps extends BaseStepDef {
                         if (altResp.getStatusCode() == 200) {
                             body = altResp.getBody() == null ? "" : altResp.getBody().asString();
                             lastResponseBody = body;
-                        } else {
-                            // keep original status/body for diagnostics
                         }
                     }
 
@@ -345,7 +343,9 @@ public class LoggingSteps extends BaseStepDef {
 
         if (expectedType == null || actualType == null) {
             // If either is null, be conservative and require equality (or null==null)
-            if (!Objects.equals(expectedType, actualType)) return false;
+            if (!Objects.equals(expectedType, actualType)) {
+                return false;
+            }
         } else {
             if (!expectedType.equalsIgnoreCase(actualType)) {
                 return false;
