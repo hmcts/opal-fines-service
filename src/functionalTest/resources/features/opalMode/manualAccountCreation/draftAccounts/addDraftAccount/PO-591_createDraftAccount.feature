@@ -63,9 +63,9 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account_snapshot.submitted_by_name  | opal-test@HMCTS.NET         |
 
     Then the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                       | expected_count |
-      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Defendant          | 1              |
-      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | 1              |
+      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
+      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
     Then I delete the created draft accounts
 
@@ -99,8 +99,8 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
 
     Then the logging service contains these PDPO logs:
       | created_by_id | created_by_type | business_identifier                         | expected_count |
-      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
-      | L077JG        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | 1              |
+      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
+      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | 1              |
 
     Then I delete the created draft accounts
 
