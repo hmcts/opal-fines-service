@@ -124,8 +124,9 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
-            short buId = Short.parseShort(businessUnitId);
+        short buId = Short.parseShort(businessUnitId);
+
+        if (userState.hasBusinessUnitUserWithPermission(buId, FinesPermission.ACCOUNT_MAINTENANCE)) {
 
             String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
                 .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
