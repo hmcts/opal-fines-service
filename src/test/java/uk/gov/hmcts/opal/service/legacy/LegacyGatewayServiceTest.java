@@ -113,7 +113,7 @@ class LegacyGatewayServiceTest {
         String actionType = "testAction";
         String  request = "{}";
 
-        ResponseEntity<String> emptyResponseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        ResponseEntity<String> emptyResponseEntity = new ResponseEntity<>(HttpStatus.OK);
         when(responseSpec.toEntity(String.class)).thenReturn(emptyResponseEntity);
 
         Response<String> response = legacy.postToGateway(actionType, request);

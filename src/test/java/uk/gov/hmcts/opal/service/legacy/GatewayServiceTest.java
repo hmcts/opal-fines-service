@@ -165,7 +165,7 @@ class GatewayServiceTest {
         String actionType = "testAction";
         String request = "{}";
 
-        ResponseEntity<String> emptyResponseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        ResponseEntity<String> emptyResponseEntity = new ResponseEntity<>(HttpStatus.OK);
         when(requestBodySpec.header(any(), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(String.class)).thenReturn(emptyResponseEntity);

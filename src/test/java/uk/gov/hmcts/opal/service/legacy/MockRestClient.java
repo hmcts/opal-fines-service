@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -116,6 +117,11 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
+        public RequestHeadersSpec apiVersion(@Nullable Object version) {
+            return requestHeadersUriSpec;
+        }
+
+        @Override
         public RequestHeadersSpec attribute(String name, Object value) {
             return requestHeadersUriSpec;
         }
@@ -206,6 +212,11 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
+        public RequestBodySpec hint(String key, Object value) {
+            return requestBodyUriSpec;
+        }
+
+        @Override
         public RequestBodySpec accept(MediaType... acceptableMediaTypes) {
             return requestBodyUriSpec;
         }
@@ -242,6 +253,11 @@ public class MockRestClient implements RestClient {
 
         @Override
         public RequestBodySpec headers(Consumer<HttpHeaders> headersConsumer) {
+            return requestBodyUriSpec;
+        }
+
+        @Override
+        public RequestBodySpec apiVersion(@Nullable Object version) {
             return requestBodyUriSpec;
         }
 
@@ -322,7 +338,17 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
+        public <T> T requiredBody(Class<T> bodyType) {
+            return null;
+        }
+
+        @Override
         public <T> T body(ParameterizedTypeReference<T> bodyType) {
+            return null;
+        }
+
+        @Override
+        public <T> T requiredBody(ParameterizedTypeReference<T> bodyType) {
             return null;
         }
 
@@ -338,6 +364,11 @@ public class MockRestClient implements RestClient {
 
         @Override
         public ResponseEntity<Void> toBodilessEntity() {
+            return null;
+        }
+
+        @Override
+        public ResponseSpec hint(String key, Object value) {
             return null;
         }
     }

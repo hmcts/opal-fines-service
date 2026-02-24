@@ -232,7 +232,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleServlet_noResource_false() {
-        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/x");
+        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/x","y");
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleServletExceptions(ex);
         assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
         assertEquals(false, r.getBody().getProperties().get("retriable"));
@@ -426,7 +426,7 @@ class GlobalExceptionHandlerTest {
         UnprocessableException ex = new UnprocessableException("Too many results");
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleUnprocessableException(ex);
 
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, r.getStatusCode());
+        assertEquals(HttpStatus.UNPROCESSABLE_CONTENT, r.getStatusCode());
         ProblemDetail pd = r.getBody();
         assertEquals(false, pd.getProperties().get("retriable"));
         assertEquals("Too many results", pd.getProperties().get("unprocessableReason"));
