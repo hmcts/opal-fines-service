@@ -1,14 +1,16 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion.VersionFlag;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
@@ -28,7 +30,9 @@ public class JsonSchemaValidationService {
 
     private static final String PATH_ROOT = "jsonSchemas";
 
-    private static final Map<String, JsonSchema> schemaCache = HashMap.newHashMap(37);
+    private static final Map<String, Schema> schemaCache = HashMap.newHashMap(37);
+    private static final SchemaRegistry SCHEMA_REGISTRY =
+        SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
 
     public boolean isValid(String body, String jsonSchemaFileName) {
         Set<String> errors = validate(body, jsonSchemaFileName);
@@ -43,13 +47,13 @@ public class JsonSchemaValidationService {
     }
 
     public boolean isValid(JsonNode jsonNode, String jsonSchemaFileName) {
-        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
+        Schema jsonSchema = getJsonSchema(jsonSchemaFileName);
         try {
-            Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode);
+            List<Error> msgs = jsonSchema.validate(jsonNode);
             if (!msgs.isEmpty()) {
                 log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName,
                     msgs.size());
-                for (ValidationMessage msg : msgs) {
+                for (Error msg : msgs) {
                     log.error(":isValid: error: {}", msg.getMessage());
                 }
             }
@@ -78,10 +82,10 @@ public class JsonSchemaValidationService {
     }
 
     public Set<String> validate(String body, String jsonSchemaFileName) {
-        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
+        Schema jsonSchema = getJsonSchema(jsonSchemaFileName);
         try {
-            Set<ValidationMessage> msgs =  jsonSchema.validate(getJsonNodeFromStringContent(body));
-            return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
+            List<Error> msgs =  jsonSchema.validate(getJsonNodeFromStringContent(body));
+            return msgs.stream().map(Error::getMessage).collect(Collectors.toSet());
         } catch (JsonSchemaValidationException jsve) {
             return Set.of(jsve.getMessage());
         }
@@ -90,7 +94,7 @@ public class JsonSchemaValidationService {
     private JsonNode getJsonNodeFromStringContent(String content) {
         try {
             return ToJsonString.getObjectMapper().readTree(content);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             StringBuilder sb = new StringBuilder(e.getMessage().length() + content.length() + 99);
             sb.append(e.getOriginalMessage());
             appendContent(sb, content);
@@ -104,7 +108,7 @@ public class JsonSchemaValidationService {
             .append("\n\"\"\"");
     }
 
-    private JsonSchema getJsonSchema(String schemaFileName) {
+    private Schema getJsonSchema(String schemaFileName) {
         if (schemaFileName.isBlank()) {
             throw new SchemaConfigurationException("A schema filename is required to validate a JSON document.");
         }
@@ -122,12 +126,13 @@ public class JsonSchemaValidationService {
 
         try {
             // Key change: Use URL instead of string content
-            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-            JsonSchema jsonSchema = factory.getSchema(cpr.getURI());
+            SchemaLocation schemaLocation = SchemaLocation.of("classpath:" + filePath);
+            Schema jsonSchema = SCHEMA_REGISTRY.getSchema(schemaLocation);
+
 
             schemaCache.put(schemaFileName, jsonSchema);
             return jsonSchema;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new SchemaConfigurationException(
                 format("Problem reading JSON Schema from '%s'", filePath), e);
         }

@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.util.XmlUtil;
@@ -122,7 +123,7 @@ public class LegacyGatewayService implements GatewayService {
             return postToGateway(actionType, responseType,
                                  ToJsonString.getObjectMapper().writeValueAsString(requestParams), null
             );
-        } catch (JsonProcessingException jpe) {
+        } catch (JacksonException jpe) {
             throw new RuntimeException(jpe);
         }
     }

@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.steps;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import net.serenitybdd.core.Serenity;
@@ -19,6 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

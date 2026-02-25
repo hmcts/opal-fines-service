@@ -1,43 +1,40 @@
 package uk.gov.hmcts.opal.dto;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.Optional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
 public interface ToJsonString {
 
-    ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-        .disable(WRITE_DATES_AS_TIMESTAMPS)
-        .registerModule(new JavaTimeModule());
+    ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    default String toJsonString() throws JsonProcessingException {
+    default String toJsonString() throws JacksonException {
         return OBJECT_MAPPER.writeValueAsString(this);
     }
 
     default String toJson() {
         try {
             return toJsonString();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
 
-    default String toPrettyJsonString() throws JsonProcessingException {
+    default String toPrettyJsonString() throws JacksonException {
         return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this);
     }
 
-    static String toPrettyJsonString(Object original) throws JsonProcessingException {
+    static String toPrettyJsonString(Object original) throws JacksonException {
         return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(original);
     }
 
     default String toPrettyJson() {
         try {
             return toPrettyJsonString();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
@@ -45,7 +42,7 @@ public interface ToJsonString {
     static String toPrettyJson(String json) {
         try {
             return toPrettyJsonString(toJsonNode(json));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
@@ -53,16 +50,16 @@ public interface ToJsonString {
     static String objectToPrettyJson(Object json) {
         try {
             return toPrettyJsonString(json);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
 
-    default JsonNode toJsonNode() throws JsonProcessingException {
+    default JsonNode toJsonNode() throws JacksonException {
         return toJsonNode(this.toJsonString());
     }
 
-    static JsonNode toJsonNode(String json) throws JsonProcessingException {
+    static JsonNode toJsonNode(String json) throws JacksonException {
         return OBJECT_MAPPER.readTree(json);
     }
 
@@ -72,7 +69,7 @@ public interface ToJsonString {
         }
         try {
             return Optional.of(OBJECT_MAPPER.readTree(json));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return Optional.empty();
         }
     }
@@ -84,7 +81,7 @@ public interface ToJsonString {
     static <T> T toClassInstance(String json, Class<T> clss) {
         try {
             return OBJECT_MAPPER.readValue(json, clss);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -811,11 +811,11 @@ public class OpalDefendantAccountBuilders {
     }
 
     static Optional<String> getNameTextValueAsString(JsonNode node) {
-        return Optional.ofNullable(node.findValue("name")).map(JsonNode::textValue);
+        return Optional.ofNullable(node.findValue("name")).map(JsonNode::asString);
     }
 
     static Optional<String> getTextValueFromJsonNode(Optional<JsonNode> node, String key) {
-        return node.flatMap(r -> Optional.ofNullable(r.findValue(key))).map(JsonNode::asText);
+        return node.flatMap(r -> Optional.ofNullable(r.findValue(key))).map(JsonNode::asString);
     }
 
     static LJA buildLja(Optional<LocalJusticeAreaEntity> entity) {

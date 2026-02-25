@@ -7,8 +7,6 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -27,6 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -251,7 +252,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             rootNode.put("approved_date", approvedDate);
 
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException("Error processing JSON in addSnapshotApprovedDate", e);
         }
     }

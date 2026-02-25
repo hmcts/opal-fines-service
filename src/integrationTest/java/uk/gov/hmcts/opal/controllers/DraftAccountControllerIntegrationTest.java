@@ -25,7 +25,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -45,6 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
