@@ -25,8 +25,8 @@ public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
-    @DisplayName("Publish draft account when GOB server error")
-    void testPublishDraftAccountGobServerError() throws Exception {
+    @DisplayName("Publish draft account when GOB server error does not return server error in response")
+    void testPublishDraftAccountGobServerErrorIsNotReturnedInResponse() throws Exception {
 
         long draftAccountId = 3L;
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -41,7 +41,7 @@ public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControl
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
-            .andExpect(content().string(not(containsString("Result FCOST is not valid")))) //the orig error msg
+            .andExpect(content().string(not(containsString("Result FCOST is not valid")))) // =server error msg
             .andExpect(content().string(containsString("An error was encountered during publication of the account")));
     }
 
