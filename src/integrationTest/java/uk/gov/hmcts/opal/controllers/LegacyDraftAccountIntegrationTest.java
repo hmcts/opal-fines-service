@@ -25,7 +25,7 @@ public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
-    @DisplayName("Publish draft account when GOB server error does not return server error in response")
+    @DisplayName("Publish draft account does not return legacy server error in response [@PO-2819]")
     void testPublishDraftAccountGobServerErrorIsNotReturnedInResponse() throws Exception {
 
         long draftAccountId = 3L;
