@@ -44,14 +44,16 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     JsonSchemaValidationService jsonSchemaValidationService;
 
     protected static String validUpdateRequestBody(String businessUnit, String status, String delta) {
-        return "{\n"
-            + "    \"account_status\": \"" + status + "\",\n"
-            + "    \"validated_by\": \"BUUID1" + delta + "\",\n"
-            + "    \"validated_by_name\": \"" + delta + "\",\n"
-            + "    \"business_unit_id\": " + businessUnit + ",\n"
-            + "    \"version\": 0,\n"
-            + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
-            + "}";
+        return """
+            {
+              "account_status": "%2$s",
+              "validated_by": "BUUID1%3$s",
+              "validated_by_name": "%3$s",
+              "business_unit_id": %1$s,
+              "version": 0,
+              "timeline_data": %4$s
+            }
+            """.formatted(businessUnit, status, delta, validTimelineDataJson());
     }
 
     protected static String validTimelineDataJson() {
