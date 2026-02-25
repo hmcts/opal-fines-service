@@ -565,7 +565,7 @@ class OpalDefendantAccountBuildersTest {
             .build();
 
         DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(dto);
+        String json = new tools.jackson.databind.ObjectMapper().writeValueAsString(dto);
 
         assertTrue(json.contains("\"defendant_account_party_id\""));
         assertTrue(json.contains("\"party_details\""));

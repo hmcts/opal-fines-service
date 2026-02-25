@@ -334,7 +334,7 @@ dependencyUpdates {
 
 dependencyManagement {
   imports {
-    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
+    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
   }
 
   imports {
@@ -369,40 +369,40 @@ ext['tomcat.version'] = '10.1.42'
 dependencies {
   compileOnly "org.jspecify:jspecify:1.0.0"
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.5'
-  implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5'
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
+  implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:1.0.0'
+  implementation 'uk.gov.hmcts:opal-common-lib:1.0.0'
 
+
+  openapiImplementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
 
-  implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
-  implementation "org.springframework.boot:spring-boot-starter-webmvc:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-health:${springVersion}"
-  implementation 'org.springframework.boot:spring-boot-starter-data-redis:4.0.3'
-  implementation "org.springframework.boot:spring-boot-starter-actuator:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-aspectj:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-json:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-security:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-security-oauth2-client:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-quartz:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-flyway:${springVersion}"
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
+  implementation "org.springframework.boot:spring-boot-health"
+  implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-aspectj"
+  implementation "org.springframework.boot:spring-boot-starter-json"
+  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-starter-security"
+  implementation "org.springframework.boot:spring-boot-starter-security-oauth2-client"
+  implementation "org.springframework.boot:spring-boot-starter-quartz"
+  implementation "org.springframework.boot:spring-boot-starter-flyway"
   implementation 'org.springframework.boot:spring-boot-starter-cache'
-
   implementation 'org.springframework.boot:spring-boot-starter-integration'
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
-
-  implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.5.5'
-
   implementation 'org.springframework:spring-aspects'
-  implementation 'commons-fileupload:commons-fileupload:1.6.0'
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
+  implementation 'org.springframework.security:spring-security-oauth2-authorization-server'
 
-  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
+
+
+  implementation 'commons-fileupload:commons-fileupload:1.6.0'
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
 
   implementation 'com.github.hmcts.java-logging:logging:7.0.0'
 
@@ -444,19 +444,16 @@ dependencies {
   implementation 'net.sf.saxon:Saxon-HE:12.9'
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
-  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
   testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
+
   testImplementation 'org.testcontainers:postgresql:1.21.4'
-  testImplementation(platform('org.junit:junit-bom:6.0.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-  testImplementation 'org.springframework.boot:spring-boot-starter-test', {
-    exclude group: 'junit', module: 'junit'
-    exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-  }
-  testImplementation 'org.junit.platform:junit-platform-suite:6.0.2'
   testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
@@ -473,8 +470,9 @@ dependencies {
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.18'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.18'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
-  //TO be removd
+  //TO be removed
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
+  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
 application {

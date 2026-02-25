@@ -31,7 +31,6 @@ import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
-import uk.gov.hmcts.opal.util.LogUtil;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountPublishTest {

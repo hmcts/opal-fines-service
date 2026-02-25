@@ -230,9 +230,9 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         Specification<ImpositionEntity.Lite> impositionSpec = ImpositionSpecs
-            .equalsCreditorAccountId(creditorAccountId);
+            .equalsCreditorAccountIdSearch(creditorAccountId);
         Specification<CreditorTransactionEntity> creditorTransSpec = CreditorTransactionSpecs
-            .equalsCreditorAccountId(creditorAccountId);
+            .equalsCreditorAccountIdSearch(creditorAccountId);
 
         // Check the number of rows in the DB before we Act.
         List<ImpositionEntity.Lite> impositions = impositionRepository.findAll(impositionSpec);

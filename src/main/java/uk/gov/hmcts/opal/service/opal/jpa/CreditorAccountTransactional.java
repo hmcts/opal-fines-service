@@ -62,13 +62,13 @@ public class CreditorAccountTransactional implements CreditorAccountTransactiona
         if (creditorAcc.getCreditorAccountType().isMinorCreditor()) {
             log.debug(":deleteMinorCreditorAccountAndRelatedData: minor creditor account id: {}", creditorAccId);
             Long deleted = creditorTransactionRepository
-                .delete(CreditorTransactionSpecs.equalsCreditorAccountId(creditorAccId));
+                .delete(CreditorTransactionSpecs.equalsCreditorAccountIdDelete(creditorAccId));
             log.debug(
                 ":deleteCreditorAccountAndRelatedData:  deleted: {} creditor transactions for credit account id: {}",
                 deleted, creditorAccId
             );
 
-            impositionRepository.delete(ImpositionSpecs.equalsCreditorAccountId(creditorAccId));
+            impositionRepository.delete(ImpositionSpecs.equalsCreditorAccountIdDeletionSpec(creditorAccId));
             creditorAccountRepository.delete(creditorAcc);
 
             // A creditor account for a minor creditor will have an associated party that only exists within

@@ -26,7 +26,6 @@ import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
-import uk.gov.hmcts.opal.util.LogUtil;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountPdplLoggingServiceTest {

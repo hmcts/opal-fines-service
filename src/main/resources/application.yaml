@@ -24,9 +24,6 @@ spring:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
     name: Opal Fines Service
-  jackson:
-    serialization:
-      write_dates_as_timestamps: false
   security:
     oauth2:
       client:
@@ -140,6 +137,8 @@ quartzProperties:
       threadCount: 8
 
 opal:
+  common:
+    domain: fines
   redis:
     enabled: ${OPAL_REDIS_ENABLED:false}
     ttl-hours: ${OPAL_REDIS_TTL_HOURS:8}
