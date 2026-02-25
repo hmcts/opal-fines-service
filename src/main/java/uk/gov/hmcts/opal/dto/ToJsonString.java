@@ -5,8 +5,6 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
-
 public interface ToJsonString {
 
     ObjectMapper OBJECT_MAPPER = new ObjectMapper();

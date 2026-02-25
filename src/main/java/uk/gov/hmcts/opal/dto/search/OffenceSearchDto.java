@@ -1,14 +1,18 @@
 package uk.gov.hmcts.opal.dto.search;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.time.OffsetDateTime;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class OffenceSearchDto implements ToJsonString {
 
     @JsonProperty("offence_id")
