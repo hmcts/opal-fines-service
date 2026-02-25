@@ -23,7 +23,23 @@ def component = "fines-service"
 
 GradleBuilder builder = new GradleBuilder(this, product)
 
+def secrets = [
+    'opal-${env}': [
+        secret('jiraAuthToken', 'JIRA_AUTH_TOKEN'),
+    ],
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
+}
+
 withNightlyPipeline(type, product, component) {
+  loadVaultSecrets(secrets)
   env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
   env.OPAL_USER_SERVICE_API_URL = "https://opal-user-service.staging.platform.hmcts.net"
   env.OPAL_LOGGING_SERVICE_API_URL = "https://opal-logging-service.staging.platform.hmcts.net"
@@ -45,7 +61,12 @@ withNightlyPipeline(type, product, component) {
     if (params.Functional) {
       stage('Functional Tests') {
         try {
-          builder.gradle('Functional')
+            def today = ZonedDateTime.now().getDayOfWeek()
+            if (today == DayOfWeek.FRIDAY) {
+                builder.gradle('functionalWithZephyrExecution')
+            } else {
+                builder.gradle('functional')
+            }
         } catch (Error) {
           steps.echo "Functional tests failed, but continuing with the pipeline. Error: " + Error.message
         } finally {
