@@ -121,6 +121,16 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     @Override
     @Transactional
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+        Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
+        String postedBy, String businessUserId) {
+
+    }
+
+
+
+        @Override
+    @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
         String postedBy, String businessUserId) {

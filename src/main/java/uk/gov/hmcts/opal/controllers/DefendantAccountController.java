@@ -207,6 +207,30 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
+    @PostMapping(value = "/{defendantAccountId}/defendant-account-parties")
+    public ResponseEntity<GetDefendantAccountPartyResponse> addDefendantAccountParty(
+        @PathVariable Long defendantAccountId,
+        @PathVariable Long defendantAccountPartyId,
+        @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestBody DefendantAccountParty request
+    ) {
+
+        log.debug(
+            ":POST:addDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
+            defendantAccountId, defendantAccountPartyId
+        );
+
+        return buildResponse(
+            defendantAccountPartyService.addDefendantAccountParty(
+                defendantAccountId,
+                defendantAccountPartyId, authHeaderValue, ifMatch, businessUnitId, request
+            ));
+    }
+
+
+
     @PutMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<GetDefendantAccountPartyResponse> replaceDefendantAccountParty(
