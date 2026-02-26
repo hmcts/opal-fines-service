@@ -39,6 +39,32 @@ public class DefendantAccountPartyService {
         }
     }
 
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+        Long defendantAccountId, Long defendantAccountPartyId, String authHeaderValue, String ifMatch,
+        String businessUnitId, DefendantAccountParty request) {
+
+        log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        short buId = Short.parseShort(businessUnitId);
+
+        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        if (userState.hasBusinessUnitUserWithPermission(buId,
+                                                        FinesPermission.ACCOUNT_MAINTENANCE)) {
+            return defendantAccountPartyServiceProxy.addDefendantAccountParty(defendantAccountId,
+                                                                                  defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
+                                                                                  getBusinessUnitUserIdForBusinessUnit(userState, buId));
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+    }
+
+
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long defendantAccountId, Long defendantAccountPartyId, String authHeaderValue, String ifMatch,
         String businessUnitId, DefendantAccountParty request) {

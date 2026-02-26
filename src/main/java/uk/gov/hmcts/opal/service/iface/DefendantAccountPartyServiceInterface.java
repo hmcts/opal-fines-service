@@ -7,6 +7,14 @@ public interface DefendantAccountPartyServiceInterface {
 
     GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId, Long defendantAccountPartyId);
 
+    GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
+                                                                  Long defendantAccountPartyId,
+                                                                  DefendantAccountParty defendantAccountParty,
+                                                                  String ifMatch,
+                                                                  String businessUnitId,
+                                                                  String postedBy,
+                                                                  String businessUserId);
+
     GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
                                            Long defendantAccountPartyId,
                                            DefendantAccountParty defendantAccountParty,
