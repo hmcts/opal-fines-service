@@ -41,8 +41,6 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
