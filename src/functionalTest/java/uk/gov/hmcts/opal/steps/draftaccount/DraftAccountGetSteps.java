@@ -16,6 +16,9 @@ import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
+import net.serenitybdd.core.Serenity;
+import static org.junit.jupiter.api.Assertions.fail;
+import io.restassured.response.Response;
 
 public class DraftAccountGetSteps extends BaseStepDef {
     @When("I get the draft account {string}")
@@ -61,7 +64,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             "There should be only one draft account but found multiple: "
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -79,7 +82,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             "There should be only one draft account but found multiple: "
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -95,6 +98,32 @@ public class DraftAccountGetSteps extends BaseStepDef {
             String actual = then().extract().body().jsonPath().getString(key);
             assertEquals(expected, actual, "Values are not equal for field '" + key + "'");
         }
+    }
+
+    @When("I get the single created draft account")
+    public void iGetTheSingleCreatedDraftAccount() {
+        Object idObj = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
+        String draftId = idObj == null ? null : String.valueOf(idObj);
+
+        if (draftId == null || draftId.isBlank() || "null".equalsIgnoreCase(draftId)) {
+            String msg = "CREATED_DRAFT_ACCOUNT_ID is missing or null BEFORE GET. "
+                + "Check create step stored it and that subsequent steps didn't clear it.";
+            fail(msg);
+        }
+
+        // pick up bearer token if set in session
+        Object tokenObj = Serenity.sessionVariableCalled("BEARER_TOKEN");
+        String token = tokenObj == null ? null : String.valueOf(tokenObj);
+
+        var given = SerenityRest.given().contentType("application/json");
+        if (token != null && !token.isBlank()) {
+            given.header("Authorization", "Bearer " + token);
+        }
+
+        String base = System.getenv().getOrDefault("OPAL_BASE_URL", "http://localhost:4550");
+        Response resp = given.when().get(base + "/draft-accounts/" + draftId);
+
+        Serenity.setSessionVariable("LATEST_RESPONSE").to(resp);
     }
 
     @When("I get the draft accounts filtering on the Business unit {string} then the response contains")

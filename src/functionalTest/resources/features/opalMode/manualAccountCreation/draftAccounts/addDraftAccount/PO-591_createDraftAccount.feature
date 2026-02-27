@@ -31,8 +31,8 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account.originator_type             | TFO                  |
 
     Then the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                         | expected_count |
-      | L073JG        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
+      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
+      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
 
     Then I delete the created draft accounts
 
@@ -99,9 +99,9 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
 
 
     Then the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                         | expected_count |
-      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | 1              |
-      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | 1              |
+      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
     Then I delete the created draft accounts
 

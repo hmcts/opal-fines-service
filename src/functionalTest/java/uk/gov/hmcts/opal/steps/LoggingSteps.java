@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
 import io.restassured.response.Response;
@@ -50,7 +51,10 @@ public class LoggingSteps extends BaseStepDef {
         Map.entry("Update Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
         Map.entry("Re-submit Draft Account - Defendant", "DRAFT_ACCOUNT"),
         Map.entry("Re-submit Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
-        Map.entry("Re-submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT")
+        Map.entry("Re-submit Draft Account - Minor Creditor", "DRAFT_ACCOUNT"),
+        Map.entry("Get Draft Account - Defendant", "DRAFT_ACCOUNT"),
+        Map.entry("Get Draft Account - Parent or Guardian", "DRAFT_ACCOUNT"),
+        Map.entry("Get Draft Account - Minor Creditor", "DRAFT_ACCOUNT")
     );
 
     @Then("the logging service contains these PDPO logs:")
@@ -67,6 +71,11 @@ public class LoggingSteps extends BaseStepDef {
             .collect(Collectors.toList());
 
         pollForExpectations(expectations);
+    }
+
+    @When("I set an invalid token manually")
+    public void setInvalidTokenManually() {
+        Serenity.setSessionVariable("BEARER_TOKEN").to("invalid-token");
     }
 
     @Then("no PDPO logs exist for created_by id {string}, type {string} and business_identifier {string}")
@@ -288,10 +297,19 @@ public class LoggingSteps extends BaseStepDef {
         fail(err);
     }
 
-    // Validate a matched record's shape and semantics (created_at check intentionally omitted)
+    // Validate a matched record's shape and semantics
     private void validateRecord(JsonNode rec, String businessIdentifier) {
-        // category must be Collection
-        assertEquals("Collection", rec.path("category").asText(null), "category must be Collection");
+
+        final Map<String, String> BUSINESS_TO_CATEGORY = Map.ofEntries(
+            Map.entry("Get Draft Account - Defendant", "Consultation"),
+            Map.entry("Get Draft Account - Parent or Guardian", "Consultation"),
+            Map.entry("Get Draft Account - Minor Creditor", "Consultation")
+            // other mappings can be added here as needed
+        );
+
+        String expectedCategory = BUSINESS_TO_CATEGORY.getOrDefault(businessIdentifier, "Collection");
+        // category must match expected
+        assertEquals(expectedCategory, rec.path("category").asText(null),"category must be " + expectedCategory);
 
         // recipient must be null or missing
         assertTrue(rec.path("recipient").isMissingNode() || rec.path("recipient").isNull(),

@@ -6,6 +6,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
+import net.serenitybdd.core.Serenity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -89,7 +90,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
             // No JSON or no field; fall through to Location
         }
 
-        // 2) Fallback to Location header’s last path segment
+        // Fallback to Location header’s last path segment
         if (id == null || id.isBlank()) {
             String location = resp.getHeader("Location");
             if (location != null && !location.isBlank()) {
@@ -97,15 +98,26 @@ public class DraftAccountPostSteps extends BaseStepDef {
             }
         }
 
-        // 3) Fail fast if still missing to avoid /null deletes later
+        // Fail fast if still missing to avoid /null deletes later
         assertThat(
             "Create must include draft_account_id in body or a Location header with the ID",
             id,
             not(blankOrNullString())
         );
 
+        // preserve existing behaviour (if you still need DraftAccountUtils)
         DraftAccountUtils.addDraftAccountId(id);
-        log.info("Stored draft account id={}", id);
+
+        // store in Serenity session so other steps can read it
+        Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to(id);
+
+
+        Object saved = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
+        if (saved == null) {
+            throw new RuntimeException("Failed to store CREATED_DRAFT_ACCOUNT_ID into Serenity session after create. Response body: " + resp.asString());
+        }
+
+        log.info("Stored draft account id={} into Serenity session (CREATED_DRAFT_ACCOUNT_ID={})", id, saved);
     }
 
     @Then("I store the created draft account created_at time")
