@@ -62,7 +62,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(businessUnitId)
                 .businessUnitUserId(businessUnitUserId)
-                .version(Integer.parseInt(VersionUtils.cleanVersion(ifMatch)))
+                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
