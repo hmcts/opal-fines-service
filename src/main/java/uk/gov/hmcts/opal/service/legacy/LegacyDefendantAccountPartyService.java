@@ -275,7 +275,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(Long.parseLong(VersionUtils.cleanVersion(ifMatch)))
+            .version(VersionUtils.extractBigInteger(ifMatch).longValue())
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)

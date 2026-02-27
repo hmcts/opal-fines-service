@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.LegacyDefendantsUtil.getPaymentTermsRequestSampleAsJson;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
@@ -834,7 +835,6 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
     void addPaymentTerms_Success() throws Exception {
@@ -847,40 +847,11 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         headers.add("Business-Unit-Id", "69");
         headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
 
-        var body = """
-            {
-              "payment_terms": {
-                "days_in_default": 14,
-                "date_days_in_default_imposed": "2026-02-23",
-                "extension": false,
-                "reason_for_extension": null,
-                "payment_terms_type": {
-                  "payment_terms_type_code": "I",
-                  "payment_terms_type_display_name": "Instalments"
-                },
-                "effective_date": "2026-03-01",
-                "instalment_period": {
-                  "instalment_period_code": "M",
-                  "instalment_period_display_name": "Monthly"
-                },
-                "lump_sum_amount": 100.00,
-                "instalment_amount": 25.00,
-                "posted_details": {
-                  "posted_date": "2026-02-23T10:30:00Z",
-                  "posted_by": "SYSTEM",
-                  "posted_by_name": "System User"
-                }
-              },
-              "request_payment_card": false,
-              "generate_payment_terms_change_letter": true
-            }
-            """;
-
         var response = mockMvc.perform(
             post("/defendant-accounts/69/payment-terms")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
+                .content(getPaymentTermsRequestSampleAsJson())
         );
 
         response.andExpect(status().isOk())
@@ -891,7 +862,6 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.last_enforcement").value("NOTICE_SENT"));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - 500 Error")
     void addPaymentTerms_500Error() throws Exception {
@@ -904,40 +874,11 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         headers.add("Business-Unit-Id", "500");
         headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
 
-        var body = """
-            {
-              "payment_terms": {
-                "days_in_default": 14,
-                "date_days_in_default_imposed": "2026-02-23",
-                "extension": false,
-                "reason_for_extension": null,
-                "payment_terms_type": {
-                  "payment_terms_type_code": "I",
-                  "payment_terms_type_display_name": "Instalments"
-                },
-                "effective_date": "2026-03-01",
-                "instalment_period": {
-                  "instalment_period_code": "M",
-                  "instalment_period_display_name": "Monthly"
-                },
-                "lump_sum_amount": 100.00,
-                "instalment_amount": 25.00,
-                "posted_details": {
-                  "posted_date": "2026-02-23T10:30:00Z",
-                  "posted_by": "SYSTEM",
-                  "posted_by_name": "System User"
-                }
-              },
-              "request_payment_card": false,
-              "generate_payment_terms_change_letter": true
-            }
-            """;
-
         var response = mockMvc.perform(
             post("/defendant-accounts/500/payment-terms")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
+                .content(getPaymentTermsRequestSampleAsJson())
         );
 
         response.andExpect(status().is5xxServerError())

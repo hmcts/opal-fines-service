@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AddDefendantAccountPaymentTermsLegacyRequest {
+public class AddPaymentTermsLegacyRequest {
 
     @JsonProperty("defendant_account_id")
     @NotBlank
