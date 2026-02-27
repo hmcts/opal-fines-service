@@ -10,12 +10,12 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.10'
+  id 'org.springframework.boot' version '3.5.11'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '7.2.2.6593'
   id 'uk.gov.hmcts.java' version '0.12.67'
   id 'org.flywaydb.flyway' version '11.20.3'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.2.2'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.2'
   id "org.openapi.generator" version "7.19.0"
 }
 
@@ -23,7 +23,7 @@ ext {
   log4JVersion = "2.25.3"
   serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
-  springVersion = "3.5.10"
+  springVersion = "3.5.11"
 }
 
 //Should we fail fast on test failures?
@@ -371,8 +371,8 @@ dependencies {
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.5'
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
@@ -408,10 +408,10 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
   implementation 'com.google.guava:guava:33.5.0-jre'
 
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.11.0'
+  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.12.0'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
-  implementation 'com.jayway.jsonpath:json-path:2.10.0'
+  implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.9'
   implementation 'io.rest-assured:rest-assured'
@@ -453,13 +453,13 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
   testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:6.0.2'))
+  testImplementation(platform('org.junit:junit-bom:6.0.3'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.springframework.boot:spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:6.0.2'
+  testImplementation 'org.junit.platform:junit-platform-suite:6.0.3'
   testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
