@@ -75,6 +75,7 @@ Feature: PO-559 get draft account
 
   @PO-2360 @cleanUpData
   Scenario: Invalid token is blocked and no PDPO logs emitted
+    Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
