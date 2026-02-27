@@ -15,7 +15,7 @@ plugins {
   id 'org.sonarqube' version '7.2.2.6593'
   id 'uk.gov.hmcts.java' version '0.12.67'
   id 'org.flywaydb.flyway' version '11.20.3'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.2.2'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.2'
   id "org.openapi.generator" version "7.19.0"
 }
 
@@ -371,7 +371,7 @@ dependencies {
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.5'
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
@@ -408,10 +408,10 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
   implementation 'com.google.guava:guava:33.5.0-jre'
 
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.11.0'
+  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.12.0'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
-  implementation 'com.jayway.jsonpath:json-path:2.10.0'
+  implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.9'
   implementation 'io.rest-assured:rest-assured'
