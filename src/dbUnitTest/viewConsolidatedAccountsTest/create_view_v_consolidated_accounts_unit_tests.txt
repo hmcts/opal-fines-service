@@ -1,0 +1,17 @@
+Timing is on.
+psql:create_view_v_consolidated_accounts_unit_tests.sql:38: NOTICE:  === Cleanup data before tests ===
+psql:create_view_v_consolidated_accounts_unit_tests.sql:38: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 20.016 ms
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  === Setting up test data for v_consolidated_accounts tests ===
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  === Setting up test data for v_consolidated_accounts tests complete ===
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  --- Running test scenario 1 ---
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  --- Running test scenario 2 ---
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  --- Running test scenario 3 ---
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  --- Running test scenario 4 ---
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  --- Running test scenario 5 ---
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  --- Running test scenario 6 ---
+psql:create_view_v_consolidated_accounts_unit_tests.sql:524: NOTICE:  === All tests completed and passed for v_consolidated_accounts view ===
+DO
+Time: 7.152 ms
+Timing is off.
