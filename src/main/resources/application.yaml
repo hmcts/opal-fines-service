@@ -15,6 +15,11 @@ management:
       exposure:
         include: health, info, prometheus
 
+version:
+  default: "1.0"
+  header-name: "API-Version"
+  require-header: true
+
 springdoc:
   packagesToScan: uk.gov.hmcts.opal.controllers,uk.gov.hmcts.opal.authentication.controller
   writer-with-order-by-keys: true

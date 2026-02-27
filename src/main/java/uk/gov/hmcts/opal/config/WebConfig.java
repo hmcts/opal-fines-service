@@ -19,4 +19,5 @@ public class WebConfig implements WebMvcConfigurer {
     public void addFormatters(FormatterRegistry registry) {
         ApplicationConversionService.configure(registry);
     }
+
 }

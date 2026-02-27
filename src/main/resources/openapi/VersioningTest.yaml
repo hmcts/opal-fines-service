@@ -1,0 +1,118 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Versioning Test
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /versioning-test:
+    get:
+      tags:
+        - Versioning Test
+      summary: Test Versioning of OpenAPI endpoints
+      description: For testing purposes
+      operationId: getVersionedEndpoints
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
+        - in: header
+          name: Api-Version
+          required: true
+          schema:
+            default: "1.0"
+            type: string
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/TestSchemaResponseV1"
+                    x-opal-version: "1.0"
+                  - $ref: "#/components/schemas/TestSchemaResponseV2"
+                    x-opal-version: "2.0"
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+components:
+  schemas:
+    TestSchemaRequestV1:
+      title: Get Enforcement Status Response V1
+      type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: string
+          enum: [ ENFORCEMENT_STATUS ]
+    TestSchemaRequestV2:
+      title: Get Enforcement Status Response V2
+      type: object
+      additionalProperties: false
+      properties:
+        orange:
+          type: string
+          enum: [ ENFORCEMENT_STATUS ]
+
+    TestSchemaResponseV1:
+      title: Get Enforcement Status Response V1
+      type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: string
+          enum: [ ENFORCEMENT_STATUS ]
+        party_details:
+          $ref: './common.yaml#/components/schemas/partyDetails'
+
+    TestSchemaResponseV2:
+      title: Get Enforcement Status Response V2
+      type: object
+      additionalProperties: false
+      properties:
+        orange:
+          type: string
+          enum: [ ENFORCEMENT_STATUS ]
+        party_details:
+          $ref: './common.yaml#/components/schemas/partyDetails'

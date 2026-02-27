@@ -25,6 +25,7 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
+import uk.gov.hmcts.opal.versioning.ApiVersion;
 
 @RestController
 @RequestMapping("/minor-creditor-accounts")
@@ -96,6 +97,55 @@ public class MinorCreditorController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getMinorCreditorAccountHeaderSummary: minorCreditorId: {}", minorCreditorId);
+        System.out.println("DEFAULT VERSION");
+
+        GetMinorCreditorAccountHeaderSummaryResponse response =
+            minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId, authHeaderValue);
+
+        return buildResponse(response);
+    }
+
+    @ApiVersion("1.1")
+    @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Gets Minor Creditor account header summary for the given minorCreditorId")
+    public ResponseEntity<GetMinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary_1_1(
+        @PathVariable Long minorCreditorId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:getMinorCreditorAccountHeaderSummary_1.1: minorCreditorId: {}", minorCreditorId);
+        System.out.println("VERSION 1.1");
+
+        GetMinorCreditorAccountHeaderSummaryResponse response =
+            minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId, authHeaderValue);
+
+        return buildResponse(response);
+    }
+
+    @ApiVersion("1.2-1.4")
+    @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Gets Minor Creditor account header summary for the given minorCreditorId")
+    public ResponseEntity<GetMinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary_1_2_1_4(
+        @PathVariable Long minorCreditorId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:getMinorCreditorAccountHeaderSummary_1.2-1.4: minorCreditorId: {}", minorCreditorId);
+        System.out.println("VERSION 1.2-1.4");
+
+        GetMinorCreditorAccountHeaderSummaryResponse response =
+            minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId, authHeaderValue);
+
+        return buildResponse(response);
+    }
+
+    @ApiVersion("1.5+")
+    @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Gets Minor Creditor account header summary for the given minorCreditorId")
+    public ResponseEntity<GetMinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary_1_5_plus(
+        @PathVariable Long minorCreditorId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:getMinorCreditorAccountHeaderSummary_1.5+: minorCreditorId: {}", minorCreditorId);
+        System.out.println("VERSION 1.5+");
 
         GetMinorCreditorAccountHeaderSummaryResponse response =
             minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId, authHeaderValue);

@@ -7,7 +7,7 @@ package {{package}};
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 import java.util.Optional;
-
+import uk.gov.hmcts.opal.generated.model.*;
 {{#imports}}import {{import}};
 {{/imports}}
 {{#swagger2AnnotationLibrary}}
@@ -86,6 +86,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 {{/returnSuccessCode}}
 import {{javaxPackage}}.annotation.Generated;
+import uk.gov.hmcts.opal.versioning.ApiVersion;
 
 {{>generatedAnnotation}}
 {{#useBeanValidation}}{{^useSpringBuiltInValidation}}@Validated{{/useSpringBuiltInValidation}}{{/useBeanValidation}}
@@ -130,7 +131,7 @@ public interface {{classname}} {
     {{/isDelegate}}
 {{/jdk8-default-interface}}
 {{#operation}}
-
+  {{#vendorExtensions.x-opal-api-versions}}
     /**
      * {{httpMethod}} {{{path}}}{{#summary}} : {{.}}{{/summary}}
     {{#notes}}
@@ -259,6 +260,9 @@ public interface {{classname}} {
     {{^useResponseEntity}}
     @ResponseStatus({{#springHttpStatus}}{{#responses.0}}{{{code}}}{{/responses.0}}{{/springHttpStatus}})
     {{/useResponseEntity}}
+    {{#version}}
+    @ApiVersion("{{{version}}}")
+    {{/version}}
     {{#vendorExtensions.x-operation-extra-annotation}}
     {{{.}}}
     {{/vendorExtensions.x-operation-extra-annotation}}
@@ -285,7 +289,7 @@ public interface {{classname}} {
         {{^isVoid}}return {{/isVoid}}{{#isVoid}}{{#useResponseEntity}}return {{/useResponseEntity}}{{^useResponseEntity}}{{#reactive}}return {{/reactive}}{{/useResponseEntity}}{{/isVoid}}getDelegate().{{operationId}}({{#allParams}}{{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{#reactive}}{{#hasParams}}, {{/hasParams}}exchange{{/reactive}}{{#vendorExtensions.x-spring-paginated}}{{#hasParams}}, {{/hasParams}}{{^hasParams}}{{#reactive}}, {{/reactive}}{{/hasParams}}pageable{{/vendorExtensions.x-spring-paginated}});
         {{/isDelegate}}
     }{{/jdk8-default-interface}}
-
+  {{/vendorExtensions.x-opal-api-versions}}
 {{/operation}}
 }
 {{/operations}}

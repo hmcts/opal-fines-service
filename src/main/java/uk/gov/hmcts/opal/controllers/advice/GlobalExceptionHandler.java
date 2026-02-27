@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
@@ -53,6 +55,7 @@ import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
 import uk.gov.hmcts.opal.util.Versioned;
+import uk.gov.hmcts.opal.versioning.ApiVersionException;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
 @ControllerAdvice
@@ -553,6 +556,17 @@ public class GlobalExceptionHandler {
             e
         );
         return responseWithProblemDetail(status, problemDetail);
+    }
+
+    @ExceptionHandler(ApiVersionException.class)
+    public ResponseEntity<Object> handle(ApiVersionException ex) {
+        Map<String, Object> body = Map.of(
+            "timestamp", OffsetDateTime.now().toString(),
+            "status", HttpStatus.BAD_REQUEST.value(),
+            "error", "Bad Request",
+            "message", ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
