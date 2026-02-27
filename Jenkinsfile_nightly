@@ -16,7 +16,6 @@ properties([
 import uk.gov.hmcts.contino.GradleBuilder
 
 import java.time.DayOfWeek
-import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @Library("Infrastructure")
@@ -65,7 +64,7 @@ withNightlyPipeline(type, product, component) {
     if (params.Functional) {
       stage('Functional Tests') {
         try {
-            def today = ZonedDateTime.now(ZoneId.of('Europe/London')).getDayOfWeek()
+            def today = ZonedDateTime.now().getDayOfWeek()
             if (today == DayOfWeek.FRIDAY) {
                 builder.gradle('functionalWithZephyrExecution')
             } else {
