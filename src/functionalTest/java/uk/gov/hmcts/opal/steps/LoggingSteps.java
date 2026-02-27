@@ -300,11 +300,11 @@ public class LoggingSteps extends BaseStepDef {
     // Validate a matched record's shape and semantics
     private void validateRecord(JsonNode rec, String businessIdentifier) {
 
+        @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
         final Map<String, String> BUSINESS_TO_CATEGORY = Map.ofEntries(
             Map.entry("Get Draft Account - Defendant", "Consultation"),
             Map.entry("Get Draft Account - Parent or Guardian", "Consultation"),
             Map.entry("Get Draft Account - Minor Creditor", "Consultation")
-            // other mappings can be added here as needed
         );
 
         String expectedCategory = BUSINESS_TO_CATEGORY.getOrDefault(businessIdentifier, "Collection");

@@ -101,7 +101,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
     }
 
     @When("I get the single created draft account")
-    public void iGetTheSingleCreatedDraftAccount() {
+    public void getTheSingleCreatedDraftAccount() {
         Object idObj = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
         String draftId = idObj == null ? null : String.valueOf(idObj);
 

@@ -114,7 +114,8 @@ public class DraftAccountPostSteps extends BaseStepDef {
 
         Object saved = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
         if (saved == null) {
-            throw new RuntimeException("Failed to store CREATED_DRAFT_ACCOUNT_ID into Serenity session after create. Response body: " + resp.asString());
+            throw new RuntimeException("Failed to store CREATED_DRAFT_ACCOUNT_ID into Serenity session after create. "
+                                           + "Response body: " + resp.asString());
         }
 
         log.info("Stored draft account id={} into Serenity session (CREATED_DRAFT_ACCOUNT_ID={})", id, saved);
