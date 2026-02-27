@@ -15,6 +15,9 @@ properties([
 ])
 import uk.gov.hmcts.contino.GradleBuilder
 
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
+
 @Library("Infrastructure")
 
 def type = "java"
