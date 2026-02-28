@@ -1341,36 +1341,36 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
-        var legacyRequest = buildAddPaymentTermsLegacyRequest(defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, addPaymentTermsRequest);
+        try {
+            var legacyRequest = createAddPaymentTermsLegacyRequest(
+                defendantAccountId, businessUnitId, businessUnitUserId,
+                ifMatch, addPaymentTermsRequest
+            );
 
-        var response = gatewayService.postToGateway(ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
-                                                    legacyRequest, null);
+            var response = gatewayService.postToGateway(
+                ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
+                legacyRequest, null
+            );
 
-        if (response.isError()) {
-            log.error(":AddPaymentTerms: Legacy error HTTP {}", response.code);
-            if (response.isException()) {
-                log.error(":AddPaymentTerms: exception:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":AddPaymentTerms: legacy failure body:\n{}", response.body);
+            if (response.isError()) {
+                log.error(":addPaymentTerms: Legacy error HTTP {}", response.code);
+                if (response.isException()) {
+                    log.error(":addPaymentTerms: exception:", response.exception);
+                } else if (response.isLegacyFailure()) {
+                    log.error(":addPaymentTerms: legacy failure body:\n{}", response.body);
+                }
+            } else if (response.isSuccessful()) {
+                log.info(":addPaymentTerms: Legacy success.");
             }
-        } else if (response.isSuccessful()) {
-            log.info(":AddPaymentTerms: Legacy success.");
+
+            return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
+        } catch (RuntimeException e) {
+            log.error(":addPaymentTerms: problem with call to Legacy: {}", e.getClass().getName());
+            throw e;
         }
-
-        var addPaymentTermsResponse = response.responseEntity;
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(addPaymentTermsResponse.getVersion())
-                         .map(v -> BigInteger.valueOf(v.longValue()))
-                         .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
-            .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
-            .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
-            .build();
     }
 
-    private AddPaymentTermsLegacyRequest buildAddPaymentTermsLegacyRequest(Long defendantAccountId,
+    private AddPaymentTermsLegacyRequest createAddPaymentTermsLegacyRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
@@ -1386,6 +1386,19 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
             .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
                                                   ? addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter() : null)
+            .build();
+    }
+
+    private static GetDefendantAccountPaymentTermsResponse createGetDefendantAccountPaymentTermsResponse(
+        AddPaymentTermsLegacyResponse addPaymentTermsResponse) {
+
+        return GetDefendantAccountPaymentTermsResponse.builder()
+            .version(Optional.ofNullable(addPaymentTermsResponse.getVersion())
+                         .map(v -> BigInteger.valueOf(v.longValue()))
+                         .orElse(BigInteger.ONE))
+            .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
+            .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
+            .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
             .build();
     }
 }

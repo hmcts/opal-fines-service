@@ -25,12 +25,19 @@ import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.persistence.EntityNotFoundException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +47,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -124,6 +132,9 @@ import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
+    private Logger logger = (Logger) LoggerFactory.getLogger("opal.LegacyDefendantAccountService");
+    private ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+
     @Spy
     private MockRestClient restClient = spy(MockRestClient.class);
 
@@ -147,7 +158,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     private UpdateDefendantAccountRequest updateDefendantAccountRequest;
 
     @BeforeEach
-    void openMocks() throws Exception {
+    void setUp() throws Exception {
+        listAppender.start();
+        logger.addAppender(listAppender);
+
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDefendantAccountService, gatewayService);
 
@@ -162,6 +176,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         field.setAccessible(true);
         field.set(legacyDefendantAccountService, gatewayService);
 
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(listAppender);
+        listAppender.stop();
     }
 
     @SuppressWarnings("unchecked")
@@ -3337,11 +3357,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .postToGateway(eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
                            eq(AddPaymentTermsLegacyResponse.class),
                            requestCaptor.capture(),
-                           Mockito.nullable(String.class));
+                           isNull());
 
         assertAddPaymentTermsLegacyRequest(requestCaptor.getValue(), defendantAccountId, businessUnitId,
                                            businessUnitUserId, ifMatch);
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
+
+        // Assert logs
+        List<ILoggingEvent> logs = listAppender.list;
+        assertEquals(1, logs.size());
+        assertEquals(Level.INFO, logs.getFirst().getLevel());
+        assertEquals(":addPaymentTerms: Legacy success.", logs.getFirst().getFormattedMessage());
     }
 
     private static AddPaymentTermsLegacyResponse createAddPaymentTermsLegacyResponse(long defendantAccountId,
@@ -3400,10 +3426,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .postToGateway(eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
                            eq(AddPaymentTermsLegacyResponse.class),
                            requestCaptor.capture(),
-                           Mockito.nullable(String.class));
+                           isNull());
 
         assertAddPaymentTermsLegacyRequest(requestCaptor.getValue(), defendantAccountId, businessUnitId,
                                            businessUnitUserId, ifMatch);
+
+        // Assert logs
+        List<ILoggingEvent> logs = listAppender.list;
+        assertEquals(1, logs.size());
+        assertEquals(Level.ERROR, logs.getFirst().getLevel());
+        assertEquals(":addPaymentTerms: problem with call to Legacy: java.lang.RuntimeException",
+                     logs.getFirst().getFormattedMessage());
     }
 
     @Test
@@ -3432,10 +3465,20 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .postToGateway(eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
                            eq(AddPaymentTermsLegacyResponse.class),
                            requestCaptor.capture(),
-                           Mockito.nullable(String.class));
+                           isNull());
 
         assertAddPaymentTermsLegacyRequest(requestCaptor.getValue(), defendantAccountId, businessUnitId,
                                            businessUnitUserId, ifMatch);
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
+
+        // Assert logs
+        List<ILoggingEvent> logs = listAppender.list;
+        assertEquals(2, logs.size());
+        assertEquals(Level.ERROR, logs.getFirst().getLevel());
+        assertEquals(":addPaymentTerms: Legacy error HTTP 503 SERVICE_UNAVAILABLE",
+                     logs.getFirst().getFormattedMessage());
+        assertEquals(Level.ERROR, logs.get(1).getLevel());
+        assertEquals(":addPaymentTerms: legacy failure body:\n"
+                         + "<legacy-failure/>", logs.get(1).getFormattedMessage());
     }
 }
