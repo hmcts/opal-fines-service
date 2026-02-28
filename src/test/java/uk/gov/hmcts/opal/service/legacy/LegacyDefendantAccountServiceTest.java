@@ -132,8 +132,8 @@ import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
-    private Logger logger = (Logger) LoggerFactory.getLogger("opal.LegacyDefendantAccountService");
-    private ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    private Logger logger;
+    private ListAppender<ILoggingEvent> listAppender;
 
     @Spy
     private MockRestClient restClient = spy(MockRestClient.class);
@@ -149,8 +149,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     private GatewayService gatewayService;
 
-    @Mock private UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
-    @Mock private LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
+    @Mock
+    private UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
+
+    @Mock
+    private LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
     @InjectMocks
     private LegacyDefendantAccountService legacyDefendantAccountService;
@@ -159,6 +162,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @BeforeEach
     void setUp() throws Exception {
+        logger = (Logger) LoggerFactory.getLogger("opal.LegacyDefendantAccountService");
+        listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
 
@@ -180,8 +185,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @AfterEach
     void tearDown() {
-        logger.detachAppender(listAppender);
-        listAppender.stop();
+        logger.detachAndStopAllAppenders();
     }
 
     @SuppressWarnings("unchecked")
