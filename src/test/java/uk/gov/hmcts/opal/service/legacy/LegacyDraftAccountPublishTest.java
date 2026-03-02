@@ -123,54 +123,55 @@ class LegacyDraftAccountPublishTest {
         // Arrange
         String opId = "1234";
         String sensitiveErrorMessage = "Something went wrong on the server.";
-        MockedStatic<LogUtil> logUtilMock = mockStatic(LogUtil.class);
-        logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opId);
+        try (MockedStatic<LogUtil> logUtilMock = mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opId);
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
-            .businessUnitId((short)7)
-            .businessUnitUserId("Dave")
-            .build();
-        DraftAccountEntity publish = DraftAccountEntity.builder()
-            .businessUnit(
-                BusinessUnitFullEntity.builder()
-                    .businessUnitId((short)6)
+            BusinessUnitUser buu = BusinessUnitUser.builder()
+                .businessUnitId((short)7)
+                .businessUnitUserId("Dave")
+                .build();
+            DraftAccountEntity publish = DraftAccountEntity.builder()
+                .businessUnit(
+                    BusinessUnitFullEntity.builder()
+                        .businessUnitId((short)6)
+                        .build())
+                .timelineData(emptyTimelineData())
+                .build();
+
+            LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("some code")
+                    .errorMessage(sensitiveErrorMessage)
                     .build())
-            .timelineData(emptyTimelineData())
-            .build();
+                .build();
 
-        LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
-            .errorResponse(ErrorResponse.builder()
-                .errorCode("some code")
-                .errorMessage(sensitiveErrorMessage)
-                .build())
-            .build();
+            when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
+            ResponseEntity<String> serverErrorResponse =
+                new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
+            when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
 
-        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
-        ResponseEntity<String> serverErrorResponse =
-            new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
+            when(draftAccountTransactional
+                .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
+                .then(returnsFirstArg());
+            when(draftAccountTransactional
+                .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
+                .then(returnsFirstArg());
 
-        when(draftAccountTransactional
-            .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
-            .then(returnsFirstArg());
-        when(draftAccountTransactional
-            .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
-            .then(returnsFirstArg());
+            // Act
+            DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
-        // Act
-        DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
+            // Assert
+            ObjectMapper mapper = new ObjectMapper();
+            String publishedAsJson = mapper.writeValueAsString(published);
+            assertThat(publishedAsJson).doesNotContain(sensitiveErrorMessage);
+            assertThat(capturedOutput.getOut()).contains(sensitiveErrorMessage);
 
-        // Assert
-        ObjectMapper mapper = new ObjectMapper();
-        String publishedAsJson = mapper.writeValueAsString(published);
-        assertThat(publishedAsJson).doesNotContain(sensitiveErrorMessage);
-        assertThat(capturedOutput.getOut()).contains(sensitiveErrorMessage);
-
-        String expectedMessage = String.format(ERROR_MESSAGE_TEMPLATE, opId);
-        assertEquals(published.getStatusMessage(), expectedMessage);
-        JsonNode root = mapper.readTree(published.getTimelineData());
-        String reasonText = root.get(0).path("reason_text").asText();
-        assertEquals(reasonText, expectedMessage);
+            String expectedMessage = String.format(ERROR_MESSAGE_TEMPLATE, opId);
+            assertEquals(published.getStatusMessage(), expectedMessage);
+            JsonNode root = mapper.readTree(published.getTimelineData());
+            String reasonText = root.get(0).path("reason_text").asText();
+            assertEquals(reasonText, expectedMessage);
+        }
     }
 
     @SuppressWarnings("unchecked")
