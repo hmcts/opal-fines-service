@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.mapper;
+package uk.gov.hmcts.opal.mapper.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -14,25 +14,29 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 
 @SpringJUnitConfig
 @ContextConfiguration(classes = {
-    PartyDetailsCommonMapperImpl.class,
-    IndividualDetailsCommonMapperImpl.class,
-    OrganisationDetailsCommonMapperImpl.class
+    PartyMapperImpl.class,
+    IndividualDetailsMapperImpl.class,
+    OrganisationDetailsMapperImpl.class
 })
-class PartyDetailsCommonMapperTest {
+class PartyMapperTest {
 
     @Autowired
-    private PartyDetailsCommonMapper mapper;
+    private PartyMapper mapper;
 
     @Test
     void givenOrganisationParty_whenToPartyDetailsCommon_thenMapsOrganisationOnly() {
+
+        // Arrange
         PartyEntity party = PartyEntity.builder()
             .partyId(200L)
             .organisation(true)
             .organisationName("Acme Ltd")
             .build();
 
+        // Act
         PartyDetailsCommon mapped = mapper.toPartyDetailsCommon(party);
 
+        // Assert
         assertNotNull(mapped);
         assertEquals("200", mapped.getPartyId());
         assertTrue(mapped.getOrganisationFlag());
@@ -43,6 +47,8 @@ class PartyDetailsCommonMapperTest {
 
     @Test
     void givenIndividualParty_whenToPartyDetailsCommon_thenMapsIndividualOnly() {
+
+        // Arrange
         PartyEntity party = PartyEntity.builder()
             .partyId(201L)
             .organisation(false)
@@ -51,8 +57,10 @@ class PartyDetailsCommonMapperTest {
             .title("Mr")
             .build();
 
+        // Act
         PartyDetailsCommon mapped = mapper.toPartyDetailsCommon(party);
 
+        // Assert
         assertNotNull(mapped);
         assertEquals("201", mapped.getPartyId());
         assertEquals(false, mapped.getOrganisationFlag());

@@ -1,25 +1,22 @@
-package uk.gov.hmcts.opal.mapper;
+package uk.gov.hmcts.opal.mapper.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 
-@SpringJUnitConfig
-@ContextConfiguration(classes = {IndividualDetailsCommonMapperImpl.class})
-class IndividualDetailsCommonMapperTest {
+class IndividualDetailsMapperTest {
 
-    @Autowired
-    private IndividualDetailsCommonMapper mapper;
+    IndividualDetailsMapper mapper = Mappers.getMapper(IndividualDetailsMapper.class);
 
     @Test
     void givenIndividualParty_whenToIndividualDetailsCommon_thenMapsIndividualFields() {
+
+        // Arrange
         PartyEntity party = PartyEntity.builder()
             .organisation(false)
             .surname("Smith")
@@ -27,8 +24,10 @@ class IndividualDetailsCommonMapperTest {
             .title("Mr")
             .build();
 
+        // Act
         IndividualDetailsCommon mapped = mapper.toIndividualDetailsCommon(party);
 
+        // Assert
         assertNotNull(mapped);
         assertEquals("Smith", mapped.getSurname());
         assertEquals("John", mapped.getForenames());

@@ -13,15 +13,19 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.mapper.common.AddressMapperImpl;
+import uk.gov.hmcts.opal.mapper.common.IndividualDetailsMapperImpl;
+import uk.gov.hmcts.opal.mapper.common.OrganisationDetailsMapperImpl;
+import uk.gov.hmcts.opal.mapper.common.PartyMapperImpl;
 
 @SpringJUnitConfig
 @ContextConfiguration(classes = {
     MinorCreditorAccountResponseMapperImpl.class,
     MinorCreditorPaymentMapperImpl.class,
-    AddressDetailsCommonMapperImpl.class,
-    PartyDetailsCommonMapperImpl.class,
-    IndividualDetailsCommonMapperImpl.class,
-    OrganisationDetailsCommonMapperImpl.class
+    AddressMapperImpl.class,
+    PartyMapperImpl.class,
+    IndividualDetailsMapperImpl.class,
+    OrganisationDetailsMapperImpl.class
 })
 class MinorCreditorAccountResponseMapperTest {
 

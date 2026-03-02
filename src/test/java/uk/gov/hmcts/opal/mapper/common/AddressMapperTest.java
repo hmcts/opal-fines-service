@@ -1,24 +1,21 @@
-package uk.gov.hmcts.opal.mapper;
+package uk.gov.hmcts.opal.mapper.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 
-@SpringJUnitConfig
-@ContextConfiguration(classes = {AddressDetailsCommonMapperImpl.class})
-class AddressDetailsCommonMapperTest {
+class AddressMapperTest {
 
-    @Autowired
-    private AddressDetailsCommonMapper mapper;
+    AddressMapper mapper = Mappers.getMapper(AddressMapper.class);
 
     @Test
     void givenPartyEntity_whenToAddressDetailsCommon_thenMapsAddressFields() {
+
+        //Arrange
         PartyEntity party = PartyEntity.builder()
             .addressLine1("Line 1")
             .addressLine2("Line 2")
@@ -28,8 +25,10 @@ class AddressDetailsCommonMapperTest {
             .postcode("AA1 1AA")
             .build();
 
+        // Act
         AddressDetailsCommon mapped = mapper.toAddressDetailsCommon(party);
 
+        // Assert
         assertNotNull(mapped);
         assertEquals("Line 1", mapped.getAddressLine1());
         assertEquals("Line 2", mapped.getAddressLine2());

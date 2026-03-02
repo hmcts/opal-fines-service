@@ -6,10 +6,12 @@ import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.mapper.common.AddressMapper;
+import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 
 @Mapper(
     componentModel = "spring",
-    uses = {AddressDetailsCommonMapper.class, PartyDetailsCommonMapper.class, MinorCreditorPaymentMapper.class},
+    uses = {AddressMapper.class, PartyMapper.class, MinorCreditorPaymentMapper.class},
     builder = @Builder(disableBuilder = true)
 )
 public interface MinorCreditorAccountResponseMapper {
