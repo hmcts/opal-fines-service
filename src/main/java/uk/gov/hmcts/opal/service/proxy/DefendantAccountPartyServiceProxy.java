@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -55,5 +56,23 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
         return getCurrentModeService().replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
             defendantAccountParty, ifMatch, businessUnitId, postedBy, businessUserId);
 
+    }
+
+    @Override
+    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        String businessUnitId,
+        String businessUserId,
+        String ifMatch,
+        String postedBy,
+        DefendantAccountParty defendantAccountParty) {
+
+        return getCurrentModeService().removeDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyId,
+            businessUnitId,
+            businessUserId,
+            ifMatch,
+            postedBy,
+            defendantAccountParty);
     }
 }

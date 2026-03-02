@@ -35,6 +35,7 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
@@ -48,6 +49,7 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountPartiesRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -68,6 +70,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final PartyRepositoryService partyRepositoryService;
 
     private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+
+    private final DefendantAccountPartiesRepositoryService defendantAccountPartiesRepositoryService;
 
 
     @Override
@@ -248,6 +252,65 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(bumpVersion(accountId).getVersion())
+            .build();
+    }
+
+    @Override
+    @Transactional
+    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        String businessUnitId,
+        String businessUserId,
+        String ifMatch,
+        String postedBy,
+        DefendantAccountParty defendantAccountParty) {
+
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
+
+        log.debug(":removeDefendantAccountParty: accountId={}, dapId={}, buId={}, postedBy={}",
+            defendantAccountId, defendantAccountPartyId, businessUnitId, postedBy);
+
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
+        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        DefendantAccountPartiesEntity partyToRemove = account.getParties().stream()
+            .filter(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account Party not found for accountId=" + defendantAccountId
+                    + ", partyId=" + defendantAccountPartyId));
+
+        if (defendantAccountParty != null && defendantAccountParty.getPartyDetails() != null) {
+            String requestedPartyId = defendantAccountParty.getPartyDetails().getPartyId();
+            if (requestedPartyId != null
+                && !requestedPartyId.equals(String.valueOf(partyToRemove.getParty().getPartyId()))) {
+                throw new IllegalArgumentException("Request party_id does not match the entity being removed");
+            }
+        }
+
+        account.getParties().removeIf(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId));
+        defendantAccountPartiesRepositoryService.delete(partyToRemove);
+
+        amendmentRepositoryService.auditFinaliseStoredProc(
+            account.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            postedBy,
+            account.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        BigInteger newVersion = bumpVersion(defendantAccountId).getVersion();
+
+        return RemoveDefendantAccountPartyResponse.builder()
+            .defendantAccountPartyId(String.valueOf(defendantAccountPartyId))
+            .version(newVersion)
             .build();
     }
 
