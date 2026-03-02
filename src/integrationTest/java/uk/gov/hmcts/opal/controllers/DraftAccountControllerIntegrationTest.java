@@ -10,8 +10,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -39,14 +37,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
@@ -59,39 +51,10 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
-import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
-@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(
-    scripts = {
-        "classpath:db/deleteData/delete_from_draft_accounts.sql",
-        "classpath:db/insertData/insert_into_draft_accounts.sql"
-    },
-    executionPhase = BEFORE_TEST_METHOD
-)
-@Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_METHOD)
 @DisplayName("DraftAccountController Integration Tests")
-class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
-
-    private static final String URL_BASE = "/draft-accounts";
-    private static final String GET_DRAFT_ACCOUNT_RESPONSE =
-        SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountResponse.json";
-    private static final String GET_DRAFT_ACCOUNTS_RESPONSE =
-        SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountsResponse.json";
-
-    private static final Short BU_ID = (short)73;
-
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    LoggingService loggingService;
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
+class DraftAccountControllerIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
     @Test
     @DisplayName("Get Draft Account by ID [@PO-973, @PO-559]")
@@ -1939,41 +1902,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
           }""";
     }
 
-    private static String validUpdateRequestBody(String businessUnit, String status, String delta) {
-        return "{\n"
-            + "    \"account_status\": \"" + status + "\",\n"
-            + "    \"validated_by\": \"BUUID1" + delta + "\",\n"
-            + "    \"validated_by_name\": \"" + delta + "\",\n"
-            + "    \"business_unit_id\": " + businessUnit + ",\n"
-            + "    \"version\": 0,\n"
-            + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
-            + "}";
-    }
-
-    private static String validTimelineDataJson() {
-        return """
-            [
-                {
-                    "username": "johndoe456",
-                    "status": "Active",
-                    "status_date": "2023-11-01",
-                    "reason_text": "Account successfully activated after review."
-                },
-                {
-                    "username": "janedoe789",
-                    "status": "Pending",
-                    "status_date": "2023-12-05",
-                    "reason_text": "Awaiting additional documentation for verification."
-                },
-                {
-                    "username": "mikebrown012",
-                    "status": "Suspended",
-                    "status_date": "2023-10-15",
-                    "reason_text": "Violation of terms of service."
-                }
-            ]""";
-    }
-
     private static String invalidCreateRequestBody() {
         return """
             {
@@ -2414,14 +2342,4 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             }
             """;
     }
-
-    private String getIfMatchForDraftAccount(long draftAccountId) throws Exception {
-        return mockMvc.perform(get(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
-                .header("Accept", "application/json"))
-            .andReturn()
-            .getResponse()
-            .getHeader("ETag");
-    }
-
 }
