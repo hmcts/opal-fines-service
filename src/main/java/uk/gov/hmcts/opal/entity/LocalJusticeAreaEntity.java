@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -51,7 +53,8 @@ public class LocalJusticeAreaEntity extends AddressEntity {
     private String ljaCode;
 
     @Column(name = "lja_type", length = 50)
-    private String ljaType;
+    @Enumerated(EnumType.STRING)
+    private LocalJusticeAreaType ljaType;
 
     @Column(name = "address_line_4", length = 35)
     private String addressLine4;
