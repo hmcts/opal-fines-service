@@ -864,7 +864,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
-    void addPaymentTerms_whenGatewayResponseWithException_thenHandleException() throws Exception {
+    void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
