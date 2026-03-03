@@ -113,7 +113,7 @@ class DraftAccountServiceTest {
 
         // Assert
         assertNotNull(result);
-        verify(pdplLoggingService).pdplForDraftAccount(draftAccountEntity, Action.GET, userState);
+        verify(pdplLoggingService).logForMultipleGets(List.of(draftAccountEntity), Action.GET, userState);
     }
 
     @SuppressWarnings("unchecked")

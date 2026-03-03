@@ -124,9 +124,7 @@ public class DraftAccountService {
             log.debug(":getDraftAccounts: filtered summaries count: {}", filtered.size());
             filtered.forEach(draft -> log.debug(":getDraftAccounts: {}", draft.toString()));
 
-            for (DraftAccountEntity draftAccount : filtered) {
-                loggingService.pdplForDraftAccount(draftAccount, Action.GET, userState);
-            }
+            loggingService.logForMultipleGets(filtered, Action.GET, userState);
 
             return
                 DraftAccountsResponseDto.builder()

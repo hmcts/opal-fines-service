@@ -10,7 +10,9 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,6 +71,33 @@ class DraftAccountPdplLoggingServiceTest {
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
             svc.pdplForDraftAccount(entity, action, userState);
+        }
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+
+        verify(loggingService, times(expectedCalls)).personalDataAccessLogAsync(captor.capture());
+
+        return captor.getAllValues();
+    }
+
+    private List<PersonalDataProcessingLogDetails> runAndCapturePdplForMultipleGets(
+        List<DraftAccountEntity> entities,
+        Action action,
+        String expectedIp,
+        OffsetDateTime expectedNow,
+        int expectedCalls
+    ) {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        UserState userState = Mockito.mock(UserState.class);
+        when(userState.getUserId()).thenReturn(TEST_USER_ID);
+
+        DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
+
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
+            svc.logForMultipleGets(entities, action, userState);
         }
 
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
@@ -485,5 +514,138 @@ class DraftAccountPdplLoggingServiceTest {
             expectedNow,
             /* createdBy */ TEST_USER_ID_STR,
             "99");
+    }
+
+    // ------------------------------
+    // New tests to exercise logForMultipleGets
+    // ------------------------------
+
+    @Test
+    @DisplayName("logForMultipleGets - mixed roles aggregated, deduped and minors respected")
+    void logForMultipleGets_mixedRoles_and_dedup() {
+        // e1: adult defendant id 1
+        DraftAccountEntity e1 = makeEntity(1L, "u1", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "offences": []
+            }
+            """);
+
+        // e2: pgToPay id 2 (acts as Parent/Guardian and Defendant)
+        DraftAccountEntity e2 = makeEntity(2L, "u2", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"pgToPay",
+              "offences": []
+            }
+            """);
+
+        // e3: duplicate of e2 to test dedupe
+        DraftAccountEntity e3 = makeEntity(2L, "u2", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"pgToPay",
+              "offences": []
+            }
+            """);
+
+        // e4: adult with minor -> will add Minor Creditor for id 3
+        DraftAccountEntity e4 = makeEntity(3L, "u3", """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "offences":[
+                {
+                  "impositions":[
+                    {
+                      "minor_creditor":{
+                        "company_flag": false
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
+
+        List<DraftAccountEntity> inputs = Arrays.asList(e1, e2, e3, e4);
+
+        String expectedIp = "203.0.113.200";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-08-08T08:08:08Z");
+
+        // Expect 3 calls: DEFENDANT, PARENT_OR_GUARDIAN, MINOR_CREDITOR
+        List<PersonalDataProcessingLogDetails> calls =
+            runAndCapturePdplForMultipleGets(inputs, Action.GET, expectedIp, expectedNow, 3);
+
+        // map calls by businessIdentifier for easy assertions
+        var byBusiness = calls.stream().collect(
+            Collectors.toMap(PersonalDataProcessingLogDetails::getBusinessIdentifier,
+                c -> c));
+
+        // DEFENDANT should contain unique ids 1,2,3 -> three participants
+        PersonalDataProcessingLogDetails defendantCall = byBusiness.get("Get Draft Account - Defendant");
+        assertThat(defendantCall).isNotNull();
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, defendantCall.getCategory());
+        assertEquals(expectedIp, defendantCall.getIpAddress());
+        assertEquals(expectedNow, defendantCall.getCreatedAt());
+        assertThat(defendantCall.getIndividuals()).hasSize(3);
+        // ensure identifiers present
+        List<String> defendantIds = defendantCall.getIndividuals().stream()
+            .map(ParticipantIdentifier::getIdentifier)
+            .collect(Collectors.toList());
+        assertThat(defendantIds).containsExactlyInAnyOrder("1", "2", "3");
+
+        // PARENT_OR_GUARDIAN should contain only id 2 (deduped)
+        PersonalDataProcessingLogDetails pgCall = byBusiness.get("Get Draft Account - Parent or Guardian");
+        assertThat(pgCall).isNotNull();
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, pgCall.getCategory());
+        assertThat(pgCall.getIndividuals()).hasSize(1);
+        assertEquals("2", pgCall.getIndividuals().get(0).getIdentifier());
+
+        // MINOR_CREDITOR should contain only id 3
+        PersonalDataProcessingLogDetails minorCall = byBusiness.get("Get Draft Account - Minor Creditor");
+        assertThat(minorCall).isNotNull();
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, minorCall.getCategory());
+        assertThat(minorCall.getIndividuals()).hasSize(1);
+        assertEquals("3", minorCall.getIndividuals().get(0).getIdentifier());
+    }
+
+    @Test
+    @DisplayName("logForMultipleGets - company skipped and unknown defendant_type produces no logs")
+    void logForMultipleGets_company_and_unknown_type_skipped() {
+        DraftAccountEntity company = makeEntity(10L, "u10", """
+        {
+          "account_type":"Fines",
+          "defendant_type":"company",
+          "offences": []
+        }
+            """);
+
+        DraftAccountEntity unknown = makeEntity(11L, "u11", """
+        {
+          "account_type":"Fines",
+          "defendant_type":"weirdType",
+          "offences": []
+        }
+            """);
+
+        List<DraftAccountEntity> inputs = Arrays.asList(company, unknown);
+
+        String expectedIp = "203.0.113.201";
+        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-09-09T09:09:09Z");
+
+        // Do NOT stub loggingService or userState here – the code path should not call the logger.
+        UserState userState = Mockito.mock(UserState.class);
+
+        DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
+
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
+            svc.logForMultipleGets(inputs, Action.GET, userState);
+        }
+
+        // verify no calls were made to the logging service
+        verify(loggingService, times(0)).personalDataAccessLogAsync(any());
     }
 }

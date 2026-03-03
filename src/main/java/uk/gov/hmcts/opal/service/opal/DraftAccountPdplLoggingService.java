@@ -3,9 +3,12 @@ package uk.gov.hmcts.opal.service.opal;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,6 +55,76 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         }
     }
 
+    public void logForMultipleGets(List<DraftAccountEntity> draftAccountEntities, Action action, UserState userState) {
+        if (draftAccountEntities == null || draftAccountEntities.isEmpty()) {
+            return;
+        }
+
+        // Group entities by Role according to defendant_type and minor detection
+        Map<Role, List<DraftAccountEntity>> entitiesByRole = new EnumMap<>(Role.class);
+
+        for (DraftAccountEntity entity : draftAccountEntities) {
+            if (entity == null || entity.getAccount() == null) {
+                continue;
+            }
+
+            JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(), "");
+            Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
+            String defendantType = dtRaw == null ? "" : dtRaw.toString();
+
+            if (defendantType.equalsIgnoreCase("company")) {
+                // skip companies entirely
+                continue;
+            }
+
+            switch (defendantType) {
+                case "adultOrYouthOnly" ->
+                    addEntityToRoleList(entitiesByRole, Role.DEFENDANT, entity);
+
+                case "pgToPay" -> {
+                    addEntityToRoleList(entitiesByRole, Role.PARENT_OR_GUARDIAN, entity);
+                    addEntityToRoleList(entitiesByRole, Role.DEFENDANT, entity);
+                }
+
+                default -> log.error("Unknown defendant_type '{}', skipping defendant/pg logs", defendantType);
+            }
+
+            if (hasAnyIndividualMinor(docContext)) {
+                addEntityToRoleList(entitiesByRole, Role.MINOR_CREDITOR, entity);
+            }
+        }
+
+        for (Map.Entry<Role, List<DraftAccountEntity>> entry : entitiesByRole.entrySet()) {
+            Role role = entry.getKey();
+            List<DraftAccountEntity> entitiesForRole = entry.getValue();
+
+            if (entitiesForRole == null || entitiesForRole.isEmpty()) {
+                continue;
+            }
+
+            List<ParticipantIdentifier> individuals = entitiesForRole.stream()
+                .filter(Objects::nonNull)
+                .filter(e -> e.getDraftAccountId() != null)
+                .collect(Collectors.collectingAndThen(
+                    Collectors.toMap(
+                        e -> e.getDraftAccountId().toString(),
+                        this::toParticipantIdentifier,
+                        (existing, replacement) -> existing
+                    ),
+                    m -> new ArrayList<>(m.values())
+                ));
+
+            if (individuals.isEmpty()) {
+                continue;
+            }
+
+            String businessIdentifier = action.formatFor(role);
+            PersonalDataProcessingCategory category = action.getCategory();
+
+            logPdpl(businessIdentifier, category, individuals, null, userState);
+        }
+    }
+
     private void logForRole(DraftAccountEntity entity, Action action, Role role, UserState userState) {
         String businessIdentifier = action.formatFor(role);
 
@@ -76,6 +149,17 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
             .filter(Objects::nonNull)
             .map(m -> m.get("company_flag"))
             .anyMatch(flag -> !Boolean.TRUE.equals(flag));
+    }
+
+    private void addEntityToRoleList(Map<Role, List<DraftAccountEntity>> map, Role role, DraftAccountEntity entity) {
+        map.computeIfAbsent(role, r -> new ArrayList<>()).add(entity);
+    }
+
+    private ParticipantIdentifier toParticipantIdentifier(DraftAccountEntity e) {
+        return ParticipantIdentifier.builder()
+            .identifier(e.getDraftAccountId().toString())
+            .type(PdplIdentifierType.DRAFT_ACCOUNT)
+            .build();
     }
 
     public enum Role {
