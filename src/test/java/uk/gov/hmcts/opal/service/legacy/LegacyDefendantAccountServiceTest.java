@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
@@ -3350,21 +3351,27 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // When
         doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
 
-        var actualResponse = legacyDefendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId,
-                                                                           businessUnitUserId, ifMatch,
-                                                                           "auth", null);
+        var actualResponse = legacyDefendantAccountService.addPaymentTerms(
+            defendantAccountId, businessUnitId,
+            businessUnitUserId, ifMatch,
+            "auth", null
+        );
 
         // Then
         var requestCaptor = ArgumentCaptor.forClass(AddPaymentTermsLegacyRequest.class);
 
         verify(gatewayService, times(1))
-            .postToGateway(eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
-                           eq(AddPaymentTermsLegacyResponse.class),
-                           requestCaptor.capture(),
-                           isNull());
+            .postToGateway(
+                eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+                eq(AddPaymentTermsLegacyResponse.class),
+                requestCaptor.capture(),
+                isNull()
+            );
 
-        assertAddPaymentTermsLegacyRequest(requestCaptor.getValue(), defendantAccountId, businessUnitId,
-                                           businessUnitUserId, ifMatch);
+        assertAddPaymentTermsLegacyRequest(
+            requestCaptor.getValue(), defendantAccountId, businessUnitId,
+            businessUnitUserId, ifMatch
+        );
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
 
         // Assert logs
@@ -3407,7 +3414,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void addPaymentTerms_whenGatewayResponseWithException_thenHandleException() {
+    void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() {
         // Given
         long defendantAccountId = 1L;
         String businessUnitId = "BU";
@@ -3415,32 +3422,42 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         String ifMatch = "\"1\"";
 
         // When
-        doThrow(new RuntimeException("boom")).when(gatewayService).postToGateway(any(), any(), any(), any());
+        doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR))
+            .when(gatewayService).postToGateway(
+                any(),
+                any(),
+                any(),
+                any()
+            );
 
         // Then
-        assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId,
-                                                          businessUnitUserId, ifMatch,
-                                                          "auth", null)
+        assertThrows(
+            HttpServerErrorException.class, () ->
+                legacyDefendantAccountService.addPaymentTerms(
+                    defendantAccountId, businessUnitId,
+                    businessUnitUserId, ifMatch,
+                    "auth", null
+                )
         );
 
         var requestCaptor = ArgumentCaptor.forClass(AddPaymentTermsLegacyRequest.class);
 
         verify(gatewayService, times(1))
-            .postToGateway(eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
-                           eq(AddPaymentTermsLegacyResponse.class),
-                           requestCaptor.capture(),
-                           isNull());
+            .postToGateway(
+                eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+                eq(AddPaymentTermsLegacyResponse.class),
+                requestCaptor.capture(),
+                isNull()
+            );
 
-        assertAddPaymentTermsLegacyRequest(requestCaptor.getValue(), defendantAccountId, businessUnitId,
-                                           businessUnitUserId, ifMatch);
+        assertAddPaymentTermsLegacyRequest(
+            requestCaptor.getValue(), defendantAccountId, businessUnitId,
+            businessUnitUserId, ifMatch
+        );
 
         // Assert logs
         List<ILoggingEvent> logs = listAppender.list;
-        assertEquals(1, logs.size());
-        assertEquals(Level.ERROR, logs.getFirst().getLevel());
-        assertEquals(":addPaymentTerms: problem with call to Legacy: java.lang.RuntimeException",
-                     logs.getFirst().getFormattedMessage());
+        assertEquals(0, logs.size());
     }
 
     @Test
@@ -3452,37 +3469,49 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         String ifMatch = "\"1\"";
 
         var legacyResponse = createAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
-        var gateWayResponse = new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResponse,
-                                                 "<legacy-failure/>", null);
+        var gateWayResponse = new GatewayService.Response<>(
+            HttpStatus.SERVICE_UNAVAILABLE, legacyResponse,
+            "<legacy-failure/>", null
+        );
 
         // When
         doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
 
-        var actualResponse = legacyDefendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId,
-                                                                           businessUnitUserId, ifMatch,
-                                                                           "auth", null);
+        var actualResponse = legacyDefendantAccountService.addPaymentTerms(
+            defendantAccountId, businessUnitId,
+            businessUnitUserId, ifMatch,
+            "auth", null
+        );
 
         // Then
         var requestCaptor = ArgumentCaptor.forClass(AddPaymentTermsLegacyRequest.class);
 
         verify(gatewayService, times(1))
-            .postToGateway(eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
-                           eq(AddPaymentTermsLegacyResponse.class),
-                           requestCaptor.capture(),
-                           isNull());
+            .postToGateway(
+                eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+                eq(AddPaymentTermsLegacyResponse.class),
+                requestCaptor.capture(),
+                isNull()
+            );
 
-        assertAddPaymentTermsLegacyRequest(requestCaptor.getValue(), defendantAccountId, businessUnitId,
-                                           businessUnitUserId, ifMatch);
+        assertAddPaymentTermsLegacyRequest(
+            requestCaptor.getValue(), defendantAccountId, businessUnitId,
+            businessUnitUserId, ifMatch
+        );
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
 
         // Assert logs
         List<ILoggingEvent> logs = listAppender.list;
         assertEquals(2, logs.size());
         assertEquals(Level.ERROR, logs.getFirst().getLevel());
-        assertEquals(":addPaymentTerms: Legacy error HTTP 503 SERVICE_UNAVAILABLE",
-                     logs.getFirst().getFormattedMessage());
+        assertEquals(
+            ":addPaymentTerms: Legacy error HTTP 503 SERVICE_UNAVAILABLE",
+            logs.getFirst().getFormattedMessage()
+        );
         assertEquals(Level.ERROR, logs.get(1).getLevel());
-        assertEquals(":addPaymentTerms: legacy failure body:\n"
-                         + "<legacy-failure/>", logs.get(1).getFormattedMessage());
+        assertEquals(
+            ":addPaymentTerms: legacy failure body:\n"
+                + "<legacy-failure/>", logs.get(1).getFormattedMessage()
+        );
     }
 }
