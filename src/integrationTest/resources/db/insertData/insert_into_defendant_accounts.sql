@@ -425,7 +425,7 @@ INSERT INTO business_units (business_unit_id,
                             business_unit_type)
 VALUES (9999,
         '', -- Empty name to simulate "missing"
-        'INVALID' -- Invalid type (must not match enum/expected values)
+        'Area' -- Valid type (must match enum/expected values)
        );
 
 --  Test record with non-existent business_unit_id to test fallback logic (getBusinessUnit() == null)
