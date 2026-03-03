@@ -1364,7 +1364,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             }
 
             return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             log.error(":addPaymentTerms: problem with call to Legacy: {}", e.getClass().getName());
             throw e;
         }
@@ -1380,7 +1380,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
-            .version(VersionUtils.extractBigInteger(ifMatch).intValue())
+            .version(VersionUtils.extractBigInteger(ifMatch))
             .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
                                               ? addPaymentTermsRequest.getPaymentTerms() : null))
             .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
