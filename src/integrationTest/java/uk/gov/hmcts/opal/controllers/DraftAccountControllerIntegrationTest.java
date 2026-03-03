@@ -10,7 +10,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -56,7 +55,6 @@ import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
@@ -311,7 +309,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         log.info(":testGetDraftAccountsSummaries_paramStatus: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(4))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -444,13 +442,13 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
             + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(23))
-                .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
-                .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
-                .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
-                .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
-                .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
-                .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73));
+            .andExpect(jsonPath("$.count").value(3))
+            .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
+            .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
+            .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
+            .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
+            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
+            .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73));
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
@@ -496,9 +494,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @Test
     void testSearchDraftAccountsPost_whenDraftAccountDoesNotExist() throws Exception {
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
-                                          .header("authorization", "Bearer some_value")
-                                          .contentType(MediaType.APPLICATION_JSON)
-                                          .content("{\"draftAccountId\":\"999999\"}"));
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"draftAccountId\":\"999999\"}"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testSearchDraftAccountsPost_whenDraftAccountDoesNotExist: body:\n"
@@ -567,10 +565,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -583,10 +581,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -599,10 +597,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -882,19 +880,19 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         String requestBody = validReplaceRequestBody(3L);
 
         String first = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", getIfMatchForDraftAccount(5L))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody))
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse().getContentAsString();
 
         String second = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", getIfMatchForDraftAccount(5L))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody))
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse().getContentAsString();
@@ -991,7 +989,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
-                           .value("LNAME"))
+                .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
         ;
     }
@@ -1200,9 +1198,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
             .businessUnitUserId("user_003")
             .businessUnitId((short)78)
             .permissions(Set.of(Permission.builder()
-                                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
-                                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
-                                .build()))
+                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
+                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
+                .build()))
             .build();
         UserState userState = UserState.builder()
             .userId(1L)
@@ -1223,7 +1221,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/submitter-cannot-validate"))
             .andExpect(jsonPath("$.title").value("Submitter cannot validate"))
             .andExpect(jsonPath("$.detail")
-                           .value("A single user cannot submit and validate the same Draft Account"));
+                .value("A single user cannot submit and validate the same Draft Account"));
     }
 
 
@@ -1543,8 +1541,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             permissionUser((short)78,
-                           FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                           FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(requestBuilder
                 .header("Authorization", "Bearer some_value")
@@ -1605,8 +1603,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         // Mock the service behavior
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             permissionUser((short)78,
-                           FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                           FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(requestBuilder
                 .header("Authorization", "Bearer some_value")
@@ -1632,8 +1630,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             permissionUser((short)78,
-                           FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                           FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         mockMvc.perform(requestBuilder
                 .header("Authorization", "Bearer some_value")
                 .header("Accept", "application/xml")
@@ -2581,4 +2579,5 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
             }
             """;
     }
+
 }
