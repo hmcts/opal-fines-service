@@ -62,11 +62,13 @@ withNightlyPipeline(type, product, component) {
        }
      }
    }
-    if (params.Functional) {
+      def today = ZonedDateTime.now().getDayOfWeek()
+      def shouldRunWithZephyr = params.ZephyrExecution || today == DayOfWeek.FRIDAY;
+
+      if (params.Functional) {
       stage('Functional Tests') {
         try {
-            def today = ZonedDateTime.now().getDayOfWeek()
-            if (params.ZephyrExecution || today == DayOfWeek.FRIDAY) {
+            if (shouldRunWithZephyr) {
                 env.EXECUTION_BUILD = env.GIT_COMMIT
                 env.EXECUTION_ENVIRONMENT = "stg"
                 builder.gradle('functionalWithZephyrExecution')
