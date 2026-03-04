@@ -8,7 +8,7 @@
     "financials"
   ],
   "properties": {
-    "party": {
+    "party_details": {
       "$ref": "../common-objects/partyDetails.json"
     },
     "business_unit": {
@@ -19,7 +19,8 @@
       "required": [
         "account_id",
         "account_number",
-        "account_type"
+        "account_type",
+        "has_associated_defendant"
       ],
       "properties": {
         "account_id": {
@@ -32,6 +33,10 @@
         },
         "account_type": {
           "$ref": "../common-objects/creditorAccountTypeReference.json"
+        },
+        "has_associated_defendant": {
+          "type": "boolean",
+          "description": "Indicates whether the minor creditor has an associated defendant account or not"
         }
       }
     },
