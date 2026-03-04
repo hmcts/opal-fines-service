@@ -6,6 +6,7 @@ properties([
   parameters([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
+    booleanParam(name: 'ZephyExecution', defaultValue: false, description: 'Create Zephy Execution'),
     choice(
       name: 'LEGACY_URL',
       choices: ['PRE-PROD', 'DEV'],
@@ -65,7 +66,7 @@ withNightlyPipeline(type, product, component) {
       stage('Functional Tests') {
         try {
             def today = ZonedDateTime.now().getDayOfWeek()
-            if (true || today == DayOfWeek.FRIDAY) {
+            if (params.ZephyExecution || today == DayOfWeek.FRIDAY) {
                 env.EXECUTION_BUILD = env.GIT_COMMIT
                 env.EXECUTION_ENVIRONMENT = "stg"
                 builder.gradle('functionalWithZephyrExecution')
