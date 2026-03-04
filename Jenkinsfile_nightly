@@ -65,7 +65,9 @@ withNightlyPipeline(type, product, component) {
       stage('Functional Tests') {
         try {
             def today = ZonedDateTime.now().getDayOfWeek()
-            if (today == DayOfWeek.FRIDAY) {
+            if (true || today == DayOfWeek.FRIDAY) {
+                env.EXECUTION_BUILD = env.GIT_COMMIT
+                env.EXECUTION_ENVIRONMENT = "stg"
                 builder.gradle('functionalWithZephyrExecution')
             } else {
                 builder.gradle('functional')
