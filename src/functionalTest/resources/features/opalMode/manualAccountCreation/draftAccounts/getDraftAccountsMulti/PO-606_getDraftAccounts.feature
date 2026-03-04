@@ -1,5 +1,5 @@
 @Opal
-Feature: PO-606 get draft accounts
+Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-606 @cleanUpData
   Scenario: Get draft accounts - filtering on business unit

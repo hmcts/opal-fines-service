@@ -1,5 +1,5 @@
 @Opal
-Feature: PO-559 get draft account
+Feature: PO-559 get draft account + PO-2360 PDPO logs
 
   @PO-559 @cleanUpData @PO-2360
   Scenario: Get draft account - happy path

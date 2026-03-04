@@ -175,6 +175,7 @@ public class LoggingSteps extends BaseStepDef {
                                                     String businessIdentifier) throws Exception {
 
         final long timeoutMillis = (long) DEFAULT_TIMEOUT_SECONDS * 1000L;
+        final String url = getLoggingTestUrl() + SEARCH_PATH;
         long start = System.currentTimeMillis();
         long deadline = start + timeoutMillis;
         boolean found = false;
@@ -192,7 +193,7 @@ public class LoggingSteps extends BaseStepDef {
                 var resp = SerenityRest.given()
                     .contentType("application/json")
                     .body(payload)
-                    .post("http://localhost:4065/test-support/search");
+                    .post(url);
 
                 if (resp.getStatusCode() != 200) {
                     lastException = new IllegalStateException(
