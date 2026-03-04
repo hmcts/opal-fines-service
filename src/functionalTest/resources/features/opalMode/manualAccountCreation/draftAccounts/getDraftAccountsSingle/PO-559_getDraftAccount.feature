@@ -89,7 +89,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
 
   # switch to a non-OPAL user/token
     When I set an invalid token manually
-    And I get the single created draft account
+    And I get the single created draft account without asserting the body
     Then The draft account response returns 401
 
   # confirm no PDPO logs were emitted for this attempted GET (no side-effects)

@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 import net.serenitybdd.core.Serenity;
-import static org.junit.jupiter.api.Assertions.fail;
 import io.restassured.response.Response;
 
 public class DraftAccountGetSteps extends BaseStepDef {
@@ -100,28 +99,32 @@ public class DraftAccountGetSteps extends BaseStepDef {
         }
     }
 
-    @When("I get the single created draft account")
-    public void getTheSingleCreatedDraftAccount() {
-        Object idObj = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
-        String draftId = idObj == null ? null : String.valueOf(idObj);
+    @When("I get the single created draft account without asserting the body")
+    public void getSingleDraftAccountWithoutAssertingBody() {
 
-        if (draftId == null || draftId.isBlank() || "null".equalsIgnoreCase(draftId)) {
-            String msg = "CREATED_DRAFT_ACCOUNT_ID is missing or null BEFORE GET. "
-                + "Check create step stored it and that subsequent steps didn't clear it.";
-            fail(msg);
-        }
+        assertEquals(1,
+            DraftAccountUtils.getAllDraftAccountIds().size(),
+            "There should be only one draft account but found multiple: "
+                + DraftAccountUtils.getAllDraftAccountIds()
+        );
 
-        // pick up bearer token if set in session
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+
         Object tokenObj = Serenity.sessionVariableCalled("BEARER_TOKEN");
-        String token = tokenObj == null ? null : String.valueOf(tokenObj);
+        String token = tokenObj == null ? getToken() : String.valueOf(tokenObj);
 
-        var given = SerenityRest.given().contentType("application/json");
+        var given = SerenityRest
+            .given()
+            .accept("*/*")
+            .contentType("application/json");
+
         if (token != null && !token.isBlank()) {
             given.header("Authorization", "Bearer " + token);
         }
 
-        String base = System.getenv().getOrDefault("OPAL_BASE_URL", "http://localhost:4550");
-        Response resp = given.when().get(base + "/draft-accounts/" + draftId);
+        Response resp = given
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
 
         Serenity.setSessionVariable("LATEST_RESPONSE").to(resp);
     }
