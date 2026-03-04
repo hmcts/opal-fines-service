@@ -3378,7 +3378,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         List<ILoggingEvent> logs = listAppender.list;
         assertEquals(1, logs.size());
         assertEquals(Level.INFO, logs.getFirst().getLevel());
-        assertEquals(":addPaymentTerms: Legacy success.", logs.getFirst().getFormattedMessage());
+        assertEquals(":addPaymentTerms: legacy success.", logs.getFirst().getFormattedMessage());
     }
 
     private static AddPaymentTermsLegacyResponse createAddPaymentTermsLegacyResponse(long defendantAccountId,
@@ -3505,7 +3505,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals(2, logs.size());
         assertEquals(Level.ERROR, logs.getFirst().getLevel());
         assertEquals(
-            ":addPaymentTerms: Legacy error HTTP 503 SERVICE_UNAVAILABLE",
+            ":addPaymentTerms: legacy error HTTP 503 SERVICE_UNAVAILABLE",
             logs.getFirst().getFormattedMessage()
         );
         assertEquals(Level.ERROR, logs.get(1).getLevel());
