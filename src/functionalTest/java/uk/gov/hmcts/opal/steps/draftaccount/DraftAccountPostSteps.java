@@ -118,7 +118,9 @@ public class DraftAccountPostSteps extends BaseStepDef {
             Object existing = null;
             try {
                 existing = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_IDS");
-            } catch (Exception ignored) { }
+            } catch (Exception e) {
+                log.debug("No CREATED_DRAFT_ACCOUNT_IDS found in session: {}", e.getMessage());
+            }
 
             List<String> idsList;
             if (existing instanceof List) {
@@ -157,13 +159,14 @@ public class DraftAccountPostSteps extends BaseStepDef {
         Object saved = null;
         try {
             saved = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
-        } catch (Exception ignored) { }
-
+        } catch (Exception e) {
+            log.debug("Error reading back CREATED_DRAFT_ACCOUNT_ID: {}", e.getMessage());
+        }
         if (saved == null) {
             throw new RuntimeException("Failed to store CREATED_DRAFT_ACCOUNT_ID into Serenity session after create. "
                                            + "Response body: " + resp.asString());
         }
-        log.info("Stored draft account id={} into Serenity session (CREATED_DRAFT_ACCOUNT_ID={}; CREATED_DRAFT_ACCOUNT_IDS={})",
+        log.info("Stored draft id={} into Serenity sess (CREATED_DRAFT_ACCOUNT_ID={}; CREATED_DRAFT_ACCOUNT_IDS={})",
                  id, saved, Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_IDS"));
     }
 

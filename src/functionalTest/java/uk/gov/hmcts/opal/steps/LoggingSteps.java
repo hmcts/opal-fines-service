@@ -12,9 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -60,24 +68,32 @@ public class LoggingSteps extends BaseStepDef {
             String createdById = r.get("created_by_id");
             String createdByType = r.get("created_by_type");
             String businessIdentifier = r.get("business_identifier");
-            int expectedCount = r.containsKey("expected_count") ? Integer.parseInt(r.get("expected_count")) : 1;
+            int expectedCount = r.containsKey("expected_count")
+                ? Integer.parseInt(r.get("expected_count"))
+                : 1;
 
             String individualIdCell = r.getOrDefault("individual_id", "").trim();
 
             if ("<CREATED_DRAFT_ACCOUNT_IDS>".equalsIgnoreCase(individualIdCell)) {
                 List<String> createdIds = readCreatedDraftAccountIdsFromSession();
                 if (createdIds.isEmpty()) {
-                    throw new IllegalStateException("No CREATED_DRAFT_ACCOUNT_IDS found in session to expand token.");
+                    throw new IllegalStateException(
+                        "No CREATED_DRAFT_ACCOUNT_IDS found in session to expand token.");
                 }
 
                 // existing behavior: poll once per id (keeps compatibility)
                 for (String id : createdIds) {
                     Object previous = null;
                     try {
-                        try { previous = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID"); } catch (Exception ignored) {}
+                        try {
+                            previous = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
+                        } catch (Exception ex) {
+                            log.debug("No previous CREATED_DRAFT_ACCOUNT_ID in session: {}", ex.getMessage());
+                        }
                         Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to(id);
 
-                        Expectation exp = new Expectation(createdById, createdByType, businessIdentifier, expectedCount);
+                        Expectation exp = new Expectation(
+                            createdById, createdByType, businessIdentifier, expectedCount);
                         // re-use your existing single-id polling routine
                         pollForExpectations(List.of(exp));
                     } finally {
@@ -87,32 +103,37 @@ public class LoggingSteps extends BaseStepDef {
                             } else {
                                 Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to((String) null);
                             }
-                        } catch (Exception ignored) {
-                            log.debug("Failed to restore CREATED_DRAFT_ACCOUNT_ID session var: {}", ignored.getMessage());
+                        } catch (Exception ex) {
+                            log.debug("Failed to restore CREATED_DRAFT_ACCOUNT_ID session var: {}",
+                                      ex.getMessage());
                         }
                     }
                 }
 
-            } else if ("<CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>".equalsIgnoreCase(individualIdCell)) {
+            } else if ("<CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>"
+                .equalsIgnoreCase(individualIdCell)) {
                 // assert there exists at least one single PDPO log whose 'individuals' contains ALL created ids
                 List<String> createdIds = readCreatedDraftAccountIdsFromSession();
                 if (createdIds.isEmpty()) {
-                    throw new IllegalStateException("No CREATED_DRAFT_ACCOUNT_IDS found in session to expand token.");
+                    throw new IllegalStateException(
+                        "No CREATED_DRAFT_ACCOUNT_IDS found in session to expand token.");
                 }
 
                 // call helper which polls for up to timeout and asserts presence
-                assertAllCreatedIdsInSinglePdpoLog(createdIds, createdById, createdByType, businessIdentifier, 60_000L);
+                assertAllCreatedIdsInSinglePdpoLog(
+                    createdIds, createdById, createdByType, businessIdentifier);
 
             } else {
                 // Default behaviour
-                Expectation exp = new Expectation(createdById, createdByType, businessIdentifier, expectedCount);
+                Expectation exp = new Expectation(createdById, createdByType, businessIdentifier,
+                                                  expectedCount);
                 pollForExpectations(List.of(exp));
             }
         }
     }
 
     /**
-     * Safely read CREATED_DRAFT_ACCOUNT_IDS from Serenity session and return a List<String>.
+     * Safely read CREATED_DRAFT_ACCOUNT_IDS from Serenity session and return a list of strings.
      */
     private List<String> readCreatedDraftAccountIdsFromSession() {
         List<String> createdIds = new ArrayList<>();
@@ -145,15 +166,15 @@ public class LoggingSteps extends BaseStepDef {
     /**
      * Poll logging service for up to timeoutMillis and assert there is at least one PDPO log
      * whose 'individuals' array contains all of the supplied createdIds.
-     *
-     * Uses SerenityRest to call the logging service endpoint
+     * Uses SerenityRest to call the logging service endpoint.
      */
+    @SuppressWarnings("BusyWait")
     private void assertAllCreatedIdsInSinglePdpoLog(List<String> createdIds,
                                                     String createdById,
                                                     String createdByType,
-                                                    String businessIdentifier,
-                                                    long timeoutMillis) throws Exception {
+                                                    String businessIdentifier) throws Exception {
 
+        final long timeoutMillis = (long) DEFAULT_TIMEOUT_SECONDS * 1000L;
         long start = System.currentTimeMillis();
         long deadline = start + timeoutMillis;
         boolean found = false;
@@ -174,16 +195,22 @@ public class LoggingSteps extends BaseStepDef {
                     .post("http://localhost:4065/test-support/search");
 
                 if (resp.getStatusCode() != 200) {
-                    lastException = new IllegalStateException("Logging service returned non-200: " + resp.getStatusCode());
+                    lastException = new IllegalStateException(
+                        "Logging service returned non-200: " + resp.getStatusCode());
                 } else {
                     List<Map<String, Object>> logs = resp.jsonPath().getList("$");
+                    if (logs == null) {
+                        logs = List.of();
+                    }
+
                     log.info("Logging service returned {} entries for payload {}",
-                             logs == null ? 0 : logs.size(),
+                             logs.size(),
                              payload);
 
                     for (Map<String, Object> logEntry : logs) {
                         @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> individuals = (List<Map<String, Object>>) logEntry.get("individuals");
+                        List<Map<String, Object>> individuals =
+                            (List<Map<String, Object>>) logEntry.get("individuals");
                         if (individuals == null) {
                             continue;
                         }
@@ -197,10 +224,8 @@ public class LoggingSteps extends BaseStepDef {
                         }
                         if (idsInEntry.containsAll(createdIds)) {
                             found = true;
-
                             log.info("Found PDPO entry matching all created ids: {}", createdIds);
                             log.info("Matching entry: {}", logEntry);
-
                             break;
                         }
                     }
@@ -216,9 +241,11 @@ public class LoggingSteps extends BaseStepDef {
         }
 
         if (!found) {
-            String message = "Expected at least one PDPO log containing all created draft account ids: " + createdIds;
+            String message = "Expected at least one PDPO log containing all created draft account ids: "
+                + createdIds;
             if (lastException != null) {
-                throw new AssertionError(message + " (last error: " + lastException.getMessage() + ")", lastException);
+                throw new AssertionError(message + " (last error: " + lastException.getMessage() + ")",
+                                         lastException);
             } else {
                 throw new AssertionError(message);
             }
@@ -237,7 +264,8 @@ public class LoggingSteps extends BaseStepDef {
 
         final int timeoutMillis = 5000;
         final String url = getLoggingTestUrl() + SEARCH_PATH;
-        final Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+        final Optional<String> optionalBearer =
+            Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("business_identifier", businessIdentifier);
@@ -287,13 +315,17 @@ public class LoggingSteps extends BaseStepDef {
             Thread.sleep(DEFAULT_POLL_MILLIS);
         }
 
-        fail("Did not confirm absence of PDPO logs within " + timeoutMillis + "ms. Last response: " + lastBody);
+        fail("Did not confirm absence of PDPO logs within " + timeoutMillis
+                 + "ms. Last response: " + lastBody);
     }
 
+    @SuppressWarnings("BusyWait")
     @Then("there is exactly {int} PDPO record for {string}")
-    public void thereIsExactlyNRecordsForBusinessIdentifier(int expectedCount, String businessIdentifier) throws Exception {
+    public void thereIsExactlyNRecordsForBusinessIdentifier(int expectedCount,
+                                                            String businessIdentifier) throws Exception {
         String url = getLoggingTestUrl() + SEARCH_PATH;
-        Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+        Optional<String> optionalBearer =
+            Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
         Instant deadline = Instant.now().plusSeconds(DEFAULT_TIMEOUT_SECONDS);
         String lastBody = null;
 
@@ -330,16 +362,22 @@ public class LoggingSteps extends BaseStepDef {
             Thread.sleep(DEFAULT_POLL_MILLIS);
         }
 
-        fail("Expected " + expectedCount + " PDPO record(s) for '" + businessIdentifier + "' but did not find them within "
-                 + DEFAULT_TIMEOUT_SECONDS + "s. Last body: " + lastBody);
+        String msg = "Expected " + expectedCount + " PDPO record(s) for '" + businessIdentifier
+            + "' but did not find them within " + DEFAULT_TIMEOUT_SECONDS + "s. Last body: "
+            + lastBody;
+        fail(msg);
     }
 
+    @SuppressWarnings("BusyWait")
     @Then("the PDPO for {string} contains individuals:")
     public void thePdpoForContainsIndividuals(String businessIdentifier, DataTable table) throws Exception {
-        List<String> expectedIds = table.asList().stream().map(String::trim).collect(Collectors.toList());
+        List<String> expectedIds = table.asList().stream()
+            .map(String::trim)
+            .toList();
 
         String url = getLoggingTestUrl() + SEARCH_PATH;
-        Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+        Optional<String> optionalBearer =
+            Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
         Instant deadline = Instant.now().plusSeconds(DEFAULT_TIMEOUT_SECONDS);
         String lastBody = null;
 
@@ -381,7 +419,7 @@ public class LoggingSteps extends BaseStepDef {
                             }
                         }
 
-                        boolean allPresent = expectedIds.stream().allMatch(foundIds::contains);
+                        boolean allPresent = foundIds.containsAll(expectedIds);
                         if (allPresent) {
                             // reuse validateRecord contract checks
                             validateRecord(rec, businessIdentifier);
@@ -394,15 +432,16 @@ public class LoggingSteps extends BaseStepDef {
             Thread.sleep(DEFAULT_POLL_MILLIS);
         }
 
-        fail("Did not find a PDPO for '" + businessIdentifier + "' containing individuals " + expectedIds
-                 + " within " + DEFAULT_TIMEOUT_SECONDS + "s. Last body: " + lastBody);
+        fail("Did not find a PDPO for '" + businessIdentifier + "' containing individuals "
+                 + expectedIds + " within " + DEFAULT_TIMEOUT_SECONDS + "s. Last body: " + lastBody);
     }
 
     private void pollForExpectations(List<Expectation> expectations) throws Exception {
         int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
         Instant deadline = Instant.now().plusSeconds(timeoutSeconds);
         String url = getLoggingTestUrl() + SEARCH_PATH;
-        Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+        Optional<String> optionalBearer =
+            Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
 
         Map<Expectation, Integer> remaining = new LinkedHashMap<>();
         expectations.forEach(e -> remaining.put(e, e.expectedCount));
@@ -424,7 +463,6 @@ public class LoggingSteps extends BaseStepDef {
                 try {
                     String payload = buildSearchPayload(exp);
                     log.info("Search payload for [{}]: {}", exp.businessIdentifier, payload);
-
                     log.debug("PDPO search payload: {}", payload);
 
                     var given = SerenityRest.given()
@@ -440,11 +478,11 @@ public class LoggingSteps extends BaseStepDef {
 
                     // if empty and we have a draft id, try alternate nested key once
                     String createdDraftId = getCreatedDraftAccountId();
-                    if (status == 200 && (body == null || body.isBlank() || body.equals("[]"))
+                    if (status == 200
+                        && (body == null || body.isBlank() || body.equals("[]"))
                         && createdDraftId != null) {
 
                         Map<String, Object> altPayload = new HashMap<>();
-
                         Map<String, Object> cb = new HashMap<>();
                         cb.put("id", exp.createdById);
                         cb.put("type", exp.createdByType);
@@ -452,7 +490,8 @@ public class LoggingSteps extends BaseStepDef {
                         altPayload.put("created_by", cb);
                         altPayload.put("business_identifier", exp.businessIdentifier);
                         altPayload.put("individuals.id", createdDraftId);
-                        log.debug("Retrying with alternative payload: {}", MAPPER.writeValueAsString(altPayload));
+                        log.debug("Retrying with alternative payload: {}",
+                                  MAPPER.writeValueAsString(altPayload));
 
                         var altGiven = SerenityRest.given()
                             .contentType("application/json")
@@ -460,7 +499,8 @@ public class LoggingSteps extends BaseStepDef {
                         optionalBearer.ifPresent(b -> altGiven.header("Authorization", "Bearer " + b));
 
                         Response altResp = altGiven.when().post(url);
-                        log.info("Alt search returned status={} body={}", altResp.getStatusCode(),
+                        log.info("Alt search returned status={} body={}",
+                                 altResp.getStatusCode(),
                                  altResp.getBody() == null ? "" : altResp.getBody().asString());
                         if (altResp.getStatusCode() == 200) {
                             body = altResp.getBody() == null ? "" : altResp.getBody().asString();
@@ -480,7 +520,8 @@ public class LoggingSteps extends BaseStepDef {
                                     continue;
                                 }
 
-                                if (!exp.businessIdentifier.equals(rec.path("business_identifier").asText(null))) {
+                                if (!exp.businessIdentifier.equals(
+                                    rec.path("business_identifier").asText(null))) {
                                     continue;
                                 }
 
@@ -531,7 +572,8 @@ public class LoggingSteps extends BaseStepDef {
 
                 } catch (Exception e) {
                     lastException = e;
-                    log.warn("Exception querying logging service for {}: {}", exp.businessIdentifier, e.toString());
+                    log.warn("Exception querying logging service for {}: {}", exp.businessIdentifier,
+                             e.toString());
                 }
             }
 
@@ -569,7 +611,8 @@ public class LoggingSteps extends BaseStepDef {
 
         String expectedCategory = BUSINESS_TO_CATEGORY.getOrDefault(businessIdentifier, "Collection");
         // category must match expected
-        assertEquals(expectedCategory, rec.path("category").asText(null),"category must be " + expectedCategory);
+        assertEquals(expectedCategory, rec.path("category").asText(null),
+                     "category must be " + expectedCategory);
 
         // recipient must be null or missing
         assertTrue(rec.path("recipient").isMissingNode() || rec.path("recipient").isNull(),
@@ -577,7 +620,8 @@ public class LoggingSteps extends BaseStepDef {
 
         // individuals[] must be present; test-support uses "id" and "type"
         JsonNode individuals = rec.path("individuals");
-        assertTrue(individuals.isArray() && !individuals.isEmpty(), "individuals must be a non-empty array");
+        assertTrue(individuals.isArray() && !individuals.isEmpty(),
+                   "individuals must be a non-empty array");
 
         // expected entity type for individuals (usually DRAFT_ACCOUNT)
         String expectedEntityType = BUSINESS_TO_ENTITY_TYPE.getOrDefault(businessIdentifier, "DRAFT_ACCOUNT");
