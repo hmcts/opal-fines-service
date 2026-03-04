@@ -3,13 +3,13 @@
   "$id": "https://opal-fines-service/getMinorCreditorAccountHeaderSummaryResponse.json",
   "type": "object",
   "required": [
-    "party",
+    "party_details",
     "business_unit",
     "creditor",
     "financials"
   ],
   "properties": {
-    "party": {
+    "party_details": {
       "$ref": "./common-objects/partyDetailsLegacy.json"
     },
     "business_unit": {
@@ -21,7 +21,8 @@
         "account_id",
         "account_number",
         "account_type",
-        "account_version"
+        "account_version",
+        "has_associated_defendant"
       ],
       "properties": {
         "account_version": {
@@ -38,7 +39,11 @@
         },
         "account_type": {
           "$ref": "./common-objects/creditorAccountTypeReferenceLegacy.json"
-        }
+        },
+         "has_associated_defendant": {
+           "type": "boolean",
+           "description": "Indicates whether the minor creditor has an associated defendant account or not"
+         }
       }
     },
     "financials": {
