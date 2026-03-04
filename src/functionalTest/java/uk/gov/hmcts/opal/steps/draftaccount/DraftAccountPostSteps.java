@@ -19,7 +19,11 @@ import static org.hamcrest.text.IsBlankString.blankOrNullString;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -108,17 +112,59 @@ public class DraftAccountPostSteps extends BaseStepDef {
         // preserve existing behaviour (if you still need DraftAccountUtils)
         DraftAccountUtils.addDraftAccountId(id);
 
-        // store in Serenity session so other steps can read it
+        // accumulate created IDs into a list in Serenity session
+        try {
+            // Try to retrieve an existing list
+            Object existing = null;
+            try {
+                existing = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_IDS");
+            } catch (Exception ignored) { }
+
+            List<String> idsList;
+            if (existing instanceof List) {
+                // safe copy with toString for elements
+                idsList = ((List<?>) existing).stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            } else if (existing instanceof String) {
+                String s = ((String) existing).trim();
+                if (s.isEmpty()) {
+                    idsList = new ArrayList<>();
+                } else {
+                    idsList = Stream.of(s.split(","))
+                        .map(String::trim)
+                        .filter(str -> !str.isEmpty())
+                        .collect(Collectors.toCollection(ArrayList::new));
+                }
+            } else {
+                idsList = new ArrayList<>();
+            }
+
+            // add new id if not already present
+            if (!idsList.contains(id)) {
+                idsList.add(id);
+            }
+
+            // store the accumulated list
+            Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_IDS").to(idsList);
+        } catch (Exception e) {
+            log.warn("Failed to store CREATED_DRAFT_ACCOUNT_IDS list in Serenity session: {}", e.getMessage());
+        }
+
+        // store in Serenity session so other steps can read the most recent id (backwards compatibility)
         Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to(id);
 
+        Object saved = null;
+        try {
+            saved = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
+        } catch (Exception ignored) { }
 
-        Object saved = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
         if (saved == null) {
             throw new RuntimeException("Failed to store CREATED_DRAFT_ACCOUNT_ID into Serenity session after create. "
                                            + "Response body: " + resp.asString());
         }
-
-        log.info("Stored draft account id={} into Serenity session (CREATED_DRAFT_ACCOUNT_ID={})", id, saved);
+        log.info("Stored draft account id={} into Serenity session (CREATED_DRAFT_ACCOUNT_ID={}; CREATED_DRAFT_ACCOUNT_IDS={})",
+                 id, saved, Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_IDS"));
     }
 
     @Then("I store the created draft account created_at time")

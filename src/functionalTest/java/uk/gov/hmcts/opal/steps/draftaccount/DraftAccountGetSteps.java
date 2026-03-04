@@ -378,4 +378,31 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
 
     }
+
+    @When("I get the draft accounts")
+    public void getDraftAccounts() {
+        // pick up bearer token if set in session, otherwise fall back to getToken()
+        Object tokenObj = Serenity.sessionVariableCalled("BEARER_TOKEN");
+        String token = tokenObj == null ? getToken() : String.valueOf(tokenObj);
+
+        var given = SerenityRest.given().contentType("application/json").accept("*/*");
+
+        if (token != null && !token.isBlank()) {
+            given.header("Authorization", "Bearer " + token);
+        }
+
+        // support optional custom header set by tests (e.g. x-user-ip)
+        Object hdrName = Serenity.sessionVariableCalled("CUSTOM_HEADER_NAME");
+        Object hdrValue = Serenity.sessionVariableCalled("CUSTOM_HEADER_VALUE");
+        if (hdrName != null && hdrValue != null) {
+            given.header(String.valueOf(hdrName), String.valueOf(hdrValue));
+            // clear after use to avoid leaking across scenarios
+            Serenity.setSessionVariable("CUSTOM_HEADER_NAME").to(null);
+            Serenity.setSessionVariable("CUSTOM_HEADER_VALUE").to(null);
+        }
+
+        Response resp = given.when().get(getTestUrl() + DRAFT_ACCOUNTS_URI);
+        // store latest response for later assertions / steps
+        Serenity.setSessionVariable("LATEST_RESPONSE").to(resp);
+    }
 }

@@ -12,14 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,16 +56,173 @@ public class LoggingSteps extends BaseStepDef {
     public void loggingServiceContainsThesePdpoLogs(DataTable table) throws Exception {
         List<Map<String, String>> rows = table.asMaps(String.class, String.class);
 
-        List<Expectation> expectations = rows.stream()
-            .map(r -> new Expectation(
-                r.get("created_by_id"),
-                r.get("created_by_type"),
-                r.get("business_identifier"),
-                r.containsKey("expected_count") ? Integer.parseInt(r.get("expected_count")) : 1
-            ))
-            .collect(Collectors.toList());
+        for (Map<String, String> r : rows) {
+            String createdById = r.get("created_by_id");
+            String createdByType = r.get("created_by_type");
+            String businessIdentifier = r.get("business_identifier");
+            int expectedCount = r.containsKey("expected_count") ? Integer.parseInt(r.get("expected_count")) : 1;
 
-        pollForExpectations(expectations);
+            String individualIdCell = r.getOrDefault("individual_id", "").trim();
+
+            if ("<CREATED_DRAFT_ACCOUNT_IDS>".equalsIgnoreCase(individualIdCell)) {
+                List<String> createdIds = readCreatedDraftAccountIdsFromSession();
+                if (createdIds.isEmpty()) {
+                    throw new IllegalStateException("No CREATED_DRAFT_ACCOUNT_IDS found in session to expand token.");
+                }
+
+                // existing behavior: poll once per id (keeps compatibility)
+                for (String id : createdIds) {
+                    Object previous = null;
+                    try {
+                        try { previous = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID"); } catch (Exception ignored) {}
+                        Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to(id);
+
+                        Expectation exp = new Expectation(createdById, createdByType, businessIdentifier, expectedCount);
+                        // re-use your existing single-id polling routine
+                        pollForExpectations(List.of(exp));
+                    } finally {
+                        try {
+                            if (previous != null) {
+                                Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to(previous);
+                            } else {
+                                Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to((String) null);
+                            }
+                        } catch (Exception ignored) {
+                            log.debug("Failed to restore CREATED_DRAFT_ACCOUNT_ID session var: {}", ignored.getMessage());
+                        }
+                    }
+                }
+
+            } else if ("<CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>".equalsIgnoreCase(individualIdCell)) {
+                // assert there exists at least one single PDPO log whose 'individuals' contains ALL created ids
+                List<String> createdIds = readCreatedDraftAccountIdsFromSession();
+                if (createdIds.isEmpty()) {
+                    throw new IllegalStateException("No CREATED_DRAFT_ACCOUNT_IDS found in session to expand token.");
+                }
+
+                // call helper which polls for up to timeout and asserts presence
+                assertAllCreatedIdsInSinglePdpoLog(createdIds, createdById, createdByType, businessIdentifier, 60_000L);
+
+            } else {
+                // Default behaviour
+                Expectation exp = new Expectation(createdById, createdByType, businessIdentifier, expectedCount);
+                pollForExpectations(List.of(exp));
+            }
+        }
+    }
+
+    /**
+     * Safely read CREATED_DRAFT_ACCOUNT_IDS from Serenity session and return a List<String>.
+     */
+    private List<String> readCreatedDraftAccountIdsFromSession() {
+        List<String> createdIds = new ArrayList<>();
+        try {
+            Object o = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_IDS");
+            if (o instanceof List<?>) {
+                for (Object elem : (List<?>) o) {
+                    if (elem != null) {
+                        createdIds.add(String.valueOf(elem));
+                    }
+                }
+            } else if (o instanceof String) {
+                String s = ((String) o).trim();
+                if (!s.isEmpty()) {
+                    String[] parts = s.split(",");
+                    for (String p : parts) {
+                        String t = p.trim();
+                        if (!t.isEmpty()) {
+                            createdIds.add(t);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            log.debug("Error reading CREATED_DRAFT_ACCOUNT_IDS from session: {}", ex.getMessage());
+        }
+        return createdIds;
+    }
+
+    /**
+     * Poll logging service for up to timeoutMillis and assert there is at least one PDPO log
+     * whose 'individuals' array contains all of the supplied createdIds.
+     *
+     * Uses SerenityRest to call the logging service endpoint
+     */
+    private void assertAllCreatedIdsInSinglePdpoLog(List<String> createdIds,
+                                                    String createdById,
+                                                    String createdByType,
+                                                    String businessIdentifier,
+                                                    long timeoutMillis) throws Exception {
+
+        long start = System.currentTimeMillis();
+        long deadline = start + timeoutMillis;
+        boolean found = false;
+        Exception lastException = null;
+
+        while (System.currentTimeMillis() <= deadline && !found) {
+            try {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("business_identifier", businessIdentifier);
+                Map<String, String> createdBy = new HashMap<>();
+                createdBy.put("id", createdById);
+                createdBy.put("type", createdByType);
+                payload.put("created_by", createdBy);
+
+                var resp = SerenityRest.given()
+                    .contentType("application/json")
+                    .body(payload)
+                    .post("http://localhost:4065/test-support/search");
+
+                if (resp.getStatusCode() != 200) {
+                    lastException = new IllegalStateException("Logging service returned non-200: " + resp.getStatusCode());
+                } else {
+                    List<Map<String, Object>> logs = resp.jsonPath().getList("$");
+                    log.info("Logging service returned {} entries for payload {}",
+                             logs == null ? 0 : logs.size(),
+                             payload);
+
+                    for (Map<String, Object> logEntry : logs) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> individuals = (List<Map<String, Object>>) logEntry.get("individuals");
+                        if (individuals == null) {
+                            continue;
+                        }
+
+                        Set<String> idsInEntry = new HashSet<>();
+                        for (Map<String, Object> ind : individuals) {
+                            Object idObj = ind.get("id");
+                            if (idObj != null) {
+                                idsInEntry.add(String.valueOf(idObj));
+                            }
+                        }
+                        if (idsInEntry.containsAll(createdIds)) {
+                            found = true;
+
+                            log.info("Found PDPO entry matching all created ids: {}", createdIds);
+                            log.info("Matching entry: {}", logEntry);
+
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                lastException = e;
+                log.debug("Error while querying logging service: {}", e.getMessage());
+            }
+
+            if (!found) {
+                Thread.sleep(500);
+            }
+        }
+
+        if (!found) {
+            String message = "Expected at least one PDPO log containing all created draft account ids: " + createdIds;
+            if (lastException != null) {
+                throw new AssertionError(message + " (last error: " + lastException.getMessage() + ")", lastException);
+            } else {
+                throw new AssertionError(message);
+            }
+        }
     }
 
     @When("I set an invalid token manually")
@@ -136,6 +288,114 @@ public class LoggingSteps extends BaseStepDef {
         }
 
         fail("Did not confirm absence of PDPO logs within " + timeoutMillis + "ms. Last response: " + lastBody);
+    }
+
+    @Then("there is exactly {int} PDPO record for {string}")
+    public void thereIsExactlyNRecordsForBusinessIdentifier(int expectedCount, String businessIdentifier) throws Exception {
+        String url = getLoggingTestUrl() + SEARCH_PATH;
+        Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+        Instant deadline = Instant.now().plusSeconds(DEFAULT_TIMEOUT_SECONDS);
+        String lastBody = null;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("business_identifier", businessIdentifier);
+
+        while (Instant.now().isBefore(deadline)) {
+            var given = SerenityRest.given()
+                .contentType("application/json")
+                .body(MAPPER.writeValueAsString(payload));
+            optionalBearer.ifPresent(b -> given.header("Authorization", "Bearer " + b));
+
+            Response response = given.when().post(url);
+            int status = response.getStatusCode();
+            String body = response.getBody() == null ? "" : response.getBody().asString();
+            lastBody = body;
+
+            if (status == 200) {
+                JsonNode root = MAPPER.readTree(body);
+                JsonNode entries = root.isArray() ? root : root.path("entries");
+                int found = 0;
+                if (entries.isArray()) {
+                    for (JsonNode rec : entries) {
+                        if (businessIdentifier.equals(rec.path("business_identifier").asText(null))) {
+                            found++;
+                        }
+                    }
+                }
+                if (found == expectedCount) {
+                    return;
+                }
+            }
+
+            Thread.sleep(DEFAULT_POLL_MILLIS);
+        }
+
+        fail("Expected " + expectedCount + " PDPO record(s) for '" + businessIdentifier + "' but did not find them within "
+                 + DEFAULT_TIMEOUT_SECONDS + "s. Last body: " + lastBody);
+    }
+
+    @Then("the PDPO for {string} contains individuals:")
+    public void thePdpoForContainsIndividuals(String businessIdentifier, DataTable table) throws Exception {
+        List<String> expectedIds = table.asList().stream().map(String::trim).collect(Collectors.toList());
+
+        String url = getLoggingTestUrl() + SEARCH_PATH;
+        Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
+        Instant deadline = Instant.now().plusSeconds(DEFAULT_TIMEOUT_SECONDS);
+        String lastBody = null;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("business_identifier", businessIdentifier);
+
+        while (Instant.now().isBefore(deadline)) {
+            var given = SerenityRest.given()
+                .contentType("application/json")
+                .body(MAPPER.writeValueAsString(payload));
+            optionalBearer.ifPresent(b -> given.header("Authorization", "Bearer " + b));
+
+            Response response = given.when().post(url);
+            int status = response.getStatusCode();
+            String body = response.getBody() == null ? "" : response.getBody().asString();
+            lastBody = body;
+
+            if (status == 200 && body != null && !body.isBlank() && !body.equals("[]")) {
+                JsonNode root = MAPPER.readTree(body);
+                JsonNode entries = root.isArray() ? root : root.path("entries");
+
+                if (entries.isArray()) {
+                    for (JsonNode rec : entries) {
+                        if (!businessIdentifier.equals(rec.path("business_identifier").asText(null))) {
+                            continue;
+                        }
+
+                        // check individuals[] exists
+                        JsonNode individuals = rec.path("individuals");
+                        if (!individuals.isArray() || individuals.isEmpty()) {
+                            continue;
+                        }
+
+                        Set<String> foundIds = new HashSet<>();
+                        for (JsonNode ind : individuals) {
+                            String id = ind.path("id").asText(null);
+                            if (id != null) {
+                                foundIds.add(id);
+                            }
+                        }
+
+                        boolean allPresent = expectedIds.stream().allMatch(foundIds::contains);
+                        if (allPresent) {
+                            // reuse validateRecord contract checks
+                            validateRecord(rec, businessIdentifier);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            Thread.sleep(DEFAULT_POLL_MILLIS);
+        }
+
+        fail("Did not find a PDPO for '" + businessIdentifier + "' containing individuals " + expectedIds
+                 + " within " + DEFAULT_TIMEOUT_SECONDS + "s. Last body: " + lastBody);
     }
 
     private void pollForExpectations(List<Expectation> expectations) throws Exception {
