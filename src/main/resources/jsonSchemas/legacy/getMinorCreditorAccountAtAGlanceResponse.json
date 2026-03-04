@@ -32,8 +32,21 @@
         },
         "account_id": {
           "$ref": "../types/bigint_value.json"
+        },
+        "title": {
+          "type": "string"
+
+        },
+        "forenames": {
+          "type": "string"
+        },
+        "surname": {
+          "type": "string"
         }
-      }
+      },
+      "required": [
+        "surname"
+      ]
     },
     "payment": {
       "type": "object",
