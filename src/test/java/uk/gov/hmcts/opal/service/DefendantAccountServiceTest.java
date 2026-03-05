@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -521,6 +522,28 @@ class DefendantAccountServiceTest {
         assertThrows(PermissionNotAllowedException.class,
             () -> defendantAccountService.updateDefendantAccount(
                 defendantAccountId, businessUnitId, request, ifMatch, authHeader
+            )
+        );
+
+        verifyNoInteractions(defendantAccountServiceProxy);
+    }
+
+    @Test
+    void updateDefendantAccount_whenUserHasInvalidBuId_throwsAndDoesNotCallProxy() {
+        // arrange
+        Long defendantAccountId = 77L;
+        String businessUnitId = "invalid";
+        String ifMatch = "\"1\"";
+        String authHeader = "Bearer abc";
+
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder().build();
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+
+        //act + assert
+        assertThrows(IllegalArgumentException.class,
+            () -> defendantAccountService.updateDefendantAccount(
+            defendantAccountId, businessUnitId, request, ifMatch, authHeader
             )
         );
 

@@ -124,7 +124,20 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        short buId = Short.parseShort(businessUnitId);
+        short buId;
+
+        if (businessUnitId == null) {
+            throw new IllegalArgumentException("businessUnitId cannot be null");
+        }
+
+        try {
+            buId = Short.parseShort(businessUnitId);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(
+                "Invalid businessUnitId: must be a valid short value, but was: " + businessUnitId,
+                ex
+            );
+        }
 
         if (userState.hasBusinessUnitUserWithPermission(buId, FinesPermission.ACCOUNT_MAINTENANCE)) {
 
