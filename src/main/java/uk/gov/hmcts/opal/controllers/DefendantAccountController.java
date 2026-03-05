@@ -30,10 +30,6 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
@@ -194,7 +190,7 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader("If-Match") String ifMatch,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @JsonSchemaValidated(schemaPath = SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_REQUEST)
         @RequestBody UpdateDefendantAccountRequest request
     ) {
