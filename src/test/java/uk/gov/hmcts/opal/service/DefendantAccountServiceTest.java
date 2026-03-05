@@ -32,6 +32,7 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -465,11 +466,11 @@ class DefendantAccountServiceTest {
         String ifMatch = "\"1\"";
         String authHeader = "Bearer abc";
 
-        uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest request =
-            uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest.builder().build();
+        UpdateDefendantAccountRequest request =
+            UpdateDefendantAccountRequest.builder().build();
 
-        uk.gov.hmcts.opal.dto.DefendantAccountResponse proxyResponse =
-            uk.gov.hmcts.opal.dto.DefendantAccountResponse.builder().build();
+        DefendantAccountResponse proxyResponse =
+            DefendantAccountResponse.builder().build();
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission((short) 78, FinesPermission.ACCOUNT_MAINTENANCE))
@@ -491,8 +492,7 @@ class DefendantAccountServiceTest {
         )).thenReturn(proxyResponse);
 
         // act
-        uk.gov.hmcts.opal.dto.DefendantAccountResponse result =
-            defendantAccountService.updateDefendantAccount(
+        DefendantAccountResponse result = defendantAccountService.updateDefendantAccount(
                 defendantAccountId, businessUnitId, request, ifMatch, authHeader
             );
 
@@ -511,8 +511,7 @@ class DefendantAccountServiceTest {
         String ifMatch = "\"1\"";
         String authHeader = "Bearer abc";
 
-        uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest request =
-            uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest.builder().build();
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder().build();
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission((short) 78, FinesPermission.ACCOUNT_MAINTENANCE))
