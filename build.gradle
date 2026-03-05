@@ -369,8 +369,8 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.9'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.9'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.10'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.10'
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
@@ -556,7 +556,8 @@ var zephyrBaseArgs = [
         "jira-epic-link-custom-field-id=customfield_10008",
         "jira-default-components=opal-fines-service",
         "execution-environment=${System.getenv('EXECUTION_ENVIRONMENT') ?: ''}",
-        "execution-build=${System.getenv('EXECUTION_BUILD') ?: ''}"
+        "execution-build=${System.getenv('EXECUTION_BUILD') ?: ''}",
+        "execution-test-cycle-description=${System.getenv('EXECUTION_CYCLE_DESCRIPTION') ?: ''}"
 ]
 // helper that returns a NEW list each time
 def zephyrArgs = { String processType, String actionType, String testFolder, String reportPath ->

@@ -67,6 +67,8 @@ withNightlyPipeline(type, product, component) {
       if (shouldRunWithZephyr) {
           env.EXECUTION_BUILD = env.GIT_COMMIT
           env.EXECUTION_ENVIRONMENT = env.ENVIRONMENT_NAME
+          env.EXECUTION_CYCLE_DESCRIPTION = "Nightly execution for commit ${env.GIT_COMMIT} on environment ${env.ENVIRONMENT_NAME}.\n" +
+                  "https://sds-build.hmcts.net/job/HMCTS_Nightly/job/opal-fines-service/job/master/${env.BUILD_NUMBER}/"
       }
       if (params.Functional) {
       stage('Functional Tests') {
