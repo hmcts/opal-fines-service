@@ -44,7 +44,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -92,8 +91,8 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
-    @ExceptionHandler({PermissionNotAllowedException.class, AccessDeniedException.class})
-    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(Exception ex,
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAccessDeniedException(AccessDeniedException ex,
                                                                              HttpServletRequest request) {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractUsername(authorization);

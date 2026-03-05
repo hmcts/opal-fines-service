@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
@@ -32,6 +34,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @MockitoBean
     private UserState userState;
@@ -126,6 +131,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(restrictedUser);
+
+        UserState userState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         Note note = new Note();
         note.setNoteText("test note");

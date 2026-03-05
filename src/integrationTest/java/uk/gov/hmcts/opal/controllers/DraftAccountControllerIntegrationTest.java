@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -1036,6 +1037,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         Long draftAccountId = 6L;
         UserState user = permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        UserState userState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
             .header("authorization", "Bearer some_value")
