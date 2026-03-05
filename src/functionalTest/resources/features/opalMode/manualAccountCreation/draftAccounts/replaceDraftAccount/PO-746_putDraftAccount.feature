@@ -129,15 +129,15 @@ Feature: PO-746 put/update draft account
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
-      | submitted_by      | UPDATE001                                       |
+      | submitted_by      | UPDATE001                                   |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
     Then The draft account response returns 200
 
     And the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                       | expected_count |
-      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant         | 1              |
+      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
+      | 500000000        | OPAL_USER_ID    | Update Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
     Then I delete the created draft accounts
 
@@ -169,8 +169,8 @@ Feature: PO-746 put/update draft account
     Then The draft account response returns 200
 
     And the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                          | expected_count |
-      | L073JG         | OPAL_USER_ID    | Update Draft Account - Defendant             | 1              |
-      | L073JG         | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | 1              |
+      | created_by_id | created_by_type | business_identifier                          | individual_id                | expected_count |
+      | 500000000     | OPAL_USER_ID    | Update Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+      | 500000000     | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
     Then I delete the created draft accounts

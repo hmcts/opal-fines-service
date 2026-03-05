@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +23,9 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
         "classpath:db/deleteData/delete_from_draft_accounts.sql",
         "classpath:db/insertData/insert_into_draft_accounts.sql"
     },
-    executionPhase = BEFORE_TEST_METHOD
+    executionPhase = BEFORE_TEST_CLASS
 )
-@Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_METHOD)
+@Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @DisplayName("DraftAccountController Integration Tests")
 class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 

@@ -5,8 +5,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
@@ -23,11 +23,12 @@ public abstract class AbstractPdplLoggingService {
         PersonalDataProcessingCategory category,
         List<ParticipantIdentifier> individuals,
         ParticipantIdentifier recipient,
-        DraftAccountEntity entity) {
+        UserState userState) {
+
 
         // attempt to resolve createdBy from Spring Security
         ParticipantIdentifier createdBy = ParticipantIdentifier.builder()
-            .identifier(entity.getSubmittedBy())
+            .identifier(userState.getUserId().toString())
             .type(PdplIdentifierType.OPAL_USER_ID)
             .build();
 

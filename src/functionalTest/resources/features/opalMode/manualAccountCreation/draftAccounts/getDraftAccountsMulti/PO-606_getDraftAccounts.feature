@@ -1,5 +1,5 @@
 @Opal
-Feature: PO-606 get draft accounts
+Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-606 @cleanUpData
   Scenario: Get draft accounts - filtering on business unit
@@ -227,4 +227,129 @@ Feature: PO-606 get draft accounts
     And The draft account filtered response does not contain accounts with status "Resubmitted"
     And The draft account filtered response does not contain accounts submitted by "BUUID"
 
+    Then I delete the created draft accounts
+
+  @PO-2361 @cleanUpData
+  Scenario: Get all draft accounts - created three accounts and verify logging contains all three
+    Given I am testing as the "opal-test@hmcts.net" user
+
+    When I create a draft account with the following details
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I create a draft account with the following details
+      | business_unit_id  | 77                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I create a draft account with the following details
+      | business_unit_id  | 65                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    # Do a GET all
+    When I get the draft accounts
+    Then The draft account response returns 200
+
+    # Assert that logging has PDPO entries for each created draft id
+    Then the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier              | individual_id                         | expected_count |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+
+    # Cleanup
+    Then I delete the created draft accounts
+
+  @PO-2361 @cleanUpData
+  Scenario: Get all draft accounts - Verify that 2 logs are created containing when the get all endpoint
+    Given I am testing as the "opal-test@hmcts.net" user
+
+    When I create a draft account with the following details
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I create a draft account with the following details
+      | business_unit_id  | 77                                          |
+      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I create a draft account with the following details
+      | business_unit_id  | 65                                          |
+      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    # Do a GET all
+    When I get the draft accounts
+    Then The draft account response returns 200
+
+    # Assert that logging has PDPO entries for each created draft id for both Business identifiers
+    Then the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                       | individual_id                         | expected_count |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Parent or Guardian    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+
+    # Cleanup
+    Then I delete the created draft accounts
+
+  @PO-2361 @cleanUpData
+  Scenario: Invalid token is blocked and no PDPO logs emitted
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I create a draft account with the following details
+      | business_unit_id  | 73                                                     |
+      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
+      | account_type      | Fine                                                   |
+      | account_status    | Submitted                                              |
+      | submitted_by      | BUUID                                                  |
+      | submitted_by_name | Laura Clerk                                            |
+      | timeline_data     | draftAccounts/timelineJson/default.json                |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+  # switch to a non-OPAL user/token
+    When I set an invalid token manually
+    And I get the draft accounts
+    Then The draft account response returns 401
+
+  # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
+    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
+
+  # switch back to an OPAL user so cleanup can delete the created draft (or delete via admin API)
+    Given I am testing as the "opal-test@hmcts.net" user
     Then I delete the created draft accounts
