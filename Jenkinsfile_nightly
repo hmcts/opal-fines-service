@@ -6,6 +6,7 @@ properties([
   parameters([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
+    booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
     choice(
       name: 'LEGACY_URL',
       choices: ['PRE-PROD', 'DEV'],
@@ -61,11 +62,18 @@ withNightlyPipeline(type, product, component) {
        }
      }
    }
-    if (params.Functional) {
+      def today = ZonedDateTime.now().getDayOfWeek()
+      def shouldRunWithZephyr = params.ZephyrExecution || today == DayOfWeek.FRIDAY;
+      if (shouldRunWithZephyr) {
+          env.EXECUTION_BUILD = env.GIT_COMMIT
+          env.EXECUTION_ENVIRONMENT = env.ENVIRONMENT_NAME
+          env.EXECUTION_CYCLE_DESCRIPTION = "Nightly execution for commit ${env.GIT_COMMIT} on environment ${env.ENVIRONMENT_NAME}.\n" +
+                  "https://sds-build.hmcts.net/job/HMCTS_Nightly/job/opal-fines-service/job/master/${env.BUILD_NUMBER}/"
+      }
+      if (params.Functional) {
       stage('Functional Tests') {
         try {
-            def today = ZonedDateTime.now().getDayOfWeek()
-            if (today == DayOfWeek.FRIDAY) {
+            if (shouldRunWithZephyr) {
                 builder.gradle('functionalWithZephyrExecution')
             } else {
                 builder.gradle('functional')
