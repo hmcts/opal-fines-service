@@ -69,6 +69,10 @@ withNightlyPipeline(type, product, component) {
           env.EXECUTION_ENVIRONMENT = env.ENVIRONMENT_NAME
           env.EXECUTION_CYCLE_DESCRIPTION = "Nightly execution for commit ${env.GIT_COMMIT} on environment ${env.ENVIRONMENT_NAME}.\n" +
                   "https://sds-build.hmcts.net/job/HMCTS_Nightly/job/opal-fines-service/job/master/${env.BUILD_NUMBER}/"
+          echo "Zephyr execution will be created with the following details:\n" +
+                  "Build: ${env.EXECUTION_BUILD}\n" +
+                  "Environment: ${env.EXECUTION_ENVIRONMENT}\n" +
+                  "Description: ${env.EXECUTION_CYCLE_DESCRIPTION}"
       }
       if (params.Functional) {
       stage('Functional Tests') {
