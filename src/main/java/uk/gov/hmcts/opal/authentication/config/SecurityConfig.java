@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.authentication.config;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -19,14 +20,11 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
-
-import java.util.Map;
-
+import uk.gov.hmcts.opal.common.user.authentication.exception.CustomAuthenticationExceptions;
+import uk.gov.hmcts.opal.common.user.authentication.exception.CustomOauth2AuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -37,8 +35,8 @@ public class SecurityConfig {
 
     private final InternalAuthConfigurationProperties internalAuthConfigurationProperties;
     private final InternalAuthProviderConfigurationProperties internalAuthProviderConfigurationProperties;
-    private final AuthenticationEntryPoint customAuthenticationEntryPoint;
-    private final AccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationExceptions customAuthenticationExceptions;
+    private final CustomOauth2AuthenticationEntryPoint customOauth2AuthenticationEntryPoint;
 
     private static final String[] AUTH_WHITELIST = {
         "/swagger-ui.html",
@@ -61,19 +59,21 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         applyCommonConfig(http)
             .authorizeHttpRequests(authorize ->
-                                       authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
-                                           .permitAll()
-                                           .requestMatchers(AUTH_WHITELIST)
-                                           .permitAll()
-                                           .anyRequest().authenticated()
+                authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
+                    .permitAll()
+                    .requestMatchers(AUTH_WHITELIST)
+                    .permitAll()
+                    .anyRequest().authenticated()
             )
             .exceptionHandling(exceptionHandling ->
-                                   exceptionHandling
-                                       .authenticationEntryPoint(customAuthenticationEntryPoint)
-                                       .accessDeniedHandler(customAccessDeniedHandler)
+                exceptionHandling
+                    .authenticationEntryPoint(customAuthenticationExceptions)
+                    .accessDeniedHandler(customAuthenticationExceptions)
             )
-            .oauth2ResourceServer(oauth2 ->
-                                      oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver())
+            .oauth2ResourceServer(oauth2 -> {
+                    oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver());
+                    oauth2.authenticationEntryPoint(customOauth2AuthenticationEntryPoint);
+                }
             );
 
         return http.build();

@@ -45,6 +45,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.TransactionSystemException;
@@ -57,7 +58,6 @@ import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationErro
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
@@ -110,10 +110,10 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleForbidden_false() {
-        PermissionNotAllowedException ex = new PermissionNotAllowedException(FinesPermission.ACCOUNT_ENQUIRY);
+        AccessDeniedException ex = new AccessDeniedException("acces denied");
         HttpServletRequest req = new MockHttpServletRequest();
 
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handlePermissionNotAllowedException(ex, req);
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleAccessDeniedException(ex, req);
         assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
         ProblemDetail pd = r.getBody();
         assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
