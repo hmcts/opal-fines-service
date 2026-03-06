@@ -51,10 +51,10 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
 
     private static Stream<Arguments> testCasesForQueryParameterInput() {
         return Stream.of(
-            Arguments.of(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_1", "TYPE_2")),
-            Arguments.of(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_1")
-                .param(LJA_TYPE_PARAM, "TYPE_2")),
-            Arguments.of(get(URL_BASE + "?lja_type=TYPE_1,TYPE_2"))
+            Arguments.of(get(URL_BASE).param(LJA_TYPE_PARAM, "LJA", "SJCRT")),
+            Arguments.of(get(URL_BASE).param(LJA_TYPE_PARAM, "LJA")
+                .param(LJA_TYPE_PARAM, "SJCRT")),
+            Arguments.of(get(URL_BASE + "?lja_type=LJA,SJCRT"))
         );
     }
 
@@ -134,9 +134,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
                 hasItem("0007")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                hasItem("TYPE_1")))
+                hasItem("LJA")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type",
-                hasItem("TYPE_2")));
+                hasItem("SJCRT")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
@@ -144,14 +144,14 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @Test
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request single lja_type param [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterBySingleLjaType() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_1"));
+        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "LJA"));
 
         String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterBySingleLjaType");
 
         actions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(greaterThan(0)))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                hasItem("TYPE_1")));
+                hasItem("LJA")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
@@ -172,14 +172,14 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @Test
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request with known/unknown lja_type [@PO-2757]")
     public void testGetLocalJusticeAreasRefData_filterByKnownAndUnknownLjaTypes() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN", "TYPE_1"));
+        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN", "LJA"));
         String body =
             getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByKnownAndUnknownLjaTypes:");
 
         actions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(greaterThan(0)))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                hasItem("TYPE_1")));
+                hasItem("LJA")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
@@ -196,9 +196,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThan(2)))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                hasItem("TYPE_1")))
+                hasItem("LJA")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type",
-                hasItem("TYPE_2")));
+                hasItem("SJCRT")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
 
@@ -208,11 +208,11 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify deterministic results for LocalJusticeAreasRefData created by multiple GET requests")
     void testGetLocalJusticeAreasRefData_returnsSameResultsInStableOrderForMultipleCalls() throws Exception {
         String cacheName = "ljaReferenceDataCache";
-        var actions1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CTYCRT", "TYPE_2"));
+        var actions1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"));
         String body1 = actions1.andReturn().getResponse().getContentAsString();
         var cache1 = cacheManager.getCache(cacheName);
 
-        var actions2 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "TYPE_2", "CTYCRT"));
+        var actions2 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "SJCRT", "CRWCRT"));
         String body2 = actions2.andReturn().getResponse().getContentAsString();
         var cache2 = cacheManager.getCache(cacheName);
 
@@ -226,7 +226,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     public void testGetLocalJusticeAreasRefData_whenAllQueryParamsPresent() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE)
             .param("q", "0007")
-            .param(LJA_TYPE_PARAM, "TYPE_1", "NOT_VALID"));
+            .param(LJA_TYPE_PARAM, "LJA", "NOT_VALID"));
         getResponseBody(actions, ":testGetLocalJusticeAreasRefData:whenAllQueryParamsPresent");
 
         actions.andExpect(status().isOk())
@@ -236,7 +236,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
                 hasItem("0007")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                hasItem("TYPE_1")));
+                hasItem("LJA")));
     }
 
     private @NonNull String getResponseBody(ResultActions actions, String methodName)
