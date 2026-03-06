@@ -35,9 +35,27 @@
             "null"
           ]
         },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "forenames": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "surname": {
+          "type": "string"
+        },
         "required": [
           "account_number",
-          "account_id"
+          "account_id",
+          "title",
+          "forenames",
+          "surname"
         ]
       }
     },
