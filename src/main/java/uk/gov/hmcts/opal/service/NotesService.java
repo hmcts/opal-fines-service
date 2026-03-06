@@ -35,9 +35,10 @@ public class NotesService {
                     HttpStatus.NOT_FOUND, "Account %s not found".formatted(request.getActivityNote().getRecordId())
                 ));
 
+        Short businessUnitId = account.getBusinessUnit().getBusinessUnitId();
         if (!userState.hasBusinessUnitUserWithPermission(
-            account.getBusinessUnit().getBusinessUnitId(), FinesPermission.ACCOUNT_MAINTENANCE)) {
-            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+            businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE)) {
+            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         }
 
         return notesProxy.addNote(request, ifMatch, userState, account);
