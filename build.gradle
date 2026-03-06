@@ -376,7 +376,7 @@ dependencies {
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
-  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
+  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.1"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation "org.springframework.boot:spring-boot-starter-web:${springVersion}"
@@ -423,7 +423,7 @@ dependencies {
   }
   implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.21.1'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.44.Final'
