@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -51,8 +50,6 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPaymentTermsLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -107,9 +104,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
-    public static final String ADD_PAYMENT_TERMS = "LIBRA.get_payment_terms";
     public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
+
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
@@ -117,6 +114,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
+
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
@@ -469,7 +467,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .organisationName(mapSafe(pd != null ? pd.getOrganisationDetails() : null,
                     OrganisationDetailsLegacy::getOrganisationName))
                 // arrays must not be null (schema expects an array)
-                .organisationAliases(Collections.emptyList())
+                .organisationAliases(java.util.Collections.emptyList())
                 .build();
         }
 
@@ -487,7 +485,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .nationalInsuranceNumber(mapSafe(pd != null ? pd.getIndividualDetails() : null,
                     IndividualDetailsLegacy::getNationalInsuranceNumber))
                 // arrays must not be null (schema expects an array)
-                .individualAliases(Collections.emptyList())
+                .individualAliases(java.util.Collections.emptyList())
                 .build();
         }
 
@@ -637,7 +635,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return response;
     }
 
-    private static <T, R> R mapSafe(T obj, Function<T, R> f) {
+    private static <T, R> R mapSafe(T obj, java.util.function.Function<T, R> f) {
         return obj == null ? null : f.apply(obj);
     }
 
@@ -706,13 +704,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         if (src == null) {
             return null;
         }
-        List<OrganisationAlias> aliases = Optional
+        java.util.List<OrganisationAlias> aliases = java.util.Optional
             .ofNullable(src.getOrganisationAliases())
-            .map(Arrays::asList)
-            .orElseGet(List::of)
+            .map(java.util.Arrays::asList)
+            .orElseGet(java.util.List::of)
             .stream()
             .map(this::toOrganisationAlias)
-            .filter(Objects::nonNull)
+            .filter(java.util.Objects::nonNull)
             .toList();
 
         return OrganisationDetails.builder()
@@ -739,13 +737,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             return null;
         }
 
-        List<IndividualAlias> aliases = Optional
+        java.util.List<IndividualAlias> aliases = java.util.Optional
             .ofNullable(src.getIndividualAliases())
-            .map(Arrays::asList)
-            .orElseGet(List::of)
+            .map(java.util.Arrays::asList)
+            .orElseGet(java.util.List::of)
             .stream()
             .map(this::toIndividualAlias)
-            .filter(Objects::nonNull)
+            .filter(java.util.Objects::nonNull)
             .toList();
 
         return IndividualDetails.builder()
@@ -793,12 +791,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             return null;
         }
 
-        String docCode = Optional.ofNullable(src.getDocumentLanguagePreference())
+        String docCode = java.util.Optional.ofNullable(src.getDocumentLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.DocumentLanguagePreference
                 ::getDocumentLanguageCode)
             .orElse(null);
 
-        String hearingCode = Optional.ofNullable(src.getHearingLanguagePreference())
+        String hearingCode = java.util.Optional.ofNullable(src.getHearingLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.HearingLanguagePreference
                 ::getHearingLanguageCode)
             .orElse(null);
@@ -812,13 +810,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             return null;
         }
 
-        String typeCode = Optional.ofNullable(src.getPaymentTermsType())
-            .map(LegacyPaymentTermsType::getPaymentTermsTypeCode)
+        String typeCode = java.util.Optional.ofNullable(src.getPaymentTermsType())
+            .map(uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType::getPaymentTermsTypeCode)
             .map(Enum::name)
             .orElse(null);
 
-        String instalmentCode = Optional.ofNullable(src.getInstalmentPeriod())
-            .map(LegacyInstalmentPeriod::getInstalmentPeriodCode)
+        String instalmentCode = java.util.Optional.ofNullable(src.getInstalmentPeriod())
+            .map(uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod::getInstalmentPeriodCode)
             .map(Enum::name)
             .orElse(null);
 
@@ -1345,45 +1343,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String ifMatch,
         String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        var cleanVersion = ifMatch.replace("\"", "");
-
-        var legacyRequest = AddDefendantAccountPaymentTermsLegacyRequest.builder()
-            .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
-            .businessUnitUserId(businessUnitUserId)
-            .version(Integer.parseInt(cleanVersion))
-            .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
-                                              ? addPaymentTermsRequest.getPaymentTerms() : null))
-            .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
-            .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
-                                                  ? addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter() : null)
-            .build();
-
-        var response = gatewayService.postToGateway(ADD_PAYMENT_TERMS,
-                                                    AddDefendantAccountPaymentTermsLegacyResponse.class, legacyRequest,
-                                                    null);
-
-        if (response.isError()) {
-            log.error(":AddPaymentTerms: Legacy error HTTP {}", response.code);
-            if (response.isException()) {
-                log.error(":AddPaymentTerms: exception:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":AddPaymentTerms: legacy failure body:\n{}", response.body);
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":AddPaymentTerms: Legacy success.");
-        }
-
-        var addPaymentTermsResponse = response.responseEntity;
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(addPaymentTermsResponse.getVersion())
-                         .map(v -> BigInteger.valueOf(v.longValue()))
-                         .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
-            .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
-            .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
-            .build();
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
+            "Add Payment Terms is not implemented in legacy mode");
     }
 }
