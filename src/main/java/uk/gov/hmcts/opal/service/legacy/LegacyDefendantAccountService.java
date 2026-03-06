@@ -1341,28 +1341,33 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
-        var legacyRequest = createAddPaymentTermsLegacyRequest(
-            defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, addPaymentTermsRequest
-        );
+        try {
+            var legacyRequest = createAddPaymentTermsLegacyRequest(
+                defendantAccountId, businessUnitId, businessUnitUserId,
+                ifMatch, addPaymentTermsRequest
+            );
 
-        var response = gatewayService.postToGateway(
-            ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
-            legacyRequest, null
-        );
+            var response = gatewayService.postToGateway(
+                ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
+                legacyRequest, null
+            );
 
-        if (response.isError()) {
-            log.error(":addPaymentTerms: Legacy error HTTP {}", response.code);
-            if (response.isException()) {
-                log.error(":addPaymentTerms: exception:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":addPaymentTerms: legacy failure body:\n{}", response.body);
+            if (response.isError()) {
+                log.error(":addPaymentTerms: Legacy error HTTP {}", response.code);
+                if (response.isException()) {
+                    log.error(":addPaymentTerms: exception:", response.exception);
+                } else if (response.isLegacyFailure()) {
+                    log.error(":addPaymentTerms: legacy failure body:\n{}", response.body);
+                }
+            } else if (response.isSuccessful()) {
+                log.info(":addPaymentTerms: Legacy success.");
             }
-        } else if (response.isSuccessful()) {
-            log.info(":addPaymentTerms: Legacy success.");
-        }
 
-        return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
+            return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
+        } catch (Exception e) {
+            log.error(":addPaymentTerms: problem with call to Legacy: {}", e.getClass().getName());
+            throw e;
+        }
     }
 
     private AddPaymentTermsLegacyRequest createAddPaymentTermsLegacyRequest(Long defendantAccountId,
