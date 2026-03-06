@@ -3320,11 +3320,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         String businessUnitId = "BU";
         String businessUnitUserId = "U";
         String ifMatch = "\"1\"";
-        var legacyResponse = createAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
+        var legacyResponse = getAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
         var gateWayResponse = new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
 
         // When
-        doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
+        doReturn(gateWayResponse).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+            eq(AddPaymentTermsLegacyResponse.class),
+            any(),
+            Mockito.nullable(String.class)
+        );
 
         var actualResponse = legacyDefendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId,
                                                                            businessUnitUserId, ifMatch,
@@ -3344,8 +3349,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
     }
 
-    private static AddPaymentTermsLegacyResponse createAddPaymentTermsLegacyResponse(long defendantAccountId,
-                                                                                     String ifMatch) {
+    private static AddPaymentTermsLegacyResponse getAddPaymentTermsLegacyResponse(long defendantAccountId,
+                                                                                  String ifMatch) {
         return AddPaymentTermsLegacyResponse.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .version(extractBigInteger(ifMatch).intValue())
@@ -3377,18 +3382,26 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void addPaymentTerms_whenGatewayResponseWithException() {
+    void addPaymentTerms_whenGatewayResponseWithException_thenThrowNullPointerDueToMissingEntity() {
         // Given
         long defendantAccountId = 1L;
         String businessUnitId = "BU";
         String businessUnitUserId = "U";
         String ifMatch = "\"1\"";
 
+        var gateWayResponse = new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
+                                                            new RuntimeException("boom"), "<err/>");
+
         // When
-        doThrow(new RuntimeException("boom")).when(gatewayService).postToGateway(any(), any(), any(), any());
+        doReturn(gateWayResponse).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+            eq(AddPaymentTermsLegacyResponse.class),
+            any(),
+            Mockito.nullable(String.class)
+        );
 
         // Then
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(NullPointerException.class, () ->
             legacyDefendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId,
                                                           businessUnitUserId, ifMatch,
                                                           "auth", null)
@@ -3414,12 +3427,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         String businessUnitUserId = "U";
         String ifMatch = "\"1\"";
 
-        var legacyResponse = createAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
+        var legacyResponse = getAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
         var gateWayResponse = new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResponse,
                                                  "<legacy-failure/>", null);
 
         // When
-        doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
+        doReturn(gateWayResponse).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+            eq(AddPaymentTermsLegacyResponse.class),
+            any(),
+            Mockito.nullable(String.class)
+        );
 
         var actualResponse = legacyDefendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId,
                                                                            businessUnitUserId, ifMatch,
