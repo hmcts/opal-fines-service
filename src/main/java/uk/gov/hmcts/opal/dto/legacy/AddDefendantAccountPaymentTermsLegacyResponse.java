@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "response")
-public class AddPaymentTermsLegacyResponse {
+public class AddDefendantAccountPaymentTermsLegacyResponse {
 
     @XmlElement(name = "defendant_account_id")
     @NotBlank

@@ -80,7 +80,7 @@ public class VersionUtils {
 
     public static Optional<BigInteger> extractOptionalBigInteger(String ifMatch) {
         return Optional.ofNullable(ifMatch)
-            .map(s -> s.replace("\"", "").trim())
+            .map(s -> s.replace("\"", ""))
             .map(BigInteger::new);
     }
 
@@ -93,4 +93,12 @@ public class VersionUtils {
             .orElseThrow(() -> new ResourceConflictException(existingFromDB.getClass().getSimpleName(), id,
                   "Could not parse 'ifMatch': " + ifMatch + " in method: " + method, existingFromDB)), id, method);
     }
+
+    public static String cleanVersion(String ifMatch) {
+        return ifMatch.replace("\"", "").trim();
+    }
+
+    // function to parse IfMatch value from header, removed.
+    // At this stage we assume this will be a number.
+    // If this is needed to it can be re-added later.
 }

@@ -51,8 +51,8 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPaymentTermsLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -341,8 +341,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return GetDefendantAccountPaymentTermsResponse.builder()
             .version(Optional.ofNullable(legacy.getVersion())
-                         .map(v -> BigInteger.valueOf(v.longValue()))
-                         .orElse(BigInteger.ONE))
+                  .map(v -> BigInteger.valueOf(v.longValue())).orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
@@ -986,7 +985,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(VersionUtils.extractBigInteger(ifMatch).longValue())
+            .version(Long.parseLong(VersionUtils.cleanVersion(ifMatch)))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
@@ -1159,7 +1158,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(businessUnitId)
                 .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
+                .version(Integer.parseInt(VersionUtils.cleanVersion(ifMatch)))
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
@@ -1341,11 +1340,21 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
-        var legacyRequest = buildAddPaymentTermsLegacyRequest(defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, addPaymentTermsRequest);
+        var legacyRequest = AddDefendantAccountPaymentTermsLegacyRequest.builder()
+            .defendantAccountId(String.valueOf(defendantAccountId))
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .version(Integer.parseInt(VersionUtils.cleanVersion(ifMatch)))
+            .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
+                                              ? addPaymentTermsRequest.getPaymentTerms() : null))
+            .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
+            .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
+                                                  ? addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter() : null)
+            .build();
 
-        var response = gatewayService.postToGateway(ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
-                                                    legacyRequest, null);
+        var response = gatewayService.postToGateway(ADD_PAYMENT_TERMS,
+                                                    AddDefendantAccountPaymentTermsLegacyResponse.class, legacyRequest,
+                                                    null);
 
         if (response.isError()) {
             log.error(":AddPaymentTerms: Legacy error HTTP {}", response.code);
@@ -1367,25 +1376,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
             .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
             .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
-            .build();
-    }
-
-    private AddPaymentTermsLegacyRequest buildAddPaymentTermsLegacyRequest(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        return AddPaymentTermsLegacyRequest.builder()
-            .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
-            .businessUnitUserId(businessUnitUserId)
-            .version(VersionUtils.extractBigInteger(ifMatch).intValue())
-            .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
-                                              ? addPaymentTermsRequest.getPaymentTerms() : null))
-            .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
-            .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
-                                                  ? addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter() : null)
             .build();
     }
 }
