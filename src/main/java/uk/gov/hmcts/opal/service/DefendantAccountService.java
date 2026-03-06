@@ -116,7 +116,7 @@ public class DefendantAccountService {
     }
 
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-                                                           String businessUnitId,
+                                                           Short businessUnitId,
                                                            UpdateDefendantAccountRequest request,
                                                            String ifMatch,
                                                            String authHeaderValue) {
@@ -124,24 +124,9 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        short buId;
+        if (userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE)) {
 
-        if (businessUnitId == null) {
-            throw new IllegalArgumentException("businessUnitId cannot be null");
-        }
-
-        try {
-            buId = Short.parseShort(businessUnitId);
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException(
-                "Invalid businessUnitId: must be a valid short value, but was: " + businessUnitId,
-                ex
-            );
-        }
-
-        if (userState.hasBusinessUnitUserWithPermission(buId, FinesPermission.ACCOUNT_MAINTENANCE)) {
-
-            String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
                 .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());

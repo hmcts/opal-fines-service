@@ -439,7 +439,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Transactional
     public DefendantAccountResponse updateDefendantAccount(
         Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         UpdateDefendantAccountRequest request,
         String ifMatch,
         String postedBy
@@ -457,7 +457,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         if (entity.getBusinessUnit() == null
             || entity.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(entity.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            || !(entity.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
             throw new EntityNotFoundException("Defendant Account not found in business unit "
                 + businessUnitId);
         }
