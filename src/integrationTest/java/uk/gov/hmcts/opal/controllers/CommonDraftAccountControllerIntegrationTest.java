@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
-@Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
+@Slf4j(topic = "opal.CommonDraftAccountControllerIntegrationTest")
 @Sql(
     scripts = {
         "classpath:db/deleteData/delete_from_draft_accounts.sql",
