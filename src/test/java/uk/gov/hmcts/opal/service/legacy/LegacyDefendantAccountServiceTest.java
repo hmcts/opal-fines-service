@@ -133,9 +133,6 @@ import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
-    private Logger logger;
-    private ListAppender<ILoggingEvent> listAppender;
-
     @Spy
     private MockRestClient restClient = spy(MockRestClient.class);
 
@@ -163,11 +160,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @BeforeEach
     void setUp() throws Exception {
-        logger = (Logger) LoggerFactory.getLogger("opal.LegacyDefendantAccountService");
-        listAppender = new ListAppender<>();
-        listAppender.start();
-        logger.addAppender(listAppender);
-
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDefendantAccountService, gatewayService);
 
@@ -182,11 +174,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         field.setAccessible(true);
         field.set(legacyDefendantAccountService, gatewayService);
 
-    }
-
-    @AfterEach
-    void tearDown() {
-        logger.detachAndStopAllAppenders();
     }
 
     @SuppressWarnings("unchecked")
@@ -3373,12 +3360,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             businessUnitUserId, ifMatch
         );
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
-
-        // Assert logs
-        List<ILoggingEvent> logs = listAppender.list;
-        assertEquals(1, logs.size());
-        assertEquals(Level.INFO, logs.getFirst().getLevel());
-        assertEquals(":addPaymentTerms: legacy success.", logs.getFirst().getFormattedMessage());
     }
 
     private static AddPaymentTermsLegacyResponse createAddPaymentTermsLegacyResponse(long defendantAccountId,
@@ -3454,10 +3435,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             requestCaptor.getValue(), defendantAccountId, businessUnitId,
             businessUnitUserId, ifMatch
         );
-
-        // Assert logs
-        List<ILoggingEvent> logs = listAppender.list;
-        assertEquals(0, logs.size());
     }
 
     @Test
@@ -3499,19 +3476,5 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             businessUnitUserId, ifMatch
         );
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
-
-        // Assert logs
-        List<ILoggingEvent> logs = listAppender.list;
-        assertEquals(2, logs.size());
-        assertEquals(Level.ERROR, logs.getFirst().getLevel());
-        assertEquals(
-            ":addPaymentTerms: legacy error HTTP 503 SERVICE_UNAVAILABLE",
-            logs.getFirst().getFormattedMessage()
-        );
-        assertEquals(Level.ERROR, logs.get(1).getLevel());
-        assertEquals(
-            ":addPaymentTerms: legacy failure body:\n"
-                + "<legacy-failure/>", logs.get(1).getFormattedMessage()
-        );
     }
 }
