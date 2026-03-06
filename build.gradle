@@ -10,7 +10,7 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.11'
+  id 'org.springframework.boot' version '4.0.3'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '7.2.3.7755'
   id 'uk.gov.hmcts.java' version '0.12.67'
@@ -23,7 +23,7 @@ ext {
   log4JVersion = "2.25.3"
   serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
-  springVersion = "3.5.11"
+  springVersion = "4.0.3"
 }
 
 //Should we fail fast on test failures?
@@ -338,7 +338,7 @@ dependencyManagement {
   }
 
   imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.5.6"
+    mavenBom "org.springframework.integration:spring-integration-bom:7.0.3"
   }
 
   dependencies {
@@ -394,7 +394,7 @@ dependencies {
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
 
-  implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.5.5'
+  implementation 'org.springframework.security:spring-security-oauth2-authorization-server:7.0.3'
 
   implementation 'org.springframework:spring-aspects'
   implementation 'commons-fileupload:commons-fileupload:1.6.0'
