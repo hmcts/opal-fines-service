@@ -2,9 +2,12 @@ package uk.gov.hmcts.opal.mapper.common;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 
 @Mapper(
     componentModel = "spring",
@@ -26,4 +29,18 @@ public interface IndividualDetailsMapper {
         expression = "java(legacy.getSequenceNumber() == null ? null : Integer.valueOf(legacy.getSequenceNumber()))"
     )
     IndividualAlias toDto(uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias legacy);
+
+    @Mapping(target = "dateOfBirth", ignore = true)
+    @Mapping(target = "nationalInsuranceNumber", ignore = true)
+    @Mapping(target = "individualAliases", ignore = true)
+    IndividualDetailsCommon toIndividualDetailsCommon(PartyEntity party);
+
+    @Named("toIndividualDetailsWhenPartyIsIndividual")
+    default IndividualDetailsCommon toIndividualDetailsWhenPartyIsIndividual(PartyEntity party) {
+        if (party == null || party.isOrganisation()) {
+            return null;
+        }
+
+        return toIndividualDetailsCommon(party);
+    }
 }
