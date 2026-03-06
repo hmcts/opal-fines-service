@@ -1,0 +1,20 @@
+meta {
+  name: At-A-Glance
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/defendant-accounts/99000000000006/at-a-glance
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
