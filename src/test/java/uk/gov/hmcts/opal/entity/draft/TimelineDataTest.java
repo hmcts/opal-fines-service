@@ -22,18 +22,18 @@ class TimelineDataTest {
         String json = getTimelineJson();
         TimelineData data = new TimelineData(json);
         data.insertEntry("qq", "done", LocalDate.of(2025, 6, 18), "testing");
-        assertTrue(data.toJson().startsWith(getStartsWith()));
+        assertTrue(data.toJson().endsWith(getEndsWith()));
     }
 
-    private String getStartsWith() {
+    private String getEndsWith() {
         return """
-[ {
+  "reason_text" : "Violation of terms of service."
+}, {
   "username" : "qq",
   "status" : "done",
   "status_date" : "2025-06-18",
   "reason_text" : "testing"
-}, {
-  "username" : "johndoe123",""";
+} ]""";
     }
 
     private String getTimelineJson() {
