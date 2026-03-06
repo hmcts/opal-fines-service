@@ -32,10 +32,12 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -455,4 +457,75 @@ class DefendantAccountServiceTest {
         assertEquals(new BigInteger("1234567890123345678901234567890"), response.getVersion());
 
     }
+
+    @Test
+    void updateDefendantAccount_whenUserHasBuPermission_callsProxyWithPostedBy() {
+        // arrange
+        Long defendantAccountId = 77L;
+        short businessUnitId = 78;
+        String ifMatch = "\"1\"";
+        String authHeader = "Bearer abc";
+
+        UpdateDefendantAccountRequest request =
+            UpdateDefendantAccountRequest.builder().build();
+
+        DefendantAccountResponse proxyResponse =
+            DefendantAccountResponse.builder().build();
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission((short) 78, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+
+        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("BU-USER-1");
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 78))
+            .thenReturn(java.util.Optional.of(buUser));
+
+        when(userState.getUserName()).thenReturn("fallback-username");
+
+        when(defendantAccountServiceProxy.updateDefendantAccount(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            eq(request),
+            eq(ifMatch),
+            eq("BU-USER-1")
+        )).thenReturn(proxyResponse);
+
+        // act
+        DefendantAccountResponse result = defendantAccountService.updateDefendantAccount(
+                defendantAccountId, businessUnitId, request, ifMatch, authHeader
+            );
+
+        // assert
+        assertSame(proxyResponse, result);
+        verify(defendantAccountServiceProxy).updateDefendantAccount(
+            defendantAccountId, businessUnitId, request, ifMatch, "BU-USER-1"
+        );
+    }
+
+    @Test
+    void updateDefendantAccount_whenUserLacksBuPermission_throwsAndDoesNotCallProxy() {
+        // arrange
+        Long defendantAccountId = 77L;
+        short businessUnitId = 78;
+        String ifMatch = "\"1\"";
+        String authHeader = "Bearer abc";
+
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder().build();
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission((short) 78, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(false);
+
+        // act + assert
+        assertThrows(PermissionNotAllowedException.class,
+            () -> defendantAccountService.updateDefendantAccount(
+                defendantAccountId, businessUnitId, request, ifMatch, authHeader
+            )
+        );
+
+        verifyNoInteractions(defendantAccountServiceProxy);
+    }
+
+
 }

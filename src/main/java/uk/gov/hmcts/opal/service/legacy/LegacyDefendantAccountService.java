@@ -823,7 +823,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     @Override
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         @NonNull UpdateDefendantAccountRequest request,
         String ifMatch,
         String postedBy) {
@@ -838,7 +838,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         LegacyUpdateDefendantAccountRequest legacyRequest =
             updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request,
                 String.valueOf(defendantAccountId),
-                businessUnitId,
+                String.valueOf(businessUnitId),
                 postedBy,
                 version);
 
