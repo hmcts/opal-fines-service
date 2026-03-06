@@ -135,7 +135,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 GET_HEADER_SUMMARY, LegacyGetDefendantAccountHeaderSummaryResponse.class,
                 createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-            checkResponseForError(response, "getHeaderSummary");
+            if (response.isError()) {
+                log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);
+                if (response.isException()) {
+                    log.error(":getHeaderSummary:", response.exception);
+                } else if (response.isLegacyFailure()) {
+                    log.error(":getHeaderSummary: Legacy Gateway: body: \n{}", response.body);
+                    LegacyGetDefendantAccountHeaderSummaryResponse responseEntity = response.responseEntity;
+                    log.error(":getHeaderSummary: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+                }
+            } else if (response.isSuccessful()) {
+                log.info(":getHeaderSummary: Legacy Gateway response: Success.");
+            }
 
             return toHeaderSumaryDto(response.responseEntity);
 
@@ -166,7 +177,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
             createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-        checkResponseForError(response, "getPaymentTerms");
+        if (response.isError()) {
+            log.error(":getPaymentTerms: Legacy Gateway response: HTTP Response Code: {}", response.code);
+            if (response.isException()) {
+                log.error(":getPaymentTerms:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":getPaymentTerms: Legacy Gateway: body: \n{}", response.body);
+                LegacyGetDefendantAccountPaymentTermsResponse responseEntity = response.responseEntity;
+                log.error(":getPaymentTerms: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":getPaymentTerms: Legacy Gateway response: Success.");
+        }
 
         return toPaymentTermsResponse(response.responseEntity);
     }
@@ -410,7 +432,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             null
         );
 
-        checkResponseForError(response, "getDefendantAccountParty");
+        if (response.isError()) {
+            log.error(":getDefendantAccountParty: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":getDefendantAccountParty: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":getDefendantAccountParty: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":getDefendantAccountParty: Legacy success.");
+        }
 
         return toDefendantAccountPartyResponse(response.responseEntity);
     }
@@ -615,7 +646,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             GET_DEFENDANT_AT_A_GLANCE, LegacyGetDefendantAccountAtAGlanceResponse.class,
             createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-        checkResponseForError(response, "getAtAGlance");
+        if (response.isError()) {
+            log.error(":getAtAGlance: Legacy Gateway response: HTTP Response Code: {}", response.code);
+            if (response.isException()) {
+                log.error(":getAtAGlance:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":getAtAGlance: Legacy Gateway: body: \n{}", response.body);
+                LegacyGetDefendantAccountAtAGlanceResponse responseEntity = response.responseEntity;
+                log.error(":getAtAGlance: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":getAtAGlance: Legacy Gateway response: Success.");
+        }
 
         return toDefendantAtAGlanceResponse(response.responseEntity);
 
@@ -847,7 +889,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             PATCH_DEFENDANT_ACCOUNT, LegacyUpdateDefendantAccountResponse.class,
             legacyRequest, null);
 
-        checkResponseForError(gwResponse, "updateDefendantAccount");
+        if (gwResponse.isError()) {
+            log.error(":updateDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", gwResponse.code);
+            if (gwResponse.isException()) {
+                log.error(":updateDefendantAccount: Legacy Gateway response exception: {}", gwResponse.exception);
+            } else if (gwResponse.isLegacyFailure()) {
+                log.error(":updateDefendantAccount: Legacy Gateway: body: \n{}", gwResponse.body);
+                LegacyUpdateDefendantAccountResponse responseEntity = gwResponse.responseEntity;
+                log.error(":updateDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+        } else if (gwResponse.isSuccessful()) {
+            log.info(":updateDefendantAccount: Legacy Gateway response: Success.");
+        }
 
         return legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(gwResponse.responseEntity);
     }
@@ -947,7 +1000,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             null
         );
 
-        checkResponseForError(response, "replaceDefendantAccountParty");
+        if (response.isError()) {
+            log.error(":replaceDefendantAccountParty: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":replaceDefendantAccountParty: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":replaceDefendantAccountParty: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":replaceDefendantAccountParty: Legacy success.");
+        }
 
         return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
     }
@@ -1108,7 +1170,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             ADD_ENFORCEMENT, AddDefendantAccountEnforcementLegacyResponse.class,
             legacyRequest, null);
 
-        checkResponseForError(response, "AddEnforcement");
+        if (response.isError()) {
+            log.error(":AddEnforcement: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":AddEnforcement: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":AddEnforcement: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":AddEnforcement: Legacy success.");
+        }
 
         AddDefendantAccountEnforcementLegacyResponse enforcementResponse = response.responseEntity;
 
@@ -1217,7 +1288,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 GET_ENFORCEMENT_STATUS, LegacyGetDefendantAccountEnforcementStatusResponse.class,
                 createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-            checkResponseForError(response, "getEnforcementStatus");
+            if (response.isError()) {
+                log.error(":getEnforcementStatus: Legacy Gateway response: HTTP Response Code: {}", response.code);
+                if (response.isException()) {
+                    log.error(":getEnforcementStatus:", response.exception);
+                } else if (response.isLegacyFailure()) {
+                    log.error(":getEnforcementStatus: Legacy Gateway: body: \n{}", response.body);
+                    LegacyGetDefendantAccountEnforcementStatusResponse responseEntity = response.responseEntity;
+                    log.error(":getEnforcementStatus: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+                }
+            } else if (response.isSuccessful()) {
+                log.info(":getEnforcementStatus: Legacy Gateway response: Success.");
+            }
 
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
             populateCourtCode(enforcementStatus);
@@ -1269,7 +1351,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             legacyRequest, null
         );
 
-        checkResponseForError(response, "addPaymentTerms");
+        if (response.isError()) {
+            log.error(":addPaymentTerms: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":addPaymentTerms: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":addPaymentTerms: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":addPaymentTerms: Legacy success.");
+        }
 
         return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
     }
@@ -1304,18 +1395,5 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
             .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
             .build();
-    }
-
-    private static <T> void checkResponseForError(Response<T> response, String method) {
-        if (response.isError()) {
-            log.error(":{}: legacy error HTTP {}", method, response.code);
-            if (response.isException()) {
-                log.error(":{}: exception:", method, response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":{}: legacy failure body:\n{}", method, response.body);
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":{}: legacy success.", method);
-        }
     }
 }
