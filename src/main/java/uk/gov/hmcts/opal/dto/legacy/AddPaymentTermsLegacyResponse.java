@@ -13,7 +13,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
-import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Data
@@ -30,7 +29,7 @@ public class AddPaymentTermsLegacyResponse {
 
     @XmlElement(name = "version")
     @NotNull
-    private BigInteger version;
+    private Integer version;
 
     @XmlElement(name = "payment_terms")
     @NotNull

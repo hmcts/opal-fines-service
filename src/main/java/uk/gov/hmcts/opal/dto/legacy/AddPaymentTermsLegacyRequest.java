@@ -9,8 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigInteger;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,7 +30,7 @@ public class AddPaymentTermsLegacyRequest {
 
     @JsonProperty("version")
     @NotNull
-    private BigInteger version;
+    private Integer version;
 
     @JsonProperty("payment_terms")
     @NotNull

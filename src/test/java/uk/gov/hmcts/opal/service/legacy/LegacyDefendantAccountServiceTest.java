@@ -3378,7 +3378,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                                                                                      String ifMatch) {
         return AddPaymentTermsLegacyResponse.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .version(extractBigInteger(ifMatch))
+            .version(extractBigInteger(ifMatch).intValue())
             .paymentTerms(LegacyPaymentTerms.builder().build())
             .paymentCardLastRequested(LocalDate.now().minusWeeks(1))
             .lastEnforcement("12345")
@@ -3399,7 +3399,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPaymentTermsResponse actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
 
         assertNotNull(actualResponse);
-        assertThat(actualResponse.getVersion()).isEqualTo(legacyResponse.getVersion());
+        assertThat(actualResponse.getVersion()).isEqualTo(BigInteger.valueOf(legacyResponse.getVersion()));
         assertNotNull(actualResponse.getPaymentTerms());
         assertThat(actualResponse.getPaymentCardLastRequested())
             .isEqualTo(legacyResponse.getPaymentCardLastRequested());
@@ -3407,7 +3407,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void addPaymentTerms_whenGatewayResponseWithException_thenHandleException() {
+    void addPaymentTerms_whenGatewayResponseWithException() {
         // Given
         long defendantAccountId = 1L;
         String businessUnitId = "BU";

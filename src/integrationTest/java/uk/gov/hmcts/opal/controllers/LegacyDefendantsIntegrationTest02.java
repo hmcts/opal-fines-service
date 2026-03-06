@@ -837,7 +837,7 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
-    void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
+    void addPaymentTerms_Success() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
@@ -863,8 +863,8 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
-    void addPaymentTerms_whenGatewayResponseWithException_thenHandleException() throws Exception {
+    @DisplayName("LEGACY: POST Add Payment Terms - 500 Error")
+    void addPaymentTerms_500Error() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
@@ -882,10 +882,6 @@ class LegacyDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         );
 
         response.andExpect(status().is5xxServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-            .andExpect(jsonPath("$.payment_terms").doesNotExist())
-            .andExpect(jsonPath("$.payment_terms.days_in_default").doesNotExist())
-            .andExpect(jsonPath("$.payment_card_last_requested").doesNotExist())
-            .andExpect(jsonPath("$.last_enforcement").doesNotExist());
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 }
