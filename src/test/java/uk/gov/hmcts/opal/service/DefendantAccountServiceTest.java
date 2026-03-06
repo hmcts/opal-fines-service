@@ -462,7 +462,7 @@ class DefendantAccountServiceTest {
     void updateDefendantAccount_whenUserHasBuPermission_callsProxyWithPostedBy() {
         // arrange
         Long defendantAccountId = 77L;
-        String businessUnitId = "78";
+        short businessUnitId = 78;
         String ifMatch = "\"1\"";
         String authHeader = "Bearer abc";
 
@@ -507,7 +507,7 @@ class DefendantAccountServiceTest {
     void updateDefendantAccount_whenUserLacksBuPermission_throwsAndDoesNotCallProxy() {
         // arrange
         Long defendantAccountId = 77L;
-        String businessUnitId = "78";
+        short businessUnitId = 78;
         String ifMatch = "\"1\"";
         String authHeader = "Bearer abc";
 
@@ -527,25 +527,5 @@ class DefendantAccountServiceTest {
         verifyNoInteractions(defendantAccountServiceProxy);
     }
 
-    @Test
-    void updateDefendantAccount_whenUserHasInvalidBuId_throwsAndDoesNotCallProxy() {
-        // arrange
-        Long defendantAccountId = 77L;
-        String businessUnitId = "invalid";
-        String ifMatch = "\"1\"";
-        String authHeader = "Bearer abc";
 
-        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder().build();
-
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-
-        //act + assert
-        assertThrows(IllegalArgumentException.class,
-            () -> defendantAccountService.updateDefendantAccount(
-            defendantAccountId, businessUnitId, request, ifMatch, authHeader
-            )
-        );
-
-        verifyNoInteractions(defendantAccountServiceProxy);
-    }
 }

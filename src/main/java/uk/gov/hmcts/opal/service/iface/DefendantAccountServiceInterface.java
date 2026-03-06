@@ -31,7 +31,7 @@ public interface DefendantAccountServiceInterface {
     GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId);
 
     DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-                                                    String businessUnitId,
+                                                    Short businessUnitId,
                                                     UpdateDefendantAccountRequest request,String ifMatch,
                                                     String postedBy);
                                                    
