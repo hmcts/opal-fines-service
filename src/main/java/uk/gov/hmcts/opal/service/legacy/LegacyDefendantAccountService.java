@@ -92,6 +92,7 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -125,6 +126,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     /* ---- Mappers ---- */
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
+
+    private final UserStateService userStateService;
+
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {}", defendantAccountId);
@@ -985,7 +989,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(Long.parseLong(VersionUtils.cleanVersion(ifMatch)))
+            .version(Long.parseLong(ifMatch.replace("\"", "").trim()))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
@@ -1152,13 +1156,15 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
 
+        String cleanVersion = ifMatch.replace("\"", "");
+
         // build legacy request object
         AddDefendantAccountEnforcementLegacyRequest legacyRequest =
             AddDefendantAccountEnforcementLegacyRequest.builder()
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(businessUnitId)
                 .businessUnitUserId(businessUnitUserId)
-                .version(Integer.parseInt(VersionUtils.cleanVersion(ifMatch)))
+                .version(Integer.parseInt(cleanVersion))
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
@@ -1340,11 +1346,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
+        var cleanVersion = ifMatch.replace("\"", "");
+
         var legacyRequest = AddDefendantAccountPaymentTermsLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
-            .version(Integer.parseInt(VersionUtils.cleanVersion(ifMatch)))
+            .version(Integer.parseInt(cleanVersion))
             .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
                                               ? addPaymentTermsRequest.getPaymentTerms() : null))
             .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)

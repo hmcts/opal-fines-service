@@ -94,10 +94,6 @@ public class VersionUtils {
                   "Could not parse 'ifMatch': " + ifMatch + " in method: " + method, existingFromDB)), id, method);
     }
 
-    public static String cleanVersion(String ifMatch) {
-        return ifMatch.replace("\"", "").trim();
-    }
-
     // function to parse IfMatch value from header, removed.
     // At this stage we assume this will be a number.
     // If this is needed to it can be re-added later.
