@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -113,6 +114,7 @@ class DefendantAccountEnforcementServiceTest {
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.ENTER_ENFORCEMENT.name()),
             "Exception should mention ENTER_ENFORCEMENT"
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
