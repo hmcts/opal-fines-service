@@ -71,11 +71,9 @@ public class SecurityConfig {
                     .accessDeniedHandler(customAuthenticationExceptions)
             )
             .oauth2ResourceServer(oauth2 -> {
-                    oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver());
-                    oauth2.authenticationEntryPoint(customOauth2AuthenticationEntryPoint);
-                }
-            );
-
+                oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver());
+                oauth2.authenticationEntryPoint(customOauth2AuthenticationEntryPoint);
+            });
         return http.build();
     }
 
