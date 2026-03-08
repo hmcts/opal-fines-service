@@ -368,10 +368,11 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
+  implementation 'uk.gov.hmcts:opal-common-lib:0.2.3'
+
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.10'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.10'
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
@@ -451,6 +452,7 @@ dependencies {
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
+  testImplementation 'org.springframework.boot:spring-boot-test'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
   testImplementation 'org.testcontainers:postgresql'

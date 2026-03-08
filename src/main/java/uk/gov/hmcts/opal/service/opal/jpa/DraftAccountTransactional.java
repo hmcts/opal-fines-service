@@ -175,7 +175,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             if (existingAccount.getSubmittedBy() != null
                 && existingAccount.getSubmittedBy().equals(dto.getValidatedBy())) {
                 throw new SubmitterCannotValidateException(
-                    "A single user cannot submit and validate the same Draft Account");
+                    "A single user cannot submit and validate the same Draft Account",
+                    existingAccount.getSubmittedBy(), dto.getValidatedBy());
             }
             existingAccount.setValidatedDate(LocalDateTime.now());
             existingAccount.setValidatedBy(dto.getValidatedBy());

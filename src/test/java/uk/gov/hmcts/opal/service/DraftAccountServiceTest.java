@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,10 +16,13 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -25,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -37,6 +43,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
@@ -70,6 +77,9 @@ class DraftAccountServiceTest {
 
     @Mock
     private DraftAccountPdplLoggingService pdplLoggingService;
+
+    @Mock
+    SecurityEventLoggingService securityEventLoggingService;
 
     @InjectMocks
     private DraftAccountService draftAccountService;
@@ -331,25 +341,29 @@ class DraftAccountServiceTest {
         assertThrows(ResourceConflictException.class, () -> draftAccountService
             .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0")
         );
+
+        verify(securityEventLoggingService, never()).logEvent(any(), any(), any(), any(), any(), any());
     }
 
-    @Test
-    void testUpdateDraftAccount_success() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testUpdateDraftAccount_publishPending(boolean differentUsersSubmitValidate) {
         // Arrange
         Long draftAccountId = 1L;
-        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+        final UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus("PENDING")
             .validatedBy("SpoofedUser")
             .validatedByName("Spoofed Name")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
-        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
+        final DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("USER01")
             .validatedByName("normal@users.com")
             .validatedDate(LocalDateTime.now())
+            .submittedBy("Pablo")
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
@@ -357,7 +371,55 @@ class DraftAccountServiceTest {
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-        when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenReturn(updatedAccount);
+
+        if (differentUsersSubmitValidate) {
+            publishPending_success(updatedAccount, draftAccountId, updateDto);
+        } else {
+            publishPending_exception(updatedAccount, draftAccountId, updateDto);
+        }
+
+        // More Assert
+        ArgumentCaptor<UpdateDraftAccountRequestDto> captor =
+            ArgumentCaptor.forClass(UpdateDraftAccountRequestDto.class);
+        verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any());
+        assertEquals("USER01", captor.getValue().getValidatedBy());
+        assertEquals("normal@users.com", captor.getValue().getValidatedByName());
+
+        verify(jsonSchemaValidationService).validateOrError(any(), any());
+        String expectedOutcome = differentUsersSubmitValidate ? "Success" : "Failure";
+        verify(securityEventLoggingService, times(1)).logEvent(
+            eq("Business Function - Approval of Draft Account"),
+            eq(expectedOutcome),
+            eq((short) 2),
+            eq("Approval"),
+            any(LocalDateTime.class),
+            eq(Map.of(
+                "UserIdentifier", 1L,
+                "DraftAccountIdentifier", draftAccountId,
+                "DraftAccountSubmittedByUserIdentifier", "Pablo"
+            ))
+        );
+
+        verify(jsonSchemaValidationService).validateOrError(any(), any());
+        verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
+    }
+
+    private void publishPending_success(DraftAccountEntity updatedAccount, Long draftAccountId,
+        UpdateDraftAccountRequestDto updateDto) {
+
+        DraftAccountEntity publishedAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.PUBLISHED)
+            .validatedBy("USER01")
+            .validatedByName("normal@users.com")
+            .validatedDate(updatedAccount.getValidatedDate())
+            .submittedBy(updatedAccount.getSubmittedBy())
+            .accountSnapshot(updatedAccount.getAccountSnapshot())
+            .timelineData(updatedAccount.getTimelineData())
+            .versionNumber(updatedAccount.getVersionNumber() + 1)
+            .build();
+
+        when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenReturn(publishedAccount);
 
         // Act
         DraftAccountResponseDto result = draftAccountService
@@ -366,21 +428,25 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(draftAccountId, result.getDraftAccountId());
-        assertEquals(DraftAccountStatus.PUBLISHING_PENDING, result.getAccountStatus());
+        assertEquals(DraftAccountStatus.PUBLISHED, result.getAccountStatus());
         assertEquals("USER01", result.getValidatedBy());
         assertEquals("normal@users.com", result.getValidatedByName());
         assertNotNull(result.getValidatedDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertEquals(createTimelineDataString(), result.getTimelineData());
 
-        ArgumentCaptor<UpdateDraftAccountRequestDto> captor =
-            ArgumentCaptor.forClass(UpdateDraftAccountRequestDto.class);
-        verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any());
-        assertEquals("USER01", captor.getValue().getValidatedBy());
-        assertEquals("normal@users.com", captor.getValue().getValidatedByName());
+    }
 
-        verify(jsonSchemaValidationService).validateOrError(any(), any());
-        verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
+    private void publishPending_exception(DraftAccountEntity updatedAccount, Long draftAccountId,
+        UpdateDraftAccountRequestDto updateDto) {
+
+        when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenThrow(
+            new SubmitterCannotValidateException("Nope", "Pablo", "Pablo"));
+
+        // Act
+        assertThrows(SubmitterCannotValidateException.class, () -> draftAccountService
+            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0")
+        );
     }
 
     private String createTimelineDataString() {
