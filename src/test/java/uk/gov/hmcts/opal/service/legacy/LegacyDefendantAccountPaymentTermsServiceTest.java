@@ -38,7 +38,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
-public class LegacyDefendantAccountPaymentTermsServiceTest {
+class LegacyDefendantAccountPaymentTermsServiceTest {
 
     @Spy
     private MockRestClient restClient = spy(MockRestClient.class);

@@ -157,16 +157,14 @@ tasks.withType(JavaExec).configureEach {
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
 
+  systemProperty 'spring.test.context.cache.maxSize', 5
+
   testLogging {
     exceptionFormat = 'full'
   }
   if (failFast) {
     failFast = true
   }
-}
-
-tasks.withType(Test) {
-  systemProperty 'spring.test.context.cache.maxSize', 5
 }
 
 tasks.register('integration', Test) {
@@ -371,10 +369,11 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
+  implementation 'uk.gov.hmcts:opal-common-lib:0.2.6'
+
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.10'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.10'
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.2.6'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
@@ -456,6 +455,7 @@ dependencies {
   testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.9.0'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
+  testImplementation 'org.springframework.boot:spring-boot-test'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
   testImplementation 'org.testcontainers:postgresql'
