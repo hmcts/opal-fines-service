@@ -42,9 +42,9 @@ java {
 sourceSets {
   openapi {
     java {
-      srcDir file('src/openApi/java')
+      srcDirs = [file('src/openApi/java')]
     }
-    resources.srcDir file('src/openApi/resources')
+    resources.srcDirs = [file('src/openApi/resources')]
   }
   main {
     java {

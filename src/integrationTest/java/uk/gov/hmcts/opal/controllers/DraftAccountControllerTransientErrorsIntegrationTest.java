@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -44,7 +43,6 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     private static final Short BU_ID = (short)007;
 
     @MockitoBean
-    @Autowired
     DraftAccountService draftAccountService;
 
     @Test

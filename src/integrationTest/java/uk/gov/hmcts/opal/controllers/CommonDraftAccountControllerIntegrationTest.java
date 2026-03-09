@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
-@Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
+@Slf4j(topic = "opal.CommonDraftAccountControllerIntegrationTest")
 @Sql(
     scripts = {
         "classpath:db/deleteData/delete_from_draft_accounts.sql",
@@ -26,7 +26,7 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
     executionPhase = BEFORE_TEST_CLASS
 )
 @Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_CLASS)
-@DisplayName("DraftAccountController Integration Tests")
+@DisplayName("CommonDraftAccountControllerIntegrationTest")
 class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     static final Short BU_ID = (short)73;
