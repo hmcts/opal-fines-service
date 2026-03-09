@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -74,6 +76,9 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
     
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -245,6 +250,8 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                 .businessUnitUser(java.util.Collections.emptySet())
                 .build()
         );
+        UserState userState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("token_without_permission");
@@ -1095,6 +1102,8 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             UserState.builder().userId(999L).userName("no-perm-user").businessUnitUser(java.util.Collections.emptySet())
                 .build());
+        UserState userState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("token_without_perm");
@@ -1697,6 +1706,8 @@ class OpalDefendantsIntegrationTest02 extends AbstractIntegrationTest {
                     .businessUnitUser(java.util.Collections.emptySet()) // no BU permissions
                     .build()
             );
+        UserState userState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("token_without_permission");
