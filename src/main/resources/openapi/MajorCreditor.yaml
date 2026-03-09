@@ -142,7 +142,7 @@ paths:
                         maxLength: 10
                       name:
                         type: string
-                        description: major_creditors.name where the creditor account type is 'MJ'  configuration_items.item_values.$.name where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+                        description: major_creditors.name where the creditor account type is 'MJ'  configuration_items.item_values.$.name where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
                       account_reference:
                         $ref: './common.yaml#/components/schemas/creditorAccountTypeReference'
                         description: Set to 'Major creditor' or 'Central fund'
@@ -182,6 +182,7 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /major-creditor-accounts/{id}/at-a-glance:
     get:
       tags:
@@ -264,9 +265,137 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /major-creditors:
+    get:
+      tags:
+        - Major Creditor
+      summary: Returns MajorCreditors as reference data with an optional filter applied
+      operationId: getMajorCreditorRefData
+      parameters:
+        - in: query
+          name: q
+          description: Optional free-text filter string
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: businessUnit
+          description: Optional business unit identifier
+          schema:
+            type: integer
+            format: int32
+            minimum: -32768
+            maximum: 32767
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - refData
+                properties:
+                  count:
+                    type: integer
+                    format: int32
+                    description: Total number of major creditors returned.
+                  refData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/majorCreditorReferenceData'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 components:
   securitySchemes:
     permissions:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  schemas:
+    majorCreditorReferenceData:
+      type: object
+      description: Major creditor reference data (joined from major_creditors and creditor_accounts).
+      properties:
+        major_creditor_id:
+          type: integer
+          format: int64
+          description: DB Mapping - major_creditors.major_creditor_id
+        business_unit_id:
+          type: integer
+          format: int32
+          minimum: -32768
+          maximum: 32767
+          description: DB Mapping - major_creditors.business_unit_id
+        major_creditor_code:
+          type: string
+          maxLength: 4
+          description: DB Mapping - major_creditors.major_creditor_code
+        name:
+          type: string
+          description: DB Mapping - major_creditors.name
+        postcode:
+          type: string
+          description: DB Mapping - major_creditors.postcode
+        creditor_account_id:
+          type: integer
+          format: int64
+          description: DB Mapping - creditor_accounts.creditor_account_id
+        account_number:
+          type: string
+          maxLength: 20
+          description: DB Mapping - creditor_accounts.account_number
+        creditor_account_type:
+          type: string
+          maxLength: 2
+          description: DB Mapping - creditor_accounts.creditor_account_type
+          example: MJ
+        prosecution_service:
+          type: boolean
+          description: DB Mapping - creditor_accounts.prosecution_service
+        minor_creditor_party_id:
+          type: integer
+          format: int64
+          description: DB Mapping - creditor_accounts.minor_creditor_party_id
+        from_suspense:
+          type: boolean
+          description: DB Mapping - creditor_accounts.from_suspense
+        hold_payout:
+          type: boolean
+          description: DB Mapping - creditor_accounts.hold_payout
+        last_changed_date:
+          type: string
+          format: date-time
+          description: DB Mapping - creditor_accounts.last_changed_date
