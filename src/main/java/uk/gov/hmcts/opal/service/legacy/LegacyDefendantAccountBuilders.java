@@ -5,9 +5,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview;
+import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
@@ -120,7 +123,7 @@ public class LegacyDefendantAccountBuilders {
 
     static EnforcementActionDefendantAccount buildEnforcementActionDefendantAccount(
         EnforcementAction enforcementAction) {
-        
+
         return Optional.ofNullable(enforcementAction).map(action ->
             EnforcementActionDefendantAccount.builder()
                 .warrantNumber(action.getWarrantNumber())
@@ -153,4 +156,7 @@ public class LegacyDefendantAccountBuilders {
             .build();
     }
 
+    static GetDefendantAccountPartyResponse fromDefendantAccountPartyLegacy(
+        AddDefendantAccountPartyLegacyResponse legacy) {
+    }
 }

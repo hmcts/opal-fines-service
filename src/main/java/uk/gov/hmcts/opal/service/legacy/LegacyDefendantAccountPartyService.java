@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.legacy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.ContactDetails;
@@ -14,24 +15,14 @@ import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
-import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
-import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
-import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.*;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 
 import java.math.BigInteger;
 import java.util.Collections;
+
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.fromDefendantAccountPartyLegacy;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +31,8 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
+    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
+
 
     private final GatewayService gatewayService;
 
@@ -301,6 +294,40 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
         return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
     }
+
+    @Override
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+        Long defendantAccountId, Long dapId, String businessUnitId, String ifMatch,
+        String postedBy, String businessUnitUserId, DefendantAccountParty defendantAccountPartyRequest) {
+
+        AddDefendantAccountPartyLegacyRequest req = AddDefendantAccountPartyLegacyRequest.builder()
+            .version(Long.parseLong(ifMatch.replace("\"", "").trim()))
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .defendantAccountParty(defendantAccountPartyRequest)
+            .build();
+
+        Response<AddDefendantAccountPartyLegacyResponse> response = gatewayService.postToGateway(
+            ADD_DEFENDANT_ACCOUNT_PARTY,
+            AddDefendantAccountPartyLegacyResponse.class,
+            req,
+            null
+        );
+
+        if (response.isError()) {
+            log.error(":addDefendantAccountParty: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":addDefendantAccountParty: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":addDefendantAccountParty: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":addDefendantAccountParty: Legacy success.");
+        }
+        return fromDefendantAccountPartyLegacy(response.responseEntity);
+    }
+
 
     private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy(
         LegacyReplaceDefendantAccountPartyResponse legacy) {
