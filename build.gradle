@@ -372,7 +372,7 @@ dependencies {
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.10'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.10'
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.2.5'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"

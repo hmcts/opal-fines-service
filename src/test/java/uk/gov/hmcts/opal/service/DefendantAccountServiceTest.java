@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -16,7 +17,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -126,6 +126,7 @@ class DefendantAccountServiceTest {
 
     @Test
     void testGetHeaderSummary_forbiddenWhenUserHasNoPermission() {
+        // Arrange
         UserState user = UserState.builder()
             .userId(456L)
             .userName("noperms")
@@ -133,9 +134,12 @@ class DefendantAccountServiceTest {
             .build();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        Assertions.assertThrows(PermissionNotAllowedException.class, () -> {
-            defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
-        });
+        // Act & Assert
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () ->  defendantAccountService.getHeaderSummary(1L, "authHeaderValue")
+        );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -171,6 +175,8 @@ class DefendantAccountServiceTest {
 
     @Test
     void testSearchDefendantAccounts_forbiddenWhenUserHasNoPermission() {
+
+        //Arrange
         UserState user = UserState.builder()
             .userId(456L)
             .userName("noperms")
@@ -179,9 +185,14 @@ class DefendantAccountServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         AccountSearchDto dto = AccountSearchDto.builder().build();
-        Assertions.assertThrows(PermissionNotAllowedException.class, () -> {
-            defendantAccountService.searchDefendantAccounts(dto, "authHeaderValue");
-        });
+
+        // Act & Assert
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountService.searchDefendantAccounts(dto, "authHeaderValue")
+        );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -305,6 +316,7 @@ class DefendantAccountServiceTest {
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
             "Exception should mention the denied permission"
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         // proxy must not be called
         verify(userStateService).checkForAuthorisedUser(authHeader);
@@ -374,11 +386,11 @@ class DefendantAccountServiceTest {
             PermissionNotAllowedException.class,
             () -> defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", authHeader, null)
         );
-
         assertTrue(
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.ENTER_ENFORCEMENT.name()),
             "Exception should mention ENTER_ENFORCEMENT"
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);

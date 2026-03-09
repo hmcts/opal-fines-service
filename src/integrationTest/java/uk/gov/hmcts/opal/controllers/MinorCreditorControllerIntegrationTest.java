@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -11,6 +12,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -58,6 +61,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -333,6 +339,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
+
+        UserState userState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         Integer currentVersion = getCurrentCreditorAccountVersion(607L);
 
