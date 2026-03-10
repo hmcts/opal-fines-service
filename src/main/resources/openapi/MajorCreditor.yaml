@@ -389,9 +389,9 @@ components:
           type: integer
           format: int64
           description: DB Mapping - creditor_accounts.minor_creditor_party_id
-        from_suspense:
+        repayment:
           type: boolean
-          description: DB Mapping - creditor_accounts.from_suspense
+          description: DB Mapping - creditor_accounts.repayment
         hold_payout:
           type: boolean
           description: DB Mapping - creditor_accounts.hold_payout
