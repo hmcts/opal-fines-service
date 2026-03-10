@@ -8,12 +8,12 @@ public interface DefendantAccountPartyServiceInterface {
     GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId, Long defendantAccountPartyId);
 
     GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
-                                                                  Long defendantAccountPartyId,
-                                                                  DefendantAccountParty defendantAccountParty,
-                                                                  String ifMatch,
-                                                                  String businessUnitId,
-                                                                  String postedBy,
-                                                                  String businessUserId);
+                                                                Long defendantAccountPartyId,
+                                                                String businessUnitId,
+                                                                String businessUserId,
+                                                                String postedBy,
+                                                                String ifMatch,
+                                                                DefendantAccountParty defendantAccountParty);
 
     GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
                                            Long defendantAccountPartyId,
