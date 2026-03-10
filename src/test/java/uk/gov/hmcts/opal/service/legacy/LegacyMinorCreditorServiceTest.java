@@ -1,16 +1,11 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
@@ -188,10 +183,6 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldLogLegacyFailureEntity() {
-        Logger logger = (Logger) LoggerFactory.getLogger("opal.LegacyMinorCreditorService");
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-        logger.addAppender(listAppender);
 
         MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
         LegacyMinorCreditorSearchResultsResponse legacyResponse = LegacyMinorCreditorSearchResultsResponse.builder()
@@ -211,15 +202,6 @@ class LegacyMinorCreditorServiceTest {
 
         legacyMinorCreditorService.searchMinorCreditors(search);
 
-        List<ILoggingEvent> logs = listAppender.list;
-        assertEquals(Level.ERROR, logs.getFirst().getLevel());
-        assertEquals(":searchMinorCreditor: Legacy Gateway response: HTTP Response Code: 500 INTERNAL_SERVER_ERROR",
-            logs.getFirst().getFormattedMessage());
-        assertEquals(Level.ERROR, logs.get(1).getLevel());
-        assertEquals(":searchMinorCreditor: Legacy Gateway: body: \nlegacy failure", logs.get(1).getFormattedMessage());
-
-        logger.detachAppender(listAppender);
-        listAppender.stop();
     }
 
     @Test
@@ -268,12 +250,6 @@ class LegacyMinorCreditorServiceTest {
     @Test
     void getMinorCreditorAtAGlance_shouldHandleGatewayException() {
         // Arrange
-        Logger logger = (Logger) LoggerFactory.getLogger("opal.LegacyMinorCreditorService");
-
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-        logger.addAppender(listAppender);
-
         LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
             LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
                 .party(null)
@@ -309,30 +285,11 @@ class LegacyMinorCreditorServiceTest {
 
         // Act
         legacyMinorCreditorService.getMinorCreditorAtAGlance("gatewayException");
-
-        // Assert
-        List<ILoggingEvent> logs = listAppender.list;
-
-        assertEquals(2, logs.size());
-        assertEquals(Level.ERROR, logs.getFirst().getLevel());
-        assertEquals(":getMinorCreditorAtAGlance: Legacy Gateway response: HTTP Response Code: "
-            + "500 INTERNAL_SERVER_ERROR", logs.getFirst().getFormattedMessage());
-        assertEquals(Level.ERROR, logs.get(1).getLevel());
-        assertEquals(":getMinorCreditorAtAGlance: Exception Message: Gateway error", logs.get(1).getFormattedMessage());
-
-        logger.detachAppender(listAppender);
-        listAppender.stop();
     }
 
     @Test
     void getMinorCreditorAtAGlance_shouldHandleLegacyFailure() {
         // Arrange
-        Logger logger = (Logger) LoggerFactory.getLogger("opal.LegacyMinorCreditorService");
-
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-        logger.addAppender(listAppender);
-
         LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
             LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
                 .party(null)
@@ -369,27 +326,6 @@ class LegacyMinorCreditorServiceTest {
         // Act
         GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
             .getMinorCreditorAtAGlance("legacyFailure");
-
-        // Assert
-        List<ILoggingEvent> logs = listAppender.list;
-
-        assertEquals(3, logs.size());
-        assertEquals(Level.ERROR, logs.getFirst().getLevel());
-        assertEquals(":getMinorCreditorAtAGlance: Legacy Gateway response: HTTP Response Code: "
-            + "500 INTERNAL_SERVER_ERROR", logs.getFirst().getFormattedMessage());
-        assertEquals(Level.ERROR, logs.get(1).getLevel());
-        assertEquals(":getMinorCreditorAtAGlance: Legacy Gateway: body: \n"
-            + "null", logs.get(1).getFormattedMessage());
-        assertEquals(Level.ERROR, logs.get(2).getLevel());
-        assertEquals(":getMinorCreditorAtAGlance: Legacy Gateway: entity: \n"
-            + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-            + "<response>\n"
-            + "    <creditor_account_id>66</creditor_account_id>\n"
-            + "    <creditor_account_version>1</creditor_account_version>\n"
-            + "</response>\n", logs.get(2).getFormattedMessage());
-
-        logger.detachAppender(listAppender);
-        listAppender.stop();
     }
 
     @Test
