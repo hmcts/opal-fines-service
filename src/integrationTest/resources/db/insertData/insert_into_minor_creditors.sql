@@ -72,10 +72,17 @@ VALUES
    'Creditor', NULL, NULL, NULL, NULL),
 
   -- Creditor Party for testing deletion
-  (9007, 'N', NULL,
+  (99007, 'N', NULL,
    'Mr', 'Dave', 'Deleted',
    '33 Delete St.', 'Deleton', 'Deleted',
    NULL, NULL, 'DE1 2DE',
+   'Creditor', NULL, NULL, NULL, NULL),
+
+  -- Creditor Party for payout hold update tests
+  (99008, 'N', NULL,
+   'Ms', 'Hold', 'Tester',
+   '44 Hold St.', 'Holdton', 'Held',
+   NULL, NULL, 'HE1 2LD',
    'Creditor', NULL, NULL, NULL, NULL);
 
 -- Insert into creditor_accounts
@@ -145,9 +152,24 @@ VALUES
   -- Minor Creditor to be deleted
   (606, 10, 'DEL12345',
    'MN', TRUE, NULL,
-   9007, FALSE, FALSE, TRUE,
+   99007, FALSE, FALSE, TRUE,
    '123456', '12345678', 'Dave Deleted',
    'ACME123REF2', '1',1, '2025-08-19 09:00:00');
+
+-- Add a minor creditor account used for payout hold update tests
+INSERT INTO public.creditor_accounts (
+  creditor_account_id, business_unit_id, account_number,
+  creditor_account_type, prosecution_service, major_creditor_id,
+  minor_creditor_party_id, from_suspense, hold_payout, pay_by_bacs,
+  bank_sort_code, bank_account_number, bank_account_name,
+  bank_account_reference, bank_account_type, version_number, last_changed_date
+)
+VALUES
+  (607, 10, 'HOLD1234',
+   'MN', TRUE, NULL,
+   99008, FALSE, FALSE, TRUE,
+   '123456', '12345678', 'Hold Test',
+   'HOLDREF', '1', 1, '2025-08-19 09:00:00');
 
 INSERT INTO public.creditor_transactions (
   creditor_transaction_id, creditor_account_id, posted_date, posted_by, posted_by_name,

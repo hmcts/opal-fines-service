@@ -15,6 +15,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -26,8 +27,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
+import uk.gov.hmcts.opal.util.Versioned;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Data
 @SuperBuilder
@@ -38,7 +42,7 @@ import java.time.LocalDateTime;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "creditorAccountId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public abstract class CreditorAccountEntity {
+public abstract class CreditorAccountEntity implements Versioned {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "creditor_account_id_seq_generator")
@@ -95,6 +99,10 @@ public abstract class CreditorAccountEntity {
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime lastChangedDate;
 
+    @Column(name = "version_number")
+    @Version
+    private Long versionNumber;
+
     @Getter
     @Entity
     @EqualsAndHashCode(callSuper = true)
@@ -102,5 +110,10 @@ public abstract class CreditorAccountEntity {
     @SuperBuilder
     @NoArgsConstructor
     public static class Lite extends CreditorAccountEntity {
+    }
+
+    @Override
+    public BigInteger getVersion() {
+        return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
     }
 }

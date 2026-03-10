@@ -1,13 +1,18 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,15 +29,21 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
 import java.lang.reflect.Field;
+import uk.gov.hmcts.opal.util.LogUtil;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish.ERROR_MESSAGE_TEMPLATE;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(OutputCaptureExtension.class)
 class LegacyDraftAccountPublishTest {
 
     @Spy
@@ -106,42 +117,58 @@ class LegacyDraftAccountPublishTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void testPublishDefendantAccount_serverError() {
+    void testPublishDefendantAccount_serverError() throws JsonProcessingException {
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
-            .businessUnitId((short)7)
-            .businessUnitUserId("Dave")
-            .build();
-        DraftAccountEntity publish = DraftAccountEntity.builder()
-            .businessUnit(
-                BusinessUnitFullEntity.builder()
-                    .businessUnitId((short)6)
+        // Arrange
+        String opId = "1234";
+        String sensitiveErrorMessage = "Something went wrong on the server.";
+        try (MockedStatic<LogUtil> logUtilMock = mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opId);
+
+            BusinessUnitUser buu = BusinessUnitUser.builder()
+                .businessUnitId((short)7)
+                .businessUnitUserId("Dave")
+                .build();
+            DraftAccountEntity publish = DraftAccountEntity.builder()
+                .businessUnit(
+                    BusinessUnitFullEntity.builder()
+                        .businessUnitId((short)6)
+                        .build())
+                .timelineData(emptyTimelineData())
+                .build();
+
+            LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("some code")
                     .build())
-            .timelineData(emptyTimelineData())
-            .build();
+                .build();
 
-        LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
-            .errorResponse(ErrorResponse.builder()
-                .errorCode("some code")
-                .errorMessage("Something went wrong on the server.")
-                .build())
-            .build();
+            when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
+            ResponseEntity<String> serverErrorResponse =
+                new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
+            when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
 
-        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
-        ResponseEntity<String> serverErrorResponse =
-            new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
+            when(draftAccountTransactional
+                .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
+                .then(returnsFirstArg());
+            when(draftAccountTransactional
+                .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
+                .then(returnsFirstArg());
 
-        when(draftAccountTransactional
-                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
-            .thenReturn(publish);
-        when(draftAccountTransactional
-                 .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
-            .thenReturn(publish);
+            // Act
+            DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
-        DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
+            // Assert
+            ObjectMapper mapper = new ObjectMapper();
+            String publishedAsJson = mapper.writeValueAsString(published);
+            assertThat(publishedAsJson).doesNotContain(sensitiveErrorMessage);
 
-        assertEquals(publish, published);
+            String expectedMessage = String.format(ERROR_MESSAGE_TEMPLATE, opId);
+            assertEquals(published.getStatusMessage(), expectedMessage);
+            JsonNode root = mapper.readTree(published.getTimelineData());
+            String reasonText = root.get(0).path("reason_text").asText();
+            assertEquals(reasonText, expectedMessage);
+        }
     }
 
     @SuppressWarnings("unchecked")

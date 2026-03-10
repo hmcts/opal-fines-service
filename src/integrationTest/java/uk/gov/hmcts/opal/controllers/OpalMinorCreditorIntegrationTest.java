@@ -198,6 +198,21 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void patchMinorCreditor_payoutHold_success() throws Exception {
+        super.patchMinorCreditor_payoutHold_success(log);
+    }
+
+    @Test
+    void patchMinorCreditor_withoutPermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutPermission_returns403();
+    }
+
+    @Test
+    void patchMinorCreditor_missingPayload_returns400() throws Exception {
+        super.patchMinorCreditor_missingPayload_returns400();
+    }
+
+    @Test
     void getHeaderSummary_missingAuthHeader_returns401() throws Exception {
         super.getHeaderSummary_missingAuthHeader_returns401();
     }
@@ -226,7 +241,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     void deleteMinorCreditorAccount() throws Exception {
         // Arrange
         final Long creditorAccountId = 606L;
-        final Long partyId = 9007L;
+        final Long partyId = 99007L;
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         Specification<ImpositionEntity.Lite> impositionSpec = ImpositionSpecs
