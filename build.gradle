@@ -451,6 +451,8 @@ dependencies {
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.9.0'
+
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
