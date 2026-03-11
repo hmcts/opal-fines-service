@@ -20,6 +20,6 @@ business_unit_id,business_unit_name,business_unit_code,business_unit_type
 )
 VALUES
 (
-1,'AAA Business Unit 001','AAAA','LARGE UNIT'
+1,'AAA Business Unit 001','AAAA','Area'
 ,'XX',99,'Fines',true
 );

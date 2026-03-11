@@ -77,8 +77,12 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitFullEntity> {
     }
 
     public static Predicate likeBusinessUnitTypePredicate(
-            From<?, BusinessUnitFullEntity> from, CriteriaBuilder builder, String businessUnitType) {
-        return likeWildcardPredicate(from.get(BusinessUnitFullEntity_.businessUnitType), builder, businessUnitType);
+        From<?, BusinessUnitFullEntity> from, CriteriaBuilder builder, String businessUnitType) {
+        return likeWildcardPredicate(
+            from.get(BusinessUnitFullEntity_.businessUnitType).as(String.class),
+            builder,
+            businessUnitType
+        );
     }
 
     public static Specification<BusinessUnitFullEntity> equalsAccountNumberPrefix(String accountNumberPrefix) {

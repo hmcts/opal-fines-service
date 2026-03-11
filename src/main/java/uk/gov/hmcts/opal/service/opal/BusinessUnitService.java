@@ -72,7 +72,7 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
             entity.getBusinessUnitId(),
             entity.getBusinessUnitName(),
             entity.getBusinessUnitCode(),
-            entity.getBusinessUnitType(),
+            entity.getBusinessUnitType().getLabel(),
             entity.getAccountNumberPrefix(),
             entity.getOpalDomain(),
             entity.getWelshLanguage(),
