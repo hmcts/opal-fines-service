@@ -1007,6 +1007,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             // defendant
             .andExpect(jsonPath("$.defendant.account_number").value("12345678"))
             .andExpect(jsonPath("$.defendant.account_id").value(456789123))
+            .andExpect(jsonPath("$.defendant.title").value("Mr"))
+            .andExpect(jsonPath("$.defendant.forenames").value("Obi Wan"))
+            .andExpect(jsonPath("$.defendant.surname").value("Kenobi"))
 
             // payment
             .andExpect(jsonPath("$.payment.bacs").value(true))

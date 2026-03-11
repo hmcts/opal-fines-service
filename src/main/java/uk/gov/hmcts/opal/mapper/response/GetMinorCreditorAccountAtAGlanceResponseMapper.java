@@ -5,7 +5,7 @@ import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.mapper.common.AddressMapper;
-import uk.gov.hmcts.opal.mapper.common.DefendantMapper;
+import uk.gov.hmcts.opal.mapper.common.AtAGlanceDefendantMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 import uk.gov.hmcts.opal.mapper.common.PaymentMapper;
 
@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.mapper.common.PaymentMapper;
     uses = {
         PartyMapper.class,
         AddressMapper.class,
-        DefendantMapper.class,
+        AtAGlanceDefendantMapper.class,
         PaymentMapper.class
     }
 )
