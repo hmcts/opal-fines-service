@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/LebraUserIds.json",
+  "type": "object",
+  "required": [
+    "lebra_user_ids"
+  ],
+  "properties": {
+    "lebra_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

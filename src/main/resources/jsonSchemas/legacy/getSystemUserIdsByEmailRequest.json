@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getSystemUserIdsByEmailRequest.json",
+  "type": "object",
+  "properties": {
+    "email_address": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "required": [
+    "email_address"
+  ]
+}

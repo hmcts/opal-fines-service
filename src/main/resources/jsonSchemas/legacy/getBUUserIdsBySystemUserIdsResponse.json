@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/LebraUserIds.json",
+  "type": "object",
+  "required": [
+    "business_unit_user_ids"
+  ],
+  "properties": {
+    "business_unit_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "business_unit_user_id": {
+            "type": "string"
+          },
+          "business_unit_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "business_unit_user_id",
+          "business_unit_id"
+        ]
+      }
+    }
+  }
+}
