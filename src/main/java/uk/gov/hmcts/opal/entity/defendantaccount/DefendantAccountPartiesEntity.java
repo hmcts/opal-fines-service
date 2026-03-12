@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendantaccount;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Convert;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -20,6 +21,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.converter.AssociationTypeConverter;
 
 
 @Entity
@@ -50,7 +53,8 @@ public class DefendantAccountPartiesEntity {
     private PartyEntity party;
 
     @Column(name = "association_type", nullable = false, length = 30)
-    private String associationType;
+    @Convert(converter = AssociationTypeConverter.class)
+    private AssociationType associationType;
 
     @Column(name = "debtor", nullable = false)
     private Boolean debtor;

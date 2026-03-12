@@ -72,15 +72,16 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
@@ -373,7 +374,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         Optional<DebtorDetailEntity> debtorDetail = debtorDetailRepository.findByPartyId(party.getPartyId());
 
         return DefendantAccountParty.builder()
-            .defendantAccountPartyType(partyEntity.getAssociationType())
+            .defendantAccountPartyType(Optional.ofNullable(partyEntity.getAssociationType())
+                                           .map(AssociationType::getLabel)
+                                           .orElse(null))
             .isDebtor(partyEntity.getDebtor())
             .partyDetails(buildPartyDetails(party, aliases))
             .address(buildPartyAddressDetails(party))
@@ -604,7 +607,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             throw new IllegalArgumentException("Request body is required");
         }
 
-        dap.setAssociationType(request.getDefendantAccountPartyType());
+        Optional.ofNullable(request.getDefendantAccountPartyType())
+            .map(AssociationType::getByLabel)
+            .ifPresent(dap::setAssociationType);
         dap.setDebtor(request.getIsDebtor());
 
         OpalDefendantAccountBuilders.applyPartyCoreReplace(party, request.getPartyDetails());
