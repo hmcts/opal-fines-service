@@ -70,7 +70,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
 
     @Override
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-                                                           String businessUnitId,
+                                                           Short businessUnitId,
                                                            UpdateDefendantAccountRequest request,
                                                            String ifMatch, String postedBy) {
         return getCurrentModeService().updateDefendantAccount(defendantAccountId, businessUnitId, request,

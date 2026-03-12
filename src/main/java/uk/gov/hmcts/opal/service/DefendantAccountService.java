@@ -116,7 +116,7 @@ public class DefendantAccountService {
     }
 
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-                                                           String businessUnitId,
+                                                           Short businessUnitId,
                                                            UpdateDefendantAccountRequest request,
                                                            String ifMatch,
                                                            String authHeaderValue) {
@@ -124,10 +124,9 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
-            short buId = Short.parseShort(businessUnitId);
+        if (userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE)) {
 
-            String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
                 .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());

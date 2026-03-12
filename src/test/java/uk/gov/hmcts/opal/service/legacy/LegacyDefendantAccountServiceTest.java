@@ -1832,12 +1832,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         final String postedBy = "user-123";
         long defendantAccountId = 77L;
-        String businessUnitId = "78";
+        Short businessUnitId = 78;
 
         // arrange: mapper builds the legacy request
         LegacyUpdateDefendantAccountRequest legacyReq = LegacyUpdateDefendantAccountRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
+            .businessUnitId(String.valueOf(businessUnitId))
             .businessUnitUserId(postedBy)
             .version(3)
             .build();
@@ -1896,7 +1896,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void testUpdateDefendantAccount_whenGatewayThrows_exceptionPropagates() {
         final String postedBy = "user-123";
         long defendantAccountId = 77L;
-        String businessUnitId = "78";
+        Short businessUnitId = 78;
 
         // arrange: mapper builds the legacy request
         when(updateDefendantAccountRequestMapper
@@ -1939,7 +1939,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // act + assert
         DefendantAccountResponse response = legacyDefendantAccountService
-            .updateDefendantAccount(77L, "78", mock(UpdateDefendantAccountRequest.class),
+            .updateDefendantAccount(77L, (short) 78, mock(UpdateDefendantAccountRequest.class),
                 "1", "postedBy");
         assertNull(response);
     }

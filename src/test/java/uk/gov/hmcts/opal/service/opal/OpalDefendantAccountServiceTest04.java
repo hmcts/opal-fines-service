@@ -153,7 +153,7 @@ class OpalDefendantAccountServiceTest04 {
             .build();
 
         // ---------- Act ----------
-        final String buHeader = "10"; // near first use for Checkstyle
+        final short buHeader = 10; // near first use for Checkstyle
         // If-Match = "1" to match entity.setVersion(1L)
         var resp = service.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST");
 
@@ -193,7 +193,7 @@ class OpalDefendantAccountServiceTest04 {
     @Test
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         Long id = 1L;
-        String buHeader = "10";
+        short buHeader = 10;
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder().build();
 
@@ -207,7 +207,7 @@ class OpalDefendantAccountServiceTest04 {
     @Test
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         Long id = 1L;
-        String buHeader = "10";
+        short buHeader = 10;
 
         BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
             .businessUnitId((short) 77)
@@ -233,7 +233,7 @@ class OpalDefendantAccountServiceTest04 {
     @Test
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         Long id = 1L;
-        String buHeader = "10";
+        short buHeader = 10;
 
         BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
             .businessUnitId(Short.valueOf(buHeader))
@@ -267,7 +267,7 @@ class OpalDefendantAccountServiceTest04 {
             .build();
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.updateDefendantAccount(99L, "10", req, "1", "UNIT_TEST")
+            service.updateDefendantAccount(99L, (short) 10, req, "1", "UNIT_TEST")
         );
         verify(defendantAccountRepository, never()).save(any());
     }
@@ -275,7 +275,7 @@ class OpalDefendantAccountServiceTest04 {
     @Test
     void updateDefendantAccount_missingIfMatch_throwsPrecondition() {
         Long id = 77L;
-        String bu = "10";
+        short bu = 10;
 
         BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
             .businessUnitId((short) 10)
@@ -311,7 +311,7 @@ class OpalDefendantAccountServiceTest04 {
             .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build()).build();
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
-            () -> service.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
+            () -> service.updateDefendantAccount(77L, (short) 78, req, "\"0\"", "tester"));
         verify(defendantAccountRepository, never()).save(any());
     }
 
@@ -328,7 +328,7 @@ class OpalDefendantAccountServiceTest04 {
         var req = UpdateDefendantAccountRequest.builder()
             .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("hello").build()).build();
 
-        service.updateDefendantAccount(77L, "78", req, "0", "11111111A");
+        service.updateDefendantAccount(77L, (short) 78, req, "0", "11111111A");
 
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
@@ -354,7 +354,7 @@ class OpalDefendantAccountServiceTest04 {
                 .build())
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "0", "tester");
+        var resp = service.updateDefendantAccount(77L, (short) 78, req, "0", "tester");
         assertNotNull(resp.getEnforcementOverride());
     }
 
