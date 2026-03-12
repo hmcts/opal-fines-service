@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendantaccount;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
