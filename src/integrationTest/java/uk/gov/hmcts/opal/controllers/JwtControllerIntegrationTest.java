@@ -2,11 +2,14 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.nimbusds.jose.JOSEException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.SecurityItProperties;
 
 @Slf4j(topic = "opal.JwtControllerIntegrationTest")
 @DisplayName("JWT Controller Integration Tests")
@@ -14,6 +17,11 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL = "/business-units/5";
     public static final String AUTHORIZATION = "authorization";
+
+    @Autowired
+    public JwtControllerIntegrationTest(SecurityItProperties securityItProperties) throws JOSEException {
+        super(securityItProperties);
+    }
 
     @Test
     @DisplayName("Testing Valid Token")

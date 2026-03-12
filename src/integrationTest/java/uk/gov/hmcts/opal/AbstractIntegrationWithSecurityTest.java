@@ -16,8 +16,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import java.net.URI;
 import java.util.Date;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,29 +26,30 @@ import org.springframework.test.context.ActiveProfiles;
 @DisplayName("JWT Controller Integration Tests")
 public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest {
 
-    private static final int WIREMOCK_PORT = 4553;
-    private static final String WIREMOCK_JWKS_PATH = "/opal/oauth2/jwks.json";
-    private static final String ISSUER_URI = "http://localhost:" + WIREMOCK_PORT + "/opal/";
-    private static final String KEY_ID = "... some random string ...";
+    protected SecurityItProperties securityItProperties;
 
-    private static RSAKey rsaKey;
-    private static RSASSASigner signer;
+    private RSAKey rsaKey;
+    private RSASSASigner signer;
 
-    @BeforeAll
-    static void setUp() throws JOSEException {
+    public AbstractIntegrationWithSecurityTest(SecurityItProperties securityItProperties) throws JOSEException {
+        this.securityItProperties = securityItProperties;
 
-        WireMock.configureFor("localhost", WIREMOCK_PORT);
+        URI jwksUri = URI.create(securityItProperties.getWireMockJwksUri());
+        String jwksPath = jwksUri.getPath();
+        int wireMockPort = jwksUri.getPort();
+
+        WireMock.configureFor("localhost", wireMockPort);
 
         rsaKey = new RSAKeyGenerator(2048)
             .keyUse(KeyUse.SIGNATURE)
             .algorithm(new Algorithm("RS256"))
-            .keyID(KEY_ID)
+            .keyID(securityItProperties.getKey())
             .generate();
 
         var rsaPublicJWK = rsaKey.toPublicJWK();
         var jwkResponse = format("{\"keys\": [%s]}", rsaPublicJWK.toJSONString());
 
-        stubFor(get(WIREMOCK_JWKS_PATH)
+        stubFor(get(jwksPath)
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(jwkResponse)));
@@ -59,7 +60,7 @@ public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest
     protected String validToken() throws JOSEException {
         var claimsSet = new JWTClaimsSet.Builder()
             .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-            .issuer(ISSUER_URI)
+            .issuer(securityItProperties.getIssuerUri())
             .build();
         return generateToken(claimsSet);
     }
@@ -67,7 +68,7 @@ public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest
     protected String expiredToken() throws JOSEException {
         var claimsSet = new JWTClaimsSet.Builder()
             .expirationTime(new Date(new Date().getTime() - 60 * 1000))
-            .issuer(ISSUER_URI)
+            .issuer(securityItProperties.getIssuerUri())
             .build();
         return generateToken(claimsSet);
     }

@@ -47,3 +47,6 @@ legacy-gateway:
 user:
   service:
     url: ${OPAL_USER_SERVICE_API_URL:https://opal-user-service.staging.platform.hmcts.net}
+
+security-it:
+  key: ...some random string...
