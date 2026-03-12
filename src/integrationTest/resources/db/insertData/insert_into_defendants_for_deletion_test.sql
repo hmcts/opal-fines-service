@@ -77,7 +77,7 @@ VALUES (9101, 'N', NULL,
         'Graham', 'Anna', 'Ms',
         'Lumber House', '54 Gordon Road', 'Maidstone, Kent',
         NULL, NULL, 'MA4 1AL',
-        'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+        'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 -- Insert defendant account parties (Level 2)
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
