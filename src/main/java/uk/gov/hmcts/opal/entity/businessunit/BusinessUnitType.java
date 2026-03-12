@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.stream.Stream;
 
 public enum BusinessUnitType {
-    ACCOUNTING_DIViSION("Accounting Division"),
+    ACCOUNTING_DIVISION("Accounting Division"),
     AREA("Area");
 
     private final String label;

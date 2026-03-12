@@ -13,7 +13,7 @@ class BusinessUnitTypeConverterTest {
 
     @Test
     void given_businessUnitType_when_convertToDatabaseColumn_then_returnsLabel() {
-        assertEquals("Accounting Division", converter.convertToDatabaseColumn(BusinessUnitType.ACCOUNTING_DIViSION));
+        assertEquals("Accounting Division", converter.convertToDatabaseColumn(BusinessUnitType.ACCOUNTING_DIVISION));
         assertEquals("Area", converter.convertToDatabaseColumn(BusinessUnitType.AREA));
     }
 
@@ -24,7 +24,7 @@ class BusinessUnitTypeConverterTest {
 
     @Test
     void given_validLabel_when_convertToEntityAttribute_then_returnsBusinessUnitType() {
-        assertEquals(BusinessUnitType.ACCOUNTING_DIViSION,
+        assertEquals(BusinessUnitType.ACCOUNTING_DIVISION,
                      converter.convertToEntityAttribute("Accounting Division"));
         assertEquals(BusinessUnitType.AREA, converter.convertToEntityAttribute("Area"));
     }
