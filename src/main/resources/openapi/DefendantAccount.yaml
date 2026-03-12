@@ -324,6 +324,128 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{id}:
+    patch:
+      summary: Update a defendant account (partial update)
+      operationId: updateDefendantAccount
+      tags:
+        - DefendantAccounts
+
+      parameters:
+        - name: id
+          in: path
+          description: Defendant account identifier
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          schema:
+            $ref: "./types.yaml#/components/schemas/BigInt"
+
+      requestBody:
+        description: Payload containing one of the updatable defendant-account fragments
+        required: true
+        content:
+          application/json:
+            schema:
+              title: Update Defendant Account Request Payload
+              type: object
+              minProperties: 1
+              maxProperties: 1
+
+              oneOf:
+                - required:
+                    - comment_and_notes
+                - required:
+                    - enforcement_court
+                - required:
+                    - collection_order
+                - required:
+                    - enforcement_override
+
+              properties:
+                collection_order:
+                  $ref: './common.yaml#/components/schemas/collectionOrder'
+
+                comment_and_notes:
+                  $ref: './common.yaml#/components/schemas/commentsAndNotes'
+
+                enforcement_court:
+                  $ref: '#/components/schemas/enforcementCourt'
+
+                enforcement_override:
+                  $ref: '#/components/schemas/enforcementOverride'
+
+
+      responses:
+        '201':
+          description: Updated defendant account returned
+          headers:
+            ETag:
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+          content:
+            application/json:
+              schema:
+                title: Update Defendant Account Response
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: integer
+                  collection_order:
+                    $ref: './common.yaml#/components/schemas/collectionOrder'
+                  comment_and_notes:
+                    $ref: './common.yaml#/components/schemas/commentsAndNotes'
+                  enforcement_court:
+                    $ref: '#/components/schemas/enforcementCourt'
+                  enforcement_override:
+                    $ref: '#/components/schemas/enforcementOverride'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+               $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        409:
+          description: Conflict
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+           application/json+problem:
+             schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+           application/json+problem:
+             schema:
+               $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
   schemas:
     enforcementOverview:
@@ -339,6 +461,45 @@ components:
       required:
         - collection_order
         - enforcement_court
+    enforcementCourt:
+      type: object
+      properties:
+        court_id:
+          type: integer
+      required:
+        - court_id
+    enforcementOverride:
+      type: object
+      properties:
+        enforcement_override_result:
+          $ref: '#/components/schemas/enforcementOverrideResult'
+        enforcer:
+            $ref: '#/components/schemas/enforcer'
+        lja:
+            $ref: '#/components/schemas/localJusticeArea'
+      required:
+        - enforcement_override_result
+    enforcementOverrideResult:
+      type: object
+      properties:
+        enforcement_override_result_id:
+          type: string
+      required:
+        - enforcement_override_result_id
+    enforcer:
+      type: object
+      properties:
+        enforcer_id:
+          type: integer
+      required:
+        - enforcer_id
+    localJusticeArea:
+      type: object
+      properties:
+        lja_id:
+          type: integer
+      required:
+        - lja_id
     enforcementAction:
       type: object
       additionalProperties: false
