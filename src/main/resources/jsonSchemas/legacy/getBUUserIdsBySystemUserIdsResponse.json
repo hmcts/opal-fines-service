@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opal-fines-service/LebraUserIds.json",
+  "$id": "https://opal-fines-service/LibraUserIds.json",
   "type": "object",
   "required": [
     "business_unit_user_ids"
