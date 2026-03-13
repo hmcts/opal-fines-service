@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
@@ -27,7 +28,7 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
  * Storage Explorer and connect it to your local running Azurite instance. - To view messages on the queue use
  * peekAtQueue()</p>
  */
-//@EnabledIfEnvironmentVariable(named = "REPORT_QUEUE_ASB_TEST_ENABLED", matches = "true")
+@EnabledIfEnvironmentVariable(named = "REPORT_QUEUE_ASB_TEST_ENABLED", matches = "true")
 class ReportQueueConnectivityIntegrationTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportQueueConnectivityIntegrationTest.class);
