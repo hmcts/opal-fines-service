@@ -1,8 +1,11 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendanttransaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,6 +21,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -54,13 +59,15 @@ public class DefendantTransactionEntity {
     private String postedBy;
 
     @Column(name = "transaction_type", length = 100)
-    private String transactionType;
+    @Convert(converter = DefendantTransactionTypeConverter.class)
+    private DefendantTransactionType transactionType;
 
     @Column(name = "transaction_amount", precision = 18, scale = 2)
     private BigDecimal transactionAmount;
 
     @Column(name = "payment_method", length = 2)
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private DefendantTransactionPaymentMethod paymentMethod;
 
     @Column(name = "payment_reference", length = 10)
     private String paymentReference;
@@ -69,7 +76,8 @@ public class DefendantTransactionEntity {
     private String text;
 
     @Column(name = "status", length = 1)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private DefendantTransactionStatus status;
 
     @Column(name = "status_date", nullable = false)
     @Temporal(TemporalType.DATE)
@@ -80,7 +88,8 @@ public class DefendantTransactionEntity {
     private BigDecimal statusAmount;
 
     @Column(name = "write_off_code", length = 6)
-    private String writeOffCode;
+    @Convert(converter = DefendantTransactionWriteOffCodeConverter.class)
+    private DefendantTransactionWriteOffCode writeOffCode;
 
     @Column(name = "associated_record_type", length = 30)
     private String associatedRecordType;
