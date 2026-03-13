@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -87,7 +88,8 @@ public class DefendantTransactionEntity {
     private BigDecimal statusAmount;
 
     @Column(name = "write_off_code", length = 6)
-    private String writeOffCode;
+    @Convert(converter = DefendantTransactionWriteOffCodeConverter.class)
+    private DefendantTransactionWriteOffCode writeOffCode;
 
     @Column(name = "associated_record_type", length = 30)
     private String associatedRecordType;
