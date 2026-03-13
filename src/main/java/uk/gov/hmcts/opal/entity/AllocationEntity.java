@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.entity;
 
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionFullEntity;
 
 import jakarta.persistence.Column;

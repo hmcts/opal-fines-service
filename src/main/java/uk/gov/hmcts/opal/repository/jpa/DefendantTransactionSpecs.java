@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
-import uk.gov.hmcts.opal.entity.DefendantTransactionEntity;
-import uk.gov.hmcts.opal.entity.DefendantTransactionEntity_;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity_;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
