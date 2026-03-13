@@ -1,7 +1,8 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendanttransaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -54,7 +56,8 @@ public class DefendantTransactionEntity {
     private String postedBy;
 
     @Column(name = "transaction_type", length = 100)
-    private String transactionType;
+    @Convert(converter = DefendantTransactionTypeConverter.class)
+    private DefendantTransactionType transactionType;
 
     @Column(name = "transaction_amount", precision = 18, scale = 2)
     private BigDecimal transactionAmount;
