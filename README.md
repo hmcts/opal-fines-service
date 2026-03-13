@@ -244,6 +244,10 @@ This is already bundled with the docker-compose setup.
 To view any messages sent to the queues/topics you can use a tool like 'Azure Service Bus Explorer'.
 Or you can use the PeekSbEmulator class that is setup in test/java/uk/gov/hmcts/opal/support/PeekSbEmulator.java to do this simply call the main method of this class you can add a argument to specify which queue/topic you want to peek messages from.
 
+## Azurite emulator (for Azure Blob Storage)
+This is already bundled with the docker-compose setup.
+To view blobs stored in Azurite use 'Azure Service Bus Explorer'
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

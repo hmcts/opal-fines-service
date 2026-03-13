@@ -175,6 +175,17 @@ opal:
     email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
     password: ${OPAL_TEST_USER_PASSWORD}
 
+  report:
+    storage:
+      connection-string: ${AZURE_STORAGE_CONNECTION_STRING:UseDevelopmentStorage=true}
+      container: ${AZURE_STORAGE_CONTAINER:test-container}
+    consumer:
+      enabled: ${REPORT_CONSUMER_ENABLED:true}
+      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
+      queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
+      protocol: ${SERVICEBUS_REPORT_PROTOCOL:amqp}
+      idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
+
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
 
@@ -198,7 +209,6 @@ logging:
         orm:
           jdbc:
             bind: INFO
-
 
 user:
   service:

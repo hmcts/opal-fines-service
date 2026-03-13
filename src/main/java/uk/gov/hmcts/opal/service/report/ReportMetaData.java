@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.service.report;
 
 import java.util.List;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Getter
+@Data
+@AllArgsConstructor
 public class ReportMetaData {
     private List<Integer> pdpoPartyIds;
 
