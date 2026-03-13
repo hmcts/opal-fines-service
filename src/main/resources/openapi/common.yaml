@@ -778,10 +778,3 @@ components:
           type: string
         name:
           type: string
-    codedValueDisplayName:
-      type: object
-      properties:
-        code:
-          type: string
-        display_name:
-          type: string

@@ -457,10 +457,13 @@ components:
         type: string
         enum: [ JSON, CSV, PDF, XML ]
     status:
-      allOf:
-        - $ref: './common.yaml#/components/schemas/codedValueDisplayName'
-        - type: object
-          properties:
-            code:
-              type: string
-              enum: [ REQUESTED, IN_PROGRESS, READY, ERROR ]
+      type: object
+      required:
+        - code
+        - display_name
+      properties:
+        code:
+          type: string
+          enum: [ REQUESTED, IN_PROGRESS, READY, ERROR ]
+        display_name:
+          type: string
