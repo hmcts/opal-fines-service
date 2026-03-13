@@ -498,6 +498,7 @@ components:
       properties:
         enforcer_id:
           type: integer
+          format: int64
       required:
         - enforcer_id
     localJusticeArea:
@@ -505,6 +506,7 @@ components:
       properties:
         lja_id:
           type: integer
+          format: int64
       required:
         - lja_id
     enforcementAction:

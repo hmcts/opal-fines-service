@@ -85,9 +85,11 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
@@ -695,10 +697,9 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static Enforcer buildEnforcer(Optional<EnforcerEntity> enforcer) {
-        return enforcer.map(enf -> Enforcer.builder()
+    static EnforcerDefendantAccount buildEnforcer(Optional<EnforcerEntity> enforcer) {
+        return enforcer.map(enf -> EnforcerDefendantAccount.builder()
                 .enforcerId(enf.getEnforcerId())
-                .enforcerName(enf.getName())
                 .build())
             .orElse(null);
     }
@@ -820,11 +821,9 @@ public class OpalDefendantAccountBuilders {
         return node.flatMap(r -> Optional.ofNullable(r.findValue(key))).map(JsonNode::asText);
     }
 
-    static LJA buildLja(Optional<LocalJusticeAreaEntity> entity) {
-        return entity.map(lja -> LJA.builder()
-                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
-                .ljaCode(lja.getLjaCode())
-                .ljaName(Optional.ofNullable(lja.getName()).orElse(lja.getLjaCode()))
+    static LocalJusticeAreaDefendantAccount buildLja(Optional<LocalJusticeAreaEntity> entity) {
+        return entity.map(lja -> LocalJusticeAreaDefendantAccount.builder()
+                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::longValue).orElse(null))
                 .build())
             .orElse(null);
     }

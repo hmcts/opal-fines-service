@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
 
 @Data
 @Builder
@@ -14,10 +16,10 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 public class EnforcementOverride implements ToJsonString {
 
     @JsonProperty("enforcement_override_result")
-    private EnforcementOverrideResult enforcementOverrideResult;
+    private EnforcementOverrideResultReferenceCommon enforcementOverrideResult;
 
     @JsonProperty("enforcer")
-    private Enforcer enforcer;
+    private EnforcerReferenceCommon enforcer;
 
     @JsonProperty("lja")
     private LJA lja;

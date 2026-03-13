@@ -7,6 +7,7 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildC
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEmployerDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultReferenceCommon;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildLanguagePreferences;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyAddressDetails;
@@ -57,9 +58,11 @@ import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.LJA;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
@@ -83,6 +86,7 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
@@ -91,6 +95,7 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
@@ -439,7 +444,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Override
     @Transactional
-    public UpdateDefendantAccountResponse updateDefendantAccount(
+    public uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse updateDefendantAccount(
         Long defendantAccountId,
         String businessUnitId,
         UpdateDefendantAccountRequest request,
@@ -498,14 +503,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         );
 
         // ---- Build response ----
-        return UpdateDefendantAccountResponse.builder()
+        uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse response= UpdateDefendantAccountResponse.builder()
             .id(entity.getDefendantAccountId())
             .commentsAndNotes(buildCommentsAndNotes(entity))
             .enforcementCourt(buildCourtReference(entity.getEnforcingCourt()))
             .collectionOrder(buildCollectionOrder(entity))
-            .enforcementOverride(buildEnforcementOverride(entity))
-            .version(newVersion)
+            .enforcementOverride(buildEnforcementOverrideDefendantAccount(entity))
             .build();
+        return response.;
     }
 
     /**
@@ -645,7 +650,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    EnforcementOverrideDefendantAccount buildEnforcementOverride(DefendantAccountEntity entity) {
+    EnforcementOverrideDefendantAccount buildEnforcementOverrideDefendantAccount(DefendantAccountEntity entity) {
         if (entity.getEnforcementOverrideResultId() == null
             && entity.getEnforcementOverrideEnforcerId() == null
             && entity.getEnforcementOverrideTfoLjaId() == null) {
@@ -656,6 +661,27 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     entity.getEnforcementOverrideResultId())))
                 .enforcer(OpalDefendantAccountBuilders.buildEnforcer(dbEnforcerEntity(entity)))
                 .lja(OpalDefendantAccountBuilders.buildLja(dbLja(entity)))
+                .build();
+        }
+    }
+
+    EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
+        if (entity.getEnforcementOverrideResultId() == null
+            && entity.getEnforcementOverrideEnforcerId() == null
+            && entity.getEnforcementOverrideTfoLjaId() == null) {
+            return null;
+        } else {
+            Optional<Lite> resultEntity= dbResultEntity(entity.getEnforcementOverrideResultId());
+            Optional<EnforcerEntity> enforcerEntity= dbEnforcerEntity(entity);
+            Optional<LocalJusticeAreaEntity> ljaEntity= dbLja(entity);
+
+
+            return EnforcementOverride.builder()
+                .enforcementOverrideResult(buildEnforcementOverrideResultReferenceCommon(
+                    EnforcementOverrideResult.builder().enforcementOverrideId(resultEntity.get()
+                            .getResultId()).enforcementOverrideTitle(resultEntity.get().getResultTitle()).build()))
+                .enforcer(EnforcerReferenceCommon.builder().enforcerId(enforcerEntity.get().getEnforcerId()).enforcerName(enforcerEntity.get().getName()).build())
+                .lja(LJA.builder().ljaId(Integer.valueOf(ljaEntity.get().getLocalJusticeAreaId())).ljaName(ljaEntity.get().getName()).ljaCode(ljaEntity.get().getLjaCode()).build())
                 .build();
         }
     }
