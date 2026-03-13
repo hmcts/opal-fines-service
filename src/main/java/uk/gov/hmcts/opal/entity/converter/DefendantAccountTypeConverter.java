@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.entity.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import uk.gov.hmcts.opal.entity.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 
 @Converter(autoApply = true)
 public class DefendantAccountTypeConverter implements AttributeConverter<DefendantAccountType, String> {

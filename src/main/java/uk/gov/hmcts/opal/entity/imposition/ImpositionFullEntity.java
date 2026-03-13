@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.entity.imposition;
 
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountFullEntity;
 
