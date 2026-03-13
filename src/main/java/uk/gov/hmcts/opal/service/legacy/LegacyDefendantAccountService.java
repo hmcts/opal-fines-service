@@ -203,7 +203,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private DefendantAccountHeaderSummary toHeaderSumaryDto(
+    DefendantAccountHeaderSummary toHeaderSumaryDto(
         LegacyGetDefendantAccountHeaderSummaryResponse response) {
 
         var legacyParty = response.getPartyDetails();
@@ -308,7 +308,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
 
-    private static BigDecimal toBigDecimalOrZero(Object input) {
+    static BigDecimal toBigDecimalOrZero(Object input) {
         if (input == null) {
             return BigDecimal.ZERO;
         }
@@ -368,7 +368,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private static PaymentTermsType toPaymentTermsType(LegacyPaymentTermsType legacy) {
+    static PaymentTermsType toPaymentTermsType(LegacyPaymentTermsType legacy) {
         if (legacy == null) {
             return null;
         }
@@ -385,7 +385,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private static InstalmentPeriod toInstalmentPeriod(LegacyInstalmentPeriod legacy) {
+    static InstalmentPeriod toInstalmentPeriod(LegacyInstalmentPeriod legacy) {
         if (legacy == null) {
             return null;
         }
@@ -1224,7 +1224,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private LegacyPostedDetails mapLegacyPostedDetails(PostedDetails pd) {
+    LegacyPostedDetails mapLegacyPostedDetails(PostedDetails pd) {
         if (pd == null) {
             return null;
         }
@@ -1235,7 +1235,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return lpd;
     }
 
-    private LegacyPaymentTermsType mapLegacyPaymentTermsType(PaymentTermsType modern) {
+    LegacyPaymentTermsType mapLegacyPaymentTermsType(PaymentTermsType modern) {
         if (modern == null || modern.getPaymentTermsTypeCode() == null) {
             return null;
         }
@@ -1245,7 +1245,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return lpt;
     }
 
-    private LegacyInstalmentPeriod mapLegacyInstalmentPeriod(InstalmentPeriod modern) {
+    LegacyInstalmentPeriod mapLegacyInstalmentPeriod(InstalmentPeriod modern) {
         if (modern == null || modern.getInstalmentPeriodCode() == null) {
             return null;
         }
@@ -1255,7 +1255,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return lip;
     }
 
-    private LegacyPaymentTermsType.PaymentTermsTypeCode mapPaymentTermsTypeCodeEnum(String code) {
+    LegacyPaymentTermsType.PaymentTermsTypeCode mapPaymentTermsTypeCodeEnum(String code) {
         if (code == null) {
             return null;
         }
@@ -1267,7 +1267,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         };
     }
 
-    private LegacyInstalmentPeriod.InstalmentPeriodCode mapInstalmentPeriodCodeEnum(String code) {
+    LegacyInstalmentPeriod.InstalmentPeriodCode mapInstalmentPeriodCodeEnum(String code) {
         if (code == null) {
             return null;
         }
