@@ -64,7 +64,7 @@ public class ReportInstanceEntity {
     @Enumerated(EnumType.STRING)
     private ReportInstanceGenerationStatus generationStatus;
 
-    @Column(name = "location", length = 30)
+    @Column(name = "location", length = 36)
     private String location;
 
     @Column(name = "created_timestamp")
