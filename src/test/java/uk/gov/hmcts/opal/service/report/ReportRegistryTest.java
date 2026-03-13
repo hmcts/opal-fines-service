@@ -26,7 +26,7 @@ class ReportRegistryTest {
     void constructor_buildsMapAccessibleWithReportId() {
         when(report1.getType()).thenReturn(ReportType.FP_REGISTER);
 
-        @SuppressWarnings("unchecked") ReportRegistry registry =
+        ReportRegistry registry =
             new ReportRegistry(List.of(report1));
 
         assertSame(report1, registry.get(ReportType.FP_REGISTER.reportId));
@@ -37,7 +37,6 @@ class ReportRegistryTest {
         when(report1.getType()).thenReturn(ReportType.FP_REGISTER);
         when(report2.getType()).thenReturn(ReportType.FP_REGISTER);
 
-        //noinspection unchecked
         assertThrows(IllegalStateException.class, () -> new ReportRegistry(List.of(report1, report2)));
     }
 }

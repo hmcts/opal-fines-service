@@ -1,10 +1,10 @@
 package uk.gov.hmcts.opal.service.report;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.gov.hmcts.opal.service.report.ReportType.FP_REGISTER;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 
 class ReportTypeTest {

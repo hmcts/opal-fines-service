@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.util.UuidProvider;
 public class ReportBlobStoreServiceTest {
 
     private final String MESSAGE = "I am a report";
-    private final String CONTAINER_NAME = "container";
 
     @Mock
     private BlobServiceClient blobServiceClient;
@@ -44,9 +43,10 @@ public class ReportBlobStoreServiceTest {
 
     @BeforeEach
     public void setUp() {
+        String CONTAINER_NAME = "container";
         reportBlobStoreService = new ReportBlobStoreService(blobServiceClient, uuidProvider, CONTAINER_NAME);
         uuid = UUID.randomUUID();
-        when(blobServiceClient.getBlobContainerClient(CONTAINER_NAME)).thenReturn(container);
+        when(blobServiceClient.getBlobContainerClient("container")).thenReturn(container);
         when(container.getBlobClient(anyString())).thenReturn(blob);
     }
 

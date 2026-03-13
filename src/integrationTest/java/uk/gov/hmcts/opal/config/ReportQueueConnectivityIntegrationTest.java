@@ -33,21 +33,17 @@ class ReportQueueConnectivityIntegrationTest {
 
     private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
-    private String connectionString;
-
     private String queueName;
-
-    private String protocol;
 
     private JmsConnectionFactory connectionFactory;
 
     @BeforeEach
     void setUp() {
-        connectionString = optionalEnv("SERVICEBUS_CONNECTION_STRING",
+        String connectionString = optionalEnv("SERVICEBUS_CONNECTION_STRING",
             "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;"
                 + "UseDevelopmentEmulator=true");
         queueName = optionalEnv("SERVICEBUS_REPORT_QUEUE_NAME", "report");
-        protocol = optionalEnv("SERVICEBUS_REPORT_PROTOCOL", "amqp");
+        String protocol = optionalEnv("SERVICEBUS_REPORT_PROTOCOL", "amqp");
 
         ServiceBusConnectionStringParser.ConnectionDetails details =
             ServiceBusConnectionStringParser.parse(connectionString);
