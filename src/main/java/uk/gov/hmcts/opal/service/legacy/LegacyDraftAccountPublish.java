@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
@@ -20,7 +21,6 @@ import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import uk.gov.hmcts.opal.util.LogUtil;
 
 @Service
 @RequiredArgsConstructor

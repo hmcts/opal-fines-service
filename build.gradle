@@ -371,7 +371,7 @@ dependencies {
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.10'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.10'
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.2.4'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
@@ -403,7 +403,7 @@ dependencies {
 
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
 
-  implementation 'com.github.hmcts.java-logging:logging:7.0.0'
+  implementation 'com.github.hmcts.java-logging:logging:8.0.0'
 
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
