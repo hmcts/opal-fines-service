@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,8 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -89,7 +92,6 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -104,9 +106,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
+    public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
     public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
-
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
@@ -114,7 +116,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
-
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
@@ -125,9 +126,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
-    private final UserStateService userStateService;
-
-
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {}", defendantAccountId);
 
@@ -137,18 +135,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 GET_HEADER_SUMMARY, LegacyGetDefendantAccountHeaderSummaryResponse.class,
                 createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-            if (response.isError()) {
-                log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);
-                if (response.isException()) {
-                    log.error(":getHeaderSummary:", response.exception);
-                } else if (response.isLegacyFailure()) {
-                    log.error(":getHeaderSummary: Legacy Gateway: body: \n{}", response.body);
-                    LegacyGetDefendantAccountHeaderSummaryResponse responseEntity = response.responseEntity;
-                    log.error(":getHeaderSummary: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-                }
-            } else if (response.isSuccessful()) {
-                log.info(":getHeaderSummary: Legacy Gateway response: Success.");
-            }
+            checkResponseForError(response, "getHeaderSummary");
 
             return toHeaderSumaryDto(response.responseEntity);
 
@@ -179,18 +166,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
             createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-        if (response.isError()) {
-            log.error(":getPaymentTerms: Legacy Gateway response: HTTP Response Code: {}", response.code);
-            if (response.isException()) {
-                log.error(":getPaymentTerms:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":getPaymentTerms: Legacy Gateway: body: \n{}", response.body);
-                LegacyGetDefendantAccountPaymentTermsResponse responseEntity = response.responseEntity;
-                log.error(":getPaymentTerms: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":getPaymentTerms: Legacy Gateway response: Success.");
-        }
+        checkResponseForError(response, "getPaymentTerms");
 
         return toPaymentTermsResponse(response.responseEntity);
     }
@@ -343,7 +319,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return GetDefendantAccountPaymentTermsResponse.builder()
             .version(Optional.ofNullable(legacy.getVersion())
-                  .map(v -> BigInteger.valueOf(v.longValue())).orElse(BigInteger.ONE))
+                         .map(v -> BigInteger.valueOf(v.longValue()))
+                         .orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
@@ -433,16 +410,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             null
         );
 
-        if (response.isError()) {
-            log.error(":getDefendantAccountParty: Legacy error HTTP {}", response.code);
-            if (response.isException()) {
-                log.error(":getDefendantAccountParty: exception:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":getDefendantAccountParty: legacy failure body:\n{}", response.body);
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":getDefendantAccountParty: Legacy success.");
-        }
+        checkResponseForError(response, "getDefendantAccountParty");
 
         return toDefendantAccountPartyResponse(response.responseEntity);
     }
@@ -467,7 +435,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .organisationName(mapSafe(pd != null ? pd.getOrganisationDetails() : null,
                     OrganisationDetailsLegacy::getOrganisationName))
                 // arrays must not be null (schema expects an array)
-                .organisationAliases(java.util.Collections.emptyList())
+                .organisationAliases(Collections.emptyList())
                 .build();
         }
 
@@ -485,7 +453,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .nationalInsuranceNumber(mapSafe(pd != null ? pd.getIndividualDetails() : null,
                     IndividualDetailsLegacy::getNationalInsuranceNumber))
                 // arrays must not be null (schema expects an array)
-                .individualAliases(java.util.Collections.emptyList())
+                .individualAliases(Collections.emptyList())
                 .build();
         }
 
@@ -635,7 +603,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return response;
     }
 
-    private static <T, R> R mapSafe(T obj, java.util.function.Function<T, R> f) {
+    private static <T, R> R mapSafe(T obj, Function<T, R> f) {
         return obj == null ? null : f.apply(obj);
     }
 
@@ -647,18 +615,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             GET_DEFENDANT_AT_A_GLANCE, LegacyGetDefendantAccountAtAGlanceResponse.class,
             createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-        if (response.isError()) {
-            log.error(":getAtAGlance: Legacy Gateway response: HTTP Response Code: {}", response.code);
-            if (response.isException()) {
-                log.error(":getAtAGlance:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":getAtAGlance: Legacy Gateway: body: \n{}", response.body);
-                LegacyGetDefendantAccountAtAGlanceResponse responseEntity = response.responseEntity;
-                log.error(":getAtAGlance: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":getAtAGlance: Legacy Gateway response: Success.");
-        }
+        checkResponseForError(response, "getAtAGlance");
 
         return toDefendantAtAGlanceResponse(response.responseEntity);
 
@@ -704,13 +661,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         if (src == null) {
             return null;
         }
-        java.util.List<OrganisationAlias> aliases = java.util.Optional
+        List<OrganisationAlias> aliases = Optional
             .ofNullable(src.getOrganisationAliases())
-            .map(java.util.Arrays::asList)
-            .orElseGet(java.util.List::of)
+            .map(Arrays::asList)
+            .orElseGet(List::of)
             .stream()
             .map(this::toOrganisationAlias)
-            .filter(java.util.Objects::nonNull)
+            .filter(Objects::nonNull)
             .toList();
 
         return OrganisationDetails.builder()
@@ -737,13 +694,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             return null;
         }
 
-        java.util.List<IndividualAlias> aliases = java.util.Optional
+        List<IndividualAlias> aliases = Optional
             .ofNullable(src.getIndividualAliases())
-            .map(java.util.Arrays::asList)
-            .orElseGet(java.util.List::of)
+            .map(Arrays::asList)
+            .orElseGet(List::of)
             .stream()
             .map(this::toIndividualAlias)
-            .filter(java.util.Objects::nonNull)
+            .filter(Objects::nonNull)
             .toList();
 
         return IndividualDetails.builder()
@@ -791,12 +748,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             return null;
         }
 
-        String docCode = java.util.Optional.ofNullable(src.getDocumentLanguagePreference())
+        String docCode = Optional.ofNullable(src.getDocumentLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.DocumentLanguagePreference
                 ::getDocumentLanguageCode)
             .orElse(null);
 
-        String hearingCode = java.util.Optional.ofNullable(src.getHearingLanguagePreference())
+        String hearingCode = Optional.ofNullable(src.getHearingLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.HearingLanguagePreference
                 ::getHearingLanguageCode)
             .orElse(null);
@@ -810,13 +767,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             return null;
         }
 
-        String typeCode = java.util.Optional.ofNullable(src.getPaymentTermsType())
-            .map(uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType::getPaymentTermsTypeCode)
+        String typeCode = Optional.ofNullable(src.getPaymentTermsType())
+            .map(LegacyPaymentTermsType::getPaymentTermsTypeCode)
             .map(Enum::name)
             .orElse(null);
 
-        String instalmentCode = java.util.Optional.ofNullable(src.getInstalmentPeriod())
-            .map(uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod::getInstalmentPeriodCode)
+        String instalmentCode = Optional.ofNullable(src.getInstalmentPeriod())
+            .map(LegacyInstalmentPeriod::getInstalmentPeriodCode)
             .map(Enum::name)
             .orElse(null);
 
@@ -890,18 +847,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             PATCH_DEFENDANT_ACCOUNT, LegacyUpdateDefendantAccountResponse.class,
             legacyRequest, null);
 
-        if (gwResponse.isError()) {
-            log.error(":updateDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", gwResponse.code);
-            if (gwResponse.isException()) {
-                log.error(":updateDefendantAccount: Legacy Gateway response exception: {}", gwResponse.exception);
-            } else if (gwResponse.isLegacyFailure()) {
-                log.error(":updateDefendantAccount: Legacy Gateway: body: \n{}", gwResponse.body);
-                LegacyUpdateDefendantAccountResponse responseEntity = gwResponse.responseEntity;
-                log.error(":updateDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-            }
-        } else if (gwResponse.isSuccessful()) {
-            log.info(":updateDefendantAccount: Legacy Gateway response: Success.");
-        }
+        checkResponseForError(gwResponse, "updateDefendantAccount");
 
         return legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(gwResponse.responseEntity);
     }
@@ -987,7 +933,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(Long.parseLong(ifMatch.replace("\"", "").trim()))
+            .version(VersionUtils.extractBigInteger(ifMatch).longValue())
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
@@ -1001,16 +947,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             null
         );
 
-        if (response.isError()) {
-            log.error(":replaceDefendantAccountParty: Legacy error HTTP {}", response.code);
-            if (response.isException()) {
-                log.error(":replaceDefendantAccountParty: exception:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":replaceDefendantAccountParty: legacy failure body:\n{}", response.body);
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":replaceDefendantAccountParty: Legacy success.");
-        }
+        checkResponseForError(response, "replaceDefendantAccountParty");
 
         return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
     }
@@ -1154,15 +1091,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
 
-        String cleanVersion = ifMatch.replace("\"", "");
-
         // build legacy request object
         AddDefendantAccountEnforcementLegacyRequest legacyRequest =
             AddDefendantAccountEnforcementLegacyRequest.builder()
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(businessUnitId)
                 .businessUnitUserId(businessUnitUserId)
-                .version(Integer.parseInt(cleanVersion))
+                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
@@ -1173,16 +1108,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             ADD_ENFORCEMENT, AddDefendantAccountEnforcementLegacyResponse.class,
             legacyRequest, null);
 
-        if (response.isError()) {
-            log.error(":AddEnforcement: Legacy error HTTP {}", response.code);
-            if (response.isException()) {
-                log.error(":AddEnforcement: exception:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":AddEnforcement: legacy failure body:\n{}", response.body);
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":AddEnforcement: Legacy success.");
-        }
+        checkResponseForError(response, "AddEnforcement");
 
         AddDefendantAccountEnforcementLegacyResponse enforcementResponse = response.responseEntity;
 
@@ -1291,18 +1217,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 GET_ENFORCEMENT_STATUS, LegacyGetDefendantAccountEnforcementStatusResponse.class,
                 createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-            if (response.isError()) {
-                log.error(":getEnforcementStatus: Legacy Gateway response: HTTP Response Code: {}", response.code);
-                if (response.isException()) {
-                    log.error(":getEnforcementStatus:", response.exception);
-                } else if (response.isLegacyFailure()) {
-                    log.error(":getEnforcementStatus: Legacy Gateway: body: \n{}", response.body);
-                    LegacyGetDefendantAccountEnforcementStatusResponse responseEntity = response.responseEntity;
-                    log.error(":getEnforcementStatus: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-                }
-            } else if (response.isSuccessful()) {
-                log.info(":getEnforcementStatus: Legacy Gateway response: Success.");
-            }
+            checkResponseForError(response, "getEnforcementStatus");
 
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
             populateCourtCode(enforcementStatus);
@@ -1343,8 +1258,64 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String ifMatch,
         String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-        throw new org.springframework.web.server.ResponseStatusException(
-            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
-            "Add Payment Terms is not implemented in legacy mode");
+
+        var legacyRequest = createAddPaymentTermsLegacyRequest(
+            defendantAccountId, businessUnitId, businessUnitUserId,
+            ifMatch, addPaymentTermsRequest
+        );
+
+        var response = gatewayService.postToGateway(
+            ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
+            legacyRequest, null
+        );
+
+        checkResponseForError(response, "addPaymentTerms");
+
+        return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
+    }
+
+    private AddPaymentTermsLegacyRequest createAddPaymentTermsLegacyRequest(Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        return AddPaymentTermsLegacyRequest.builder()
+            .defendantAccountId(String.valueOf(defendantAccountId))
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .version(VersionUtils.extractBigInteger(ifMatch))
+            .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
+                                              ? addPaymentTermsRequest.getPaymentTerms() : null))
+            .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
+            .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
+                                                  ? addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter() : null)
+            .build();
+    }
+
+    private static GetDefendantAccountPaymentTermsResponse createGetDefendantAccountPaymentTermsResponse(
+        AddPaymentTermsLegacyResponse addPaymentTermsResponse) {
+
+        return GetDefendantAccountPaymentTermsResponse.builder()
+            .version(Optional.ofNullable(addPaymentTermsResponse.getVersion())
+                         .map(v -> BigInteger.valueOf(v.longValue()))
+                         .orElse(BigInteger.ONE))
+            .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
+            .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
+            .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
+            .build();
+    }
+
+    private static <T> void checkResponseForError(Response<T> response, String method) {
+        if (response.isError()) {
+            log.error(":{}: legacy error HTTP {}", method, response.code);
+            if (response.isException()) {
+                log.error(":{}: exception:", method, response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":{}: legacy failure body:\n{}", method, response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":{}: legacy success.", method);
+        }
     }
 }
