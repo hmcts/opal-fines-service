@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -72,7 +74,8 @@ public class DefendantTransactionEntity {
     private String text;
 
     @Column(name = "status", length = 1)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private DefendantTransactionStatus status;
 
     @Column(name = "status_date", nullable = false)
     @Temporal(TemporalType.DATE)
