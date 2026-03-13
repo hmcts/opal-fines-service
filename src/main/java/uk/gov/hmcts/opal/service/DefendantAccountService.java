@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 @Service
@@ -115,7 +116,7 @@ public class DefendantAccountService {
         return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
     }
 
-    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequest request,
                                                            String ifMatch,

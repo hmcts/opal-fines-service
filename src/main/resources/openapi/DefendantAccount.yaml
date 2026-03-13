@@ -329,7 +329,7 @@ paths:
       summary: Update a defendant account (partial update)
       operationId: updateDefendantAccount
       tags:
-        - DefendantAccounts
+        - DefendantAccount
 
       parameters:
         - name: id
@@ -338,11 +338,17 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
         - in: header
           name: If-Match
           description: Version of the defendant account. DB Mapping - defendant_accounts.version
           schema:
             $ref: "./types.yaml#/components/schemas/BigInt"
+        - in: header
+          name: Business-Unit-Id
+          description: Business Unit Id of the defendant account.
+          schema:
+            type: string
 
       requestBody:
         description: Payload containing one of the updatable defendant-account fragments
@@ -357,7 +363,7 @@ paths:
 
               oneOf:
                 - required:
-                    - comment_and_notes
+                    - comments_and_notes
                 - required:
                     - enforcement_court
                 - required:
@@ -369,7 +375,7 @@ paths:
                 collection_order:
                   $ref: './common.yaml#/components/schemas/collectionOrder'
 
-                comment_and_notes:
+                comments_and_notes:
                   $ref: './common.yaml#/components/schemas/commentsAndNotes'
 
                 enforcement_court:
@@ -396,9 +402,10 @@ paths:
                 properties:
                   id:
                     type: integer
+                    format: int64
                   collection_order:
                     $ref: './common.yaml#/components/schemas/collectionOrder'
-                  comment_and_notes:
+                  comments_and_notes:
                     $ref: './common.yaml#/components/schemas/commentsAndNotes'
                   enforcement_court:
                     $ref: '#/components/schemas/enforcementCourt'

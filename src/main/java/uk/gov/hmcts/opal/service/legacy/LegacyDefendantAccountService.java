@@ -86,6 +86,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
@@ -865,7 +866,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
-    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
         String businessUnitId,
         @NonNull UpdateDefendantAccountRequest request,
         String ifMatch,

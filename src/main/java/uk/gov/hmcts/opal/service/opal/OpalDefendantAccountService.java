@@ -90,6 +90,8 @@ import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -437,7 +439,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Override
     @Transactional
-    public DefendantAccountResponse updateDefendantAccount(
+    public UpdateDefendantAccountResponse updateDefendantAccount(
         Long defendantAccountId,
         String businessUnitId,
         UpdateDefendantAccountRequest request,
@@ -496,7 +498,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         );
 
         // ---- Build response ----
-        return DefendantAccountResponse.builder()
+        return UpdateDefendantAccountResponse.builder()
             .id(entity.getDefendantAccountId())
             .commentsAndNotes(buildCommentsAndNotes(entity))
             .enforcementCourt(buildCourtReference(entity.getEnforcingCourt()))
@@ -643,13 +645,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
+    EnforcementOverrideDefendantAccount buildEnforcementOverride(DefendantAccountEntity entity) {
         if (entity.getEnforcementOverrideResultId() == null
             && entity.getEnforcementOverrideEnforcerId() == null
             && entity.getEnforcementOverrideTfoLjaId() == null) {
             return null;
         } else {
-            return EnforcementOverride.builder()
+            return EnforcementOverrideDefendantAccount.builder()
                 .enforcementOverrideResult(buildEnforcementOverrideResult(dbResultEntity(
                     entity.getEnforcementOverrideResultId())))
                 .enforcer(OpalDefendantAccountBuilders.buildEnforcer(dbEnforcerEntity(entity)))

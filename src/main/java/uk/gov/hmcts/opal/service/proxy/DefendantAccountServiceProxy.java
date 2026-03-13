@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -69,7 +70,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequest request,
                                                            String ifMatch, String postedBy) {

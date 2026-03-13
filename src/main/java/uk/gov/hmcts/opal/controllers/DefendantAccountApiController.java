@@ -11,6 +11,8 @@ import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
 @RestController
@@ -29,15 +31,11 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     }
 
     @Override
-    public ResponseEntity<DefendantAccountResponse> updateDefendantAccount(
-        Long id,
-        UpdateDefendantAccountRequest body,
-        NativeWebRequest nativeWebRequest
+    public ResponseEntity<UpdateDefendantAccountResponse> updateDefendantAccount(
+        Integer id,
+        UpdateDefendantAccountRequestPayload body,
+        Long ifMatch
     ) {
-        // read headers from the NativeWebRequest (OpenAPI generator sometimes gives NativeWebRequest)
-        String authHeader = nativeWebRequest.getHeader("Authorization");
-        String businessUnitId = nativeWebRequest.getHeader("Business-Unit-Id");
-        String ifMatch = nativeWebRequest.getHeader("If-Match");
 
         log.debug(":PATCH:updateDefendantAccount (OpenAPI): id={}", id);
 

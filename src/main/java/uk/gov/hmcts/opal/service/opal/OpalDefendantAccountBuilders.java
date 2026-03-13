@@ -77,9 +77,12 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
@@ -656,12 +659,12 @@ public class OpalDefendantAccountBuilders {
         }
     }
 
-    static CommentsAndNotes buildCommentsAndNotes(DefendantAccountEntity entity) {
-        return CommentsAndNotes.builder()
-            .accountNotesAccountComments(orEmpty(entity.getAccountComments()))
-            .accountNotesFreeTextNote1(orEmpty(entity.getAccountNote1()))
-            .accountNotesFreeTextNote2(orEmpty(entity.getAccountNote2()))
-            .accountNotesFreeTextNote3(orEmpty(entity.getAccountNote3()))
+    static CommentsAndNotesCommon buildCommentsAndNotes(DefendantAccountEntity entity) {
+        return CommentsAndNotesCommon.builder()
+            .accountComment(orEmpty(entity.getAccountComments()))
+            .freeTextNote1(orEmpty(entity.getAccountNote1()))
+            .freeTextNote2(orEmpty(entity.getAccountNote2()))
+            .freeTextNote3(orEmpty(entity.getAccountNote3()))
             .build();
     }
 
@@ -708,10 +711,9 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static EnforcementOverrideResult buildEnforcementOverrideResult(Optional<ResultEntity.Lite> entity) {
-        return entity.map(r -> EnforcementOverrideResult.builder()
-                .enforcementOverrideId(r.getResultId())
-                .enforcementOverrideTitle(r.getResultTitle())
+    static EnforcementOverrideResultDefendantAccount buildEnforcementOverrideResult(Optional<ResultEntity.Lite> entity) {
+        return entity.map(r -> EnforcementOverrideResultDefendantAccount.builder()
+                .enforcementOverrideResultId(r.getResultId())
                 .build())
             .orElse(null);
     }
@@ -836,10 +838,10 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static CollectionOrderDto buildCollectionOrder(DefendantAccountEntity entity) {
-        return CollectionOrderDto.builder()
+    static CollectionOrderCommon buildCollectionOrder(DefendantAccountEntity entity) {
+        return CollectionOrderCommon.builder()
             .collectionOrderFlag(entity.getCollectionOrder())
-            .collectionOrderDate(String.valueOf(entity.getCollectionOrderEffectiveDate()))
+            .collectionOrderDate(LocalDate.parse(String.valueOf(entity.getCollectionOrderEffectiveDate())))
             .build();
     }
 
@@ -850,12 +852,11 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static CourtReferenceDto buildCourtReference(CourtEntity.Lite court) {
+    static EnforcementCourtDefendantAccount buildCourtReference(CourtEntity.Lite court) {
         return Optional.ofNullable(court)
             .filter(c -> safeInt(c.getCourtId()) != null)
-            .map(c -> CourtReferenceDto.builder()
+            .map(c -> EnforcementCourtDefendantAccount.builder()
                 .courtId(safeInt(c.getCourtId()))
-                .courtName(c.getName())
                 .build())
             .orElse(null);
     }

@@ -10,18 +10,19 @@ import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponse;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface LegacyUpdateDefendantAccountResponseMapper {
     @Mappings({
         @Mapping(target = "id", source = "defendantAccountId", qualifiedByName = "stringToLong"),
-        @Mapping(target = "version", source = "version", qualifiedByName = "intToLong"),
+       // @Mapping(target = "version", source = "version", qualifiedByName = "intToLong"),
         @Mapping(target = "commentsAndNotes", source = "commentAndNotes"),
         @Mapping(target = "enforcementCourt.courtId", source = "enforcementCourtId", qualifiedByName = "stringToLong"),
         @Mapping(target = "collectionOrder", source = "collectionOrder"),
         @Mapping(target = "enforcementOverride", source = "enforcementOverride")
     })
-    DefendantAccountResponse toDefendantAccountResponse(LegacyUpdateDefendantAccountResponse legacy);
+    UpdateDefendantAccountResponse toUpdateDefendantAccountResponse(LegacyUpdateDefendantAccountResponse legacy);
 
     /* ---------- Nested mappings ---------- */
 
