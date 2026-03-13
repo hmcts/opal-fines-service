@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.config;
 
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.jms.JMSContext;
@@ -11,7 +14,6 @@ import java.util.Enumeration;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
@@ -19,14 +21,13 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
 /**
  * Manual helper that publishes a report message to a queue for developer testing.
  *
- *<p>Before using this test, set the environment variable REPORT_QUEUE_ASB_TEST_ENABLED=true
- * - Ensure that you have run the docker scripts in `opal-shared-infrastructure and that Azure Service Bus and
- *   Azurite are running in docker
- * - To check that Blob files have been saved to Blob storage you can install Microsoft Azure Storage Explorer and
- *   connect it to your local running Azurite instance.
- * - To view messages on the queue use peekAtQueue()</p>
+ * <p>Before using this test, set the environment variable REPORT_QUEUE_ASB_TEST_ENABLED=true
+ * - Ensure that you have run the docker scripts in `opal-shared-infrastructure and that Azure Service Bus and Azurite
+ * are running in docker - To check that Blob files have been saved to Blob storage you can install Microsoft Azure
+ * Storage Explorer and connect it to your local running Azurite instance. - To view messages on the queue use
+ * peekAtQueue()</p>
  */
-@EnabledIfEnvironmentVariable(named = "REPORT_QUEUE_ASB_TEST_ENABLED", matches = "true")
+//@EnabledIfEnvironmentVariable(named = "REPORT_QUEUE_ASB_TEST_ENABLED", matches = "true")
 class ReportQueueConnectivityIntegrationTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportQueueConnectivityIntegrationTest.class);
@@ -56,6 +57,16 @@ class ReportQueueConnectivityIntegrationTest {
 
     @Test
     void sendsReportMessageToQueue() throws Exception {
+
+        BlobServiceClient blobService = new BlobServiceClientBuilder()
+            .connectionString("UseDevelopmentStorage=true")
+            .buildClient();
+        String containerName = "reports";
+        BlobContainerClient container = blobService.getBlobContainerClient(containerName);
+        if (!container.exists()) {
+            container.create();
+        }
+
         long instanceId = 99000000008000L;
 
         try (JMSContext context = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
