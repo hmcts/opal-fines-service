@@ -378,8 +378,7 @@ dependencies {
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
-
-  implementation("com.azure:azure-storage-blob:12.33.2")
+  implementation 'com.azure:azure-storage-blob:12.33.2'
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-aop"
