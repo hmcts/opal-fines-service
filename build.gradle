@@ -444,7 +444,7 @@ dependencies {
   implementation 'org.apache.xmlgraphics:fop-core:2.11'
   implementation 'org.apache.xmlgraphics:fop-events:2.11'
   implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
-  implementation 'org.apache.pdfbox:pdfbox:3.0.6'
+  implementation 'org.apache.pdfbox:pdfbox:3.0.7'
   implementation 'net.sf.saxon:Saxon-HE:12.9'
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
