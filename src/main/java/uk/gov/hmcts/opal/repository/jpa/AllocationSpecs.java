@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.repository.jpa;
 
 import uk.gov.hmcts.opal.entity.AllocationEntity;
 import uk.gov.hmcts.opal.entity.AllocationEntity_;
-import uk.gov.hmcts.opal.entity.DefendantTransactionEntity;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionFullEntity;
 
 import jakarta.persistence.criteria.Join;

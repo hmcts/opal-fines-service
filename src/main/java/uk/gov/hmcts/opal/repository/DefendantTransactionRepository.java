@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.DefendantTransactionEntity;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 
 import java.util.List;
 
