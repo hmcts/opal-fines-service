@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.blobstore;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
-import com.azure.storage.blob.models.BlobStorageException;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
