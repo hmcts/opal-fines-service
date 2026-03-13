@@ -25,52 +25,37 @@ import uk.gov.hmcts.opal.util.Versioned;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetMinorCreditorAccountHeaderSummaryResponse implements ToJsonString, Versioned {
 
-    @JsonProperty("creditor_account_id")
-    private String creditorAccountId;
-
-    @JsonProperty("account_number")
-    private String accountNumber;
-
-    @JsonProperty("creditor_account_type")
-    private CreditorAccountTypeReference creditorAccountType;
-
     @JsonIgnore
     private BigInteger version;
 
-    @JsonProperty("business_unit_summary")
-    private BusinessUnitSummary businessUnitSummary;
+    @JsonProperty("party")
+    private PartyDetails party;
 
-    @JsonProperty("party_details")
-    private PartyDetails partyDetails;
+    @JsonProperty("business_unit")
+    private BusinessUnitSummary businessUnit;
 
-    @JsonProperty("awarded_amount")
-    private BigDecimal awardedAmount;
+    @JsonProperty("creditor")
+    private CreditorHeader creditor;
 
-    @JsonProperty("paid_out_amount")
-    private BigDecimal paidOutAmount;
-
-    @JsonProperty("awaiting_payout_amount")
-    private BigDecimal awaitingPayoutAmount;
-
-    @JsonProperty("outstanding_amount")
-    private BigDecimal outstandingAmount;
-
-    @JsonProperty("has_associated_defendant")
-    private Boolean hasAssociatedDefendant;
+    @JsonProperty("financials")
+    private Financials financials;
 
     public static GetMinorCreditorAccountHeaderSummaryResponse fromEntity(MinorCreditorAccountHeaderEntity entity) {
         return GetMinorCreditorAccountHeaderSummaryResponse.builder()
-            .creditorAccountId(String.valueOf(entity.getCreditorAccountId()))
-            .accountNumber(entity.getCreditorAccountNumber())
-            .creditorAccountType(toCreditorAccountTypeReference(entity.getCreditorAccountType()))
             .version(entity.getVersionNumber() == null ? null : BigInteger.valueOf(entity.getVersionNumber()))
-            .businessUnitSummary(toBusinessUnitSummary(entity))
-            .partyDetails(toPartyDetails(entity))
-            .awardedAmount(entity.getAwarded())
-            .paidOutAmount(entity.getPaidOut())
-            .awaitingPayoutAmount(entity.getAwaitingPayment())
-            .outstandingAmount(entity.getOutstanding())
-            .hasAssociatedDefendant(hasAssociatedDefendant(entity))
+            .party(toPartyDetails(entity))
+            .businessUnit(toBusinessUnitSummary(entity))
+            .creditor(CreditorHeader.builder()
+                .accountId(String.valueOf(entity.getCreditorAccountId()))
+                .accountNumber(entity.getCreditorAccountNumber())
+                .accountType(toCreditorAccountTypeReference(entity.getCreditorAccountType()))
+                .build())
+            .financials(Financials.builder()
+                .awarded(entity.getAwarded())
+                .paidOut(entity.getPaidOut())
+                .awaitingPayout(entity.getAwaitingPayment())
+                .outstanding(entity.getOutstanding())
+                .build())
             .build();
     }
 
@@ -108,5 +93,42 @@ public class GetMinorCreditorAccountHeaderSummaryResponse implements ToJsonStrin
     private static boolean hasAssociatedDefendant(MinorCreditorAccountHeaderEntity entity) {
         return (entity.getAwarded() != null && entity.getAwarded().signum() > 0)
             || (entity.getOutstanding() != null && entity.getOutstanding().signum() > 0);
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CreditorHeader {
+
+        @JsonProperty("account_id")
+        private String accountId;
+
+        @JsonProperty("account_number")
+        private String accountNumber;
+
+        @JsonProperty("account_type")
+        private CreditorAccountTypeReference accountType;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Financials {
+
+        @JsonProperty("awarded")
+        private BigDecimal awarded;
+
+        @JsonProperty("paid_out")
+        private BigDecimal paidOut;
+
+        @JsonProperty("awaiting_payout")
+        private BigDecimal awaitingPayout;
+
+        @JsonProperty("outstanding")
+        private BigDecimal outstanding;
     }
 }
