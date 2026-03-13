@@ -1,0 +1,469 @@
+openapi: 3.1.1
+info:
+  title: Opal Fines Service - Reports
+  version: 1.0.0
+  description: APIs for retrieving report definitions and managing report instances.
+paths:
+  /reports/{id}:
+    get:
+      tags:
+        - reports
+      summary: Get report definition
+      operationId: get_report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Report details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/report'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /report-instances:
+    post:
+      tags:
+        - report_instances
+      summary: Create report instance
+      operationId: create_report_instance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create_report_instance_request'
+      responses:
+        "200":
+          description: Report instance created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_report_instance_response'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    get:
+      tags:
+        - report_instances
+      summary: List report instances
+      operationId: get_report_instances
+      parameters:
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: business_units
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+        - name: report_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of report instances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/report_instance_list'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /report-instances/{id}:
+    get:
+      tags:
+        - report_instances
+      summary: Get report instance
+      operationId: get_report_instance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Report instance details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/report_instance'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /report-instances/{id}/content:
+    get:
+      tags:
+        - report_instances
+      summary: Get report instance content
+      operationId: get_report_instance_content
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Report content
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+            application/csv:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    create_report_instance_request:
+      type: object
+      required:
+        - report_id
+        - business_unit_ids
+      properties:
+        report_id:
+          type: string
+        report_name:
+          type: string
+        business_unit_ids:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+        report_parameters:
+          type: object
+          additionalProperties: true
+
+    create_report_instance_response:
+      type: object
+      required:
+        - report_instance_id
+      properties:
+        report_instance_id:
+          type: integer
+
+    report:
+      type: object
+      required:
+        - report_id
+        - report_title
+        - report_group
+        - supported_file_types
+        - audited_report
+        - supports_multiple_business_units
+        - is_bespoke_journey
+        - shown_as_worklist
+        - can_manually_create
+      properties:
+        report_id:
+          type: string
+        report_title:
+          type: string
+        report_group:
+          type: string
+        supported_file_types:
+          $ref: '#/components/schemas/supported_file_types'
+        audited_report:
+          type: boolean
+          default: false
+        report_parameters:
+          type: object
+          additionalProperties: true
+        supports_multiple_business_units:
+          type: boolean
+        is_bespoke_journey:
+          type: boolean
+        shown_as_worklist:
+          type: boolean
+        retention_period:
+          type: string
+          description: ISO 8601 Duration for which the report instance should be retained, e.g. "P30D" for 30 days
+        permission:
+          type: string
+        can_manually_create:
+          type: boolean
+
+    report_instance:
+      type: object
+      required:
+        - instance_id
+        - requested_at
+        - requested_by
+        - name
+        - business_units
+        - status
+        - is_downloadable
+        - report
+      properties:
+        instance_id:
+          type: integer
+        requested_at:
+          type: string
+          format: date-time
+        generated_at:
+          type: string
+          format: date-time
+        requested_by:
+          $ref: './common.yaml#/components/schemas/userByNameDetails'
+        name:
+          type: string
+        business_units:
+          type: array
+          minItems: 1
+          items:
+            $ref: './common.yaml#/components/schemas/businessUnitSummary'
+        status:
+          $ref: '#/components/schemas/status'
+        number_of_records:
+          type: integer
+        is_downloadable:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        report_parameters:
+          type: object
+          additionalProperties: true
+        retain_until:
+          type: string
+          format: date-time
+        report:
+          $ref: '#/components/schemas/report_reference'
+
+    report_instance_list:
+      type: array
+      items:
+        type: object
+        required:
+          - instance_id
+          - report_id
+          - requested_at
+          - requested_by
+          - name
+          - business_units
+          - status
+          - is_downloadable
+          - supported_file_types
+        properties:
+          instance_id:
+            type: integer
+          report_id:
+            type: string
+          requested_at:
+            type: string
+            format: date-time
+          generated_at:
+            type: string
+            format: date-time
+          requested_by:
+            $ref: './common.yaml#/components/schemas/userByNameDetails'
+          name:
+            type: string
+          business_units:
+            type: array
+            items:
+              $ref: './common.yaml#/components/schemas/businessUnitSummary'
+          status:
+            $ref: '#/components/schemas/status'
+          number_of_records:
+            type: integer
+          is_downloadable:
+            type: boolean
+          supported_file_types:
+            $ref: '#/components/schemas/supported_file_types'
+
+    report_reference:
+      type: object
+      required:
+        - id
+        - supported_file_types
+      properties:
+        id:
+          type: string
+        supported_file_types:
+          $ref: '#/components/schemas/supported_file_types'
+    supported_file_types:
+      type: array
+      items:
+        type: string
+        enum: [ JSON, CSV, PDF, XML ]
+    status:
+      type: object
+      required:
+        - code
+        - display_name
+      properties:
+        code:
+          type: string
+          enum: [ REQUESTED, IN_PROGRESS, READY, ERROR ]
+        display_name:
+          type: string
