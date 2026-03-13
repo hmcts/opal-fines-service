@@ -297,6 +297,34 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Create draft account - user with wrong permission (correct permission, wrong business unit)")
+    void testPostDraftAccount_trap403Response_wrongBusinessUnitPermission() throws Exception {
+
+        String validRequestBody = validCreateRequestBody();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            permissionUser((short)5, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDraftAccount_trap403Response_wrongPermission: Response body:\n"
+            + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value(
+                "You do not have permission to access this resource"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
+    }
+
+    @Test
     @DisplayName("Create draft account - Should create and call PDPLLoggingService")
     void testPostDraftAccount_success_and_pdplServiceCalled() throws Exception {
 
