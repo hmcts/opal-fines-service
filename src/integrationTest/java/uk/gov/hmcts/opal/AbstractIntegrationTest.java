@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -19,12 +20,17 @@ import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 @ContextConfiguration(classes = {TestContainerConfig.class})
 @AutoConfigureMockMvc
 @ExtendWith(ZephyrAutomationExtension.class)
-public class AbstractIntegrationTest {
+@SuppressWarnings({"java:S6813", "SpringJavaInjectionPointsAutowiringInspection"})
+public abstract class AbstractIntegrationTest {
+
     @Autowired
     protected MockMvc mockMvc;
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    protected JdbcTemplate jdbcTemplate;
 
     // Dynamically register properties to configure the datasource
     @DynamicPropertySource
