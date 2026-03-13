@@ -103,6 +103,10 @@ tasks.register("bundleOpenApi", JavaExec) {
   args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
 }
 
+tasks.withType(Test) {
+  systemProperty 'spring.test.context.cache.maxSize', 5
+}
+
 openApiGenerate {
   generatorName = "spring"
   inputSpec = layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath
