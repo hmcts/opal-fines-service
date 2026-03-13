@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitLiteEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitType;
 import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -86,6 +87,7 @@ class BusinessUnitServiceTest {
         BusinessUnitLiteEntity businessUnitEntityLite = BusinessUnitLiteEntity.builder()
             .businessUnitId((short)3)
             .businessUnitName("Big Business Unit")
+            .businessUnitType(BusinessUnitType.AREA)
             .welshLanguage(true)
             .configurationItems(List.of(
                 ConfigurationItemEntity.Lite.builder()
@@ -110,7 +112,7 @@ class BusinessUnitServiceTest {
         // Assert
         assertEquals(List.of(new BusinessUnitReferenceData(
             (short)3, "Big Business Unit", null,
-            null, null,
+            BusinessUnitType.AREA.getLabel(), null,
             null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
             "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
     }
