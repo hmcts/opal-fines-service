@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.blobstore;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.opal.util.UuidProvider;
 @ExtendWith(MockitoExtension.class)
 public class ReportBlobStoreServiceTest {
 
+    public static final String CONTAINER = "container";
     private final String message = "I am a report";
 
     @Mock
@@ -43,16 +45,15 @@ public class ReportBlobStoreServiceTest {
 
     @BeforeEach
     public void setUp() {
-        String containerName = "container";
-        reportBlobStoreService = new ReportBlobStoreService(blobServiceClient, uuidProvider, containerName);
+        reportBlobStoreService = new ReportBlobStoreService(blobServiceClient, uuidProvider, CONTAINER);
+        when(blobServiceClient.getBlobContainerClient(CONTAINER)).thenReturn(container);
         uuid = UUID.randomUUID();
-        when(blobServiceClient.getBlobContainerClient("container")).thenReturn(container);
-        when(container.getBlobClient(anyString())).thenReturn(blob);
     }
 
     @Test
     public void storeReport() {
         //Arrange
+        when(container.getBlobClient(anyString())).thenReturn(blob);
         when(uuidProvider.getUuid()).thenReturn(uuid);
         when(container.exists()).thenReturn(true);
         when(blob.exists()).thenReturn(false);
@@ -67,8 +68,15 @@ public class ReportBlobStoreServiceTest {
     }
 
     @Test
+    public void storeReport_containerDoesNotExist_throwError() {
+        when(container.exists()).thenReturn(false);
+        assertThrows(IllegalArgumentException.class, () -> reportBlobStoreService.storeReport(message));
+    }
+
+    @Test
     public void storeReport_locationExists_generateNewLocation() {
         //Arrange
+        when(container.getBlobClient(anyString())).thenReturn(blob);
         UUID uuid2 = UUID.randomUUID();
         when(uuidProvider.getUuid()).thenReturn(uuid, uuid2);
         when(container.exists()).thenReturn(true);

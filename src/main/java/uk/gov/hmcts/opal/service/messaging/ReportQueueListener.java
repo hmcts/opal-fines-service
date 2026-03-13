@@ -24,7 +24,6 @@ public class ReportQueueListener {
     public void onMessage(Message message) throws JMSException {
         if (message instanceof TextMessage textMessage) {
             String payload = textMessage.getText();
-            log.debug("Report queue message received payload={}", payload);
             consumer.consume(payload);
         } else {
             throw new IllegalArgumentException("Message must be of type TextMessage");

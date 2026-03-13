@@ -73,6 +73,13 @@ public class GenericReportService implements GenericReportServiceInterface {
         }
     }
 
+    private static void processError(ReportInstanceEntity instance, Exception exception) {
+        instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
+        instance.setErrors(ReportError.builder()
+            .operationId(LogUtil.getOrCreateOpalOperationId())
+            .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
+    }
+
     private String getDataAsJson(ReportDataInterface data) throws JsonProcessingException {
         return mapper.writeValueAsString(
             Data.builder()
@@ -82,17 +89,9 @@ public class GenericReportService implements GenericReportServiceInterface {
         );
     }
 
-    private static void processError(ReportInstanceEntity instance, Exception exception) {
-        instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
-        instance.setErrors(ReportError.builder()
-            .operationId(LogUtil.getOrCreateOpalOperationId())
-            .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
-    }
-
     @Builder
     @lombok.Data
     static class Data<T> {
-
         private T reportData;
         private ReportMetaData reportMetaData;
     }
