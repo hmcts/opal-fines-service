@@ -19,12 +19,12 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
 /**
  * Manual helper that publishes a report message to a queue for developer testing.
  *
- * - Before using this test, set the environment variable REPORT_QUEUE_ASB_TEST_ENABLED=true
+ *<p>Before using this test, set the environment variable REPORT_QUEUE_ASB_TEST_ENABLED=true
  * - Ensure that you have run the docker scripts in `opal-shared-infrastructure and that Azure Service Bus and
  *   Azurite are running in docker
  * - To check that Blob files have been saved to Blob storage you can install Microsoft Azure Storage Explorer and
  *   connect it to your local running Azurite instance.
- * - To view messages on the queue use peekAtQueue()
+ * - To view messages on the queue use peekAtQueue()</p>
  */
 @EnabledIfEnvironmentVariable(named = "REPORT_QUEUE_ASB_TEST_ENABLED", matches = "true")
 class ReportQueueConnectivityIntegrationTest {

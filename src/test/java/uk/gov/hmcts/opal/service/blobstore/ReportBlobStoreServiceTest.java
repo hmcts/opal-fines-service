@@ -23,7 +23,7 @@ import uk.gov.hmcts.opal.util.UuidProvider;
 @ExtendWith(MockitoExtension.class)
 public class ReportBlobStoreServiceTest {
 
-    private final String MESSAGE = "I am a report";
+    private final String message = "I am a report";
 
     @Mock
     private BlobServiceClient blobServiceClient;
@@ -43,8 +43,8 @@ public class ReportBlobStoreServiceTest {
 
     @BeforeEach
     public void setUp() {
-        String CONTAINER_NAME = "container";
-        reportBlobStoreService = new ReportBlobStoreService(blobServiceClient, uuidProvider, CONTAINER_NAME);
+        String containerName = "container";
+        reportBlobStoreService = new ReportBlobStoreService(blobServiceClient, uuidProvider, containerName);
         uuid = UUID.randomUUID();
         when(blobServiceClient.getBlobContainerClient("container")).thenReturn(container);
         when(container.getBlobClient(anyString())).thenReturn(blob);
@@ -57,12 +57,12 @@ public class ReportBlobStoreServiceTest {
         when(container.exists()).thenReturn(true);
         when(blob.exists()).thenReturn(false);
         //Act
-        String savedAt = reportBlobStoreService.storeReport(MESSAGE);
+        String savedAt = reportBlobStoreService.storeReport(message);
         //Assert
         ArgumentCaptor<ByteArrayInputStream> argument = ArgumentCaptor.forClass(ByteArrayInputStream.class);
         verify(blob).upload(argument.capture(), anyLong());
         String saved = new String(argument.getValue().readAllBytes(), StandardCharsets.UTF_8);
-        assertEquals(MESSAGE, saved);
+        assertEquals(message, saved);
         assertEquals(savedAt, uuid.toString());
     }
 
@@ -74,12 +74,12 @@ public class ReportBlobStoreServiceTest {
         when(container.exists()).thenReturn(true);
         when(blob.exists()).thenReturn(true, false);
         //Act
-        String savedAt = reportBlobStoreService.storeReport(MESSAGE);
+        String savedAt = reportBlobStoreService.storeReport(message);
         //Assert
         ArgumentCaptor<ByteArrayInputStream> argument = ArgumentCaptor.forClass(ByteArrayInputStream.class);
         verify(blob).upload(argument.capture(), anyLong());
         String saved = new String(argument.getValue().readAllBytes(), StandardCharsets.UTF_8);
-        assertEquals(MESSAGE, saved);
+        assertEquals(message, saved);
         assertEquals(savedAt, uuid2.toString());
     }
 
