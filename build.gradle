@@ -23,7 +23,6 @@ ext {
   log4JVersion = "2.25.3"
   serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
-  springVersion = "3.5.11"
 }
 
 //Should we fail fast on test failures?
@@ -379,14 +378,14 @@ dependencies {
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
-  implementation "org.springframework.boot:spring-boot-starter-web:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-actuator:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-aop:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-json:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-security:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-oauth2-client:${springVersion}"
-  implementation "org.springframework.boot:spring-boot-starter-quartz:${springVersion}"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-aop"
+  implementation "org.springframework.boot:spring-boot-starter-json"
+  implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+  implementation "org.springframework.boot:spring-boot-starter-security"
+  implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
+  implementation "org.springframework.boot:spring-boot-starter-quartz"
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
 
@@ -394,7 +393,7 @@ dependencies {
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
 
-  implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.5.5'
+  implementation 'org.springframework.security:spring-security-oauth2-authorization-server'
 
   implementation 'org.springframework:spring-aspects'
   implementation 'commons-fileupload:commons-fileupload:1.6.0'
@@ -474,14 +473,14 @@ dependencies {
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
   testImplementation 'com.azure:azure-messaging-servicebus:7.17.17'
 
+  implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5'
+
+
   //Added to override dependency version to resolve vulnerability
   implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'
   implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.18'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.18'
-  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.18'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
-  implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5'
 
 }
 
