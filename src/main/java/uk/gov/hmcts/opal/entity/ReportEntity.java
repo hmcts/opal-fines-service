@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,5 +35,8 @@ public class ReportEntity {
 
     @Column(name = "audited_report", nullable = false)
     private String auditedReport;
+
+    @Column(name = "retention_period", length = 30)
+    private Duration retentionPeriod;
 
 }
