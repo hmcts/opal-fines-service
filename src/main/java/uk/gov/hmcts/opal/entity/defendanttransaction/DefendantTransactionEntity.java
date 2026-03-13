@@ -65,7 +65,8 @@ public class DefendantTransactionEntity {
     private BigDecimal transactionAmount;
 
     @Column(name = "payment_method", length = 2)
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private DefendantTransactionPaymentMethod paymentMethod;
 
     @Column(name = "payment_reference", length = 10)
     private String paymentReference;
