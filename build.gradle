@@ -103,6 +103,10 @@ tasks.register("bundleOpenApi", JavaExec) {
   args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
 }
 
+tasks.withType(Test) {
+  systemProperty 'spring.test.context.cache.maxSize', 5
+}
+
 openApiGenerate {
   generatorName = "spring"
   inputSpec = layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath
@@ -371,7 +375,7 @@ dependencies {
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.10'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.10'
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.2.5'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
@@ -449,6 +453,8 @@ dependencies {
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.9.0'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
