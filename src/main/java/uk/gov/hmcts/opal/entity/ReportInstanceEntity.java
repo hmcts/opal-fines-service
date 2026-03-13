@@ -40,7 +40,7 @@ public class ReportInstanceEntity {
     private Long reportInstanceId;
 
     @Column(name = "report_id", nullable = false)
-    private Long reportId;
+    private String reportId;
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
