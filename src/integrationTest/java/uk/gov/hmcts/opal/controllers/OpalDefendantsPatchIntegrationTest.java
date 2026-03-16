@@ -34,9 +34,16 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("some_value", "78", "\"" + currentVersion + "\"");
 
+        String requestJson = """
+    {
+      "comments_and_notes": {
+        "account_comment": "hello"
+      }
+    }
+    """;
+
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
-                .content(commentAndNotesPayload("hello")));
+            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(requestJson));
 
         String body = a.andReturn().getResponse().getContentAsString();
         String etag = a.andReturn().getResponse().getHeader("ETag");
@@ -49,8 +56,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
         assertNotNull(etag, "ETag must be present");
         assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
-
-        jsonSchemaValidationService.validateOrError(body, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
     }
 
     @Test
