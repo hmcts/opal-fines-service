@@ -25,7 +25,7 @@ public interface UpdateDefendantAccountRequestMapper {
         @Mapping(target = "version",               source = "version"),
 
         // nested groups from body
-        @Mapping(target = "commentAndNotes",       source = "payload.commentsAndNotes"),
+        @Mapping(target = "commentAndNotes",       source = "payload.commentAndNotes"),
         @Mapping(target = "enforcementCourtId",    source = "payload.enforcementCourt.courtId",
             qualifiedByName = "numberToString"),
         @Mapping(target = "collectionOrder",       source = "payload.collectionOrder"),

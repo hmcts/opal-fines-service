@@ -17,7 +17,7 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
     @Mappings({
         @Mapping(target = "payload.id", source = "defendantAccountId", qualifiedByName = "stringToLong"),
         @Mapping(target = "version", source = "version", qualifiedByName = "intToBigInteger"),
-        @Mapping(target = "payload.commentsAndNotes", source = "commentAndNotes"),
+        @Mapping(target = "payload.commentAndNotes", source = "commentAndNotes"),
         @Mapping(target = "payload.enforcementCourt.courtId", source = "enforcementCourtId",
             qualifiedByName = "stringToLong"),
         @Mapping(target = "payload.collectionOrder", source = "collectionOrder"),
