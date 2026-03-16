@@ -221,6 +221,7 @@ class OpalDefendantAccountServiceTest04 {
         verify(defendantAccountRepository, never()).save(any());
     }
 
+    @Test
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         when(defendantAccountRepository.findById(99L)).thenReturn(Optional.empty());
 
