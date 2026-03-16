@@ -210,23 +210,23 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
         String body = """
-            {
-              "enforcement_override": {
-                "enforcement_override_result": {
-                  "enforcement_override_result_id": "FWEC",
-                "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
-                },
-                "enforcer": {
-                  "enforcer_id": 21,
-                  "enforcer_name": "North East Enforcement"
-                },
-                "lja": {
-                  "lja_id": 240,
-                  "lja_name": "Tyne & Wear LJA"
-                }
-              }
+        {
+          "enforcement_override": {
+            "enforcement_override_result": {
+              "enforcement_override_result_id": "FWEC",
+              "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
+            },
+            "enforcer": {
+              "enforcer_id": 21,
+              "enforcer_name": "North East Enforcement"
+            },
+            "lja": {
+              "lja_id": 240,
+              "lja_name": "Tyne & Wear LJA"
             }
-            """;
+          }
+        }
+        """;
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body));
@@ -235,9 +235,12 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         log.info("enforcement_override update resp:\n{}", ToJsonString.toPrettyJson(resp));
 
         a.andExpect(status().isOk()).andExpect(header().exists("ETag"))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-
-        jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(77))
+            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
+                .value("FWEC"))
+            .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(21))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240));
     }
 
     @Test
