@@ -10,19 +10,22 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 
 class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
 
@@ -32,6 +35,18 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         long defendantAccountId = 77L;
         String businessUnitId = "78";
 
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(postedBy)
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("x")
+                    .build())
+                .build())
+            .version(BigInteger.valueOf(3))
+            .build();
+
         LegacyUpdateDefendantAccountRequest legacyReq = LegacyUpdateDefendantAccountRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
@@ -39,9 +54,8 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .version(3)
             .build();
 
-        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(
-            any(), anyString(), anyString(), anyString(), anyInt()
-        )).thenReturn(legacyReq);
+        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request))
+            .thenReturn(legacyReq);
 
         LegacyUpdateDefendantAccountResponse legacyEntity = new LegacyUpdateDefendantAccountResponse();
         GatewayService.Response<LegacyUpdateDefendantAccountResponse> resp =
@@ -54,18 +68,18 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             Mockito.nullable(String.class)
         );
 
-        DefendantAccountResponse expected = DefendantAccountResponse.builder().id(defendantAccountId).build();
+        UpdateDefendantAccountResponse expected = UpdateDefendantAccountResponse.builder()
+            .version(BigInteger.valueOf(3))
+            .build();
         when(legacyUpdateDefendantAccountResponseMapper.toUpdateDefendantAccountResponse(legacyEntity))
             .thenReturn(expected);
 
-        DefendantAccountResponse result = legacyDefendantAccountService
-            .updateDefendantAccount(defendantAccountId, businessUnitId, updateDefendantAccountRequest, "3", postedBy);
+        UpdateDefendantAccountResponse result = legacyDefendantAccountService
+            .updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy);
 
         assertThat(result).isSameAs(expected);
 
-        verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(
-            same(updateDefendantAccountRequest), eq("77"), eq("78"), eq(postedBy), eq(3)
-        );
+        verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(request);
         verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
