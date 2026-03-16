@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -124,12 +124,34 @@ public class DefendantAccountService {
                                                            String authHeaderValue, String ifMatch) {
         log.debug(":updateDefendantAccount:");
 
+        if (ifMatch == null) {
+            throw new ResourceConflictException(
+                "Defendant Account", defendantAccountId, "If-Match header is required", null);
+        }
+
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
-            short buId = Short.parseShort(businessUnitId);
 
-            String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            //TODO Must be a way to enforce this through the OpenAPI code gen
+            int nonNullCount = 0;
+            if (request.getCommentAndNotes() != null) {
+                nonNullCount++;
+            }
+            if (request.getEnforcementCourt() != null) {
+                nonNullCount++;
+            }
+            if (request.getCollectionOrder() != null) {
+                nonNullCount++;
+            }
+            if (request.getEnforcementOverride() != null) {
+                nonNullCount++;
+            }
+            if (nonNullCount != 1) {
+                throw new IllegalArgumentException("Exactly one update group must be provided");
+            }
+
+            String postedBy = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
                 .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());
