@@ -192,6 +192,7 @@ class OpalDefendantAccountServiceTest04 {
         assertEquals(Short.valueOf((short) 33), entity.getEnforcementOverrideTfoLjaId());
     }
 
+    @Test
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         Long id = 1L;
         String buHeader = "10";
