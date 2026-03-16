@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -47,6 +48,9 @@ abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegration
 
     @MockitoSpyBean
     protected JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @MockitoBean
     protected UserState userState;
