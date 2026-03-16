@@ -165,10 +165,6 @@ tasks.withType(Test).configureEach {
   }
 }
 
-tasks.withType(Test) {
-  systemProperty 'spring.test.context.cache.maxSize', 5
-}
-
 tasks.register('integration', Test) {
   description = "Runs integration tests"
   group = "Verification"
