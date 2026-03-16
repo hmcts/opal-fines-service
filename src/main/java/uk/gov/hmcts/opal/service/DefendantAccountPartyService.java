@@ -60,7 +60,7 @@ public class DefendantAccountPartyService {
                 defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
                 getBusinessUnitUserIdForBusinessUnit(userState, buId));
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+            throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
 

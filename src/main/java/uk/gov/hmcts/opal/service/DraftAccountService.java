@@ -180,7 +180,9 @@ public class DraftAccountService {
             return toGetResponseDto(entity);
 
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+            throw new PermissionNotAllowedException(
+                dto.getBusinessUnitId(),
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         }
 
     }
@@ -206,7 +208,9 @@ public class DraftAccountService {
 
             return toGetResponseDto(replacedEntity);
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+            throw new PermissionNotAllowedException(
+                dto.getBusinessUnitId(),
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         }
     }
 

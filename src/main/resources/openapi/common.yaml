@@ -771,3 +771,10 @@ components:
         - account_type
         - enforcement_account_type
         - path
+    userByNameDetails:
+      type: object
+      properties:
+        user_id:
+          type: string
+        name:
+          type: string

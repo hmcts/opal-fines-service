@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.util.Optional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -99,10 +101,11 @@ class MinorCreditorServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionUser);
 
         // Act & Assert
-        assertThrows(
-            PermissionNotAllowedException.class, () ->
-                minorCreditorService.getMinorCreditorAccountHeaderSummary(123L, "authHeaderValue")
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+                () -> minorCreditorService.getMinorCreditorAccountHeaderSummary(123L, "authHeaderValue")
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -123,15 +126,18 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccountAtAGlance_permissionNotAllowed() {
+        // Arrange
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionUser);
 
-        assertThrows(
-            PermissionNotAllowedException.class, () ->
-                minorCreditorService.getMinorCreditorAtAGlance("123", "authHeaderValue")
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.getMinorCreditorAtAGlance("123", "authHeaderValue")
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -143,10 +149,11 @@ class MinorCreditorServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionUser);
 
         // Act & Assert
-        assertThrows(
-            PermissionNotAllowedException.class, () ->
-            minorCreditorService.searchMinorCreditors(MinorCreditorSearch.builder().build(), "authHeaderValue")
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearch.builder().build(), "authHeaderValue")
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -277,10 +284,14 @@ class MinorCreditorServiceTest {
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
 
         // Act & Assert
-        assertThrows(
-            PermissionNotAllowedException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
         );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getBusinessUnitId()).isEqualTo(null);
+
     }
 
     @Test
