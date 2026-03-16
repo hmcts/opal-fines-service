@@ -392,24 +392,38 @@ class OpalDefendantAccountServiceTest04 {
 
     @Test
     void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
-        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
-            .versionNumber(0L).build();
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
         doNothing().when(entityManager).lock(any(), any());
 
-
         var req = UpdateDefendantAccountRequest.builder()
-            .enforcementOverride(EnforcementOverride.builder()
-                .enforcementOverrideResult(EnforcementOverrideResult.builder()
-                    .enforcementOverrideId("NOPE").build())
-                .enforcer(Enforcer.builder().enforcerId(999999L).build())
-                .lja(LJA.builder().ljaId(9999).build())
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .enforcementOverride(EnforcementOverrideDefendantAccount.builder()
+                    .enforcementOverrideResult(EnforcementOverrideResultDefendantAccount.builder()
+                        .enforcementOverrideResultId("NOPE")
+                        .build())
+                    .enforcer(EnforcerDefendantAccount.builder()
+                        .enforcerId(999999L)
+                        .build())
+                    .lja(LocalJusticeAreaDefendantAccount.builder()
+                        .ljaId(9999)
+                        .build())
+                    .build())
                 .build())
+            .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "0", "tester");
-        assertNotNull(resp.getEnforcementOverride());
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        assertNotNull(resp.getPayload().getEnforcementOverride());
     }
 
 }
