@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,14 @@ import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
@@ -122,64 +131,63 @@ class OpalDefendantAccountServiceTest04 {
 
         // Request DTO
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .commentsAndNotes(CommentsAndNotes.builder()
-                .accountNotesAccountComments("acc comment")
-                .accountNotesFreeTextNote1("n1")
-                .accountNotesFreeTextNote2("n2")
-                .accountNotesFreeTextNote3("n3")
-                .build())
-            .enforcementCourt(CourtReferenceDto.builder()
-                .courtId(100)
-                .courtName("Central Magistrates")
-                .build())
-            .collectionOrder(CollectionOrderDto.builder()
-                .collectionOrderFlag(true)
-                .collectionOrderDate("2025-01-01")
-                .build())
-            .enforcementOverride(EnforcementOverride.builder()
-                .enforcementOverrideResult(EnforcementOverrideResult.builder()
-                    .enforcementOverrideId("EO-1")
-                    .enforcementOverrideTitle("Result Title")
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentsAndNotes(
+                    CommentsAndNotesCommon.builder()
+                        .accountComment("acc comment")
+                        .freeTextNote1("n1")
+                        .freeTextNote2("n2")
+                        .freeTextNote3("n3")
+                        .build())
+                .enforcementCourt(EnforcementCourtDefendantAccount.builder()
+                    .courtId(100)
                     .build())
-                .enforcer(Enforcer.builder()
-                    .enforcerId(22L)
-                    .enforcerName("Enforcer A")
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .collectionOrderDate(LocalDate.parse("2025-01-01"))
                     .build())
-                .lja(LJA.builder()
-                    .ljaId(33)
-                    .ljaName("LJA Name")
+                .enforcementOverride(EnforcementOverrideDefendantAccount.builder()
+                    .enforcementOverrideResult(EnforcementOverrideResultDefendantAccount.builder()
+                        .enforcementOverrideResultId("EO-1")
+                        .build())
+                    .enforcer(EnforcerDefendantAccount.builder()
+                        .enforcerId(22L)
+                        .build())
+                    .lja(LocalJusticeAreaDefendantAccount.builder()
+                        .ljaId(33)
+                        .build())
                     .build())
                 .build())
+            .version(BigInteger.valueOf(1))
             .build();
+
 
         // ---------- Act ----------
         final String buHeader = "10"; // near first use for Checkstyle
-        // If-Match = "1" to match entity.setVersion(1L)
-        var resp = service.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST");
+        var resp = service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST");
 
         // ---------- Assert ----------
         verify(defendantAccountRepository).save(entity);
-        assertEquals(id, resp.getId());
+        assertEquals(id, resp.getPayload().getId());
 
-        assertNotNull(resp.getCommentsAndNotes());
-        assertEquals("acc comment", resp.getCommentsAndNotes().getAccountNotesAccountComments());
-        assertEquals("n1", resp.getCommentsAndNotes().getAccountNotesFreeTextNote1());
-        assertEquals("n2", resp.getCommentsAndNotes().getAccountNotesFreeTextNote2());
-        assertEquals("n3", resp.getCommentsAndNotes().getAccountNotesFreeTextNote3());
+        assertNotNull(resp.getPayload().getCommentsAndNotes());
+        assertEquals("acc comment", resp.getPayload().getCommentsAndNotes().getAccountComment());
+        assertEquals("n1", resp.getPayload().getCommentsAndNotes().getFreeTextNote1());
+        assertEquals("n2", resp.getPayload().getCommentsAndNotes().getFreeTextNote2());
+        assertEquals("n3", resp.getPayload().getCommentsAndNotes().getFreeTextNote3());
 
-        assertNotNull(resp.getEnforcementCourt());
-        assertEquals(100, resp.getEnforcementCourt().getCourtId());
-        assertEquals("Central Magistrates", resp.getEnforcementCourt().getCourtName());
+        assertNotNull(resp.getPayload().getEnforcementCourt());
+        assertEquals(100, resp.getPayload().getEnforcementCourt().getCourtId());
 
-        assertNotNull(resp.getCollectionOrder());
-        assertEquals(Boolean.TRUE, resp.getCollectionOrder().getCollectionOrderFlag());
-        assertEquals("2025-01-01", resp.getCollectionOrder().getCollectionOrderDate());
+        assertNotNull(resp.getPayload().getCollectionOrder());
+        assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
+        assertEquals("2025-01-01", resp.getPayload().getCollectionOrder().getCollectionOrderDate());
 
-        assertNotNull(resp.getEnforcementOverride());
-        assertEquals("EO-1", resp.getEnforcementOverride().getEnforcementOverrideResult()
-            .getEnforcementOverrideId());
-        assertEquals(22, resp.getEnforcementOverride().getEnforcer().getEnforcerId());
-        assertEquals(33, resp.getEnforcementOverride().getLja().getLjaId());
+        assertNotNull(resp.getPayload().getEnforcementOverride());
+        assertEquals("EO-1", resp.getPayload().getEnforcementOverride().getEnforcementOverrideResult()
+            .getEnforcementOverrideResultId());
+        assertEquals(22, resp.getPayload().getEnforcementOverride().getEnforcer().getEnforcerId());
+        assertEquals(33, resp.getPayload().getEnforcementOverride().getLja().getLjaId());
 
         // Verify entity was updated as expected
         assertEquals(court, entity.getEnforcingCourt());
