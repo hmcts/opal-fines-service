@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,18 +12,19 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 @Service
@@ -115,11 +117,10 @@ public class DefendantAccountService {
         return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
     }
 
-    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
-                                                           UpdateDefendantAccountRequest request,
-                                                           String ifMatch,
-                                                           String authHeaderValue) {
+                                                           UpdateDefendantAccountRequestPayload request,
+                                                           String authHeaderValue, String ifMatch) {
         log.debug(":updateDefendantAccount:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -132,8 +133,17 @@ public class DefendantAccountService {
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());
 
+            //Create internal DTO
+            UpdateDefendantAccountRequest updateRequest = UpdateDefendantAccountRequest.builder()
+                .defendantAccountId(defendantAccountId)
+                .businessUnitId(businessUnitId)
+                .businessUnitUserId(postedBy)
+                .payload(request)
+                .version(new BigInteger(ifMatch))
+                .build();
+
             return defendantAccountServiceProxy.updateDefendantAccount(
-                defendantAccountId, businessUnitId, request, ifMatch, postedBy
+                defendantAccountId, businessUnitId, updateRequest, postedBy
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
