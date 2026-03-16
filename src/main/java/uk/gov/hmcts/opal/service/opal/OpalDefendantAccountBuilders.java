@@ -704,13 +704,6 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static EnforcerDefendantAccount buildEnforcerDefendantAccount(Optional<EnforcerEntity> enforcer) {
-        return enforcer.map(enf -> EnforcerDefendantAccount.builder()
-                .enforcerId(enf.getEnforcerId())
-                .build())
-            .orElse(null);
-    }
-
     static EnforcerReferenceCommon buildEnforcer(Enforcer enforcer) {
         return Optional.ofNullable(enforcer).map(e -> EnforcerReferenceCommon.builder()
                 .enforcerId(e.getEnforcerId())
@@ -853,13 +846,6 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static LocalJusticeAreaDefendantAccount buildLjaDefendantAccount(Optional<LocalJusticeAreaEntity> entity) {
-        return entity.map(lja -> LocalJusticeAreaDefendantAccount.builder()
-                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
-                .build())
-            .orElse(null);
-    }
-
     static LjaReferenceCommon buildLja(LJA lja) {
         return Optional.ofNullable(lja).map(l -> LjaReferenceCommon.builder()
                 .ljaId(l.getLjaId())
@@ -875,6 +861,7 @@ public class OpalDefendantAccountBuilders {
                 .build())
             .orElse(null);
     }
+
     static CollectionOrderCommon buildCollectionOrderCommon(DefendantAccountEntity entity) {
         return CollectionOrderCommon.builder()
             .collectionOrderFlag(entity.getCollectionOrder())
