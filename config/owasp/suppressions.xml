@@ -24,6 +24,9 @@ Suppress CVE-2025-15104 only when Dependency-Check maps a dependency to the gene
     <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>
     <cve>CVE-2025-15104</cve>
   </suppress>
+  <suppress until="2026-06-01Z">
+    <cve>CVE-2026-23907</cve>
+  </suppress>
   <!--End of Temporary suppression section -->
 
 </suppressions>
