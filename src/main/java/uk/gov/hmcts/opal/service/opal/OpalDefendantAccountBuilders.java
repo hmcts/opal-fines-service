@@ -704,17 +704,17 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static EnforcerDefendantAccount buildEnforcerDefendantAccount(Optional<EnforcerEntity> enforcer) {
-        return enforcer.map(enf -> EnforcerDefendantAccount.builder()
-                .enforcerId(enf.getEnforcerId())
-                .build())
-            .orElse(null);
-    }
-
     static EnforcerReferenceCommon buildEnforcer(Enforcer enforcer) {
         return Optional.ofNullable(enforcer).map(e -> EnforcerReferenceCommon.builder()
                 .enforcerId(e.getEnforcerId())
                 .enforcerName(e.getEnforcerName())
+                .build())
+            .orElse(null);
+    }
+
+    static EnforcerDefendantAccount buildEnforcerDefendantAccount(Optional<EnforcerEntity> enforcer) {
+        return enforcer.map(enf -> EnforcerDefendantAccount.builder()
+                .enforcerId(enf.getEnforcerId())
                 .build())
             .orElse(null);
     }
@@ -846,18 +846,18 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static LocalJusticeAreaDefendantAccount buildLjaDefendantAccount(Optional<LocalJusticeAreaEntity> entity) {
-        return entity.map(lja -> LocalJusticeAreaDefendantAccount.builder()
-                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
-                .build())
-            .orElse(null);
-    }
-
     static LjaReferenceCommon buildLja(LJA lja) {
         return Optional.ofNullable(lja).map(l -> LjaReferenceCommon.builder()
                 .ljaId(l.getLjaId())
                 .ljaCode(l.getLjaCode())
                 .ljaName(l.getLjaName())
+                .build())
+            .orElse(null);
+    }
+
+    static LocalJusticeAreaDefendantAccount buildLjaDefendantAccount(Optional<LocalJusticeAreaEntity> entity) {
+        return entity.map(lja -> LocalJusticeAreaDefendantAccount.builder()
+                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
                 .build())
             .orElse(null);
     }
