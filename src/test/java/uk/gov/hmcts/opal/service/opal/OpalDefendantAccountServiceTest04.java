@@ -200,14 +200,20 @@ class OpalDefendantAccountServiceTest04 {
 
     @Test
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
+    // Arrange
         Long id = 1L;
-        String buHeader = "10";
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder().build())
+            .version(BigInteger.valueOf(1))
+            .build();
 
-        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder().build();
-
+    // Act
+        final String buHeader = "10";
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-            service.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST")
+            service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST")
         );
+
+    // Assert
         assertTrue(ex.getMessage().contains("At least one update group"));
         verifyNoInteractions(defendantAccountRepository);
     }
