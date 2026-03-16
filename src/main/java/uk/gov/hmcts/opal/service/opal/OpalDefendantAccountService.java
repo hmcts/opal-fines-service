@@ -448,13 +448,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     ) {
         log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        if (request.getPayload().getCommentsAndNotes() == null
-            && request.getPayload().getEnforcementCourt() == null
-            && request.getPayload().getCollectionOrder() == null
-            && request.getPayload().getEnforcementOverride() == null) {
-            throw new IllegalArgumentException("At least one update group must be provided");
-        }
-
         DefendantAccountEntity entity = getDefendantAccountById(defendantAccountId);
 
         if (entity.getBusinessUnit() == null
@@ -468,9 +461,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        if (request.getPayload().getCommentsAndNotes() != null) {
+        if (request.getPayload().getCommentAndNotes() != null) {
             applyCommentAndNotes(entity,
-                request.getPayload().getCommentsAndNotes(), postedBy);
+                request.getPayload().getCommentAndNotes(), postedBy);
         }
         if (request.getPayload().getEnforcementCourt() != null) {
             applyEnforcementCourt(entity,
@@ -506,7 +499,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .payload(
                 UpdateDefendantAccountResponsePayload.builder()
                 .id(entity.getDefendantAccountId())
-                .commentsAndNotes(buildCommentsAndNotes(entity))
+                .commentAndNotes(buildCommentsAndNotes(entity))
                 .enforcementCourt(buildCourtReference(entity.getEnforcingCourt()))
                 .collectionOrder(buildCollectionOrderCommon(entity))
                 .enforcementOverride(buildEnforcementOverrideDefendantAccount(entity))
