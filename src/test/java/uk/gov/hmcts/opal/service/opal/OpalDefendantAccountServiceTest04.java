@@ -284,11 +284,16 @@ class OpalDefendantAccountServiceTest04 {
         when(defendantAccountRepository.findById(99L)).thenReturn(Optional.empty());
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build())
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("x")
+                    .build())
+                .build())
+            .version(BigInteger.valueOf(1))
             .build();
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.updateDefendantAccount(99L, "10", req, "1", "UNIT_TEST")
+            service.updateDefendantAccount(99L, "10", req, "UNIT_TEST")
         );
         verify(defendantAccountRepository, never()).save(any());
     }
