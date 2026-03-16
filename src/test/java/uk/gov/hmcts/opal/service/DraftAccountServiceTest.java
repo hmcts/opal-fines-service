@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -165,8 +166,9 @@ class DraftAccountServiceTest {
     @Test
     void testSubmitDraftAccounts_fail() {
         // Arrange
+        Short businessUnitId = (short)1;
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
-            .businessUnitId((short)1)
+            .businessUnitId(businessUnitId)
             .accountType("Fine")
             .account(createAccountString())
             .submittedBy("TestUser")
@@ -176,8 +178,13 @@ class DraftAccountServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
 
         // Act & Assert
-        assertThrows(PermissionNotAllowedException.class, () ->
-            draftAccountService.submitDraftAccount(addDraftAccountDto, "authHeaderValue"));
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+                () -> draftAccountService.submitDraftAccount(addDraftAccountDto, "authHeaderValue")
+        );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
     }
 
     @Test

@@ -12,6 +12,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -36,6 +37,9 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
 
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @MockitoBean
     LoggingService loggingService;

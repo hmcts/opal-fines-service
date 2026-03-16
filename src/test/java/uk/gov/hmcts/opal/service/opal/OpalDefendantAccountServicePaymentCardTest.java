@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -209,9 +210,11 @@ class OpalDefendantAccountServicePaymentCardTest {
 
         var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
 
-        assertThrows(PermissionNotAllowedException.class,
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
             () -> svc.addPaymentCardRequest(1L, "10", "USR", "\"1\"", "AUTH")
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
 
         verifyNoInteractions(proxy);
     }

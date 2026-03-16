@@ -102,7 +102,9 @@ public class MinorCreditorService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         if (businessUnitId == null || !userState.hasBusinessUnitUserWithPermission(businessUnitId,
             FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
-            throw new PermissionNotAllowedException(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+            throw new PermissionNotAllowedException(
+                businessUnitId,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
