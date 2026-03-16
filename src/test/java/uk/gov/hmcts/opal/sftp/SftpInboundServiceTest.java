@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.sftp;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = {SftpInboundService.class})
+@Isolated
 class SftpInboundServiceTest {
 
     // Mocks
@@ -33,7 +35,6 @@ class SftpInboundServiceTest {
 
     @Autowired
     SftpInboundService sftpInboundService;
-
 
     @Test
     void testUploadFile() {
