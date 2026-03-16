@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 @Data
 @AllArgsConstructor
 public class ReportMetaData {
-    private List<ParticipantIdentifier> pdpoPartyIds;
+
+    private List<ParticipantIdentifier> pdpoParticipants;
 
 }
