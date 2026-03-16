@@ -125,7 +125,6 @@ class OpalDefendantAccountServiceTest04 {
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
                 .commentAndNotes(
-                .commentAndNotes(
                     CommentsAndNotesCommon.builder()
                         .accountComment("acc comment")
                         .freeTextNote1("n1")
@@ -174,7 +173,6 @@ class OpalDefendantAccountServiceTest04 {
 
         assertNotNull(resp.getPayload().getCollectionOrder());
         assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.parse("2025-01-01"), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
         assertEquals(LocalDate.parse("2025-01-01"), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
 
         assertNotNull(resp.getPayload().getEnforcementOverride());
