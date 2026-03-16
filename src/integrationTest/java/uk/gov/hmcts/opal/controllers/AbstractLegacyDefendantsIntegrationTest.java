@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
@@ -10,6 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -23,6 +25,9 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
 
     @MockitoBean
     protected UserStateService userStateService;
+
+    @MockitoBean
+    protected UserStateClientService userStateClientService;
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
@@ -40,6 +45,7 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
     void setupUserState() {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
+        Mockito.when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
     }
 
     protected static String commentAndNotesPayload(String accountComment, String note1, String note2, String note3) {

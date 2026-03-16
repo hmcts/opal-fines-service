@@ -12,7 +12,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -61,7 +60,6 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -101,7 +99,6 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @DisplayName("Search defendant accounts - No Accounts found [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());

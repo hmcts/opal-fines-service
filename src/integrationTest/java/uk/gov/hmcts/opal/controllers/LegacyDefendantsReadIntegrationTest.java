@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -28,7 +27,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 @Slf4j(topic = "opal.LegacyDefendantsReadIntegrationTest")
 class LegacyDefendantsReadIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: Get header summary for non-existent ID returns 500")
     void getHeaderSummary_Legacy_500() throws Exception {

@@ -10,7 +10,6 @@ import static uk.gov.hmcts.opal.controllers.util.LegacyDefendantsUtil.getPayment
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -29,7 +28,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 @Slf4j(topic = "opal.LegacyDefendantsPaymentsIntegrationTest")
 class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: Add Payment Card Request – Happy Path [@PO-2088]")
     void testAddPaymentCardRequest_Happy() throws Exception {
@@ -55,7 +53,6 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
             .andExpect(jsonPath("$.defendant_account_id").value(901));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: Add Payment Card Request – 500 Error [@PO-2088]")
     void testAddPaymentCardRequest_500() throws Exception {
@@ -79,7 +76,6 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     }
 
     @Test
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
     void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
@@ -106,7 +102,6 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     }
 
     @Test
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
     void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))

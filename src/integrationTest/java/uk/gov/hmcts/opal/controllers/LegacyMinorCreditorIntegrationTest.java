@@ -9,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testPostSearchMinorCreditorSuccess() throws Exception {
         super.postSearchMinorCreditorImpl_Success(log);
@@ -21,6 +20,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
         super.legacyPostSearchMinorCreditorImpl_500Error(log);
     }
 
+    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetMinorCreditorAtAGlanceSuccess() throws Exception {
         super.getMinorCreditorAtAGlanceImpl_Success(log);
