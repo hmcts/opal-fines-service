@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,17 +21,11 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -182,27 +175,6 @@ public class DefendantAccountController {
 
         GetDefendantAccountFixedPenaltyResponse response =
             defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId, authHeaderValue);
-
-        return buildResponse(response);
-    }
-
-
-    @PatchMapping(value = "/{defendantAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Update defendant account (comments, notes, enforcement details)")
-    public ResponseEntity<DefendantAccountResponse> updateDefendantAccount(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @JsonSchemaValidated(schemaPath = SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_REQUEST)
-        @RequestBody UpdateDefendantAccountRequest request
-    ) {
-        log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);
-
-        DefendantAccountResponse response = defendantAccountService.updateDefendantAccount(
-            defendantAccountId, businessUnitId, request, ifMatch, authHeaderValue
-        );
 
         return buildResponse(response);
     }

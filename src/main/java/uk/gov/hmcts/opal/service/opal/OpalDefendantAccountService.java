@@ -1,12 +1,13 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCollectionOrder;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCollectionOrderCommon;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCommentsAndNotes;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildContactDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCourtReference;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEmployerDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultDefendantAccount;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildLanguagePreferences;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyAddressDetails;
@@ -41,9 +42,7 @@ import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRe
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryDtoBuilder;
@@ -53,8 +52,8 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -84,13 +83,17 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
-import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -113,8 +116,8 @@ import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -441,19 +444,18 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Override
     @Transactional
-    public DefendantAccountResponse updateDefendantAccount(
+    public UpdateDefendantAccountResponse updateDefendantAccount(
         Long defendantAccountId,
         String businessUnitId,
         UpdateDefendantAccountRequest request,
-        String ifMatch,
         String postedBy
     ) {
         log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        if (request.getCommentsAndNotes() == null
-            && request.getEnforcementCourt() == null
-            && request.getCollectionOrder() == null
-            && request.getEnforcementOverride() == null) {
+        if (request.getPayload().getCommentsAndNotes() == null
+            && request.getPayload().getEnforcementCourt() == null
+            && request.getPayload().getCollectionOrder() == null
+            && request.getPayload().getEnforcementOverride() == null) {
             throw new IllegalArgumentException("At least one update group must be provided");
         }
 
@@ -466,21 +468,25 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 + businessUnitId);
         }
 
-        VersionUtils.verifyIfMatch(entity, ifMatch, defendantAccountId, "updateDefendantAccount");
+        VersionUtils.verifyIfMatch(entity, request.getVersion(), defendantAccountId, "updateDefendantAccount");
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        if (request.getCommentsAndNotes() != null) {
-            applyCommentAndNotes(entity, request.getCommentsAndNotes(), postedBy);
+        if (request.getPayload().getCommentsAndNotes() != null) {
+            applyCommentAndNotes(entity,
+                request.getPayload().getCommentsAndNotes(), postedBy);
         }
-        if (request.getEnforcementCourt() != null) {
-            applyEnforcementCourt(entity, request.getEnforcementCourt());
+        if (request.getPayload().getEnforcementCourt() != null) {
+            applyEnforcementCourt(entity,
+                request.getPayload().getEnforcementCourt());
         }
-        if (request.getCollectionOrder() != null) {
-            OpalDefendantAccountBuilders.applyCollectionOrder(entity, request.getCollectionOrder());
+        if (request.getPayload().getCollectionOrder() != null) {
+            OpalDefendantAccountBuilders.applyCollectionOrder(entity,
+                request.getPayload().getCollectionOrder());
         }
-        if (request.getEnforcementOverride() != null) {
-            OpalDefendantAccountBuilders.applyEnforcementOverride(entity, request.getEnforcementOverride());
+        if (request.getPayload().getEnforcementOverride() != null) {
+            OpalDefendantAccountBuilders.applyEnforcementOverride(entity,
+                request.getPayload().getEnforcementOverride());
         }
 
         defendantAccountRepository.save(entity);
@@ -500,12 +506,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         );
 
         // ---- Build response ----
-        return DefendantAccountResponse.builder()
-            .id(entity.getDefendantAccountId())
-            .commentsAndNotes(buildCommentsAndNotes(entity))
-            .enforcementCourt(buildCourtReference(entity.getEnforcingCourt()))
-            .collectionOrder(buildCollectionOrder(entity))
-            .enforcementOverride(buildEnforcementOverride(entity))
+        return UpdateDefendantAccountResponse.builder()
+            .payload(
+                UpdateDefendantAccountResponsePayload.builder()
+                .id(entity.getDefendantAccountId())
+                .commentsAndNotes(buildCommentsAndNotes(entity))
+                .enforcementCourt(buildCourtReference(entity.getEnforcingCourt()))
+                .collectionOrder(buildCollectionOrderCommon(entity))
+                .enforcementOverride(buildEnforcementOverrideDefendantAccount(entity))
+                .build()
+            )
             .version(newVersion)
             .build();
     }
@@ -662,6 +672,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
+    EnforcementOverrideDefendantAccount buildEnforcementOverrideDefendantAccount(DefendantAccountEntity entity) {
+        if (entity.getEnforcementOverrideResultId() == null
+            && entity.getEnforcementOverrideEnforcerId() == null
+            && entity.getEnforcementOverrideTfoLjaId() == null) {
+            return null;
+        } else {
+            return EnforcementOverrideDefendantAccount.builder()
+                .enforcementOverrideResult(buildEnforcementOverrideResultDefendantAccount(dbResultEntity(
+                    entity.getEnforcementOverrideResultId())))
+                .enforcer(OpalDefendantAccountBuilders.buildEnforcerDefendantAccount(dbEnforcerEntity(entity)))
+                .lja(OpalDefendantAccountBuilders.buildLjaDefendantAccount(dbLja(entity)))
+                .build();
+        }
+    }
+
     // These 'DB' methods are focused purely on fetching relevant entities from the DB without any mapping.
 
     //Deprecated - use OpalDefendantAccountEnforcementService
@@ -748,14 +773,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     .map(enforcerRepository::findByEnforcerId)));
     }
 
-    private void applyCommentAndNotes(DefendantAccountEntity managed, CommentsAndNotes notes, String postedBy) {
+    private void applyCommentAndNotes(DefendantAccountEntity managed, CommentsAndNotesCommon notes, String postedBy) {
 
         // Build a combined text block for the NOTES table (audit/history)
         final String combined = Stream.of(
-                notes.getAccountNotesAccountComments(),
-                notes.getAccountNotesFreeTextNote1(),
-                notes.getAccountNotesFreeTextNote2(),
-                notes.getAccountNotesFreeTextNote3()
+                notes.getAccountComment(),
+                notes.getFreeTextNote1(),
+                notes.getFreeTextNote2(),
+                notes.getFreeTextNote3()
             )
             .filter(Objects::nonNull)
             .map(String::trim)
@@ -768,16 +793,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         // Persist values on the main defendant_accounts table
-        managed.setAccountComments(notes.getAccountNotesAccountComments());
-        managed.setAccountNote1(notes.getAccountNotesFreeTextNote1());
-        managed.setAccountNote2(notes.getAccountNotesFreeTextNote2());
-        managed.setAccountNote3(notes.getAccountNotesFreeTextNote3());
+        managed.setAccountComments(notes.getAccountComment());
+        managed.setAccountNote1(notes.getFreeTextNote1());
+        managed.setAccountNote2(notes.getFreeTextNote2());
+        managed.setAccountNote3(notes.getFreeTextNote3());
 
         noteRepository.save(OpalDefendantAccountBuilders.buildNoteEntity(managed, combined, postedBy));
         log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
     }
 
-    private void applyEnforcementCourt(DefendantAccountEntity entity, CourtReferenceDto courtRef) {
+    private void applyEnforcementCourt(DefendantAccountEntity entity, EnforcementCourtDefendantAccount courtRef) {
         Integer courtId = courtRef.getCourtId();
         if (courtId == null) {
             throw new IllegalArgumentException("enforcement_court.court_id is required");
