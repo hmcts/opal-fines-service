@@ -299,7 +299,7 @@ class OpalDefendantAccountServiceTest04 {
     }
 
     @Test
-    void updateDefendantAccount_missingIfMatch_throwsPrecondition() {
+    void updateDefendantAccount_missingVersion_throwsPrecondition() {
         Long id = 77L;
         String bu = "10";
 
@@ -316,13 +316,16 @@ class OpalDefendantAccountServiceTest04 {
         when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build())
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("x")
+                    .build())
+                .build())
             .build();
 
-        // Expect whatever your VersionUtils throws on missing/invalid If-Match
         assertThrows(
             uk.gov.hmcts.opal.exception.ResourceConflictException.class,
-            () -> service.updateDefendantAccount(id, bu, req, /*ifMatch*/ null, "UNIT_TEST")
+            () -> service.updateDefendantAccount(id, bu, req, "UNIT_TEST")
         );
     }
 
