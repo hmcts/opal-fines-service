@@ -329,7 +329,7 @@ paths:
       summary: Update a defendant account (partial update)
       operationId: updateDefendantAccount
       tags:
-        - DefendantAccounts
+        - DefendantAccount
 
       parameters:
         - name: id
@@ -338,11 +338,24 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
         - in: header
           name: If-Match
           description: Version of the defendant account. DB Mapping - defendant_accounts.version
           schema:
-            $ref: "./types.yaml#/components/schemas/BigInt"
+            type: string
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
+          schema:
+            type: string
+          required: true
 
       requestBody:
         description: Payload containing one of the updatable defendant-account fragments
@@ -369,7 +382,7 @@ paths:
                 collection_order:
                   $ref: './common.yaml#/components/schemas/collectionOrder'
 
-                comment_and_notes:
+                comments_and_notes:
                   $ref: './common.yaml#/components/schemas/commentsAndNotes'
 
                 enforcement_court:
@@ -389,16 +402,17 @@ paths:
           content:
             application/json:
               schema:
-                title: Update Defendant Account Response
+                title: Update Defendant Account Response Payload
                 type: object
                 required:
                   - id
                 properties:
                   id:
                     type: integer
+                    format: int64
                   collection_order:
                     $ref: './common.yaml#/components/schemas/collectionOrder'
-                  comment_and_notes:
+                  comments_and_notes:
                     $ref: './common.yaml#/components/schemas/commentsAndNotes'
                   enforcement_court:
                     $ref: '#/components/schemas/enforcementCourt'
@@ -491,6 +505,7 @@ components:
       properties:
         enforcer_id:
           type: integer
+          format: int64
       required:
         - enforcer_id
     localJusticeArea:
