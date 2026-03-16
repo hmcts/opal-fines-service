@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -50,6 +52,9 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -393,6 +398,8 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     @DisplayName("Get enforcement status - forbidden without permission")
     void testGetEnforcementStatus_forbidden(Logger log, boolean isLegacy) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        UserState dummyUserState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
 

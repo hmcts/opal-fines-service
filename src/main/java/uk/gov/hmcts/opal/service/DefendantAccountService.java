@@ -173,7 +173,7 @@ public class DefendantAccountService {
                 defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
                 getBusinessUnitUserIdForBusinessUnit(userState, buId));
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+            throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
 
@@ -265,7 +265,7 @@ public class DefendantAccountService {
                 authHeaderValue,
                 addPaymentTermsRequest);
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
+            throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 }

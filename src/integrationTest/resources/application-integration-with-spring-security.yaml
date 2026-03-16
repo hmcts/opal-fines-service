@@ -1,0 +1,52 @@
+spring:
+  # Flyway
+  flyway:
+    locations: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
+    baseline-on-migrate: true
+    ignoreMigrationPatterns: "*:missing"
+  main:
+    allow-bean-definition-overriding: true
+  security:
+    oauth2:
+      client:
+        registration:
+          internal-azure-ad:
+            issuer-uri: http://localhost:4553/opal/
+        provider:
+          internal-azure-ad-provider:
+            jwk-set-uri: http://localhost:4553/opal/oauth2/jwks.json
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: INFO
+        type:
+          descriptor:
+            sql:
+              BasicBinder: WARN
+      springframework:
+        security: DEBUG
+        jdbc:
+          datasource:
+            init: DEBUG
+# Hibernate
+jpa:
+  hibernate:
+    ddl-auto: validate
+  show-sql: true
+
+testcontainers:
+  reuse:
+    enable: true
+legacy-gateway:
+  url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
+
+user:
+  service:
+    url: ${OPAL_USER_SERVICE_API_URL:https://opal-user-service.staging.platform.hmcts.net}
+
+security-it:
+  key: ...some random string...

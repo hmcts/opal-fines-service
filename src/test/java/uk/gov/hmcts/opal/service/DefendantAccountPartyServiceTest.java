@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -86,6 +85,8 @@ class DefendantAccountPartyServiceTest {
             defendantAccountPartyService
                 .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId, authHeader)
         );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -200,22 +201,26 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountId = 100L;
         Long defendantAccountPartyId = 200L;
         String ifMatch = "W/\"X\"";
-        String businessUnitId = "3";
+        Short businessUnitId = 3;
+        String stringBusinessUnitId = String.valueOf(businessUnitId);
         DefendantAccountParty request = new DefendantAccountParty();
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.hasBusinessUnitUserWithPermission(anyShort(), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(false);
 
         // Act & Assert
-        assertThrows(PermissionNotAllowedException.class, () ->
-            defendantAccountPartyService.replaceDefendantAccountParty(
-                defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, businessUnitId, request
-            )
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountPartyService.replaceDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, stringBusinessUnitId, request)
         );
 
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
+        assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
+
         verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userState).hasBusinessUnitUserWithPermission(anyShort(), eq(FinesPermission.ACCOUNT_MAINTENANCE));
+        verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }
 }
