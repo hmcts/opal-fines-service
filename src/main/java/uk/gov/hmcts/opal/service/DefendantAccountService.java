@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountService")
@@ -139,7 +140,7 @@ public class DefendantAccountService {
                 .businessUnitId(businessUnitId)
                 .businessUnitUserId(postedBy)
                 .payload(request)
-                .version(new BigInteger(ifMatch))
+                .version(VersionUtils.extractBigInteger(ifMatch))
                 .build();
 
             return defendantAccountServiceProxy.updateDefendantAccount(

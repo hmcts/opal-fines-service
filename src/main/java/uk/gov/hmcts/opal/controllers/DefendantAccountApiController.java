@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @RestController
 @Slf4j(topic = "opal.DefendantAccountApiController")
@@ -43,8 +44,8 @@ public class DefendantAccountApiController implements DefendantAccountApi {
             defendantAccountId, businessUnitId, request, authHeaderValue, ifMatch
         );
 
-        ResponseEntity<UpdateDefendantAccountResponsePayload> responseEntity = buildResponse(response.getPayload());
-        responseEntity.getHeaders().add("ETag", response.getVersion().toString());
-        return responseEntity;
+        return ResponseEntity.ok()
+            .eTag(VersionUtils.createETag(response))
+            .body(response.getPayload());
     }
 }
