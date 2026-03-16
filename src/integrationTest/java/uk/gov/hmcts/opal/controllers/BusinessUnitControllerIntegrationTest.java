@@ -52,7 +52,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.businessUnitId").value(1))
             .andExpect(jsonPath("$.businessUnitName").value("AAA Business Unit 001"))
             .andExpect(jsonPath("$.businessUnitCode").value("AAAA"))
-            .andExpect(jsonPath("$.businessUnitType").value("LARGE UNIT"))
+            .andExpect(jsonPath("$.businessUnitType").value("Area"))
             .andExpect(jsonPath("$.accountNumberPrefix").value("XX"))
             .andExpect(jsonPath("$.opalDomain").value("Fines"))
             .andExpect(jsonPath("$.welshLanguage").value(true))
@@ -76,7 +76,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$[0].businessUnitId").value(1))
             .andExpect(jsonPath("$[0].businessUnitName").value("AAA Business Unit 001"))
             .andExpect(jsonPath("$[0].businessUnitCode").value("AAAA"))
-            .andExpect(jsonPath("$[0].businessUnitType").value("LARGE UNIT"))
+            .andExpect(jsonPath("$[0].businessUnitType").value("Area"))
             .andExpect(jsonPath("$[0].accountNumberPrefix").value("XX"))
             .andExpect(jsonPath("$[0].opalDomain").value("Fines"))
             .andExpect(jsonPath("$[0].parentBusinessUnit.businessUnitId").value(99));
@@ -105,7 +105,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].business_unit_id").value(1))
             .andExpect(jsonPath("$.refData[0].business_unit_name").value("AAA Business Unit 001"))
             .andExpect(jsonPath("$.refData[0].business_unit_code").value("AAAA"))
-            .andExpect(jsonPath("$.refData[0].business_unit_type").value("LARGE UNIT"))
+            .andExpect(jsonPath("$.refData[0].business_unit_type").value("Area"))
             .andExpect(jsonPath("$.refData[0].account_number_prefix").value("XX"))
             .andExpect(jsonPath("$.refData[0].welsh_language").value(true))
             .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
@@ -128,7 +128,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].business_unit_id").value(1))
             .andExpect(jsonPath("$.refData[0].business_unit_name").value("AAA Business Unit 001"))
             .andExpect(jsonPath("$.refData[0].business_unit_code").value("AAAA"))
-            .andExpect(jsonPath("$.refData[0].business_unit_type").value("LARGE UNIT"))
+            .andExpect(jsonPath("$.refData[0].business_unit_type").value("Area"))
             .andExpect(jsonPath("$.refData[0].account_number_prefix").value("XX"))
             .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
     }

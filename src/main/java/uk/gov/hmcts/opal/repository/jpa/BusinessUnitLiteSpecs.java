@@ -34,6 +34,10 @@ public class BusinessUnitLiteSpecs extends EntitySpecs<BusinessUnitLiteEntity> {
 
     public static Specification<BusinessUnitLiteEntity> likeBusinessUnitType(String businessUnitType) {
         return (root, query, builder) ->
-            likeWildcardPredicate(root.get(BusinessUnitLiteEntity_.businessUnitType), builder, businessUnitType);
+            likeWildcardPredicate(
+                root.get(BusinessUnitLiteEntity_.businessUnitType).as(String.class),
+                builder,
+                businessUnitType
+            );
     }
 }
