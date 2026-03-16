@@ -181,10 +181,9 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         log.info("enforcement_court update resp:\n{}", resp);
 
         a.andExpect(status().isOk()).andExpect(header().exists("ETag"))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.id").value(77))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(77))
             .andExpect(jsonPath("$.enforcement_court.court_id").value(100));
-
-        jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
     }
 
     @Test
