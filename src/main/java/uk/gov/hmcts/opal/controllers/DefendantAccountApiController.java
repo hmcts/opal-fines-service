@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,11 +31,11 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     public ResponseEntity<UpdateDefendantAccountResponsePayload> updateDefendantAccount(
-        @NonNull Long defendantAccountId,
-        @NonNull String authHeaderValue,
-        @NonNull String businessUnitId,
-        @NonNull UpdateDefendantAccountRequestPayload request,
-        @NonNull String ifMatch
+        Long defendantAccountId,
+        String authHeaderValue,
+        String businessUnitId,
+        UpdateDefendantAccountRequestPayload request,
+        String ifMatch
     ) {
         log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);
 
