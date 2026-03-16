@@ -331,16 +331,29 @@ class OpalDefendantAccountServiceTest04 {
 
     @Test
     void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
-        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
-            .versionNumber(5L).build();
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(5L)
+            .build();
+
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
 
         var req = UpdateDefendantAccountRequest.builder()
-            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build()).build();
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("x")
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
-            () -> service.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
+            () -> service.updateDefendantAccount(77L, "78", req, "tester"));
         verify(defendantAccountRepository, never()).save(any());
     }
 
