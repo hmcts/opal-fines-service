@@ -163,6 +163,7 @@ public class DefendantAccountService {
                 .businessUnitUserId(postedBy)
                 .payload(request)
                 .version(VersionUtils.extractBigInteger(ifMatch))
+                .version(VersionUtils.extractBigInteger(ifMatch))
                 .build();
 
             return defendantAccountServiceProxy.updateDefendantAccount(

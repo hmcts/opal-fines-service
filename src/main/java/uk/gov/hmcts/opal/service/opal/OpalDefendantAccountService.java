@@ -500,6 +500,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 UpdateDefendantAccountResponsePayload.builder()
                 .id(entity.getDefendantAccountId())
                 .commentAndNotes(buildCommentsAndNotes(entity))
+                .commentAndNotes(buildCommentsAndNotes(entity))
                 .enforcementCourt(buildCourtReference(entity.getEnforcingCourt()))
                 .collectionOrder(buildCollectionOrderCommon(entity))
                 .enforcementOverride(buildEnforcementOverrideDefendantAccount(entity))
