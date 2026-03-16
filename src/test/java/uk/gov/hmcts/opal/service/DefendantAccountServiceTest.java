@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
@@ -40,9 +41,9 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
-
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountServiceTest {
@@ -55,6 +56,9 @@ class DefendantAccountServiceTest {
 
     @Mock
     private UserState userState;
+
+    @Mock
+    private OpalDefendantAccountService opalDefendantAccountService;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -466,5 +470,24 @@ class DefendantAccountServiceTest {
         assertTrue(response.getIsHmrcCheckEligible());
         assertEquals(new BigInteger("1234567890123345678901234567890"), response.getVersion());
 
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
+        // Arrange
+        Long id = 1L;
+        UpdateDefendantAccountRequestPayload req = UpdateDefendantAccountRequestPayload.builder().build();
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Act
+        final String buHeader = "10";
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+            defendantAccountService.updateDefendantAccount(id, buHeader, req, "UNIT_TEST",
+                "1")
+        );
+
+        // Assert
+        assertTrue(ex.getMessage().contains("Exactly one update group must be provided"));
+        verifyNoInteractions(opalDefendantAccountService);
     }
 }
