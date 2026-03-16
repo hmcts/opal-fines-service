@@ -55,7 +55,8 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         );
 
         DefendantAccountResponse expected = DefendantAccountResponse.builder().id(defendantAccountId).build();
-        when(legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(legacyEntity)).thenReturn(expected);
+        when(legacyUpdateDefendantAccountResponseMapper.toUpdateDefendantAccountResponse(legacyEntity))
+            .thenReturn(expected);
 
         DefendantAccountResponse result = legacyDefendantAccountService
             .updateDefendantAccount(defendantAccountId, businessUnitId, updateDefendantAccountRequest, "3", postedBy);
@@ -71,7 +72,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             eq(legacyReq),
             isNull()
         );
-        verify(legacyUpdateDefendantAccountResponseMapper).toDefendantAccountResponse(legacyEntity);
+        verify(legacyUpdateDefendantAccountResponseMapper).toUpdateDefendantAccountResponse(legacyEntity);
     }
 
     @Test
