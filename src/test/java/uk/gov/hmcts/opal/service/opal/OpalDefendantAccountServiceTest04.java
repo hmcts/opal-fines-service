@@ -359,18 +359,30 @@ class OpalDefendantAccountServiceTest04 {
 
     @Test
     void updateDefendantAccount_callsAuditProcs() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
         var entity = DefendantAccountEntity.builder()
-            .defendantAccountId(77L).businessUnit(bu).versionNumber(0L).build();
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
         when(noteRepository.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 
-
         var req = UpdateDefendantAccountRequest.builder()
-            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("hello").build()).build();
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("hello")
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
 
-        service.updateDefendantAccount(77L, "78", req, "0", "11111111A");
+        service.updateDefendantAccount(77L, "78", req, "11111111A");
 
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
