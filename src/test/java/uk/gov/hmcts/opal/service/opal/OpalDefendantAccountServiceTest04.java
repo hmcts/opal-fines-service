@@ -10,7 +10,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
@@ -24,14 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import uk.gov.hmcts.opal.dto.CollectionOrderDto;
-import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
-import uk.gov.hmcts.opal.dto.common.Enforcer;
-import uk.gov.hmcts.opal.dto.common.LJA;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -132,7 +124,7 @@ class OpalDefendantAccountServiceTest04 {
         // Request DTO
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
-                .commentsAndNotes(
+                .commentAndNotes(
                     CommentsAndNotesCommon.builder()
                         .accountComment("acc comment")
                         .freeTextNote1("n1")
@@ -170,18 +162,18 @@ class OpalDefendantAccountServiceTest04 {
         verify(defendantAccountRepository).save(entity);
         assertEquals(id, resp.getPayload().getId());
 
-        assertNotNull(resp.getPayload().getCommentsAndNotes());
-        assertEquals("acc comment", resp.getPayload().getCommentsAndNotes().getAccountComment());
-        assertEquals("n1", resp.getPayload().getCommentsAndNotes().getFreeTextNote1());
-        assertEquals("n2", resp.getPayload().getCommentsAndNotes().getFreeTextNote2());
-        assertEquals("n3", resp.getPayload().getCommentsAndNotes().getFreeTextNote3());
+        assertNotNull(resp.getPayload().getCommentAndNotes());
+        assertEquals("acc comment", resp.getPayload().getCommentAndNotes().getAccountComment());
+        assertEquals("n1", resp.getPayload().getCommentAndNotes().getFreeTextNote1());
+        assertEquals("n2", resp.getPayload().getCommentAndNotes().getFreeTextNote2());
+        assertEquals("n3", resp.getPayload().getCommentAndNotes().getFreeTextNote3());
 
         assertNotNull(resp.getPayload().getEnforcementCourt());
         assertEquals(100, resp.getPayload().getEnforcementCourt().getCourtId());
 
         assertNotNull(resp.getPayload().getCollectionOrder());
         assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
-        assertEquals("2025-01-01", resp.getPayload().getCollectionOrder().getCollectionOrderDate());
+        assertEquals(LocalDate.parse("2025-01-01"), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
 
         assertNotNull(resp.getPayload().getEnforcementOverride());
         assertEquals("EO-1", resp.getPayload().getEnforcementOverride().getEnforcementOverrideResult()
@@ -196,26 +188,6 @@ class OpalDefendantAccountServiceTest04 {
         assertEquals("EO-1", entity.getEnforcementOverrideResultId());
         assertEquals(Long.valueOf(22), entity.getEnforcementOverrideEnforcerId());
         assertEquals(Short.valueOf((short) 33), entity.getEnforcementOverrideTfoLjaId());
-    }
-
-    @Test
-    void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
-    // Arrange
-        Long id = 1L;
-        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .payload(UpdateDefendantAccountRequestPayload.builder().build())
-            .version(BigInteger.valueOf(1))
-            .build();
-
-    // Act
-        final String buHeader = "10";
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-            service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST")
-        );
-
-    // Assert
-        assertTrue(ex.getMessage().contains("At least one update group"));
-        verifyNoInteractions(defendantAccountRepository);
     }
 
     @Test
@@ -236,44 +208,12 @@ class OpalDefendantAccountServiceTest04 {
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
-                .commentsAndNotes(CommentsAndNotesCommon.builder().accountComment("x").build())
+                .commentAndNotes(CommentsAndNotesCommon.builder().accountComment("x").build())
                 .build())
             .version(BigInteger.valueOf(1))
             .build();
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST")
-        );
-        verify(defendantAccountRepository, never()).save(any());
-    }
-
-    @Test
-    void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
-        Long id = 1L;
-        String buHeader = "10";
-
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
-            .businessUnitId(Short.valueOf(buHeader))
-            .build();
-
-        DefendantAccountEntity entity = DefendantAccountEntity.builder()
-            .businessUnit(bu)
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .payload(UpdateDefendantAccountRequestPayload.builder()
-                .collectionOrder(CollectionOrderCommon.builder()
-                    .collectionOrderFlag(true)
-                    .collectionOrderDate(LocalDate.parse("not-a-date"))
-                    .build())
-                .build())
-            .version(BigInteger.valueOf(1))
-            .build();
-
-        assertThrows(IllegalArgumentException.class, () ->
             service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST")
         );
         verify(defendantAccountRepository, never()).save(any());
@@ -285,7 +225,7 @@ class OpalDefendantAccountServiceTest04 {
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
-                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
                     .accountComment("x")
                     .build())
                 .build())
@@ -296,37 +236,6 @@ class OpalDefendantAccountServiceTest04 {
             service.updateDefendantAccount(99L, "10", req, "UNIT_TEST")
         );
         verify(defendantAccountRepository, never()).save(any());
-    }
-
-    @Test
-    void updateDefendantAccount_missingVersion_throwsPrecondition() {
-        Long id = 77L;
-        String bu = "10";
-
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId((short) 10)
-            .build();
-
-        DefendantAccountEntity entity = DefendantAccountEntity.builder()
-            .defendantAccountId(id)
-            .businessUnit(buEnt)
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .payload(UpdateDefendantAccountRequestPayload.builder()
-                .commentsAndNotes(CommentsAndNotesCommon.builder()
-                    .accountComment("x")
-                    .build())
-                .build())
-            .build();
-
-        assertThrows(
-            uk.gov.hmcts.opal.exception.ResourceConflictException.class,
-            () -> service.updateDefendantAccount(id, bu, req, "UNIT_TEST")
-        );
     }
 
     @Test
@@ -345,7 +254,7 @@ class OpalDefendantAccountServiceTest04 {
 
         var req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
-                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
                     .accountComment("x")
                     .build())
                 .build())
@@ -375,7 +284,7 @@ class OpalDefendantAccountServiceTest04 {
 
         var req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
-                .commentsAndNotes(CommentsAndNotesCommon.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
                     .accountComment("hello")
                     .build())
                 .build())

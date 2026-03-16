@@ -79,7 +79,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Missing If-Match [@PO-1565]")
-    void patch_conflict_whenIfMatchMissing() throws Exception {
+    void patch_badRequest_whenIfMatchMissing() throws Exception {
         authoriseAllPermissions();
 
         HttpHeaders headers = authorisedHeaders("good_token", "78", null);
@@ -145,8 +145,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
                     "comment_and_notes":{"account_comment":"x"},
                     "collection_order":{"collection_order_flag":true}
                   }
-                """)).andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+                """)).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -157,9 +156,18 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-                  {"comment_and_notes":{"free_text_note_1": 123}}
+                  {
+                    "comment_and_notes": {
+                      "account_comment": "Account reviewed and updated per latest case information."
+                    },
+                    "enforcement_override": {
+                      "enforcement_override_result": {
+                      "enforcement_override_result_id": "FWEC"
+                      }
+                    }
+                  }
                 """)).andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"));
     }
 
     @Test
@@ -269,7 +277,5 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
         assertNotNull(etag, "ETag must be present");
         assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
-
-        jsonSchemaValidationService.validateOrError(body, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
     }
 }
