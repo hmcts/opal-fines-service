@@ -382,7 +382,7 @@ paths:
                 collection_order:
                   $ref: './common.yaml#/components/schemas/collectionOrder'
 
-                comment_and_notes:
+                comments_and_notes:
                   $ref: './common.yaml#/components/schemas/commentsAndNotes'
 
                 enforcement_court:
@@ -412,7 +412,7 @@ paths:
                     format: int64
                   collection_order:
                     $ref: './common.yaml#/components/schemas/collectionOrder'
-                  comment_and_notes:
+                  comments_and_notes:
                     $ref: './common.yaml#/components/schemas/commentsAndNotes'
                   enforcement_court:
                     $ref: '#/components/schemas/enforcementCourt'
