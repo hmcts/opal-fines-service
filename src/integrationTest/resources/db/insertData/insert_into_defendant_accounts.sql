@@ -141,12 +141,12 @@ VALUES ( 0077, 'N', 'Sainsco'
        , 'Graham', 'Anna', 'Ms'
        , 'Lumber House', '77 Gordon Road', 'Maidstone, Kent'
        , NULL, NULL, 'MA4 1AL'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL),
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL),
        ( 0078, 'N', 'Sainsco'
        , 'Wilkins', 'Dave', 'Mr'
        , 'Lumber House', '78 Gordon Road', 'Maidstone, Kent'
        , NULL, NULL, 'MA5 1AL'
-       , 'Debtor', '1970-02-03 00:00:00', 43, 'A11111A', NULL);
+       , 'Defendant', '1970-02-03 00:00:00', 43, 'A11111A', NULL);
 
 INSERT INTO debtor_detail
 ( party_id, vehicle_make, vehicle_registration,
@@ -509,7 +509,7 @@ VALUES (555, 'Y', 'TechCorp Solutions Ltd',
         NULL, NULL, NULL,
         'Business Park', '42 Innovation Drive', 'Tech District',
         'Birmingham', NULL, 'B15 3TG',
-        'Debtor', NULL, NULL, NULL, NULL);
+        'Defendant', NULL, NULL, NULL, NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -535,7 +535,7 @@ VALUES (666, 'Y', 'TechCorp Global Ltd',
         NULL, NULL, NULL,
         'Corporate Plaza', '15 Finance Street', 'Business Quarter',
         'Manchester', NULL, 'M1 4BD',
-        'Debtor', NULL, NULL, NULL, NULL);
+        'Defendant', NULL, NULL, NULL, NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -561,7 +561,7 @@ VALUES (777, 'Y', 'TechCorp Completed Ltd',
         NULL, NULL, NULL,
         'Completed Business Park', '99 Finished Drive', 'Final District',
         'London', NULL, 'EC1A 1BB',
-        'Debtor', NULL, NULL, NULL, NULL);
+        'Defendant', NULL, NULL, NULL, NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -605,7 +605,7 @@ VALUES (444, 'N', NULL,
         'Graham', 'Robert', 'Mr',
         'High Street', '123 Main Road', 'London',
         NULL, NULL, 'SW1A 1AA',
-        'Debtor', '1975-05-15 00:00:00', 48, 'B22222B', NULL);
+        'Defendant', '1975-05-15 00:00:00', 48, 'B22222B', NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -666,7 +666,7 @@ VALUES ( 10001, 'Y', 'Kings Arms'
        , 'McNamara', 'Peter', 'Ms'
        , 'Regent Court', '10001 Sydney Road', 'Bournemouth, Dorset'
        , NULL, NULL, 'BH3 2AG'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 
 INSERT INTO defendant_account_parties
@@ -758,7 +758,7 @@ VALUES ( 10002, 'Y', 'Kings Arms'
        , 'McNamara', 'Peter', 'Ms'
        , 'Regent Court', '10001 Sydney Road', 'Bournemouth, Dorset'
        , NULL, NULL, 'BH3 2AG'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 
 INSERT INTO defendant_account_parties
@@ -847,7 +847,7 @@ VALUES ( 10003, 'Y', 'Kings Arms'
        , 'McNamara', 'Peter', 'Ms'
        , 'Regent Court', '10001 Sydney Road', 'Bournemouth, Dorset'
        , NULL, NULL, 'BH3 2AG'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 
 INSERT INTO defendant_account_parties
@@ -935,7 +935,7 @@ VALUES ( 10004, 'N', 'Sainsco'
        , 'Gallagher', 'Eduardo', 'Mr'
        , 'Round House', '123 Holdenhurst Road', 'Poole, Dorset'
        , NULL, NULL, 'BH13 1PO'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI1111C', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'NI1111C', NULL);
 
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
@@ -1142,7 +1142,7 @@ VALUES ( 991199, 'N', 'Sainsco'
        , 'Surnamey', 'Forenamey', 'Mr'
        , 'Square House', '123 Holdenhurst Close', 'Poole, Dorset'
        , NULL, NULL, 'BH13 1PO'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
 
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
@@ -1192,7 +1192,7 @@ VALUES ( 991198, 'N', 'Sainsco'
        , 'Surnamey', 'Forenamey', 'Mr'
        , 'Square House', '123 Holdenhurst Close', 'Poole, Dorset'
        , NULL, NULL, 'BH13 1PO'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
 
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,

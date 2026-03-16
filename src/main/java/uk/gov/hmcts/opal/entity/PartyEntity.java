@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +27,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.UpdateTimestamp;
+import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Entity
@@ -80,7 +82,8 @@ public class PartyEntity implements FullNameBuilder {
     private String postcode;
 
     @Column(name = "account_type", length = 20)
-    private String accountType;
+    @Convert(converter = AccountTypeConverter.class)
+    private AccountType accountType;
 
     @Column(name = "birth_date")
     @Temporal(TemporalType.DATE)
