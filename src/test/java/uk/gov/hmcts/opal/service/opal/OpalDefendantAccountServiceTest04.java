@@ -264,14 +264,18 @@ class OpalDefendantAccountServiceTest04 {
         when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .collectionOrder(CollectionOrderDto.builder()
-                .collectionOrderFlag(true)
-                .collectionOrderDate("not-a-date")
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .collectionOrderDate(LocalDate.parse("not-a-date"))
+                    .build())
                 .build())
+            .version(BigInteger.valueOf(1))
             .build();
 
         assertThrows(IllegalArgumentException.class, () ->
-            service.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST"));
+            service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST")
+        );
         verify(defendantAccountRepository, never()).save(any());
     }
 
