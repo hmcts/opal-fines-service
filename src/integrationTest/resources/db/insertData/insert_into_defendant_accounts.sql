@@ -1073,6 +1073,57 @@ INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, or
 VALUES (2200401, 22004, 'AliasSurnameSeed', 'AliasForenamesSeed', 1, NULL)
 ON CONFLICT (alias_id) DO NOTHING;
 
+-- === Convert defendant type cleanup dataset ===
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number,
+  amount_paid, account_balance, amount_imposed, account_status,
+  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+  collection_order, payment_card_requested )
+VALUES (23005, 0, 78, '23005A',
+        0.00, 0.00, 0.00, 'L',
+        '23005PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+ON CONFLICT (defendant_account_id) DO NOTHING;
+
+INSERT INTO parties
+( party_id, organisation, organisation_name,
+  surname, forenames, title,
+  address_line_1, postcode, birth_date, national_insurance_number, last_changed_date )
+VALUES (23005, 'N', NULL,
+        'ConvertSeed', 'Casey', 'Mx',
+        'Seed Address 23005', 'SE3 0AA', '2008-01-01 00:00:00', 'SEED23005', NULL),
+       (23006, 'N', NULL,
+        'GuardianSeed', 'Morgan', 'Ms',
+        'Seed Address 23006', 'SE3 0AB', '1982-02-02 00:00:00', 'SEED23006', NULL)
+ON CONFLICT (party_id) DO NOTHING;
+
+INSERT INTO defendant_account_parties
+( defendant_account_party_id, defendant_account_id, party_id, association_type, debtor )
+VALUES (230051, 23005, 23005, 'Defendant', 'Y'),
+       (230052, 23005, 23006, 'Parent/Guardian', 'Y')
+ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
+INSERT INTO debtor_detail
+( party_id, vehicle_make, vehicle_registration,
+  employer_name, employer_address_line_1, employer_postcode,
+  employee_reference, employer_telephone, employer_email,
+  document_language, document_language_date, hearing_language, hearing_language_date )
+VALUES
+    ( 23005, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL ),
+    ( 23006, 'Guardian Vehicle', 'GU23ARD',
+      'Guardian Employer', '23 Parent Street', 'PG1 2AA',
+      'PGREF', '02071234567', 'guardian@example.com',
+      'EN', NULL, 'EN', NULL )
+ON CONFLICT (party_id) DO NOTHING;
+
+INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES (230061, 23006, 'GuardianAlias', 'Morgan', 1, NULL),
+       (230062, 23006, 'GuardianAliasTwo', 'Morgan', 2, NULL)
+ON CONFLICT (alias_id) DO NOTHING;
+
 -- Populate with Enforcement
 INSERT INTO enforcements
 ( enforcement_id, defendant_account_id, posted_date, posted_by,

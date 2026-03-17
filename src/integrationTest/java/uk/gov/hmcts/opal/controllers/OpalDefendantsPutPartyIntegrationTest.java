@@ -127,6 +127,21 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
+
+        Integer dapCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ?",
+            Integer.class,
+            20010L
+        );
+        Integer parentGuardianCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ? "
+                + "AND association_type = 'Parent/Guardian'",
+            Integer.class,
+            20010L
+        );
+
+        assertEquals(1, dapCount);
+        assertEquals(0, parentGuardianCount);
     }
 
     @Test
@@ -460,6 +475,113 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         assertEquals("EN", row.get("document_language"));
 
         Integer updatedVersion = versionFor(20010L);
+        assertEquals(currentVersion + 1, updatedVersion);
+    }
+
+    @Test
+    @DisplayName("OPAL: PUT Replace DAP – Individual to organisation removes sibling parent guardian")
+    void put_replace_dap_individualToOrganisation_removesParentGuardianGraph() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(23005L);
+        String etag = "\"" + currentVersion + "\"";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, etag);
+
+        String body = """
+            {
+              "defendant_account_party_type": "Defendant",
+              "is_debtor": true,
+              "party_details": {
+                "party_id": "23005",
+                "organisation_flag": true,
+                "organisation_details": { "organisation_name": "Converted Company Ltd" }
+              },
+              "address": {
+                "address_line_1": "230 Convert Street",
+                "postcode": "CV1 2AB"
+              },
+              "contact_details": {
+                "primary_email_address": "convert@example.com",
+                "work_telephone_number": "02071112222"
+              },
+              "vehicle_details": {
+                "vehicle_make_and_model": "Ford Transit",
+                "vehicle_registration": "CO23NVT"
+              },
+              "employer_details": {
+                "employer_name": "Converted Employer",
+                "employer_address": {
+                  "address_line_1": "23 Employer Way",
+                  "postcode": "CV1 2AC"
+                }
+              },
+              "language_preferences": {
+                "document_language_preference": { "language_code": "EN" },
+                "hearing_language_preference": { "language_code": "CY" }
+              }
+            }
+            """;
+
+        ResultActions call = mockMvc.perform(
+            put("/defendant-accounts/23005/defendant-account-parties/230051")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
+
+        call.andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
+                .value("Converted Company Ltd"));
+
+        Integer dapCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ?",
+            Integer.class,
+            23005L
+        );
+        Integer parentGuardianCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ? "
+                + "AND association_type = 'Parent/Guardian'",
+            Integer.class,
+            23005L
+        );
+        Integer parentGuardianPartyCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM parties WHERE party_id = ?",
+            Integer.class,
+            23006L
+        );
+        Integer parentGuardianDebtorDetailCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM debtor_detail WHERE party_id = ?",
+            Integer.class,
+            23006L
+        );
+        Integer parentGuardianAliasCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM aliases WHERE party_id = ?",
+            Integer.class,
+            23006L
+        );
+        Map<String, Object> defendantParty = jdbcTemplate.queryForMap(
+            "SELECT organisation, organisation_name FROM parties WHERE party_id = ?",
+            23005L
+        );
+
+        assertEquals(1, dapCount);
+        assertEquals(0, parentGuardianCount);
+        assertEquals(0, parentGuardianPartyCount);
+        assertEquals(0, parentGuardianDebtorDetailCount);
+        assertEquals(0, parentGuardianAliasCount);
+        assertEquals(Boolean.TRUE, defendantParty.get("organisation"));
+        assertEquals("Converted Company Ltd", defendantParty.get("organisation_name"));
+
+        Integer updatedVersion = versionFor(23005L);
         assertEquals(currentVersion + 1, updatedVersion);
     }
 }

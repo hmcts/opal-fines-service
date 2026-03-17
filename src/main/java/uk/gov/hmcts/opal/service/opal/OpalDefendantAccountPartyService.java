@@ -44,6 +44,7 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountPartiesRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -58,6 +59,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final AmendmentRepositoryService amendmentRepositoryService;
 
     private final DebtorDetailRepositoryService debtorDetailRepositoryService;
+
+    private final DefendantAccountPartiesRepositoryService defendantAccountPartiesRepositoryService;
 
     private final AliasRepositoryService aliasRepositoryService;
 
@@ -183,12 +186,17 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug("replaceDefendantAccountParty:  pre-update org: {}, surname: {}", party.getOrganisationName(),
             party.getSurname());
 
+        boolean wasOrganisation = party.isOrganisation();
         OpalDefendantAccountBuilders.applyPartyCoreReplace(party, request.getPartyDetails());
         OpalDefendantAccountBuilders.applyPartyAddressReplace(party, request.getAddress());
         OpalDefendantAccountBuilders.applyPartyContactReplace(party, request.getContactDetails());
 
         log.debug("replaceDefendantAccountParty: post-update org: {}, surname: {}", party.getOrganisationName(),
             party.getSurname());
+
+        if (shouldRemoveParentGuardian(dap, wasOrganisation, request)) {
+            removeSiblingParentGuardian(account, dapId);
+        }
 
         boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
         replaceDebtorDetail(party.getPartyId(), request.getVehicleDetails(), request.getEmployerDetails(),
@@ -214,6 +222,56 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(bumpVersion(accountId).getVersion())
             .build();
+    }
+
+    private boolean shouldRemoveParentGuardian(DefendantAccountPartiesEntity dap, boolean wasOrganisation,
+        DefendantAccountParty request) {
+        return "Defendant".equalsIgnoreCase(dap.getAssociationType())
+            && !wasOrganisation
+            && Boolean.TRUE.equals(Optional.ofNullable(request.getPartyDetails())
+            .map(PartyDetails::getOrganisationFlag)
+            .orElse(null));
+    }
+
+    private void removeSiblingParentGuardian(DefendantAccountEntity account, Long replacedDapId) {
+        account.getParties().stream()
+            .filter(party -> !party.getDefendantAccountPartyId().equals(replacedDapId))
+            .filter(party -> "Parent/Guardian".equalsIgnoreCase(party.getAssociationType()))
+            .findFirst()
+            .ifPresent(parentGuardianDap -> removeParentGuardianGraph(account, parentGuardianDap));
+    }
+
+    private void removeParentGuardianGraph(DefendantAccountEntity account,
+        DefendantAccountPartiesEntity parentGuardianDap) {
+        PartyEntity parentGuardianParty = parentGuardianDap.getParty();
+        Long parentGuardianPartyId = parentGuardianParty != null ? parentGuardianParty.getPartyId() : null;
+
+        log.debug("removeParentGuardianGraph: removing dapId={}, partyId={}",
+            parentGuardianDap.getDefendantAccountPartyId(), parentGuardianPartyId);
+
+        if (parentGuardianPartyId != null) {
+            aliasRepositoryService.deleteByPartyId(parentGuardianPartyId);
+            debtorDetailRepositoryService.deleteByPartyId(parentGuardianPartyId);
+        }
+
+        detachDeletedPartyFromAccount(account, parentGuardianDap.getDefendantAccountPartyId());
+        defendantAccountPartiesRepositoryService.deleteAndFlush(parentGuardianDap);
+
+        if (parentGuardianPartyId != null) {
+            partyRepositoryService.deleteById(parentGuardianPartyId);
+        }
+    }
+
+    private void detachDeletedPartyFromAccount(DefendantAccountEntity account, Long defendantAccountPartyId) {
+        if (account.getParties() == null) {
+            return;
+        }
+
+        try {
+            account.getParties().removeIf(party -> party.getDefendantAccountPartyId().equals(defendantAccountPartyId));
+        } catch (UnsupportedOperationException e) {
+            log.debug("detachDeletedPartyFromAccount: account parties collection is immutable in this context");
+        }
     }
 
     private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
@@ -431,4 +489,3 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     }
 
 }
-

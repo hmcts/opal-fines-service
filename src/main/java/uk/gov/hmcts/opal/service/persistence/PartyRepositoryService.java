@@ -37,4 +37,12 @@ public class PartyRepositoryService {
         return save(updated);
     }
 
+    @Transactional
+    public void deleteById(Long partyId) {
+        PartyEntity existing = findById(partyId);
+        log.debug("Deleting PartyEntity with partyId: {}", partyId);
+        repository.delete(existing);
+        repository.flush();
+    }
+
 }

@@ -30,4 +30,12 @@ public class DebtorDetailRepositoryService {
     public DebtorDetailEntity save(DebtorDetailEntity debtorDetailEntity) {
         return debtorDetailRepository.save(debtorDetailEntity);
     }
+
+    @Transactional
+    public void deleteByPartyId(Long partyId) {
+        findByPartyId(partyId).ifPresent(debtorDetail -> {
+            debtorDetailRepository.delete(debtorDetail);
+            debtorDetailRepository.flush();
+        });
+    }
 }
