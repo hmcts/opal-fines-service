@@ -57,8 +57,12 @@ public class DefendantAccountPartyService {
         if (userState.hasBusinessUnitUserWithPermission(buId,
                                                         FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountPartyServiceProxy.addDefendantAccountParty(defendantAccountId,
-                                                                                  defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
-                                                                                  getBusinessUnitUserIdForBusinessUnit(userState, buId));
+                                                                               defendantAccountPartyId,
+                                                                               businessUnitId,
+                                                                               getBusinessUnitUserIdForBusinessUnit(userState, buId),
+                                                                               postedBy,
+                                                                               ifMatch,
+                                                                               request);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }

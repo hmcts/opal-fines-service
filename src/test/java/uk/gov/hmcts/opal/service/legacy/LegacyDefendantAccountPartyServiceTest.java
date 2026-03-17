@@ -722,6 +722,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             "Individual details must be null when organisation details are present");
     }
 
+
+
     @Test
     void replaceDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {
         // Build a legacy entity with only individualDetails populated
