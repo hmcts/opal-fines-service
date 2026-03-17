@@ -30,7 +30,7 @@ services:
       - OPAL_REDIS_ENABLED=false
       - SERVICEBUS_CONNECTION_STRING=Endpoint=sb://sb-emulator/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true
       - AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1+...;BlobEndpoint=http://azurite:10000/devstoreaccount1;
-      - AZURE_STORAGE_CONTAINER=test-container
+      - REPORTS_AZURE_STORAGE_CONTAINER=reports
 
 
     ports:
