@@ -436,7 +436,8 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleSubmitterCannotValidate_forbidden() {
         SubmitterCannotValidateException ex =
-            new SubmitterCannotValidateException("A single user cannot submit and validate the same Draft Account");
+            new SubmitterCannotValidateException("A single user cannot submit and validate the same Draft Account",
+                "Pablo", "Pablo");
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleSubmitterCannotValidateException(ex);
 
         assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());

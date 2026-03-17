@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -138,6 +139,15 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+
+        verify(securityEventLoggingService).logEvent(
+            eq("Business Function - Approval of Draft Account"),
+            eq("Success"),
+            eq((short) 65),
+            eq("Approval"),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -173,6 +183,15 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.title").value("Submitter cannot validate"))
             .andExpect(jsonPath("$.detail")
                 .value("A single user cannot submit and validate the same Draft Account"));
+
+        verify(securityEventLoggingService).logEvent(
+            eq("Business Function - Approval of Draft Account"),
+            eq("Failure"),
+            eq((short) 78),
+            eq("Approval"),
+            any(),
+            any()
+        );
     }
 
 

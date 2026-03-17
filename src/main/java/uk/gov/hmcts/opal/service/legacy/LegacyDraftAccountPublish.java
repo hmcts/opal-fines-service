@@ -29,8 +29,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
     public static final String CREATE_DEFENDANT_ACCOUNT = "createAccount";
 
-    public static final String ERROR_MESSAGE_TEMPLATE = """
-    An error was encountered during publication of the account, please contact the service desk. Error code: [%s]""";
+    public static final String ERROR_MESSAGE_TEMPLATE =
+        "An error was encountered during publication of the account, please contact the service desk. Error code: [%s]";
 
     private final GatewayService gatewayService;
     private final DraftAccountTransactional draftAccountTransactional;
