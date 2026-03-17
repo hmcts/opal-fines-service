@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.EntityNotSavedException;
@@ -19,7 +20,6 @@ import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
-import uk.gov.hmcts.opal.util.LogUtil;
 
 @Service
 @RequiredArgsConstructor
