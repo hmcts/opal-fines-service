@@ -226,40 +226,43 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     private boolean shouldRemoveParentGuardian(DefendantAccountPartiesEntity dap, boolean wasOrganisation,
         DefendantAccountParty request) {
-        return "Defendant".equalsIgnoreCase(dap.getAssociationType())
-            && !wasOrganisation
-            && Boolean.TRUE.equals(Optional.ofNullable(request.getPartyDetails())
+        boolean isDefendantParty = "Defendant".equalsIgnoreCase(dap.getAssociationType());
+        boolean isConvertToOrganisation = Optional.ofNullable(request.getPartyDetails())
             .map(PartyDetails::getOrganisationFlag)
-            .orElse(null));
+            .filter(Boolean.TRUE::equals)
+            .isPresent();
+
+        return isDefendantParty && !wasOrganisation && isConvertToOrganisation;
     }
 
     private void removeSiblingParentGuardian(DefendantAccountEntity account, Long replacedDapId) {
-        account.getParties().stream()
+        findSiblingParentGuardian(account, replacedDapId)
+            .ifPresent(parentGuardianDap -> removeParentGuardianGraph(account, parentGuardianDap));
+    }
+
+    private Optional<DefendantAccountPartiesEntity> findSiblingParentGuardian(DefendantAccountEntity account,
+        Long replacedDapId) {
+        return account.getParties().stream()
             .filter(party -> !party.getDefendantAccountPartyId().equals(replacedDapId))
             .filter(party -> "Parent/Guardian".equalsIgnoreCase(party.getAssociationType()))
-            .findFirst()
-            .ifPresent(parentGuardianDap -> removeParentGuardianGraph(account, parentGuardianDap));
+            .findFirst();
     }
 
     private void removeParentGuardianGraph(DefendantAccountEntity account,
         DefendantAccountPartiesEntity parentGuardianDap) {
-        PartyEntity parentGuardianParty = parentGuardianDap.getParty();
-        Long parentGuardianPartyId = parentGuardianParty != null ? parentGuardianParty.getPartyId() : null;
+        Optional<Long> parentGuardianPartyId = Optional.ofNullable(parentGuardianDap.getParty())
+            .map(PartyEntity::getPartyId);
 
         log.debug("removeParentGuardianGraph: removing dapId={}, partyId={}",
-            parentGuardianDap.getDefendantAccountPartyId(), parentGuardianPartyId);
+            parentGuardianDap.getDefendantAccountPartyId(), parentGuardianPartyId.orElse(null));
 
-        if (parentGuardianPartyId != null) {
-            aliasRepositoryService.deleteByPartyId(parentGuardianPartyId);
-            debtorDetailRepositoryService.deleteByPartyId(parentGuardianPartyId);
-        }
+        parentGuardianPartyId.ifPresent(aliasRepositoryService::deleteByPartyId);
+        parentGuardianPartyId.ifPresent(debtorDetailRepositoryService::deleteByPartyId);
 
         detachDeletedPartyFromAccount(account, parentGuardianDap.getDefendantAccountPartyId());
         defendantAccountPartiesRepositoryService.deleteAndFlush(parentGuardianDap);
 
-        if (parentGuardianPartyId != null) {
-            partyRepositoryService.deleteById(parentGuardianPartyId);
-        }
+        parentGuardianPartyId.ifPresent(partyRepositoryService::deleteById);
     }
 
     private void detachDeletedPartyFromAccount(DefendantAccountEntity account, Long defendantAccountPartyId) {

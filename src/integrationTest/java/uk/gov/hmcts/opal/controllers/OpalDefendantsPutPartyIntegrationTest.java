@@ -128,20 +128,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-        Integer dapCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ?",
-            Integer.class,
-            20010L
-        );
-        Integer parentGuardianCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ? "
-                + "AND association_type = 'Parent/Guardian'",
-            Integer.class,
-            20010L
-        );
-
-        assertEquals(1, dapCount);
-        assertEquals(0, parentGuardianCount);
+        assertNoParentGuardianDap(20010L);
     }
 
     @Test
@@ -542,39 +529,16 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
                 .value("Converted Company Ltd"));
 
-        Integer dapCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ?",
-            Integer.class,
-            23005L
-        );
-        Integer parentGuardianCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ? "
-                + "AND association_type = 'Parent/Guardian'",
-            Integer.class,
-            23005L
-        );
-        Integer parentGuardianPartyCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM parties WHERE party_id = ?",
-            Integer.class,
-            23006L
-        );
-        Integer parentGuardianDebtorDetailCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM debtor_detail WHERE party_id = ?",
-            Integer.class,
-            23006L
-        );
-        Integer parentGuardianAliasCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM aliases WHERE party_id = ?",
-            Integer.class,
-            23006L
-        );
+        assertNoParentGuardianDap(23005L);
+        Integer parentGuardianPartyCount = countForId("SELECT COUNT(*) FROM parties WHERE party_id = ?", 23006L);
+        Integer parentGuardianDebtorDetailCount = countForId("SELECT COUNT(*) FROM debtor_detail WHERE party_id = ?",
+            23006L);
+        Integer parentGuardianAliasCount = countForId("SELECT COUNT(*) FROM aliases WHERE party_id = ?", 23006L);
         Map<String, Object> defendantParty = jdbcTemplate.queryForMap(
             "SELECT organisation, organisation_name FROM parties WHERE party_id = ?",
             23005L
         );
 
-        assertEquals(1, dapCount);
-        assertEquals(0, parentGuardianCount);
         assertEquals(0, parentGuardianPartyCount);
         assertEquals(0, parentGuardianDebtorDetailCount);
         assertEquals(0, parentGuardianAliasCount);
@@ -583,5 +547,21 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
         Integer updatedVersion = versionFor(23005L);
         assertEquals(currentVersion + 1, updatedVersion);
+    }
+
+    private void assertNoParentGuardianDap(Long defendantAccountId) {
+        assertEquals(1, countForId(
+            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ?",
+            defendantAccountId
+        ));
+        assertEquals(0, countForId(
+            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ? "
+                + "AND association_type = 'Parent/Guardian'",
+            defendantAccountId
+        ));
+    }
+
+    private Integer countForId(String sql, Long id) {
+        return jdbcTemplate.queryForObject(sql, Integer.class, id);
     }
 }
