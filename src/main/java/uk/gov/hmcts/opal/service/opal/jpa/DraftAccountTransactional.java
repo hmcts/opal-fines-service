@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.SubmitterCannotDeleteException;
 import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -184,6 +185,15 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
             existingAccount.setAccountStatusDate(LocalDateTime.now());
         }
+
+        if (newStatus.isDeleted()) {
+            if (existingAccount.getSubmittedBy() != null
+                && existingAccount.getSubmittedBy().equals(dto.getValidatedBy())) {
+                throw new SubmitterCannotDeleteException(
+                    "A single user cannot submit and delete the same Draft Account");
+            }
+        }
+
         // Set the timeline data as received from the front end
         existingAccount.setTimelineData(dto.getTimelineData());
 

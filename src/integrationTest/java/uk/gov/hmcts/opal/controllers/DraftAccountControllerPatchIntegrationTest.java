@@ -194,6 +194,41 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         );
     }
 
+    @Test
+    @DisplayName("Patch draft account - submitter cannot delete their own submission")
+    void testPatchDraftAccount_submitterCannotDelete_returns403() throws Exception {
+        Long draftAccountId = 7L; // submitted_by = user_003 in seed data
+
+        BusinessUnitUser buUser = BusinessUnitUser.builder()
+            .businessUnitUserId("user_003")
+            .businessUnitId((short)78)
+            .permissions(Set.of(Permission.builder()
+                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
+                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
+                .build()))
+            .build();
+        UserState userState = UserState.builder()
+            .userId(1L)
+            .userName("normal@users.com")
+            .businessUnitUser(Set.of(buUser))
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validUpdateRequestBody("78", "Deleted","A")));
+
+        resultActions.andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/submitter-cannot-delete"))
+            .andExpect(jsonPath("$.title").value("Submitter cannot delete"))
+            .andExpect(jsonPath("$.detail")
+                .value("A single user cannot submit and delete the same Draft Account"));
+    }
+
 
     @Test
     @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")

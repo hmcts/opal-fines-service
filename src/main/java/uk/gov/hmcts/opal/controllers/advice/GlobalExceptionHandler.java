@@ -46,6 +46,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.exception.SubmitterCannotDeleteException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -501,6 +502,19 @@ public class GlobalExceptionHandler {
             "Submitter cannot validate",
             "A single user cannot submit and validate the same Draft Account",
             "submitter-cannot-validate",
+            false,
+            e
+        );
+        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
+    }
+
+    @ExceptionHandler(SubmitterCannotDeleteException.class)
+    public ResponseEntity<ProblemDetail> handleSubmitterCannotValidateException(SubmitterCannotDeleteException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Submitter cannot delete",
+            "A single user cannot submit and delete the same Draft Account",
+            "submitter-cannot-delete",
             false,
             e
         );
