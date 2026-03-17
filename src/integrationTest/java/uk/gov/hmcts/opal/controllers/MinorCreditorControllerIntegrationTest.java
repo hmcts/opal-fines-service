@@ -957,7 +957,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "1")
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000800")
             .contentType(MediaType.APPLICATION_JSON)
             .header("authorization", "Bearer some_value"));
 
@@ -1012,7 +1012,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.defendant.surname").value("Kenobi"))
 
             // payment
-            .andExpect(jsonPath("$.payment.bacs").value(true))
             .andExpect(jsonPath("$.payment.is_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
     }

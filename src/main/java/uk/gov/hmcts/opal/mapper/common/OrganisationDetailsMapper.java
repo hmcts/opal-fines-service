@@ -25,6 +25,9 @@ public interface OrganisationDetailsMapper {
     OrganisationAlias toDto(uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias legacy);
 
     @Mapping(target = "organisationAliases", ignore = true)
+    OrganisationDetails toDto(PartyEntity party);
+
+    @Mapping(target = "organisationAliases", ignore = true)
     OrganisationDetailsCommon toOrganisationDetailsCommon(PartyEntity party);
 }
 

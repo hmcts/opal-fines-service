@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 
 @Service
 @RequiredArgsConstructor
@@ -40,24 +41,14 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
 
-        GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
+        Response<LegacyMinorCreditorSearchResultsResponse> response =
             gatewayService.postToGateway(SEARCH_MINOR_CREDITORS,
                                          LegacyMinorCreditorSearchResultsResponse.class,
                                          createRequest(minorCreditorEntity), null
             );
 
-        if (response.isError()) {
-            log.error(":searchMinorCreditor: Legacy Gateway response: HTTP Response Code: {}", response.code);
-            if (response.isException()) {
-                log.error(":searchMinorCreditor:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":searchMinorCreditor: Legacy Gateway: body: \n{}", response.body);
-                LegacyMinorCreditorSearchResultsResponse responseEntity = response.responseEntity;
-                log.error(":searchMinorCreditor: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":searchMinorCreditor: Legacy Gateway response: Success.");
-        }
+        checkResponseForError(response, "searchMinorCreditors");
+
         return toMinorSearchDto(response.responseEntity);
     }
 
@@ -108,25 +99,15 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     @Override
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
 
-        GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
+        Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE,
                 LegacyGetMinorCreditorAccountAtAGlanceResponse.class,
                 LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId(minorCreditorId).build(),
                 null
             );
 
-        if (response.isError()) {
-            log.error(":getMinorCreditorAtAGlance: Legacy Gateway response: HTTP Response Code: {}", response.code);
-            if (response.isException()) {
-                log.error(":getMinorCreditorAtAGlance: Exception Message: {}", response.exception.getMessage());
-            } else if (response.isLegacyFailure()) {
-                log.error(":getMinorCreditorAtAGlance: Legacy Gateway: body: \n{}", response.body);
-                LegacyGetMinorCreditorAccountAtAGlanceResponse responseEntity = response.responseEntity;
-                log.error(":getMinorCreditorAtAGlance: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":getMinorCreditorAtAGlance: Legacy Gateway response: Success.");
-        }
+        checkResponseForError(response, "getMinorCreditorAtAGlance");
+
         return atAGlanceResponseMapper.toDto(response.responseEntity);
     }
 
@@ -160,4 +141,16 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             "Legacy mode not implemented for PATCH /minor-creditor-accounts/{id}");
     }
 
+    private static <T> void checkResponseForError(Response<T> response, String method) {
+        if (response.isError()) {
+            log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
+            if (response.isException()) {
+                log.error(":{}: Exception Message:", method, response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":{}: Legacy Gateway response: Success.", method);
+        }
+    }
 }

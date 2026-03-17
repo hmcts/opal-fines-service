@@ -26,6 +26,18 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRespo
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class LegacyMinorCreditorServiceTest {
 
@@ -244,6 +256,21 @@ class LegacyMinorCreditorServiceTest {
         // Act
         GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
             .getMinorCreditorAtAGlance("gatewayException");
+        GetMinorCreditorAccountAtAGlanceResponse result =
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance("gatewayException"));
+
+        // Assert
+        assertSame(mapperResponse, result, "Expected the mapper's DTO instance to be returned");
+
+        // Verify interactions
+        verify(gatewayService, times(1)).postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            any(),
+            any()
+        );
+        verify(atAGlanceResponseMapper, times(1)).toDto(legacyResponse);
+        verifyNoMoreInteractions(gatewayService, atAGlanceResponseMapper);
     }
 
     @Test
@@ -269,8 +296,21 @@ class LegacyMinorCreditorServiceTest {
         when(atAGlanceResponseMapper.toDto(legacyResponse)).thenReturn(mapperResponse);
 
         // Act
-        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
-            .getMinorCreditorAtAGlance("legacyFailure");
+        GetMinorCreditorAccountAtAGlanceResponse result =
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance("legacyFailure"));
+
+        // Assert
+        assertSame(mapperResponse, result, "Expected the mapper's DTO instance to be returned");
+
+        // Verify interactions
+        verify(gatewayService, times(1)).postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            any(),
+            any()
+        );
+        verify(atAGlanceResponseMapper, times(1)).toDto(legacyResponse);
+        verifyNoMoreInteractions(gatewayService, atAGlanceResponseMapper);
     }
 
     @Test

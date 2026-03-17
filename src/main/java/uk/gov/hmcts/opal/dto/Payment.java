@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 public class Payment {
 
     @JsonProperty("is_bacs")
-    private boolean isBacs;
+    private Boolean bacs;
 
     @JsonProperty("hold_payment")
-    private boolean holdPayment;
+    private Boolean holdPayment;
 }

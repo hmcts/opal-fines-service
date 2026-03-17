@@ -33,6 +33,11 @@ public interface IndividualDetailsMapper {
     @Mapping(target = "dateOfBirth", ignore = true)
     @Mapping(target = "nationalInsuranceNumber", ignore = true)
     @Mapping(target = "individualAliases", ignore = true)
+    IndividualDetails toDto(PartyEntity party);
+
+    @Mapping(target = "dateOfBirth", ignore = true)
+    @Mapping(target = "nationalInsuranceNumber", ignore = true)
+    @Mapping(target = "individualAliases", ignore = true)
     IndividualDetailsCommon toIndividualDetailsCommon(PartyEntity party);
 
     @Named("toIndividualDetailsWhenPartyIsIndividual")
