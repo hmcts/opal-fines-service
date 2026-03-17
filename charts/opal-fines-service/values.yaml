@@ -45,6 +45,12 @@ java:
           alias: SERVICEBUS_SHARED_ACCESS_KEY
         - name: servicebus-logging-pdpl-queue-name
           alias: SERVICEBUS_LOGGING_PDPL_QUEUE_NAME
+        - name: servicebus-report-queue-name
+          alias: SERVICEBUS_REPORT_QUEUE_NAME
+        - name: storage-connection-string
+          alias: AZURE_STORAGE_CONNECTION_STRING
+        - name: reports-storage-container-name
+          alias: REPORTS_AZURE_STORAGE_CONTAINER
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.platform.hmcts.net
@@ -54,6 +60,7 @@ java:
     OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
+    SERVICEBUS_REPORT_PROTOCOL: amqps
   postgresql:
     enabled: false
     image:
