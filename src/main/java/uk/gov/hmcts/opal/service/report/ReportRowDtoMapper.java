@@ -39,7 +39,6 @@ public interface ReportRowDtoMapper {
             return null;
         }
 
-        // 1) Prefer associationType == "Defendant"
         for (DefendantAccountPartiesEntity link : links) {
             if (link == null) {
                 continue;
@@ -60,7 +59,6 @@ public interface ReportRowDtoMapper {
             }
         }
 
-        // 3) Fallback to first non-null party
         for (DefendantAccountPartiesEntity link : links) {
             if (link == null) {
                 continue;
