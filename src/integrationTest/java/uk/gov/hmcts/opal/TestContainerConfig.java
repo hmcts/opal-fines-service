@@ -29,7 +29,7 @@ public class TestContainerConfig {
         //This allows a local version of the legacy stub to be used for testing.
         if (isPortAvailable(4553)) {
             final GenericContainer<?> legacyStubContainer =
-                new GenericContainer<>(DockerImageName.parse("sdshmctspublic.azurecr.io/opal/legacy-db-stub:latest"))
+                new GenericContainer<>(DockerImageName.parse("hmctsprod.azurecr.io/opal/legacy-db-stub:latest"))
                     .withExposedPorts(4553);
             legacyStubContainer.setPortBindings(List.of("4553:4553"));
             legacyStubContainer.start();

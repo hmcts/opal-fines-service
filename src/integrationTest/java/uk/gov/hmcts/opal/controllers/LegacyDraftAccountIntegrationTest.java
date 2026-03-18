@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -24,7 +23,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
     @Test
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @DisplayName("Publish draft account does not return legacy server error in response [@PO-2819]")
     void testPublishDraftAccountGobServerErrorIsNotReturnedInResponse() throws Exception {
 
