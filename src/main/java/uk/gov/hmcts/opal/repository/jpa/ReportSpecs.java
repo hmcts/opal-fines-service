@@ -220,6 +220,7 @@ public final class ReportSpecs {
                 Expression<LocalDate> collOrder = root.get("collectionOrderEffectiveDate").as(LocalDate.class);
                 preds.add(cb.between(collOrder, today, in7));
             } catch (IllegalArgumentException ignore) {
+                ignore.getMessage();
             }
 
             try {
@@ -227,6 +228,7 @@ public final class ReportSpecs {
                 Expression<LocalDate> payCard = root.get("paymentCardRequestedDate").as(LocalDate.class);
                 preds.add(cb.between(payCard, today, in7));
             } catch (IllegalArgumentException ignore) {
+                ignore.getMessage();
             }
 
             if (preds.isEmpty()) {
