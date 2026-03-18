@@ -9,14 +9,14 @@ import org.springframework.test.context.ActiveProfiles;
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @Disabled("Fails against current legacy stub responses")
     @Test
+    @Disabled("Fails against published legacy stub image mappings")
     void testPostSearchMinorCreditorSuccess() throws Exception {
         super.postSearchMinorCreditorImpl_Success(log);
     }
 
-    @Disabled("Fails against current legacy stub responses")
     @Test
+    @Disabled("Fails against published legacy stub image mappings")
     void testPostSearchMinorCreditor_500Error() throws Exception {
         super.legacyPostSearchMinorCreditorImpl_500Error(log);
     }

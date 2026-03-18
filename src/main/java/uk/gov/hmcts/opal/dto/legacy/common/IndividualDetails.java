@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
@@ -29,7 +30,10 @@ public class IndividualDetails {
     @XmlElement(name = "title")
     private String title;
 
-    @XmlElement(name = "forenames")
+    @XmlElements({
+        @XmlElement(name = "forenames"),
+        @XmlElement(name = "first_names")
+    })
     private String firstNames;
 
     @XmlElement(name = "surname")
