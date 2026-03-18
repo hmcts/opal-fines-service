@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -50,7 +49,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
         return headers;
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
     void testGetDefendantAccountParty_Happy() throws Exception {
@@ -77,7 +75,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
         jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Organisation Only [@PO-1973]")
     void testGetDefendantAccountParty_Organisation() throws Exception {
@@ -103,7 +100,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
         jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - 500 Error [@PO-1973]")
     void testGetDefendantAccountParty_500Error() throws Exception {
@@ -120,7 +116,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
             .andExpect(header().doesNotExist("ETag"));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
     void testPutReplaceDefAccParty_Success() throws Exception {
@@ -142,7 +137,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
                 .value("Defendant"));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
     void testPutReplaceDefAccParty_500Error() throws Exception {

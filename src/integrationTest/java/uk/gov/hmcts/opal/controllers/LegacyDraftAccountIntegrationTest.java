@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
     @Test
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @DisplayName("Publish draft account does not return legacy server error in response [@PO-2819]")
     void testPublishDraftAccountGobServerErrorIsNotReturnedInResponse() throws Exception {
 

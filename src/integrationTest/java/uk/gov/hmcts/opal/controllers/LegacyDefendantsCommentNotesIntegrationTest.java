@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +32,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 @Slf4j(topic = "opal.LegacyDefendantsCommentNotesIntegrationTest")
 class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
     void testUpdateDefAcc_CommentNotes_Success() throws Exception {
@@ -78,7 +76,6 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             .andExpect(header().string("ETag", "\"" + ++currentVersion + "\""));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 500 Error [@PO-1908]")
     void testUpdateDefAcc_CommentNotes_500Error() throws Exception {
@@ -106,7 +103,6 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             .andExpect(header().doesNotExist("ETag"));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 401 Unauthorized [@PO-1908, CEP2]")
     void testUpdateDefAcc_CommentNotes_401Unauthorized() throws Exception {
@@ -132,7 +128,6 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             .andExpect(content().string(""));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 403 Forbidden [@PO-1908, CEP3]")
     void testUpdateDefAcc_CommentNotes_403Forbidden() throws Exception {
@@ -158,7 +153,6 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             .andExpect(content().string(""));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 400 Bad Request Invalid Payload [@PO-1908, CEP1]")
     void testUpdateDefAcc_CommentNotes_400BadRequest() throws Exception {

@@ -77,7 +77,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         return headers;
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - success")
     void testPostAddEnforcement_Success() throws Exception {
@@ -97,7 +97,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(jsonPath("$.version").value(1));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - backend 500")
     void testPostAddEnforcement_500Error() throws Exception {
@@ -113,7 +113,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         res.andExpect(status().is5xxServerError());
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - forbidden without ENTER_ENFORCEMENT")
     void testPostAddEnforcement_403Forbidden() throws Exception {
@@ -143,7 +143,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - unauthorized token rejected")
     void testPostAddEnforcement_401Unauthorized() throws Exception {
