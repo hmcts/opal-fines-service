@@ -1,132 +1,221 @@
 package uk.gov.hmcts.opal.service.report;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
-public class ReportRowDtoMapperTest {
+@ExtendWith(MockitoExtension.class)
+class ReportRowDtoMapperTest {
 
-    private ReportRowDtoMapper mapper;
+    private final ReportRowDtoMapper mapper = Mappers.getMapper(ReportRowDtoMapper.class);
+
+    @Mock
     private ReportEnrichmentService enrichment;
 
-    @BeforeEach
-    void setUp() {
-        mapper = Mappers.getMapper(ReportRowDtoMapper.class);
-        enrichment = mock(ReportEnrichmentService.class);
+    @Test
+    void pickPrimaryParty_handles_null_and_empty() {
+        assertThat(mapper.pickPrimaryParty(null)).isNull();
+
+        DefendantAccountEntity acc = new DefendantAccountEntity();
+        acc.setParties(Collections.emptyList());
+        assertThat(mapper.pickPrimaryParty(acc)).isNull();
     }
 
     @Test
-    void map_shouldPopulateFields_andDetectParentGuardian_andPrisEdrDate() {
+    void pickPrimaryParty_prefers_defendant_assoc_then_debtor_then_first_non_null() {
+        DefendantAccountEntity acc = new DefendantAccountEntity();
 
-        PartyEntity party = new PartyEntity();
-        party.setPartyId(1L);
-        party.setOrganisation(false);
-        party.setSurname("Jones");
-        party.setForenames("Alice");
-        party.setBirthDate(LocalDate.of(1990, 1, 1));
-        party.setNiNumber("AB123456C");
-        party.setAddressLine1("1 High St");
-        party.setPostcode("ZZ1 1ZZ");
-        party.setMobileTelephoneNumber("07123456789");
-        party.setHomeTelephoneNumber("0123456789");
-        party.setWorkTelephoneNumber("0111222333");
-        party.setPrimaryEmailAddress("a@example.com");
+        PartyEntity p1 = new PartyEntity();
+        p1.setPartyId(1L);
+        p1.setSurname("One");
 
-        DefendantAccountPartiesEntity defendantLink = new DefendantAccountPartiesEntity();
-        defendantLink.setParty(party);
-        defendantLink.setAssociationType("Defendant");
-        defendantLink.setDebtor(false);
+        DefendantAccountPartiesEntity link1 = new DefendantAccountPartiesEntity();
+        link1.setAssociationType("something else");
+        link1.setParty(p1);
 
-        DefendantAccountPartiesEntity parentLink = new DefendantAccountPartiesEntity();
-        parentLink.setParty(party);
-        parentLink.setAssociationType("Parent/Guardian");
-        parentLink.setDebtor(false);
+        PartyEntity p2 = new PartyEntity();
+        p2.setPartyId(2L);
+        p2.setSurname("Two");
 
-        DefendantAccountEntity account = new DefendantAccountEntity();
-        account.setDefendantAccountId(42L);
-        account.setAccountNumber("00000001A");
-        account.setAmountImposed(BigDecimal.valueOf(100));
-        account.setAmountPaid(BigDecimal.valueOf(25));
-        account.setAccountBalance(BigDecimal.valueOf(75));
-        account.setCollectionOrder(true);
-        account.setJailDays(5);
-        account.setParties(List.of(defendantLink, parentLink));
-        account.setLastEnforcement("PRIS");
+        DefendantAccountPartiesEntity link2 = new DefendantAccountPartiesEntity();
+        link2.setAssociationType("DEFENDANT");
+        link2.setParty(p2);
 
-        EnforcementEntity.Lite enforcement = new EnforcementEntity.Lite();
-        enforcement.setDefendantAccountId(42L);
-        enforcement.setPostedDate(LocalDateTime.now().minusDays(2));
-        enforcement.setResultId("PRIS");
-        enforcement.setHearingDate(LocalDateTime.now().minusDays(1));
-        enforcement.setWarrantReference("W1");
+        acc.setParties(Arrays.asList(link1, link2));
+        assertThat(mapper.pickPrimaryParty(acc)).isSameAs(p2);
 
-        when(enrichment.getDebtorForParty(1L)).thenReturn(Optional.empty());
-        when(enrichment.getLatestEnforcementForAccount(42L)).thenReturn(Optional.of(enforcement));
+        // if no DEFENDANT, prefer debtor == true
+        link2.setAssociationType("notdef");
+        link1.setDebtor(Boolean.TRUE);
+        assertThat(mapper.pickPrimaryParty(acc)).isSameAs(p1);
 
-        EnforcementReportRowDto dto = mapper.map(account, enrichment);
-
-        assertNotNull(dto);
-        assertEquals("N", dto.getCompany());
-        assertTrue(dto.getDefname().startsWith("Jones"));
-        assertEquals(BigDecimal.valueOf(100), dto.getImposed());
-        assertEquals(BigDecimal.valueOf(25), dto.getPaidsf());
-        assertEquals(BigDecimal.valueOf(75), dto.getBalance());
-        assertEquals("Y", dto.getCo());
-
-        // Parent guardian detection
-        assertEquals("Y", dto.getPg());
-
-        // PRIS enforcement should populate EDR date
-        assertNotNull(dto.getEdrDate());
-
-        // enforcement fields
-        assertEquals("W1", dto.getWarrNo());
-
-        verify(enrichment).getLatestEnforcementForAccount(42L);
-        verify(enrichment).getDebtorForParty(1L);
+        // if neither, pick first non-null party
+        link1.setDebtor(Boolean.FALSE);
+        acc.setParties(Arrays.asList(link1, link2));
+        assertThat(mapper.pickPrimaryParty(acc)).isSameAs(p1);
     }
 
     @Test
-    void defname_shouldBeTruncatedTo34Characters() {
+    void enrich_maps_party_fields_and_truncates_name_and_handles_collectionOrder_and_parentGuardian() {
+        DefendantAccountEntity entity = new DefendantAccountEntity();
+        entity.setDefendantAccountId(99L);
 
         PartyEntity party = new PartyEntity();
-        party.setPartyId(2L);
+        party.setPartyId(22L);
         party.setOrganisation(false);
         party.setSurname("VeryLongSurnameThatExceedsThirtyFourCharacters");
-        party.setForenames("Forenames");
+        party.setForenames("Forename1 Forename2");
+        party.setBirthDate(LocalDate.of(1985, 6, 15));
+        party.setNiNumber("NI-123");
+        party.setAddressLine1("A1");
+        party.setAddressLine2("A2");
+        party.setAddressLine3("A3");
+        party.setPostcode("PC1 1AA");
+        party.setMobileTelephoneNumber("07123456789");
+        party.setHomeTelephoneNumber("0123456789");
+        party.setWorkTelephoneNumber("011234567");
+        party.setPrimaryEmailAddress("p1@example.com");
+        party.setSecondaryEmailAddress("p2@example.com");
 
         DefendantAccountPartiesEntity link = new DefendantAccountPartiesEntity();
+        link.setAssociationType("DEFENDANT");
         link.setParty(party);
-        link.setAssociationType("Defendant");
 
-        DefendantAccountEntity account = new DefendantAccountEntity();
-        account.setDefendantAccountId(100L);
-        account.setAccountNumber("ACC1");
-        account.setParties(List.of(link));
-        account.setCollectionOrder(false);
+        // add a parent/guardian link to test PG detection
+        DefendantAccountPartiesEntity pgLink = new DefendantAccountPartiesEntity();
+        pgLink.setAssociationType("Parent/Guardian");
 
-        when(enrichment.getDebtorForParty(2L)).thenReturn(Optional.empty());
-        when(enrichment.getLatestEnforcementForAccount(100L)).thenReturn(Optional.empty());
+        entity.setParties(Arrays.asList(link, pgLink));
 
-        EnforcementReportRowDto dto = mapper.map(account, enrichment);
+        entity.setCollectionOrder(Boolean.TRUE);
+        entity.setProsecutorCaseReference("PCR-XYZ");
+        entity.setJailDays(5);
 
-        assertNotNull(dto);
-        assertTrue(dto.getDefname().length() <= 34);
+        // set enforcing court
+        CourtEntity.Lite court = new CourtEntity.Lite();
+        court.setName("Enforcing Court Name");
+        entity.setEnforcingCourt(court);
+
+        // debtor detail to be returned by enrichment
+        DebtorDetailEntity debtor = new DebtorDetailEntity();
+        debtor.setVehicleRegistration("REG-1");
+        debtor.setVehicleMake("MakeX");
+        debtor.setEmployeeReference("EMP-REF");
+        debtor.setEmployerName("ACME Ltd");
+        debtor.setEmployerAddressLine1("E1");
+        debtor.setEmployerAddressLine2("E2");
+        debtor.setEmployerAddressLine3("E3");
+        debtor.setEmployerAddressLine4("E4");
+        debtor.setEmployerAddressLine5("E5");
+        debtor.setEmployerPostcode("EPC");
+        debtor.setEmployerTelephone("0900");
+        debtor.setEmployerEmail("employer@example.com");
+
+        when(enrichment.getDebtorForParty(22L)).thenReturn(Optional.of(debtor));
+
+        // latest enforcement returned by enrichment
+        EnforcementEntity.Lite eLite = org.mockito.Mockito.mock(EnforcementEntity.Lite.class);
+        LocalDateTime posted = LocalDateTime.of(2024, 2, 2, 10, 30);
+        LocalDateTime hearingDate = LocalDateTime.of(2024, 2, 1, 9, 0);
+        when(eLite.getPostedDate()).thenReturn(posted);
+        when(eLite.getReason()).thenReturn("ReasonX");
+        when(eLite.getPostedBy()).thenReturn("user123");
+        when(eLite.getWarrantReference()).thenReturn("W-100");
+        when(eLite.getHearingCourtId()).thenReturn(555L);
+        when(eLite.getResultId()).thenReturn("PRIS");
+        when(eLite.getHearingDate()).thenReturn(hearingDate);
+
+        when(enrichment.getLatestEnforcementForAccount(99L)).thenReturn(Optional.of(eLite));
+
+        EnforcementReportRowDto dto = mapper.map(entity, enrichment);
+
+        // company = "N"
+        assertThat(dto.getCompany()).isEqualTo("N");
+
+        // defname should be truncated to 34 chars
+        assertThat(dto.getDefname()).hasSizeLessThanOrEqualTo(34);
+        assertThat(dto.getDefname()).startsWith("VeryLongSurnameThatExceeds");
+
+        assertThat(dto.getDob()).isEqualTo(LocalDate.of(1985, 6, 15));
+        assertThat(dto.getNino()).isEqualTo("NI-123");
+        assertThat(dto.getAddress1()).isEqualTo("A1");
+        assertThat(dto.getAddress2()).isEqualTo("A2");
+        assertThat(dto.getAddress3()).isEqualTo("A3");
+        assertThat(dto.getPostcode()).isEqualTo("PC1 1AA");
+        assertThat(dto.getMobtel()).isEqualTo("07123456789");
+        assertThat(dto.getHometel()).isEqualTo("0123456789");
+        assertThat(dto.getBustel()).isEqualTo("011234567");
+        assertThat(dto.getEmail1()).isEqualTo("p1@example.com");
+        assertThat(dto.getEmail2()).isEqualTo("p2@example.com");
+
+        // imposing court
+        assertThat(dto.getImposingCourt()).isEqualTo("Enforcing Court Name");
+
+        // debtor details
+        assertThat(dto.getVehicleReg()).isEqualTo("REG-1");
+        assertThat(dto.getVehicleMake()).isEqualTo("MakeX");
+        assertThat(dto.getEmpRef()).isEqualTo("EMP-REF");
+        assertThat(dto.getEmpName()).isEqualTo("ACME Ltd");
+        assertThat(dto.getEmpAdd1()).isEqualTo("E1");
+        assertThat(dto.getEmpAdd2()).isEqualTo("E2");
+        assertThat(dto.getEmpAdd3()).isEqualTo("E3");
+        assertThat(dto.getEmpAdd4()).isEqualTo("E4");
+        assertThat(dto.getEmpAdd5()).isEqualTo("E5");
+        assertThat(dto.getEmpPCode()).isEqualTo("EPC");
+        assertThat(dto.getEmpTel()).isEqualTo("0900");
+        assertThat(dto.getEmpEmail()).isEqualTo("employer@example.com");
+
+        // latest enforcement mapping
+        assertThat(dto.getLeDate()).isEqualTo(LocalDate.from(posted));
+        assertThat(dto.getEnfReason()).isEqualTo("ReasonX");
+        assertThat(dto.getUser()).isEqualTo("user123");
+        assertThat(dto.getWarrNo()).isEqualTo("W-100");
+        assertThat(dto.getEnfCrt()).isEqualTo(String.valueOf(555));
+        assertThat(dto.getEdrDate()).isEqualTo(LocalDate.from(hearingDate));
+
+        // collection order mapping
+        assertThat(dto.getCo()).isEqualTo("Y");
+
+        // parent guardian detection
+        assertThat(dto.getPg()).isEqualTo("Y");
+
+        // pcr and did fallback (mapped from entity if not provided by mapping)
+        assertThat(dto.getPcr()).isEqualTo("PCR-XYZ");
+        assertThat(dto.getDid()).isEqualTo(5);
+    }
+
+    @Test
+    void enrich_handles_missing_optional_parts_and_nulls() {
+        DefendantAccountEntity entity = new DefendantAccountEntity();
+        // no parties, no enforcing court, no enrichment returns -> should not NPE
+        EnforcementReportRowDto dto = mapper.map(entity, enrichment);
+
+        // defaults
+        assertThat(dto.getCompany()).isNull();
+        assertThat(dto.getDefname()).isNull();
+        assertThat(dto.getPg()).isNull();
+
+        // collection order null -> co null
+        entity.setCollectionOrder(null);
+        EnforcementReportRowDto dto2 = mapper.map(entity, enrichment);
+        assertThat(dto2.getCo()).isNull();
     }
 }
