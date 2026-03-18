@@ -11,6 +11,11 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration
 public class TestContainerConfig {
 
+    private static final int LEGACY_STUB_PORT = 4553;
+    private static final String LOCAL_LEGACY_GATEWAY_URL = "http://localhost:%d/opal".formatted(LEGACY_STUB_PORT);
+    private static final String DEFAULT_LEGACY_STUB_IMAGE = "sdshmctspublic.azurecr.io/opal/legacy-db-stub:latest";
+    private static final String LEGACY_STUB_IMAGE =
+        System.getenv().getOrDefault("OPAL_LEGACY_STUB_IMAGE", DEFAULT_LEGACY_STUB_IMAGE);
     public static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
 
     static {
@@ -27,13 +32,17 @@ public class TestContainerConfig {
 
         //Check if the port is available before starting the legacy stub container.
         //This allows a local version of the legacy stub to be used for testing.
-        if (isPortAvailable(4553)) {
+        if (isPortAvailable(LEGACY_STUB_PORT)) {
             final GenericContainer<?> legacyStubContainer =
-                new GenericContainer<>(DockerImageName.parse("sdshmctspublic.azurecr.io/opal/legacy-db-stub:latest"))
-                    .withExposedPorts(4553);
-            legacyStubContainer.setPortBindings(List.of("4553:4553"));
+                new GenericContainer<>(DockerImageName.parse(LEGACY_STUB_IMAGE))
+                    .withExposedPorts(LEGACY_STUB_PORT);
+            legacyStubContainer.setPortBindings(List.of("%d:%d".formatted(LEGACY_STUB_PORT, LEGACY_STUB_PORT)));
             legacyStubContainer.start();
         }
+    }
+
+    public static String legacyGatewayUrl() {
+        return LOCAL_LEGACY_GATEWAY_URL;
     }
 
     public static boolean isPortAvailable(int port) {
