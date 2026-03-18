@@ -162,18 +162,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     @Override
     @Transactional
-    public GetDefendantAccountPartyResponse addDefendantAccountParty(
-        Long accountId, Long dapId, String businessUnitId,
-        String postedBy, String businessUserId, String ifMatch, DefendantAccountParty request) {
-
-        // not implemented.
-        throw new UnsupportedOperationException("Adding a party to an account is not yet supported in Opal");
-    }
-
-
-
-    @Override
-    @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
         String postedBy, String businessUserId) {
