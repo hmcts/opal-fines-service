@@ -32,6 +32,9 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
 class ReportQueueConnectivityIntegrationTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportQueueConnectivityIntegrationTest.class);
+    public static final String SERVICEBUS_CONNECTION_STRING =
+        "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;"
+            + "UseDevelopmentEmulator=true";
 
     private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
@@ -42,8 +45,7 @@ class ReportQueueConnectivityIntegrationTest {
     @BeforeEach
     void setUp() {
         String connectionString = optionalEnv("SERVICEBUS_CONNECTION_STRING",
-            "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;"
-                + "UseDevelopmentEmulator=true");
+            SERVICEBUS_CONNECTION_STRING);
         queueName = optionalEnv("SERVICEBUS_REPORT_QUEUE_NAME", "report");
         String protocol = optionalEnv("SERVICEBUS_REPORT_PROTOCOL", "amqp");
 
