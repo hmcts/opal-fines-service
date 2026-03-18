@@ -78,7 +78,7 @@ opal-frontend:
   enabled: ${DEV_ENABLE_OPAL_FRONT_END}
   nodejs:
     releaseNameOverride: ${SERVICE_NAME}-frontend
-    image: 'sdshmctspublic.azurecr.io/opal/frontend:${DEV_OPAL_FRONT_END_IMAGE_SUFFIX}'
+    image: 'hmctsprod.azurecr.io/opal/frontend:${DEV_OPAL_FRONT_END_IMAGE_SUFFIX}'
     ingressHost: "opal-fines-service-pr-${CHANGE_ID}-frontend.dev.platform.hmcts.net"
     keyVaults:
       opal:
@@ -99,7 +99,7 @@ opal-user-service:
   enabled: ${DEV_ENABLE_OPAL_USER_SERVICE}
   java:
     releaseNameOverride: '{{ .Release.Name }}-user-service'
-    image: 'sdshmctspublic.azurecr.io/opal/user-service:${DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX}'
+    image: 'hmctsprod.azurecr.io/opal/user-service:${DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX}'
     ingressHost: "opal-fines-service-pr-${CHANGE_ID}-user-service.dev.platform.hmcts.net"
     keyVaults:
       opal:
@@ -133,7 +133,7 @@ opal-logging-service:
   enabled: ${DEV_ENABLE_OPAL_LOGGING_SERVICE}
   java:
     releaseNameOverride: '{{ .Release.Name }}-logging-service'
-    image: 'sdshmctspublic.azurecr.io/opal/logging-service:${DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}'
+    image: 'hmctsprod.azurecr.io/opal/logging-service:${DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}'
     ingressHost: "opal-fines-service-pr-${CHANGE_ID}-logging-service.dev.platform.hmcts.net"
     secrets:
       SERVICEBUS_SHARED_ACCESS_KEY:
