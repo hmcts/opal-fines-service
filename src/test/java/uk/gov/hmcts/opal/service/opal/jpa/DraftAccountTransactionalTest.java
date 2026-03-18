@@ -30,6 +30,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -337,11 +338,12 @@ class DraftAccountTransactionalTest {
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO)
+                BigInteger.ZERO, userState)
         );
     }
 
@@ -379,9 +381,11 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+
         // Act
         DraftAccountEntity result = draftAccountTransactional
-            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO);
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
 
         // Assert
         assertNotNull(result);
@@ -419,9 +423,11 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+
         assertThrows(SubmitterCannotValidateException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO)
+                BigInteger.ZERO, userState)
         );
     }
 
@@ -447,10 +453,14 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        assertThrows(SubmitterCannotDeleteException.class, () ->
+        UserState userState = UserState.builder().userName("BUUID1").build();
+
+        SubmitterCannotDeleteException exception = assertThrows(SubmitterCannotDeleteException.class, () -> {
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO)
-        );
+                BigInteger.ZERO, userState);
+        });
+        assertEquals("BUUID1", exception.getSubmittedBy());
+        assertEquals("BUUID1", exception.getDeletedBy());
     }
 
     @Test
@@ -473,10 +483,12 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
+        UserState userState = UserState.builder().userName("BUUID1").build();
+
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO)
+                BigInteger.ZERO, userState)
         );
         assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
 

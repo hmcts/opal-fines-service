@@ -453,7 +453,8 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleSubmitterCannotDelete_forbidden() {
         SubmitterCannotDeleteException ex =
-            new SubmitterCannotDeleteException("A single user cannot submit and delete the same Draft Account");
+            new SubmitterCannotDeleteException("A single user cannot submit and delete the same Draft Account",
+                "Pablo", "Pablo");
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleSubmitterCannotValidateException(ex);
 
         assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());

@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -147,7 +148,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
     @Transactional
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
-                                                 DraftAccountTransactionalProxy proxy, BigInteger updateVersion) {
+                                                 DraftAccountTransactionalProxy proxy, BigInteger updateVersion,
+                                                 UserState userState) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, updateVersion, draftAccountId, "updateDraftAccount");
 
@@ -188,9 +190,10 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         if (newStatus.isDeleted()) {
             if (existingAccount.getSubmittedBy() != null
-                && existingAccount.getSubmittedBy().equals(dto.getValidatedBy())) {
+                && existingAccount.getSubmittedBy().equals(userState.getUserName())) {
                 throw new SubmitterCannotDeleteException(
-                    "A single user cannot submit and delete the same Draft Account");
+                    "A single user cannot submit and delete the same Draft Account",
+                    existingAccount.getSubmittedBy(), userState.getUserName());
             }
         }
 

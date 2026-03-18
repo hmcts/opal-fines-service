@@ -340,7 +340,8 @@ class DraftAccountServiceTest {
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
-        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+            .thenReturn(existingAccount);
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
@@ -375,7 +376,8 @@ class DraftAccountServiceTest {
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
             .build();
-        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+            .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
@@ -388,7 +390,7 @@ class DraftAccountServiceTest {
         // More Assert
         ArgumentCaptor<UpdateDraftAccountRequestDto> captor =
             ArgumentCaptor.forClass(UpdateDraftAccountRequestDto.class);
-        verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any());
+        verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any(), any());
         assertEquals("USER01", captor.getValue().getValidatedBy());
         assertEquals("normal@users.com", captor.getValue().getValidatedByName());
 

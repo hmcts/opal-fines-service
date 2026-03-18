@@ -239,7 +239,7 @@ public class DraftAccountService {
 
             try {
                 DraftAccountEntity updatedEntity = draftAccountTransactional
-                    .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, updateVersion);
+                    .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, updateVersion, userState);
                 verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
 
                 loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);

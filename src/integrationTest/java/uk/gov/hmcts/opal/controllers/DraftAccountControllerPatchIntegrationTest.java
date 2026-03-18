@@ -209,7 +209,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .build();
         UserState userState = UserState.builder()
             .userId(1L)
-            .userName("normal@users.com")
+            .userName("user_003")
             .businessUnitUser(Set.of(buUser))
             .build();
 
