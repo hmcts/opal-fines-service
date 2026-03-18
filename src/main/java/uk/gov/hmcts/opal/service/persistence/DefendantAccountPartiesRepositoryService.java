@@ -21,4 +21,12 @@ public class DefendantAccountPartiesRepositoryService {
         defendantAccountPartiesRepository.delete(defendantAccountPartiesEntity);
         defendantAccountPartiesRepository.flush();
     }
+
+    @Transactional(readOnly = true)
+    public boolean hasOtherLinks(Long partyId, Long defendantAccountPartyId) {
+        return defendantAccountPartiesRepository.countByParty_PartyIdAndDefendantAccountPartyIdNot(
+            partyId,
+            defendantAccountPartyId
+        ) > 0;
+    }
 }

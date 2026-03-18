@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -195,7 +196,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             party.getSurname());
 
         if (shouldRemoveParentGuardian(dap, wasOrganisation, request)) {
-            removeSiblingParentGuardian(account, dapId);
+            removeSiblingParentGuardians(account, dapId);
         }
 
         boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
@@ -235,34 +236,49 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         return isDefendantParty && !wasOrganisation && isConvertToOrganisation;
     }
 
-    private void removeSiblingParentGuardian(DefendantAccountEntity account, Long replacedDapId) {
-        findSiblingParentGuardian(account, replacedDapId)
-            .ifPresent(parentGuardianDap -> removeParentGuardianGraph(account, parentGuardianDap));
+    private void removeSiblingParentGuardians(DefendantAccountEntity account, Long replacedDapId) {
+        findSiblingParentGuardians(account, replacedDapId)
+            .forEach(parentGuardianDap -> removeParentGuardianGraph(account, parentGuardianDap));
     }
 
-    private Optional<DefendantAccountPartiesEntity> findSiblingParentGuardian(DefendantAccountEntity account,
+    private List<DefendantAccountPartiesEntity> findSiblingParentGuardians(DefendantAccountEntity account,
         Long replacedDapId) {
-        return account.getParties().stream()
+        return getAccountPartiesStream(account)
             .filter(party -> !party.getDefendantAccountPartyId().equals(replacedDapId))
             .filter(party -> "Parent/Guardian".equalsIgnoreCase(party.getAssociationType()))
-            .findFirst();
+            .toList();
+    }
+
+    private Stream<DefendantAccountPartiesEntity> getAccountPartiesStream(DefendantAccountEntity account) {
+        if (account.getParties() == null) {
+            return Stream.empty();
+        }
+
+        return account.getParties().stream();
     }
 
     private void removeParentGuardianGraph(DefendantAccountEntity account,
         DefendantAccountPartiesEntity parentGuardianDap) {
         Optional<Long> parentGuardianPartyId = Optional.ofNullable(parentGuardianDap.getParty())
             .map(PartyEntity::getPartyId);
+        boolean hasSharedPartyLinks = parentGuardianPartyId
+            .map(partyId -> defendantAccountPartiesRepositoryService.hasOtherLinks(
+                partyId,
+                parentGuardianDap.getDefendantAccountPartyId()
+            ))
+            .orElse(false);
 
-        log.debug("removeParentGuardianGraph: removing dapId={}, partyId={}",
-            parentGuardianDap.getDefendantAccountPartyId(), parentGuardianPartyId.orElse(null));
-
-        parentGuardianPartyId.ifPresent(aliasRepositoryService::deleteByPartyId);
-        parentGuardianPartyId.ifPresent(debtorDetailRepositoryService::deleteByPartyId);
+        log.debug("removeParentGuardianGraph: removing dapId={}, partyId={}, hasSharedPartyLinks={}",
+            parentGuardianDap.getDefendantAccountPartyId(), parentGuardianPartyId.orElse(null), hasSharedPartyLinks);
 
         detachDeletedPartyFromAccount(account, parentGuardianDap.getDefendantAccountPartyId());
         defendantAccountPartiesRepositoryService.deleteAndFlush(parentGuardianDap);
 
-        parentGuardianPartyId.ifPresent(partyRepositoryService::deleteById);
+        if (!hasSharedPartyLinks) {
+            parentGuardianPartyId.ifPresent(aliasRepositoryService::deleteByPartyId);
+            parentGuardianPartyId.ifPresent(debtorDetailRepositoryService::deleteByPartyId);
+            parentGuardianPartyId.ifPresent(partyRepositoryService::deleteById);
+        }
     }
 
     private void detachDeletedPartyFromAccount(DefendantAccountEntity account, Long defendantAccountPartyId) {

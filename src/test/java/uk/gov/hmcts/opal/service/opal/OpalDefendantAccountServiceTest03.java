@@ -402,6 +402,8 @@ class OpalDefendantAccountServiceTest03 {
         when(aliasRepoService.findByPartyId(defendantPartyId)).thenReturn(emptyList());
         when(debtorRepoService.findById(defendantPartyId)).thenReturn(Optional.of(new DebtorDetailEntity()));
         when(debtorRepoService.findByPartyId(defendantPartyId)).thenReturn(Optional.empty());
+        when(defendantAccountPartiesRepositoryService.hasOtherLinks(parentGuardianPartyId, parentGuardianDapId))
+            .thenReturn(false);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant")
@@ -430,6 +432,188 @@ class OpalDefendantAccountServiceTest03 {
                 eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS), eq(Short.parseShort(bu)), eq("tester"), any(),
                 eq("ACCOUNT_ENQUIRY"));
             verify(defendantAccountRepositoryService).saveAndFlush(account);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_sharedParentGuardianParty_deletesOnlyDapLink() {
+        Long accountId = 5011L;
+        Long defendantDapId = 5111L;
+        Long defendantPartyId = 6011L;
+        Long parentGuardianDapId = 5121L;
+        Long parentGuardianPartyId = 6021L;
+        String bu = "10";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu)).build();
+
+        PartyEntity defendantParty = PartyEntity.builder()
+            .partyId(defendantPartyId)
+            .organisation(false)
+            .surname("Defendant")
+            .forenames("Shared")
+            .build();
+        PartyEntity parentGuardianParty = PartyEntity.builder()
+            .partyId(parentGuardianPartyId)
+            .organisation(false)
+            .surname("Guardian")
+            .forenames("Shared")
+            .build();
+
+        DefendantAccountPartiesEntity defendantDap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(defendantDapId)
+            .party(defendantParty)
+            .associationType("Defendant")
+            .debtor(Boolean.TRUE)
+            .build();
+        DefendantAccountPartiesEntity parentGuardianDap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(parentGuardianDapId)
+            .party(parentGuardianParty)
+            .associationType("Parent/Guardian")
+            .debtor(Boolean.TRUE)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .parties(List.of(defendantDap, parentGuardianDap))
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
+        when(partyRepositoryService.findById(defendantPartyId)).thenReturn(defendantParty);
+        when(aliasRepoService.findByPartyId(defendantPartyId)).thenReturn(emptyList());
+        when(debtorRepoService.findById(defendantPartyId)).thenReturn(Optional.of(new DebtorDetailEntity()));
+        when(debtorRepoService.findByPartyId(defendantPartyId)).thenReturn(Optional.empty());
+        when(defendantAccountPartiesRepositoryService.hasOtherLinks(parentGuardianPartyId, parentGuardianDapId))
+            .thenReturn(true);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(Boolean.TRUE)
+            .partyDetails(PartyDetails.builder()
+                .partyId(String.valueOf(defendantPartyId))
+                .organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("Converted Co").build())
+                .build())
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                service.replaceDefendantAccountParty(accountId, defendantDapId, req, "\"1\"", bu, "tester", null);
+
+            assertNotNull(resp);
+            verify(defendantAccountPartiesRepositoryService).deleteAndFlush(parentGuardianDap);
+            verify(aliasRepoService, never()).deleteByPartyId(parentGuardianPartyId);
+            verify(debtorRepoService, never()).deleteByPartyId(parentGuardianPartyId);
+            verify(partyRepositoryService, never()).deleteById(parentGuardianPartyId);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_individualToOrganisationWithMultipleParentGuardians_removesAllLinks() {
+        Long accountId = 5012L;
+        Long defendantDapId = 5112L;
+        Long defendantPartyId = 6012L;
+        Long firstParentGuardianDapId = 5122L;
+        Long firstParentGuardianPartyId = 6022L;
+        Long secondParentGuardianDapId = 5123L;
+        Long secondParentGuardianPartyId = 6023L;
+        String bu = "10";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu)).build();
+
+        PartyEntity defendantParty = PartyEntity.builder()
+            .partyId(defendantPartyId)
+            .organisation(false)
+            .surname("Defendant")
+            .forenames("Multi")
+            .build();
+        PartyEntity firstParentGuardianParty = PartyEntity.builder()
+            .partyId(firstParentGuardianPartyId)
+            .organisation(false)
+            .surname("Guardian")
+            .forenames("One")
+            .build();
+        PartyEntity secondParentGuardianParty = PartyEntity.builder()
+            .partyId(secondParentGuardianPartyId)
+            .organisation(false)
+            .surname("Guardian")
+            .forenames("Two")
+            .build();
+
+        DefendantAccountPartiesEntity defendantDap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(defendantDapId)
+            .party(defendantParty)
+            .associationType("Defendant")
+            .debtor(Boolean.TRUE)
+            .build();
+        DefendantAccountPartiesEntity firstParentGuardianDap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(firstParentGuardianDapId)
+            .party(firstParentGuardianParty)
+            .associationType("Parent/Guardian")
+            .debtor(Boolean.TRUE)
+            .build();
+        DefendantAccountPartiesEntity secondParentGuardianDap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(secondParentGuardianDapId)
+            .party(secondParentGuardianParty)
+            .associationType("Parent/Guardian")
+            .debtor(Boolean.TRUE)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .parties(List.of(defendantDap, firstParentGuardianDap, secondParentGuardianDap))
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
+        when(partyRepositoryService.findById(defendantPartyId)).thenReturn(defendantParty);
+        when(aliasRepoService.findByPartyId(defendantPartyId)).thenReturn(emptyList());
+        when(debtorRepoService.findById(defendantPartyId)).thenReturn(Optional.of(new DebtorDetailEntity()));
+        when(debtorRepoService.findByPartyId(defendantPartyId)).thenReturn(Optional.empty());
+        when(defendantAccountPartiesRepositoryService.hasOtherLinks(
+            firstParentGuardianPartyId,
+            firstParentGuardianDapId
+        )).thenReturn(false);
+        when(defendantAccountPartiesRepositoryService.hasOtherLinks(
+            secondParentGuardianPartyId,
+            secondParentGuardianDapId
+        )).thenReturn(false);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(Boolean.TRUE)
+            .partyDetails(PartyDetails.builder()
+                .partyId(String.valueOf(defendantPartyId))
+                .organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("Converted Co").build())
+                .build())
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                service.replaceDefendantAccountParty(accountId, defendantDapId, req, "\"1\"", bu, "tester", null);
+
+            assertNotNull(resp);
+            verify(defendantAccountPartiesRepositoryService).deleteAndFlush(firstParentGuardianDap);
+            verify(defendantAccountPartiesRepositoryService).deleteAndFlush(secondParentGuardianDap);
+            verify(aliasRepoService).deleteByPartyId(firstParentGuardianPartyId);
+            verify(aliasRepoService).deleteByPartyId(secondParentGuardianPartyId);
+            verify(debtorRepoService).deleteByPartyId(firstParentGuardianPartyId);
+            verify(debtorRepoService).deleteByPartyId(secondParentGuardianPartyId);
+            verify(partyRepositoryService).deleteById(firstParentGuardianPartyId);
+            verify(partyRepositoryService).deleteById(secondParentGuardianPartyId);
         }
     }
 
