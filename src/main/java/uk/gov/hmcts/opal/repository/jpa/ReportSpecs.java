@@ -204,18 +204,35 @@ public final class ReportSpecs {
             LocalDate today = LocalDate.now(ZoneId.of("Europe/London"));
             LocalDate in7 = today.plusDays(7);
 
-            // TODO: replace "instalmentStartDate" and "payByDate" with actual field names if they differ.
-            // If the fields do not exist on DefendantAccountEntity, remove this filter or provide the real fields.
+            List<Predicate> preds = new ArrayList<>();
+
+            // Try to use existing LocalDate fields on DefendantAccountEntity
             try {
-                Expression<LocalDate> instalmentStart = root.get("instalmentStartDate").as(LocalDate.class);
-                Expression<LocalDate> payBy = root.get("payByDate").as(LocalDate.class);
-                Predicate p1 = cb.between(instalmentStart, today, in7);
-                Predicate p2 = cb.between(payBy, today, in7);
-                return cb.or(p1, p2);
-            } catch (IllegalArgumentException ex) {
-                // field(s) not present — no-op
+                // imposedHearingDate
+                Expression<LocalDate> imposed = root.get("imposedHearingDate").as(LocalDate.class);
+                preds.add(cb.between(imposed, today, in7));
+            } catch (IllegalArgumentException ignore) {
+                // field doesn't exist — skip
+            }
+
+            try {
+                // collectionOrderEffectiveDate (was collection_order_date / collectionOrderEffectiveDate)
+                Expression<LocalDate> collOrder = root.get("collectionOrderEffectiveDate").as(LocalDate.class);
+                preds.add(cb.between(collOrder, today, in7));
+            } catch (IllegalArgumentException ignore) {
+            }
+
+            try {
+                // paymentCardRequestedDate
+                Expression<LocalDate> payCard = root.get("paymentCardRequestedDate").as(LocalDate.class);
+                preds.add(cb.between(payCard, today, in7));
+            } catch (IllegalArgumentException ignore) {
+            }
+
+            if (preds.isEmpty()) {
                 return cb.conjunction();
             }
+            return cb.or(preds.toArray(new Predicate[0]));
         };
     }
 
