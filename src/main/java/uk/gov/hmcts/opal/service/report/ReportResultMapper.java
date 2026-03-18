@@ -1,16 +1,13 @@
 package uk.gov.hmcts.opal.service.report;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 
 /**
  * Maps domain entities to report DTO rows and wraps them in a transaction + metadata object.
@@ -31,17 +28,6 @@ public class ReportResultMapper {
         OperationReportByEnforcementTransaction report = new OperationReportByEnforcementTransaction();
         report.setTransactionList(rows);
 
-        // totals can be computed here if desired and put into metadata
-        BigDecimal totalImposed = rows.stream().map(r -> r.getImposed() == null ? BigDecimal.ZERO : r.getImposed())
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalPaid = rows.stream().map(r -> r.getPaidsf() == null ? BigDecimal.ZERO : r.getPaidsf())
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalBalance = rows.stream().map(r -> r.getBalance() == null ? BigDecimal.ZERO : r.getBalance())
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // -------------------------
-        // PDPL enrichment: scan each row and collect participant identifiers
-        // -------------------------
         List<ParticipantIdentifier> participants = new ArrayList<>();
 
         for (EnforcementReportRowDto row : rows) {
@@ -104,7 +90,6 @@ public class ReportResultMapper {
                     .build());
             }
 
-            // Note: add more fields to detect here if your DTO contains email, phone, address, etc.
         }
 
         // attach metadata to the report
