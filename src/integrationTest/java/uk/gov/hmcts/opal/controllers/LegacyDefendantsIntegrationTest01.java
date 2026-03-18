@@ -4,7 +4,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -15,7 +14,6 @@ import org.springframework.test.context.jdbc.Sql;
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 class LegacyDefendantsIntegrationTest01 extends CommonDefendantsIntegrationTest01 {
 
-    @Disabled("Fails against current legacy stub responses")
     @Test
     void testGetHeaderSummaryInd() throws Exception {
         super.getHeaderSummary_Individual(log);

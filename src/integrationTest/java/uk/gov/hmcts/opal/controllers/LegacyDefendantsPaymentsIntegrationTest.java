@@ -77,7 +77,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     }
 
     @Test
-    @Disabled("Fails against current legacy stub mappings")
+    @Disabled("Fails against published legacy stub image mappings")
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
     void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
@@ -104,7 +104,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     }
 
     @Test
-    @Disabled("Fails against current legacy stub mappings")
+    @Disabled("Fails against published legacy stub image mappings")
     @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
     void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))

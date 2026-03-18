@@ -12,7 +12,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -61,7 +60,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             "lump_sum_amount": 0.00,
             "instalment_amount": 150.00,
             "posted_details": {
-              "posted_date": "2025-11-02",
+              "posted_date": "2025-11-02T10:30:00",
               "posted_by": "System",
               "posted_by_name": "System User"
             }
@@ -77,7 +76,6 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         return headers;
     }
 
-    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - success")
     void testPostAddEnforcement_Success() throws Exception {
@@ -97,7 +95,6 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(jsonPath("$.version").value(1));
     }
 
-    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - backend 500")
     void testPostAddEnforcement_500Error() throws Exception {
@@ -113,7 +110,6 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         res.andExpect(status().is5xxServerError());
     }
 
-    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - forbidden without ENTER_ENFORCEMENT")
     void testPostAddEnforcement_403Forbidden() throws Exception {
@@ -143,7 +139,6 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
-    @Disabled("Fails against current legacy stub responses")
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - unauthorized token rejected")
     void testPostAddEnforcement_401Unauthorized() throws Exception {
