@@ -152,5 +152,5 @@ public class LegacyDefendantAccountBuilders {
             .resultTitle(resultRef.getResultTitle())
             .build();
     }
-    
+
 }
