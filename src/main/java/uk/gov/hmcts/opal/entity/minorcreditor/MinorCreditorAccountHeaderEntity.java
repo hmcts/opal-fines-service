@@ -2,14 +2,19 @@ package uk.gov.hmcts.opal.entity.minorcreditor;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 
 @Getter
 @Entity
@@ -27,7 +32,9 @@ public class MinorCreditorAccountHeaderEntity {
     private String creditorAccountNumber;
 
     @Column(name = "creditor_account_type")
-    private String creditorAccountType;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private CreditorAccountType creditorAccountType;
 
     @Column(name = "version_number")
     private Long versionNumber;
