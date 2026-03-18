@@ -112,7 +112,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
         log.debug(":addDefendantAccountParty: Opal mode: accountId={}, dapId={}, buId={}, businessUserId={}"
-                  + " postedBy={} ", defendantAccountId, defendantAccountPartyId, businessUnitId, businessUserId, postedBy);
+                + " postedBy={} ",
+                defendantAccountId, defendantAccountPartyId, businessUnitId, businessUserId, postedBy);
 
         //Verify that the Account is in the same business unit
         if (account.getBusinessUnit() == null
@@ -126,9 +127,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
         //Checking if the Account Party Details are there for the new added Defendant Account Party
-        Long requestedPartyId = OpalDefendantAccountBuilders.safeParseLong(
-            defendantAccountParty != null && defendantAccountParty.getPartyDetails() != null ? defendantAccountParty.getPartyDetails().getPartyId() : null);
-
+        Long requestedPartyId = OpalDefendantAccountBuilders.safeParseLong(defendantAccountParty != null
+            && defendantAccountParty.getPartyDetails() != null ? defendantAccountParty.getPartyDetails()
+            .getPartyId() : null);
 
         return null;
     }

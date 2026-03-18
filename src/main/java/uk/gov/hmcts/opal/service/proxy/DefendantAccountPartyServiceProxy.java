@@ -44,7 +44,8 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
                                                                 businessUserId,
                                                                 postedBy,
                                                                 ifMatch,
-                                                                defendantAccountParty);}
+                                                                defendantAccountParty);
+    }
 
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
