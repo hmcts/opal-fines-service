@@ -10,6 +10,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,8 +24,11 @@ import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapperImpl;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 
@@ -52,6 +56,9 @@ class OpalMinorCreditorServiceTest {
     @Mock
     private MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
 
+    @Spy
+    private MinorCreditorAccountHeaderSummaryMapper headerSummaryMapper =
+        new MinorCreditorAccountHeaderSummaryMapperImpl();
 
     @InjectMocks
     private OpalMinorCreditorService service;
@@ -225,7 +232,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654321")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(5L)
             .partyId(99000000000900L)
             .title(null)
@@ -289,7 +296,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654322")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null) // verify null -> null
             .partyId(99000000000901L)
             .title("Mr")
@@ -367,7 +374,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("X")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null)
             .partyId(333L)
             .organisation(true)
@@ -398,7 +405,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654321")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null) // covers version null branch
             .partyId(99000000000900L)
             .organisation(true)
@@ -460,7 +467,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("ACC123")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(5L) // covers version non-null branch
             .partyId(456L)
             .organisation(false)
@@ -514,7 +521,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("ACC200")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null)
             .partyId(300L)
             .organisation(true)
@@ -545,7 +552,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("ACC201")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null)
             .partyId(301L)
             .organisation(false)
