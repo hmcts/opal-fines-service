@@ -9,13 +9,13 @@ import org.springframework.test.context.ActiveProfiles;
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @Test
     void testPostSearchMinorCreditorSuccess() throws Exception {
         super.postSearchMinorCreditorImpl_Success(log);
     }
 
-    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @Test
     void testPostSearchMinorCreditor_500Error() throws Exception {
         super.legacyPostSearchMinorCreditorImpl_500Error(log);

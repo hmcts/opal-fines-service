@@ -15,61 +15,52 @@ import org.springframework.test.context.jdbc.Sql;
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 class LegacyDefendantsIntegrationTest01 extends CommonDefendantsIntegrationTest01 {
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Disabled("Fails against current legacy stub responses")
     @Test
     void testGetHeaderSummaryInd() throws Exception {
         super.getHeaderSummary_Individual(log);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetHeaderSummaryOrg() throws Exception {
         super.getHeaderSummary_Organisation(log);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetDefendantAccountsPaymentTerms_500Error() throws Exception {
         super.getDefendantAccountPaymentTerms_500Error(log);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetDefendantAccountsAtAGlance_500Error() throws Exception {
         super.getDefendantAccountAtAGlance_500Error(log);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetEnforcementStatus() throws Exception {
         super.testGetEnforcementStatus(log, true);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetEnforcementStatus_missingAuth_returns401() throws Exception {
         super.testGetEnforcementStatus_missingAuthHeader_returns401(log, true);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetEnforcementStatus_forbidden_returns403() throws Exception {
         super.testGetEnforcementStatus_forbidden(log, true);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetEnforcementStatus_timeout_returns408() throws Exception {
         super.testGetEnforcementStatus_timeout(log, true);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
         super.testGetEnforcementStatus_serviceUnavailable(log, true);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetEnforcementStatus_serverError_returns500() throws Exception {
         super.testGetEnforcementStatus_serverError(log, true);
