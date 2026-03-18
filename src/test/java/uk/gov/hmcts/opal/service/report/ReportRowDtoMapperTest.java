@@ -41,7 +41,6 @@ class ReportRowDtoMapperTest {
 
     @Test
     void pickPrimaryParty_prefers_defendant_assoc_then_debtor_then_first_non_null() {
-        DefendantAccountEntity acc = new DefendantAccountEntity();
 
         PartyEntity p1 = new PartyEntity();
         p1.setPartyId(1L);
@@ -58,6 +57,8 @@ class ReportRowDtoMapperTest {
         DefendantAccountPartiesEntity link2 = new DefendantAccountPartiesEntity();
         link2.setAssociationType("DEFENDANT");
         link2.setParty(p2);
+
+        DefendantAccountEntity acc = new DefendantAccountEntity();
 
         acc.setParties(Arrays.asList(link1, link2));
         assertThat(mapper.pickPrimaryParty(acc)).isSameAs(p2);
@@ -132,18 +133,18 @@ class ReportRowDtoMapperTest {
         when(enrichment.getDebtorForParty(22L)).thenReturn(Optional.of(debtor));
 
         // latest enforcement returned by enrichment
-        EnforcementEntity.Lite eLite = org.mockito.Mockito.mock(EnforcementEntity.Lite.class);
+        EnforcementEntity.Lite elite = org.mockito.Mockito.mock(EnforcementEntity.Lite.class);
         LocalDateTime posted = LocalDateTime.of(2024, 2, 2, 10, 30);
         LocalDateTime hearingDate = LocalDateTime.of(2024, 2, 1, 9, 0);
-        when(eLite.getPostedDate()).thenReturn(posted);
-        when(eLite.getReason()).thenReturn("ReasonX");
-        when(eLite.getPostedBy()).thenReturn("user123");
-        when(eLite.getWarrantReference()).thenReturn("W-100");
-        when(eLite.getHearingCourtId()).thenReturn(555L);
-        when(eLite.getResultId()).thenReturn("PRIS");
-        when(eLite.getHearingDate()).thenReturn(hearingDate);
+        when(elite.getPostedDate()).thenReturn(posted);
+        when(elite.getReason()).thenReturn("ReasonX");
+        when(elite.getPostedBy()).thenReturn("user123");
+        when(elite.getWarrantReference()).thenReturn("W-100");
+        when(elite.getHearingCourtId()).thenReturn(555L);
+        when(elite.getResultId()).thenReturn("PRIS");
+        when(elite.getHearingDate()).thenReturn(hearingDate);
 
-        when(enrichment.getLatestEnforcementForAccount(99L)).thenReturn(Optional.of(eLite));
+        when(enrichment.getLatestEnforcementForAccount(99L)).thenReturn(Optional.of(elite));
 
         EnforcementReportRowDto dto = mapper.map(entity, enrichment);
 
