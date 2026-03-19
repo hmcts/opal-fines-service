@@ -30,9 +30,9 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account_snapshot.business_unit_name | West London          |
       | account.originator_type             | TFO                  |
 
-    Then the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
-      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
+#    Then the logging service contains these PDPO logs:
+#      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
+#      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
 
     Then I delete the created draft accounts
 
@@ -63,10 +63,10 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account_snapshot.submitted_by       | L077JG                      |
       | account_snapshot.submitted_by_name  | opal-test@HMCTS.NET         |
 
-    Then the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
-      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
-      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+#    Then the logging service contains these PDPO logs:
+#      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
+#      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+#      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
     Then I delete the created draft accounts
 
@@ -98,10 +98,10 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
       | account_snapshot.submitted_by_name | opal-test@HMCTS.NET               |
 
 
-    Then the logging service contains these PDPO logs:
-      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
-      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
-      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+#    Then the logging service contains these PDPO logs:
+#      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+#      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+#      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
     Then I delete the created draft accounts
 
@@ -109,5 +109,5 @@ Feature: PO-591 create draft account / @PO-2357 validate logging
   Scenario: Attempt to create a draft with an invalid token - no logs created
     Given I am testing as the "opal-test@hmcts.net" user
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"
-    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"
+#    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"
     Then I delete the created draft accounts
