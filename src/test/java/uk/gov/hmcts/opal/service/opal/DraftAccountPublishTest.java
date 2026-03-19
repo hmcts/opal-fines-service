@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.jpa.JpaSystemException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -44,6 +45,9 @@ class DraftAccountPublishTest {
     @Mock
     BusinessUnitRepository businessRepository;
 
+    @Mock
+    SecurityEventLoggingService securityEventLoggingService;
+
     private DraftAccountTransactional draftAccountTransactional;
 
     @InjectMocks
@@ -51,7 +55,8 @@ class DraftAccountPublishTest {
 
     @BeforeEach
     void openMocks() throws Exception {
-        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository));
+        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository,
+            securityEventLoggingService));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 
