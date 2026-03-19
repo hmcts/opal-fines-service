@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 @Slf4j(topic = "opal.TestingSupportControllerTest")
 class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
+    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
