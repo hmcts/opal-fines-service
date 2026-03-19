@@ -34,11 +34,11 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         HttpHeaders headers = authorisedHeaders("some_value", "78", "\"" + currentVersion + "\"");
 
         String requestJson = """
-    {
-      "comment_and_notes": {
-        "account_comment": "hello"
-      }
-    }
+            {
+              "comment_and_notes": {
+                "account_comment": "hello"
+              }
+            }
             """;
 
         ResultActions a = mockMvc.perform(
@@ -140,11 +140,11 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-                  {
-                    "comment_and_notes":{"account_comment":"x"},
-                    "collection_order":{"collection_order_flag":true}
-                  }
-                """)).andExpect(status().isBadRequest());
+              {
+                "comment_and_notes":{"account_comment":"x"},
+                "collection_order":{"collection_order_flag":true}
+              }
+            """)).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -220,22 +220,22 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
         String body = """
-        {
-          "enforcement_override": {
-            "enforcement_override_result": {
-              "enforcement_override_result_id": "FWEC",
-              "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
-            },
-            "enforcer": {
-              "enforcer_id": 21,
-              "enforcer_name": "North East Enforcement"
-            },
-            "lja": {
-              "lja_id": 240,
-              "lja_name": "Tyne & Wear LJA"
+            {
+              "enforcement_override": {
+                "enforcement_override_result": {
+                  "enforcement_override_result_id": "FWEC",
+                  "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
+                },
+                "enforcer": {
+                  "enforcer_id": 21,
+                  "enforcer_name": "North East Enforcement"
+                },
+                "lja": {
+                  "lja_id": 240,
+                  "lja_name": "Tyne & Wear LJA"
+                }
+              }
             }
-          }
-        }
             """;
 
         ResultActions a = mockMvc.perform(
