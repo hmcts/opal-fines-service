@@ -103,14 +103,15 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-                () -> minorCreditorService.getMinorCreditorAccountHeaderSummary(123L, "authHeaderValue")
+                () -> minorCreditorService.getMinorCreditorAccountHeaderSummary(123L,
+                    "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
     void testGetMinorCreditorAccountAtAGlance() {
-        String id = "123";
+        Long id = 123L;
         GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
@@ -135,7 +136,7 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.getMinorCreditorAtAGlance("123", "authHeaderValue")
+            () -> minorCreditorService.getMinorCreditorAtAGlance(123L, "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
@@ -151,7 +152,8 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearch.builder().build(), "authHeaderValue")
+            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearch.builder().build(),
+                "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
@@ -162,7 +164,8 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             ResourceConflictException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, null, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, null,
+                    "authHeaderValue")
         );
     }
 
@@ -170,7 +173,8 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_missingPaymentGroup_throwsIllegalArgument() {
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, null, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, null, BigInteger.ONE,
+                    "authHeaderValue")
         );
     }
 
@@ -182,7 +186,8 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                    "authHeaderValue")
         );
     }
 
@@ -195,7 +200,8 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                    "authHeaderValue")
         );
     }
 
@@ -207,7 +213,8 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                    "authHeaderValue")
         );
     }
 
@@ -219,7 +226,8 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                    "authHeaderValue")
         );
     }
 
@@ -242,7 +250,8 @@ class MinorCreditorServiceTest {
         // Act & Assert
         assertThrows(
             jakarta.persistence.EntityNotFoundException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                    "authHeaderValue")
         );
     }
 
@@ -262,7 +271,8 @@ class MinorCreditorServiceTest {
         // Act & Assert
         assertThrows(
             jakarta.persistence.EntityNotFoundException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                    "authHeaderValue")
         );
     }
 
@@ -286,7 +296,8 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                "authHeaderValue")
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
@@ -322,7 +333,8 @@ class MinorCreditorServiceTest {
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
         // Act
-        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue");
+        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+            "authHeaderValue");
 
         // Assert
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);

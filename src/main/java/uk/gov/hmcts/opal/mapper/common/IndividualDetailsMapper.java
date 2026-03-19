@@ -32,12 +32,12 @@ public interface IndividualDetailsMapper {
 
     @Mapping(target = "dateOfBirth", ignore = true)
     @Mapping(target = "nationalInsuranceNumber", ignore = true)
-    @Mapping(target = "individualAliases", ignore = true)
+    @Mapping(target = "individualAliases", ignore = true) // fields not required for minor creditor
     IndividualDetails toDto(PartyEntity party);
 
     @Mapping(target = "dateOfBirth", ignore = true)
     @Mapping(target = "nationalInsuranceNumber", ignore = true)
-    @Mapping(target = "individualAliases", ignore = true)
+    @Mapping(target = "individualAliases", ignore = true) // fields not required for minor creditor
     IndividualDetailsCommon toIndividualDetailsCommon(PartyEntity party);
 
     @Named("toIndividualDetailsWhenPartyIsIndividual")

@@ -24,10 +24,10 @@ public interface OrganisationDetailsMapper {
     )
     OrganisationAlias toDto(uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias legacy);
 
-    @Mapping(target = "organisationAliases", ignore = true)
+    @Mapping(target = "organisationAliases", ignore = true) // field not required for minor creditor
     OrganisationDetails toDto(PartyEntity party);
 
-    @Mapping(target = "organisationAliases", ignore = true)
+    @Mapping(target = "organisationAliases", ignore = true) // field not required for minor creditor
     OrganisationDetailsCommon toOrganisationDetailsCommon(PartyEntity party);
 }
 

@@ -243,6 +243,16 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void getAtAGlance_creditorNotFound() throws Exception {
+        super.getMinorCreditorAtAGlanceImpl_failure_creditorNotFound(log);
+    }
+
+    @Test
+    void getAtAGlance_serverError_returns500() throws Exception {
+        super.getMinorCreditorAtAGlanceImpl_serverError_throws500(log);
+    }
+
+    @Test
     void deleteMinorCreditorAccount() throws Exception {
         // Arrange
         final Long creditorAccountId = 606L;

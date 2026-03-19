@@ -213,9 +213,12 @@ class LegacyMinorCreditorServiceTest {
         GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> gatewayResponse =
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
 
-        when(gatewayService.postToGateway(any(), eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
-            eq(LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId("happyPath").build()), any()))
-            .thenReturn(gatewayResponse);
+        when(gatewayService.postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId("101").build()),
+            any())
+        ).thenReturn(gatewayResponse);
 
         GetMinorCreditorAccountAtAGlanceResponse mapperResponse = GetMinorCreditorAccountAtAGlanceResponse.builder()
             .creditorAccountId(66L)
@@ -225,7 +228,7 @@ class LegacyMinorCreditorServiceTest {
 
         // Act
         GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
-            .getMinorCreditorAtAGlance("happyPath");
+            .getMinorCreditorAtAGlance(101L);
 
         // Assert
         assertEquals(66L, result.getCreditorAccountId());
@@ -254,10 +257,8 @@ class LegacyMinorCreditorServiceTest {
         when(atAGlanceResponseMapper.toDto(legacyResponse)).thenReturn(mapperResponse);
 
         // Act
-        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
-            .getMinorCreditorAtAGlance("gatewayException");
         GetMinorCreditorAccountAtAGlanceResponse result =
-            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance("gatewayException"));
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L));
 
         // Assert
         assertSame(mapperResponse, result, "Expected the mapper's DTO instance to be returned");
@@ -297,7 +298,7 @@ class LegacyMinorCreditorServiceTest {
 
         // Act
         GetMinorCreditorAccountAtAGlanceResponse result =
-            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance("legacyFailure"));
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L));
 
         // Assert
         assertSame(mapperResponse, result, "Expected the mapper's DTO instance to be returned");

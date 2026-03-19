@@ -11,7 +11,7 @@ import org.hibernate.annotations.Immutable;
 
 @Getter
 @Entity
-@Table(name = "v_search_minor_creditor_accounts")
+@Table(name = "v_minor_creditor_accounts_summary")
 @Immutable
 @SuperBuilder
 @NoArgsConstructor

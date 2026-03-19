@@ -129,8 +129,6 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
 
         GetMinorCreditorAccountAtAGlanceResponse dto = mapper.toDto(entity, null);
 
-        System.out.println(dto.toJson());
-
         assertNotNull(dto);
 
         // creditor account

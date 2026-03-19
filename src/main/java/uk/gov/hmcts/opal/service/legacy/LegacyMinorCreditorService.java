@@ -97,12 +97,13 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     @Override
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
 
         Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE,
                 LegacyGetMinorCreditorAccountAtAGlanceResponse.class,
-                LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId(minorCreditorId).build(),
+                LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId(
+                    String.valueOf(minorCreditorId)).build(),
                 null
             );
 

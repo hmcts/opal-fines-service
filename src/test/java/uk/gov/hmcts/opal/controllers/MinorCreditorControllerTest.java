@@ -69,11 +69,11 @@ class MinorCreditorControllerTest {
         // Arrange
         GetMinorCreditorAccountAtAGlanceResponse mockResponse = new GetMinorCreditorAccountAtAGlanceResponse();
 
-        when(minorCreditorService.getMinorCreditorAtAGlance("creditorId", BEARER_TOKEN)).thenReturn(mockResponse);
+        when(minorCreditorService.getMinorCreditorAtAGlance(101L, BEARER_TOKEN)).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> responseEntity =
-            minorCreditorController.getMinorCreditorsAtAGlance("creditorId",  BEARER_TOKEN);
+            minorCreditorController.getMinorCreditorsAtAGlance(101L,  BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
