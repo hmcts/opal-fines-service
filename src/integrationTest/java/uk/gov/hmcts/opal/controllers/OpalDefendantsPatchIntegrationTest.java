@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
@@ -36,11 +35,11 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
         String requestJson = """
     {
-      "comments_and_notes": {
+      "comment_and_notes": {
         "account_comment": "hello"
       }
     }
-    """;
+            """;
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(requestJson));
@@ -237,7 +236,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             }
           }
         }
-        """;
+            """;
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body));
