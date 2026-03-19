@@ -12,6 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -38,12 +40,12 @@ public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccount
     @JsonRawValue
     private String account;
 
-    @NotBlank
+    @NotNull
     @JsonProperty(value = "account_type", required = true)
-    private String accountType;
+    private DraftAccountType accountType;
 
     @JsonProperty(value = "account_status", required = true)
-    private String accountStatus;
+    private DraftAccountStatus accountStatus;
 
     @NotBlank
     @JsonProperty(value = "timeline_data", required = true)

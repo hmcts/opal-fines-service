@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,8 +24,8 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
         return Specification.allOf(specificationList(
             numericLong(criteria.getDraftAccountId()).map(DraftAccountSpecs::equalsDraftAccountId),
             numericShort(criteria.getBusinessUnitId()).map(DraftAccountSpecs::equalsBusinessUnitId),
-            notBlank(criteria.getAccountType()).map(DraftAccountSpecs::likeAccountType),
-            notBlank(criteria.getAccountStatus()).map(DraftAccountSpecs::equalsAccountStatus)
+            Optional.ofNullable(criteria.getAccountType()).map(DraftAccountSpecs::equalsAccountType),
+            Optional.ofNullable(criteria.getAccountStatus()).map(DraftAccountSpecs::equalsAccountStatus)
         ));
     }
 
@@ -85,14 +86,12 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
             equalsAnyBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId));
     }
 
-    public static Specification<DraftAccountEntity> likeAccountType(String accountType) {
-        return (root, query, builder) ->
-            likeWildcardPredicate(root.get(DraftAccountEntity_.accountType), builder, accountType);
+    public static Specification<DraftAccountEntity> equalsAccountType(DraftAccountType accountType) {
+        return (root, query, builder) -> builder.equal(root.get(DraftAccountEntity_.accountType), accountType);
     }
 
-    public static Specification<DraftAccountEntity> equalsAccountStatus(String accountStatus) {
-        DraftAccountStatus status = DraftAccountStatus.valueOf(accountStatus);
-        return (root, query, builder) -> builder.equal(root.get(DraftAccountEntity_.accountStatus), status);
+    public static Specification<DraftAccountEntity> equalsAccountStatus(DraftAccountStatus accountStatus) {
+        return (root, query, builder) -> builder.equal(root.get(DraftAccountEntity_.accountStatus), accountStatus);
     }
 
     public static Optional<Specification<DraftAccountEntity>> equalsAnyAccountStatus(

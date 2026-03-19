@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
 import java.time.OffsetDateTime;
@@ -48,8 +49,8 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     private String accountSnapshot;
 
     @JsonProperty(value = "account_type", required = true)
-    @NotBlank(message = "account_type must not be blank")
-    private String accountType;
+    @NotNull(message = "account_type must not be null")
+    private DraftAccountType accountType;
 
     @JsonProperty(value = "timeline_data", required = true)
     @JsonDeserialize(using = KeepAsJsonDeserializer.class)

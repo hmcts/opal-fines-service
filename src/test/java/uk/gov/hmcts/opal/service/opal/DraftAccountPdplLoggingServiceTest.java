@@ -142,7 +142,7 @@ class DraftAccountPdplLoggingServiceTest {
         String submittedBy = "opal-user-99";
         DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "originator_name":"LJS",
               "originator_id": 1,
@@ -172,7 +172,7 @@ class DraftAccountPdplLoggingServiceTest {
     void submitPg_thenDefendant_fullPayloads() {
         DraftAccountEntity entity = makeEntity(33L, "user-pg", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"pgToPay",
               "originator_name":"LJS",
               "originator_id":4,
@@ -210,7 +210,7 @@ class DraftAccountPdplLoggingServiceTest {
     void submitDefendantAndMinor_fullPayloads() {
         DraftAccountEntity entity = makeEntity(22L, "user-min", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "originator_name":"LJS",
               "originator_id":3,
@@ -262,7 +262,7 @@ class DraftAccountPdplLoggingServiceTest {
         String submittedBy = "opal-user-resubmit";
         DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "originator_name":"LJS",
               "originator_id": 2,
@@ -292,7 +292,7 @@ class DraftAccountPdplLoggingServiceTest {
     void resubmitPg_thenDefendant_fullPayloads() {
         DraftAccountEntity entity = makeEntity(44L, "user-resubmit-pg", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"pgToPay",
               "originator_name":"LJS",
               "originator_id":5,
@@ -332,7 +332,7 @@ class DraftAccountPdplLoggingServiceTest {
         String submittedBy = "opal-user-replace";
         DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "originator_name":"LJS",
               "originator_id": 7,
@@ -362,7 +362,7 @@ class DraftAccountPdplLoggingServiceTest {
     void replacePg_thenDefendant_fullPayloads() {
         DraftAccountEntity entity = makeEntity(66L, "user-replace-pg", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"pgToPay",
               "originator_name":"LJS",
               "originator_id":8,
@@ -402,7 +402,7 @@ class DraftAccountPdplLoggingServiceTest {
         String submittedBy = "opal-user-get";
         DraftAccountEntity entity = makeEntity(draftId, submittedBy, """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "originator_name":"LJS",
               "originator_id": 9,
@@ -433,7 +433,7 @@ class DraftAccountPdplLoggingServiceTest {
     void getPg_thenDefendant_fullPayloads() {
         DraftAccountEntity entity = makeEntity(88L, "user-get-pg", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"pgToPay",
               "originator_name":"LJS",
               "originator_id":10,
@@ -471,7 +471,7 @@ class DraftAccountPdplLoggingServiceTest {
     void getDefendantAndMinor_fullPayloads() {
         DraftAccountEntity entity = makeEntity(99L, "user-get-min", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "originator_name":"LJS",
               "originator_id":11,
@@ -526,7 +526,7 @@ class DraftAccountPdplLoggingServiceTest {
         // e1: adult defendant id 1
         DraftAccountEntity e1 = makeEntity(1L, "u1", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "offences": []
             }
@@ -535,7 +535,7 @@ class DraftAccountPdplLoggingServiceTest {
         // e2: pgToPay id 2 (acts as Parent/Guardian and Defendant)
         DraftAccountEntity e2 = makeEntity(2L, "u2", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"pgToPay",
               "offences": []
             }
@@ -544,7 +544,7 @@ class DraftAccountPdplLoggingServiceTest {
         // e3: duplicate of e2 to test dedupe
         DraftAccountEntity e3 = makeEntity(2L, "u2", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"pgToPay",
               "offences": []
             }
@@ -553,7 +553,7 @@ class DraftAccountPdplLoggingServiceTest {
         // e4: adult with minor -> will add Minor Creditor for id 3
         DraftAccountEntity e4 = makeEntity(3L, "u3", """
             {
-              "account_type":"Fines",
+              "account_type":"Fine",
               "defendant_type":"adultOrYouthOnly",
               "offences":[
                 {
@@ -616,7 +616,7 @@ class DraftAccountPdplLoggingServiceTest {
     void logForMultipleGets_company_and_unknown_type_skipped() {
         DraftAccountEntity company = makeEntity(10L, "u10", """
         {
-          "account_type":"Fines",
+          "account_type":"Fine",
           "defendant_type":"company",
           "offences": []
         }
@@ -624,7 +624,7 @@ class DraftAccountPdplLoggingServiceTest {
 
         DraftAccountEntity unknown = makeEntity(11L, "u11", """
         {
-          "account_type":"Fines",
+          "account_type":"Fine",
           "defendant_type":"weirdType",
           "offences": []
         }

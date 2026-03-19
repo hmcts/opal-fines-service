@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,7 +27,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.converter.DraftAccountTypeConverter;
 import uk.gov.hmcts.opal.util.Versioned;
 
 import java.time.LocalDateTime;
@@ -92,8 +96,10 @@ public class DraftAccountEntity implements Versioned {
     @JsonRawValue
     private String account;
 
-    @Column(name = "account_type", length = 30, nullable = false)
-    private String accountType;
+    @Column(name = "account_type", length = 30, nullable = false, columnDefinition = "t_da_account_type_enum")
+    @ColumnTransformer(write = "?::t_da_account_type_enum")
+    @Convert(converter = DraftAccountTypeConverter.class)
+    private DraftAccountType accountType;
 
     @Column(name = "account_id")
     private Long accountId;
@@ -103,8 +109,10 @@ public class DraftAccountEntity implements Versioned {
     @JsonRawValue
     private String accountSnapshot;
 
-    @Column(name = "account_status", length = 30, nullable = false)
+    @Column(name = "account_status", length = 30, nullable = false, columnDefinition = "t_dra_account_status_enum")
+    @ColumnTransformer(write = "?::t_dra_account_status_enum")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private DraftAccountStatus accountStatus;
 
     @Column(name = "account_status_date", nullable = false)

@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -125,7 +126,7 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity saved = DraftAccountEntity.builder()
             .account(minimalAccountJson)
             .accountSnapshot("{}")
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .draftAccountId(1L)
             .createdDate(LocalDateTime.now())
             .accountStatus(DraftAccountStatus.SUBMITTED)
@@ -137,7 +138,7 @@ class DraftAccountTransactionalTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(minimalAccountJson)
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .timelineData("[]")
             .build();
 
@@ -189,7 +190,7 @@ class DraftAccountTransactionalTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(createAccountString())
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
@@ -210,7 +211,7 @@ class DraftAccountTransactionalTest {
             .draftAccountId(draftAccountId)
             .submittedBy("TestUser")
             .account(createAccountString())
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .accountStatus(DraftAccountStatus.RESUBMITTED)
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
@@ -229,7 +230,7 @@ class DraftAccountTransactionalTest {
         assertEquals(draftAccountId, result.getDraftAccountId());
         assertEquals("TestUser", result.getSubmittedBy());
         assertEquals(createAccountString(), result.getAccount());
-        assertEquals("Fine", result.getAccountType());
+        assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
         assertEquals(createTimelineDataString(), result.getTimelineData());
 
@@ -244,7 +245,7 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short)1)
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
@@ -267,7 +268,7 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short)2)
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
@@ -303,7 +304,7 @@ class DraftAccountTransactionalTest {
 
         ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
@@ -326,7 +327,7 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .accountStatus("SUBMITTED")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
             .build();
 
@@ -349,7 +350,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
-            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING.getLabel())
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("TestValidator")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
@@ -400,7 +401,7 @@ class DraftAccountTransactionalTest {
     void testUpdateDraftAccount_submitterCannotValidate() {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
-            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING.getLabel())
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("BUUID1")
             .validatedByName("User One")
             .timelineData(createTimelineDataString())
@@ -429,7 +430,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
-            .accountStatus("SUBMITTED")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .businessUnitId((short) 2)
             .timelineData(createTimelineDataString())
             .build();
@@ -449,7 +450,7 @@ class DraftAccountTransactionalTest {
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
                 BigInteger.ZERO)
         );
-        assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
+        assertEquals("Invalid account status for update: SUBMITTED", exception.getMessage());
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));

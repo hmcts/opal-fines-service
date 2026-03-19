@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -58,7 +59,7 @@ public class DraftAccountResponseDto implements ToJsonString, Versioned {
     private String accountSnapshot;
 
     @JsonProperty("account_type")
-    private String accountType;
+    private DraftAccountType accountType;
 
     @JsonProperty("account_status")
     private DraftAccountStatus accountStatus;

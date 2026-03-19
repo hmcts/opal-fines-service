@@ -310,7 +310,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": 0,
               "timeline_data": [
