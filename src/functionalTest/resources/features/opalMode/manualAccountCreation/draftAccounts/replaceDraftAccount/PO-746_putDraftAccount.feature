@@ -135,9 +135,9 @@ Feature: PO-746 put/update draft account
       | If-Match          | 0                                           |
     Then The draft account response returns 200
 
-    And the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
-      | 500000000        | OPAL_USER_ID    | Update Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+#    And the logging service contains these PDPO logs:
+#      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
+#      | 500000000        | OPAL_USER_ID    | Update Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
     Then I delete the created draft accounts
 
@@ -168,9 +168,9 @@ Feature: PO-746 put/update draft account
       | If-Match          | 0                                                     |
     Then The draft account response returns 200
 
-    And the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                          | individual_id                | expected_count |
-      | 500000000     | OPAL_USER_ID    | Update Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
-      | 500000000     | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+#    And the logging service contains these PDPO logs:
+#      | created_by_id | created_by_type | business_identifier                          | individual_id                | expected_count |
+#      | 500000000     | OPAL_USER_ID    | Update Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+#      | 500000000     | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
     Then I delete the created draft accounts

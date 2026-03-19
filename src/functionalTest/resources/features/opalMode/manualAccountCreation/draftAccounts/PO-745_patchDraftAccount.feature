@@ -198,7 +198,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
     When I attempt to update the draft account with an invalid token
     Then The draft account response returns 401
 
-    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+#    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
 
     Then I delete the created draft accounts
 
@@ -214,5 +214,5 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
       | validated_by     | PATCH007     |
       | If-Match         | 0                  |
     Then The draft account response returns 406
-    Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+#    Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
 

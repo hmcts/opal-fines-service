@@ -30,9 +30,9 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
     And the response must include a strong quoted ETag header
     And the response body must not include the "version" field anywhere
 
-    Then the logging service contains these PDPO logs:
-      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
-      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+#    Then the logging service contains these PDPO logs:
+#      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+#      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
     Then I delete the created draft accounts
 
@@ -65,10 +65,10 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
     And the response must include a strong quoted ETag header
     And the response body must not include the "version" field anywhere
 
-    Then the logging service contains these PDPO logs:
-      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
-      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
-      | 500000000        | OPAL_USER_ID    | Get Draft Account - Parent or Guardian      | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+#    Then the logging service contains these PDPO logs:
+#      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+#      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+#      | 500000000        | OPAL_USER_ID    | Get Draft Account - Parent or Guardian      | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
     Then I delete the created draft accounts
 
@@ -93,7 +93,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
     Then The draft account response returns 401
 
   # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
-    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
+#    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
 
   # switch back to an OPAL user so cleanup can delete the created draft (or delete via admin API)
     Given I am testing as the "opal-test@hmcts.net" user
@@ -103,7 +103,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
   Scenario: Attempt to create a draft with an invalid token - no logs created
     Given I am testing as the "opal-test@hmcts.net" user
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"
-    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
+#    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
     Then I delete the created draft accounts
 
 

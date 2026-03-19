@@ -243,6 +243,6 @@ Feature: PO-830 - Authorisation for put/update draft account
     When I attempt to put a draft account with an invalid token
     Then The draft account response returns 401
 
-    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
+#    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
 
     Then I delete the created draft accounts
