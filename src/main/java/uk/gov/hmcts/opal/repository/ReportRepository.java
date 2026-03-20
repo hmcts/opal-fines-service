@@ -6,6 +6,5 @@ import uk.gov.hmcts.opal.entity.ReportEntity;
 
 @Repository
 public interface ReportRepository extends JpaRepository<ReportEntity, String> {
-
-    ReportEntity getByReportId(String reportId);
+    
 }

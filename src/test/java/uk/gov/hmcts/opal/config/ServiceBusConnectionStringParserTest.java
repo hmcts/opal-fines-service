@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.stream.Stream;
 import joptsimple.internal.Strings;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -21,6 +22,14 @@ public class ServiceBusConnectionStringParserTest {
     public static final String VALID_ENDPOINT = "sb://localhost/;";
     public static final String VALID_SHARED_ACCESS_KEY_NAME = "AccessKey";
     public static final String VALID_SHARED_ACCESS_KEY_VALUE = "keyValue";
+
+    ServiceBusConnectionStringParser serviceBusConnectionStringParser;
+
+    @BeforeEach
+    public void setUp() {
+        serviceBusConnectionStringParser = new ServiceBusConnectionStringParser();
+
+    }
 
     static Stream<Arguments> provideBlankEndpoint() {
         return Stream.of(Arguments.of(Strings.EMPTY, VALID_ENDPOINT),
@@ -39,7 +48,7 @@ public class ServiceBusConnectionStringParserTest {
 
     @Test
     public void parse_validConnectionString_returnsConnectionDetails() {
-        ConnectionDetails parsed = ServiceBusConnectionStringParser.parse(
+        ConnectionDetails parsed = serviceBusConnectionStringParser.parse(
             String.format(BASE_CONNECTION_STRING,
                 ENDPOINT_KEY, VALID_ENDPOINT,
                 KEY_NAME_KEY, VALID_SHARED_ACCESS_KEY_NAME,
@@ -52,7 +61,7 @@ public class ServiceBusConnectionStringParserTest {
     public void parse_noConnectionStringPassed_throwsIllegalArgumentException(String connectionString) {
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> ServiceBusConnectionStringParser.parse(connectionString));
+            () -> serviceBusConnectionStringParser.parse(connectionString));
         assertThat(ex).hasMessageContaining("must not be blank");
     }
 
@@ -61,7 +70,7 @@ public class ServiceBusConnectionStringParserTest {
     public void parse_endpointIsBlank_throwsIllegalArgumentException(String key, String value) {
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> ServiceBusConnectionStringParser.parse(
+            () -> serviceBusConnectionStringParser.parse(
                 String.format(BASE_CONNECTION_STRING,
                     key, value,
                     KEY_NAME_KEY, VALID_SHARED_ACCESS_KEY_NAME,
@@ -73,7 +82,7 @@ public class ServiceBusConnectionStringParserTest {
     public void parse_invalidUriInEndpoint_throwsIllegalArgumentException() {
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> ServiceBusConnectionStringParser.parse(
+            () -> serviceBusConnectionStringParser.parse(
                 String.format(BASE_CONNECTION_STRING,
                     ENDPOINT_KEY, "invalid uri",
                     KEY_NAME_KEY, VALID_SHARED_ACCESS_KEY_NAME,
@@ -85,7 +94,7 @@ public class ServiceBusConnectionStringParserTest {
     public void parse_noHostInEndpoint_throwsIllegalArgumentException() {
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> ServiceBusConnectionStringParser.parse(
+            () -> serviceBusConnectionStringParser.parse(
                 String.format(BASE_CONNECTION_STRING,
                     ENDPOINT_KEY, "missingHost",
                     KEY_NAME_KEY, VALID_SHARED_ACCESS_KEY_NAME,
@@ -98,7 +107,7 @@ public class ServiceBusConnectionStringParserTest {
     public void parse_noSharedAccessKeyName_throwsIllegalArgumentException(String key, String value) {
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> ServiceBusConnectionStringParser.parse(
+            () -> serviceBusConnectionStringParser.parse(
                 String.format(BASE_CONNECTION_STRING,
                     ENDPOINT_KEY, VALID_ENDPOINT,
                     key, value,
@@ -111,7 +120,7 @@ public class ServiceBusConnectionStringParserTest {
     public void parse_noSharedAccessKey_throwsIllegalArgumentException(String key, String value) {
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> ServiceBusConnectionStringParser.parse(
+            () -> serviceBusConnectionStringParser.parse(
                 String.format(BASE_CONNECTION_STRING,
                     ENDPOINT_KEY, VALID_ENDPOINT,
                     KEY_NAME_KEY, VALID_SHARED_ACCESS_KEY_NAME,

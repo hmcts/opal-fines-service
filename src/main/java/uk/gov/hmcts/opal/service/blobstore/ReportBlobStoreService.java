@@ -32,13 +32,9 @@ public class ReportBlobStoreService implements ReportBlobStore {
         }
         String location = String.valueOf(uuidProvider.getUuid());
         BlobClient blob = container.getBlobClient(location);
-        if (!blob.exists()) {
-            byte[] bytes = report.getBytes(StandardCharsets.UTF_8);
-            blob.upload(new ByteArrayInputStream(bytes), bytes.length);
-            log.info("Stored report at location: {}", location);
-            return location;
-        } else {
-            return storeReport(report);
-        }
+        byte[] bytes = report.getBytes(StandardCharsets.UTF_8);
+        blob.upload(new ByteArrayInputStream(bytes), bytes.length);
+        log.info("Stored report at location: {}", location);
+        return location;
     }
 }

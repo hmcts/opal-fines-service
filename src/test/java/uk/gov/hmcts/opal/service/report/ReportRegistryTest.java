@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class ReportRegistryTest {
@@ -38,5 +39,11 @@ class ReportRegistryTest {
         when(report2.getType()).thenReturn(ReportType.FP_REGISTER);
 
         assertThrows(IllegalStateException.class, () -> new ReportRegistry(List.of(report1, report2)));
+    }
+
+    @Test
+    void constructor_implementationNotFound_throwsReportNotFoundException() {
+        ReportRegistry registry = new ReportRegistry(List.of(report1));
+        assertThrows(ReportNotFoundException.class, () -> registry.get(ReportType.FP_REGISTER.reportId));
     }
 }

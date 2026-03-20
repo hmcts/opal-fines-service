@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.config;
 
 import jakarta.jms.ConnectionFactory;
+import lombok.RequiredArgsConstructor;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -14,12 +15,15 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 @Configuration
 @EnableConfigurationProperties(QueueConsumerProperties.class)
 @ConditionalOnProperty(prefix = "opal.report.consumer", name = "enabled", havingValue = "true")
+@RequiredArgsConstructor
 public class QueueConsumerJmsConfig {
+
+    private final ServiceBusConnectionStringParser serviceBusConnectionStringParser;
 
     @Bean
     public ConnectionFactory reportConsumerConnectionFactory(QueueConsumerProperties properties) {
         ServiceBusConnectionStringParser.ConnectionDetails details =
-            ServiceBusConnectionStringParser.parse(properties.getConnectionString());
+            serviceBusConnectionStringParser.parse(properties.getConnectionString());
 
         String remoteUri = "%s://%s?amqp.idleTimeout=%d".formatted(
             properties.getProtocol(),

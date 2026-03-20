@@ -2,8 +2,8 @@ package uk.gov.hmcts.opal.service.blobstore;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,12 +56,11 @@ public class ReportBlobStoreServiceTest {
         when(container.getBlobClient(anyString())).thenReturn(blob);
         when(uuidProvider.getUuid()).thenReturn(uuid);
         when(container.exists()).thenReturn(true);
-        when(blob.exists()).thenReturn(false);
         //Act
         String savedAt = reportBlobStoreService.storeReport(message);
         //Assert
         ArgumentCaptor<ByteArrayInputStream> argument = ArgumentCaptor.forClass(ByteArrayInputStream.class);
-        verify(blob).upload(argument.capture(), anyLong());
+        verify(blob).upload(argument.capture(), eq(13L));
         String saved = new String(argument.getValue().readAllBytes(), StandardCharsets.UTF_8);
         assertEquals(message, saved);
         assertEquals(savedAt, uuid.toString());
@@ -71,24 +70,6 @@ public class ReportBlobStoreServiceTest {
     public void storeReport_containerDoesNotExist_throwError() {
         when(container.exists()).thenReturn(false);
         assertThrows(IllegalArgumentException.class, () -> reportBlobStoreService.storeReport(message));
-    }
-
-    @Test
-    public void storeReport_locationExists_generateNewLocation() {
-        //Arrange
-        when(container.getBlobClient(anyString())).thenReturn(blob);
-        UUID uuid2 = UUID.randomUUID();
-        when(uuidProvider.getUuid()).thenReturn(uuid, uuid2);
-        when(container.exists()).thenReturn(true);
-        when(blob.exists()).thenReturn(true, false);
-        //Act
-        String savedAt = reportBlobStoreService.storeReport(message);
-        //Assert
-        ArgumentCaptor<ByteArrayInputStream> argument = ArgumentCaptor.forClass(ByteArrayInputStream.class);
-        verify(blob).upload(argument.capture(), anyLong());
-        String saved = new String(argument.getValue().readAllBytes(), StandardCharsets.UTF_8);
-        assertEquals(message, saved);
-        assertEquals(savedAt, uuid2.toString());
     }
 
 }

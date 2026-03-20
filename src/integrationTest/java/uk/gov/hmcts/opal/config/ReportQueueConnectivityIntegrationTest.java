@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser.ConnectionDetails;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
 
 /**
@@ -49,8 +50,8 @@ class ReportQueueConnectivityIntegrationTest {
         queueName = optionalEnv("SERVICEBUS_REPORT_QUEUE_NAME", "report");
         String protocol = optionalEnv("SERVICEBUS_REPORT_PROTOCOL", "amqp");
 
-        ServiceBusConnectionStringParser.ConnectionDetails details =
-            ServiceBusConnectionStringParser.parse(connectionString);
+        ConnectionDetails details =
+            new ServiceBusConnectionStringParser().parse(connectionString);
 
         String remoteUri = "%s://%s".formatted(protocol, details.fullyQualifiedNamespace());
         connectionFactory = new JmsConnectionFactory(remoteUri);

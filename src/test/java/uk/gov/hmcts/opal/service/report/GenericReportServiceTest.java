@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.report.ReportInstanceGenerationStatus.ERROR;
 import static uk.gov.hmcts.opal.service.report.ReportInstanceGenerationStatus.READY;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Clock;
 import java.time.Duration;
@@ -68,12 +70,15 @@ class GenericReportServiceTest {
     @Mock
     TestData reportData;
 
+    @Mock
+    ObjectMapper mapper;
+
     String reportId;
 
     Instant now;
 
     @BeforeEach
-    void setUp() {
+    void setUp()  {
         reportInstance = new ReportInstanceEntity();
         reportId = String.valueOf(UUID.randomUUID());
         reportInstance.setReportId(reportId);
@@ -84,15 +89,16 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_happyPath() {
+    void generateReportInstanceContent_happyPath() throws JsonProcessingException {
         reportInstance.setReportId(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
+        when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
         when(reportData.getNumberOfRecords()).thenReturn((short) 2);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
-        when(reportRepository.getByReportId(reportId)).thenReturn(reportEntity);
+        when(reportRepository.getReferenceById(reportId)).thenReturn(reportEntity);
         when(reportEntity.getRetentionPeriod()).thenReturn(Duration.ofDays(1));
         //Act
         genericReportService.generateReportInstanceContent(1L);
@@ -101,10 +107,6 @@ class GenericReportServiceTest {
         verify(reportBlobStore).storeReport(toSaveInBlobStore.capture());
         ArgumentCaptor<ReportInstanceEntity> entities = ArgumentCaptor.forClass(ReportInstanceEntity.class);
         verify(reportInstanceRepository, times(2)).saveAndFlush(entities.capture());
-
-        String dataToSave = toSaveInBlobStore.getAllValues().getFirst();
-        assertThat(dataToSave)
-            .isEqualTo("{\"reportData\":{\"numberOfRecords\":2,\"reportMetaData\":null},\"reportMetaData\":null}");
 
         ReportInstanceEntity lastEntity = entities.getAllValues().getLast();
         assertThat(lastEntity.getReportId()).isEqualTo(reportId);
@@ -117,15 +119,17 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp() {
+    void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp()
+        throws JsonProcessingException {
         reportInstance.setReportId(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
+        when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
         when(reportData.getNumberOfRecords()).thenReturn((short) 2);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
-        when(reportRepository.getByReportId(reportId)).thenReturn(reportEntity);
+        when(reportRepository.getReferenceById(reportId)).thenReturn(reportEntity);
         when(reportEntity.getRetentionPeriod()).thenReturn(null);
         //Act
         genericReportService.generateReportInstanceContent(1L);
@@ -147,9 +151,10 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() {
+    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() throws JsonProcessingException {
         //Arrange
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
+        when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);

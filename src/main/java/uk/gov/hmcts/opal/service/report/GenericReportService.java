@@ -31,7 +31,7 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ReportRegistry reportRegistry;
     private final ReportBlobStore blobStore;
     private final Clock clock;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
     @Override
     public void generateReportInstanceContent(Long id) {
@@ -50,7 +50,7 @@ public class GenericReportService implements GenericReportServiceInterface {
             instance.setGenerationStatus(READY);
             instance.setCreatedTimestamp(currentTimestamp);
             instance.setNoOfRecords(data.getNumberOfRecords());
-            ReportEntity reportEntity = reportRepository.getByReportId(templateId);
+            ReportEntity reportEntity = reportRepository.getReferenceById(templateId);
             var retentionPeriod = reportEntity.getRetentionPeriod();
             if (retentionPeriod != null) {
                 instance.setScheduledDeletionTimestamp(currentTimestamp.plus(retentionPeriod));
@@ -67,7 +67,7 @@ public class GenericReportService implements GenericReportServiceInterface {
 
     private void saveReportInstance(ReportInstanceEntity instance) {
         try {
-            reportInstanceRepository.saveAndFlush(instance);
+            reportInstanceRepository.save(instance);
         } catch (Exception e) {
             throw new EntityNotSavedException("Unable to save report instance", e);
         }
@@ -91,8 +91,8 @@ public class GenericReportService implements GenericReportServiceInterface {
 
     @Builder
     @lombok.Data
-    static class Data<T> {
-        private T reportData;
+    static class Data {
+        private ReportDataInterface reportData;
         private ReportMetaData reportMetaData;
     }
 

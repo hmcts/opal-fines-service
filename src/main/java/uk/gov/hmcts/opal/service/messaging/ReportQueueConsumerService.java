@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.messaging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class ReportQueueConsumerService implements QueueConsumerInterface {
         }
         try {
             return objectMapper.readValue(messagePayload, ReportQueueMessage.class);
-        } catch (IOException ex) {
+        } catch (JsonProcessingException ex) {
             log.error("Report queue message parse failed", ex);
             throw new IllegalArgumentException("Unable to parse Report message payload", ex);
         }

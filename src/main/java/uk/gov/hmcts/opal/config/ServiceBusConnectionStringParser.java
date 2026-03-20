@@ -4,14 +4,12 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
-final class ServiceBusConnectionStringParser {
+@Component
+public class ServiceBusConnectionStringParser {
 
-    private ServiceBusConnectionStringParser() {
-        // Utility class
-    }
-
-    static ConnectionDetails parse(String connectionString) {
+    public ConnectionDetails parse(String connectionString) {
         if (connectionString == null || connectionString.isBlank()) {
             throw new IllegalArgumentException("Connection string must not be blank");
         }
@@ -54,7 +52,7 @@ final class ServiceBusConnectionStringParser {
         return new ConnectionDetails(host, keyName, key);
     }
 
-    record ConnectionDetails(String fullyQualifiedNamespace,
+    public record ConnectionDetails(String fullyQualifiedNamespace,
                              String sharedAccessKeyName,
                              String sharedAccessKey) {
     }
