@@ -98,7 +98,7 @@ class GenericReportServiceTest {
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
         when(reportData.getNumberOfRecords()).thenReturn((short) 2);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
-        when(reportRepository.getReferenceById(reportId)).thenReturn(reportEntity);
+        when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.getRetentionPeriod()).thenReturn(Duration.ofDays(1));
         //Act
         genericReportService.generateReportInstanceContent(1L);
@@ -129,7 +129,7 @@ class GenericReportServiceTest {
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
         when(reportData.getNumberOfRecords()).thenReturn((short) 2);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
-        when(reportRepository.getReferenceById(reportId)).thenReturn(reportEntity);
+        when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.getRetentionPeriod()).thenReturn(null);
         //Act
         genericReportService.generateReportInstanceContent(1L);
