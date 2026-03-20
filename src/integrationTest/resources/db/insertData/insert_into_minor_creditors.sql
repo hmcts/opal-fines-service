@@ -179,15 +179,15 @@ INSERT INTO public.creditor_transactions (
 VALUES
   (90001, 104, '2025-08-16', 102, 'M. Davies',
    'PAYMNT', 150.00, NULL, FALSE,
-   'BACS', '1', '2025-08-17', 'OTHER', NULL),
+   'BACS', 'C', '2025-08-17', NULL, NULL),
 
   -- Creditor Transactions to be Deleted --
   (90002, 606, '2025-04-16', 102, 'A. Admin',
    'PAYMNT', 250.00, NULL, FALSE,
-   'BACS', '1', '2025-04-17', 'OTHER', NULL),
+   'BACS', 'C', '2025-04-17', NULL, NULL),
   (90003, 606, '2025-05-16', 102, 'B. Admin',
    'PAYMNT', 350.00, NULL, FALSE,
-   'BACS', '1', '2025-05-17', 'OTHER', NULL);
+   'BACS', 'C', '2025-05-17', NULL, NULL);
 
    -- Need to insert a defendant for an imposition --
 INSERT INTO public.defendant_accounts (
