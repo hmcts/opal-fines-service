@@ -8,12 +8,12 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,12 +28,8 @@ class ReportQueueConsumerServiceTest {
     @Mock
     ObjectMapper objectMapper;
 
-    static ReportQueueConsumerService consumer;
-
-    @BeforeEach
-    public void setUp() {
-        consumer = new ReportQueueConsumerService(objectMapper, genericReportService);
-    }
+    @InjectMocks
+    ReportQueueConsumerService consumer;
 
     @Test
     void consume_validPayload_parsesMessageAndSendsToService() throws Exception {
