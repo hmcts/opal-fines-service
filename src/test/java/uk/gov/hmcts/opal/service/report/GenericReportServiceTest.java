@@ -106,7 +106,7 @@ class GenericReportServiceTest {
         ArgumentCaptor<String> toSaveInBlobStore = ArgumentCaptor.forClass(String.class);
         verify(reportBlobStore).storeReport(toSaveInBlobStore.capture());
         ArgumentCaptor<ReportInstanceEntity> entities = ArgumentCaptor.forClass(ReportInstanceEntity.class);
-        verify(reportInstanceRepository, times(2)).saveAndFlush(entities.capture());
+        verify(reportInstanceRepository, times(2)).save(entities.capture());
 
         ReportInstanceEntity lastEntity = entities.getAllValues().getLast();
         assertThat(lastEntity.getReportId()).isEqualTo(reportId);
@@ -135,7 +135,7 @@ class GenericReportServiceTest {
         genericReportService.generateReportInstanceContent(1L);
         //Assert
         ArgumentCaptor<ReportInstanceEntity> entities = ArgumentCaptor.forClass(ReportInstanceEntity.class);
-        verify(reportInstanceRepository, times(2)).saveAndFlush(entities.capture());
+        verify(reportInstanceRepository, times(2)).save(entities.capture());
         ReportInstanceEntity lastEntity = entities.getAllValues().getLast();
         assertNull(lastEntity.getScheduledDeletionTimestamp());
     }
@@ -147,7 +147,7 @@ class GenericReportServiceTest {
         //Act
         assertThrows(EntityNotFoundException.class, () -> genericReportService.generateReportInstanceContent(1L));
         //Assert
-        verify(reportInstanceRepository, times(0)).saveAndFlush(reportInstance);
+        verify(reportInstanceRepository, times(0)).save(reportInstance);
     }
 
     @Test
@@ -163,7 +163,7 @@ class GenericReportServiceTest {
         assertThrows(ReportGenerationException.class, () -> genericReportService.generateReportInstanceContent(1L));
         //Assert
         ArgumentCaptor<ReportInstanceEntity> entities = ArgumentCaptor.forClass(ReportInstanceEntity.class);
-        verify(reportInstanceRepository, times(2)).saveAndFlush(entities.capture());
+        verify(reportInstanceRepository, times(2)).save(entities.capture());
         ReportInstanceEntity savedEntity = entities.getAllValues().getLast();
         assertThat(savedEntity.getGenerationStatus()).isEqualTo(ERROR);
         assertThat(savedEntity.getErrors()).isInstanceOf(ReportError.class);
@@ -179,7 +179,7 @@ class GenericReportServiceTest {
         assertThrows(ReportGenerationException.class, () -> genericReportService.generateReportInstanceContent(1L));
         //Assert
         ArgumentCaptor<ReportInstanceEntity> entities = ArgumentCaptor.forClass(ReportInstanceEntity.class);
-        verify(reportInstanceRepository, times(1)).saveAndFlush(entities.capture());
+        verify(reportInstanceRepository, times(1)).save(entities.capture());
         ReportInstanceEntity savedEntity = entities.getAllValues().getFirst();
         assertThat(savedEntity.getGenerationStatus()).isEqualTo(ERROR);
         assertThat(savedEntity.getErrors()).isInstanceOf(ReportError.class);
@@ -191,7 +191,7 @@ class GenericReportServiceTest {
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
-        when(reportInstanceRepository.saveAndFlush(any())).thenThrow(RuntimeException.class);
+        when(reportInstanceRepository.save(any())).thenThrow(RuntimeException.class);
         //Act + Assert
         assertThrows(ReportGenerationException.class, () -> genericReportService.generateReportInstanceContent(1L));
     }
