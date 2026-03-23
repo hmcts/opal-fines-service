@@ -18,7 +18,7 @@ import static net.serenitybdd.rest.SerenityRest.then;
 public class BearerTokenStepDef extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(BearerTokenStepDef.class.getName());
-    private static final String DEFAULT_USER = "opal-test@hmcts.net";
+    private static final String DEFAULT_USER = "opal-test@dev.platform.hmcts.net";
     private static final ThreadLocal<String> TOKEN = new ThreadLocal<>();
     private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
     private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();

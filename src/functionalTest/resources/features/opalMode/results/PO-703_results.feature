@@ -3,7 +3,7 @@ Feature: PO-703 results happy path
 
   @PO-703
   Scenario: get results - happy path
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to get the results ""
     Then The results response contains 60 results
 
@@ -37,7 +37,7 @@ Feature: PO-703 results happy path
 
   @PO-703
   Scenario: get results - happy path filtered by result id
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to get the results "FO,ABDC"
     Then The results response contains 2 results
 

@@ -3,7 +3,7 @@ Feature: PO-746 put/update draft account
 
   @PO-746 @cleanUpData
   Scenario: Update draft account - update account details
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -58,7 +58,7 @@ Feature: PO-746 put/update draft account
 
   @PO-947 @cleanUpData
   Scenario: Update draft account - update account details ignores submitted by name
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -112,7 +112,7 @@ Feature: PO-746 put/update draft account
 
   @PO-2359 @cleanUpData
   Scenario: Update draft account - Update (Defendant) logs PDPO
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -145,7 +145,7 @@ Feature: PO-746 put/update draft account
 
   @PO-2359 @cleanUpData
   Scenario: Update draft account - Parent + MinorCreditor yields two PDPO logs
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                                    |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json   |

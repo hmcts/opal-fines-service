@@ -17,7 +17,7 @@ Feature: PO-827 - Authorisation for Post Draft Account
 
   @PO-827 @cleanUpData
   Scenario: Post Draft Account - No Permission
-    Given I am testing as the "opal-test-2@hmcts.net" user
+    Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -31,7 +31,7 @@ Feature: PO-827 - Authorisation for Post Draft Account
 
   @PO-827 @cleanUpData
   Scenario: Post Draft Account - Permission in different BU
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 26                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |

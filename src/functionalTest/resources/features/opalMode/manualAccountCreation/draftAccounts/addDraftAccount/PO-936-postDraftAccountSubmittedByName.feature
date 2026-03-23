@@ -2,7 +2,7 @@
   Feature: PO-936 post draft account submitted by name
     @PO-936 @cleanUpData
     Scenario: Post draft account - Submitted By Name populates snapshot
-      Given I am testing as the "opal-test@hmcts.net" user
+      Given I am testing as the "opal-test@dev.platform.hmcts.net" user
       When I create a draft account with the following details
         | business_unit_id  | 73                                          |
         | account           | draftAccounts/accountJson/adultAccount.json |
@@ -23,7 +23,7 @@
         | account_snapshot.date_of_birth      | 2000-01-01           |
         | account_snapshot.account_type       | Fine                 |
         | account_snapshot.submitted_by       | L073JG               |
-        | account_snapshot.submitted_by_name  | opal-test@HMCTS.NET  |
+        | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net  |
         | account_snapshot.business_unit_name | West London          |
 
       Then I delete the created draft accounts

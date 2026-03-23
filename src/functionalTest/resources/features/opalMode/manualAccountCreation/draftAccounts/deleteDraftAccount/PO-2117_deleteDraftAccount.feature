@@ -2,7 +2,7 @@
 Feature: Draft account deletion by API
 
  Scenario: Delete the just-created draft account with concurrency control
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -16,7 +16,7 @@ Feature: Draft account deletion by API
 
   @Opal @cleanUpData
   Scenario: Cleanup should not fail if the account is already gone
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |

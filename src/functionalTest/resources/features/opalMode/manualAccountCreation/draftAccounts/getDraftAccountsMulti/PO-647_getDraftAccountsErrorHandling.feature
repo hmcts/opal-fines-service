@@ -3,13 +3,13 @@ Feature: PO-647 get draft accounts error handling
 
   @PO-647 @cleanUpData
   Scenario: Get draft account - CEP2 - Invalid or No Access Token
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to get draft accounts with an invalid token
     Then The draft account response returns 401
 
   @PO-647 @cleanUpData
   Scenario: Get draft account - CEP5 - Unsupported Content Type
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -37,6 +37,6 @@ Feature: PO-647 get draft accounts error handling
 
   @PO-647 @cleanUpData
   Scenario: Get draft account - CEP9 - Other Server Error
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I get the draft accounts trying to provoke an internal server error
     Then The draft account response returns 400
