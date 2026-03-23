@@ -46,11 +46,15 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
         } catch (JpaSystemException | InvalidDataAccessApiUsageException e) {
             log.error(":publishDefendantAccount: Error Class: {}", e.getClass().getName());
             log.error(":publishDefendantAccount: ", e);
+
             TimelineData timelineData = new TimelineData(publishEntity.getTimelineData());
+            String operationId = LogUtil.getOrCreateOpalOperationId();
+            String reason = "%s Error code: [%s]".formatted(LogUtil.ERRMSG_STORED_PROC_FAILURE, operationId);
             timelineData.insertEntry(
                 unitUser.getBusinessUnitUserId(), DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE
+                LocalDate.now(), reason
             );
+
             publishEntity.setTimelineData(timelineData.toJson());
             publishEntity.setStatusMessage(LogUtil.ERRMSG_STORED_PROC_FAILURE);
             return draftAccountTransactional.updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED,
