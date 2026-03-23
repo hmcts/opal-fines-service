@@ -14,7 +14,7 @@ public interface PaymentMapper {
         }
 
         return Payment.builder()
-            .isBacs(legacy.isBacs())
+            .bacs(legacy.isBacs())
             .holdPayment(legacy.isHoldPayment())
             .build();
     }

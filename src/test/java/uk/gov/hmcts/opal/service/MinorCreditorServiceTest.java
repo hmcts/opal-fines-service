@@ -110,7 +110,7 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccountAtAGlance() {
-        String id = "123";
+        Long id = 123L;
         GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
@@ -135,7 +135,7 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.getMinorCreditorAtAGlance("123", "authHeaderValue")
+            () -> minorCreditorService.getMinorCreditorAtAGlance(123L, "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }

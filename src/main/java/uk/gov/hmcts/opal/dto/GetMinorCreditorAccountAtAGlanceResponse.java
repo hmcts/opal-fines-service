@@ -43,5 +43,14 @@ public class GetMinorCreditorAccountAtAGlanceResponse implements ToJsonString {
 
         @JsonProperty("account_id")
         private Long accountId;
+
+        @JsonProperty("title")
+        private String title;
+
+        @JsonProperty("forenames")
+        private String forenames;
+
+        @JsonProperty("surname")
+        private String surname;
     }
 }

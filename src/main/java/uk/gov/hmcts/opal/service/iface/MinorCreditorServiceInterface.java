@@ -12,7 +12,7 @@ public interface MinorCreditorServiceInterface {
 
     PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorSearchDto);
 
-    GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId);
+    GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId);
 
     GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(
         Long minorCreditorAccountId
