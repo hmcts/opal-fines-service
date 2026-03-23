@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.converter.AssociationTypeConverter;
 
@@ -52,7 +53,8 @@ public class DefendantAccountPartiesEntity {
     @JoinColumn(name = "party_id",  nullable = false)
     private PartyEntity party;
 
-    @Column(name = "association_type", nullable = false, length = 30)
+    @ColumnTransformer(write = "?::t_association_type_enum")
+    @Column(name = "association_type", nullable = false, length = 30, columnDefinition = "t_association_type_enum")
     @Convert(converter = AssociationTypeConverter.class)
     private AssociationType associationType;
 
