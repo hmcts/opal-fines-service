@@ -3,7 +3,7 @@ Feature: Access token identity is used and ignores supplied submitted_by and val
 
   @PO-2292 @cleanUpData
   Scenario: Get Draft Accounts - Fields are populated using the access token ignore request that includes submitted_by or validated_by
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |

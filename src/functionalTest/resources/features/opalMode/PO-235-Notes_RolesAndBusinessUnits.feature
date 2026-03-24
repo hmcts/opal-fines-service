@@ -2,7 +2,7 @@
 # Feature: tests for notes business unit users/permissions for accounts dependant on business units
 #
 #   Scenario: A user can add a note to a business unit it is part of
-#     Given I am testing as the "opal-test@hmcts.net" user
+#     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #     When I make a request to the defendant account add notes api with
 #       | associated_record_id | 500000010                       |
 #       | business_unit_id     | 73                              |
@@ -27,7 +27,7 @@
 #       | business_unit_id     | 77                              |
 #
 #   Scenario: A user cannot add a note to a business unit it is not part of
-#     Given I am testing as the "opal-test@hmcts.net" user
+#     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #     When I make a request to the defendant account add notes api with
 #       | associated_record_id | 500000010                       |
 #       | business_unit_id     | 24                              |
@@ -35,7 +35,7 @@
 #     Then the add notes request is forbidden
 #
 #   Scenario: The business unit must be defined in the request
-#     Given I am testing as the "opal-test@hmcts.net" user
+#     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #     When I make a request to the defendant account add notes api with
 #       | associated_record_id | 500000010                       |
 #       | note_text            | test roles and perms Opal user1 |

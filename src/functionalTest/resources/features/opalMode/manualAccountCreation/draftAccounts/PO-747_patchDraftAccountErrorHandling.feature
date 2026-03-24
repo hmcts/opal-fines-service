@@ -3,7 +3,7 @@ Feature: PO-747 patch draft account error handling
 
   @PO-747 @cleanUpData
   Scenario: Patch draft account - CEP1 - Invalid Request Payload
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -25,7 +25,7 @@ Feature: PO-747 patch draft account error handling
 
     @PO-747 @cleanUpData
       Scenario: Patch draft account - CEP2 - Invalid or No Access Token
-        Given I am testing as the "opal-test@hmcts.net" user
+        Given I am testing as the "opal-test@dev.platform.hmcts.net" user
         When I create a draft account with the following details
           | business_unit_id  | 73                                     |
           | account           | draftAccounts/accountJson/account.json |
@@ -46,11 +46,11 @@ Feature: PO-747 patch draft account error handling
           | If-Match         | 0                    |
         Then The draft account response returns 401
 
-      Then I am testing as the "opal-test@hmcts.net" user
+      Then I am testing as the "opal-test@dev.platform.hmcts.net" user
 
       @PO-747 @cleanUpData
       Scenario: Patch draft account - CEP4 - Resource Not Found
-        Given I am testing as the "opal-test@hmcts.net" user
+        Given I am testing as the "opal-test@dev.platform.hmcts.net" user
         When I patch the "1000000000" draft account with the following details
           | business_unit_id | 73                   |
           | account_status   | Rejected             |
@@ -62,25 +62,25 @@ Feature: PO-747 patch draft account error handling
 
       @PO-747 @cleanUpData
       Scenario: Patch draft account - CEP5 - Unsupported Content Type
-        Given I am testing as the "opal-test@hmcts.net" user
+        Given I am testing as the "opal-test@dev.platform.hmcts.net" user
         When I attempt to patch a draft account with an unsupported content type
         Then The draft account response returns 406
 
       @PO-747 @cleanUpData
       Scenario: Patch draft account - CEP7 - Unsupported Media Type
-        Given I am testing as the "opal-test@hmcts.net" user
+        Given I am testing as the "opal-test@dev.platform.hmcts.net" user
         When I attempt to patch a draft account with an unsupported media type
         Then The draft account response returns 415
 
       @PO-747 @cleanUpData
         Scenario: Patch draft account - CEP9 - Other Server Error
-          Given I am testing as the "opal-test@hmcts.net" user
+          Given I am testing as the "opal-test@dev.platform.hmcts.net" user
           When I patch the draft account trying to provoke an internal server error
           Then The draft account response returns 500
 
   @PO-747 @cleanUpData
   Scenario: Patch draft account - Stale If-Match results in 409 Conflict
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |

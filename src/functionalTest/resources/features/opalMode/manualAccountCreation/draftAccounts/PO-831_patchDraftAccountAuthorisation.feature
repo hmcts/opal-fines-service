@@ -3,7 +3,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
   @PO-831 @cleanUpData
   Scenario: Patch draft account - no auth
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -28,12 +28,12 @@ Feature: PO-831 - Authorisation for patch draft account
 
     Then The draft account response returns 401
 
-    Then I am testing as the "opal-test@hmcts.net" user
+    Then I am testing as the "opal-test@dev.platform.hmcts.net" user
 
 
   @PO-831 @cleanUpData
   Scenario: Update draft account - user with no permissions
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -48,7 +48,7 @@ Feature: PO-831 - Authorisation for patch draft account
     And I store the created draft account ID
     Then The draft account response returns 201
 
-    When I am testing as the "opal-test-2@hmcts.net" user
+    When I am testing as the "opal-test-2@dev.platform.hmcts.net" user
     And I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
@@ -58,7 +58,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
     Then The draft account response returns 403
 
-    When I am testing as the "opal-test@hmcts.net" user
+    When I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I get the single created draft account and the response contains
       | business_unit_id                    | 73          |
       | account_type                        | Fine        |
@@ -73,7 +73,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
   @PO-831 @cleanUpData
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -87,7 +87,7 @@ Feature: PO-831 - Authorisation for patch draft account
     And I store the created draft account ID
     Then The draft account response returns 201
 
-    When I am testing as the "opal-test-3@hmcts.net" user
+    When I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
@@ -97,7 +97,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
     Then The draft account response returns 403
 
-    When I am testing as the "opal-test@hmcts.net" user
+    When I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I get the single created draft account and the response contains
       | business_unit_id                    | 73          |
       | account_type                        | Fine        |
@@ -112,7 +112,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
   @PO-831 @cleanUpData
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
-    Given I am testing as the "opal-test-3@hmcts.net" user
+    Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 26                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -125,7 +125,7 @@ Feature: PO-831 - Authorisation for patch draft account
     And I store the created draft account ID
     Then The draft account response returns 201
 
-    When I am testing as the "opal-test@hmcts.net" user
+    When I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I patch the draft account with the following details
       | business_unit_id | 26                   |
       | account_status   | Rejected             |
@@ -135,7 +135,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
     Then The draft account response returns 403
 
-    When I am testing as the "opal-test-3@hmcts.net" user
+    When I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And I get the single created draft account and the response contains
       | business_unit_id                    | 26            |
       | account_type                        | Fine          |
@@ -149,7 +149,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
   @PO-831 @cleanUpData
   Scenario: Update draft account - user with permissions in same business unit
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -185,7 +185,7 @@ Feature: PO-831 - Authorisation for patch draft account
 
   @PO-831 @cleanUpData
   Scenario: Update draft account - user with permissions in same business unit - updating business unit
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |

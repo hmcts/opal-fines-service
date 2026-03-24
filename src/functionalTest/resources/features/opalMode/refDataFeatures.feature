@@ -3,7 +3,7 @@ Feature: This feature covers all the ref data scenarios
 
 
   Background:
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
   @PO-313
   Scenario: verifying the end points for API for Business Units Ref Data

@@ -2,7 +2,7 @@
 #Feature: Test the defendant account details API Opal
 #
 #  Scenario: Correct data returned when an existing account ID is used
-#    Given I am testing as the "opal-test@hmcts.net" user
+#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #    When I make a request to the defendant account details api with
 #      | defendantID | 500000009 |
 #
@@ -14,7 +14,7 @@
 #
 #
 #  Scenario Outline: No data returned when a non-existent account ID is used
-#    Given I am testing as the "opal-test@hmcts.net" user
+#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #    When I make a request to the defendant account details api with
 #      | defendantID | <defendantID> |
 #
