@@ -42,7 +42,7 @@ public class MinorCreditorService {
         }
     }
 
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId,
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
         String authHeaderValue) {
 
         log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);

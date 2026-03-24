@@ -3,7 +3,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
   @PO-745 @PO-991 @PO-2358 @cleanUpData
   Scenario: Patch draft account - Pending - happy path
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -30,7 +30,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
   @PO-745 @cleanUpData
   Scenario: Patch draft account - Rejected - happy path
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -69,7 +69,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
   @PO-745 @cleanUpData
   Scenario: Patch draft account - Deleted - happy path
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -108,7 +108,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
   @PO-2358 @cleanUpData
   Scenario: Patch draft account - Parent or Guardian - happy path
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
@@ -133,7 +133,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
   @PO-2358 @cleanUpData
   Scenario: Patch draft account - Minor Creditor - happy path
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
@@ -158,7 +158,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
   @PO-2358 @cleanUpData
   Scenario: Patch draft account - Defendant + Minor Creditor creates two logs
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
@@ -183,7 +183,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
 
   @PO-2358 @cleanUpData
   Scenario: Attempt to patch with invalid token - no logs created
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -206,7 +206,7 @@ Feature: PO-745 patch draft account & PO-2358 PDPL Integration
   @PO-2358
   @cleanUpData
   Scenario: Patch unknown draft account id returns 406 and does not create PDPO log
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
     When I patch the "00000000-0000-0000-0000-000000000000" draft account with the following details
       | business_unit_id | 73                 |

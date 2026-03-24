@@ -68,5 +68,14 @@ public class  LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlStr
 
         @XmlElement(name = "account_id")
         private Long accountId;
+
+        @XmlElement(name = "title")
+        private String title;
+
+        @XmlElement(name = "forenames")
+        private String forenames;
+
+        @XmlElement(name = "surname")
+        private String surname;
     }
 }

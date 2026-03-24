@@ -3,7 +3,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
 
   @PO-559 @cleanUpData @PO-2360
   Scenario: Get draft account - happy path
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -38,7 +38,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
 
   @PO-2360 @cleanUpData
   Scenario: Get draft account - Parent + MinorCreditor yields two PDPO logs
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
@@ -75,7 +75,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
 
   @PO-2360 @cleanUpData
   Scenario: Invalid token is blocked and no PDPO logs emitted
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
@@ -96,12 +96,12 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
 #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
 
   # switch back to an OPAL user so cleanup can delete the created draft (or delete via admin API)
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     Then I delete the created draft accounts
 
   @PO-2360 @cleanUpData
   Scenario: Attempt to create a draft with an invalid token - no logs created
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"
 #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
     Then I delete the created draft accounts

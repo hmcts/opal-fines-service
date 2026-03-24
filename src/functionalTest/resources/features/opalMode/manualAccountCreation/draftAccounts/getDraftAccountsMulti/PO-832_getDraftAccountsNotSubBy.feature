@@ -3,7 +3,7 @@
 #
 #  @PO-832 @cleanUpData
 #  Scenario: Get draft accounts not submitted by - happy path
-#    Given I am testing as the "opal-test@hmcts.net" user
+#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #    When I create a draft account with the following details
 #      | business_unit_id  | 73                                          |
 #      | account           | draftAccounts/accountJson/adultAccount.json |
@@ -34,7 +34,7 @@
 
 #    @PO-832 @cleanUpData
 #    Scenario: Get draft accounts both not submitted by and submitted by parameters
-#      Given I am testing as the "opal-test@hmcts.net" user
+#      Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #      When I create a draft account with the following details
 #        | business_unit_id  | 73                                          |
 #        | account           | draftAccounts/accountJson/adultAccount.json |
