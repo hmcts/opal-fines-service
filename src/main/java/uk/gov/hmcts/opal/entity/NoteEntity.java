@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,7 +42,8 @@ public class NoteEntity {
     private Long noteId;
 
     @Column(name = "note_type", length = 2)
-    private String noteType;
+    @Enumerated(EnumType.STRING)
+    private NoteType noteType;
 
     @Column(name = "associated_record_type", length = 30)
     private String associatedRecordType;

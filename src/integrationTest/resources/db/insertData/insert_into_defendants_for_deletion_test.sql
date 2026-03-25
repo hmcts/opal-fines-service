@@ -142,7 +142,7 @@ VALUES (9107, 78, 123456, '2023-11-04 10:00:00',
 INSERT INTO notes(note_id, note_type, associated_record_type,
                          associated_record_id, note_text, posted_date,
                          posted_by, posted_by_name)
-VALUES (1, 'TE', 'DEF', '1001',
+VALUES (1, 'AC', 'DEF', '1001',
         'testData', '2025-10-27 15:49:42.498414+00',
         '01000000A', 'User9100');
 

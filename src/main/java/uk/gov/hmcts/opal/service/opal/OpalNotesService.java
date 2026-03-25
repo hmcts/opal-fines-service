@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
@@ -51,7 +52,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
         NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());
-        note.setNoteType(requestNote.getNoteType());
+        note.setNoteType(NoteType.valueOf(requestNote.getNoteType()));
         note.setAssociatedRecordId(requestNote.getRecordId());
         note.setAssociatedRecordType(requestNote.getRecordType().toString());
         note.setBusinessUnitUserId(managed.getBusinessUnit().getBusinessUnitId().toString());

@@ -66,6 +66,7 @@ import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
@@ -938,7 +939,7 @@ public class OpalDefendantAccountBuilders {
     static NoteEntity buildNoteEntity(DefendantAccountEntity managed, String combined, String postedBy) {
         return NoteEntity.builder()
             .noteText(combined)
-            .noteType("AA")
+            .noteType(NoteType.AA)
             .associatedRecordId(String.valueOf(managed.getDefendantAccountId()))
             .associatedRecordType(RecordType.DEFENDANT_ACCOUNTS.toString())
             .businessUnitUserId(String.valueOf(managed.getBusinessUnit().getBusinessUnitId()))
