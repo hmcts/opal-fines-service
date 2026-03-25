@@ -457,7 +457,7 @@ class DefendantAccountServiceTest {
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))
             .build();
-        when(userStateService.checkForAuthorisedUser("UNIT_TEST")).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser("Bearer a_bearer_token")).thenReturn(allPermissionsUser());
         when(defendantAccountServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
 
         // Act
