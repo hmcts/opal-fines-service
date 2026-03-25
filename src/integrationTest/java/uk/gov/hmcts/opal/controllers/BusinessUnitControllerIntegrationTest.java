@@ -17,6 +17,10 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.UserStateService;
 
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -111,6 +115,19 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
 
         jsonSchemaValidationService.validateOrError(body, GET_BUNITS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get Business Unit Ref Data filtered by business unit type Area")
+    void testGetBusinessUnitsRefData_FilterByArea() throws Exception {
+        mockMvc.perform(get(URL_BASE)
+                            .param("q", "Area")
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(greaterThan(0)))
+            .andExpect(jsonPath("$.refData[*].business_unit_id", hasItem(1)))
+            .andExpect(jsonPath("$.refData[*].business_unit_type", everyItem(is("Area"))));
     }
 
     @Test

@@ -7,7 +7,7 @@ Feature: This feature covers all the ref data scenarios
 
   @PO-313
   Scenario: verifying the end points for API for Business Units Ref Data
-    When I make a request to the business unit ref data api filtering by business unit type "area"
+    When I make a request to the business unit ref data api filtering by business unit type "Area"
     Then the business unit ref data matching to result
 
   @PO-311
