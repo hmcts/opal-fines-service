@@ -12,13 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapperImpl;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 
 @SpringJUnitConfig
 @ContextConfiguration(classes = {
-    MinorCreditorAccountHeaderSummaryMapperImpl.class
+    MinorCreditorAccountHeaderSummaryMapperImpl.class,
+    BusinessUnitSummaryMapperImpl.class
 })
 class MinorCreditorAccountHeaderSummaryMapperTest {
 

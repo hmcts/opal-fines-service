@@ -1,27 +1,27 @@
 package uk.gov.hmcts.opal.mapper;
 
-import java.math.BigInteger;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
+import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
 
 @Mapper(componentModel = "spring",
+    uses = {BusinessUnitSummaryMapper.class},
     builder = @Builder(disableBuilder = true))
 public interface MinorCreditorAccountHeaderSummaryMapper {
 
     @Mapping(target = "creditorAccountId", expression = "java(String.valueOf(entity.getCreditorAccountId()))")
     @Mapping(target = "accountNumber", source = "creditorAccountNumber")
     @Mapping(target = "creditorAccountType", source = "creditorAccountType")
-    @Mapping(target = "version", expression = "java(toVersion(entity.getVersionNumber()))")
-    @Mapping(target = "businessUnitSummary", expression = "java(toBusinessUnitSummary(entity))")
+    @Mapping(target = "version", source = "versionNumber")
+    @Mapping(target = "businessUnitSummary", source = ".")
     @Mapping(target = "partyDetails", expression = "java(toPartyDetails(entity))")
     @Mapping(target = "awardedAmount", source = "awarded")
     @Mapping(target = "paidOutAmount", source = "paidOut")
@@ -37,18 +37,6 @@ public interface MinorCreditorAccountHeaderSummaryMapper {
         return CreditorAccountTypeReference.builder()
             .type(type.name())
             .displayName(type.getLabel())
-            .build();
-    }
-
-    default BigInteger toVersion(Long versionNumber) {
-        return versionNumber == null ? null : BigInteger.valueOf(versionNumber);
-    }
-
-    default BusinessUnitSummary toBusinessUnitSummary(MinorCreditorAccountHeaderEntity entity) {
-        return BusinessUnitSummary.builder()
-            .businessUnitId(String.valueOf(entity.getBusinessUnitId()))
-            .businessUnitName(entity.getBusinessUnitName())
-            .welshSpeaking(entity.isWelshLanguage() ? "Y" : "N")
             .build();
     }
 
