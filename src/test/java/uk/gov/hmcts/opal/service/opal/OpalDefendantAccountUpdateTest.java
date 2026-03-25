@@ -48,7 +48,7 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @ExtendWith(MockitoExtension.class)
-class OpalDefendantAccountServiceTest04 {
+class OpalDefendantAccountUpdateTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
@@ -183,10 +183,13 @@ class OpalDefendantAccountServiceTest04 {
         assertEquals(LocalDate.parse("2025-01-01"), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
 
         assertNotNull(resp.getPayload().getEnforcementOverride());
-        assertEquals("EO-1", resp.getPayload().getEnforcementOverride().getEnforcementOverrideResult()
-            .getEnforcementOverrideResultId());
-        assertEquals(22, resp.getPayload().getEnforcementOverride().getEnforcer().getEnforcerId());
-        assertEquals(33, resp.getPayload().getEnforcementOverride().getLja().getLjaId());
+        EnforcementOverrideDefendantAccount enforcementOverride = resp.getPayload().getEnforcementOverride();
+        assertNotNull(enforcementOverride.getEnforcementOverrideResult());
+        assertEquals("EO-1", enforcementOverride.getEnforcementOverrideResult().getEnforcementOverrideResultId());
+        assertNotNull(enforcementOverride.getEnforcer());
+        assertEquals(22, enforcementOverride.getEnforcer().getEnforcerId());
+        assertNotNull(enforcementOverride.getLja());
+        assertEquals(33, enforcementOverride.getLja().getLjaId());
 
         // Verify entity was updated as expected
         assertEquals(court, entity.getEnforcingCourt());

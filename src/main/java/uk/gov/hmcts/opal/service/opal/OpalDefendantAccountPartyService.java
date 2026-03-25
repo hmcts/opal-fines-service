@@ -98,7 +98,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
 
         PartyEntity party = partyEntity.getParty();
-        Optional<DebtorDetailEntity> debtorDetail = debtorDetailRepositoryService.findByPartyId(party.getPartyId());
+        DebtorDetailEntity debtorDetail = debtorDetailRepositoryService.findByPartyId(party.getPartyId()).orElse(null);
 
         return DefendantAccountParty.builder()
             .defendantAccountPartyType(partyEntity.getAssociationType())
@@ -167,7 +167,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             dap.setParty(party);
         }
 
-        log.debug("replaceDefendantAccountParty: changed(?) partyId: {}", party != null ? party.getPartyId() : null);
+        Objects.requireNonNull(party, "Party must be present before updating defendant account party");
+
+        log.debug("replaceDefendantAccountParty: changed(?) partyId: {}", party.getPartyId());
 
         if (request == null) {
             throw new IllegalArgumentException("Request body is required");
@@ -176,11 +178,19 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         dap.setAssociationType(request.getDefendantAccountPartyType());
         dap.setDebtor(request.getIsDebtor());
 
+        PartyDetails requestPartyDetails = request.getPartyDetails();
+        String requestOrganisationName = Optional.ofNullable(requestPartyDetails)
+            .map(PartyDetails::getOrganisationDetails)
+            .map(OrganisationDetails::getOrganisationName)
+            .orElse("");
+        String requestSurname = Optional.ofNullable(requestPartyDetails)
+            .map(PartyDetails::getIndividualDetails)
+            .map(IndividualDetails::getSurname)
+            .orElse("");
         log.debug("replaceDefendantAccountParty:     request org: {}, surname: {}",
-            Optional.ofNullable(request.getPartyDetails().getOrganisationDetails()).map(a -> a.getOrganisationName())
-                .orElse(""),
-            Optional.ofNullable(request.getPartyDetails().getIndividualDetails()).map(a -> a.getSurname()).orElse(""));
-        log.debug("replaceDefendantAccountParty:  pre-update org: {}, surname: {}", party.getOrganisationName(),
+            requestOrganisationName, requestSurname);
+        log.debug("replaceDefendantAccountParty:  pre-update org: {}, surname: {}",
+            party.getOrganisationName(),
             party.getSurname());
 
         OpalDefendantAccountBuilders.applyPartyCoreReplace(party, request.getPartyDetails());
@@ -431,4 +441,3 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     }
 
 }
-
