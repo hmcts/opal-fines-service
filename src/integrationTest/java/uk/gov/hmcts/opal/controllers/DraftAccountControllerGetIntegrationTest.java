@@ -88,7 +88,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(header().string("ETag", "\"0\""))
             .andExpect(jsonPath("$.draft_account_id").value(3))
             .andExpect(jsonPath("$.business_unit_id").value(73))
-            .andExpect(jsonPath("$.account_type").value("Fixed Penalty Registration"))
+            .andExpect(jsonPath("$.account_type").value("Fixed Penalty"))
             .andExpect(jsonPath("$.submitted_by").value("user_003"))
             .andExpect(jsonPath("$.account_status").value("Publishing Failed"))
             .andExpect(jsonPath("$.status_message").value("Account failed publishing to the target system."));
