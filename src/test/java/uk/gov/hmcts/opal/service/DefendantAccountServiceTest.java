@@ -457,7 +457,7 @@ class DefendantAccountServiceTest {
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))
             .build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser("UNIT_TEST")).thenReturn(allPermissionsUser());
         when(defendantAccountServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
 
         // Act
@@ -477,7 +477,7 @@ class DefendantAccountServiceTest {
         // Arrange
         Long id = 1L;
         UpdateDefendantAccountRequestPayload req = UpdateDefendantAccountRequestPayload.builder().build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser("UNIT_TEST")).thenReturn(allPermissionsUser());
 
         // Act
         final String buHeader = "10";
