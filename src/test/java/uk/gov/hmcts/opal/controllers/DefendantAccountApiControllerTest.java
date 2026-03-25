@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
@@ -29,22 +29,19 @@ class DefendantAccountApiControllerTest {
     private DefendantAccountApiController defendantAccountApiController;
 
     @Test
-    void testGetDefendantAccountEnforcementStatus_Success() {
-        // Arrange
+    void given_validRequest_when_getEnforcementStatus_then_returnsOkResponse() {
+        Long defendantId = 1L;
         EnforcementStatus status = EnforcementStatus.builder()
             .build();
-        when(defendantAccountService.getEnforcementStatus(anyLong(), any()))
+        when(defendantAccountService.getEnforcementStatus(defendantId, BEARER_TOKEN))
             .thenReturn(status);
 
-        // Act
         ResponseEntity<GetEnforcementStatusResponse> response =
-            defendantAccountApiController.getEnforcementStatus(1L, BEARER_TOKEN);
+            defendantAccountApiController.getEnforcementStatus(defendantId, BEARER_TOKEN);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-
-        GetEnforcementStatusResponse body = response.getBody();
-        assertEquals(status, body);
+        assertSame(status, response.getBody());
+        verify(defendantAccountService).getEnforcementStatus(defendantId, BEARER_TOKEN);
     }
 
 }
