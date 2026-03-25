@@ -93,6 +93,7 @@ import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
+import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -181,6 +182,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final ReportEntryServiceInterface reportEntryService;
 
     // Mappers
+    private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
     private final PaymentTermsMapper paymentTermsMapper;
 
     //TODO - Remove once repository service is in use
@@ -670,7 +672,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return EnforcementOverrideDefendantAccount.builder()
                 .enforcementOverrideResult(buildEnforcementOverrideResultDefendantAccount(dbResultEntity(
                     entity.getEnforcementOverrideResultId())))
-                .enforcer(OpalDefendantAccountBuilders.buildEnforcerDefendantAccount(dbEnforcerEntity(entity)))
+                .enforcer(dbEnforcerEntity(entity).map(enforcerDefendantAccountMapper::toDto).orElse(null))
                 .lja(OpalDefendantAccountBuilders.buildLjaDefendantAccount(dbLja(entity)))
                 .build();
         }

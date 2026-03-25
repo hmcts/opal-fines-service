@@ -84,7 +84,6 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
@@ -708,13 +707,6 @@ public class OpalDefendantAccountBuilders {
         return Optional.ofNullable(enforcer).map(e -> EnforcerReferenceCommon.builder()
                 .enforcerId(e.getEnforcerId())
                 .enforcerName(e.getEnforcerName())
-                .build())
-            .orElse(null);
-    }
-
-    static EnforcerDefendantAccount buildEnforcerDefendantAccount(Optional<EnforcerEntity> enforcer) {
-        return enforcer.map(enf -> EnforcerDefendantAccount.builder()
-                .enforcerId(enf.getEnforcerId())
                 .build())
             .orElse(null);
     }
