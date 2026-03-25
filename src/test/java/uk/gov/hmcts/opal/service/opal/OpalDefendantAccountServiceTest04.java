@@ -39,6 +39,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccou
 import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
@@ -72,6 +73,9 @@ class OpalDefendantAccountServiceTest04 {
 
     @Mock
     private ResultRepository resultRepo;
+
+    @Mock
+    private EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
 
     // Service under test
     @InjectMocks
@@ -114,6 +118,9 @@ class OpalDefendantAccountServiceTest04 {
         EnforcerEntity enforcer = mock(EnforcerEntity.class);
         when(enforcer.getEnforcerId()).thenReturn(22L);
         when(enforcerRepo.findById(22L)).thenReturn(Optional.of(enforcer));
+        when(enforcerDefendantAccountMapper.toDto(enforcer)).thenReturn(EnforcerDefendantAccount.builder()
+            .enforcerId(22L)
+            .build());
 
         LocalJusticeAreaEntity lja = mock(LocalJusticeAreaEntity.class);
         when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
