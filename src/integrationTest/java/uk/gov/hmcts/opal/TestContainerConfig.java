@@ -13,7 +13,7 @@ public class TestContainerConfig {
 
     private static final int LEGACY_STUB_PORT = 4553;
     private static final String LOCAL_LEGACY_GATEWAY_URL = "http://localhost:%d/opal".formatted(LEGACY_STUB_PORT);
-    private static final String DEFAULT_LEGACY_STUB_IMAGE = "sdshmctspublic.azurecr.io/opal/legacy-db-stub:latest";
+    private static final String DEFAULT_LEGACY_STUB_IMAGE = "hmctsprod.azurecr.io/opal/legacy-db-stub:latest";
     private static final String LEGACY_STUB_IMAGE =
         System.getenv().getOrDefault("OPAL_LEGACY_STUB_IMAGE", DEFAULT_LEGACY_STUB_IMAGE);
     public static final PostgreSQLContainer<?> POSTGRES_CONTAINER;

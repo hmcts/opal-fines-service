@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.mapper.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,6 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 
@@ -69,5 +73,62 @@ class PartyMapperTest {
         assertEquals("John", mapped.getIndividualDetails().getForenames());
         assertEquals("Mr", mapped.getIndividualDetails().getTitle());
         assertNull(mapped.getOrganisationDetails());
+    }
+
+    @Test
+    void shouldMapIndividualPartyEntityToPartyDetailsDto() {
+        // given
+        PartyEntity party = PartyEntity.builder()
+            .partyId(42L)
+            .organisation(false)
+            .title("Sir")
+            .forenames("Ben")
+            .surname("Kenobi")
+            .addressLine1("Tatooine Lane")
+            .addressLine2("Mos Eisley")
+            .postcode("TAT 1OO")
+            .build();
+
+        // when
+        PartyDetails dto = mapper.toDto(party);
+
+        // then
+        assertNotNull(dto, "DTO should not be null");
+        assertEquals("42", dto.getPartyId());
+        assertFalse(dto.getOrganisationFlag(), "organisationFlag should be false for individuals");
+
+        assertNull(dto.getOrganisationDetails(), "organisationDetails should be null for individual party");
+
+        IndividualDetails individual = dto.getIndividualDetails();
+        assertNotNull(individual, "individualDetails must be mapped for a non-organisation party");
+        assertEquals("Sir", individual.getTitle());
+        assertEquals("Ben", individual.getForenames());
+        assertEquals("Kenobi", individual.getSurname());
+    }
+
+    @Test
+    void shouldMapOrganisationPartyEntityToPartyDetailsDto() {
+        // given
+        PartyEntity party = PartyEntity.builder()
+            .partyId(100L)
+            .organisation(true)
+            .organisationName("Galactic Enterprises Ltd")
+            .addressLine1("The Spire")
+            .postcode("GAL 100")
+            .build();
+
+        // when
+        PartyDetails dto = mapper.toDto(party);
+
+        // then
+        assertNotNull(dto, "DTO should not be null");
+        assertEquals("100", dto.getPartyId());
+        assertTrue(dto.getOrganisationFlag(), "organisationFlag should be true for organisations");
+
+        OrganisationDetails org = dto.getOrganisationDetails();
+        assertNotNull(org, "organisationDetails should be present for organisation parties");
+        assertEquals("Galactic Enterprises Ltd", org.getOrganisationName());
+
+        assertNull(dto.getIndividualDetails(), "individualDetails should be null for organisation party");
     }
 }

@@ -10,6 +10,7 @@
 * Date        Author   Version  Nature of Change
 * ----------  -------  -------  -----------------------------------------------------------------------------------------
 * 02/06/2025  R DODD   1.0      PO-1047 Inserts rows of data into the DEFENDANT_ACCOUNTS table for the Integration Tests.
+* 18/03/2026  TMc      2.0      PO-2850 Amended insert statement for DOCUMENTS. Updated value (0) for PRIORITY column, now an ENUM, to '0'
 *
 **/
 
@@ -81,7 +82,7 @@ ON CONFLICT (court_id) DO UPDATE
 
 -- Basic setup for document template.
 INSERT INTO documents (document_id, recipient, document_language, priority)
-VALUES ('TTPLET', 'DEF', 'EN', 0)
+VALUES ('TTPLET', 'DEF', 'EN', '0')
 ON CONFLICT (document_id) DO NOTHING;
 
 INSERT INTO defendant_accounts

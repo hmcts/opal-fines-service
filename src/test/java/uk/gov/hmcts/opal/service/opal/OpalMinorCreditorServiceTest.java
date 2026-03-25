@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -16,9 +17,13 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse.AtAGlanceDefendant;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.Payment;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
@@ -28,13 +33,17 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapper;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapperImpl;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import uk.gov.hmcts.opal.repository.PartyRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,7 +67,16 @@ class OpalMinorCreditorServiceTest {
 
     @Spy
     private MinorCreditorAccountHeaderSummaryMapper headerSummaryMapper =
-        new MinorCreditorAccountHeaderSummaryMapperImpl();
+        Mappers.getMapper(MinorCreditorAccountHeaderSummaryMapper.class);
+  
+    @Mock
+    private MinorCreditorAccountAtAGlanceRepository minorCreditorAccountAtAGlanceRepository;
+
+    @Mock
+    private PartyRepository partyRepository;
+
+    @Mock
+    private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @InjectMocks
     private OpalMinorCreditorService service;
@@ -600,4 +618,137 @@ class OpalMinorCreditorServiceTest {
         assertEquals(expectedDisplayName, reference.getDisplayName());
     }
 
+    @Test
+    void getMinorCreditorAtAGlance_happyPath_allFields() {
+        // Arrange
+        long id = 200L;
+
+        MinorCreditorAccountAtAGlanceEntity creditor = getFullAtAGlanceEntity();
+        PartyEntity party = PartyEntity.builder()
+            .partyId(100L)
+            .organisation(true)
+            .organisationName("The Republic")
+            .addressLine1("Coruscant")
+            .postcode("SP4CE")
+            .build();
+
+        when(minorCreditorAccountAtAGlanceRepository.findById(id)).thenReturn(Optional.of(creditor));
+        when(partyRepository.findById(id)).thenReturn(Optional.of(party));
+
+        GetMinorCreditorAccountAtAGlanceResponse mapped = GetMinorCreditorAccountAtAGlanceResponse.builder()
+            .party(PartyDetails.builder().partyId("100").organisationFlag(true).organisationDetails(
+                OrganisationDetails.builder().organisationName("The Republic").build()).build())
+            .address(AddressDetails.builder().addressLine1("Coruscant").postcode("SP4CE").build())
+            .creditorAccountId(1977L)
+            .defendant(AtAGlanceDefendant.builder()
+                .accountNumber("066")
+                .accountId(66L)
+                .title("Mr")
+                .forenames("Obi Wan")
+                .surname("Kenobi")
+                .build())
+            .payment(Payment.builder().holdPayment(false).bacs(true).build())
+            .build();
+
+        when(atAGlanceResponseMapper.toDto(creditor, party)).thenReturn(mapped);
+
+        // Act
+        GetMinorCreditorAccountAtAGlanceResponse response = service.getMinorCreditorAtAGlance(id);
+
+        // Assert
+        assertNotNull(response);
+
+        // Party
+        assertNotNull(response.getParty());
+        assertEquals("100", response.getParty().getPartyId());
+        assertTrue(response.getParty().getOrganisationFlag());
+
+        assertNotNull(response.getParty().getOrganisationDetails());
+        assertEquals("The Republic",
+            response.getParty().getOrganisationDetails().getOrganisationName());
+        assertNull(response.getParty().getOrganisationDetails().getOrganisationAliases());
+
+        assertNull(response.getParty().getIndividualDetails());
+
+        // Address
+        assertNotNull(response.getAddress());
+        assertEquals("Coruscant", response.getAddress().getAddressLine1());
+        assertNull(response.getAddress().getAddressLine2());
+        assertNull(response.getAddress().getAddressLine3());
+        assertNull(response.getAddress().getAddressLine4());
+        assertNull(response.getAddress().getAddressLine5());
+        assertEquals("SP4CE", response.getAddress().getPostcode());
+
+        // Creditor Account
+        assertEquals(1977, response.getCreditorAccountId());
+
+        // Defendant
+        assertNotNull(response.getDefendant());
+        assertEquals("066", response.getDefendant().getAccountNumber());
+        assertEquals(66, response.getDefendant().getAccountId());
+        assertEquals("Mr", response.getDefendant().getTitle());
+        assertEquals("Obi Wan", response.getDefendant().getForenames());
+        assertEquals("Kenobi", response.getDefendant().getSurname());
+
+        // Payment
+        assertNotNull(response.getPayment());
+        assertTrue(response.getPayment().getBacs());
+        assertFalse(response.getPayment().getHoldPayment());
+    }
+
+    @Test
+    void getMinorCreditorAtAGlance_creditorNotFound() {
+        // Arrange
+        long id = 200L;
+        when(minorCreditorAccountAtAGlanceRepository.findById(id)).thenReturn(Optional.empty());
+
+        // Act
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            service.getMinorCreditorAtAGlance(id));
+
+        // Assert
+        assertEquals("Minor creditor account not found: " + id, ex.getMessage());
+
+        verify(minorCreditorAccountAtAGlanceRepository).findById(id);
+    }
+
+    @Test
+    void getMinorCreditorAtAGlance_partyNotFound() {
+        // Arrange
+        long id = 200L;
+        when(minorCreditorAccountAtAGlanceRepository.findById(id)).thenReturn(
+            Optional.of(getFullAtAGlanceEntity()));
+        when(partyRepository.findById(id)).thenReturn(Optional.empty());
+
+        // Act
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            service.getMinorCreditorAtAGlance(id));
+
+        // Assert
+        assertEquals("Party not found: " + id, ex.getMessage());
+
+        verify(partyRepository).findById(id);
+    }
+
+    private MinorCreditorAccountAtAGlanceEntity getFullAtAGlanceEntity() {
+        return MinorCreditorAccountAtAGlanceEntity.builder()
+           .creditorId(1977L)
+           .accountNumber("66")
+           .payByBacs(true)
+           .versionNumber(9L)
+           .holdPayout(false)
+           .partyId(200L)
+           .creditorTitle("Mr")
+           .creditorForenames("Obi Wan")
+           .creditorSurname("Kenobi")
+           .creditorOrganisation(false)
+           .addressLine1("Tatooine")
+           .postcode("T S4ND")
+           .defendantAccountId(66L)
+           .defendantAccountNumber("O66")
+           .defendantTitle("Senator")
+           .defendantForenames("Sheev")
+           .defendantSurname("Palpatine")
+           .build();
+    }
 }

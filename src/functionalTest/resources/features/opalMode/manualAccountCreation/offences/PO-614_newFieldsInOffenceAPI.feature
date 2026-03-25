@@ -2,7 +2,7 @@ Feature: PO-614 Introduce the new OFFENCE table columns into the OFFENCES entity
 
   @Opal @PO-614
   Scenario: Checking additional columns are presented in the Offence API
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence ref data api filtering by cjs code "AA06001"
     Then the response contains the below offence data fields and values
       | offence_id        | 45010                                                                                                      |

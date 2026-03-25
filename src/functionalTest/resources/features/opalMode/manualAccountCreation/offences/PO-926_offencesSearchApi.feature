@@ -2,7 +2,7 @@
 Feature: PO-926 Offences Search API
 
   Scenario: Offence Search API - Search by CJS code
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code    | TH68002 |
       | title       |         |
@@ -17,7 +17,7 @@ Feature: PO-926 Offences Search API
       | offence_title | in dwelling |
 
   Scenario: Offence Search API - Search Title
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code    |                   |
       | title       | in dwelling other |
@@ -30,7 +30,7 @@ Feature: PO-926 Offences Search API
       | offence_title | in dwelling other |
 
   Scenario: Offence Search API - Search by Act and Section
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code        |                                                                                  |
       | title           |                                                                                  |
@@ -43,7 +43,7 @@ Feature: PO-926 Offences Search API
       | offence_oas | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
   Scenario: Offence Search API - Search by all fields
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code        | AV9                                                                              |
       | title           | PERSONAL INJURY and endangering safe operation                                   |
@@ -58,7 +58,7 @@ Feature: PO-926 Offences Search API
       | offence_oas   | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
   Scenario: Offence Search API - Max results
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code        |   |
       | title           |   |
@@ -80,7 +80,7 @@ Feature: PO-926 Offences Search API
     And there are 20 offences in the response
 
   Scenario: Offence Search API - Search by Active Date
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code        | PA1101               |
       | title           |                      |
@@ -92,7 +92,7 @@ Feature: PO-926 Offences Search API
     Then the offences in the response are before "1920-03-12T00:00:00Z" only
 
   Scenario: Offence Search API - Inactive Offences - Active Date Null - Inactive offences returned
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code        | PA1101 |
       | title           |        |
@@ -103,7 +103,7 @@ Feature: PO-926 Offences Search API
     And there are 3 offences in the response
 
   Scenario: Offence Search API - Inactive Offences - Active Date populated - Inactive offences not returned
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code        | PA1101               |
       | title           |                      |
@@ -115,7 +115,7 @@ Feature: PO-926 Offences Search API
 
   Scenario: Offence Search API - No Results
       ### need to test no results are returned when no offences match the search criteria and the status is 200
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
       | cjs_code        | AB12345          |
       | title           | Offence not real |

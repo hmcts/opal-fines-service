@@ -2,7 +2,7 @@
 # Feature: tests for changes to postedBy and postedByAAD
 #
 #   Scenario: postedBy and postedByAAD are correct for the different users
-#     Given I am testing as the "opal-test@hmcts.net" user
+#     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #     When I make a request to the defendant account add notes api with
 #       | associated_record_id  | 500000010                                |
 #       | business_unit_id      | 73                                       |
@@ -13,14 +13,14 @@
 #       | posted_by             | L073JG                                   |
 #       | posted_by_user_id     | 500000000                                |
 #
-#     Given I am testing as the "opal-test-2@hmcts.net" user
+#     Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
 #     When I make a request to the defendant account add notes api with
 #       | associated_record_id | 500000010                                |
 #       | business_unit_id     | 71                                       |
 #       | note_text            | test postedBy and PostedByAAD Opal user2 |
 #     Then the add notes request is forbidden
 #
-#     Given I am testing as the "opal-test-3@hmcts.net" user
+#     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
 #     When I make a request to the defendant account add notes api with
 #       | associated_record_id  | 500000010                                |
 #       | business_unit_id      | 26                                       |
@@ -31,7 +31,7 @@
 #       | posted_by             | L026SH                                   |
 #       | posted_by_user_id     | 500000002                                |
 #
-#     Given I am testing as the "opal-test-4@hmcts.net" user
+#     Given I am testing as the "opal-test-4@dev.platform.hmcts.net" user
 #     When I make a request to the defendant account add notes api with
 #       | associated_record_id  | 500000010                                |
 #       | business_unit_id      | 47                                       |

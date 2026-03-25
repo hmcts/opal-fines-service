@@ -24,6 +24,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
@@ -54,6 +56,7 @@ public class LocalJusticeAreaEntity extends AddressEntity {
 
     @Column(name = "lja_type", length = 50)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private LocalJusticeAreaType ljaType;
 
     @Column(name = "address_line_4", length = 35)

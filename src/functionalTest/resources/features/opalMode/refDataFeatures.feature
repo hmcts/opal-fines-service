@@ -3,11 +3,11 @@ Feature: This feature covers all the ref data scenarios
 
 
   Background:
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
   @PO-313
   Scenario: verifying the end points for API for Business Units Ref Data
-    When I make a request to the business unit ref data api filtering by business unit type "area"
+    When I make a request to the business unit ref data api filtering by business unit type "Area"
     Then the business unit ref data matching to result
 
   @PO-311

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import org.hibernate.query.criteria.JpaExpression;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitLiteEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitLiteEntity_;
@@ -33,11 +34,10 @@ public class BusinessUnitLiteSpecs extends EntitySpecs<BusinessUnitLiteEntity> {
     }
 
     public static Specification<BusinessUnitLiteEntity> likeBusinessUnitType(String businessUnitType) {
-        return (root, query, builder) ->
-            likeWildcardPredicate(
-                root.get(BusinessUnitLiteEntity_.businessUnitType).as(String.class),
-                builder,
-                businessUnitType
-            );
+        return (root, query, builder) -> likeWildcardPredicate(
+            ((JpaExpression<?>) root.get(BusinessUnitLiteEntity_.businessUnitType)).cast(String.class),
+            builder,
+            businessUnitType
+        );
     }
 }

@@ -3,7 +3,7 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-606 @cleanUpData
   Scenario: Get draft accounts - filtering on business unit
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -68,7 +68,7 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-606 @cleanUpData
   Scenario: Get draft accounts - filtering on status
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -127,7 +127,7 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-606 @cleanUpData
   Scenario: Get draft accounts - filtering on submitted_by
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -176,7 +176,7 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-606 @cleanUpData
   Scenario: Get draft accounts - filtering on multiple fields
-    Given I am testing as the "opal-test@HMCTS.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -231,7 +231,7 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-2361 @cleanUpData
   Scenario: Get all draft accounts - created three accounts and verify logging contains all three
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
@@ -280,7 +280,7 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-2361 @cleanUpData
   Scenario: Get all draft accounts - Verify that 2 logs are created containing when the get all endpoint
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
@@ -330,7 +330,7 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 
   @PO-2361 @cleanUpData
   Scenario: Invalid token is blocked and no PDPO logs emitted
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
@@ -351,5 +351,5 @@ Feature: PO-606 get draft accounts + PO-2360 PDP1 logs
 #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
 
   # switch back to an OPAL user so cleanup can delete the created draft (or delete via admin API)
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     Then I delete the created draft accounts

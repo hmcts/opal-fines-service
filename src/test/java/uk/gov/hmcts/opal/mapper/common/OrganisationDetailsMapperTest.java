@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 
@@ -20,6 +21,19 @@ class OrganisationDetailsMapperTest {
             .build();
 
         OrganisationDetailsCommon mapped = mapper.toOrganisationDetailsCommon(party);
+
+        assertNotNull(mapped);
+        assertEquals("Acme Ltd", mapped.getOrganisationName());
+    }
+
+    @Test
+    void givenOrganisationParty_whenToOrganisationDetails_thenMapsOrganisationName() {
+        PartyEntity party = PartyEntity.builder()
+            .organisation(true)
+            .organisationName("Acme Ltd")
+            .build();
+
+        OrganisationDetails mapped = mapper.toDto(party);
 
         assertNotNull(mapped);
         assertEquals("Acme Ltd", mapped.getOrganisationName());

@@ -4,7 +4,7 @@ Feature: PO-749 put draft account error handling
 
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP1 - Invalid Request Payload
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -42,13 +42,13 @@ Feature: PO-749 put draft account error handling
 
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP2 - Invalid or No Access Token
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to put a draft account with an invalid token
     Then The draft account response returns 401
 
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP4 - Resource Not Found
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -87,7 +87,7 @@ Feature: PO-749 put draft account error handling
 
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP5 - Unsupported Content Type for Response
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -124,7 +124,7 @@ Feature: PO-749 put draft account error handling
 
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP7 - Unsupported Media Type for Request
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
@@ -161,6 +161,6 @@ Feature: PO-749 put draft account error handling
 
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP9 - Other Server Error
-    Given I am testing as the "opal-test@hmcts.net" user
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I put the draft account trying to provoke an internal server error
     Then The draft account response returns 500

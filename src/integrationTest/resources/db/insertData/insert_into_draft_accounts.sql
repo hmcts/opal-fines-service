@@ -209,7 +209,7 @@ VALUES
         NULL,
         'Joe Bloggs',
         '2024-12-10 16:27:01.023126',
-        NULL,
+        'Account failed publishing to the target system.',
         NULL,
         0
     );

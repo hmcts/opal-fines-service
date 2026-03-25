@@ -3,14 +3,15 @@ package uk.gov.hmcts.opal.repository.jpa;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 
 public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> {
 
@@ -63,10 +64,19 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
         );
     }
 
-    public Specification<LocalJusticeAreaEntity> containsLocalJusticeAreaTypes(
-        List<String> ljaTypes) {
-        return
-            (root, query, builder) ->
-                root.get(LocalJusticeAreaEntity_.ljaType).in(ljaTypes);
+    public Specification<LocalJusticeAreaEntity> containsLocalJusticeAreaTypes(List<String> ljaTypes) {
+        List<LocalJusticeAreaType> parsedLjaTypes = ljaTypes.stream()
+            .flatMap(LocalJusticeAreaSpecs::parseLocalJusticeAreaType)
+            .toList();
+
+        return (root, query, builder) -> root.get(LocalJusticeAreaEntity_.ljaType).in(parsedLjaTypes);
+    }
+
+    private static Stream<LocalJusticeAreaType> parseLocalJusticeAreaType(String ljaType) {
+        try {
+            return Stream.of(LocalJusticeAreaType.valueOf(ljaType));
+        } catch (IllegalArgumentException ex) {
+            return Stream.empty();
+        }
     }
 }

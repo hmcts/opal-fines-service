@@ -48,7 +48,7 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
     }
 
     @Override
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
         return getCurrentModeService().getMinorCreditorAtAGlance(minorCreditorId);
     }
 }

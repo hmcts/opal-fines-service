@@ -26,6 +26,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
@@ -83,6 +84,7 @@ public class PartyEntity implements FullNameBuilder {
     private String postcode;
 
     @Column(name = "account_type", length = 20)
+    @ColumnTransformer(write = "?::t_party_account_type_enum")
     @Convert(converter = AccountTypeConverter.class)
     private AccountType accountType;
 

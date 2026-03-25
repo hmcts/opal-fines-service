@@ -70,6 +70,32 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
     }
 
+    @Test
+    @DisplayName("Get Draft Account by ID returns status message for publishing failed account [@PO-769]")
+    void testGetDraftAccountById_publishingFailed_returnsStatusMessage() throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/3")
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountById_publishingFailed_returnsStatusMessage: Response body:\n"
+            + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"0\""))
+            .andExpect(jsonPath("$.draft_account_id").value(3))
+            .andExpect(jsonPath("$.business_unit_id").value(73))
+            .andExpect(jsonPath("$.account_type").value("Fixed Penalty Registration"))
+            .andExpect(jsonPath("$.submitted_by").value("user_003"))
+            .andExpect(jsonPath("$.account_status").value("Publishing Failed"))
+            .andExpect(jsonPath("$.status_message").value("Account failed publishing to the target system."));
+
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
+    }
+
 
     @Test
     @DisplayName("Get Draft Account by ID PDPL Logging")
