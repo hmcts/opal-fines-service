@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
-import java.math.BigInteger;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -15,11 +14,10 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface LegacyUpdateDefendantAccountResponseMapper {
     @Mappings({
-        @Mapping(target = "payload.id", source = "defendantAccountId", qualifiedByName = "stringToLong"),
-        @Mapping(target = "version", source = "version", qualifiedByName = "intToBigInteger"),
+        @Mapping(target = "payload.id", source = "defendantAccountId"),
         @Mapping(target = "payload.commentAndNotes", source = "commentAndNotes"),
-        @Mapping(target = "payload.enforcementCourt.courtId", source = "enforcementCourtId",
-            qualifiedByName = "stringToLong"),
+        @Mapping(target = "payload.enforcementCourt.courtId", source = "enforcementCourtId"
+            ),
         @Mapping(target = "payload.collectionOrder", source = "collectionOrder"),
         @Mapping(target = "payload.enforcementOverride", source = "enforcementOverride")
     })
@@ -53,13 +51,4 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
         }
     }
 
-    @Named("intToLong")
-    default Long intToLong(Integer i) {
-        return i == null ? null : i.longValue();
-    }
-
-    @Named("intToBigInteger")
-    default BigInteger intToBigInteger(Integer i) {
-        return i == null ? null : BigInteger.valueOf(i);
-    }
 }
