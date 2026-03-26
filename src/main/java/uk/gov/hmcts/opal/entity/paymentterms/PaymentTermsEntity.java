@@ -1,8 +1,10 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.paymentterms;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -61,7 +63,8 @@ public class PaymentTermsEntity {
     private String postedBy;
 
     @Column(name = "terms_type_code", nullable = false)
-    private String termsTypeCode;
+    @Enumerated(EnumType.STRING)
+    private TermsTypeCode termsTypeCode;
 
     @Column(name = "effective_date")
     @Temporal(TemporalType.DATE)
@@ -69,7 +72,8 @@ public class PaymentTermsEntity {
     private LocalDate effectiveDate;
 
     @Column(name = "instalment_period")
-    private String instalmentPeriod;
+    @Enumerated(EnumType.STRING)
+    private InstalmentPeriod instalmentPeriod;
 
     @Column(name = "instalment_amount")
     private BigDecimal instalmentAmount;

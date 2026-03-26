@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.iface;
 
-import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 
 public interface PaymentTermsServiceInterface {
 

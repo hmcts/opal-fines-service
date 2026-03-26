@@ -69,7 +69,7 @@ import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
-import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -385,7 +385,7 @@ public class OpalDefendantAccountBuilders {
             .paymentTermsType(
                 PaymentTermsType.builder()
                     .paymentTermsTypeCode(
-                        safePaymentTermsTypeCode(entity.getTermsTypeCode())
+                        safePaymentTermsTypeCode(String.valueOf(entity.getTermsTypeCode()))
                     )
                     .build()
             )
@@ -393,7 +393,7 @@ public class OpalDefendantAccountBuilders {
             .instalmentPeriod(
                 InstalmentPeriod.builder()
                     .instalmentPeriodCode(
-                        safeInstalmentPeriodCode(entity.getInstalmentPeriod())
+                        safeInstalmentPeriodCode(String.valueOf(entity.getInstalmentPeriod()))
                     )
                     .build()
             )
