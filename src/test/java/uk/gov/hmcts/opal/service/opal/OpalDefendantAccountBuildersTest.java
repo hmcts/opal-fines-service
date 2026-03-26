@@ -13,12 +13,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
@@ -26,7 +28,9 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountBuildersTest {
@@ -98,6 +102,21 @@ class OpalDefendantAccountBuildersTest {
         assertEquals("55", summary.getBusinessUnitId());
         assertEquals("NorthEast", summary.getBusinessUnitName());
         assertEquals("N", summary.getWelshSpeaking());
+    }
+
+    @Test
+    void given_debtorDetailLanguages_when_buildLanguagePreferences_then_mapEnumCodes() {
+        DebtorDetailEntity debtorDetail = DebtorDetailEntity.builder()
+            .documentLanguage(Language.CY)
+            .hearingLanguage(Language.EN)
+            .build();
+
+        LanguagePreferences preferences =
+            OpalDefendantAccountBuilders.buildLanguagePreferences(Optional.of(debtorDetail));
+
+        assertNotNull(preferences);
+        assertEquals("CY", preferences.getDocumentLanguagePreference().getLanguageCode());
+        assertEquals("EN", preferences.getHearingLanguagePreference().getLanguageCode());
     }
 
     @Test

@@ -57,15 +57,16 @@ import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.entity.AliasEntity;
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
@@ -432,9 +433,9 @@ public class OpalDefendantAccountBuilders {
     }
 
     static LanguagePreference buildLanguagePreference(Optional<DebtorDetailEntity> debtorDetail,
-        Function<DebtorDetailEntity, String> getter) {
+        Function<DebtorDetailEntity, Language> getter) {
 
-        return LanguagePreference.fromCode(debtorDetail.map(getter).orElse(null));
+        return LanguagePreference.fromCode(debtorDetail.map(getter).map(Language::name).orElse(null));
     }
 
     static VehicleDetails buildVehicleDetails(Optional<DebtorDetailEntity> debtorDetail) {

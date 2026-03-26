@@ -35,7 +35,8 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.entity.AliasEntity;
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -418,9 +419,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         if (language != null) {
             debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
-                ? language.getDocumentLanguagePreference().getLanguageCode() : null);
+                ? Language.valueOf(language.getDocumentLanguagePreference().getLanguageCode()) : null);
             debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
-                ? language.getHearingLanguagePreference().getLanguageCode() : null);
+                ? Language.valueOf(language.getHearingLanguagePreference().getLanguageCode()) : null);
             debtor.setDocumentLanguageDate(LocalDate.now());
             debtor.setHearingLanguageDate(LocalDate.now());
         } else {

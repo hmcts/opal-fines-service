@@ -1,8 +1,11 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.debtordetail;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,8 +21,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDate;
 
 @Entity
 @Data
@@ -74,7 +75,8 @@ public class DebtorDetailEntity {
     private String employerEmail;
 
     @Column(name = "document_language")
-    private String documentLanguage;
+    @Enumerated(EnumType.STRING)
+    private Language documentLanguage;
 
     @Column(name = "document_language_date")
     @Temporal(TemporalType.DATE)
@@ -82,7 +84,8 @@ public class DebtorDetailEntity {
     private LocalDate documentLanguageDate;
 
     @Column(name = "hearing_language")
-    private String hearingLanguage;
+    @Enumerated(EnumType.STRING)
+    private Language hearingLanguage;
 
     @Column(name = "hearing_language_date")
     @Temporal(TemporalType.DATE)
