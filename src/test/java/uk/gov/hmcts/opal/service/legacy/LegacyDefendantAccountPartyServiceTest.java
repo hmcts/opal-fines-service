@@ -266,7 +266,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Call the service. The production code logs legacy failure but still returns a mapped response
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "dev_user", "78", "poster", null
+            77L, 20010L, "78", "dev_user", "poster", "\"2\"", null
         );
 
         assertNotNull(out);
@@ -312,7 +312,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // Assert the exception is propagated by the service (production code logs and should rethrow)
         assertThrows(RuntimeException.class, () ->
             legacyDefendantAccountPartyService.addDefendantAccountParty(
-                77L, 20010L, "78", "1", "78", "poster", null)
+                77L, 20010L, "78", "1", "poster", "\"2\"", null)
         );
     }
 
@@ -355,7 +355,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "1", "78", "poster", null
+            77L, 20010L, "78", "1", "poster", "\"2\"", null
         );
 
         // Assert
@@ -421,7 +421,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "1", "78", "poster", null
+            77L, 20010L, "78", "1", "poster", "\"2\"",null
         );
 
         // Assert
@@ -500,7 +500,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "1", "78", "poster", null
+            77L, 20010L, "78", "1", "poster", "\"2\"",null
         );
 
         // Assert
@@ -560,7 +560,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "1", "78", "poster", null
+            77L, 20010L, "78", "1", "poster", "\"2\"", null
         );
 
         // Assert
@@ -624,7 +624,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "1", "78", "poster", null
+            77L, 20010L, "78", "1", "poster", "\"2\"", null
         );
 
         // Assert
@@ -635,8 +635,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // language preferences should be mapped and use codes (document -> "en", hearing -> "fr")
         assertNotNull(out.getDefendantAccountParty().getLanguagePreferences(),
                       "Language preferences should be mapped when provided by legacy");
-        assertEquals("EN",
-                     out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode());
+        assertEquals(
+            "EN",
+            out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode()
+        );
 
     }
 
@@ -676,7 +678,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "1", "78", "poster", null
+            77L, 20010L, "78", "1", "poster", "\"2\"", null
         );
 
         // Assert
