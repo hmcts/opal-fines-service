@@ -487,7 +487,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
-    void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation, int count) throws Exception {
+    void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation, int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -525,7 +526,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
         if (!consolidation) {
             actions.andExpect(jsonPath("$.defendant_accounts[1].defendant_account_id").value("9077"))
-            .andExpect(jsonPath("$.defendant_accounts[1].account_number").value("177B"));
+                .andExpect(jsonPath("$.defendant_accounts[1].account_number").value("177B"));
         }
     }
 
@@ -1178,7 +1179,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("AC3a: Active accounts only filtering - false includes both active and completed accounts [@PO-710]")
-    void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation, int count) throws Exception {
+    void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation, int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Test AC3a: active_accounts_only = false should include both active and completed accounts
@@ -1212,7 +1214,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         allAccountsActions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(count))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists());
-        if(!consolidation) {
+        if (!consolidation) {
             allAccountsActions.andExpect(
                 jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number").value("177B"))
                 .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
@@ -1514,7 +1516,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("AC9b: Active accounts only filtering for company accounts - excludes completed accounts [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation, int count) throws Exception {
+    void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation, int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // active_accounts_only = false should include both active and completed company accounts
@@ -1548,7 +1551,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         allAccountsActions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(count))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '555')]").exists());
-        if(!consolidation) {
+        if  (!consolidation) {
             allAccountsActions
                 .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '777')]").exists());
         }
