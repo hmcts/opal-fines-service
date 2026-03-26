@@ -232,8 +232,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .findAll(searchConsolidatedEntitySpecs.findBySearch(accountSearchDto))
             .stream()
             .map(this::toSummaryDto)
-            .filter(dto -> dto.getAccountBalance() != null
-                && dto.getAccountBalance().compareTo(BigDecimal.ZERO) != 0)
+            .filter(this::hasNonZeroBalance)
             .toList();
 
         if (results.size() > TOO_MANY_SEARCH_RESULTS) {
@@ -1256,5 +1255,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         AddDefendantAccountPaymentTermsRequest paymentTermsRequest) {
 
         defAccount.setSuspendedCommittalDate(paymentTermsRequest.getPaymentTerms().getDateDaysInDefaultImposed());
+    }
+
+    private boolean hasNonZeroBalance(DefendantAccountSummaryDto dto) {
+        return dto.getAccountBalance() != null && dto.getAccountBalance().compareTo(BigDecimal.ZERO) != 0;
     }
 }
