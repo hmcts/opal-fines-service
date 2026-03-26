@@ -348,31 +348,25 @@ components:
     majorCreditorReferenceData:
       type: object
       description: Major creditor reference data (joined from major_creditors and creditor_accounts).
+      required:
+        - creditor_account_id
+        - business_unit_id
+        - account_number
+        - creditor_account_type
+        - repayment
+        - hold_payout
+        - major_creditor_id
+        - name
+        - prosecution_service
       properties:
-        major_creditor_id:
-          type: integer
-          format: int64
-          description: DB Mapping - major_creditors.major_creditor_id
-        business_unit_id:
-          type: integer
-          format: int32
-          minimum: -32768
-          maximum: 32767
-          description: DB Mapping - major_creditors.business_unit_id
-        major_creditor_code:
-          type: string
-          maxLength: 4
-          description: DB Mapping - major_creditors.major_creditor_code
-        name:
-          type: string
-          description: DB Mapping - major_creditors.name
-        postcode:
-          type: string
-          description: DB Mapping - major_creditors.postcode
         creditor_account_id:
           type: integer
           format: int64
           description: DB Mapping - creditor_accounts.creditor_account_id
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - major_creditors.business_unit_id
         account_number:
           type: string
           maxLength: 20
@@ -382,13 +376,6 @@ components:
           maxLength: 2
           description: DB Mapping - creditor_accounts.creditor_account_type
           example: MJ
-        prosecution_service:
-          type: boolean
-          description: DB Mapping - creditor_accounts.prosecution_service
-        minor_creditor_party_id:
-          type: integer
-          format: int64
-          description: DB Mapping - creditor_accounts.minor_creditor_party_id
         repayment:
           type: boolean
           description: DB Mapping - creditor_accounts.repayment
@@ -399,3 +386,24 @@ components:
           type: string
           format: date-time
           description: DB Mapping - creditor_accounts.last_changed_date
+        major_creditor_code:
+          type: string
+          maxLength: 4
+          description: DB Mapping - major_creditors.major_creditor_code
+        major_creditor_id:
+          type: integer
+          format: int64
+          description: DB Mapping - major_creditors.major_creditor_id
+        minor_creditor_party_id:
+          type: integer
+          format: int64
+          description: DB Mapping - creditor_accounts.minor_creditor_party_id
+        name:
+          type: string
+          description: DB Mapping - major_creditors.name
+        postcode:
+          type: string
+          description: DB Mapping - major_creditors.postcode
+        prosecution_service:
+          type: boolean
+          description: DB Mapping - creditor_accounts.prosecution_service
