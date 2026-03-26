@@ -37,19 +37,4 @@ public class LegacyUpdateDefendantAccountResponseMapperTest {
         assertNull(mapper.stringToLong("abc123"));   // invalid number -> null
     }
 
-    /* ------------ intToLong() ------------ */
-
-    @Test
-    @DisplayName("intToLong returns null for null input")
-    void intToLong_null_returnsNull() {
-        assertNull(mapper.intToLong(null));
-    }
-
-    @Test
-    @DisplayName("intToLong converts Integer to Long correctly")
-    void intToLong_integer_returnsLong() {
-        assertEquals(5L, mapper.intToLong(5));
-        assertEquals(0L, mapper.intToLong(0));
-        assertEquals(-7L, mapper.intToLong(-7));
-    }
 }

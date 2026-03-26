@@ -5,39 +5,39 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.CollectionOrderDto;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
+import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface LegacyUpdateDefendantAccountResponseMapper {
     @Mappings({
-        @Mapping(target = "id", source = "defendantAccountId", qualifiedByName = "stringToLong"),
-        @Mapping(target = "version", source = "version", qualifiedByName = "intToLong"),
-        @Mapping(target = "commentsAndNotes", source = "commentAndNotes"),
-        @Mapping(target = "enforcementCourt.courtId", source = "enforcementCourtId", qualifiedByName = "stringToLong"),
-        @Mapping(target = "collectionOrder", source = "collectionOrder"),
-        @Mapping(target = "enforcementOverride", source = "enforcementOverride")
+        @Mapping(target = "payload.id", source = "defendantAccountId"),
+        @Mapping(target = "payload.commentAndNotes", source = "commentAndNotes"),
+        @Mapping(target = "payload.enforcementCourt.courtId", source = "enforcementCourtId"
+            ),
+        @Mapping(target = "payload.collectionOrder", source = "collectionOrder"),
+        @Mapping(target = "payload.enforcementOverride", source = "enforcementOverride")
     })
-    DefendantAccountResponse toDefendantAccountResponse(LegacyUpdateDefendantAccountResponse legacy);
+    UpdateDefendantAccountResponse toUpdateDefendantAccountResponse(LegacyUpdateDefendantAccountResponse legacy);
 
     /* ---------- Nested mappings ---------- */
 
     @Mappings({
-        @Mapping(target = "accountNotesAccountComments", source = "accountComment"),
-        @Mapping(target = "accountNotesFreeTextNote1", source = "freeTextNote1"),
-        @Mapping(target = "accountNotesFreeTextNote2", source = "freeTextNote2"),
-        @Mapping(target = "accountNotesFreeTextNote3", source = "freeTextNote3")
+        @Mapping(target = "accountComment", source = "accountComment"),
+        @Mapping(target = "freeTextNote1", source = "freeTextNote1"),
+        @Mapping(target = "freeTextNote2", source = "freeTextNote2"),
+        @Mapping(target = "freeTextNote3", source = "freeTextNote3")
     })
-    CommentsAndNotes map(uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes src);
+    CommentsAndNotesCommon map(uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes src);
 
     @Mapping(target = "collectionOrderFlag", source = "collectionOrderFlag")
     @Mapping(target = "collectionOrderDate", source = "collectionOrderDate")
-    CollectionOrderDto map(uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder src);
+    CollectionOrderCommon map(uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder src);
 
-    EnforcementOverride map(uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride src);
+    EnforcementOverrideDefendantAccount map(uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride src);
 
     @Named("stringToLong")
     default Long stringToLong(String v) {
@@ -51,8 +51,4 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
         }
     }
 
-    @Named("intToLong")
-    default Long intToLong(Integer i) {
-        return i == null ? null : i.longValue();
-    }
 }

@@ -1,0 +1,72 @@
+{
+	"info": {
+		"_postman_id": "391a9cb7-3e4e-4772-bcaf-abdc5208647a",
+		"name": "Opal",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "467333"
+	},
+	"item": [
+		{
+			"name": "Testing Support",
+			"item": [
+				{
+					"name": "Get App Mode",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4550/api/testing-support/app-mode",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "4550",
+							"path": [
+								"api",
+								"testing-support",
+								"app-mode"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update App Mode",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mode\": \"legacy\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:4550/api/testing-support/app-mode",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "4550",
+							"path": [
+								"api",
+								"testing-support",
+								"app-mode"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

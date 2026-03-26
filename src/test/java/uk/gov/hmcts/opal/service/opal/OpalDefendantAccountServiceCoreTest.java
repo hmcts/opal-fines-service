@@ -30,7 +30,6 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
-import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
@@ -38,16 +37,13 @@ import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.FixedPenaltyOffenceRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
-class OpalDefendantAccountServiceTest01 {
+class OpalDefendantAccountServiceCoreTest {
 
     @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
-
-    @Mock
-    private EnforcementRepository enforcementRepository;
 
     @Mock
     private DefendantAccountSummaryViewRepository dasvRepository;
@@ -99,7 +95,7 @@ class OpalDefendantAccountServiceTest01 {
         Long defendantAccountId = 201L;
         DefendantAccountEntity account = buildMockAccount(defendantAccountId);
 
-        FixedPenaltyOffenceEntity offence = buildMockOffence(false);
+        FixedPenaltyOffenceEntity offence = buildMockOffence();
         offence.setVehicleRegistration(null);
         offence.setVehicleFixedPenalty(false);
 
@@ -119,7 +115,7 @@ class OpalDefendantAccountServiceTest01 {
         Long defendantAccountId = 202L;
         DefendantAccountEntity account = buildMockAccount(defendantAccountId);
 
-        FixedPenaltyOffenceEntity offence = buildMockOffence(false);
+        FixedPenaltyOffenceEntity offence = buildMockOffence();
         offence.setVehicleRegistration("NV");
         offence.setVehicleFixedPenalty(false);
 
@@ -139,7 +135,7 @@ class OpalDefendantAccountServiceTest01 {
         Long defendantAccountId = 203L;
         DefendantAccountEntity account = buildMockAccount(defendantAccountId);
 
-        FixedPenaltyOffenceEntity offence = buildMockOffence(false);
+        FixedPenaltyOffenceEntity offence = buildMockOffence();
         offence.setVehicleRegistration("AB12CDE");
         offence.setVehicleFixedPenalty(false);
 
@@ -162,15 +158,15 @@ class OpalDefendantAccountServiceTest01 {
             .build();
     }
 
-    private FixedPenaltyOffenceEntity buildMockOffence(boolean isVehicle) {
+    private FixedPenaltyOffenceEntity buildMockOffence() {
         return FixedPenaltyOffenceEntity.builder()
             .ticketNumber("888")
-            .vehicleRegistration(isVehicle ? "AB12CDE" : null)
+            .vehicleRegistration(null)
             .offenceLocation("London")
             .noticeNumber("PN98765")
             .issuedDate(LocalDate.of(2024, 1, 1))
             .licenceNumber("DOE1234567")
-            .vehicleFixedPenalty(isVehicle)
+            .vehicleFixedPenalty(false)
             .timeOfOffence(LocalTime.parse("12:34"))
             .build();
     }
@@ -196,7 +192,7 @@ class OpalDefendantAccountServiceTest01 {
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(defAccount);
         when(enforcementRepositoryService.getEnforcementMostRecent(
             any(), any())).thenReturn(Optional.of(enforcementEntity));
-        lenient().when(enforcerRepoService.findById(any())).thenReturn(null); // enforcerRepo should not be null
+        lenient().when(enforcerRepoService.findById(any())).thenReturn(Optional.empty());
         when(debtorDetailRepoService.findByPartyId(any())).thenReturn(Optional.empty());
 
         // Act

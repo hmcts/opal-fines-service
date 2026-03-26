@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Getter
@@ -14,16 +14,9 @@ import uk.gov.hmcts.opal.util.Versioned;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
-public class UpdateDefendantAccountRequest implements ToJsonString, Versioned {
+public class UpdateDefendantAccountResponse implements ToJsonString, Versioned {
 
-    private Long defendantAccountId;
-
-    private String businessUnitId;
-
-    private String businessUnitUserId;
-
-    private UpdateDefendantAccountRequestPayload payload;
+    private UpdateDefendantAccountResponsePayload payload;
 
     private BigInteger version;
-
 }
