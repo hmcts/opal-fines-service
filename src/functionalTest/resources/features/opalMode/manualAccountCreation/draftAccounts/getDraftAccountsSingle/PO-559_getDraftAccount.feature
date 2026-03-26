@@ -42,7 +42,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fines                                        |
+      | account_type      | Fine                                         |
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
@@ -52,7 +52,7 @@ Feature: PO-559 get draft account + PO-2360 PDPO logs
 
     Then I get the single created draft account and the response contains
       | business_unit_id                    | 73                   |
-      | account_type                        | Fines                 |
+      | account_type                        | Fine                  |
       | account_status                      | Submitted            |
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01           |

@@ -52,4 +52,4 @@ Feature: PO-691 post draft account error handling
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json|
 
-    Then The draft account response returns 500
+    Then The draft account response returns 400

@@ -234,7 +234,7 @@ class DraftAccountControllerTest {
     private String getAccountJson() {
         return """
                {
-                 "account_type": "fine",
+                 "account_type": "Fine",
                  "defendant_type": "company",
                  "originator_name": "Asylum & Immigration Tribunal",
                  "originator_id": 3865,
