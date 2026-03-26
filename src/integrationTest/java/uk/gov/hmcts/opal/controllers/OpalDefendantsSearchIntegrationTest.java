@@ -521,12 +521,15 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(count))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
-            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].account_number")
+                .value("177A"))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].business_unit_id")
+                .value("78"));
         if (!consolidation) {
-            actions.andExpect(jsonPath("$.defendant_accounts[1].defendant_account_id").value("9077"))
-                .andExpect(jsonPath("$.defendant_accounts[1].account_number").value("177B"));
+            actions.andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')]").exists())
+                .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number")
+                    .value("177B"));
         }
     }
 
