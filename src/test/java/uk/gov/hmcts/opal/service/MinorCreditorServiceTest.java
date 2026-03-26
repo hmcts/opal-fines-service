@@ -162,7 +162,7 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             ResourceConflictException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, null, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, null, "authHeaderValue", "10")
         );
     }
 
@@ -170,7 +170,7 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_missingPaymentGroup_throwsIllegalArgument() {
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, null, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, null, BigInteger.ONE, "authHeaderValue", "10")
         );
     }
 
@@ -182,7 +182,7 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10")
         );
     }
 
@@ -195,7 +195,7 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10")
         );
     }
 
@@ -207,7 +207,7 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10")
         );
     }
 
@@ -219,50 +219,7 @@ class MinorCreditorServiceTest {
 
         assertThrows(
             IllegalArgumentException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
-        );
-    }
-
-    @Test
-    void updateMinorCreditorAccount_nonMinorAccount_throwsNotFound() {
-        // Arrange
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
-            .creditorAccountId(1L)
-            .businessUnitId((short) 10)
-            .creditorAccountType(CreditorAccountType.MJ)
-            .build();
-
-        when(creditorAccountRepository.findById(1L)).thenReturn(Optional.of(account));
-
-        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
-            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(true))
-            .address(new AddressDetailsCommon())
-            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
-
-        // Act & Assert
-        assertThrows(
-            jakarta.persistence.EntityNotFoundException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
-        );
-    }
-
-    @Test
-    void updateMinorCreditorAccount_nullAccountType_throwsNotFound() {
-        // Arrange
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
-            .creditorAccountId(1L)
-            .businessUnitId((short) 10)
-            .creditorAccountType(null)
-            .build();
-
-        when(creditorAccountRepository.findById(1L)).thenReturn(Optional.of(account));
-
-        PatchMinorCreditorAccountRequest request = validPatchRequest();
-
-        // Act & Assert
-        assertThrows(
-            jakarta.persistence.EntityNotFoundException.class, () ->
-                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+                minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10")
         );
     }
 
@@ -275,7 +232,6 @@ class MinorCreditorServiceTest {
             .businessUnitId(null)
             .build();
 
-        when(creditorAccountRepository.findById(1L)).thenReturn(Optional.of(account));
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(mock(UserState.class));
 
         PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
@@ -286,7 +242,7 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue")
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", null)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
@@ -315,14 +271,13 @@ class MinorCreditorServiceTest {
         ));
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-        when(creditorAccountRepository.findById(1L)).thenReturn(Optional.of(account));
         when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any()))
             .thenReturn(new MinorCreditorAccountResponse());
 
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
         // Act
-        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue");
+        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10");
 
         // Assert
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
@@ -336,5 +291,69 @@ class MinorCreditorServiceTest {
             .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(true))
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
+    }
+
+    @Test
+    void updateMinorCreditorAccount_missingPaymentGroup_throwsIllegalArgumentException() {
+        // Arrange
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(false))
+            .address(new AddressDetailsCommon());
+
+        // Act + Assert
+        IllegalArgumentException ex = Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user", "10")
+        );
+        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
+    }
+
+    @Test
+    void updateMinorCreditorAccount_nullRequest_throwsIllegalArgumentException() {
+        IllegalArgumentException ex = Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, null, BigInteger.ONE, "test.user", "10")
+        );
+        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
+    }
+
+    @Test
+    void updateMinorCreditorAccount_nullHoldPayment_throwsIllegalArgumentException() {
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(false))
+            .address(new AddressDetailsCommon())
+            .payment(new CreditorAccountPaymentDetailsCommon());
+
+        IllegalArgumentException ex = Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user", "10")
+        );
+        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
+    }
+
+    @Test
+    void updateMinorCreditorAccount_missingPartyDetails_throwsIllegalArgumentException() {
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
+            .address(new AddressDetailsCommon())
+            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
+
+        IllegalArgumentException ex = Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user", "10")
+        );
+        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
+    }
+
+    @Test
+    void updateMinorCreditorAccount_missingAddress_throwsIllegalArgumentException() {
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(false))
+            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
+
+        IllegalArgumentException ex = Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user", "10")
+        );
+        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
     }
 }
