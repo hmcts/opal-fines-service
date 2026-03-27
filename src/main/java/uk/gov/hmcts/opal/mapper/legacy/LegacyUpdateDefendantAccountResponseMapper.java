@@ -23,14 +23,6 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
     })
     UpdateDefendantAccountResponse toUpdateDefendantAccountResponse(LegacyUpdateDefendantAccountResponse legacy);
 
-    /* ---------- Nested mappings ---------- */
-
-    @Mappings({
-        @Mapping(target = "accountComment", source = "accountComment"),
-        @Mapping(target = "freeTextNote1", source = "freeTextNote1"),
-        @Mapping(target = "freeTextNote2", source = "freeTextNote2"),
-        @Mapping(target = "freeTextNote3", source = "freeTextNote3")
-    })
     CommentsAndNotesCommon map(uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes src);
 
     @Mapping(target = "collectionOrderFlag", source = "collectionOrderFlag")

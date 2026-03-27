@@ -133,24 +133,6 @@ public class DefendantAccountService {
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
 
-            //TODO Must be a way to enforce this through the OpenAPI code gen
-            int nonNullCount = 0;
-            if (request.getCommentAndNotes() != null) {
-                nonNullCount++;
-            }
-            if (request.getEnforcementCourt() != null) {
-                nonNullCount++;
-            }
-            if (request.getCollectionOrder() != null) {
-                nonNullCount++;
-            }
-            if (request.getEnforcementOverride() != null) {
-                nonNullCount++;
-            }
-            if (nonNullCount != 1) {
-                throw new IllegalArgumentException("Exactly one update group must be provided");
-            }
-
             String postedBy = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
                 .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
