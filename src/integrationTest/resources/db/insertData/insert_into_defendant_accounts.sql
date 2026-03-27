@@ -212,11 +212,11 @@ WHERE payment_terms_id = 77
 -- Account A: multiple payment_terms, exactly one active
 INSERT INTO defendant_accounts
 (defendant_account_id, version_number, business_unit_id, account_number,
- amount_paid, account_balance, amount_imposed, account_status,
+ amount_paid, account_balance, amount_imposed, account_status, last_movement_date,
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
  collection_order, payment_card_requested)
 VALUES (262901, 0, 78, '262901A',
-        0.00, 500.00, 500.00, 'L',
+        0.00, 500.00, 500.00, 'L', '2025-01-02 17:08:09',
         '262901PCR', 'N', 'N', 'Fine',
         'N', 'N')
     ON CONFLICT (defendant_account_id) DO NOTHING;
@@ -273,11 +273,11 @@ WHERE payment_terms_id = 26290102
 -- Account B: payment_terms exist but none active
 INSERT INTO defendant_accounts
 (defendant_account_id, version_number, business_unit_id, account_number,
- amount_paid, account_balance, amount_imposed, account_status,
+ amount_paid, account_balance, amount_imposed, account_status, last_movement_date,
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
  collection_order, payment_card_requested)
 VALUES (262902, 0, 78, '262902A',
-        0.00, 500.00, 500.00, 'L',
+        0.00, 500.00, 500.00, 'L', '2025-01-03 10:00:00',
         '262902PCR', 'N', 'N', 'Fine',
         'N', 'N')
     ON CONFLICT (defendant_account_id) DO NOTHING;

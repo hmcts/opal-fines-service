@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 
 class LogRetentionServiceTest {
 
+    // Keep JdbcTemplate usage limited to explicit DB-facing concerns.
     @Mock
     private JdbcTemplate jdbcTemplate;
 

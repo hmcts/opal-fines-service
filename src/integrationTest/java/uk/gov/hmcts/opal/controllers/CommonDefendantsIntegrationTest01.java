@@ -56,6 +56,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     @MockitoBean
     UserStateClientService userStateClientService;
 
+    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
     JdbcTemplate jdbcTemplate;
 
