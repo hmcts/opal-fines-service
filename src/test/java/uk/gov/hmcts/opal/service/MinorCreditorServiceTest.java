@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -271,7 +272,8 @@ class MinorCreditorServiceTest {
         ));
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-        when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any()))
+        when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any(),
+            anyShort()))
             .thenReturn(new MinorCreditorAccountResponse());
 
         PatchMinorCreditorAccountRequest request = validPatchRequest();
@@ -282,7 +284,7 @@ class MinorCreditorServiceTest {
         // Assert
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
         verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE),
-            postedByCaptor.capture());
+            postedByCaptor.capture(), eq(Short.valueOf("10")));
         assertEquals("test.user@hmcts.net", postedByCaptor.getValue());
     }
 

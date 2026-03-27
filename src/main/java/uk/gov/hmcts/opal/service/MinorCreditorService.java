@@ -105,7 +105,8 @@ public class MinorCreditorService {
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
-        return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, ifMatch, postedBy);
+        return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, ifMatch, postedBy,
+            businessUnitIdShort);
     }
 
 }

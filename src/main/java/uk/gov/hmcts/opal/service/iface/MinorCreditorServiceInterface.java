@@ -22,5 +22,6 @@ public interface MinorCreditorServiceInterface {
         Long minorCreditorAccountId,
         PatchMinorCreditorAccountRequest request,
         BigInteger etag,
-        String postedBy);
+        String postedBy,
+        Short businessUnitId);
 }
