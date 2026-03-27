@@ -56,21 +56,22 @@ import uk.gov.hmcts.opal.dto.common.VehicleDetails.VehicleDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
-import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
@@ -941,7 +942,7 @@ public class OpalDefendantAccountBuilders {
             .noteText(combined)
             .noteType(NoteType.AA)
             .associatedRecordId(String.valueOf(managed.getDefendantAccountId()))
-            .associatedRecordType(RecordType.DEFENDANT_ACCOUNTS.toString())
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .businessUnitUserId(String.valueOf(managed.getBusinessUnit().getBusinessUnitId()))
             .postedDate(LocalDateTime.now())
             .postedByUsername(postedBy)
@@ -962,8 +963,7 @@ public class OpalDefendantAccountBuilders {
 
     public static DefendantAccountPartiesEntity filterDefendantParty(DefendantAccountEntity account) {
         return account.getParties().stream()
-            .filter(p ->
-                p.getAssociationType().equalsIgnoreCase("Defendant"))
+            .filter(p -> AssociationType.DEFENDANT.equals(p.getAssociationType()))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Party not found for Defendant Account Id: " + account.getDefendantAccountId()));

@@ -27,10 +27,12 @@ import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapper;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
@@ -62,6 +64,9 @@ class OpalMinorCreditorServiceTest {
     private MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
 
     @Mock
+    private MinorCreditorAccountHeaderSummaryMapper headerSummaryMapper;
+  
+    @Mock
     private MinorCreditorAccountAtAGlanceRepository minorCreditorAccountAtAGlanceRepository;
 
     @Mock
@@ -69,7 +74,6 @@ class OpalMinorCreditorServiceTest {
 
     @Mock
     private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
-
 
     @InjectMocks
     private OpalMinorCreditorService service;
@@ -243,7 +247,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654321")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(5L)
             .partyId(99000000000900L)
             .title(null)
@@ -261,42 +265,16 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
 
         // Assert
-        assertNotNull(res);
-        assertEquals(String.valueOf(id), res.getCreditorAccountId());
-        assertEquals("87654321", res.getAccountNumber());
-        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertEquals(BigInteger.valueOf(5L), res.getVersion());
-
-        BusinessUnitSummary bu = res.getBusinessUnitSummary();
-        assertNotNull(bu);
-        assertEquals("77", bu.getBusinessUnitId());
-        assertEquals("Camberwell Green", bu.getBusinessUnitName());
-        assertEquals("N", bu.getWelshSpeaking()); // welshLanguage=false -> "N"
-
-        PartyDetails party = res.getPartyDetails();
-        assertNotNull(party);
-        assertEquals("99000000000900", party.getPartyId());
-        assertTrue(party.getOrganisationFlag());
-
-        OrganisationDetails org = party.getOrganisationDetails();
-        assertNotNull(org);
-        assertEquals("Minor Creditor Test Ltd", org.getOrganisationName());
-        assertNull(party.getIndividualDetails());
-
-        assertEquals(BigDecimal.ZERO, res.getAwardedAmount());
-        assertEquals(BigDecimal.ZERO, res.getPaidOutAmount());
-        assertEquals(BigDecimal.ZERO, res.getAwaitingPayoutAmount());
-        assertEquals(BigDecimal.ZERO, res.getOutstandingAmount());
-
-        // hasAssociatedDefendant() is based on awarded/outstanding > 0
-        assertFalse(res.getHasAssociatedDefendant());
-
+        assertSame(mapped, res);
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
+        verify(headerSummaryMapper).toResponse(entity);
     }
 
     @Test
@@ -307,7 +285,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654322")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null) // verify null -> null
             .partyId(99000000000901L)
             .title("Mr")
@@ -325,39 +303,16 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
 
         // Assert
-        assertNotNull(res);
-        assertEquals(String.valueOf(id), res.getCreditorAccountId());
-        assertEquals("87654322", res.getAccountNumber());
-        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertNull(res.getVersion());
-
-        BusinessUnitSummary bu = res.getBusinessUnitSummary();
-        assertNotNull(bu);
-        assertEquals("77", bu.getBusinessUnitId());
-        assertEquals("Camberwell Green", bu.getBusinessUnitName());
-        assertEquals("Y", bu.getWelshSpeaking());
-
-        PartyDetails party = res.getPartyDetails();
-        assertNotNull(party);
-        assertEquals("99000000000901", party.getPartyId());
-        assertFalse(party.getOrganisationFlag());
-
-        IndividualDetails ind = party.getIndividualDetails();
-        assertNotNull(ind);
-        assertEquals("Mr", ind.getTitle());
-        assertEquals("John", ind.getForenames());
-        assertEquals("Smith", ind.getSurname());
-        assertNull(party.getOrganisationDetails());
-
-        assertEquals(new BigDecimal("10.00"), res.getAwardedAmount());
-        assertTrue(res.getHasAssociatedDefendant());
-
+        assertSame(mapped, res);
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
+        verify(headerSummaryMapper).toResponse(entity);
     }
 
     @Test
@@ -375,6 +330,7 @@ class OpalMinorCreditorServiceTest {
         assertTrue(ex.getMessage().contains("Minor creditor account not found: " + missingId));
 
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(missingId);
+        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any());
     }
 
     @Test
@@ -385,7 +341,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("X")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null)
             .partyId(333L)
             .organisation(true)
@@ -400,12 +356,15 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
 
         // Assert
-        assertTrue(res.getHasAssociatedDefendant());
+        assertSame(mapped, res);
+        verify(headerSummaryMapper).toResponse(entity);
     }
 
     @Test
@@ -416,7 +375,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654321")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null) // covers version null branch
             .partyId(99000000000900L)
             .organisation(true)
@@ -434,40 +393,16 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
 
-        // Assert (top level)
-        assertNotNull(resp);
-        assertEquals(String.valueOf(id), resp.getCreditorAccountId());
-        assertEquals("87654321", resp.getAccountNumber());
-        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertNull(resp.getVersion());
-
-        // business unit mapping
-        assertNotNull(resp.getBusinessUnitSummary());
-        assertEquals("77", resp.getBusinessUnitSummary().getBusinessUnitId());
-        assertEquals("Camberwell Green", resp.getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals("N", resp.getBusinessUnitSummary().getWelshSpeaking());
-
-        // party mapping - organisation branch
-        assertNotNull(resp.getPartyDetails());
-        assertEquals("99000000000900", resp.getPartyDetails().getPartyId());
-        assertEquals(Boolean.TRUE, resp.getPartyDetails().getOrganisationFlag());
-
-        assertNotNull(resp.getPartyDetails().getOrganisationDetails());
-        assertEquals("Minor Creditor Test Ltd", resp.getPartyDetails().getOrganisationDetails().getOrganisationName());
-        assertNull(resp.getPartyDetails().getIndividualDetails());
-
-        // amounts + defendant flag
-        assertEquals(BigDecimal.ZERO, resp.getAwardedAmount());
-        assertEquals(BigDecimal.ZERO, resp.getPaidOutAmount());
-        assertEquals(BigDecimal.ZERO, resp.getAwaitingPayoutAmount());
-        assertEquals(BigDecimal.ZERO, resp.getOutstandingAmount());
-        assertEquals(Boolean.FALSE, resp.getHasAssociatedDefendant());
-
+        // Assert
+        assertSame(mapped, resp);
         verify(minorCreditorAccountHeaderRepository).findById(id);
+        verify(headerSummaryMapper).toResponse(entity);
     }
 
     @Test
@@ -478,7 +413,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("ACC123")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(5L) // covers version non-null branch
             .partyId(456L)
             .organisation(false)
@@ -496,32 +431,15 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
 
         // Assert
-        assertNotNull(resp);
-        assertEquals("123", resp.getCreditorAccountId());
-        assertEquals("ACC123", resp.getAccountNumber());
-        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertNotNull(resp.getVersion());
-        assertEquals(new java.math.BigInteger("5"), resp.getVersion());
-
-        assertNotNull(resp.getBusinessUnitSummary());
-        assertEquals("10", resp.getBusinessUnitSummary().getBusinessUnitId());
-        assertEquals("Derbyshire", resp.getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals("Y", resp.getBusinessUnitSummary().getWelshSpeaking());
-
-        assertNotNull(resp.getPartyDetails());
-        assertEquals("456", resp.getPartyDetails().getPartyId());
-        assertEquals(Boolean.FALSE, resp.getPartyDetails().getOrganisationFlag());
-
-        assertNull(resp.getPartyDetails().getOrganisationDetails());
-        assertNotNull(resp.getPartyDetails().getIndividualDetails());
-        assertEquals("Mr", resp.getPartyDetails().getIndividualDetails().getTitle());
-        assertEquals("John", resp.getPartyDetails().getIndividualDetails().getForenames());
-        assertEquals("Smith", resp.getPartyDetails().getIndividualDetails().getSurname());
+        assertSame(mapped, resp);
+        verify(headerSummaryMapper).toResponse(entity);
     }
 
     @Test
@@ -532,7 +450,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("ACC200")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null)
             .partyId(300L)
             .organisation(true)
@@ -547,12 +465,15 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
 
         // Assert
-        assertEquals(Boolean.TRUE, resp.getHasAssociatedDefendant());
+        assertSame(mapped, resp);
+        verify(headerSummaryMapper).toResponse(entity);
     }
 
     @Test
@@ -563,7 +484,7 @@ class OpalMinorCreditorServiceTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("ACC201")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(null)
             .partyId(301L)
             .organisation(false)
@@ -580,12 +501,15 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
 
         // Assert
-        assertEquals(Boolean.TRUE, resp.getHasAssociatedDefendant());
+        assertSame(mapped, resp);
+        verify(headerSummaryMapper).toResponse(entity);
     }
 
     @Test
@@ -601,14 +525,7 @@ class OpalMinorCreditorServiceTest {
         assertTrue(ex.getMessage().contains("Minor creditor account not found: " + id));
 
         verify(minorCreditorAccountHeaderRepository).findById(id);
-    }
-
-    private static void assertCreditorAccountType(CreditorAccountTypeReference reference,
-                                                  String expectedType,
-                                                  String expectedDisplayName) {
-        assertNotNull(reference);
-        assertEquals(expectedType, reference.getType());
-        assertEquals(expectedDisplayName, reference.getDisplayName());
+        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any());
     }
 
     @Test
@@ -743,5 +660,39 @@ class OpalMinorCreditorServiceTest {
            .defendantForenames("Sheev")
            .defendantSurname("Palpatine")
            .build();
+    }
+
+    private GetMinorCreditorAccountHeaderSummaryResponse buildHeaderSummaryResponse(String creditorAccountId) {
+        return GetMinorCreditorAccountHeaderSummaryResponse.builder()
+            .creditorAccountId(creditorAccountId)
+            .accountNumber("mapped-account")
+            .creditorAccountType(CreditorAccountTypeReference.builder()
+                .type("MN")
+                .displayName("Minor Creditor")
+                .build())
+            .version(BigInteger.valueOf(5L))
+            .businessUnitSummary(BusinessUnitSummary.builder()
+                .businessUnitId("77")
+                .businessUnitName("Camberwell Green")
+                .welshSpeaking("N")
+                .build())
+            .partyDetails(PartyDetails.builder()
+                .partyId("99000000000900")
+                .organisationFlag(true)
+                .organisationDetails(OrganisationDetails.builder()
+                    .organisationName("Minor Creditor Test Ltd")
+                    .build())
+                .individualDetails(IndividualDetails.builder()
+                    .title("Mr")
+                    .forenames("John")
+                    .surname("Smith")
+                    .build())
+                .build())
+            .awardedAmount(BigDecimal.ZERO)
+            .paidOutAmount(BigDecimal.ZERO)
+            .awaitingPayoutAmount(BigDecimal.ZERO)
+            .outstandingAmount(BigDecimal.ZERO)
+            .hasAssociatedDefendant(false)
+            .build();
     }
 }

@@ -1,0 +1,22 @@
+Timing is on.
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:359: NOTICE:  === Setting up test data for v_enforcement_status tests ===
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:359: NOTICE:  Test data setup completed: defendant_account_id = 999801
+DO
+Time: 13.266 ms
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:497: NOTICE:  === TEST 1: Comprehensive test for enforcement status view ===
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:497: NOTICE:  TEST 1 PASSED: All enforcement status information retrieved and validated successfully
+DO
+Time: 4.220 ms
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:609: NOTICE:  === TEST 2: Test for organisation party type ===
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:609: NOTICE:  TEST 2 PASSED: Organisation party type correctly identified
+DO
+Time: 5.568 ms
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:706: NOTICE:  === TEST 3: Test employer flag functionality ===
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:706: NOTICE:  TEST 3 PASSED: Employer flag functionality correctly implemented
+DO
+Time: 2.490 ms
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:732: NOTICE:  === Cleaning up test data ===
+psql:viewEnforcementStatusTest/create_view_v_enforcement_status_unit_tests_v2.sql:732: NOTICE:  Test data cleanup completed
+DO
+Time: 8.981 ms
+Timing is off.

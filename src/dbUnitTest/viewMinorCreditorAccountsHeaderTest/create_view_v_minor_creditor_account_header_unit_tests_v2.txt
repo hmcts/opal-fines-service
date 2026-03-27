@@ -1,0 +1,16 @@
+Timing is on.
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:48: NOTICE:  === Cleanup data before tests ===
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:48: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 24.275 ms
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  === Setting up test data for v_minor_creditor_accounts_header tests ===
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  === Setting up test data for v_minor_creditor_accounts_header tests complete ===
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  --- Running test scenario 1 ---
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  --- Running test scenario 2 ---
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  --- Running test scenario 3 ---
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  --- Running test scenario 4 ---
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  --- Running test scenario 5 ---
+psql:viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v2.sql:1295: NOTICE:  === All tests completed and passed for v_minor_creditor_accounts_header view ===
+DO
+Time: 13.187 ms
+Timing is off.

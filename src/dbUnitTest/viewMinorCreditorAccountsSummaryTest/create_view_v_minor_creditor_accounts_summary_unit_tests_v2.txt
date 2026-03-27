@@ -1,0 +1,17 @@
+Timing is on.
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:47: NOTICE:  === Cleanup data before tests ===
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:47: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 14.226 ms
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  === Setting up test data for v_minor_creditor_accounts_summary tests ===
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  === Setting up test data for v_minor_creditor_accounts_summary tests complete ===
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  --- Running test scenario 1 ---
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  --- Running test scenario 2 ---
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  --- Running test scenario 3 ---
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  --- Running test scenario 4 ---
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  --- Running test scenario 5 ---
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  --- Running test scenario 6 ---
+psql:viewMinorCreditorAccountsSummaryTest/create_view_v_minor_creditor_accounts_summary_unit_tests_v2.sql:1006: NOTICE:  === All tests completed and passed for v_minor_creditor_accounts_summary view ===
+DO
+Time: 15.286 ms
+Timing is off.

@@ -36,9 +36,10 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
@@ -101,7 +102,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         Optional<DebtorDetailEntity> debtorDetail = debtorDetailRepositoryService.findByPartyId(party.getPartyId());
 
         return DefendantAccountParty.builder()
-            .defendantAccountPartyType(partyEntity.getAssociationType())
+            .defendantAccountPartyType(Optional.ofNullable(partyEntity.getAssociationType())
+                                           .map(AssociationType::getLabel)
+                                           .orElse(null))
             .isDebtor(partyEntity.getDebtor())
             .partyDetails(buildPartyDetails(party, aliases))
             .address(buildPartyAddressDetails(party))
@@ -173,7 +176,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             throw new IllegalArgumentException("Request body is required");
         }
 
-        dap.setAssociationType(request.getDefendantAccountPartyType());
+        Optional.ofNullable(request.getDefendantAccountPartyType())
+            .map(AssociationType::getByLabel)
+            .ifPresent(dap::setAssociationType);
         dap.setDebtor(request.getIsDebtor());
 
         log.debug("replaceDefendantAccountParty:     request org: {}, surname: {}",
@@ -431,4 +436,3 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     }
 
 }
-

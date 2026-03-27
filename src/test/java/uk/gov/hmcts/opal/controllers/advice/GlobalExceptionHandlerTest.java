@@ -59,11 +59,11 @@ import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHead
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 @SpringBootTest
@@ -435,10 +435,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleSubmitterCannotValidate_forbidden() {
-        SubmitterCannotValidateException ex =
-            new SubmitterCannotValidateException("A single user cannot submit and validate the same Draft Account",
-                "Pablo", "Pablo");
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleSubmitterCannotValidateException(ex);
+        SubmitterDeniedException ex = new SubmitterDeniedException("Pable", "validate");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleActionDeniedForSubmitterException(ex);
 
         assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
         ProblemDetail pd = r.getBody();
