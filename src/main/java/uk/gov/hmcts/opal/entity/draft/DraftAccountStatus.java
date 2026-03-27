@@ -38,4 +38,8 @@ public enum DraftAccountStatus {
     public boolean isPublishingPending() {
         return this == PUBLISHING_PENDING;
     }
+
+    public boolean isDeleted() {
+        return this == DELETED;
+    }
 }
