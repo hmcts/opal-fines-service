@@ -10,7 +10,6 @@ import static uk.gov.hmcts.opal.controllers.util.LegacyDefendantsUtil.getPayment
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -77,7 +76,6 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     }
 
     @Test
-    @Disabled("Fails against published legacy stub image mappings")
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
     void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
@@ -104,7 +102,6 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     }
 
     @Test
-    @Disabled("Fails against published legacy stub image mappings")
     @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
     void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
