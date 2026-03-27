@@ -25,8 +25,6 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
 
     CommentsAndNotesCommon map(uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes src);
 
-    @Mapping(target = "collectionOrderFlag", source = "collectionOrderFlag")
-    @Mapping(target = "collectionOrderDate", source = "collectionOrderDate")
     CollectionOrderCommon map(uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder src);
 
     EnforcementOverrideDefendantAccount map(uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride src);
