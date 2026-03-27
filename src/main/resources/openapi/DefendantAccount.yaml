@@ -324,6 +324,101 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{id}/history:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account History
+      description: The Get Defendant Account History API will be used to return history items, representing a chronology of activity on the account - ordered from latest to oldest.
+      operationId: getDefendantAccountHistory
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+        - in: query
+          name: dateFrom
+          description: Optional date parameter to filter history items from a specific date.
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateTo
+          description: Optional date parameter to filter history items up to a specific date.
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: itemTypes
+          description: Optional comma-separated list of history item types to filter by.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - amendment
+                - enforcement
+                - financial
+                - note
+                - paymentTerms
+            style: form
+            explode: false
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                historyItems:
+                  type: array
+                  items:
+                    oneOf:
+                      $ref: './history.yaml#/components/schemas/defendantAccountHistoryItem'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
   schemas:
     enforcementOverview:
