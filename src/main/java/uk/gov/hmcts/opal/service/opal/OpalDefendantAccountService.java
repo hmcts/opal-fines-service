@@ -56,7 +56,6 @@ import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
@@ -64,7 +63,6 @@ import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
-import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -75,7 +73,6 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
-import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -102,7 +99,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
-import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
@@ -112,13 +108,11 @@ import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantBasicRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
-import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
-import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -149,8 +143,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final EntityManager em;
 
     private final NoteRepository noteRepository;
-
-    private final EnforcementOverrideResultRepository enforcementOverrideResultRepository;
 
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
 
@@ -186,7 +178,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final PaymentTermsMapper paymentTermsMapper;
 
     //TODO - Remove once repository service is in use
-    @Transactional(readOnly = true)
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
@@ -333,7 +324,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .orElseThrow(() -> new EntityNotFoundException(
                 "Fixed Penalty Offence not found for account: " + defendantAccountId));
 
-        return toFixedPenaltyResponse(account, offence);
+        return OpalDefendantAccountBuilders.toFixedPenaltyResponse(account, offence);
     }
 
     //Deprecated - use OpalDefendantAccountPartyService
@@ -370,7 +361,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     //Deprecated - use OpalDefendantAccountPartyService
     // TODO - Remove once OpalDefendantAccountPartyService is in use
-    @Deprecated
     private DefendantAccountParty mapDefendantAccountParty(
         DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
 
@@ -383,45 +373,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .partyDetails(buildPartyDetails(party, aliases))
             .address(buildPartyAddressDetails(party))
             .contactDetails(buildContactDetails(party))
-            .vehicleDetails(buildVehicleDetails(debtorDetail))
-            .employerDetails(buildEmployerDetails(debtorDetail))
-            .languagePreferences(buildLanguagePreferences(debtorDetail))
-            .build();
-    }
-
-    //Deprecated - use OpalDefendantAccountFixedPenaltyService
-    //TODO - Remove once OpalDefendantAccountFixedPenaltyService is in use
-    private static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(
-        DefendantAccountEntity account, FixedPenaltyOffenceEntity offence) {
-
-        boolean isVehicle =
-            offence.getVehicleRegistration() != null
-                && !"NV".equalsIgnoreCase(offence.getVehicleRegistration());
-
-        FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
-            .issuingAuthority(account.getOriginatorName())
-            .ticketNumber(offence.getTicketNumber())
-            .timeOfOffence(
-                offence.getTimeOfOffence() != null
-                    ? offence.getTimeOfOffence().toString()
-                    : null
-            )
-            .placeOfOffence(offence.getOffenceLocation())
-            .build();
-
-        VehicleFixedPenaltyDetails vehicleDetails = isVehicle
-            ? VehicleFixedPenaltyDetails.builder()
-            .vehicleRegistrationNumber(offence.getVehicleRegistration())
-            .vehicleDriversLicense(offence.getLicenceNumber())
-            .noticeNumber(offence.getNoticeNumber())
-            .dateNoticeIssued(DateTimeUtils.toString(offence.getIssuedDate()))
-            .build()
-            : null;
-        return GetDefendantAccountFixedPenaltyResponse.builder()
-            .vehicleFixedPenaltyFlag(isVehicle)
-            .fixedPenaltyTicketDetails(ticketDetails)
-            .vehicleFixedPenaltyDetails(vehicleDetails)
-            .version(account.getVersion())
+            .vehicleDetails(buildVehicleDetails(debtorDetail.orElse(null)))
+            .employerDetails(buildEmployerDetails(debtorDetail.orElse(null)))
+            .languagePreferences(buildLanguagePreferences(debtorDetail.orElse(null)))
             .build();
     }
 
@@ -655,10 +609,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return null;
         } else {
             return EnforcementOverride.builder()
-                .enforcementOverrideResult(buildEnforcementOverrideResult(dbResultEntity(
-                    entity.getEnforcementOverrideResultId())))
-                .enforcer(OpalDefendantAccountBuilders.buildEnforcer(dbEnforcerEntity(entity)))
-                .lja(OpalDefendantAccountBuilders.buildLja(dbLja(entity)))
+                .enforcementOverrideResult(buildEnforcementOverrideResult(
+                    dbResultEntity(entity.getEnforcementOverrideResultId()).orElse(null)))
+                .enforcer(OpalDefendantAccountBuilders.buildEnforcer(dbEnforcerEntity(entity).orElse(null)))
+                .lja(OpalDefendantAccountBuilders.buildLja(dbLja(entity).orElse(null)))
                 .build();
         }
     }
@@ -670,10 +624,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return null;
         } else {
             return EnforcementOverrideDefendantAccount.builder()
-                .enforcementOverrideResult(buildEnforcementOverrideResultDefendantAccount(dbResultEntity(
-                    entity.getEnforcementOverrideResultId())))
+                .enforcementOverrideResult(buildEnforcementOverrideResultDefendantAccount(
+                    dbResultEntity(entity.getEnforcementOverrideResultId()).orElse(null)))
                 .enforcer(dbEnforcerEntity(entity).map(enforcerDefendantAccountMapper::toDto).orElse(null))
-                .lja(OpalDefendantAccountBuilders.buildLjaDefendantAccount(dbLja(entity)))
+                .lja(OpalDefendantAccountBuilders.buildLjaDefendantAccount(dbLja(entity).orElse(null)))
                 .build();
         }
     }
@@ -682,22 +636,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Transactional(readOnly = true)
     Optional<ResultEntity.Lite> dbResultEntity(String resultId) {
         return Optional.ofNullable(resultId).flatMap(resultRepository::findById);
     }
 
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Transactional(readOnly = true)
-    Optional<EnforcementOverrideResultEntity> dbEnforcementOverrideResult(DefendantAccountEntity entity) {
-        return Optional.ofNullable(entity.getEnforcementOverrideResultId())
-            .flatMap(enforcementOverrideResultRepository::findById);
-    }
-
-    //Deprecated - use OpalDefendantAccountEnforcementService
-    //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Transactional(readOnly = true)
     Optional<EnforcerEntity> dbEnforcerEntity(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideEnforcerId())
             .flatMap(enforcerRepository::findById)
@@ -706,35 +650,17 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Transactional(readOnly = true)
     Optional<LocalJusticeAreaEntity> dbLja(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
             .flatMap(localJusticeAreaRepository::findById);
     }
 
-    @Transactional(readOnly = true)
-    List<AliasEntity> dbAliasesForDefendantAccount(Long defendantAccountId) {
-        return aliasRepository.findAll(AliasSpecs.byDefendantAccountId(defendantAccountId));
-    }
-
-    //Deprecated - use OpalDefendantAccountEnforcementService
-    //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Transactional(readOnly = true)
     Optional<DebtorDetailEntity> dbDebtorDetails(PartyEntity party) {
         return debtorDetailRepository.findByPartyId(party.getPartyId());
     }
 
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Transactional(readOnly = true)
-    List<EnforcementEntity.Lite> dbEnforcements(DefendantAccountEntity entity) {
-        return enforcementRepository.findAllByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
-            entity.getDefendantAccountId(), entity.getLastEnforcement());
-    }
-
-    //Deprecated - use OpalDefendantAccountEnforcementService
-    //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Transactional(readOnly = true)
     Optional<EnforcementEntity.Lite> dbEnforcementMostRecent(DefendantAccountEntity entity) {
         return enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
             entity.getDefendantAccountId(), entity.getLastEnforcement());
@@ -755,13 +681,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return buildEnforcementStatus(
             defendantEntity,
             defendantParty,
-            dbDebtorDetails(defendantParty.getParty()),
-            recentEnforcement.map(EnforcementEntity::getResult),
+            dbDebtorDetails(defendantParty.getParty()).orElse(null),
+            recentEnforcement.map(EnforcementEntity::getResult).orElse(null),
             buildEnforcementOverride(defendantEntity),
-            buildEnforcementAction(recentEnforcement,
+            buildEnforcementAction(recentEnforcement.orElse(null),
                 recentEnforcement
                     .map(EnforcementEntity::getEnforcerId)
-                    .map(enforcerRepository::findByEnforcerId)));
+                    .map(enforcerRepository::findByEnforcerId)
+                    .orElse(null)));
     }
 
     private void applyCommentAndNotes(DefendantAccountEntity managed, CommentsAndNotesCommon notes, String postedBy) {
@@ -1024,25 +951,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         debtorDetailRepository.save(debtor);
     }
 
-    private static void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverride override) {
-        if (override.getEnforcementOverrideResult() != null) {
-            entity.setEnforcementOverrideResultId(
-                override.getEnforcementOverrideResult().getEnforcementOverrideId());
-        }
-        if (override.getEnforcer() != null && override.getEnforcer().getEnforcerId() != null) {
-            entity.setEnforcementOverrideEnforcerId(override.getEnforcer().getEnforcerId());
-        }
-        if (override.getLja() != null && override.getLja().getLjaId() != null) {
-            entity.setEnforcementOverrideTfoLjaId(override.getLja().getLjaId().shortValue());
-        }
-        log.debug(":applyEnforcementOverride: accountId={}, resultId={}, enforcerId={}, ljaId={}",
-            entity.getDefendantAccountId(),
-            override.getEnforcementOverrideResult() != null
-                ? override.getEnforcementOverrideResult().getEnforcementOverrideId() : null,
-            override.getEnforcer() != null ? override.getEnforcer().getEnforcerId() : null,
-            override.getLja() != null ? override.getLja().getLjaId() : null);
-    }
-
     //Deprecated - use DefendantAccountPaymentTermsService
     //TODO: Remove this method once OpalDefendantAccountPaymentTermsService is in use
     @Override
@@ -1141,13 +1049,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         );
     }
 
-    private static record ParsedAlias(
-        String aliasId,
-        Integer sequenceNumber,
-        String forenames,
-        String surname,
-        String organisationName) { }
-
     @Override
     @Transactional
     //TODO: Remove this method once OpalDefendantAccountPaymentTermsService is in use
@@ -1195,9 +1096,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         addPaymentTerm(defAccount, addPaymentTermsRequest);
 
         // Clear last_enforcement on the defendant account, if applicable
-        clearLastEnforcementAction(defAccount,
-            savedPaymentTerms.getPaymentTermsId(),
-            defAccount.getBusinessUnit().getBusinessUnitId());
+        clearLastEnforcementAction(defAccount);
 
         defendantAccountRepository.save(defAccount);
 
@@ -1241,8 +1140,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
      * Along with adding a new latest payment_terms we will also clear the last enforcement action on the account.
      * The only time it doesn't is when the last enforcement has result.extend_ttp_preserve_last_enf = TRUE
      */
-    private void clearLastEnforcementAction(DefendantAccountEntity defAccount, Long savedPaymentTermsId,
-        Short businessUnitId) {
+    private void clearLastEnforcementAction(DefendantAccountEntity defAccount) {
         // Retrieve most recent enforcement action for this account using the result
         Optional<EnforcementEntity.Lite> mostRecentEnforcementOpt = dbEnforcementMostRecent(defAccount);
 
