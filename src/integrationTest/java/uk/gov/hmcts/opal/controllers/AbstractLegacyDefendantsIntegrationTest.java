@@ -6,8 +6,6 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -15,6 +13,7 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -27,9 +26,6 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
 
     @MockitoBean
     protected UserStateService userStateService;
-
-    @Autowired
-    protected JdbcTemplate jdbcTemplate;
 
     @MockitoSpyBean
     protected JsonSchemaValidationService jsonSchemaValidationService;
@@ -71,10 +67,6 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
     }
 
     protected Integer versionFor(long defendantAccountId) {
-        return jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            defendantAccountId
-        );
+        return DefendantAccountVersionUtil.getVersion(jdbcTemplate, defendantAccountId);
     }
 }
