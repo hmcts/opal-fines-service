@@ -361,6 +361,35 @@ class OpalDefendantAccountServiceTest06 {
     }
 
     @Test
+    void testConsolidatedSearch_collapsesAccountsForSameParty_preferringActiveAccount() {
+        SearchConsolidatedEntity activeAccount = SearchConsolidatedEntity.builder()
+            .defendantAccountId(77L)
+            .partyId(100L)
+            .accountStatus("A")
+            .accountNumber("177A")
+            .defendantAccountBalance(BigDecimal.TEN)
+            .build();
+        SearchConsolidatedEntity completedAccount = SearchConsolidatedEntity.builder()
+            .defendantAccountId(9077L)
+            .partyId(100L)
+            .accountStatus("C")
+            .accountNumber("177B")
+            .defendantAccountBalance(BigDecimal.ONE)
+            .build();
+
+        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
+            .thenReturn(List.of(activeAccount, completedAccount));
+
+        AccountSearchDto dto = AccountSearchDto.builder().consolidationSearch(true).build();
+
+        DefendantAccountSearchResultsDto resultsDto = service.searchDefendantAccounts(dto);
+
+        assertEquals(1, resultsDto.getCount());
+        assertEquals("77", resultsDto.getDefendantAccounts().get(0).getDefendantAccountId());
+        assertEquals("177A", resultsDto.getDefendantAccounts().get(0).getAccountNumber());
+    }
+
+    @Test
     void testConsolidatedSearch_tooManyResults() {
         SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
             .defendantAccountBalance(BigDecimal.valueOf(100))

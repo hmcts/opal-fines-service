@@ -3,11 +3,9 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,7 +13,6 @@ import static org.mockito.Mockito.when;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,13 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
@@ -82,7 +74,7 @@ class OpalDefendantAccountUpdateTest {
     private OpalDefendantAccountService service;
 
     @Test
-    void updateDefendantAccount_happyPath_updatesAllGroups_andReturnsRepresentation() {
+    void updateDefendantAccount_happyPath_updatesCommentAndNotes_andReturnsRepresentation() {
         // ---------- Arrange ----------
         Long id = 1L;
 
@@ -103,28 +95,6 @@ class OpalDefendantAccountUpdateTest {
         // Echo the saved entity (so assertions see updated values)
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CourtEntity.Lite court = CourtEntity.Lite.builder()
-            .courtId(100L)
-            .name("Central Magistrates")
-            .build();
-
-        when(courtRepo.findById(100L)).thenReturn(Optional.of(court));
-
-        // Reference entities: stub getters so the service can copy IDs onto the account
-        ResultEntity.Lite eor = mock(ResultEntity.Lite.class);
-        when(eor.getResultId()).thenReturn("EO-1");
-        when(resultRepo.findById("EO-1")).thenReturn(Optional.of(eor));
-
-        EnforcerEntity enforcer = mock(EnforcerEntity.class);
-        when(enforcer.getEnforcerId()).thenReturn(22L);
-        when(enforcerRepo.findById(22L)).thenReturn(Optional.of(enforcer));
-        when(enforcerDefendantAccountMapper.toDto(enforcer)).thenReturn(EnforcerDefendantAccount.builder()
-            .enforcerId(22L)
-            .build());
-
-        LocalJusticeAreaEntity lja = mock(LocalJusticeAreaEntity.class);
-        when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
-        when(ljaRepo.findById((short) 33)).thenReturn(Optional.of(lja));
         when(noteRepository.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 
@@ -138,24 +108,6 @@ class OpalDefendantAccountUpdateTest {
                         .freeTextNote2("n2")
                         .freeTextNote3("n3")
                         .build())
-                .enforcementCourt(EnforcementCourtDefendantAccount.builder()
-                    .courtId(100)
-                    .build())
-                .collectionOrder(CollectionOrderCommon.builder()
-                    .collectionOrderFlag(true)
-                    .collectionOrderDate(LocalDate.parse("2025-01-01"))
-                    .build())
-                .enforcementOverride(EnforcementOverrideDefendantAccount.builder()
-                    .enforcementOverrideResult(EnforcementOverrideResultDefendantAccount.builder()
-                        .enforcementOverrideResultId("EO-1")
-                        .build())
-                    .enforcer(EnforcerDefendantAccount.builder()
-                        .enforcerId(22L)
-                        .build())
-                    .lja(LocalJusticeAreaDefendantAccount.builder()
-                        .ljaId(33)
-                        .build())
-                    .build())
                 .build())
             .version(BigInteger.valueOf(1))
             .build();
@@ -174,30 +126,27 @@ class OpalDefendantAccountUpdateTest {
         assertEquals("n1", resp.getPayload().getCommentAndNotes().getFreeTextNote1());
         assertEquals("n2", resp.getPayload().getCommentAndNotes().getFreeTextNote2());
         assertEquals("n3", resp.getPayload().getCommentAndNotes().getFreeTextNote3());
+        assertEquals("acc comment", entity.getAccountComments());
+    }
 
-        assertNotNull(resp.getPayload().getEnforcementCourt());
-        assertEquals(100, resp.getPayload().getEnforcementCourt().getCourtId());
+    @Test
+    void updateDefendantAccount_throwsWhenMultipleGroupsProvided() {
+        Long id = 1L;
 
-        assertNotNull(resp.getPayload().getCollectionOrder());
-        assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.parse("2025-01-01"), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder().accountComment("x").build())
+                .enforcementCourt(EnforcementCourtDefendantAccount.builder().courtId(100).build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
 
-        assertNotNull(resp.getPayload().getEnforcementOverride());
-        EnforcementOverrideDefendantAccount enforcementOverride = resp.getPayload().getEnforcementOverride();
-        assertNotNull(enforcementOverride.getEnforcementOverrideResult());
-        assertEquals("EO-1", enforcementOverride.getEnforcementOverrideResult().getEnforcementOverrideResultId());
-        assertNotNull(enforcementOverride.getEnforcer());
-        assertEquals(22, enforcementOverride.getEnforcer().getEnforcerId());
-        assertNotNull(enforcementOverride.getLja());
-        assertEquals(33, enforcementOverride.getLja().getLjaId());
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> service.updateDefendantAccount(id, "10", req, "UNIT_TEST"));
 
-        // Verify entity was updated as expected
-        assertEquals(court, entity.getEnforcingCourt());
-        assertTrue(entity.getCollectionOrder());
-        assertEquals(LocalDate.parse("2025-01-01"), entity.getCollectionOrderEffectiveDate());
-        assertEquals("EO-1", entity.getEnforcementOverrideResultId());
-        assertEquals(Long.valueOf(22), entity.getEnforcementOverrideEnforcerId());
-        assertEquals(Short.valueOf((short) 33), entity.getEnforcementOverrideTfoLjaId());
+        assertEquals("Exactly one of comment_and_notes, enforcement_court, collection_order or "
+            + "enforcement_override must be present", ex.getMessage());
+        verify(defendantAccountRepository, never()).findById(any());
     }
 
     @Test

@@ -477,7 +477,6 @@ class DefendantAccountServiceTest {
         // Arrange
         Long id = 1L;
         UpdateDefendantAccountRequestPayload req = UpdateDefendantAccountRequestPayload.builder().build();
-        when(userStateService.checkForAuthorisedUser("UNIT_TEST")).thenReturn(allPermissionsUser());
 
         // Act
         final String buHeader = "10";

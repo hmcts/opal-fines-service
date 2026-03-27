@@ -19,6 +19,7 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.mapToD
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -113,6 +114,9 @@ import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
+import uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils;
+import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -231,8 +235,55 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 + " results. Please refine your search and try again.");
         }
         return results.stream()
+            .filter(this::hasNonZeroBalance)
+            .collect(Collectors.collectingAndThen(Collectors.toList(), this::collapseConsolidatedResults))
+            .stream()
             .map(this::toSummaryDto)
             .toList();
+    }
+
+    private boolean hasNonZeroBalance(SearchConsolidatedEntity account) {
+        return account.getDefendantAccountBalance() != null
+            && account.getDefendantAccountBalance().compareTo(BigDecimal.ZERO) != 0;
+    }
+
+    private SearchConsolidatedEntity preferConsolidatedRepresentative(
+        SearchConsolidatedEntity current, SearchConsolidatedEntity candidate) {
+        if (isActive(current) && !isActive(candidate)) {
+            return current;
+        }
+        if (!isActive(current) && isActive(candidate)) {
+            return candidate;
+        }
+        return current;
+    }
+
+    private List<SearchConsolidatedEntity> collapseConsolidatedResults(List<SearchConsolidatedEntity> results) {
+        List<SearchConsolidatedEntity> collapsed = new ArrayList<>();
+        Map<Long, Integer> representativeIndexes = new HashMap<>();
+
+        for (SearchConsolidatedEntity result : results) {
+            if (result.getPartyId() == null) {
+                collapsed.add(result);
+                continue;
+            }
+
+            Integer currentIndex = representativeIndexes.get(result.getPartyId());
+            if (currentIndex == null) {
+                representativeIndexes.put(result.getPartyId(), collapsed.size());
+                collapsed.add(result);
+                continue;
+            }
+
+            SearchConsolidatedEntity current = collapsed.get(currentIndex);
+            collapsed.set(currentIndex, preferConsolidatedRepresentative(current, result));
+        }
+
+        return collapsed;
+    }
+
+    private boolean isActive(SearchDefendantAccount account) {
+        return account.getAccountStatus() == null || !"C".equalsIgnoreCase(account.getAccountStatus());
     }
 
     private List<DefendantAccountSummaryDto> basicSearch(AccountSearchDto accountSearchDto) {
@@ -404,6 +455,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     ) {
         log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
+        validateSinglePatchGroup(request);
+
         DefendantAccountEntity entity = getDefendantAccountById(defendantAccountId);
 
         if (entity.getBusinessUnit() == null
@@ -463,6 +516,22 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             )
             .version(newVersion)
             .build();
+    }
+
+    private void validateSinglePatchGroup(UpdateDefendantAccountRequest request) {
+        if (request == null || request.getPayload() == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+
+        if (!ValidationUtils.hasExactlyOneNonNull(
+            request.getPayload().getCommentAndNotes(),
+            request.getPayload().getEnforcementCourt(),
+            request.getPayload().getCollectionOrder(),
+            request.getPayload().getEnforcementOverride())) {
+            throw new IllegalArgumentException(
+                "Exactly one of comment_and_notes, enforcement_court, collection_order or "
+                    + "enforcement_override must be present");
+        }
     }
 
     /**
@@ -1090,7 +1159,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             paymentTermsEntity.setPostedBy(businessUnitUserId);
         }
         // Persist the new (active) PaymentTermsEntity
-        PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
+        final PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
 
         // Update defendant account with any payment term related attributes
         addPaymentTerm(defAccount, addPaymentTermsRequest);

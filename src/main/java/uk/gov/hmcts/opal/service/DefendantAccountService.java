@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -129,6 +130,8 @@ public class DefendantAccountService {
                 "Defendant Account", defendantAccountId, "If-Match header is required", null);
         }
 
+        validateSingleUpdateGroup(request);
+
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
@@ -152,6 +155,16 @@ public class DefendantAccountService {
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+    }
+
+    private void validateSingleUpdateGroup(UpdateDefendantAccountRequestPayload request) {
+        if (request == null || !ValidationUtils.hasExactlyOneNonNull(
+            request.getCommentAndNotes(),
+            request.getEnforcementCourt(),
+            request.getCollectionOrder(),
+            request.getEnforcementOverride())) {
+            throw new IllegalArgumentException("Exactly one update group must be provided");
         }
     }
 
