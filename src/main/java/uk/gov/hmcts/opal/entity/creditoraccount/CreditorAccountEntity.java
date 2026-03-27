@@ -26,6 +26,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -59,6 +61,7 @@ public abstract class CreditorAccountEntity implements Versioned {
 
     @Column(name = "creditor_account_type", length = 2, nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private CreditorAccountType creditorAccountType;
 
     @Column(name = "prosecution_service", nullable = false)

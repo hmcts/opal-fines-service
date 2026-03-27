@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.entity;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

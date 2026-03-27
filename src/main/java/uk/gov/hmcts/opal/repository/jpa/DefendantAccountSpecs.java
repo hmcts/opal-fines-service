@@ -12,11 +12,12 @@ import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.AliasEntity_;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity_;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity_;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
@@ -40,7 +41,7 @@ import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWith
 @Component
 public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
 
-    public static final String DEFENDANT_ASSOC_TYPE = "Defendant";
+    public static final AssociationType DEFENDANT_ASSOC_TYPE = AssociationType.DEFENDANT;
 
     public Specification<DefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
         return Specification.allOf(specificationList(
