@@ -19,6 +19,7 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.mapToD
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -222,16 +223,19 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private List<DefendantAccountSummaryDto> consolidatedSearch(AccountSearchDto accountSearchDto) {
-        List<SearchConsolidatedEntity> results = searchConsolidatedRepository
-            .findAll(searchConsolidatedEntitySpecs.findBySearch(accountSearchDto));
+        List<DefendantAccountSummaryDto> results = searchConsolidatedRepository
+            .findAll(searchConsolidatedEntitySpecs.findBySearch(accountSearchDto))
+            .stream()
+            .map(this::toSummaryDto)
+            .filter(this::hasNonZeroBalance)
+            .toList();
+
         if (results.size() > TOO_MANY_SEARCH_RESULTS) {
             log.warn("Consolidated search returned {} results, limiting to 100", results.size());
             throw new UnprocessableException("Search generated more than " + TOO_MANY_SEARCH_RESULTS
                 + " results. Please refine your search and try again.");
         }
-        return results.stream()
-            .map(this::toSummaryDto)
-            .toList();
+        return results;
     }
 
     private List<DefendantAccountSummaryDto> basicSearch(AccountSearchDto accountSearchDto) {
@@ -1161,5 +1165,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
             .flatMap(localJusticeAreaRepository::findById)
             .orElse(null);
+    }
+  
+    private boolean hasNonZeroBalance(DefendantAccountSummaryDto dto) {
+        return dto.getAccountBalance() != null && dto.getAccountBalance().compareTo(BigDecimal.ZERO) != 0;
     }
 }

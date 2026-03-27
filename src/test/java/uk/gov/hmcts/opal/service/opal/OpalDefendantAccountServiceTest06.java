@@ -288,9 +288,11 @@ class OpalDefendantAccountServiceTest06 {
             .errors(List.of("Error1", "|Error2"))
             .warnings(List.of("", "|", "Warn3|Warning Message 3"))
             .hasCollectionOrder(true)
+            .defendantAccountBalance(BigDecimal.TEN)
             .versionNumber(123L)
             .build();
         SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
+            .defendantAccountBalance(BigDecimal.TEN)
             .build();
         List<SearchConsolidatedEntity> dbEntities = List.of(entity1, entity2);
 
@@ -333,8 +335,36 @@ class OpalDefendantAccountServiceTest06 {
     }
 
     @Test
+    void testConsolidatedSearch_removesZeroBalance() {
+        SearchConsolidatedEntity entity1 = SearchConsolidatedEntity.builder()
+            .defendantAccountBalance(BigDecimal.TEN)
+            .build();
+        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
+            .defendantAccountBalance(BigDecimal.ZERO)
+            .build();
+
+        SearchConsolidatedEntity entity3 = SearchConsolidatedEntity.builder().build();
+        List<SearchConsolidatedEntity> dbEntities = List.of(entity1, entity2, entity3);
+
+        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
+            .thenReturn(dbEntities);
+
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .activeAccountsOnly(true)
+            .referenceNumberDto(ReferenceNumberDto.builder().prosecutorCaseReference("177").build())
+            .businessUnitIds(List.of((short) 78))
+            .consolidationSearch(true)
+            .build();
+
+        DefendantAccountSearchResultsDto resultsDto = service.searchDefendantAccounts(dto);
+        assertEquals(1, resultsDto.getCount());
+    }
+
+    @Test
     void testConsolidatedSearch_tooManyResults() {
-        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder().build();
+        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
+            .defendantAccountBalance(BigDecimal.valueOf(100))
+            .build();
         List<SearchConsolidatedEntity> dbEntities = Collections.nCopies(101, entity2);
 
         when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
@@ -353,7 +383,9 @@ class OpalDefendantAccountServiceTest06 {
 
     @Test
     void testConsolidatedSearch_notTooManyResults() {
-        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder().build();
+        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
+            .defendantAccountBalance(BigDecimal.valueOf(100))
+            .build();
         List<SearchConsolidatedEntity> dbEntities = Collections.nCopies(100, entity2);
 
         when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))

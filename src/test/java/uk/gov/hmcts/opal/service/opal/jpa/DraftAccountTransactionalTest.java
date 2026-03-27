@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +33,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -37,8 +42,8 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
@@ -54,6 +59,9 @@ class DraftAccountTransactionalTest {
 
     @InjectMocks
     private DraftAccountTransactional draftAccountTransactional;
+
+    @Mock
+    SecurityEventLoggingService securityEventLoggingService;
 
     @Test
     void testGetDraftAccount() {
@@ -336,11 +344,12 @@ class DraftAccountTransactionalTest {
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO)
+                BigInteger.ZERO, userState)
         );
     }
 
@@ -378,9 +387,11 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+
         // Act
         DraftAccountEntity result = draftAccountTransactional
-            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO);
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
 
         // Assert
         assertNotNull(result);
@@ -398,6 +409,8 @@ class DraftAccountTransactionalTest {
 
     @Test
     void testUpdateDraftAccount_submitterCannotValidate() {
+
+        //Arrange
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING.getLabel())
@@ -418,9 +431,75 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        assertThrows(SubmitterCannotValidateException.class, () ->
+        UserState userState = UserState.builder().userName("USER_NAME_1").userId(23L).build();
+
+        // Act & Assert
+        SubmitterDeniedException ex = assertThrows(SubmitterDeniedException.class, () -> {
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO)
+                BigInteger.ZERO, userState);
+        });
+        assertThat(ex.getUpdateType()).isEqualTo("validate");
+        assertThat(ex.getSubmitterUsername()).isEqualTo("BUUID1");
+
+        verify(securityEventLoggingService, times(1)).logEvent(
+            eq("Business Function - Approval of Draft Account"),
+            eq("Failure"),
+            eq((short) 2),
+            eq("Approval"),
+            any(LocalDateTime.class),
+            eq(Map.of(
+                "UserIdentifier", 23L,
+                "DraftAccountIdentifier", draftAccountId,
+                "DraftAccountSubmittedByUserIdentifier", "BUUID1"
+            ))
+        );
+    }
+
+    @Test
+    void testUpdateDraftAccount_submitterCannotDelete() {
+
+        // Arrange
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.DELETED.getLabel())
+            .validatedBy("BUUID1")
+            .validatedByName("User One")
+            .timelineData(createTimelineDataString())
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .submittedBy("BUUID1")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
+            .timelineData(createTimelineDataString())
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+
+        UserState userState = UserState.builder().userName("BUUID1").userId(23L).build();
+
+        // Act & Assert
+        SubmitterDeniedException ex = assertThrows(SubmitterDeniedException.class, () -> {
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
+                BigInteger.ZERO, userState);
+        });
+        assertThat(ex.getUpdateType()).isEqualTo("delete");
+        assertThat(ex.getSubmitterUsername()).isEqualTo("BUUID1");
+
+        verify(securityEventLoggingService, times(1)).logEvent(
+            eq("Business Function - Deletion of Draft Account"),
+            eq("Failure"),
+            eq((short) 2),
+            eq("Deletion"),
+            any(LocalDateTime.class),
+            eq(Map.of(
+                "UserIdentifier", 23L,
+                "DraftAccountIdentifier", draftAccountId,
+                "DraftAccountSubmittedByUserIdentifier", "BUUID1"
+            ))
         );
     }
 
@@ -444,10 +523,12 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
+        UserState userState = UserState.builder().userName("BUUID1").build();
+
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO)
+                BigInteger.ZERO, userState)
         );
         assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
 
