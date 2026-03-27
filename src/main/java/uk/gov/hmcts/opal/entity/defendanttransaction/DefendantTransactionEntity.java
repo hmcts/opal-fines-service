@@ -21,6 +21,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
@@ -91,8 +94,10 @@ public class DefendantTransactionEntity {
     @Convert(converter = DefendantTransactionWriteOffCodeConverter.class)
     private DefendantTransactionWriteOffCode writeOffCode;
 
-    @Column(name = "associated_record_type", length = 30)
-    private String associatedRecordType;
+    @Convert(converter = AssociatedRecordTypeConverter.class)
+    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @Column(name = "associated_record_type", length = 30, columnDefinition = "t_associated_record_type_enum")
+    private AssociatedRecordType associatedRecordType;
 
     @Column(name = "associated_record_id", length = 30)
     private String associatedRecordId;
