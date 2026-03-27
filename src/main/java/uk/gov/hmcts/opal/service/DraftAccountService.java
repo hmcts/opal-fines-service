@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
@@ -57,7 +56,7 @@ public class DraftAccountService {
     public static final String UPDATE_DRAFT_ACCOUNT_REQUEST_JSON =  SchemaPaths.UPDATE_DRAFT_ACCOUNT_REQUEST;
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
-    private static final String EVENT_ACCOUNT_APPROVAL = "Business Function - Approval of Draft Account";
+    public static final String EVENT_ACCOUNT_APPROVAL = "Business Function - Approval of Draft Account";
 
     private final DraftAccountTransactional draftAccountTransactional;
 
@@ -226,53 +225,40 @@ public class DraftAccountService {
         String authHeaderValue, String ifMatch) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
-
         log.info(":updateDraftAccount: unit user: {}", unitUser);
-
-        if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
-            applyValidatedBy(dto, userState, unitUser.orElseThrow());
-            jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
-
-            BigInteger updateVersion = extractBigInteger(ifMatch);
-
-            try {
-                DraftAccountEntity updatedEntity = draftAccountTransactional
-                    .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, updateVersion);
-                verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
-
-                loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
-
-                if (updatedEntity.getAccountStatus().isPublishingPending()) {
-                    log.info(":updateDraftAccount: publishing: ");
-                    DraftAccountEntity entity = accountPublishProxy.publishDefendantAccount(
-                        updatedEntity, unitUser.orElseThrow());
-                    logDraftAccountApproval("Success", dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
-                        updatedEntity.getSubmittedBy());
-                    return toGetResponseDto(entity);
-                }
-
-                return toGetResponseDto(updatedEntity);
-
-            } catch (SubmitterCannotValidateException scve) {
-                logDraftAccountApproval("Failure", dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
-                    scve.getSubmittedBy());
-                throw scve;
-            }
-        } else {
+        if (!UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         }
+
+        applyValidatedBy(dto, userState, unitUser.orElseThrow());
+        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+
+        BigInteger updateVersion = extractBigInteger(ifMatch);
+
+        DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
+            draftAccountTransactional, updateVersion, userState);
+        verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
+
+        loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
+
+        if (updatedEntity.getAccountStatus().isPublishingPending()) {
+            log.info(":updateDraftAccount: publishing: ");
+            DraftAccountEntity entity = accountPublishProxy.publishDefendantAccount(
+                updatedEntity, unitUser.orElseThrow());
+            logApprovalSuccess(dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
+                updatedEntity.getSubmittedBy());
+            return toGetResponseDto(entity);
+        }
+
+        return toGetResponseDto(updatedEntity);
     }
 
-    private void logDraftAccountApproval(
-        String outcome, Short buId, Long approverId, Long accountId, String submittedBy) {
-
+    private void logApprovalSuccess(Short buId, Long approverId, Long accountId, String submittedBy) {
         Map<String, Object> data = MapUtils.ofNullable("UserIdentifier", approverId,
             "DraftAccountIdentifier", accountId,
-            "DraftAccountSubmittedByUserIdentifier", submittedBy);
-
-        securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, outcome, buId, "Approval",
+            "DraftAccountSubmittedByUserIdentifier", submittedBy);;
+        securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Success", buId, "Approval",
             LogUtil.getRequestTimestamp(), data);
     }
 
