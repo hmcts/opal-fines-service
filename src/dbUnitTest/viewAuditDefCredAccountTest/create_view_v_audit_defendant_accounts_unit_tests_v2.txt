@@ -1,0 +1,27 @@
+Timing is on.
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:401: NOTICE:  === Setting up test data for v_audit_defendant_accounts tests ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:401: NOTICE:  Test data setup completed: defendant_account_id = 999801
+DO
+Time: 11.238 ms
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:578: NOTICE:  === TEST 1: Comprehensive test for defendant account with all associated data ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:578: NOTICE:  DEBUG: Checking view structure and data...
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:578: NOTICE:  DEBUG: document_language = EN, hearing_language = EN, vehicle_make = Toyota
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:578: NOTICE:  DEBUG: vehicle_registration = AB12 CDE, employee_reference = EMP12345, employer_name = Test Corporation Ltd
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:578: NOTICE:  DEBUG: employer_address_line_1 = 100 Business Park, employer_postcode = B1 2AA, employer_telephone = 020 7000 1111
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:578: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for defendant account
+DO
+Time: 28.735 ms
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:646: NOTICE:  === TEST 2: Test organisation defendant party ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:646: NOTICE:  TEST 2 PASSED: Organisation defendant party handled correctly
+DO
+Time: 4.566 ms
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:727: NOTICE:  === TEST 3: Test organisation aliases ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:727: NOTICE:  TEST 3 PASSED: Organisation aliases handled correctly
+DO
+Time: 4.616 ms
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:749: NOTICE:  === All tests completed for v_audit_defendant_accounts view ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:749: NOTICE:  === Cleaning up test data ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v2.sql:749: NOTICE:  Test data cleanup completed
+DO
+Time: 7.828 ms
+Timing is off.
