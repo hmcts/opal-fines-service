@@ -16,8 +16,7 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
     @Mappings({
         @Mapping(target = "payload.id", source = "defendantAccountId"),
         @Mapping(target = "payload.commentAndNotes", source = "commentAndNotes"),
-        @Mapping(target = "payload.enforcementCourt.courtId", source = "enforcementCourtId"
-            ),
+        @Mapping(target = "payload.enforcementCourt.courtId", source = "enforcementCourtId"),
         @Mapping(target = "payload.collectionOrder", source = "collectionOrder"),
         @Mapping(target = "payload.enforcementOverride", source = "enforcementOverride")
     })
