@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.dto.search;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.networknt.schema.utils.StringUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Data
 @Builder
@@ -63,11 +64,11 @@ public class DefendantDto {
     public String getInitials() {
         StringBuilder initials = new StringBuilder();
 
-        if (StringUtils.isNotBlank(forenames)) {
+        if (hasText(forenames)) {
             initials.append(forenames.charAt(0));
         }
 
-        if (StringUtils.isNotBlank(surname)) {
+        if (hasText(surname)) {
             initials.append(surname.charAt(0));
         }
 
