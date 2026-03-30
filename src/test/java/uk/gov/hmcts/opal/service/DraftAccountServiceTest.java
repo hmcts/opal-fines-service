@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,7 +22,6 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -37,6 +35,7 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
+import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -55,8 +54,6 @@ import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
-
-    DraftAccountMapper mapper = Mappers.getMapper(DraftAccountMapper.class);
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
@@ -85,20 +82,14 @@ class DraftAccountServiceTest {
     @InjectMocks
     private DraftAccountService draftAccountService;
 
-    private void stubDraftAccountMapper() {
-        lenient().when(draftAccountMapper.toResponseDto(any()))
-            .thenAnswer(invocation -> mapper.toResponseDto(invocation.getArgument(0)));
-        lenient().when(draftAccountMapper.toDto(any()))
-            .thenAnswer(invocation -> mapper.toDto(invocation.getArgument(0)));
-    }
-
     @Test
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
                 BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
-        stubDraftAccountMapper();
+        when(draftAccountMapper.toResponseDto(draftAccountEntity))
+            .thenReturn(DraftAccountResponseDto.builder().build());
         when(draftAccountTransactional.getDraftAccount(anyLong())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
@@ -118,7 +109,7 @@ class DraftAccountServiceTest {
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
                 BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
-        stubDraftAccountMapper();
+        when(draftAccountMapper.toDto(draftAccountEntity)).thenReturn(DraftAccountSummaryDto.builder().build());
         when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any()))
             .thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
@@ -142,7 +133,9 @@ class DraftAccountServiceTest {
         // Arrange
         final String accountText = "myaccount";
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().account(accountText).build();
-        stubDraftAccountMapper();
+        when(draftAccountMapper.toResponseDto(draftAccountEntity)).thenReturn(
+            DraftAccountResponseDto.builder().account(accountText).build()
+        );
         when(draftAccountTransactional.searchDraftAccounts(any())).thenReturn(List.of(draftAccountEntity));
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
@@ -158,7 +151,8 @@ class DraftAccountServiceTest {
     void testSubmitDraftAccounts_success() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
-        stubDraftAccountMapper();
+        when(draftAccountMapper.toResponseDto(draftAccountEntity))
+            .thenReturn(DraftAccountResponseDto.builder().build());
         when(draftAccountTransactional.submitDraftAccount(any())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
@@ -249,7 +243,17 @@ class DraftAccountServiceTest {
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
             .build();
-        stubDraftAccountMapper();
+        when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .submittedBy("USER01")
+                .submittedByName("normal@users.com")
+                .account(createAccountString())
+                .accountType(DraftAccountType.FINE)
+                .accountStatus(DraftAccountStatus.RESUBMITTED)
+                .timelineData(createTimelineDataString())
+                .build()
+        );
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
@@ -435,7 +439,17 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenReturn(publishedAccount);
-        stubDraftAccountMapper();
+        when(draftAccountMapper.toResponseDto(publishedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.PUBLISHED)
+                .validatedBy("USER01")
+                .validatedByName("normal@users.com")
+                .validatedDate(updatedAccount.getValidatedDate().atOffset(java.time.ZoneOffset.UTC))
+                .accountSnapshot(updatedAccount.getAccountSnapshot())
+                .timelineData(updatedAccount.getTimelineData())
+                .build()
+        );
 
         // Act
         DraftAccountResponseDto result = draftAccountService
