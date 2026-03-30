@@ -74,11 +74,12 @@ class OpalMinorCreditorServiceUpdateTest {
         Long accountId = 101L;
         BigInteger etag = BigInteger.valueOf(5L);
         String postedBy = "test.user@hmcts.net";
+        Short businessUnitId = 77;
 
         CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
-            .businessUnitId((short) 77)
+            .businessUnitId(businessUnitId)
             .minorCreditorPartyId(201L)
             .versionNumber(5L)
             .holdPayout(false)
@@ -116,7 +117,8 @@ class OpalMinorCreditorServiceUpdateTest {
                          .postcode("ZZ1 1ZZ"))
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(account));
         when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
         when(partyRepository.save(any(PartyEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(creditorAccountRepository.saveAndFlush(any(CreditorAccountEntity.Lite.class)))
@@ -140,7 +142,7 @@ class OpalMinorCreditorServiceUpdateTest {
         // Act
         MinorCreditorAccountResponse response;
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
-            response = service.updateMinorCreditorAccount(accountId, request, etag, postedBy);
+            response = service.updateMinorCreditorAccount(accountId, request, etag, postedBy, businessUnitId);
             versionUtils.verify(() -> VersionUtils.verifyIfMatch(
                 eq(account), eq(etag), eq(accountId), eq("updateMinorCreditorAccount")));
         }
@@ -158,7 +160,7 @@ class OpalMinorCreditorServiceUpdateTest {
         assertNotNull(savedEntity);
         assertEquals(accountId, savedEntity.getCreditorAccountId());
         assertEquals(CreditorAccountType.MN, savedEntity.getCreditorAccountType());
-        assertEquals((short) 77, savedEntity.getBusinessUnitId());
+        assertEquals(businessUnitId, savedEntity.getBusinessUnitId());
         assertEquals(201L, savedEntity.getMinorCreditorPartyId());
         assertTrue(savedEntity.isHoldPayout());
         assertEquals(BigInteger.valueOf(5L), savedEntity.getVersion());
@@ -172,71 +174,7 @@ class OpalMinorCreditorServiceUpdateTest {
         assertEquals("ZZ1 1ZZ", savedParty.getPostcode());
         verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.CREDITOR_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            accountId, RecordType.CREDITOR_ACCOUNTS, (short) 77, postedBy, null, "ACCOUNT_ENQUIRY");
-    }
-
-    @Test
-    void updateMinorCreditorAccount_missingPaymentGroup_throwsIllegalArgumentException() {
-        // Arrange
-        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
-            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(false))
-            .address(new AddressDetailsCommon());
-
-        // Act + Assert
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user")
-        );
-        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
-    }
-
-    @Test
-    void updateMinorCreditorAccount_nullRequest_throwsIllegalArgumentException() {
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(1L, null, BigInteger.ONE, "test.user")
-        );
-        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
-    }
-
-    @Test
-    void updateMinorCreditorAccount_nullHoldPayment_throwsIllegalArgumentException() {
-        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
-            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(false))
-            .address(new AddressDetailsCommon())
-            .payment(new CreditorAccountPaymentDetailsCommon());
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user")
-        );
-        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
-    }
-
-    @Test
-    void updateMinorCreditorAccount_missingPartyDetails_throwsIllegalArgumentException() {
-        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
-            .address(new AddressDetailsCommon())
-            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user")
-        );
-        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
-    }
-
-    @Test
-    void updateMinorCreditorAccount_missingAddress_throwsIllegalArgumentException() {
-        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
-            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(false))
-            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "test.user")
-        );
-        assertEquals("Payment, party_details and address groups must be provided", ex.getMessage());
+            accountId, RecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy, null, "ACCOUNT_ENQUIRY");
     }
 
     @Test
@@ -248,12 +186,14 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.empty());
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, (short) 77))
+            .thenReturn(Optional.empty());
 
         // Act + Assert
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+                (short) 77)
         );
     }
 
@@ -261,9 +201,11 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_nonMinorCreditor_throwsEntityNotFoundException() {
         // Arrange
         Long accountId = 102L;
+        Short businessUnitId = 77;
         CreditorAccountEntity.Lite majorAccount = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MJ)
+            .businessUnitId((short) 77)
             .versionNumber(1L)
             .build();
 
@@ -272,21 +214,25 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(majorAccount));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(majorAccount));
 
         // Act + Assert
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+                businessUnitId)
         );
     }
 
     @Test
     void updateMinorCreditorAccount_nullCreditorAccountType_throwsEntityNotFoundException() {
         Long accountId = 106L;
+        Short businessUnitId = 77;
         CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(null)
+            .businessUnitId(businessUnitId)
             .versionNumber(1L)
             .build();
 
@@ -295,20 +241,24 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(account));
 
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+                businessUnitId)
         );
     }
 
     @Test
     void updateMinorCreditorAccount_nullVersion_throwsResourceConflictException() {
         Long accountId = 107L;
+        Short businessUnitId = 77;
         CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
+            .businessUnitId(businessUnitId)
             .minorCreditorPartyId(201L)
             .versionNumber(null)
             .build();
@@ -318,11 +268,13 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(account));
 
         assertThrows(
             ResourceConflictException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+                businessUnitId)
         );
     }
 
@@ -330,11 +282,12 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_missingParty_throwsEntityNotFoundException() {
         // Arrange
         Long accountId = 103L;
+        Short businessUnitId = 55;
         CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(999L)
-            .businessUnitId((short) 55)
+            .businessUnitId(businessUnitId)
             .versionNumber(3L)
             .build();
 
@@ -343,25 +296,28 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(false));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(minorAccount));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(minorAccount));
         when(partyRepository.findById(999L)).thenReturn(Optional.empty());
         BigInteger currentVersion = BigInteger.valueOf(3L);
 
         // Act + Assert
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user",
+                businessUnitId)
         );
     }
 
     @Test
     void updateMinorCreditorAccount_partyIdMismatch_throwsIllegalArgumentException() {
         Long accountId = 104L;
+        Short businessUnitId = 55;
         CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)
-            .businessUnitId((short) 55)
+            .businessUnitId(businessUnitId)
             .versionNumber(3L)
             .build();
 
@@ -371,24 +327,27 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(false));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(minorAccount));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(minorAccount));
         when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
         BigInteger currentVersion = BigInteger.valueOf(3L);
 
         assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user",
+                businessUnitId)
         );
     }
 
     @Test
     void updateMinorCreditorAccount_missingPartyId_throwsIllegalArgumentException() {
         Long accountId = 105L;
+        Short businessUnitId = 55;
         CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)
-            .businessUnitId((short) 55)
+            .businessUnitId(businessUnitId)
             .versionNumber(3L)
             .build();
 
@@ -398,13 +357,15 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(false));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(minorAccount));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(minorAccount));
         when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
         BigInteger currentVersion = BigInteger.valueOf(3L);
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user",
+                businessUnitId)
         );
 
         assertEquals("party_details.party_id must be provided", exception.getMessage());
@@ -413,11 +374,12 @@ class OpalMinorCreditorServiceUpdateTest {
     @Test
     void updateMinorCreditorAccount_blankPartyId_throwsIllegalArgumentException() {
         Long accountId = 108L;
+        Short businessUnitId = 55;
         CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)
-            .businessUnitId((short) 55)
+            .businessUnitId(businessUnitId)
             .versionNumber(3L)
             .build();
 
@@ -427,12 +389,14 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(false));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(minorAccount));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(minorAccount));
         when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user",
+                businessUnitId)
         );
 
         assertEquals("party_details.party_id must be provided", exception.getMessage());
@@ -441,11 +405,12 @@ class OpalMinorCreditorServiceUpdateTest {
     @Test
     void updateMinorCreditorAccount_invalidPartyIdFormat_throwsIllegalArgumentException() {
         Long accountId = 109L;
+        Short businessUnitId = 55;
         CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)
-            .businessUnitId((short) 55)
+            .businessUnitId(businessUnitId)
             .versionNumber(3L)
             .build();
 
@@ -455,12 +420,14 @@ class OpalMinorCreditorServiceUpdateTest {
             .address(new AddressDetailsCommon())
             .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(false));
 
-        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(minorAccount));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
+            .thenReturn(Optional.of(minorAccount));
         when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user")
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user",
+                businessUnitId)
         );
 
         assertEquals("Invalid party_details.party_id format", exception.getMessage());

@@ -30,16 +30,17 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     @Override
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
-        Long etag,
+        String businessUnitId,
+        Long ifMatch,
+        String authHeaderValue,
         PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest) {
 
         log.debug(":PATCH:patchMinorCreditorAccount: id={}", id);
 
-        String authHeaderValue = getRequest().map(r -> r.getHeader("Authorization")).orElse(null);
         MinorCreditorAccountResponse result =
             minorCreditorService.updateMinorCreditorAccount(id, patchMinorCreditorAccountRequest,
-                Optional.ofNullable(etag).map(java.math.BigInteger::valueOf).orElse(null),
-                authHeaderValue);
+                Optional.ofNullable(ifMatch).map(java.math.BigInteger::valueOf).orElse(null),
+                authHeaderValue, businessUnitId);
 
         return buildResponse(result);
     }
