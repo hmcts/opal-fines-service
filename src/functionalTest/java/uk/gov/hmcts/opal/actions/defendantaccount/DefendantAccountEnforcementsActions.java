@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.actions.defendantAccount;
+package uk.gov.hmcts.opal.actions.defendantaccount;
 
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;

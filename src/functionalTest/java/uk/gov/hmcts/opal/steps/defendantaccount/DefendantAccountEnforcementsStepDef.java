@@ -4,7 +4,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.json.JSONException;
-import uk.gov.hmcts.opal.actions.defendantAccount.DefendantAccountEnforcementsActions;
+import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
 
 import java.util.Map;
 
