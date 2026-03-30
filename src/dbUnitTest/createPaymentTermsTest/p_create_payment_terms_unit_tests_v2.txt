@@ -1,0 +1,74 @@
+Timing is on.
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:34: NOTICE:  === Cleanup data before tests ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:34: NOTICE:  Data cleanup before tests completed
+DO
+Time: 6.902 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:70: NOTICE:  === Setting up test data ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:70: NOTICE:  Test data setup completed: defendant_account_id = 999901
+DO
+Time: 2.980 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:151: NOTICE:  === TEST 1: acount_type NOT Fixed Penalty, type = B, effective_date IS NOT NULL ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:151: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:151: INFO:  p_create_payment_terms: defendant_accounts.jail_days [10] has been updated. defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:151: NOTICE:  TEST 1 PASSED
+DO
+Time: 5.152 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:235: NOTICE:  === TEST 2: acount_type NOT Fixed Penalty, type = I, effective_date IS NOT NULL, instalment_amount IS NOT NULL ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:235: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:235: INFO:  p_create_payment_terms: defendant_accounts.jail_days [11] has been updated. defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:235: NOTICE:  TEST 2 PASSED
+DO
+Time: 1.274 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:319: NOTICE:  === TEST 3: acount_type NOT Fixed Penalty, type = P, effective_date IS NOT NULL, instalment_amount IS NOT NULL ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:319: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:319: INFO:  p_create_payment_terms: defendant_accounts.jail_days [12] has been updated. defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:319: NOTICE:  TEST 3 PASSED
+DO
+Time: 1.252 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:402: NOTICE:  === TEST 4: acount_type IS Fixed Penalty, type = B, effective_date IS NULL ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:402: INFO:  p_create_payment_terms: Created payment_terms record for defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:402: INFO:  p_create_payment_terms: defendant_accounts.jail_days [13] has been updated. defendant_account_id = 999901
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:402: NOTICE:  TEST 4 PASSED
+DO
+Time: 1.002 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:466: NOTICE:  === TEST 5: payment_terms_type_code is not valid ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:466: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:466: NOTICE:  Test 5: Expected error caught: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:466: NOTICE:  TEST 5 PASSED: Error handling works correctly when the passed payment terms are invalid
+DO
+Time: 0.892 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:530: NOTICE:  === TEST 6: payment_terms_type_code = B, effective_date IS NULL but account_type is not Fixed Penalty ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:530: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:530: NOTICE:  Test 6: Expected error caught: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:530: NOTICE:  TEST 6 PASSED: Error handling works correctly when the passed payment terms are invalid
+DO
+Time: 0.669 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:594: NOTICE:  === TEST 7: payment_terms_type_code = B, effective_date IS NOT NULL but account_type IS Fixed Penalty ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:594: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:594: NOTICE:  Test 7: Expected error caught: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:594: NOTICE:  TEST 7 PASSED: Error handling works correctly when the passed payment terms are invalid
+DO
+Time: 0.668 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:658: NOTICE:  === TEST 8: account_type IS Fixed Penalty but payment_terms_type_code is NOT B ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:658: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:658: NOTICE:  Test 8: Expected error caught: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:658: NOTICE:  TEST 8 PASSED: Error handling works correctly when the passed payment terms are invalid
+DO
+Time: 0.703 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:722: NOTICE:  === TEST 9: payment_terms_type_code = I, effective_date IS NOT NULL but instalment_amount IS NULL ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:722: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:722: NOTICE:  Test 9: Expected error caught: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:722: NOTICE:  TEST 9 PASSED: Error handling works correctly when the passed payment terms are invalid
+DO
+Time: 0.748 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:786: NOTICE:  === TEST 10: payment_terms_type_code = I, instalment_amount IS NOT NULL but effective_date IS NULL ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:786: NOTICE:  Error in p_create_payment_terms: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:786: NOTICE:  Test 10: Expected error caught: P2003 - Invalid payment terms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:786: NOTICE:  TEST 10 PASSED: Error handling works correctly when the passed payment terms are invalid
+DO
+Time: 0.731 ms
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:799: NOTICE:  === Cleanup test data ===
+psql:createPaymentTermsTest/p_create_payment_terms_unit_tests_v2.sql:799: NOTICE:  Test data cleanup completed
+DO
+Time: 12.149 ms
+Timing is off.
