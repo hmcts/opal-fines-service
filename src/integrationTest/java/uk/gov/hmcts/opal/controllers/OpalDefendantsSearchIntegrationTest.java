@@ -54,6 +54,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     UserStateService userStateService;
 
+    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
     JdbcTemplate jdbcTemplate;
 

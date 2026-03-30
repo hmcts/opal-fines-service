@@ -5,6 +5,8 @@
   "required": [
     "creditor_account_id",
     "account_version",
+    "business_unit_id",
+    "business_unit_user_id",
     "party_details",
     "address",
     "payment"
@@ -17,6 +19,14 @@
     "account_version": {
       "type": "integer",
       "description": "The version number of the creditor account."
+    },
+    "business_unit_id": {
+      "type": "string",
+      "description": "The unique identifier for the business unit associated with the creditor account."
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "description": "The unique identifier for the user associated with the business unit."
     },
     "party_details": {
       "$ref": "./common-objects/partyDetailsLegacy.json"

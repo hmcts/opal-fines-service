@@ -3,12 +3,14 @@ package uk.gov.hmcts.opal;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration
+@Slf4j
 public class TestContainerConfig {
 
     private static final int LEGACY_STUB_PORT = 4553;
@@ -38,6 +40,9 @@ public class TestContainerConfig {
                     .withExposedPorts(LEGACY_STUB_PORT);
             legacyStubContainer.setPortBindings(List.of("%d:%d".formatted(LEGACY_STUB_PORT, LEGACY_STUB_PORT)));
             legacyStubContainer.start();
+        } else {
+            log.warn("Port {} is already in use; reusing the existing legacy gateway at {}.", LEGACY_STUB_PORT,
+                legacyGatewayUrl());
         }
     }
 

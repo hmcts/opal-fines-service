@@ -29,6 +29,7 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
+    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
