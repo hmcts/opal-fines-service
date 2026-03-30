@@ -178,6 +178,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             throw new IllegalArgumentException("Request body is required");
         }
 
+        PartyDetails partyDetails = request.getPartyDetails();
         Optional.ofNullable(request.getDefendantAccountPartyType())
             .map(AssociationType::getByLabel)
             .ifPresent(dap::setAssociationType);
@@ -198,7 +199,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             party.getOrganisationName(),
             party.getSurname());
 
-        OpalDefendantAccountBuilders.applyPartyCoreReplace(party, request.getPartyDetails());
+        OpalDefendantAccountBuilders.applyPartyCoreReplace(party, partyDetails);
         OpalDefendantAccountBuilders.applyPartyAddressReplace(party, request.getAddress());
         OpalDefendantAccountBuilders.applyPartyContactReplace(party, request.getContactDetails());
 
@@ -210,7 +211,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             request.getLanguagePreferences(), isDebtor
         );
 
-        replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
+        replaceAliasesForParty(party.getPartyId(), partyDetails);
+        // TODO(PO-1963): here is meant to be remove behaviour waiting on PO-1897 to be done.
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
