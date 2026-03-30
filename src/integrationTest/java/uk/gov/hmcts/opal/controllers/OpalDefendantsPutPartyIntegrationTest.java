@@ -462,4 +462,5 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         Integer updatedVersion = versionFor(20010L);
         assertEquals(currentVersion + 1, updatedVersion);
     }
+
 }
