@@ -7,15 +7,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,10 +34,7 @@ class DefendantAccountControllerTest {
     private DefendantAccountService defendantAccountService;
 
     @Mock
-    private UserStateService userStateService;
-
-    @Mock
-    private DefendantAccountServiceProxy defendantAccountServiceProxy;
+    private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
@@ -70,17 +66,6 @@ class DefendantAccountControllerTest {
         // Arrange
         DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
 
-        var userWithPermission = UserState.builder()
-            .userId(99L)
-            .userName("tester")
-            .businessUnitUser(java.util.Set.of(
-                BusinessUnitUser.builder()
-                    .businessUnitUserId("1L")
-                    .businessUnitId((short) 78)
-                    .build()
-            ))
-            .build();
-
         when(defendantAccountService.getHeaderSummary(eq(1L), any()))
             .thenReturn(mockBody);
 
@@ -101,6 +86,31 @@ class DefendantAccountControllerTest {
         var req = LegacyDefendantAccountService.createGetDefendantAccountRequest(id);
         assertNotNull(req);
         assertEquals(id, req.getDefendantAccountId());
+    }
+
+    @Test
+    void testAddEnforcement_Success() {
+        // Arrange
+        Long defendantAccountId = 1L;
+        String businessUnitId = "10";
+        String ifMatch = "1";
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder().build();
+        AddEnforcementResponse mockResponse = AddEnforcementResponse.builder().build();
+
+        when(defendantAccountEnforcementService.addEnforcement(defendantAccountId, businessUnitId, ifMatch,
+            BEARER_TOKEN, request)).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<AddEnforcementResponse> response =
+            defendantAccountController.addEnforcement(defendantAccountId, BEARER_TOKEN, businessUnitId, ifMatch,
+                request);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockResponse, response.getBody());
+
+        verify(defendantAccountEnforcementService).addEnforcement(defendantAccountId, businessUnitId, ifMatch,
+            BEARER_TOKEN, request);
     }
 
 }

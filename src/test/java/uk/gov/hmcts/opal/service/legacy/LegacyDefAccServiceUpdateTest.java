@@ -4,25 +4,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 
 class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
 
@@ -32,6 +31,18 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         long defendantAccountId = 77L;
         String businessUnitId = "78";
 
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(postedBy)
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("x")
+                    .build())
+                .build())
+            .version(BigInteger.valueOf(3))
+            .build();
+
         LegacyUpdateDefendantAccountRequest legacyReq = LegacyUpdateDefendantAccountRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
@@ -39,9 +50,8 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .version(3)
             .build();
 
-        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(
-            any(), anyString(), anyString(), anyString(), anyInt()
-        )).thenReturn(legacyReq);
+        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request))
+            .thenReturn(legacyReq);
 
         LegacyUpdateDefendantAccountResponse legacyEntity = new LegacyUpdateDefendantAccountResponse();
         GatewayService.Response<LegacyUpdateDefendantAccountResponse> resp =
@@ -54,24 +64,25 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             Mockito.nullable(String.class)
         );
 
-        DefendantAccountResponse expected = DefendantAccountResponse.builder().id(defendantAccountId).build();
-        when(legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(legacyEntity)).thenReturn(expected);
+        UpdateDefendantAccountResponse expected = UpdateDefendantAccountResponse.builder()
+            .version(BigInteger.valueOf(3))
+            .build();
+        when(legacyUpdateDefendantAccountResponseMapper.toUpdateDefendantAccountResponse(legacyEntity))
+            .thenReturn(expected);
 
-        DefendantAccountResponse result = legacyDefendantAccountService
-            .updateDefendantAccount(defendantAccountId, businessUnitId, updateDefendantAccountRequest, "3", postedBy);
+        UpdateDefendantAccountResponse result = legacyDefendantAccountService
+            .updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy);
 
         assertThat(result).isSameAs(expected);
 
-        verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(
-            same(updateDefendantAccountRequest), eq("77"), eq("78"), eq(postedBy), eq(3)
-        );
+        verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(request);
         verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             eq(legacyReq),
             isNull()
         );
-        verify(legacyUpdateDefendantAccountResponseMapper).toDefendantAccountResponse(legacyEntity);
+        verify(legacyUpdateDefendantAccountResponseMapper).toUpdateDefendantAccountResponse(legacyEntity);
     }
 
     @Test
@@ -80,18 +91,30 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         long defendantAccountId = 77L;
         String businessUnitId = "78";
 
-        when(updateDefendantAccountRequestMapper
-            .toLegacyUpdateDefendantAccountRequest(any(), anyString(), anyString(), anyString(), anyInt()))
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(postedBy)
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("x")
+                    .build())
+                .build())
+            .version(BigInteger.valueOf(5))
+            .build();
+
+        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request))
             .thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
 
-        when(gatewayService.postToGateway(eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
-            eq(LegacyUpdateDefendantAccountResponse.class), any(), isNull()))
+        when(gatewayService.postToGateway(
+            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(LegacyUpdateDefendantAccountResponse.class),
+            any(),
+            isNull()))
             .thenThrow(new RuntimeException("Simulate Run Time Exception from gateway"));
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService
-                .updateDefendantAccount(defendantAccountId, businessUnitId, mock(UpdateDefendantAccountRequest.class),
-                    "5", postedBy)
+            legacyDefendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy)
         );
 
         verify(gatewayService).postToGateway(
@@ -111,8 +134,20 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response><error/></response>", HttpStatus.INTERNAL_SERVER_ERROR));
 
-        DefendantAccountResponse response = legacyDefendantAccountService
-            .updateDefendantAccount(77L, "78", mock(UpdateDefendantAccountRequest.class), "1", "postedBy");
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(77L)
+            .businessUnitId("78")
+            .businessUnitUserId("postedBy")
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("x")
+                    .build())
+                .build())
+            .version(BigInteger.ONE)
+            .build();
+
+        UpdateDefendantAccountResponse response = legacyDefendantAccountService
+            .updateDefendantAccount(77L, "78", request, "postedBy");
         assertNull(response);
     }
 }

@@ -1,0 +1,47 @@
+{
+	"info": {
+		"_postman_id": "b689ac72-601a-4bd1-8746-9cf76fa0caa8",
+		"name": "Account Enquiry",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31122798"
+	},
+	"item": [
+		{
+			"name": "GET http://localhost:4550/api/defendant-account/details",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://opal-fines-service.staging.platform.hmcts.net/api/defendant-account/1",
+					"protocol": "https",
+					"host": [
+						"opal-fines-service",
+						"staging",
+						"platform",
+						"hmcts",
+						"net"
+					],
+					"path": [
+						"api",
+						"defendant-account",
+						"1"
+					]
+				},
+				"description": "Get a defendant account from opal, account number is only unique within a businessunit"
+			},
+			"response": []
+		}
+	]
+}
