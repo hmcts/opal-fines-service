@@ -7,12 +7,12 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
@@ -69,12 +69,10 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
-                                                           UpdateDefendantAccountRequest request,
-                                                           String ifMatch, String postedBy) {
-        return getCurrentModeService().updateDefendantAccount(defendantAccountId, businessUnitId, request,
-            ifMatch, postedBy);
+                                                           UpdateDefendantAccountRequest request, String postedBy) {
+        return getCurrentModeService().updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy);
     }
 
     @Override
