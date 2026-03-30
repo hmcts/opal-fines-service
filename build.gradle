@@ -1,3 +1,4 @@
+import java.net.ServerSocket
 import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
@@ -28,6 +29,85 @@ ext {
 //Should we fail fast on test failures?
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
+def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
+def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
+def legacyStubPort = 4553
+def ciEnvironmentVariables = ['CI', 'GITHUB_ACTIONS', 'JENKINS_HOME', 'BUILD_ID']
+
+def isLocalIntegrationEnvironment = {
+  ciEnvironmentVariables.every { !System.getenv(it) }
+}
+
+def isPortAvailable = { int port ->
+  try {
+    def socket = new ServerSocket(port)
+    socket.reuseAddress = true
+    socket.close()
+    true
+  } catch (Exception ignored) {
+    false
+  }
+}
+
+def runLegacyStubCommand = { List<String> command ->
+  def process = new ProcessBuilder(command)
+    .redirectErrorStream(true)
+    .start()
+
+  def finished = process.waitFor(2, java.util.concurrent.TimeUnit.MINUTES)
+  if (!finished) {
+    process.destroyForcibly()
+    return [exitValue: 124, output: "Timed out running ${command.join(' ')}"]
+  }
+
+  [exitValue: process.exitValue(), output: process.inputStream.getText('UTF-8').trim()]
+}
+
+def pullLatestLegacyStubImageIfLocal = {
+  if (!isLocalIntegrationEnvironment()) {
+    logger.lifecycle("Skipping hmctsprod legacy stub login/pull outside a local integration run.")
+    return
+  }
+
+  if (legacyStubImage != defaultLegacyStubImage) {
+    logger.lifecycle("Skipping hmctsprod legacy stub login/pull because OPAL_LEGACY_STUB_IMAGE overrides the default image.")
+    return
+  }
+
+  if (!isPortAvailable(legacyStubPort)) {
+    logger.lifecycle("Skipping hmctsprod legacy stub login/pull because port ${legacyStubPort} is already in use.")
+    return
+  }
+
+  try {
+    def loginResult = runLegacyStubCommand(['az', 'acr', 'login', '--name', 'hmctsprod', '--subscription', 'DCD-CNP-Prod'])
+    if (loginResult.exitValue != 0) {
+      logger.warn(
+        "Could not log in to hmctsprod ACR before integration tests. Continuing with any locally cached image. Azure CLI output: {}",
+        loginResult.output
+      )
+      return
+    }
+
+    def pullResult = runLegacyStubCommand(['docker', 'pull', legacyStubImage])
+    if (pullResult.exitValue != 0) {
+      logger.warn(
+        "Failed to pull legacy stub image '{}' before integration tests. Continuing with any locally cached image. Docker output: {}",
+        legacyStubImage,
+        pullResult.output
+      )
+      return
+    }
+
+    logger.lifecycle("Pulled latest legacy stub image '{}'.", legacyStubImage)
+  } catch (Exception e) {
+    logger.warn(
+      "Could not refresh legacy stub image '{}' before integration tests. Continuing with any locally cached image.",
+      legacyStubImage,
+      e
+    )
+  }
+}
 
 group = 'uk.gov.hmcts'
 version = '0.0.1'
@@ -172,6 +252,9 @@ tasks.register('integration', Test) {
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
+  doFirst {
+    pullLatestLegacyStubImageIfLocal()
+  }
 }
 
 tasks.register('functionalOpal', Test) {
