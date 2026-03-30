@@ -1,0 +1,27 @@
+Timing is on.
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:40: NOTICE:  === Cleanup data before tests ===
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:40: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 15.103 ms
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:336: NOTICE:  === Setting up test data for v_search_defendant_accounts tests ===
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:336: NOTICE:  Test data setup completed: defendant_account_ids are 1 to 10
+DO
+Time: 10.919 ms
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 1 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 2 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 3 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 4 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 5 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 6 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 7 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 8 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 9 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  --- Running test Scenario 10 ---
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:866: NOTICE:  ALL TESTS COMPLETED AND PASSED: All information retrieved and validated successfully for defendant accounts with all details
+DO
+Time: 12.247 ms
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:883: NOTICE:  === Cleaning up test data ===
+psql:viewSearchDefendantAccountsTest/create_view_v_search_defendant_accounts_unit_tests_v2.sql:883: NOTICE:  Test data cleanup completed
+DO
+Time: 9.231 ms
+Timing is off.

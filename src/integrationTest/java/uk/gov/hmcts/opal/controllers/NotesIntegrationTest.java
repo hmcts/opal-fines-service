@@ -9,10 +9,8 @@ import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.when;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
@@ -40,10 +39,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private UserState userState;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
 
     @BeforeEach
     void setupUserState() {
@@ -70,10 +65,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         log.info(":testPostNotes payload: {}", payload);
 
         // Read the current version immediately before use (avoids distance warning & stale reads)
-        final Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class, 77L
-        );
+        final Integer currentVersion = DefendantAccountVersionUtil.getVersion(jdbcTemplate, 77L);
 
         // Act
         ResultActions result =

@@ -1,0 +1,18 @@
+Timing is on.
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:38: NOTICE:  === Cleanup data before tests ===
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:38: NOTICE:  === Test cleanup completed ===
+DO
+Time: 11.531 ms
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:235: NOTICE:  === Setting up test data for v_major_creditor_account_header tests ===
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:235: NOTICE:  --- Running test scenario 1 ---
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:235: NOTICE:  --- Running test scenario 2 ---
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:235: NOTICE:  --- Running test scenario 3 ---
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:235: NOTICE:  --- Running test scenario 4 ---
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:235: NOTICE:  === All tests completed and passed for v_major_creditor_account_header view ===
+DO
+Time: 8.606 ms
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:246: NOTICE:  === Final targeted cleanup: removing test rows ===
+psql:viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v2.sql:246: NOTICE:  === Final targeted cleanup completed ===
+DO
+Time: 1.771 ms
+Timing is off.

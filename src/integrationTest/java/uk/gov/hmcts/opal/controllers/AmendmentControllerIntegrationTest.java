@@ -11,14 +11,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -33,19 +34,19 @@ import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 @Slf4j(topic = "opal.AmendmentControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_amendments.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("AmendmentController Integration Test")
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
 class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/amendments";
 
-    @Autowired
-    TransactionalContext transactionalContext;
+    private final TransactionalContext transactionalContext;
 
     @MockitoSpyBean
-    @Autowired
     OpalDefendantAccountService opalDefendantAccountService;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @MockitoSpyBean
+    AmendmentService amendmentService;
 
     @Test
     void testGetAmendmentById() throws Exception {
@@ -151,15 +152,12 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Component
     @Transactional
+    @RequiredArgsConstructor
     public static class TransactionalContext {
 
-        @Autowired
-        private JdbcTemplate jdbcTemplate;
-
-        @MockitoSpyBean
-        @Autowired
-        AmendmentService amendmentService;
-
+        private final JdbcTemplate jdbcTemplate;
+        private final AmendmentService amendmentService;
+        
         /* In order for the stored procedures to work, the initialise, update and finalise calls all need
         to be executed within the same transaction context. */
         public void callTheStoredProcedures(Long defAccId, Short busUnitId) {
