@@ -98,19 +98,13 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     public MinorCreditorAccountResponse updateMinorCreditorAccount(
         Long minorCreditorAccountId,
         PatchMinorCreditorAccountRequest request,
-        BigInteger etag,
-        String postedBy) {
+        BigInteger ifMatch,
+        String postedBy,
+        Short businessUnitId) {
         log.debug(":updateMinorCreditorAccount (Opal): id={}", minorCreditorAccountId);
 
-        if (request == null
-            || request.getPayment() == null
-            || request.getPayment().getHoldPayment() == null
-            || request.getPartyDetails() == null
-            || request.getAddress() == null) {
-            throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
-        }
-
-        CreditorAccountEntity.Lite creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
+        CreditorAccountEntity.Lite creditorAccount = creditorAccountRepository
+            .findByCreditorAccountIdAndBusinessUnitId(minorCreditorAccountId, businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Minor creditor account not found: " + minorCreditorAccountId));
 
@@ -122,7 +116,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             throw new ResourceConflictException("CreditorAccount", minorCreditorAccountId,
                 "Current account version is missing", null);
         }
-        VersionUtils.verifyIfMatch(creditorAccount, etag, minorCreditorAccountId, "updateMinorCreditorAccount");
+        VersionUtils.verifyIfMatch(creditorAccount, ifMatch, minorCreditorAccountId, "updateMinorCreditorAccount");
 
         PartyEntity party = partyRepository.findById(creditorAccount.getMinorCreditorPartyId())
             .orElseThrow(() -> new EntityNotFoundException(

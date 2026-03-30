@@ -10,6 +10,8 @@
         <xsd:sequence>
           <xsd:element name="creditor_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
           <xsd:element name="account_version" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="business_unit_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="business_unit_user_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
           <xsd:element name="party_details" type="party_details" minOccurs="1" maxOccurs="1"/>
           <xsd:element name="address" type="address_details" minOccurs="1" maxOccurs="1"/>
           <xsd:element name="payment" type="creditor_account_payment_details" minOccurs="1" maxOccurs="1"/>
