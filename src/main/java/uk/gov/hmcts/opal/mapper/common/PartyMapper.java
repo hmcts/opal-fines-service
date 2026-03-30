@@ -29,7 +29,6 @@ public interface PartyMapper {
     )
     PartyDetails toDto(PartyEntity party);
 
-    @Mapping(target = "partyId", expression = "java(toPartyIdString(party.getPartyId()))")
     @Mapping(target = "organisationFlag", source = "organisation")
     @Mapping(
         target = "individualDetails",
@@ -43,9 +42,4 @@ public interface PartyMapper {
     )
     PartyDetailsCommon toPartyDetailsCommon(PartyEntity party);
 
-
-
-    default String toPartyIdString(Long partyId) {
-        return partyId == null ? null : String.valueOf(partyId);
-    }
 }

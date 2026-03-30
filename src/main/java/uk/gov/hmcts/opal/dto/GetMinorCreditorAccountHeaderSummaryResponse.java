@@ -21,37 +21,58 @@ import uk.gov.hmcts.opal.util.Versioned;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetMinorCreditorAccountHeaderSummaryResponse implements ToJsonString, Versioned {
 
-    @JsonProperty("creditor_account_id")
-    private String creditorAccountId;
-
-    @JsonProperty("account_number")
-    private String accountNumber;
-
-    @JsonProperty("creditor_account_type")
-    private CreditorAccountTypeReference creditorAccountType;
-
     @JsonIgnore
     private BigInteger version;
 
-    @JsonProperty("business_unit_summary")
-    private BusinessUnitSummary businessUnitSummary;
+    @JsonProperty("party")
+    private PartyDetails party;
 
-    @JsonProperty("party_details")
-    private PartyDetails partyDetails;
+    @JsonProperty("business_unit")
+    private BusinessUnitSummary businessUnit;
 
-    @JsonProperty("awarded_amount")
-    private BigDecimal awardedAmount;
+    @JsonProperty("creditor")
+    private CreditorHeader creditor;
 
-    @JsonProperty("paid_out_amount")
-    private BigDecimal paidOutAmount;
+    @JsonProperty("financials")
+    private Financials financials;
 
-    @JsonProperty("awaiting_payout_amount")
-    private BigDecimal awaitingPayoutAmount;
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CreditorHeader {
 
-    @JsonProperty("outstanding_amount")
-    private BigDecimal outstandingAmount;
+        @JsonProperty("account_id")
+        private String accountId;
 
-    @JsonProperty("has_associated_defendant")
-    private Boolean hasAssociatedDefendant;
+        @JsonProperty("account_number")
+        private String accountNumber;
 
+        @JsonProperty("account_type")
+        private CreditorAccountTypeReference accountType;
+
+        @JsonProperty("has_associated_defendant")
+        private Boolean hasAssociatedDefendant;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Financials {
+
+        @JsonProperty("awarded")
+        private BigDecimal awarded;
+
+        @JsonProperty("paid_out")
+        private BigDecimal paidOut;
+
+        @JsonProperty("awaiting_payout")
+        private BigDecimal awaitingPayout;
+
+        @JsonProperty("outstanding")
+        private BigDecimal outstanding;
+    }
 }

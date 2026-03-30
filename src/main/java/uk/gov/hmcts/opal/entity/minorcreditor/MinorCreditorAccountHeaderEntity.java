@@ -66,6 +66,9 @@ public class MinorCreditorAccountHeaderEntity {
     @Column(name = "welsh_language")
     private boolean welshLanguage;
 
+    @Column(name = "has_associated_defendant")
+    private boolean hasAssociatedDefendant;
+
     @Column(name = "awarded")
     private BigDecimal awarded;
 

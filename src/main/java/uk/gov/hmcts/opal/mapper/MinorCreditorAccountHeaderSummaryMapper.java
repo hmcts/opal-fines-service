@@ -1,63 +1,32 @@
 package uk.gov.hmcts.opal.mapper;
 
-import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
+import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapper;
+import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 
 @Mapper(componentModel = "spring",
-    uses = {BusinessUnitSummaryMapper.class},
-    builder = @Builder(disableBuilder = true))
+    uses = {
+        BusinessUnitSummaryMapper.class,
+        PartyMapper.class,
+        CreditorAccountTypeMapper.class
+    })
 public interface MinorCreditorAccountHeaderSummaryMapper {
 
-    @Mapping(target = "creditorAccountId", expression = "java(String.valueOf(entity.getCreditorAccountId()))")
-    @Mapping(target = "accountNumber", source = "creditorAccountNumber")
-    @Mapping(target = "creditorAccountType", source = "creditorAccountType")
-    @Mapping(target = "version", source = "versionNumber")
-    @Mapping(target = "businessUnitSummary", source = ".")
-    @Mapping(target = "partyDetails", expression = "java(toPartyDetails(entity))")
-    @Mapping(target = "awardedAmount", source = "awarded")
-    @Mapping(target = "paidOutAmount", source = "paidOut")
-    @Mapping(target = "awaitingPayoutAmount", source = "awaitingPayment")
-    @Mapping(target = "outstandingAmount", source = "outstanding")
-    @Mapping(target = "hasAssociatedDefendant", expression = "java(hasAssociatedDefendant(entity))")
-    GetMinorCreditorAccountHeaderSummaryResponse toResponse(MinorCreditorAccountHeaderEntity entity);
+    @Mapping(target = "creditor.accountNumber", source = "entity.creditorAccountNumber")
+    @Mapping(target = "creditor.accountId", source = "entity.creditorAccountId")
+    @Mapping(target = "creditor.accountType", source = "entity.creditorAccountType")
+    @Mapping(target = "creditor.hasAssociatedDefendant", source = "entity.hasAssociatedDefendant")
+    @Mapping(target = "version", source = "entity.versionNumber")
+    @Mapping(target = "financials.awarded", source = "entity.awarded")
+    @Mapping(target = "financials.paidOut", source = "entity.paidOut")
+    @Mapping(target = "financials.awaitingPayout", source = "entity.awaitingPayment")
+    @Mapping(target = "financials.outstanding", source = "entity.outstanding")
+    @Mapping(target = "businessUnit", source = "entity")
+    GetMinorCreditorAccountHeaderSummaryResponse toResponse(MinorCreditorAccountHeaderEntity entity, PartyEntity party);
 
-    default CreditorAccountTypeReference toCreditorAccountTypeReference(CreditorAccountType type) {
-        if (type == null) {
-            return null;
-        }
-        return CreditorAccountTypeReference.builder()
-            .type(type.name())
-            .displayName(type.getLabel())
-            .build();
-    }
-
-    default PartyDetails toPartyDetails(MinorCreditorAccountHeaderEntity entity) {
-        boolean isOrg = entity.isOrganisation();
-        return PartyDetails.builder()
-            .partyId(String.valueOf(entity.getPartyId()))
-            .organisationFlag(isOrg)
-            .organisationDetails(isOrg ? OrganisationDetails.builder()
-                .organisationName(entity.getOrganisationName())
-                .build() : null)
-            .individualDetails(!isOrg ? IndividualDetails.builder()
-                .title(entity.getTitle())
-                .forenames(entity.getForenames())
-                .surname(entity.getSurname())
-                .build() : null)
-            .build();
-    }
-
-    default boolean hasAssociatedDefendant(MinorCreditorAccountHeaderEntity entity) {
-        return (entity.getAwarded() != null && entity.getAwarded().signum() > 0)
-            || (entity.getOutstanding() != null && entity.getOutstanding().signum() > 0);
-    }
 }

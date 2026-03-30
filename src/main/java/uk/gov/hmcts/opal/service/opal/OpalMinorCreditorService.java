@@ -90,7 +90,14 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
                     "Minor creditor account not found: " + minorCreditorAccountId
                 ));
 
-        return headerSummaryMapper.toResponse(entity);
+        long partyId = entity.getPartyId();
+
+        PartyEntity partyEntity =
+            partyRepository.findById(partyId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                    "Minor creditor party not found: " + partyId
+                ));
+        return headerSummaryMapper.toResponse(entity, partyEntity);
     }
 
     @Override

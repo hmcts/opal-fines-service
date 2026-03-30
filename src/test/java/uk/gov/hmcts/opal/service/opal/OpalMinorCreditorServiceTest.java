@@ -18,6 +18,8 @@ import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse.AtAGlanceDefendant;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.Payment;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
@@ -264,9 +266,11 @@ class OpalMinorCreditorServiceTest {
             .outstanding(BigDecimal.ZERO)
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
@@ -274,7 +278,7 @@ class OpalMinorCreditorServiceTest {
         // Assert
         assertSame(mapped, res);
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
-        verify(headerSummaryMapper).toResponse(entity);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
@@ -302,9 +306,11 @@ class OpalMinorCreditorServiceTest {
             .outstanding(BigDecimal.ZERO)
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
@@ -312,7 +318,7 @@ class OpalMinorCreditorServiceTest {
         // Assert
         assertSame(mapped, res);
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
-        verify(headerSummaryMapper).toResponse(entity);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
@@ -330,7 +336,7 @@ class OpalMinorCreditorServiceTest {
         assertTrue(ex.getMessage().contains("Minor creditor account not found: " + missingId));
 
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(missingId);
-        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any());
+        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -355,16 +361,18 @@ class OpalMinorCreditorServiceTest {
             .outstanding(new BigDecimal("0.01"))
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
 
         // Assert
         assertSame(mapped, res);
-        verify(headerSummaryMapper).toResponse(entity);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
@@ -392,9 +400,11 @@ class OpalMinorCreditorServiceTest {
             .outstanding(BigDecimal.ZERO)
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
@@ -402,7 +412,7 @@ class OpalMinorCreditorServiceTest {
         // Assert
         assertSame(mapped, resp);
         verify(minorCreditorAccountHeaderRepository).findById(id);
-        verify(headerSummaryMapper).toResponse(entity);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
@@ -430,16 +440,18 @@ class OpalMinorCreditorServiceTest {
             .outstanding(BigDecimal.ZERO)
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
 
         // Assert
         assertSame(mapped, resp);
-        verify(headerSummaryMapper).toResponse(entity);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
@@ -464,16 +476,18 @@ class OpalMinorCreditorServiceTest {
             .outstanding(BigDecimal.ZERO)
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
 
         // Assert
         assertSame(mapped, resp);
-        verify(headerSummaryMapper).toResponse(entity);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
@@ -500,16 +514,18 @@ class OpalMinorCreditorServiceTest {
             .outstanding(new BigDecimal("1.00")) // outstanding > 0 => true
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity)).thenReturn(mapped);
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
 
         // Assert
         assertSame(mapped, resp);
-        verify(headerSummaryMapper).toResponse(entity);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
@@ -525,7 +541,7 @@ class OpalMinorCreditorServiceTest {
         assertTrue(ex.getMessage().contains("Minor creditor account not found: " + id));
 
         verify(minorCreditorAccountHeaderRepository).findById(id);
-        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any());
+        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -664,19 +680,8 @@ class OpalMinorCreditorServiceTest {
 
     private GetMinorCreditorAccountHeaderSummaryResponse buildHeaderSummaryResponse(String creditorAccountId) {
         return GetMinorCreditorAccountHeaderSummaryResponse.builder()
-            .creditorAccountId(creditorAccountId)
-            .accountNumber("mapped-account")
-            .creditorAccountType(CreditorAccountTypeReference.builder()
-                .type("MN")
-                .displayName("Minor Creditor")
-                .build())
             .version(BigInteger.valueOf(5L))
-            .businessUnitSummary(BusinessUnitSummary.builder()
-                .businessUnitId("77")
-                .businessUnitName("Camberwell Green")
-                .welshSpeaking("N")
-                .build())
-            .partyDetails(PartyDetails.builder()
+            .party(PartyDetails.builder()
                 .partyId("99000000000900")
                 .organisationFlag(true)
                 .organisationDetails(OrganisationDetails.builder()
@@ -688,11 +693,26 @@ class OpalMinorCreditorServiceTest {
                     .surname("Smith")
                     .build())
                 .build())
-            .awardedAmount(BigDecimal.ZERO)
-            .paidOutAmount(BigDecimal.ZERO)
-            .awaitingPayoutAmount(BigDecimal.ZERO)
-            .outstandingAmount(BigDecimal.ZERO)
-            .hasAssociatedDefendant(false)
+            .businessUnit(BusinessUnitSummary.builder()
+                .businessUnitId("77")
+                .businessUnitName("Camberwell Green")
+                .welshSpeaking("N")
+                .build())
+            .creditor(CreditorHeader.builder()
+                .accountId(creditorAccountId)
+                .accountNumber("404")
+                .accountType(CreditorAccountTypeReference.builder()
+                    .type("MN")
+                    .displayName("Minor Creditor")
+                    .build())
+                .hasAssociatedDefendant(false)
+                .build())
+            .financials(Financials.builder()
+                .awarded(BigDecimal.ZERO)
+                .paidOut(BigDecimal.ZERO)
+                .awaitingPayout(BigDecimal.ZERO)
+                .outstanding(BigDecimal.ZERO)
+                .build())
             .build();
     }
 }

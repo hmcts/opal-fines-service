@@ -8,8 +8,7 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 @Mapper(componentModel = "spring")
 public interface BusinessUnitSummaryMapper {
 
-    @Mapping(target = "businessUnitId", expression = "java(String.valueOf(entity.getBusinessUnitId()))")
-    @Mapping(target = "businessUnitName", source = "businessUnitName")
+    @Mapping(target = "businessUnitId", source = "entity.businessUnitId")
     @Mapping(target = "welshSpeaking", expression = "java(toWelshSpeaking(entity.isWelshLanguage()))")
     BusinessUnitSummary toBusinessUnitSummary(MinorCreditorAccountHeaderEntity entity);
 
