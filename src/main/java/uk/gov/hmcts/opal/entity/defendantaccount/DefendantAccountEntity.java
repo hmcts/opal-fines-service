@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -81,6 +82,7 @@ public class DefendantAccountEntity implements Versioned {
     private BigDecimal accountBalance;
 
     @Column(name = "account_status", length = 2)
+    @ColumnTransformer(read = "account_status::text", write = "?::t_da_account_status_enum")
     private String accountStatus;
 
     @Column(name = "completed_date")
@@ -121,6 +123,7 @@ public class DefendantAccountEntity implements Versioned {
     private String originatorId;
 
     @Column(name = "originator_type", length = 10)
+    @ColumnTransformer(read = "originator_type::text", write = "?::t_originator_type_enum")
     private String originatorType;
 
     @Column(name = "allow_writeoffs")
@@ -174,6 +177,7 @@ public class DefendantAccountEntity implements Versioned {
     private LocalDate fineRegistrationDate;
 
     @Column(name = "consolidated_account_type", length = 1)
+    @ColumnTransformer(read = "consolidated_account_type::text", write = "?::t_consolidated_account_type_enum")
     private String consolidatedAccountType;
 
     @Column(name = "payment_card_requested")
@@ -200,6 +204,7 @@ public class DefendantAccountEntity implements Versioned {
     private List<DefendantAccountPartiesEntity> parties;
 
     @Column(name = "account_type", length = 30, nullable = false)
+    @ColumnTransformer(read = "account_type::text", write = "?::t_da_account_type_enum")
     @Convert(converter = DefendantAccountTypeConverter.class)
     private DefendantAccountType accountType;
 

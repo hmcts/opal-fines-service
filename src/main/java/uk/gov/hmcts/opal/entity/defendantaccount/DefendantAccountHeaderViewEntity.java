@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,6 +35,7 @@ public class DefendantAccountHeaderViewEntity {
     private String prosecutorCaseReference;
 
     @Column(name = "account_status")
+    @ColumnTransformer(read = "account_status::text")
     private String accountStatus;
 
     @Column(name = "account_type")

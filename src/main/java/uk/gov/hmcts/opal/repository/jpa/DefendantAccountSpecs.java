@@ -159,7 +159,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     public Specification<DefendantAccountEntity> filterByActiveOnly(Boolean activeOnly) {
         return (root, query, cb) ->
             Boolean.TRUE.equals(activeOnly)
-                ? cb.notEqual(cb.upper(root.get(DefendantAccountEntity_.accountStatus)), "C")
+                ? cb.notEqual(root.get(DefendantAccountEntity_.accountStatus), "CS")
                 : cb.conjunction();
     }
 

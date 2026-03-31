@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
@@ -39,6 +40,7 @@ public abstract class SearchDefendantAccount {
     private String lastEnforcement;
 
     @Column(name = "account_status")
+    @ColumnTransformer(read = "account_status::text")
     private String accountStatus;
 
     @Column(name = "defendant_account_balance")
@@ -114,4 +116,3 @@ public abstract class SearchDefendantAccount {
     public static class BasicEntity extends SearchDefendantAccount {
     }
 }
-
