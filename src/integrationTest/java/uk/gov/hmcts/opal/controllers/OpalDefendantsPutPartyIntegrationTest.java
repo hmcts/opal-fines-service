@@ -463,4 +463,82 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         assertEquals(currentVersion + 1, updatedVersion);
     }
 
+    @Test
+    @DisplayName("OPAL: PUT Replace DAP – individual to organisation removes parent/guardian DAP in same tx")
+    void put_convertIndividualToOrganisation_removesParentGuardianParty() throws Exception {
+        authoriseAllPermissions();
+
+        long parentGuardianPartyId = 920010L;
+        long parentGuardianDapId = 920011L;
+
+        try {
+            jdbcTemplate.update(
+                "UPDATE parties SET organisation = 'N', organisation_name = NULL, surname = 'SeedSurname', "
+                    + "forenames = 'SeedForenames' WHERE party_id = 20010");
+            jdbcTemplate.update(
+                "DELETE FROM defendant_account_parties WHERE defendant_account_id = 20010 "
+                    + "AND association_type = 'Parent/Guardian'");
+
+            jdbcTemplate.update(
+                "INSERT INTO parties (party_id, organisation, surname, forenames, account_type) "
+                    + "VALUES (?, 'N', ?, ?, ?::t_party_account_type_enum)",
+                parentGuardianPartyId, "Guardian", "Paula", "Defendant");
+            jdbcTemplate.update(
+                "INSERT INTO defendant_account_parties "
+                    + "(defendant_account_party_id, defendant_account_id, party_id, association_type, debtor) "
+                    + "VALUES (?, 20010, ?, 'Parent/Guardian', 'Y')",
+                parentGuardianDapId, parentGuardianPartyId);
+
+            Integer parentGuardianCountBefore = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM defendant_account_parties "
+                    + "WHERE defendant_account_id = 20010 AND association_type = 'Parent/Guardian'",
+                Integer.class);
+            assertEquals(1, parentGuardianCountBefore);
+
+            Integer currentVersion = versionFor(20010L);
+            String etag = "\"" + currentVersion + "\"";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth("good_token");
+            headers.add("Business-Unit-Id", "78");
+            headers.add(HttpHeaders.IF_MATCH, etag);
+
+            String body = """
+                {
+                    "defendant_account_party_type": "Defendant",
+                    "is_debtor": false,
+                    "party_details": {
+                        "party_id": "20010",
+                        "organisation_flag": true,
+                        "organisation_details": {
+                            "organisation_name": "Converted Co Ltd"
+                        }
+                    }
+                }
+                """;
+
+            ResultActions call = mockMvc.perform(
+                put("/defendant-accounts/20010/defendant-account-parties/20010")
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body));
+
+            call.andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ETAG, "\"" + (currentVersion + 1) + "\""))
+                .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
+
+            Integer parentGuardianCountAfter = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM defendant_account_parties "
+                    + "WHERE defendant_account_id = 20010 AND association_type = 'Parent/Guardian'",
+                Integer.class);
+            assertEquals(0, parentGuardianCountAfter);
+        } finally {
+            jdbcTemplate.update("DELETE FROM defendant_account_parties WHERE defendant_account_party_id = ?",
+                parentGuardianDapId);
+            jdbcTemplate.update("DELETE FROM debtor_detail WHERE party_id = ?", parentGuardianPartyId);
+            jdbcTemplate.update("DELETE FROM aliases WHERE party_id = ?", parentGuardianPartyId);
+            jdbcTemplate.update("DELETE FROM parties WHERE party_id = ?", parentGuardianPartyId);
+        }
+    }
+
 }
