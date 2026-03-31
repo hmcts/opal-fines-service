@@ -80,7 +80,7 @@ components:
           enum:
             - Financial
         details:
-          - $ref: '#/components/schemas/creditorTransactionDetails'
+          $ref: '#/components/schemas/creditorTransactionDetails'
         amount:
           $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
 

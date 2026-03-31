@@ -521,10 +521,11 @@ paths:
           content:
             application/json:
               schema:
-                historyItems:
-                  type: array
-                  items:
-                    oneOf:
+                type: object
+                properties:
+                  historyItems:
+                    type: array
+                    items:
                       $ref: './history.yaml#/components/schemas/defendantAccountHistoryItem'
         400:
           description: Bad request
