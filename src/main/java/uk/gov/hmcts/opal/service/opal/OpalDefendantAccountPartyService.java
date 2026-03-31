@@ -55,8 +55,6 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalDefendantAccountPartyService implements DefendantAccountPartyServiceInterface {
 
-    private static final String PARENT_GUARDIAN_ASSOCIATION_TYPE = "Parent/Guardian";
-
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     private final AmendmentRepositoryService amendmentRepositoryService;
@@ -251,7 +249,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private void removeParentGuardianParties(DefendantAccountEntity account, Long dapId) {
         int deletedRows = defendantAccountPartiesRepository.deleteByAccountIdAndAssociationTypeExcludingDapId(
             account.getDefendantAccountId(),
-            PARENT_GUARDIAN_ASSOCIATION_TYPE,
+            AssociationType.PARENT_GUARDIAN,
             dapId
         );
         if (deletedRows > 0) {

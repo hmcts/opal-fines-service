@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 
 @Repository
@@ -17,12 +18,12 @@ public interface DefendantAccountPartiesRepository extends JpaRepository<Defenda
     @Query(value = """
         DELETE FROM defendant_account_parties
         WHERE defendant_account_id = :defendantAccountId
-          AND association_type = CAST(:associationType AS t_association_type_enum)
+          AND association_type = CAST(:#{#associationType.label} AS t_association_type_enum)
           AND defendant_account_party_id <> :defendantAccountPartyId
         """, nativeQuery = true)
     int deleteByAccountIdAndAssociationTypeExcludingDapId(
         @Param("defendantAccountId") Long defendantAccountId,
-        @Param("associationType") String associationType,
+        @Param("associationType") AssociationType associationType,
         @Param("defendantAccountPartyId") Long defendantAccountPartyId
     );
 
