@@ -111,7 +111,7 @@ VALUES ( 0077, 0, 078, '177A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090A', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 101
@@ -126,7 +126,7 @@ VALUES ( 0077, 0, 078, '177A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2024-02-18 00:00:00'
        , '2024-02-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2025-01-01 00:00:00', '11111111A'
+       , 'C', 'Y', '2025-01-01 00:00:00', '11111111A'
        , '099B', NULL, 'Fine'
        , 'Text', NULL, NULL, 'text_note_3'
        , 101
@@ -319,7 +319,7 @@ VALUES ( 001077, 'AC', 'defendant_accounts', 0077
 -- Add multiple aliases for individual party 77 (Anna Graham) to test aliases array
 INSERT INTO aliases
 (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
-VALUES 
+VALUES
 (7701, 77, 'Smith', 'Annie', 1, NULL),
 (7702, 77, 'Johnson', 'Anne', 2, NULL),
 (7703, 77, 'Williams', 'Ana', 3, NULL);
@@ -342,14 +342,14 @@ INSERT INTO defendant_accounts (
 VALUES (
   9077, 78, '177B',
   '2023-11-03 16:05:10', 780000000185, 700.58, 700.58, 0.00,           -- balance 0 => inactive
-  'C', '2024-02-01 00:00:00', 780000000185, 780000000185, '2024-01-04 18:06:11',
+  'CS', '2024-02-01 00:00:00', 780000000185, 780000000185, '2024-01-04 18:06:11',
   '2024-01-02 17:08:09', '2024-01-03 12:00:12', '10',
   'Seed data', NULL, NULL,
   'N', 'N', 14, 21,
   'FWEC', 780000000021, 240,
   'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
   '2023-12-19 00:00:00', NULL, NULL, NULL,
-  'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
+  'M', 'Y', '2024-01-01 00:00:00', '11111111A',
   '090B', NULL, 'Fine',
   'Text - Account Comment 177B', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3', 1
 );
@@ -549,7 +549,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 completed_date, prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (777, 0, 78, '777CC',
-        500.00, 0.00, 500.00, 'C',
+        500.00, 0.00, 500.00, 'CS',
         '2024-01-15 10:00:00', '777PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -586,7 +586,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 prosecutor_case_reference, enforcement_case_status, account_type)
 VALUES (444, 0, 78, '444C',
         '2023-10-15 14:30:00', 780000000185, 300.00,
-        300.00, 0.00, 'C',
+        300.00, 0.00, 'CS',
         '2024-02-15 10:00:00', 780000000185, 780000000185, '2024-02-14 16:00:00',
         '2024-02-15 10:00:00', '2024-02-15 10:00:00', 'PAID',
         'Magistrates Court', NULL, NULL,
@@ -594,7 +594,7 @@ VALUES (444, 0, 78, '444C',
         NULL, NULL, NULL,
         'GB pound sterling', 300.00, 'Y', '2023-10-20 00:00:00',
         '2023-10-21 00:00:00', NULL, NULL, NULL,
-        'Y', 'N', NULL, NULL,
+        'M', 'N', NULL, NULL,
         '444PCR', NULL, 'Fine');
 
 INSERT INTO parties (party_id, organisation, organisation_name,
@@ -652,7 +652,7 @@ VALUES ( 10001, 078, '10001A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'REF100001', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 1);
@@ -678,7 +678,7 @@ VALUES (10001, 10001, 10001,
 
 INSERT INTO aliases
 (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
-VALUES 
+VALUES
 (100011, 10001, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg'),
 (100012, 10001, 'SecondAlias', 'SecondForenames', 2, 'SecondAliasOrg'),
 (100013, 10001, 'ThirdAlias', 'ThirdForenames', 3, 'ThirdAliasOrg');
@@ -744,7 +744,7 @@ VALUES ( 10002, 078, '10002A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'REF100001', NULL, 'Fine'
        , NULL, NULL, NULL, NULL
        , 1);
@@ -833,7 +833,7 @@ VALUES ( 10003, 078, '10003A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'REF100001', NULL, 'Fine'
        , 'Text - Account Comment', NULL, 'free_text_note_2', 'free_text_note_3'
        , 1);
@@ -921,7 +921,7 @@ VALUES ( 10004, 078, '10004A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'PRREF10004', NULL, 'Fine'
        , NULL, NULL, NULL, NULL
        , 1);
@@ -1127,7 +1127,7 @@ VALUES ( 991199, 0, 78, '1989'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090B', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 0
@@ -1177,7 +1177,7 @@ VALUES ( 991198, 0, 78, '1988'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090B', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 1

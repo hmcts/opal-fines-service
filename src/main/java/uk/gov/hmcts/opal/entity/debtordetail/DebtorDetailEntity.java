@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,6 +18,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Entity
@@ -74,8 +74,8 @@ public class DebtorDetailEntity {
     @Column(name = "employer_email")
     private String employerEmail;
 
-    @Column(name = "document_language")
-    @Enumerated(EnumType.STRING)
+    @Column(name = "document_language", columnDefinition = "t_language_enum")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Language documentLanguage;
 
     @Column(name = "document_language_date")
@@ -83,8 +83,8 @@ public class DebtorDetailEntity {
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate documentLanguageDate;
 
-    @Column(name = "hearing_language")
-    @Enumerated(EnumType.STRING)
+    @Column(name = "hearing_language", columnDefinition = "t_language_enum")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Language hearingLanguage;
 
     @Column(name = "hearing_language_date")

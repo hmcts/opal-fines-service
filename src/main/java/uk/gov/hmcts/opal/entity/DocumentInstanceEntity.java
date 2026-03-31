@@ -29,6 +29,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.DocumentEntityStatusConverter;
 import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -74,8 +75,9 @@ public class DocumentInstanceEntity {
     @Column(name = "associated_record_id", nullable = false)
     private Long associatedRecordId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 20, nullable = false)
+    @Convert(converter = DocumentEntityStatusConverter.class)
+    @ColumnTransformer(write = "?::t_di_status_enum")
+    @Column(name = "status", length = 20, nullable = false, columnDefinition = "t_di_status_enum")
     private DocumentEntityStatus status;
 
     @Column(name = "printed_date")

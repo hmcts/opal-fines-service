@@ -26,6 +26,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
@@ -62,8 +64,8 @@ public class PaymentTermsEntity {
     @Column(name = "posted_by")
     private String postedBy;
 
-    @Column(name = "terms_type_code", nullable = false)
-    @Enumerated(EnumType.STRING)
+    @Column(name = "terms_type_code", nullable = false, columnDefinition = "t_terms_type_code_enum")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private TermsTypeCode termsTypeCode;
 
     @Column(name = "effective_date")
@@ -71,8 +73,8 @@ public class PaymentTermsEntity {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate effectiveDate;
 
-    @Column(name = "instalment_period")
-    @Enumerated(EnumType.STRING)
+    @Column(name = "instalment_period", columnDefinition = "t_instalment_period_enum")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private InstalmentPeriod instalmentPeriod;
 
     @Column(name = "instalment_amount")
