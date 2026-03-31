@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.legacy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,8 +31,6 @@ import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -369,26 +366,11 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        /*GetDefendantAccountPartyResponse mappedResponse =
-            GetDefendantAccountPartyResponse.builder().version(BigInteger.valueOf(2))
-                .defendantAccountParty(
-                    DefendantAccountParty.builder()
-                        .defendantAccountPartyType("Defendant")
-                        .isDebtor(true)
-                        .partyDetails(
-                            PartyDetails.builder()
-                                .partyId("300")
-                                .organisationFlag(true)
-                                .organisationDetails(OrganisationDetails.builder().organisationName("StillCo Ltd").build())
-                                .build()
-                        )
-                        .build()
-                );
-                .build();
-        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyBody);*/
+
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
-            77L, 20010L, "78", "1", "poster", "\"2\"", null
+            77L, 20010L, "78", "1", "poster",
+            "\"2\"", null
         );
 
         // Assert
