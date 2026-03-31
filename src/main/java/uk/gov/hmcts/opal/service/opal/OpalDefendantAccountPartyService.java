@@ -41,6 +41,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -54,6 +55,8 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalDefendantAccountPartyService implements DefendantAccountPartyServiceInterface {
 
+    private static final String PARENT_GUARDIAN_ASSOCIATION_TYPE = "Parent/Guardian";
+
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     private final AmendmentRepositoryService amendmentRepositoryService;
@@ -63,6 +66,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final AliasRepositoryService aliasRepositoryService;
 
     private final PartyRepositoryService partyRepositoryService;
+
+    private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
 
     @Override
@@ -179,6 +184,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
 
         PartyDetails partyDetails = request.getPartyDetails();
+        if (isConvertingFromIndividualToOrganisation(party, partyDetails)) {
+            removeParentGuardianParties(account, dapId);
+        }
+
         Optional.ofNullable(request.getDefendantAccountPartyType())
             .map(AssociationType::getByLabel)
             .ifPresent(dap::setAssociationType);
@@ -212,7 +221,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         );
 
         replaceAliasesForParty(party.getPartyId(), partyDetails);
-        // TODO(PO-1963): here is meant to be remove behaviour waiting on PO-1897 to be done.
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
@@ -231,6 +239,25 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(bumpVersion(accountId).getVersion())
             .build();
+    }
+
+    private boolean isConvertingFromIndividualToOrganisation(PartyEntity party, PartyDetails partyDetails) {
+        return !party.isOrganisation()
+            && Boolean.TRUE.equals(Optional.ofNullable(partyDetails)
+                .map(PartyDetails::getOrganisationFlag)
+                .orElse(null));
+    }
+
+    private void removeParentGuardianParties(DefendantAccountEntity account, Long dapId) {
+        int deletedRows = defendantAccountPartiesRepository.deleteByAccountIdAndAssociationTypeExcludingDapId(
+            account.getDefendantAccountId(),
+            PARENT_GUARDIAN_ASSOCIATION_TYPE,
+            dapId
+        );
+        if (deletedRows > 0) {
+            log.info("replaceDefendantAccountParty: removed {} parent/guardian parties for accountId={}",
+                deletedRows, account.getDefendantAccountId());
+        }
     }
 
     private void replaceAliasesForParty(Long partyId, PartyDetails pd) {

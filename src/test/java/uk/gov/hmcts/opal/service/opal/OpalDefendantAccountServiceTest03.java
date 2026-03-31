@@ -44,6 +44,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -65,6 +66,9 @@ class OpalDefendantAccountServiceTest03 {
 
     @Mock
     private DebtorDetailRepositoryService debtorRepoService;
+
+    @Mock
+    private DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
     @Mock
     private PartyRepositoryService partyRepositoryService;
@@ -471,6 +475,74 @@ class OpalDefendantAccountServiceTest03 {
 
             verify(defendantAccountRepositoryService).saveAndFlush(account);
             verify(aliasRepoService, times(2)).findByPartyId(333L);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_individualToOrganisation_removesParentGuardianParty() {
+        Long accountId = 3000L;
+        Long defendantDapId = 3001L;
+        Long parentGuardianDapId = 3002L;
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10).build();
+
+        PartyEntity defendantParty = mock(PartyEntity.class);
+        when(defendantParty.getPartyId()).thenReturn(4001L);
+        when(defendantParty.isOrganisation()).thenReturn(false);
+
+        PartyEntity parentGuardianParty = PartyEntity.builder().partyId(4002L).build();
+
+        DefendantAccountPartiesEntity defendantDap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(defendantDapId)
+            .associationType(AssociationType.DEFENDANT)
+            .debtor(Boolean.TRUE)
+            .party(defendantParty)
+            .build();
+
+        DefendantAccountPartiesEntity parentGuardianDap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(parentGuardianDapId)
+            .associationType(AssociationType.PARENT_GUARDIAN)
+            .debtor(Boolean.TRUE)
+            .party(parentGuardianParty)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .parties(new java.util.ArrayList<>(List.of(defendantDap, parentGuardianDap)))
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
+        when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
+        when(partyRepositoryService.findById(4001L)).thenReturn(defendantParty);
+        when(aliasRepoService.findByPartyId(4001L)).thenReturn(emptyList());
+        when(debtorRepoService.findById(4001L)).thenReturn(Optional.of(new DebtorDetailEntity()));
+        when(debtorRepoService.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(Boolean.TRUE)
+            .partyDetails(PartyDetails.builder()
+                .partyId("4001")
+                .organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("Converted Co").build())
+                .build())
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                service.replaceDefendantAccountParty(accountId, defendantDapId, req, "\"1\"", "10", "tester", null);
+
+            assertNotNull(resp);
+            verify(defendantAccountPartiesRepository)
+                .deleteByAccountIdAndAssociationTypeExcludingDapId(
+                    accountId, "Parent/Guardian", defendantDapId
+                );
         }
     }
 
