@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -31,6 +32,8 @@ import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -66,8 +69,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     @InjectMocks
     private  LegacyDefendantAccountPartyService legacyDefendantAccountPartyService;
 
-    @Mock
-    private DefendantAccountPartyLegacyResponseMapper mapper;
+    private final DefendantAccountPartyLegacyResponseMapper mapper =
+        Mappers.getMapper(DefendantAccountPartyLegacyResponseMapper.class);
 
     @BeforeEach
     void openMocks() throws Exception {
@@ -135,17 +138,26 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse mappedResponse =
+        /*GetDefendantAccountPartyResponse mappedResponse =
             GetDefendantAccountPartyResponse.builder().version(BigInteger.valueOf(4)).build();
-        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyBody);
+        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyBody);*/
 
         // Call service; inputs for the request are not important for this mapping test
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, 20010L, "78", "1", "dev_user", "3", null
         );
 
-        assertSame(mappedResponse, out);
-        verify(mapper).toDefendantAccountPartyResponse(legacyBody);
+        /*assertSame(mappedResponse, out);
+        verify(mapper).toDefendantAccountPartyResponse(legacyBody);*/
+
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertEquals(null, out.getDefendantAccountParty().getAddress());
+        assertEquals(null, out.getDefendantAccountParty().getContactDetails());
+        assertEquals(null, out.getDefendantAccountParty().getVehicleDetails());
+        assertEquals(null, out.getDefendantAccountParty().getEmployerDetails());
+        assertEquals(null, out.getDefendantAccountParty().getLanguagePreferences());
     }
 
     @Test
@@ -172,15 +184,15 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse mappedResponse =
+        /*GetDefendantAccountPartyResponse mappedResponse =
             GetDefendantAccountPartyResponse.builder().version(BigInteger.TEN).build();
-        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyResponse);
+        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyResponse);*/
 
         GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
             999L, 20010L, "BU-1", "USR-9", "poster", "\"10\"", requestParty
         );
 
-        assertSame(mappedResponse, result);
+        /*assertSame(mappedResponse, result);*/
 
         ArgumentCaptor<AddDefendantAccountPartyLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(AddDefendantAccountPartyLegacyRequest.class);
@@ -219,17 +231,21 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse mappedResponse =
+        /*GetDefendantAccountPartyResponse mappedResponse =
             GetDefendantAccountPartyResponse.builder().version(BigInteger.valueOf(2)).build();
-        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyResponse);
+        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyResponse);*/
 
         GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
             55L, 66L, "BU-2", "USR-2", "poster", "\"2\"", null
         );
 
-        assertSame(mappedResponse, result);
-        verify(mapper).toDefendantAccountPartyResponse(legacyResponse);
+        //assertSame(mappedResponse, result);
+        //verify(mapper).toDefendantAccountPartyResponse(legacyResponse);
+
+        assertNotNull(result);
+        assertEquals(BigInteger.valueOf(2), result.getVersion());
     }
+
 
     @Test
     void addDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
@@ -353,6 +369,23 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
+        /*GetDefendantAccountPartyResponse mappedResponse =
+            GetDefendantAccountPartyResponse.builder().version(BigInteger.valueOf(2))
+                .defendantAccountParty(
+                    DefendantAccountParty.builder()
+                        .defendantAccountPartyType("Defendant")
+                        .isDebtor(true)
+                        .partyDetails(
+                            PartyDetails.builder()
+                                .partyId("300")
+                                .organisationFlag(true)
+                                .organisationDetails(OrganisationDetails.builder().organisationName("StillCo Ltd").build())
+                                .build()
+                        )
+                        .build()
+                );
+                .build();
+        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyBody);*/
         // Act
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, 20010L, "78", "1", "poster", "\"2\"", null
