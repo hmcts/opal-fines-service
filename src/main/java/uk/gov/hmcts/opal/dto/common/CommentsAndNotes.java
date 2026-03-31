@@ -9,8 +9,8 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
 public class CommentsAndNotes implements ToJsonString {
 
     @JsonProperty("account_comment")

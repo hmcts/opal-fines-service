@@ -3,8 +3,12 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import net.serenitybdd.rest.SerenityRest;
-import org.hamcrest.Matchers;
+import uk.gov.hmcts.opal.utils.TestHttpClient;
+import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 //import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
@@ -13,11 +17,9 @@ public class HealthApiStepDef extends BaseStepDef {
     @Then("I check the health of the fines api")
     public void checkHealthOfFinesApi() {
         System.out.println("Test URL: " + getTestUrl());
-        SerenityRest.given()
-            //.header("Authorization", "Bearer " + getToken())
-            .when()
-            .get(getTestUrl() + "/health");
-        SerenityRest.then().assertThat().statusCode(200).and().body("status", Matchers.is("UP"));
+        TestHttpResponse response = TestHttpClient.get(getTestUrl() + "/health", Map.of());
+        assertEquals(200, response.statusCode());
+        assertEquals("UP", response.jsonPath("status"));
     }
 
     @And("this test is todo")

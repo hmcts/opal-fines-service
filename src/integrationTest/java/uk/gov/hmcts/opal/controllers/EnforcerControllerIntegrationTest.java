@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.hasItem;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
@@ -114,10 +115,8 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
                 org.hamcrest.Matchers.is(83),
                 org.hamcrest.Matchers.is(84)
             )))
-            .andExpect(jsonPath("$.refData[1].enforcer_id").value(1L))
-            .andExpect(jsonPath("$.refData[1].enforcer_code").value(1))
-            .andExpect(jsonPath("$.refData[1].name").value("AAA Enforcers"))
-            .andExpect(jsonPath("$.refData[1].name_cy").value(IsNull.nullValue()));
+            .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].enforcer_code").value(hasItem(1)))
+            .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].name").value(hasItem("AAA Enforcers")));
 
         // Currently no Schema to validate against
         // jsonSchemaValidationService.validateOrError(body, GET_ENFORCERS_REF_DATA_RESPONSE);

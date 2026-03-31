@@ -13,9 +13,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -53,7 +52,6 @@ public class ReportInstanceEntity {
     private Long auditSequence;
 
     @Column(name = "created_timestamp")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdTimestamp;
 
     @Column(name = "requested_by")
@@ -69,7 +67,6 @@ public class ReportInstanceEntity {
     private String location;
 
     @Column(name = "requested_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime requestedAt;
 
     @Enumerated(EnumType.STRING)
@@ -77,7 +74,6 @@ public class ReportInstanceEntity {
     private ReportInstanceGenerationStatus generationStatus;
 
     @Column(name = "scheduled_deletion_timestamp")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime scheduledDeletionTimestamp;
 
     @Column(name = "report_name", length = 250)
