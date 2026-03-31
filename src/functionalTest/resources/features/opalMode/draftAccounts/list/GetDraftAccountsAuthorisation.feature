@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Get Draft Accounts Authorisation
 
-  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4496
   Scenario: Get Draft Accounts - No Permission
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -25,7 +25,7 @@ Feature: Get Draft Accounts Authorisation
     Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4497
   Scenario: Get Draft Accounts - account created in BU requesting user doesn't have permission to
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation
 Feature: Get Draft Account Access Token Identity
 
-  @JIRA-STORY:PO-2292 @JIRA-EPIC:PO-2808 @cleanUpData
+  @JIRA-STORY:PO-2292 @JIRA-EPIC:PO-2808 @cleanUpData @JIRA-KEY:POT-4480
   Scenario: Get Draft Accounts - Fields are populated using the access token ignore request that includes submitted_by or validated_by
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

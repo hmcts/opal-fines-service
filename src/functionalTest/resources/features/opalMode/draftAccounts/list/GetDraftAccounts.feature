@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation
 Feature: Get Draft Accounts
 
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4489
   Scenario: Get draft accounts - filtering on business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -66,7 +66,7 @@ Feature: Get Draft Accounts
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4490
   Scenario: Get draft accounts - filtering on status
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -125,7 +125,7 @@ Feature: Get Draft Accounts
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4491
   Scenario: Get draft accounts - filtering on submitted_by
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -174,7 +174,7 @@ Feature: Get Draft Accounts
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4492
   Scenario: Get draft accounts - filtering on multiple fields
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -229,7 +229,7 @@ Feature: Get Draft Accounts
 
     Then I delete the created draft accounts
 
-  @PO-2361 @cleanUpData
+  @PO-2361 @cleanUpData @JIRA-KEY:POT-4493
   Scenario: Get all draft accounts - created three accounts and verify logging contains all three
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
@@ -278,7 +278,7 @@ Feature: Get Draft Accounts
     # Cleanup
     Then I delete the created draft accounts
 
-  @PO-2361 @cleanUpData
+  @PO-2361 @cleanUpData @JIRA-KEY:POT-4494
   Scenario: Get all draft accounts - Verify that 2 logs are created containing when the get all endpoint
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
@@ -328,7 +328,7 @@ Feature: Get Draft Accounts
     # Cleanup
     Then I delete the created draft accounts
 
-  @PO-2361 @cleanUpData
+  @PO-2361 @cleanUpData @JIRA-KEY:POT-4495
   Scenario: Invalid token is blocked and no PDPO logs emitted
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

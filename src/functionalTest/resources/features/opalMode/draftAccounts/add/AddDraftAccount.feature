@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:personal-data-processing-logging
 Feature: Add Draft Account
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4460
   Scenario: Create draft account - Adult
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -36,7 +36,7 @@ Feature: Add Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4461
   Scenario: Create draft account - parent or guardian to pay
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -71,7 +71,7 @@ Feature: Add Draft Account
     Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4462
   Scenario: Create draft account - company with minor creditor
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -105,7 +105,7 @@ Feature: Add Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4463
   Scenario: Attempt to create a draft with an invalid token - no logs created
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"

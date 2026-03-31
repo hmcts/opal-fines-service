@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Replace Draft Account Authorisation
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4505
   Scenario: Update draft account - no auth
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -30,7 +30,7 @@ Feature: Replace Draft Account Authorisation
 
     Then I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4506
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -70,7 +70,7 @@ Feature: Replace Draft Account Authorisation
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4507
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -110,7 +110,7 @@ Feature: Replace Draft Account Authorisation
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4508
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -149,7 +149,7 @@ Feature: Replace Draft Account Authorisation
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4509
   Scenario: Update draft account - user with permissions in same business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -187,7 +187,7 @@ Feature: Replace Draft Account Authorisation
 
     Then I delete the created draft accounts
 
-    @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+    @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4510
     Scenario: Update draft account - user with permissions in same business unit - updating business unit
       Given I am testing as the "opal-test@dev.platform.hmcts.net" user
       When I create a draft account with the following details
@@ -226,7 +226,7 @@ Feature: Replace Draft Account Authorisation
       Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
+  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4511
   Scenario: Update draft account - unauthorized user produces 401 and no PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

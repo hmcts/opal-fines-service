@@ -1,6 +1,7 @@
 @Opal @JIRA-LABEL:reference-data @JIRA-STORY:PO-926 @JIRA-EPIC:PO-304
 Feature: Offence Search
 
+  @JIRA-KEY:POT-4553
   Scenario: Offence Search API - Search by CJS code
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -16,6 +17,7 @@ Feature: Offence Search
       | cjs_code      | TH68002     |
       | offence_title | in dwelling |
 
+  @JIRA-KEY:POT-4554
   Scenario: Offence Search API - Search Title
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -29,6 +31,7 @@ Feature: Offence Search
     And the offences in the response contain the following data
       | offence_title | in dwelling other |
 
+  @JIRA-KEY:POT-4555
   Scenario: Offence Search API - Search by Act and Section
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -42,6 +45,7 @@ Feature: Offence Search
     And the offences in the response contain the following data
       | offence_oas | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
+  @JIRA-KEY:POT-4556
   Scenario: Offence Search API - Search by all fields
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -57,6 +61,7 @@ Feature: Offence Search
       | offence_title | personal injury and endangering safe operation                                   |
       | offence_oas   | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
+  @JIRA-KEY:POT-4557
   Scenario: Offence Search API - Max results
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -79,6 +84,7 @@ Feature: Offence Search
     Then The offence search response returns 200
     And there are 20 offences in the response
 
+  @JIRA-KEY:POT-4558
   Scenario: Offence Search API - Search by Active Date
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -91,6 +97,7 @@ Feature: Offence Search
     Then The offence search response returns 200
     Then the offences in the response are before "1920-03-12T00:00:00Z" only
 
+  @JIRA-KEY:POT-4559
   Scenario: Offence Search API - Inactive Offences - Active Date Null - Inactive offences returned
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -102,6 +109,7 @@ Feature: Offence Search
     Then The offence search response returns 200
     And there are 3 offences in the response
 
+  @JIRA-KEY:POT-4560
   Scenario: Offence Search API - Inactive Offences - Active Date populated - Inactive offences not returned
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -113,6 +121,7 @@ Feature: Offence Search
     Then The offence search response returns 200
     And there are 0 offences in the response
 
+  @JIRA-KEY:POT-4561
   Scenario: Offence Search API - No Results
       ### need to test no results are returned when no offences match the search criteria and the status is 200
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
