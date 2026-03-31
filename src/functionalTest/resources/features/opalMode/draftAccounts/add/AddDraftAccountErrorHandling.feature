@@ -11,7 +11,7 @@ Feature: Add Draft Account Error Handling
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 400
 
@@ -50,6 +50,6 @@ Feature: Add Draft Account Error Handling
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 500

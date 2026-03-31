@@ -19,16 +19,16 @@ Feature: Add Draft Account
     And I store the created draft account ID
 
     And The draft account response contains the following data
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fines                |
-      | account_status                      | Submitted            |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | L073JG               |
-      | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net  |
-      | account_snapshot.business_unit_name | West London          |
-      | account.originator_type             | TFO                  |
+      | business_unit_id                    | 73                               |
+      | account_type                        | Fines                            |
+      | account_status                      | Submitted                        |
+      | account_snapshot.defendant_name     | LNAME, FNAME                     |
+      | account_snapshot.date_of_birth      | 2000-01-01                       |
+      | account_snapshot.account_type       | Fine                             |
+      | account_snapshot.submitted_by       | L073JG                           |
+      | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net |
+      | account_snapshot.business_unit_name | West London                      |
+      | account.originator_type             | TFO                              |
 
 #    Then the logging service contains these PDPO logs:
 #      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
@@ -40,13 +40,13 @@ Feature: Add Draft Account
   Scenario: Create draft account - parent or guardian to pay
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id  | 77                                             |
+      | business_unit_id  | 77                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fines                                         |
-      | account_status    | Submitted                                     |
-      | submitted_by      | PG1234                                        |
-      | submitted_by_name | opal-test                                     |
-      | timeline_data     | draftAccounts/timelineJson/default.json       |
+      | account_type      | Fines                                                  |
+      | account_status    | Submitted                                              |
+      | submitted_by      | PG1234                                                 |
+      | submitted_by_name | opal-test                                              |
+      | timeline_data     | draftAccounts/timelineJson/default.json                |
 
     Then The draft account response returns 201
     And the response must include a strong quoted ETag header
@@ -54,14 +54,14 @@ Feature: Add Draft Account
     And I store the created draft account ID
 
     And The draft account response contains the following data
-      | business_unit_id                    | 77                          |
-      | account_type                        | Fines                       |
-      | account_status                      | Submitted                   |
-      | account_snapshot.defendant_name     | LNAME, FNAME                |
-      | account_snapshot.date_of_birth      | 2000-01-01                  |
-      | account_snapshot.account_type       | Fine                        |
-      | account_snapshot.submitted_by       | L077JG                      |
-      | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net         |
+      | business_unit_id                   | 77                               |
+      | account_type                       | Fines                            |
+      | account_status                     | Submitted                        |
+      | account_snapshot.defendant_name    | LNAME, FNAME                     |
+      | account_snapshot.date_of_birth     | 2000-01-01                       |
+      | account_snapshot.account_type      | Fine                             |
+      | account_snapshot.submitted_by      | L077JG                           |
+      | account_snapshot.submitted_by_name | opal-test@dev.platform.hmcts.net |
 
 #    Then the logging service contains these PDPO logs:
 #      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
@@ -75,13 +75,13 @@ Feature: Add Draft Account
   Scenario: Create draft account - company with minor creditor
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id  | 77                                                     |
+      | business_unit_id  | 77                                                  |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
-      | account_type      | Fines                                                  |
-      | account_status    | Submitted                                              |
-      | submitted_by      | MC1234                                               |
-      | submitted_by_name | opal-test                                              |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
+      | account_type      | Fines                                               |
+      | account_status    | Submitted                                           |
+      | submitted_by      | MC1234                                              |
+      | submitted_by_name | opal-test                                           |
+      | timeline_data     | draftAccounts/timelineJson/default.json             |
 
     Then The draft account response returns 201
     And the response must include a strong quoted ETag header
@@ -89,13 +89,13 @@ Feature: Add Draft Account
     And I store the created draft account ID
 
     And The draft account response contains the following data
-      | business_unit_id                   | 77                                |
-      | account_type                       | Fines                             |
-      | account_status                     | Submitted                         |
-      | account_snapshot.defendant_name    | LNAME, FNAME                      |
-      | account_snapshot.account_type      | Fine                              |
-      | account_snapshot.submitted_by      | L077JG                            |
-      | account_snapshot.submitted_by_name | opal-test@dev.platform.hmcts.net               |
+      | business_unit_id                   | 77                               |
+      | account_type                       | Fines                            |
+      | account_status                     | Submitted                        |
+      | account_snapshot.defendant_name    | LNAME, FNAME                     |
+      | account_snapshot.account_type      | Fine                             |
+      | account_snapshot.submitted_by      | L077JG                           |
+      | account_snapshot.submitted_by_name | opal-test@dev.platform.hmcts.net |
 
 
 #    Then the logging service contains these PDPO logs:

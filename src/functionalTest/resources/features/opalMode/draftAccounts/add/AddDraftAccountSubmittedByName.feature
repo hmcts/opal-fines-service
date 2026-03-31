@@ -17,14 +17,14 @@ Feature: Add Draft Account Submitted By Name
     And I store the created draft account ID
 
     And The draft account response contains the following data
-      | business_unit_id                    | 73                             |
-      | account_type                        | Fine                           |
-      | account_status                      | Submitted                      |
-      | account_snapshot.defendant_name     | LNAME, FNAME                   |
-      | account_snapshot.date_of_birth      | 2000-01-01                     |
-      | account_snapshot.account_type       | Fine                           |
-      | account_snapshot.submitted_by       | L073JG                         |
+      | business_unit_id                    | 73                               |
+      | account_type                        | Fine                             |
+      | account_status                      | Submitted                        |
+      | account_snapshot.defendant_name     | LNAME, FNAME                     |
+      | account_snapshot.date_of_birth      | 2000-01-01                       |
+      | account_snapshot.account_type       | Fine                             |
+      | account_snapshot.submitted_by       | L073JG                           |
       | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net |
-      | account_snapshot.business_unit_name | West London                    |
+      | account_snapshot.business_unit_name | West London                      |
 
     Then I delete the created draft accounts

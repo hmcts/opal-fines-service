@@ -9,21 +9,21 @@ Feature: Get Draft Account Access Token Identity
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    |                                             |
-      | submitted_by      | L071JG                                       |
-      | submitted_by_name | opal-test                              |
+      | submitted_by      | L071JG                                      |
+      | submitted_by_name | opal-test                                   |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fine                 |
-      | account_status                      | Submitted            |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | L073JG               |
-      | account_snapshot.business_unit_name | West London          |
+      | business_unit_id                    | 73           |
+      | account_type                        | Fine         |
+      | account_status                      | Submitted    |
+      | account_snapshot.defendant_name     | LNAME, FNAME |
+      | account_snapshot.date_of_birth      | 2000-01-01   |
+      | account_snapshot.account_type       | Fine         |
+      | account_snapshot.submitted_by       | L073JG       |
+      | account_snapshot.business_unit_name | West London  |
     Then The draft account response returns 200
 
 

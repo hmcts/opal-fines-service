@@ -41,7 +41,7 @@ Feature: Get Draft Accounts Authorisation
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 80                                           |
+      | business_unit_id  | 80                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |

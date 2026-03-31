@@ -1,8 +1,8 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-STORY:PO-2117 @JIRA-EPIC:PO-2744 @JIRA-LABEL:test-support-endpoint-test
 Feature: Delete Draft Account
 
- @JIRA-KEY:POT-4474
- Scenario: Delete the just-created draft account with concurrency control
+  @JIRA-KEY:POT-4474
+  Scenario: Delete the just-created draft account with concurrency control
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |

@@ -16,15 +16,15 @@ Feature: Get Draft Account
     And I store the created draft account ID
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fine                 |
-      | account_status                      | Submitted            |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | L073JG               |
-      | account_snapshot.business_unit_name | West London          |
-      | account.originator_type             | TFO                  |
+      | business_unit_id                    | 73           |
+      | account_type                        | Fine         |
+      | account_status                      | Submitted    |
+      | account_snapshot.defendant_name     | LNAME, FNAME |
+      | account_snapshot.date_of_birth      | 2000-01-01   |
+      | account_snapshot.account_type       | Fine         |
+      | account_snapshot.submitted_by       | L073JG       |
+      | account_snapshot.business_unit_name | West London  |
+      | account.originator_type             | TFO          |
 
     Then The draft account response returns 200
     And the response must include a strong quoted ETag header
@@ -40,26 +40,26 @@ Feature: Get Draft Account
   Scenario: Get draft account - Parent + MinorCreditor yields two PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id  | 73                                          |
+      | business_unit_id  | 73                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fines                                        |
-      | account_status    |                                             |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
+      | account_type      | Fines                                                  |
+      | account_status    |                                                        |
+      | submitted_by      | BUUID                                                  |
+      | submitted_by_name | Laura Clerk                                            |
+      | timeline_data     | draftAccounts/timelineJson/default.json                |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fines                 |
-      | account_status                      | Submitted            |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | L073JG               |
-      | account_snapshot.business_unit_name | West London          |
-      | account.originator_type             | TFO                  |
+      | business_unit_id                    | 73           |
+      | account_type                        | Fines        |
+      | account_status                      | Submitted    |
+      | account_snapshot.defendant_name     | LNAME, FNAME |
+      | account_snapshot.date_of_birth      | 2000-01-01   |
+      | account_snapshot.account_type       | Fine         |
+      | account_snapshot.submitted_by       | L073JG       |
+      | account_snapshot.business_unit_name | West London  |
+      | account.originator_type             | TFO          |
 
     Then The draft account response returns 200
     And the response must include a strong quoted ETag header
@@ -77,13 +77,13 @@ Feature: Get Draft Account
   Scenario: Invalid token is blocked and no PDPO logs emitted
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id  | 73                                          |
+      | business_unit_id  | 73                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
+      | account_type      | Fine                                                   |
+      | account_status    | Submitted                                              |
+      | submitted_by      | BUUID                                                  |
+      | submitted_by_name | Laura Clerk                                            |
+      | timeline_data     | draftAccounts/timelineJson/default.json                |
     Then The draft account response returns 201
     And I store the created draft account ID
 

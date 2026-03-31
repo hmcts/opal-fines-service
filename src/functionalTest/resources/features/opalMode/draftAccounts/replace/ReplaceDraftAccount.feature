@@ -5,13 +5,13 @@ Feature: Replace Draft Account
   Scenario: Update draft account - update account details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id  | 73                                     |
-      | account           | draftAccounts/accountJson/account.json |
-      | account_type      | Fine                                   |
-      | account_status    | Submitted                              |
-      | submitted_by      | BUUID                                  |
-      | submitted_by_name | Laura Clerk                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | business_unit_id  | 73                                      |
+      | account           | draftAccounts/accountJson/account.json  |
+      | account_type      | Fine                                    |
+      | account_status    | Submitted                               |
+      | submitted_by      | BUUID                                   |
+      | submitted_by_name | Laura Clerk                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json |
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -41,15 +41,15 @@ Feature: Replace Draft Account
 
 
     And I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fine                 |
-      | account_status                      | Resubmitted          |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | L073JG               |
-      | account_snapshot.business_unit_name | West London          |
-      | account.originator_type             | TFO                  |
+      | business_unit_id                    | 73           |
+      | account_type                        | Fine         |
+      | account_status                      | Resubmitted  |
+      | account_snapshot.defendant_name     | LNAME, FNAME |
+      | account_snapshot.date_of_birth      | 2000-01-01   |
+      | account_snapshot.account_type       | Fine         |
+      | account_snapshot.submitted_by       | L073JG       |
+      | account_snapshot.business_unit_name | West London  |
+      | account.originator_type             | TFO          |
 
     Then I see the created at time hasn't changed
     And I see the account status date is now after the initial account status date
@@ -60,13 +60,13 @@ Feature: Replace Draft Account
   Scenario: Update draft account - update account details ignores submitted by name
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id  | 73                                     |
-      | account           | draftAccounts/accountJson/account.json |
-      | account_type      | Fine                                   |
-      | account_status    | Submitted                              |
-      | submitted_by      | BUUID                                  |
-      | submitted_by_name | Laura Clerk                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | business_unit_id  | 73                                      |
+      | account           | draftAccounts/accountJson/account.json  |
+      | account_type      | Fine                                    |
+      | account_status    | Submitted                               |
+      | submitted_by      | BUUID                                   |
+      | submitted_by_name | Laura Clerk                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json |
 
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -95,14 +95,14 @@ Feature: Replace Draft Account
     Then The draft account response returns 200
 
     And I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fine                 |
-      | account_status                      | Resubmitted          |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | L073JG               |
-      | account_snapshot.business_unit_name | West London          |
+      | business_unit_id                    | 73           |
+      | account_type                        | Fine         |
+      | account_status                      | Resubmitted  |
+      | account_snapshot.defendant_name     | LNAME, FNAME |
+      | account_snapshot.date_of_birth      | 2000-01-01   |
+      | account_snapshot.account_type       | Fine         |
+      | account_snapshot.submitted_by       | L073JG       |
+      | account_snapshot.business_unit_name | West London  |
 
 
     Then I see the created at time hasn't changed
@@ -118,7 +118,7 @@ Feature: Replace Draft Account
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
-      | submitted_by      | UPDATE001                                       |
+      | submitted_by      | UPDATE001                                   |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
     Then The draft account response returns 201
@@ -142,30 +142,29 @@ Feature: Replace Draft Account
     Then I delete the created draft accounts
 
 
-
   @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4504
   Scenario: Update draft account - Parent + MinorCreditor yields two PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id  | 73                                                    |
-      | account           | draftAccounts/accountJson/minorCreditorAccount.json   |
-      | account_type      | Fine                                                  |
-      | account_status    | Submitted                                             |
-      | submitted_by      | UPDATE002                                                 |
-      | submitted_by_name | Laura Clerk                                           |
-      | timeline_data     | draftAccounts/timelineJson/default.json               |
+      | business_unit_id  | 73                                                  |
+      | account           | draftAccounts/accountJson/minorCreditorAccount.json |
+      | account_type      | Fine                                                |
+      | account_status    | Submitted                                           |
+      | submitted_by      | UPDATE002                                           |
+      | submitted_by_name | Laura Clerk                                         |
+      | timeline_data     | draftAccounts/timelineJson/default.json             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I update the draft account that was just created with the following details
-      | business_unit_id  | 73                                                    |
-      | account           | draftAccounts/accountJson/minorCreditorAccount.json   |
-      | account_type      | Fine                                                  |
-      | account_status    | Submitted                                             |
-      | submitted_by      | UPDATE002                                                 |
-      | submitted_by_name | Laura Clerk                                           |
-      | timeline_data     | draftAccounts/timelineJson/default.json               |
-      | If-Match          | 0                                                     |
+      | business_unit_id  | 73                                                  |
+      | account           | draftAccounts/accountJson/minorCreditorAccount.json |
+      | account_type      | Fine                                                |
+      | account_status    | Submitted                                           |
+      | submitted_by      | UPDATE002                                           |
+      | submitted_by_name | Laura Clerk                                         |
+      | timeline_data     | draftAccounts/timelineJson/default.json             |
+      | If-Match          | 0                                                   |
     Then The draft account response returns 200
 
 #    And the logging service contains these PDPO logs:
