@@ -379,6 +379,40 @@ class OpalDefendantAccountUpdateTest {
     }
 
     @Test
+    void updateDefendantAccount_enforcementOverrideResultNull_clearsEntireOverride() {
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+        entity.setEnforcementOverrideResultId("FWEC");
+        entity.setEnforcementOverrideEnforcerId(21L);
+        entity.setEnforcementOverrideTfoLjaId((short) 240);
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        doNothing().when(entityManager).lock(any(), any());
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .enforcementOverride(EnforcementOverrideDefendantAccount.builder()
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+
+        assertNull(resp.getPayload().getEnforcementOverride());
+        assertNull(entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
+    }
+
+    @Test
     void updateDefendantAccount_collectionOrderClearsDateWhenFlagFalse() {
         var bu = BusinessUnitFullEntity.builder()
             .businessUnitId((short) 78)

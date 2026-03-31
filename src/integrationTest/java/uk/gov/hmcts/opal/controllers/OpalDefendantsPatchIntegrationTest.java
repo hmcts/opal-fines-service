@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -287,6 +288,36 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
                 .value("FWEC"))
             .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(21))
             .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240));
+    }
+
+    @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Clear Enforcement Override Enforcer/LJA [@PO-3640]")
+    void patch_clearsEnforcementOverrideEnforcerAndLja_whenOmitted() throws Exception {
+        authoriseAllPermissions();
+
+        Integer clearVersion = versionFor(77L);
+        HttpHeaders clearHeaders = authorisedHeaders("good_token", "78", "\"" + clearVersion + "\"");
+
+        ResultActions clearAction = mockMvc.perform(
+            patch(URL_BASE + "/77").headers(clearHeaders).contentType(MediaType.APPLICATION_JSON).content("""
+                  {
+                    "enforcement_override": {
+                      "enforcement_override_result": { "enforcement_override_result_id": "FWEC" }
+                    }
+                  }
+                """));
+
+        String clearResponse = clearAction.andReturn().getResponse().getContentAsString();
+        log.info("enforcement_override clear resp:\n{}", ToJsonString.toPrettyJson(clearResponse));
+
+        clearAction.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(77))
+            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
+                .value("FWEC"))
+            .andExpect(jsonPath("$.enforcement_override.enforcer").value(nullValue()))
+            .andExpect(jsonPath("$.enforcement_override.lja").value(nullValue()));
     }
 
     @Test

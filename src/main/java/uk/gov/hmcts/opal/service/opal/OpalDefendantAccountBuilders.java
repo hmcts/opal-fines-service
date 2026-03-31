@@ -86,6 +86,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
@@ -1005,12 +1006,15 @@ public class OpalDefendantAccountBuilders {
             entity.setEnforcementOverrideResultId(
                 override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
         }
-        if (override.getEnforcer() != null && override.getEnforcer().getEnforcerId() != null) {
-            entity.setEnforcementOverrideEnforcerId(override.getEnforcer().getEnforcerId());
-        }
-        if (override.getLja() != null && override.getLja().getLjaId() != null) {
-            entity.setEnforcementOverrideTfoLjaId(override.getLja().getLjaId().shortValue());
-        }
+        entity.setEnforcementOverrideEnforcerId(
+            Optional.ofNullable(override.getEnforcer())
+                .map(EnforcerDefendantAccount::getEnforcerId)
+                .orElse(null));
+        entity.setEnforcementOverrideTfoLjaId(
+            Optional.ofNullable(override.getLja())
+                .map(LocalJusticeAreaDefendantAccount::getLjaId)
+                .map(Integer::shortValue)
+                .orElse(null));
     }
 
     static Long safeParseLong(String s) {
