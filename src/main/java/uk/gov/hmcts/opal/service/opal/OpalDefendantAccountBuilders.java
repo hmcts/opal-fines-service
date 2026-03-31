@@ -411,9 +411,14 @@ public class OpalDefendantAccountBuilders {
     }
 
     static LanguagePreferences buildLanguagePreferences(DebtorDetailEntity debtorDetail) {
+        Optional<DebtorDetailEntity> debtorDetailOptional = Optional.ofNullable(debtorDetail);
         return LanguagePreferences.builder()
-            .documentLanguagePreference(buildLanguagePreference(debtorDetail, DebtorDetailEntity::getDocumentLanguage))
-            .hearingLanguagePreference(buildLanguagePreference(debtorDetail, DebtorDetailEntity::getHearingLanguage))
+            .documentLanguagePreference(
+                buildLanguagePreference(debtorDetailOptional, DebtorDetailEntity::getDocumentLanguage)
+            )
+            .hearingLanguagePreference(
+                buildLanguagePreference(debtorDetailOptional, DebtorDetailEntity::getHearingLanguage)
+            )
             .build();
     }
 

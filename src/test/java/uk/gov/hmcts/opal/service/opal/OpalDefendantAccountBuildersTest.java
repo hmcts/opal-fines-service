@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -111,8 +110,7 @@ class OpalDefendantAccountBuildersTest {
             .hearingLanguage(Language.EN)
             .build();
 
-        LanguagePreferences preferences =
-            OpalDefendantAccountBuilders.buildLanguagePreferences(Optional.of(debtorDetail));
+        LanguagePreferences preferences = OpalDefendantAccountBuilders.buildLanguagePreferences(debtorDetail);
 
         assertNotNull(preferences);
         assertEquals("CY", preferences.getDocumentLanguagePreference().getLanguageCode());
