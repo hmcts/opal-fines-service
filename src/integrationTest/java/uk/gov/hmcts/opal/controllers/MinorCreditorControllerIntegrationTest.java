@@ -3,9 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
@@ -55,9 +53,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     private static final String MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE =
         "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
-
-    @Autowired
-    protected JdbcTemplate jdbcTemplate;
 
     @MockitoBean
     UserStateService userStateService;
@@ -315,7 +310,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             patch(URL_BASE + "/607")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer some_value")
-                .header("ETag", currentVersion)
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", "10")
                 .content(requestJson));
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -348,7 +344,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(patch(URL_BASE + "/606")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("ETag", currentVersion)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", "10")
                             .content(patchMinorCreditorWithoutPermissionRequestJson()))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -363,7 +360,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(patch(URL_BASE + "/607")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("ETag", currentVersion)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", "10")
                             .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(org.hamcrest.Matchers.anything()));
