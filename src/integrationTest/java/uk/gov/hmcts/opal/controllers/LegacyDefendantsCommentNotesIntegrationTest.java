@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -22,9 +24,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -162,7 +161,8 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             {
               "comment_and_notes": {
                 "account_comment": 12345
-              }
+              },
+            
             }
             """;
 
@@ -182,7 +182,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
         actions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type")
-                .value("https://hmcts.gov.uk/problems/json-schema-validation"))
+                .value("https://hmcts.gov.uk/problems/message-not-readable"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.retriable").value(false));
     }

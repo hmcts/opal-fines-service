@@ -45,6 +45,12 @@
       "allowedVersions": "<3.0.0"
     },
     {
+      "description": "Spring Cloud 2025.1.x requires Spring Boot 4.x; keep this repo on the 2025.0.x line until Boot 4 migration",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["org.springframework.cloud:spring-cloud-dependencies"],
+      "allowedVersions": "<2025.1.0"
+    },
+    {
       "description": "Group all Gradle plugins (Minor/Patch)",
       "matchManagers": ["gradle"],
       "matchPackagePatterns": ["^org\\.springframework\\.boot$", "^io\\.spring\\.dependency-management$", "^com\\.github\\.ben-manes\\.versions$", "^org\\.sonarqube$", "^uk\\.gov\\.hmcts\\.java$", "^org\\.flywaydb\\.flyway$", "^net\\.serenity-bdd\\.serenity-gradle-plugin$", "^org\\.openapi.generator$"],

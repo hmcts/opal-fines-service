@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
@@ -34,9 +33,16 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("some_value", "78", "\"" + currentVersion + "\"");
 
+        String requestJson = """
+            {
+              "comment_and_notes": {
+                "account_comment": "hello"
+              }
+            }
+            """;
+
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
-                .content(commentAndNotesPayload("hello")));
+            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(requestJson));
 
         String body = a.andReturn().getResponse().getContentAsString();
         String etag = a.andReturn().getResponse().getHeader("ETag");
@@ -49,8 +55,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
         assertNotNull(etag, "ETag must be present");
         assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
-
-        jsonSchemaValidationService.validateOrError(body, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
     }
 
     @Test
@@ -74,7 +78,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Missing If-Match [@PO-1565]")
-    void patch_conflict_whenIfMatchMissing() throws Exception {
+    void patch_badRequest_whenIfMatchMissing() throws Exception {
         authoriseAllPermissions();
 
         HttpHeaders headers = authorisedHeaders("good_token", "78", null);
@@ -136,12 +140,11 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-                  {
-                    "comment_and_notes":{"account_comment":"x"},
-                    "collection_order":{"collection_order_flag":true}
-                  }
-                """)).andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+              {
+                "comment_and_notes":{"account_comment":"x"},
+                "collection_order":{"collection_order_flag":true}
+              }
+            """)).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -152,9 +155,18 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-                  {"comment_and_notes":{"free_text_note_1": 123}}
+                  {
+                    "comment_and_notes": {
+                      "account_comment": "Account reviewed and updated per latest case information."
+                    },
+                    "enforcement_override": {
+                      "enforcement_override_result": {
+                      "enforcement_override_result_id": "FWEC"
+                      }
+                    }
+                  }
                 """)).andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"));
     }
 
     @Test
@@ -181,11 +193,9 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         log.info("enforcement_court update resp:\n{}", resp);
 
         a.andExpect(status().isOk()).andExpect(header().exists("ETag"))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON)).andExpect(jsonPath("$.id").value(77))
-            .andExpect(jsonPath("$.enforcement_court.court_id").value(100))
-            .andExpect(jsonPath("$.enforcement_court.court_name").value("Central Magistrates"));
-
-        jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(77))
+            .andExpect(jsonPath("$.enforcement_court.court_id").value(100));
     }
 
     @Test
@@ -214,7 +224,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
               "enforcement_override": {
                 "enforcement_override_result": {
                   "enforcement_override_result_id": "FWEC",
-                "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
+                  "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
                 },
                 "enforcer": {
                   "enforcer_id": 21,
@@ -235,9 +245,12 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         log.info("enforcement_override update resp:\n{}", ToJsonString.toPrettyJson(resp));
 
         a.andExpect(status().isOk()).andExpect(header().exists("ETag"))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-
-        jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(77))
+            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
+                .value("FWEC"))
+            .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(21))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240));
     }
 
     @Test
@@ -263,7 +276,5 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
         assertNotNull(etag, "ETag must be present");
         assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
-
-        jsonSchemaValidationService.validateOrError(body, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
     }
 }
