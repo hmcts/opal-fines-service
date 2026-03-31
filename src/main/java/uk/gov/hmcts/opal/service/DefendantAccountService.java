@@ -11,19 +11,22 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountService")
@@ -115,25 +118,55 @@ public class DefendantAccountService {
         return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
     }
 
-    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
-                                                           UpdateDefendantAccountRequest request,
-                                                           String ifMatch,
-                                                           String authHeaderValue) {
+                                                           UpdateDefendantAccountRequestPayload request,
+                                                           String authHeaderValue, String ifMatch) {
         log.debug(":updateDefendantAccount:");
+
+        if (ifMatch == null) {
+            throw new ResourceConflictException(
+                "Defendant Account", defendantAccountId, "If-Match header is required", null);
+        }
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
-            short buId = Short.parseShort(businessUnitId);
 
-            String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            //TODO Must be a way to enforce this through the OpenAPI code gen
+            int nonNullCount = 0;
+            if (request.getCommentAndNotes() != null) {
+                nonNullCount++;
+            }
+            if (request.getEnforcementCourt() != null) {
+                nonNullCount++;
+            }
+            if (request.getCollectionOrder() != null) {
+                nonNullCount++;
+            }
+            if (request.getEnforcementOverride() != null) {
+                nonNullCount++;
+            }
+            if (nonNullCount != 1) {
+                throw new IllegalArgumentException("Exactly one update group must be provided");
+            }
+
+            String postedBy = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
                 .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());
 
+            //Create internal DTO
+            UpdateDefendantAccountRequest updateRequest = UpdateDefendantAccountRequest.builder()
+                .defendantAccountId(defendantAccountId)
+                .businessUnitId(businessUnitId)
+                .businessUnitUserId(postedBy)
+                .payload(request)
+                .version(VersionUtils.extractBigInteger(ifMatch))
+                .build();
+
             return defendantAccountServiceProxy.updateDefendantAccount(
-                defendantAccountId, businessUnitId, request, ifMatch, postedBy
+                defendantAccountId, businessUnitId, updateRequest, postedBy
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);

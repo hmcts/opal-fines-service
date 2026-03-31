@@ -20,7 +20,6 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -29,6 +28,7 @@ import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
@@ -822,25 +822,17 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
-    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
         String businessUnitId,
         @NonNull UpdateDefendantAccountRequest request,
-        String ifMatch,
         String postedBy) {
 
         log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
 
-        // in legacy system, If-Match header value is passed in as version.
-        Integer version = Integer.parseInt(ifMatch);
-
         // build legacy request object with mapped fields from UpdateDefendantAccountRequest
         // pass 'version' into the mapper/to-legacy request builder
         LegacyUpdateDefendantAccountRequest legacyRequest =
-            updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request,
-                String.valueOf(defendantAccountId),
-                businessUnitId,
-                postedBy,
-                version);
+            updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request);
 
         // Send the request to the gateway service
         Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.postToGateway(
@@ -849,7 +841,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         checkResponseForError(gwResponse, "updateDefendantAccount");
 
-        return legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(gwResponse.responseEntity);
+        return legacyUpdateDefendantAccountResponseMapper.toUpdateDefendantAccountResponse(gwResponse.responseEntity);
     }
 
     @Override
