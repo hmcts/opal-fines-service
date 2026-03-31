@@ -430,76 +430,7 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
 
-  /major-creditors:
-    get:
-      tags:
-        - Major Creditor
-      summary: Returns MajorCreditors as reference data with an optional filter applied
-      operationId: getMajorCreditorRefData
-      parameters:
-        - in: query
-          name: q
-          description: Optional free-text filter string
-          schema:
-            type: string
-          required: false
-        - in: query
-          name: businessUnit
-          description: Optional business unit identifier
-          schema:
-            type: integer
-            format: int32
-            minimum: -32768
-            maximum: 32767
-          required: false
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - refData
-                properties:
-                  count:
-                    type: integer
-                    format: int32
-                    description: Total number of major creditors returned.
-                  refData:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/majorCreditorReferenceData'
-        400:
-          description: Bad request
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
-        401:
-          description: Unauthorized
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
-        403:
-          description: Forbidden
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
-        500:
-          description: Internal server error
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
-        503:
-          description: Service unavailable
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 
 components:
   securitySchemes:
