@@ -67,7 +67,7 @@ class OpalMinorCreditorServiceTest {
 
     @Mock
     private MinorCreditorAccountHeaderSummaryMapper headerSummaryMapper;
-  
+
     @Mock
     private MinorCreditorAccountAtAGlanceRepository minorCreditorAccountAtAGlanceRepository;
 
@@ -242,16 +242,17 @@ class OpalMinorCreditorServiceTest {
     }
 
     @Test
-    void getHeaderSummary_foundOrganisation_mapsCorrectly_andHasAssociatedDefendantFalse() {
+    void getHeaderSummary_happyPath_callsCorrectRepositoriesAndMappers() {
         // Arrange
         long id = 99000000000800L;
+        long partyId = 99000000000900L;
 
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654321")
             .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(5L)
-            .partyId(99000000000900L)
+            .partyId(partyId)
             .title(null)
             .forenames(null)
             .surname(null)
@@ -266,9 +267,10 @@ class OpalMinorCreditorServiceTest {
             .outstanding(BigDecimal.ZERO)
             .build();
 
-        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
+        PartyEntity party = PartyEntity.builder().partyId(partyId).build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
         GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
         when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
@@ -278,53 +280,15 @@ class OpalMinorCreditorServiceTest {
         // Assert
         assertSame(mapped, res);
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
+        verify(partyRepository, times(1)).findById(partyId);
         verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
-    void getHeaderSummary_foundIndividual_mapsCorrectly_andHasAssociatedDefendantTrue() {
-        // Arrange
-        long id = 99000000000801L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("87654322")
-            .creditorAccountType(CreditorAccountType.MN)
-            .versionNumber(null) // verify null -> null
-            .partyId(99000000000901L)
-            .title("Mr")
-            .forenames("John")
-            .surname("Smith")
-            .organisation(false)
-            .organisationName(null)
-            .businessUnitId((short) 77)
-            .businessUnitName("Camberwell Green")
-            .welshLanguage(true)
-            .awarded(new BigDecimal("10.00")) // makes hasAssociatedDefendant true
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
-            .build();
-
-        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
-
-        // Assert
-        assertSame(mapped, res);
-        verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
-        verify(headerSummaryMapper).toResponse(entity, party);
-    }
-
-    @Test
-    void getHeaderSummary_notFound_throwsEntityNotFoundException_withExpectedMessage() {
+    void getHeaderSummary_creditorNotFound_throwsEntityNotFoundException_withExpectedMessage() {
         // Arrange
         long missingId = 123456789L;
+
         when(minorCreditorAccountHeaderRepository.findById(missingId)).thenReturn(Optional.empty());
 
         // Act
@@ -340,207 +304,46 @@ class OpalMinorCreditorServiceTest {
     }
 
     @Test
-    void getHeaderSummary_hasAssociatedDefendant_trueWhenOutstandingPositive_evenIfAwardedNull() {
+    void getHeaderSummary_partyNotFound_throwsEntityNotFoundException_withExpectedMessage() {
         // Arrange
-        long id = 222L;
+        long id = 99000000000801L;
+        long missingId = 123456789L;
+
 
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
-            .creditorAccountNumber("X")
+            .creditorAccountNumber("87654322")
             .creditorAccountType(CreditorAccountType.MN)
-            .versionNumber(null)
-            .partyId(333L)
-            .organisation(true)
-            .organisationName("Org")
-            .businessUnitId((short) 77)
-            .businessUnitName("BU")
-            .welshLanguage(false)
-            .awarded(null)
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(new BigDecimal("0.01"))
-            .build();
-
-        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
-
-        // Assert
-        assertSame(mapped, res);
-        verify(headerSummaryMapper).toResponse(entity, party);
-    }
-
-    @Test
-    void getHeaderSummary_orgAccount_mapsOrganisationDetails_andSetsHasAssociatedDefendantFalse_whenZeroes() {
-        // Arrange
-        long id = 99000000000800L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("87654321")
-            .creditorAccountType(CreditorAccountType.MN)
-            .versionNumber(null) // covers version null branch
-            .partyId(99000000000900L)
-            .organisation(true)
-            .organisationName("Minor Creditor Test Ltd")
-            .title(null)
-            .forenames(null)
-            .surname(null)
-            .businessUnitId((short) 77)
-            .businessUnitName("Camberwell Green")
-            .welshLanguage(false) // -> "N"
-            .awarded(BigDecimal.ZERO)
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
-            .build();
-
-        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
-
-        // Assert
-        assertSame(mapped, resp);
-        verify(minorCreditorAccountHeaderRepository).findById(id);
-        verify(headerSummaryMapper).toResponse(entity, party);
-    }
-
-    @Test
-    void getHeaderSummary_individualAccount_mapsIndividualDetails_andWelshSpeakingY() {
-        // Arrange
-        long id = 123L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC123")
-            .creditorAccountType(CreditorAccountType.MN)
-            .versionNumber(5L) // covers version non-null branch
-            .partyId(456L)
-            .organisation(false)
-            .organisationName(null)
+            .hasAssociatedDefendant(true)
+            .versionNumber(null) // verify null -> null
+            .partyId(missingId)
             .title("Mr")
             .forenames("John")
             .surname("Smith")
-            .businessUnitId((short) 10)
-            .businessUnitName("Derbyshire")
-            .welshLanguage(true) // -> "Y"
-            .awarded(BigDecimal.ZERO)
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
-            .build();
-
-        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
-
-        // Assert
-        assertSame(mapped, resp);
-        verify(headerSummaryMapper).toResponse(entity, party);
-    }
-
-    @Test
-    void getHeaderSummary_hasAssociatedDefendant_true_whenAwardedPositive() {
-        // Arrange
-        long id = 200L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC200")
-            .creditorAccountType(CreditorAccountType.MN)
-            .versionNumber(null)
-            .partyId(300L)
-            .organisation(true)
-            .organisationName("Org")
-            .businessUnitId((short) 1)
-            .businessUnitName("BU")
-            .welshLanguage(false)
-            .awarded(new BigDecimal("0.01")) // awarded > 0 => true branch
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
-            .build();
-
-        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
-
-        // Assert
-        assertSame(mapped, resp);
-        verify(headerSummaryMapper).toResponse(entity, party);
-    }
-
-    @Test
-    void getHeaderSummary_hasAssociatedDefendant_true_whenOutstandingPositive_evenIfAwardedNull() {
-        // Arrange
-        long id = 201L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC201")
-            .creditorAccountType(CreditorAccountType.MN)
-            .versionNumber(null)
-            .partyId(301L)
             .organisation(false)
-            .title("Ms")
-            .forenames("A")
-            .surname("B")
-            .businessUnitId((short) 2)
-            .businessUnitName("BU2")
-            .welshLanguage(false)
-            .awarded(null) // covers null check on awarded
+            .organisationName(null)
+            .businessUnitId((short) 77)
+            .businessUnitName("Camberwell Green")
+            .welshLanguage(true)
+            .awarded(new BigDecimal("10.00"))
             .paidOut(BigDecimal.ZERO)
             .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(new BigDecimal("1.00")) // outstanding > 0 => true
+            .outstanding(BigDecimal.ZERO)
             .build();
 
-        PartyEntity party = PartyEntity.builder().partyId(99000000000900L).build();
-
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
-        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
+        when(partyRepository.findById(missingId)).thenReturn(Optional.empty());
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                                                  () -> service.getHeaderSummary(id));
 
         // Assert
-        assertSame(mapped, resp);
-        verify(headerSummaryMapper).toResponse(entity, party);
-    }
+        assertNotNull(ex.getMessage());
+        assertTrue(ex.getMessage().contains("Minor creditor party not found: " + missingId));
 
-    @Test
-    void getHeaderSummary_notFound_throwsEntityNotFoundException_withReason() {
-        // Arrange
-        long id = 999L;
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.empty());
-
-        // Act
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> service.getHeaderSummary(id));
-
-        // Assert
-        assertTrue(ex.getMessage().contains("Minor creditor account not found: " + id));
-
-        verify(minorCreditorAccountHeaderRepository).findById(id);
+        verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
+        verify(partyRepository, times(1)).findById(missingId);
         verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any(), Mockito.any());
     }
 

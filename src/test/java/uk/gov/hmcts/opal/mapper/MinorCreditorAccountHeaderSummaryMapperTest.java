@@ -32,7 +32,9 @@ class MinorCreditorAccountHeaderSummaryMapperTest {
 
     @Configuration
     @ComponentScan(basePackageClasses = MinorCreditorAccountHeaderSummaryMapper.class)
-    static class TestConfig {}
+    static class TestConfig {
+
+    }
 
     @Autowired
     private MinorCreditorAccountHeaderSummaryMapper mapper;
@@ -78,8 +80,6 @@ class MinorCreditorAccountHeaderSummaryMapperTest {
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse mapped = mapper.toResponse(entity, party);
-
-        System.out.println(mapped);
 
         // Assert
         assertNotNull(mapped);

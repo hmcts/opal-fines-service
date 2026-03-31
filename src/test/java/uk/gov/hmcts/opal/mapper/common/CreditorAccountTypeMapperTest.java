@@ -16,7 +16,9 @@ public class CreditorAccountTypeMapperTest {
 
     @Configuration
     @ComponentScan(basePackageClasses = CreditorAccountTypeMapper.class)
-    static class TestConfig {}
+    static class TestConfig {
+
+    }
 
     @Autowired
     private CreditorAccountTypeMapper mapper;
@@ -35,7 +37,7 @@ public class CreditorAccountTypeMapperTest {
     }
 
     @Test
-    void shouldMapMajorCreditor(){
+    void shouldMapMajorCreditor() {
         //Arrange
         CreditorAccountType entity = CreditorAccountType.MJ;
 
@@ -48,7 +50,7 @@ public class CreditorAccountTypeMapperTest {
     }
 
     @Test
-    void shouldMapCentralFund(){
+    void shouldMapCentralFund() {
         //Arrange
         CreditorAccountType entity = CreditorAccountType.CF;
 
