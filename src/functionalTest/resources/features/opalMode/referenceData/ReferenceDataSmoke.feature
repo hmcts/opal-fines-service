@@ -1,0 +1,36 @@
+@Opal @JIRA-LABEL:reference-data
+Feature: Reference Data Smoke
+
+
+  Background:
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+
+  @JIRA-STORY:PO-313 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-4567
+  Scenario: verifying the end points for API for Business Units Ref Data
+    When I make a request to the business unit ref data api filtering by business unit type "Area"
+    Then the business unit ref data matching to result
+
+  @JIRA-STORY:PO-311 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-4568
+  Scenario: Checking the end points for Offence ref data
+    When I make a request to the offence ref data api filtering by cjs code "AA06"
+    Then the offence ref data matching to result
+
+#  @PO-315
+#  Scenario: Checking the end points for court ref data1
+#    When I make a request to the court ref data api with a filter of "Highbury"
+#    Then the court ref data matching to result
+
+  @JIRA-STORY:PO-349 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-4569
+  Scenario: Verifying the end points for the major creditors
+    When I make a request to the major creditors ref data api filter by major creditor id 1300000000075
+    Then the major creditors ref data matching to result
+
+  @JIRA-STORY:PO-312 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-4570
+  Scenario: Checking the end points for LJA ref data
+    When I make a request to the LJA ref data api with
+    Then the LJA ref data matching to result
+
+  @JIRA-STORY:PO-316 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-4571
+  Scenario: verifying the end points for enforcer ref data
+    When I make a request to enforcer ref data api filtering by name "Alder"
+    Then the enforcer ref data matching to result
