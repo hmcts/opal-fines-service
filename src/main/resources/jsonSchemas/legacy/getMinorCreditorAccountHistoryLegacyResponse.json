@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/opal-fines-service.history-items.schema.json",
+  "title": "Get Minor Creditor Account History Legacy Response",
+  "type": "object",
+  "properties": {
+    "historyItems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/minorCreditorHistoryItem"
+      }
+    }
+  },
+  "$defs": {
+    "minorCreditorHistoryItem": {
+      "title": "historyItem",
+      "type": "object",
+      "required": ["postedDetails", "type", "details"],
+      "properties": {
+        "postedDetails": {
+          "$ref": "./common-objects/postedDetailsLegacy.json"
+        },
+        "type": {
+          "type": "string",
+          "description": "History item type.",
+          "enum": ["Amendment", "Financial", "Note"]
+        },
+        "details": {
+          "oneOf": [
+            {
+              "$ref": "./common-objects/amendmentTypeLegacy.json"
+            },
+            {
+              "$ref": "#/$defs/noteDetails"
+            },
+            {
+              "$ref": "#/$defs/creditorTransactionDetails"
+            }
+          ],
+          "description": "History item details"
+        },
+        "amount": {
+          "$ref": "./common-objects/monetaryNegativeOrPositive.json"
+        }
+      }
+    },
+    "noteDetails": {
+      "type": "object",
+      "required": ["noteText"],
+      "properties": {
+        "noteText": {
+          "type": "string"
+        }
+      }
+    },
+    "creditorTransactionDetails": {
+      "title": "transactionDetails",
+      "type": "object",
+      "required": ["transactionType"],
+      "properties": {
+        "transactionType": {
+          "$ref": "./common-objects/creditorTransactionTypeReferenceLegacy.json"
+        },
+        "paymentReference": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "./common-objects/creditorTransactionStatusReferenceLegacy.json"
+        },
+        "statusDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "associatedRecordType": {
+          "type": "string"
+        },
+        "associatedRecordId": {
+          "type": "string"
+        },
+        "accountNumber": {
+          "type": "string"
+        },
+        "defendantAccountNumber": {
+          "type": "string"
+        },
+        "defendantAccountId": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
