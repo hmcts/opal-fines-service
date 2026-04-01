@@ -247,6 +247,57 @@ class DefendantAccountPartyServiceTest {
     }
 
     @Test
+    void addDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
+        // Arrange
+        String authHeader = "Bearer token";
+        Long defendantAccountId = 11L;
+        Long defendantAccountPartyId = 22L;
+        String ifMatch = "W/\"2\"";
+        String businessUnitId = "7";
+        short buId = Short.parseShort(businessUnitId);
+
+        DefendantAccountParty request = new DefendantAccountParty();
+        GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
+
+        // No BusinessUnitUser present
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.empty());
+        when(userState.getUserName()).thenReturn("theUserName");
+        when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
+            .thenReturn(true);
+
+        when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
+            anyLong(), anyLong(), anyString(), anyString(), anyString(), anyString(),any(DefendantAccountParty.class)))
+            .thenReturn(expectedResponse);
+
+        // Act
+        GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, businessUnitId, request
+        );
+
+        // Assert
+        assertThat(actual).isSameAs(expectedResponse);
+
+        ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(defendantAccountPartyServiceProxy).addDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            buUserIdCaptor.capture(),
+            postedByCaptor.capture(),
+            eq(ifMatch),
+            eq(request)
+        );
+
+        assertThat(postedByCaptor.getValue()).isEqualTo("theUserName");
+        // when no business unit user present, the helper returns empty string
+        assertThat(buUserIdCaptor.getValue()).isEqualTo("");
+    }
+
+
+    @Test
     void replaceDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
         String authHeader = "Bearer token";
