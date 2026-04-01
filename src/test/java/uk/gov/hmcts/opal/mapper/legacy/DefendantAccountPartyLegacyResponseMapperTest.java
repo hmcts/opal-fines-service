@@ -9,8 +9,6 @@ import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 
-
-
 import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
