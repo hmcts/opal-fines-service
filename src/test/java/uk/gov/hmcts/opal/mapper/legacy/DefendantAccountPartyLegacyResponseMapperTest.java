@@ -51,14 +51,14 @@ public class DefendantAccountPartyLegacyResponseMapperTest {
         GetDefendantAccountPartyResponse mapped = mapper.toDefendantAccountPartyResponse(legacyBody);
 
         //Assert
-        assertEquals(null, mapped.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
-        assertEquals(null, mapped.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
-        assertEquals(null, mapped.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
-        assertEquals(null, mapped.getDefendantAccountParty().getAddress());
-        assertEquals(null, mapped.getDefendantAccountParty().getContactDetails());
-        assertEquals(null, mapped.getDefendantAccountParty().getVehicleDetails());
-        assertEquals(null, mapped.getDefendantAccountParty().getEmployerDetails());
-        assertEquals(null, mapped.getDefendantAccountParty().getLanguagePreferences());
+        assertNull( mapped.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
+        assertNull( mapped.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertNull( mapped.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertNull( mapped.getDefendantAccountParty().getAddress());
+        assertNull( mapped.getDefendantAccountParty().getContactDetails());
+        assertNull( mapped.getDefendantAccountParty().getVehicleDetails());
+        assertNull( mapped.getDefendantAccountParty().getEmployerDetails());
+        assertNull(mapped.getDefendantAccountParty().getLanguagePreferences());
     }
 
 
