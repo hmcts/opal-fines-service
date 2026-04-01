@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -209,6 +210,24 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
               {"collection_order":{"collection_order_flag":true,"collection_order_date":"2025-01-01"}}
             """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
+    }
+
+    @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Collection Order date auto-populated when null [@PO-3667]")
+    void patch_updatesCollectionOrder_whenDateNull_thenUsesCurrentDate() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(77L);
+        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+        String expectedDate = LocalDate.now().toString();
+
+        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
+              {"collection_order":{"collection_order_flag":true,"collection_order_date":null}}
+            """))
+            .andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(jsonPath("$.collection_order.collection_order_flag").value(true))
+            .andExpect(jsonPath("$.collection_order.collection_order_date").value(expectedDate));
     }
 
     @Test

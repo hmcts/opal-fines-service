@@ -186,4 +186,37 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.retriable").value(false));
     }
+
+    @Test
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Collection Order null date payload accepted [@PO-3667]")
+    void testUpdateDefAcc_CollectionOrderDateNullPayloadAccepted() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        Integer currentVersion = versionFor(77L);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
+
+        String requestJson = """
+            {
+              "collection_order": {
+                "collection_order_flag": true,
+                "collection_order_date": null
+              }
+            }
+            """;
+
+        mockMvc.perform(
+                patch(URL_BASE + "/77")
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value("77"))
+            .andExpect(header().string("ETag", "\"" + ++currentVersion + "\""));
+    }
 }

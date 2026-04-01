@@ -9,10 +9,10 @@
       "description": "Flag indicating if a collection order is applied to the account"
     },
     "collection_order_date": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date",
       "description": "The date when the collection order was applied"
     }
   },
-  "required": ["collection_order_flag", "collection_order_date"]
+  "required": ["collection_order_flag"]
 }

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
@@ -30,6 +31,35 @@ import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountBuildersTest {
+
+    @Test
+    void applyCollectionOrder_givenTrueAndNullDate_whenApplied_thenUsesCurrentDate() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        CollectionOrderCommon collectionOrder = CollectionOrderCommon.builder()
+            .collectionOrderFlag(true)
+            .collectionOrderDate((LocalDate) null)
+            .build();
+
+        OpalDefendantAccountBuilders.applyCollectionOrder(entity, collectionOrder);
+
+        assertTrue(entity.getCollectionOrder());
+        assertEquals(LocalDate.now(), entity.getCollectionOrderEffectiveDate());
+    }
+
+    @Test
+    void applyCollectionOrder_givenFalseAndDate_whenApplied_thenClearsDate() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        entity.setCollectionOrderEffectiveDate(LocalDate.of(2026, 1, 1));
+        CollectionOrderCommon collectionOrder = CollectionOrderCommon.builder()
+            .collectionOrderFlag(false)
+            .collectionOrderDate(LocalDate.of(2026, 3, 1))
+            .build();
+
+        OpalDefendantAccountBuilders.applyCollectionOrder(entity, collectionOrder);
+
+        assertFalse(entity.getCollectionOrder());
+        assertNull(entity.getCollectionOrderEffectiveDate());
+    }
 
     @Test
     void testNzHelper() {

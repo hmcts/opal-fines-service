@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
@@ -979,14 +979,19 @@ public class OpalDefendantAccountBuilders {
 
 
     static void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderCommon co) {
-        if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {
-            throw new IllegalArgumentException("collection_order_flag and collection_order_date are required");
+        if (co.getCollectionOrderFlag() == null) {
+            throw new IllegalArgumentException("collection_order_flag is required");
         }
-        entity.setCollectionOrder(Boolean.TRUE.equals(co.getCollectionOrderFlag()));
-        try {
-            entity.setCollectionOrderEffectiveDate(co.getCollectionOrderDate());
-        } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException("collection_order_date must be ISO date (yyyy-MM-dd)", ex);
+
+        JsonNullable<LocalDate> maybeDate = co.getCollectionOrderDate();
+        LocalDate requestedDate = maybeDate != null && maybeDate.isPresent() ? maybeDate.get() : null;
+
+        if (Boolean.TRUE.equals(co.getCollectionOrderFlag())) {
+            entity.setCollectionOrder(true);
+            entity.setCollectionOrderEffectiveDate(requestedDate == null ? LocalDate.now() : requestedDate);
+        } else {
+            entity.setCollectionOrder(false);
+            entity.setCollectionOrderEffectiveDate(null);
         }
     }
 

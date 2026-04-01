@@ -354,7 +354,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
         assertEquals(LocalDate.of(2024, 3, 4),
-            overview.getCollectionOrder().getCollectionOrderDate());
+            overview.getCollectionOrder().getCollectionOrderDate().orElse(null));
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals(123, overview.getEnforcementCourt().getCourtCode());
@@ -400,7 +400,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
         assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder()
-            .getCollectionOrderDate());
+            .getCollectionOrderDate().orElse(null));
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());

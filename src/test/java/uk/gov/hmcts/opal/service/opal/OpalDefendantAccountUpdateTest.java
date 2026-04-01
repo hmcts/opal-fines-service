@@ -180,7 +180,8 @@ class OpalDefendantAccountUpdateTest {
 
         assertNotNull(resp.getPayload().getCollectionOrder());
         assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.parse("2025-01-01"), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
+        assertEquals(LocalDate.parse("2025-01-01"),
+            resp.getPayload().getCollectionOrder().getCollectionOrderDate().orElse(null));
 
         assertNotNull(resp.getPayload().getEnforcementOverride());
         EnforcementOverrideDefendantAccount enforcementOverride = resp.getPayload().getEnforcementOverride();

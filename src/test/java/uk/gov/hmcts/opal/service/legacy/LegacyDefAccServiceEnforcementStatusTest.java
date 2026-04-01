@@ -108,7 +108,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertEquals(6, overview.getDaysInDefault());
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate().orElse(null));
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals(123, overview.getEnforcementCourt().getCourtCode());
@@ -152,7 +152,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertEquals(6, overview.getDaysInDefault());
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate().orElse(null));
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
