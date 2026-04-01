@@ -11,14 +11,16 @@ import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 
 import java.math.BigInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DefendantAccountPartyLegacyResponseMapperTest {
     private final DefendantAccountPartyLegacyResponseMapper mapper = Mappers.getMapper(
         DefendantAccountPartyLegacyResponseMapper.class);
 
     @Test
-    void DefendantAccountPartyResponse_mapsNullNestedObjects_toNulls() {
+    void defendantAccountPartyResponse_mapsNullNestedObjects_toNulls() {
 
         //Arrange
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
@@ -46,24 +48,23 @@ public class DefendantAccountPartyLegacyResponseMapperTest {
             )
             .build();
 
-
         //Act
         GetDefendantAccountPartyResponse mapped = mapper.toDefendantAccountPartyResponse(legacyBody);
 
         //Assert
-        assertNull( mapped.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
-        assertNull( mapped.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
-        assertNull( mapped.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
-        assertNull( mapped.getDefendantAccountParty().getAddress());
-        assertNull( mapped.getDefendantAccountParty().getContactDetails());
-        assertNull( mapped.getDefendantAccountParty().getVehicleDetails());
-        assertNull( mapped.getDefendantAccountParty().getEmployerDetails());
+        assertNull(mapped.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
+        assertNull(mapped.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertNull(mapped.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertNull(mapped.getDefendantAccountParty().getAddress());
+        assertNull(mapped.getDefendantAccountParty().getContactDetails());
+        assertNull(mapped.getDefendantAccountParty().getVehicleDetails());
+        assertNull(mapped.getDefendantAccountParty().getEmployerDetails());
         assertNull(mapped.getDefendantAccountParty().getLanguagePreferences());
     }
 
 
     @Test
-    void DefendantAccountParty_mapsLanguagePreference() {
+    void defendantAccountParty_mapsLanguagePreference() {
 
         //Arrange
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
@@ -160,7 +161,7 @@ public class DefendantAccountPartyLegacyResponseMapperTest {
 
 
     @Test
-    void LanguagePreference_returnsNull_whenLegacyIsNulls() {
+    void languagePreference_returnsNull_whenLegacyIsNulls() {
 
         //Arrange
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
