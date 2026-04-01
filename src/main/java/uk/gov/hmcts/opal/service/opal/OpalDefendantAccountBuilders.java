@@ -979,14 +979,11 @@ public class OpalDefendantAccountBuilders {
 
 
     static void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderCommon co) {
-        if (co.getCollectionOrderFlag() == null) {
-            throw new IllegalArgumentException("collection_order_flag is required");
-        }
-
+        boolean collectionOrderFlag = Boolean.TRUE.equals(co.getCollectionOrderFlag());
         JsonNullable<LocalDate> maybeDate = co.getCollectionOrderDate();
         LocalDate requestedDate = maybeDate != null && maybeDate.isPresent() ? maybeDate.get() : null;
 
-        if (Boolean.TRUE.equals(co.getCollectionOrderFlag())) {
+        if (collectionOrderFlag) {
             entity.setCollectionOrder(true);
             entity.setCollectionOrderEffectiveDate(requestedDate == null ? LocalDate.now() : requestedDate);
         } else {

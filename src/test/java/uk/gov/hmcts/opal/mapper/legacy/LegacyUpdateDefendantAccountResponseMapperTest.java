@@ -1,8 +1,10 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +37,17 @@ public class LegacyUpdateDefendantAccountResponseMapperTest {
     void stringToLong_nonNumeric_returnsNullOrExceptionSafe() {
         assertNull(mapper.stringToLong(""));         // expected null
         assertNull(mapper.stringToLong("abc123"));   // invalid number -> null
+    }
+
+    @Test
+    @DisplayName("map(LocalDate) wraps value in JsonNullable")
+    void map_localDate_wrapsValue() {
+        LocalDate date = LocalDate.of(2026, 4, 1);
+
+        var mapped = mapper.map(date);
+
+        assertNotNull(mapped);
+        assertEquals(date, mapped.orElse(null));
     }
 
 }

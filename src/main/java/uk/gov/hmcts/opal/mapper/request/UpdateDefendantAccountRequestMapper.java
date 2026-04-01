@@ -69,7 +69,8 @@ public interface UpdateDefendantAccountRequestMapper {
 
         if (Boolean.FALSE.equals(flag)) {
             date = null;
-        } else if (Boolean.TRUE.equals(flag) && date == null) {
+        }
+        if (Boolean.TRUE.equals(flag) && date == null) {
             date = LocalDate.now();
         }
 

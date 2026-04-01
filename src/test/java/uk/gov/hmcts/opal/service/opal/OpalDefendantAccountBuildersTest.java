@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
@@ -59,6 +60,33 @@ class OpalDefendantAccountBuildersTest {
 
         assertFalse(entity.getCollectionOrder());
         assertNull(entity.getCollectionOrderEffectiveDate());
+    }
+
+    @Test
+    void buildLanguagePreferences_givenSummaryEntityWithNoLanguages_thenReturnsNull() {
+        DefendantAccountSummaryViewEntity entity = DefendantAccountSummaryViewEntity.builder()
+            .documentLanguage(null)
+            .hearingLanguage(null)
+            .build();
+
+        LanguagePreferences languagePreferences = OpalDefendantAccountBuilders.buildLanguagePreferences(entity);
+
+        assertNull(languagePreferences);
+    }
+
+    @Test
+    void buildLanguagePreferences_givenSummaryEntityWithDocumentLanguage_thenMapsDocumentOnly() {
+        DefendantAccountSummaryViewEntity entity = DefendantAccountSummaryViewEntity.builder()
+            .documentLanguage("EN")
+            .hearingLanguage(null)
+            .build();
+
+        LanguagePreferences languagePreferences = OpalDefendantAccountBuilders.buildLanguagePreferences(entity);
+
+        assertNotNull(languagePreferences);
+        assertNotNull(languagePreferences.getDocumentLanguagePreference());
+        assertEquals("EN", languagePreferences.getDocumentLanguagePreference().getLanguageCode());
+        assertNull(languagePreferences.getHearingLanguagePreference());
     }
 
     @Test

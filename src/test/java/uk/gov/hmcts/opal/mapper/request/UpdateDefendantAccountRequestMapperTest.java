@@ -6,9 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 
@@ -60,7 +62,7 @@ public class UpdateDefendantAccountRequestMapperTest {
                 .build())
             .build();
 
-        uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest legacy =
+        LegacyUpdateDefendantAccountRequest legacy =
             mapper.toLegacyUpdateDefendantAccountRequest(request);
 
         assertNotNull(legacy.getCollectionOrder());
@@ -84,11 +86,35 @@ public class UpdateDefendantAccountRequestMapperTest {
                 .build())
             .build();
 
-        uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest legacy =
+        LegacyUpdateDefendantAccountRequest legacy =
             mapper.toLegacyUpdateDefendantAccountRequest(request);
 
         assertNotNull(legacy.getCollectionOrder());
         assertEquals(Boolean.FALSE, legacy.getCollectionOrder().getCollectionOrderFlag());
         assertNull(legacy.getCollectionOrder().getCollectionOrderDate());
+    }
+
+    @Test
+    @DisplayName("collection order date defaults to today when JsonNullable date is explicitly null")
+    void toLegacyRequest_givenCollectionOrderTrueAndJsonNullableNullDate_thenDateDefaultsToToday() {
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(123L)
+            .businessUnitId("17")
+            .businessUnitUserId("user-1")
+            .version(BigInteger.ONE)
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .collectionOrderDate((JsonNullable<LocalDate>) null)
+                    .build())
+                .build())
+            .build();
+
+        LegacyUpdateDefendantAccountRequest legacy =
+            mapper.toLegacyUpdateDefendantAccountRequest(request);
+
+        assertNotNull(legacy.getCollectionOrder());
+        assertEquals(Boolean.TRUE, legacy.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(LocalDate.now(), legacy.getCollectionOrder().getCollectionOrderDate());
     }
 }
