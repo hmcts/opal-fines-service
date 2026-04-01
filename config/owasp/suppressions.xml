@@ -14,7 +14,7 @@
     <cve>CVE-2025-7962</cve>
   </suppress>
 
-  <suppress until="2026-04-01Z">
+  <suppress until="2026-06-01Z">
     <notes><![CDATA[
     This vulnerability relates to nu.validator:validator library which is not used within this project.
 Suppress CVE-2025-15104 only when Dependency-Check maps a dependency to the generic CPE
