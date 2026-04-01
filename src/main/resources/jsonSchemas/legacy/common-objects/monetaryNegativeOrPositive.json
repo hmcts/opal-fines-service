@@ -1,0 +1,7 @@
+{
+  "type": "number",
+  "description": "A monetary value that is negative or positive, with up to two decimal places.",
+  "maximum": 999999999999,
+  "minimum": -999999999999,
+  "multipleOf": 0.01
+}

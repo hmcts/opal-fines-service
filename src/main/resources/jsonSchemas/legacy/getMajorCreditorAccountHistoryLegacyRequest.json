@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Major Creditor Account History Legacy Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "creditor_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "from_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "to_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "item_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Financial",
+          "Note"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+
+  },
+  "required": [
+    "creditor_account_id"
+  ]
+}
