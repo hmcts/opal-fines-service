@@ -121,6 +121,58 @@ public class DefendantAccountPartyLegacyResponseMapperTest {
     }
 
 
+    @Test
+    void defendantAccountParty_mapsLanguagePreferenceNotNull() {
+
+        //Arrange
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(5)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(false)
+                    // partyDetails present but with nested organisation and individual null
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("20010")
+                            .organisationFlag(null) // intentionally null -> modern should be null
+                            .organisationDetails(null)
+                            .individualDetails(null)
+                            .build()
+                    )
+                    .languagePreferences(
+                        LanguagePreferencesLegacy.builder()
+                            .documentLanguagePreference(null)
+                            .hearingLanguagePreference(
+                                LanguagePreferencesLegacy.LanguagePreference.builder()
+                                    .languageCode("EN")
+                                    .languageDisplayName("English")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+
+        //Act
+        GetDefendantAccountPartyResponse mapped = mapper.toDefendantAccountPartyResponse(legacyBody);
+
+        // Assert
+        assertNotNull(mapped);
+        assertEquals(BigInteger.valueOf(5), mapped.getVersion());
+        assertNotNull(mapped.getDefendantAccountParty());
+
+        // language preferences should be mapped and use codes (document -> "en", hearing -> "fr")
+        assertNotNull(mapped.getDefendantAccountParty().getLanguagePreferences(),
+                      "Language preferences should be mapped when provided by legacy");
+        assertEquals(
+            "EN",
+            mapped.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode()
+        );
+    }
+
     /*@Test
     void LanguagePreference_returnsNotNull_whenLegacyIsNotNulls() {
 
