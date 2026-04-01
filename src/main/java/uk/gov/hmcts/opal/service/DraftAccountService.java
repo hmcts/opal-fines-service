@@ -8,9 +8,10 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
@@ -80,10 +82,15 @@ public class DraftAccountService {
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
+            boolean allowed = userState.hasBusinessUnitUserWithAnyPermission(
+                buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
+
+            logDraftAccountPermissionEvaluation("getDraftAccount", userState, buId,
+                allowed, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
 
             loggingService.pdplForDraftAccount(response, Action.GET, userState);
 
-            if (userState.hasBusinessUnitUserWithAnyPermission(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
+            if (allowed) {
                 return toGetResponseDto(response);
 
             } else {
@@ -91,6 +98,8 @@ public class DraftAccountService {
 
             }
         } else {
+            log.warn(":getDraftAccount: denied, user has no draft-account permissions; userState={}",
+                summariseUserState(userState));
             throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
 
         }
@@ -171,9 +180,13 @@ public class DraftAccountService {
     public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto, String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        boolean allowed = userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+            FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
-        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
-                                                        FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+        logDraftAccountPermissionEvaluation("submitDraftAccount", userState, dto.getBusinessUnitId(),
+            allowed, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        if (allowed) {
 
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
@@ -198,9 +211,13 @@ public class DraftAccountService {
                                                        String authHeaderValue, String ifMatch) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        boolean allowed = userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+            FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
-        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
-                                                        FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+        logDraftAccountPermissionEvaluation("replaceDraftAccount", userState, dto.getBusinessUnitId(),
+            allowed, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        if (allowed) {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
@@ -226,8 +243,12 @@ public class DraftAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
-        log.info(":updateDraftAccount: unit user: {}", unitUser);
-        if (!UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+        boolean allowed = UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+        logDraftAccountPermissionEvaluation("updateDraftAccount", userState, dto.getBusinessUnitId(),
+            allowed, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+        if (!allowed) {
             throw new PermissionNotAllowedException(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         }
 
@@ -310,5 +331,48 @@ public class DraftAccountService {
     private void applyValidatedBy(UpdateDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
         dto.setValidatedBy(unitUser.getBusinessUnitUserId());
         dto.setValidatedByName(userState.getUserName());
+    }
+
+    private void logDraftAccountPermissionEvaluation(String action, UserState userState, Short businessUnitId,
+                                                     boolean allowed, FinesPermission... permissions) {
+        log.info(":{}: businessUnitId={}, allowed={}, requestedPermissions={}, userState={}",
+            action,
+            businessUnitId,
+            allowed,
+            summarisePermissions(permissions),
+            summariseUserState(userState));
+    }
+
+    private String summarisePermissions(FinesPermission... permissions) {
+        return List.of(permissions).stream()
+            .map(permission -> permission.name() + "(" + permission.getId() + ")")
+            .toList()
+            .toString();
+    }
+
+    private String summariseUserState(UserState userState) {
+        String businessUnits = userState.getBusinessUnitUser().stream()
+            .sorted(Comparator.comparing(BusinessUnitUser::getBusinessUnitId))
+            .map(this::summariseBusinessUnitUser)
+            .toList()
+            .toString();
+
+        return String.format("userId=%s, developerUserState=%s, businessUnits=%s",
+            userState.getUserId(),
+            userState instanceof UserState.DeveloperUserState,
+            businessUnits);
+    }
+
+    private String summariseBusinessUnitUser(BusinessUnitUser businessUnitUser) {
+        String permissions = businessUnitUser.getPermissions().stream()
+            .sorted(Comparator.comparing(Permission::getPermissionId))
+            .map(permission -> permission.getPermissionName() + "(" + permission.getPermissionId() + ")")
+            .toList()
+            .toString();
+
+        return String.format("{businessUnitId=%s, businessUnitUserId=%s, permissions=%s}",
+            businessUnitUser.getBusinessUnitId(),
+            businessUnitUser.getBusinessUnitUserId(),
+            permissions);
     }
 }

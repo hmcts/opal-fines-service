@@ -26,9 +26,8 @@ public class UserStateService {
 
 
     public UserState checkForAuthorisedUser(String authorization) {
-
         return userStateClientService.getUserStateByAuthenticatedUser()
-            .orElseGet(() -> getDeveloperUserStateOrError((getPreferredUsername(authorization))));
+            .orElseGet(() -> getDeveloperUserStateOrError(getPreferredUsername(authorization)));
     }
 
     public String getPreferredUsername(String authorization) {
@@ -37,8 +36,12 @@ public class UserStateService {
 
     private UserState getDeveloperUserStateOrError(String username) {
         if (DEVELOPER_PERMISSIONS.equals(developerConfiguration.getUserRolePermissions())) {
+            log.warn(":checkForAuthorisedUser: User service returned no authenticated user state; "
+                + "using developer fallback permissions.");
             return new UserState.DeveloperUserState();
         } else {
+            log.warn(":checkForAuthorisedUser: User service returned no authenticated user state and "
+                + "developer fallback is disabled.");
             throw new AccessDeniedException("No authorised user with username '" + username + "' found");
         }
     }
