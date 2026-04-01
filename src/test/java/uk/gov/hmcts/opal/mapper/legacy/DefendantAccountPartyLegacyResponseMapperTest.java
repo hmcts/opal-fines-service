@@ -120,7 +120,43 @@ public class DefendantAccountPartyLegacyResponseMapperTest {
     }
 
 
+    /*@Test
+    void LanguagePreference_returnsNotNull_whenLegacyIsNotNulls() {
 
+        //Arrange
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(6)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(false)
+                    // partyDetails present but with nested organisation and individual null
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("20010")
+                            .organisationFlag(null) // intentionally null -> modern should be null
+                            .organisationDetails(null)
+                            .individualDetails(null)
+                            .build()
+                    )
+                    .languagePreferences(assertNotNull()) // explicitly null
+                    .build()
+            )
+            .build();
+
+
+        //Act
+        GetDefendantAccountPartyResponse mapped = mapper.toDefendantAccountPartyResponse(legacyBody);
+
+        // Assert
+        assertNotNull(mapped);
+        assertEquals(BigInteger.valueOf(6), mapped.getVersion());
+        assertNotNull(mapped.getDefendantAccountParty());
+
+        // language preferences should be null in modern model when legacy had none
+        assertNull(mapped.getDefendantAccountParty().getLanguagePreferences(),
+                   "Language preferences should be null when legacy languagePreferences is null");
+    }*/
 
 
     @Test
