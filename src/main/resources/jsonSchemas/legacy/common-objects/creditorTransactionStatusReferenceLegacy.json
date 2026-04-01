@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/creditorTransactionStatusReference.json",
+  "title": "creditorTransactionStatusReference",
+  "type": "object",
+  "required": [
+    "creditorTransactionStatus",
+    "creditorTransactionStatusDisplayName"
+  ],
+  "properties": {
+    "creditorTransactionStatus": {
+      "type": "string",
+      "enum": ["R", "P", "D", "X", "C"]
+    },
+    "creditorTransactionStatusDisplayName": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

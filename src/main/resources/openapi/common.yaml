@@ -778,3 +778,156 @@ components:
           type: string
         name:
           type: string
+    defendantTransactionTypeReference:
+      type: object
+      properties:
+        transactionType:
+          type: string
+          enum:
+            - CANCHQ
+            - CHEQUE
+            - CONSOL
+            - DISHCQ
+            - FR-SUS
+            - MADJ
+            - PAYMNT
+            - REPSUS
+            - REVPAY
+            - RICHEQ
+            - RVWOFF
+            - TFO
+            - TFOIN
+            - WRTOFF
+            - XFER
+        transactionTypeDisplayName:
+          type: string
+      required:
+        - transactionType
+        - transactionTypeDisplayName
+    paymentMethodReference:
+      type: object
+      required:
+        - paymentMethod
+        - paymentMethodDisplayName
+      properties:
+        paymentMethod:
+          type: string
+          enum:
+            - NC
+            - CQ
+            - CT
+            - PO
+        paymentMethodDisplayName:
+          type: string
+    writeOffTypeReference:
+      type: object
+      required:
+        - writeOffType
+        - writeOffTypeDisplayName
+      properties:
+        writeOffType:
+          type: string
+          enum:
+            - JCAM-A
+            - TRNOUT
+        writeOffTypeDisplayName:
+          type: string
+    defendantTransactionStatusReference:
+      type: object
+      required:
+        - defendantTransactionStatus
+        - defendantTransactionStatusDisplayName
+      properties:
+        defendantTransactionStatus:
+          type: string
+          enum:
+            - PND
+            - COMP
+            - CAN
+        defendantTransactionStatusDisplayName:
+          type: string
+    amendmentType:
+      type: object
+      required:
+        - attributeName
+        - oldValue
+        - newValue
+      properties:
+        attributeName:
+          type: string
+        oldValue:
+          type: string
+        newValue:
+          type: string
+
+    creditorTransactionTypeReference:
+      type: object
+      properties:
+        transactionType:
+          type: string
+          enum:
+            - BACS
+            - CANCHQ
+            - CFEES
+            - CHEQUE
+            - FCC
+            - FCMP
+            - FCOMP
+            - FCOST
+            - FCPC
+            - FCST
+            - FCUEX
+            - FDCON
+            - FDCOST
+            - FEES
+            - FFR
+            - FINE
+            - FINES
+            - FIXPEN
+            - FLAID
+            - FNIA
+            - FO
+            - FOPR1
+            - FVEA
+            - FVEBD
+            - FVS
+            - FWEC
+            - LIFEES
+            - MADJ
+            - PAID
+            - PAYMNT
+            - REPAYC
+            - REPAYF
+            - REPAYM
+            - REPAYP
+            - REPAYV
+            - REPAYW
+            - REPLIC
+            - REPSUS
+            - RIBACS
+            - RICHEQ
+            - RTBACS
+            - WO611B
+            - XFER
+        transactionTypeDisplayName:
+          type: string
+      required:
+        - transactionType
+        - transactionTypeDisplayName
+
+    creditorTransactionStatusReference:
+      type: object
+      required:
+        - creditorTransactionStatus
+        - creditorTransactionStatusDisplayName
+      properties:
+        creditorTransactionStatus:
+          type: string
+          enum:
+            - R
+            - P
+            - D
+            - X
+            - C
+        creditorTransactionStatusDisplayName:
+          type: string

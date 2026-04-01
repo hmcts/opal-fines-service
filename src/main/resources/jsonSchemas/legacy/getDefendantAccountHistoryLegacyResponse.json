@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/opal-fines-service.history-items.schema.json",
+  "title": "Get Defendant Account History Legacy Response",
+  "type": "object",
+  "properties": {
+    "historyItems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/defendantAccountHistoryItem"
+      }
+    }
+  },
+  "$defs": {
+    "defendantAccountHistoryItem": {
+      "title": "historyItem",
+      "type": "object",
+      "required": ["postedDetails", "type", "details"],
+      "properties": {
+        "postedDetails": {
+          "$ref": "./common-objects/postedDetailsLegacy.json"
+        },
+        "type": {
+          "type": "string",
+          "description": "History item type.",
+          "enum": ["Amendment", "Enforcement", "Financial", "Note", "Payment terms"]
+        },
+        "details": {
+          "oneOf": [
+            {
+              "$ref": "./common-objects/amendmentTypeLegacy.json"
+            },
+            {
+              "$ref": "#/$defs/enforcementDetails"
+            },
+            {
+              "$ref": "#/$defs/noteDetails"
+            },
+            {
+              "$ref": "#/$defs/defendantTransactionDetails"
+            },
+            {
+              "$ref": "./common-objects/paymentTermsLegacy.json"
+            }
+          ],
+          "description": "History item details"
+        },
+        "amount": {
+          "$ref": "./common-objects/monetaryNegativeOrPositive.json"
+        }
+      }
+    },
+    "enforcementDetails": {
+      "type": "object",
+      "required": ["enforcementAction"],
+      "properties": {
+        "enforcementAction": {
+          "type": "string"
+        },
+        "daysInDefault": {
+          "type": "integer"
+        },
+        "warrantNumber": {
+          "type": "string"
+        },
+        "hearingDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "hearingCourt": {
+          "$ref": "./common-objects/courtReferenceLegacy.json"
+        },
+        "caseNumber": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "earliestDateOfRelease": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "noteDetails": {
+      "type": "object",
+      "required": ["noteText"],
+      "properties": {
+        "noteText": {
+          "type": "string"
+        }
+      }
+    },
+    "defendantTransactionDetails": {
+      "title": "transactionDetails",
+      "type": "object",
+      "required": ["transactionType"],
+      "properties": {
+        "transactionType": {
+          "$ref": "./common-objects/defendantTransactionTypeReferenceLegacy.json"
+        },
+        "paymentMethod": {
+          "$ref": "./common-objects/paymentMethodReferenceLegacy.json"
+        },
+        "paymentReference": {
+          "type": "string"
+        },
+        "additionalInformation": {
+          "type": "string"
+        },
+        "writeOff": {
+          "$ref": "./common-objects/writeOffTypeReferenceLegacy.json"
+        },
+        "status": {
+          "$ref": "./common-objects/defendantTransactionStatusReferenceLegacy.json"
+        },
+        "statusDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "associatedRecordType": {
+          "type": "string"
+        },
+        "associatedRecordId": {
+          "type": "string"
+        },
+        "accountNumber": {
+          "type": "string"
+        },
+        "sendingCourt": {
+          "type": "string"
+        },
+        "impositionDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "impositionCode": {
+          "type": "string"
+        },
+        "amountImposed": {
+          "$ref": "./common-objects/monetaryZeroOrNegative.json"
+        }
+      }
+    }
+  }
+}

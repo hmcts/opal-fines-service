@@ -32,7 +32,7 @@ public final class TimelineData {
             .statusDate(timestamp)
             .reasonText(reason)
             .build();
-        entries.addFirst(entry);
+        entries.add(entry);
     }
 
     public String toJson() {

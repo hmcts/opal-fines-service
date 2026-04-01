@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/paymentMethodReference.json",
+  "title": "paymentMethodReference",
+  "type": "object",
+  "required": ["paymentMethod", "paymentMethodDisplayName"],
+  "properties": {
+    "paymentMethod": {
+      "type": "string",
+      "enum": ["NC", "CQ", "CT", "PO"]
+    },
+    "paymentMethodDisplayName": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
