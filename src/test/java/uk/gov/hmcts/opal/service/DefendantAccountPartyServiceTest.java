@@ -145,6 +145,58 @@ class DefendantAccountPartyServiceTest {
     }
 
     @Test
+    void addDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
+        // Arrange
+        String authHeader = "Bearer token";
+        Long defendantAccountId = 10L;
+        Long defendantAccountPartyId = 20L;
+        String ifMatch = "W/\"1\"";
+        String businessUnitId = "5";
+        short buId = Short.parseShort(businessUnitId);
+
+        DefendantAccountParty request = new DefendantAccountParty(); // DTO - constructor should exist
+        GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
+
+        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
+        when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
+            .thenReturn(true);
+
+        when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
+            anyLong(), anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
+            .thenReturn(expectedResponse);
+
+        // Act
+        GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, businessUnitId, request
+        );
+
+        // Assert
+        assertThat(actual).isSameAs(expectedResponse);
+
+        // Capture the last two String arguments (postedBy and businessUnitUserId)
+        ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(defendantAccountPartyServiceProxy).addDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            buUserIdCaptor.capture(),
+            postedByCaptor.capture(),
+            eq(ifMatch),
+            eq(request)
+        );
+
+        // When BusinessUnitUser present and has a non-blank id, postedBy should be that id and businessUnitUserId same
+        assertThat(postedByCaptor.getValue()).isEqualTo("b-user-id");
+        assertThat(buUserIdCaptor.getValue()).isEqualTo("b-user-id");
+    }
+
+
+    @Test
     void replaceDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
         // Arrange
         String authHeader = "Bearer token";
