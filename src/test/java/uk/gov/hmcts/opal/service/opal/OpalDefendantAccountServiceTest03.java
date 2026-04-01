@@ -285,6 +285,7 @@ class OpalDefendantAccountServiceTest03 {
 
         PartyEntity party = mock(PartyEntity.class);
         when(party.getPartyId()).thenReturn(123L);
+        when(party.isOrganisation()).thenReturn(true);
 
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
             .defendantAccountPartyId(dapId)
@@ -303,7 +304,7 @@ class OpalDefendantAccountServiceTest03 {
 
         when(debtorRepoService.findById(123L)).thenReturn(Optional.of(new DebtorDetailEntity()));
 
-        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
+        when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant")
@@ -347,6 +348,8 @@ class OpalDefendantAccountServiceTest03 {
             verify(party).setOrganisationName("ACME LTD");
             verify(party).setAddressLine1("1 MAIN");
             verify(party).setPrimaryEmailAddress("a@b.com");
+            verify(defendantAccountPartiesRepository, never())
+                .deleteByAccountIdAndAssociationTypeExcludingDapId(anyLong(), any(), anyLong());
 
             // called inside replaceAliasesForParty and again when building response
             verify(aliasRepoService, times(2)).findByPartyId(123L);
