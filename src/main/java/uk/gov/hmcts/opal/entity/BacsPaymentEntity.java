@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -45,6 +47,7 @@ public class BacsPaymentEntity {
     private Long bacsNumber;
 
     @Column(name = "issue_date", nullable = false)
+    @Temporal(TemporalType.DATE)
     private LocalDate issueDate;
 
     @Column(name = "creditor_transaction_id")

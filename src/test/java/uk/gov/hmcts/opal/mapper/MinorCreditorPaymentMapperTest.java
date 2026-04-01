@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -14,7 +13,6 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCredit
 
 @SpringJUnitConfig
 @ContextConfiguration(classes = {MinorCreditorPaymentMapperImpl.class})
-@Isolated
 class MinorCreditorPaymentMapperTest {
 
     @Autowired

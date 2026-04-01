@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,9 +45,11 @@ public class ReportEntryEntity {
     private String reportId;
 
     @Column(name = "entry_timestamp")
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime entryTimestamp;
 
     @Column(name = "reported_timestamp")
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime reportedTimestamp;
 
     @Column(name = "associated_record_type", length = 30)

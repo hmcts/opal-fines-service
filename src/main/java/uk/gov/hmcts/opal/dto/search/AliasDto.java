@@ -1,15 +1,11 @@
 package uk.gov.hmcts.opal.dto.search;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class AliasDto {
     @JsonProperty("alias_number")
     private Integer aliasNumber;

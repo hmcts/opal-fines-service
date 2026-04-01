@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -23,7 +22,6 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
     MinorCreditorAccountHeaderSummaryMapperImpl.class,
     BusinessUnitSummaryMapperImpl.class
 })
-@Isolated
 class MinorCreditorAccountHeaderSummaryMapperTest {
 
     @Autowired

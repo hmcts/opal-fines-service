@@ -4,7 +4,7 @@ Feature: Add Draft Account Authorisation
   @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4464
   Scenario: Post Draft Account - Invalid Auth
     Given I set an invalid token
-    When I create a draft account with the following details using a raw HTTP client
+    When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

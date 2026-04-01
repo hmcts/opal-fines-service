@@ -106,13 +106,13 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(97))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_name")
-                           .value(hasItem("AAA Business Unit 001")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_code").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_type").value(hasItem("Area")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].account_number_prefix").value(hasItem("XX")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].welsh_language").value(hasItem(true)))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].opal_domain").value(hasItem("Fines")));
+            .andExpect(jsonPath("$.refData[0].business_unit_id").value(1))
+            .andExpect(jsonPath("$.refData[0].business_unit_name").value("AAA Business Unit 001"))
+            .andExpect(jsonPath("$.refData[0].business_unit_code").value("AAAA"))
+            .andExpect(jsonPath("$.refData[0].business_unit_type").value("Area"))
+            .andExpect(jsonPath("$.refData[0].account_number_prefix").value("XX"))
+            .andExpect(jsonPath("$.refData[0].welsh_language").value(true))
+            .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
 
         jsonSchemaValidationService.validateOrError(body, GET_BUNITS_REF_DATA_RESPONSE);
     }
@@ -142,12 +142,12 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(97))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_name")
-                           .value(hasItem("AAA Business Unit 001")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_code").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_type").value(hasItem("Area")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].account_number_prefix").value(hasItem("XX")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].opal_domain").value(hasItem("Fines")));
+            .andExpect(jsonPath("$.refData[0].business_unit_id").value(1))
+            .andExpect(jsonPath("$.refData[0].business_unit_name").value("AAA Business Unit 001"))
+            .andExpect(jsonPath("$.refData[0].business_unit_code").value("AAAA"))
+            .andExpect(jsonPath("$.refData[0].business_unit_type").value("Area"))
+            .andExpect(jsonPath("$.refData[0].account_number_prefix").value("XX"))
+            .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
     }
 
     @Test

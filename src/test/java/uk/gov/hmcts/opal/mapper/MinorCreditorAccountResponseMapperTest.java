@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -28,7 +27,6 @@ import uk.gov.hmcts.opal.mapper.common.PartyMapperImpl;
     IndividualDetailsMapperImpl.class,
     OrganisationDetailsMapperImpl.class
 })
-@Isolated
 class MinorCreditorAccountResponseMapperTest {
 
     @Autowired

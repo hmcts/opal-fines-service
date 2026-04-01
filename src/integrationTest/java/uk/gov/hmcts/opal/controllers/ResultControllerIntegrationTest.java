@@ -91,10 +91,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(64))
-            .andExpect(jsonPath("$.refData[?(@.result_id == 'AAAAAA')].result_title")
-                           .value(hasItems("First Ever Result Entry for Testing")))
-            .andExpect(jsonPath("$.refData[?(@.result_id == 'ABDC')].result_title")
-                           .value(hasItems("Application made for Benefit Deductions")));
+            .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"))
+            .andExpect(jsonPath("$.refData[0].result_title").value("First Ever Result Entry for Testing"))
+            .andExpect(jsonPath("$.refData[1].result_id").value("ABDC"))
+            .andExpect(jsonPath("$.refData[1].result_title").value("Application made for Benefit Deductions"));
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
@@ -111,10 +111,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.refData[?(@.result_id == 'AAAAAA')].result_title")
-                           .value(hasItems("First Ever Result Entry for Testing")))
-            .andExpect(jsonPath("$.refData[?(@.result_id == 'BWTD')].result_title")
-                           .value(hasItems("Bail Warrant - dated")));
+            .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"))
+            .andExpect(jsonPath("$.refData[0].result_title").value("First Ever Result Entry for Testing"))
+            .andExpect(jsonPath("$.refData[1].result_id").value("BWTD"))
+            .andExpect(jsonPath("$.refData[1].result_title").value("Bail Warrant - dated"));
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
@@ -265,10 +265,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Manual enforcement: manual_enforcement_only=true returns those with manual_enforcement=true")
+    @DisplayName("Manual enforcement: manual_enforcement=true returns those with manual_enforcement=true")
     void testManualEnforcementTrue() throws Exception {
         // AAAAAA and DDDDDD have manual_enforcement = true
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "?manual_enforcement_only=true"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?manual_enforcement=true"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testManualEnforcementTrue: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -280,10 +280,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Manual enforcement: manual_enforcement_only=false returns those with manual_enforcement=false")
+    @DisplayName("Manual enforcement: manual_enforcement=false returns those with manual_enforcement=false")
     void testManualEnforcementFalse() throws Exception {
         // BBBBBB and CC0000 have manual_enforcement = false
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "?manual_enforcement_only=false"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?manual_enforcement=false"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testManualEnforcementFalse: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -376,19 +376,17 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Mixed booleans: active=true & manual_enforcement_only=true & enforcement=true "
-        + "returns single AAAAAA from a constrained set")
+    @DisplayName("Mixed booleans: active=true & manual_enforcement=true & enforcement=true returns single AAAAAA")
     void testMixedThreeBooleansReturnsSingle() throws Exception {
-        // Within this constrained set, only AAAAAA satisfies all three filters.
+        // only AAAAAA satisfies all three: active=true, manual_enforcement=true and enforcement=true
         ResultActions actions = mockMvc.perform(get(URL_BASE
-            + "?result_ids=AAAAAA,BBBBBB,DDDDDD&active=true&manual_enforcement_only=true&enforcement=true"));
+            + "?active=true&manual_enforcement=true&enforcement=true"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testMixedThreeBooleansReturnsSingle: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"));
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
@@ -458,3 +456,4 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
 }
+

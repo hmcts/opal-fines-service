@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
-import uk.gov.hmcts.opal.utils.TestHttpClient;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.text.IsBlankString.blankOrNullString;
@@ -36,7 +35,35 @@ public class DraftAccountPostSteps extends BaseStepDef {
 
     @When("I create a draft account with the following details")
     public void postDraftAccount(DataTable accountData) throws JSONException, IOException {
-        JSONObject postBody = buildDraftAccountPostBody(accountData.asMap(String.class, String.class));
+        Map<String, String> dataToPost = accountData.asMap(String.class, String.class);
+        JSONObject postBody = new JSONObject();
+
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addAllToJsonObject(postBody, dataToPost, "submitted_by", "submitted_by_name", "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
+
+        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
+            + dataToPost.get(
+            "account");
+        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
+        JSONObject accountObject = new JSONObject(account);
+
+        accountObject.put("originator_id", accountObject.getLong("originator_id"));
+        accountObject.put("enforcement_court_id", accountObject.getLong("enforcement_court_id"));
+
+        JSONArray offences = accountObject.getJSONArray("offences");
+        for (int i = 0; i < offences.length(); i++) {
+            JSONObject offence = offences.getJSONObject(i);
+            offence.put("offence_id", offence.getLong("offence_id"));
+        }
+
+        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
+            + "/draftAccounts/timelineJson/default.json";
+        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
+        JSONArray timelineArray = new JSONArray(timeline);
+
+        postBody.put("account", accountObject);
+        postBody.put("timeline_data", timelineArray);
 
         SerenityRest
             .given().log().all()
@@ -46,24 +73,6 @@ public class DraftAccountPostSteps extends BaseStepDef {
             .body(postBody.toString())
             .when()
             .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
-    }
-
-    @When("I create a draft account with the following details using a raw HTTP client")
-    public void postDraftAccountUsingRawHttpClient(DataTable accountData) throws JSONException, IOException {
-        JSONObject postBody = buildDraftAccountPostBody(accountData.asMap(String.class, String.class));
-
-        Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(
-            TestHttpClient.request(
-                "POST",
-                getTestUrl() + DRAFT_ACCOUNTS_URI,
-                Map.of(
-                    "Accept", "*/*",
-                    "Authorization", "Bearer " + getToken(),
-                    "Content-Type", "application/json"
-                ),
-                postBody.toString()
-            )
-        );
     }
 
     @Then("I store the created draft account ID")
@@ -186,15 +195,6 @@ public class DraftAccountPostSteps extends BaseStepDef {
 
     @Then("The draft account response returns {int}")
     public void draftAccountResponse(int statusCode) {
-        var httpResponse = Serenity.<uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse>sessionVariableCalled(
-            LATEST_HTTP_RESPONSE
-        );
-        if (httpResponse != null) {
-            assertEquals(statusCode, httpResponse.statusCode(), "Unexpected HTTP status");
-            Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(null);
-            return;
-        }
-
         then().assertThat()
             .statusCode(statusCode);
     }
@@ -270,36 +270,5 @@ public class DraftAccountPostSteps extends BaseStepDef {
             .when()
             .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
 
-    }
-
-    private JSONObject buildDraftAccountPostBody(Map<String, String> dataToPost) throws JSONException, IOException {
-        JSONObject postBody = new JSONObject();
-
-        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addAllToJsonObject(postBody, dataToPost, "submitted_by", "submitted_by_name", "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get("account");
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-
-        accountObject.put("originator_id", accountObject.getLong("originator_id"));
-        accountObject.put("enforcement_court_id", accountObject.getLong("enforcement_court_id"));
-
-        JSONArray offences = accountObject.getJSONArray("offences");
-        for (int i = 0; i < offences.length(); i++) {
-            JSONObject offence = offences.getJSONObject(i);
-            offence.put("offence_id", offence.getLong("offence_id"));
-        }
-
-        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-            + "/draftAccounts/timelineJson/default.json";
-        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONArray timelineArray = new JSONArray(timeline);
-
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
-        return postBody;
     }
 }

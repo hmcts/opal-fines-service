@@ -121,11 +121,6 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
-        public RequestHeadersSpec apiVersion(Object version) {
-            return requestHeadersUriSpec;
-        }
-
-        @Override
         public RequestHeadersSpec attributes(Consumer attributesConsumer) {
             return requestHeadersUriSpec;
         }
@@ -256,17 +251,7 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
-        public RequestBodySpec apiVersion(Object version) {
-            return requestBodyUriSpec;
-        }
-
-        @Override
         public RequestBodySpec attributes(Consumer<Map<String, Object>> attributesConsumer) {
-            return requestBodyUriSpec;
-        }
-
-        @Override
-        public RequestBodySpec hint(String key, Object value) {
             return requestBodyUriSpec;
         }
 
@@ -332,27 +317,12 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
-        public ResponseSpec hint(String key, Object value) {
-            return responseSpec;
-        }
-
-        @Override
         public <T> T body(Class<T> bodyType) {
             return null;
         }
 
         @Override
         public <T> T body(ParameterizedTypeReference<T> bodyType) {
-            return null;
-        }
-
-        @Override
-        public <T> T requiredBody(Class<T> bodyType) {
-            return null;
-        }
-
-        @Override
-        public <T> T requiredBody(ParameterizedTypeReference<T> bodyType) {
             return null;
         }
 

@@ -1,20 +1,19 @@
 package uk.gov.hmcts.opal.util;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.JsonParser;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class KeepAsJsonDeserializer extends StdDeserializer<String> {
+import java.io.IOException;
 
-    public KeepAsJsonDeserializer() {
-        super(String.class);
-    }
+public class KeepAsJsonDeserializer extends JsonDeserializer<String> {
 
     @Override
     public String deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws JacksonException {
+        throws IOException {
 
-        return jp.readValueAsTree().toString();
+        TreeNode tree = jp.getCodec().readTree(jp);
+        return tree.toString();
     }
 }

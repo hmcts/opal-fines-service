@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.hamcrest.Matchers.hasItem;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,12 +74,13 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[?(@.majorCreditorId == 1)].majorCreditorCode").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$[?(@.majorCreditorId == 1)].name").value(hasItem("AAAA Credit Services")))
-            .andExpect(jsonPath("$[?(@.majorCreditorId == 1)].addressLine1").value(hasItem("Credit Lane")))
-            .andExpect(jsonPath("$[?(@.majorCreditorId == 1)].addressLine2").value(hasItem("Creditville")))
-            .andExpect(jsonPath("$[?(@.majorCreditorId == 1)].addressLine3").value(hasItem("Crediton")))
-            .andExpect(jsonPath("$[?(@.majorCreditorId == 1)].postcode").value(hasItem("CR1 1CR")));
+            .andExpect(jsonPath("$[0].majorCreditorId").value(1))
+            .andExpect(jsonPath("$[0].majorCreditorCode").value("AAAA"))
+            .andExpect(jsonPath("$[0].name").value("AAAA Credit Services"))
+            .andExpect(jsonPath("$[0].addressLine1").value("Credit Lane"))
+            .andExpect(jsonPath("$[0].addressLine2").value("Creditville"))
+            .andExpect(jsonPath("$[0].addressLine3").value("Crediton"))
+            .andExpect(jsonPath("$[0].postcode").value("CR1 1CR"));
     }
 
     @Test
@@ -104,11 +104,11 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(97))
-            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].major_creditor_code").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].name")
-                           .value(hasItem("AAAA Credit Services")))
-            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].postcode").value(hasItem("CR1 1CR")))
-            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].business_unit_id").value(hasItem(78)))
+            .andExpect(jsonPath("$.refData[1].major_creditor_id").value(1))
+            .andExpect(jsonPath("$.refData[1].major_creditor_code").value("AAAA"))
+            .andExpect(jsonPath("$.refData[1].name").value("AAAA Credit Services"))
+            .andExpect(jsonPath("$.refData[1].postcode").value("CR1 1CR"))
+            .andExpect(jsonPath("$.refData[1].business_unit_id").value(78))
             .andReturn();
 
         jsonSchemaValidationService.validateOrError(body, GET_MAJOR_CREDS_REF_DATA_RESPONSE);

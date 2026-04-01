@@ -3,9 +3,7 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
-import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 import java.util.Map;
 
@@ -48,12 +46,6 @@ public class GetResultsStepDef extends BaseStepDef {
     /** Verifies the HTTP status code of the last API response. */
     @Then("the response status is {int}")
     public void theResponseStatusIs(int status) {
-        TestHttpResponse httpResponse = Serenity.sessionVariableCalled(LATEST_HTTP_RESPONSE);
-        if (httpResponse != null) {
-            assertEquals(status, httpResponse.statusCode(), "Unexpected HTTP status");
-            Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(null);
-            return;
-        }
         then()
             .log().ifValidationFails()  // shows payload on failure
             .statusCode(status);

@@ -11,7 +11,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DefendantAccountAddNoteStepDef extends BaseStepDef {

@@ -4,10 +4,8 @@ package uk.gov.hmcts.opal.dto.search;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 
@@ -15,8 +13,6 @@ import java.util.List;
 
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class AccountSearchDto implements ToJsonString {
     /** Business Unit IDs (optional). */
     @JsonProperty("business_unit_ids")
@@ -38,9 +34,5 @@ public class AccountSearchDto implements ToJsonString {
     private DefendantDto defendant;
 
     @JsonProperty("consolidation_search")
-    private Boolean consolidationSearch;
-
-    public boolean isConsolidationSearch() {
-        return Boolean.TRUE.equals(consolidationSearch);
-    }
+    private boolean consolidationSearch;
 }

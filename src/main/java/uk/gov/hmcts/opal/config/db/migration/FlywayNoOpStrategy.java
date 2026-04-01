@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.config.db.migration;
 
 import lombok.Generated;
 import org.flywaydb.core.Flyway;
-import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 
 import java.util.stream.Stream;
 

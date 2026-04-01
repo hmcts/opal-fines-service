@@ -228,7 +228,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnprocessableException.class)
     public ResponseEntity<ProblemDetail> handleUnprocessableException(UnprocessableException ex) {
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNPROCESSABLE_CONTENT,
+            HttpStatus.UNPROCESSABLE_ENTITY,
             "Unprocessable Entity",
             "The request could not be processed",
             "unprocessable-entity",
@@ -238,7 +238,7 @@ public class GlobalExceptionHandler {
 
         problemDetail.setProperty("unprocessableReason", ex.getDetailedReason());
 
-        return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, problemDetail);
+        return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, problemDetail);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
