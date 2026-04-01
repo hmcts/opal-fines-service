@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntit
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = GetMinorCreditorAccountAtAGlanceResponseMapperTest.MapperTestConfig.class)
+@Isolated
 public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
 
     @Autowired

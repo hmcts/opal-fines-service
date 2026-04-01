@@ -12,8 +12,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,7 +44,6 @@ public class HmrcRequestEntity {
     private String uuid;
 
     @Column(name = "requested_date", nullable = false)
-    @Temporal(TemporalType.DATE)
     private LocalDate requestedDate;
 
     @Column(name = "requested_by", nullable = false)
@@ -68,14 +65,12 @@ public class HmrcRequestEntity {
     private String niNumber;
 
     @Column(name = "dob", nullable = false)
-    @Temporal(TemporalType.DATE)
     private LocalDate dob;
 
     @Column(name = "last_enforcement", length = 24)
     private String lastEnforcement;
 
     @Column(name = "response_date")
-    @Temporal(TemporalType.DATE)
     private LocalDate responseDate;
 
     @Column(name = "response_data")

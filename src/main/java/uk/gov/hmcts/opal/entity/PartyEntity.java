@@ -12,8 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -89,7 +87,6 @@ public class PartyEntity implements FullNameBuilder {
     private AccountType accountType;
 
     @Column(name = "birth_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate birthDate;
 
@@ -115,7 +112,6 @@ public class PartyEntity implements FullNameBuilder {
     private String secondaryEmailAddress;
 
     @Column(name = "last_changed_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime lastChangedDate;
 

@@ -12,8 +12,8 @@ import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
 public class PaymentTermsSummary implements ToJsonString {
 
     @JsonProperty("payment_terms_type")

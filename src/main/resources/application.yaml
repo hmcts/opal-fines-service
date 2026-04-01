@@ -24,9 +24,6 @@ spring:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
     name: Opal Fines Service
-  jackson:
-    serialization:
-      write_dates_as_timestamps: false
   security:
     oauth2:
       client:

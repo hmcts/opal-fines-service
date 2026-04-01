@@ -16,8 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -64,7 +62,6 @@ public class DefendantAccountEntity implements Versioned {
     private String accountNumber;
 
     @Column(name = "imposed_hearing_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate imposedHearingDate;
 
@@ -84,7 +81,6 @@ public class DefendantAccountEntity implements Versioned {
     private String accountStatus;
 
     @Column(name = "completed_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate completedDate;
 
@@ -97,12 +93,10 @@ public class DefendantAccountEntity implements Versioned {
     private CourtEntity.Lite lastHearingCourt;
 
     @Column(name = "last_hearing_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastHearingDate;
 
     @Column(name = "last_movement_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastMovementDate;
 
@@ -110,7 +104,6 @@ public class DefendantAccountEntity implements Versioned {
     private String lastEnforcement;
 
     @Column(name = "last_changed_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastChangedDate;
 
@@ -154,22 +147,18 @@ public class DefendantAccountEntity implements Versioned {
     private Boolean collectionOrder;
 
     @Column(name = "collection_order_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate collectionOrderEffectiveDate;
 
     @Column(name = "further_steps_notice_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate furtherStepsNoticeDate;
 
     @Column(name = "confiscation_order_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate confiscationOrderDate;
 
     @Column(name = "fine_registration_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate fineRegistrationDate;
 
@@ -180,7 +169,6 @@ public class DefendantAccountEntity implements Versioned {
     private Boolean paymentCardRequested;
 
     @Column(name = "payment_card_requested_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate paymentCardRequestedDate;
 
@@ -204,7 +192,6 @@ public class DefendantAccountEntity implements Versioned {
     private DefendantAccountType accountType;
 
     @Column(name = "suspended_committal_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate suspendedCommittalDate;
 

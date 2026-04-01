@@ -10,8 +10,8 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DefendantAccountSearchStepDef extends BaseStepDef {
@@ -68,7 +68,7 @@ public class DefendantAccountSearchStepDef extends BaseStepDef {
         // basic shape assertions
         Integer count;
         count = then().extract().jsonPath().getInt("count");
-        assertNotNull("count should be present", count);
+        assertNotNull(count, "count should be present");
 
         // if count > 0, check the first result has the new fields
         if (count > 0) {
@@ -76,17 +76,17 @@ public class DefendantAccountSearchStepDef extends BaseStepDef {
                     .getBoolean("defendant_accounts[0].has_collection_order");
             Integer accountVersion = then().extract().jsonPath().getInt("defendant_accounts[0].account_version");
 
-            assertNotNull("has_collection_order should be present", hasCollectionOrder);
-            assertNotNull("account_version should be present", accountVersion);
+            assertNotNull(hasCollectionOrder, "has_collection_order should be present");
+            assertNotNull(accountVersion, "account_version should be present");
 
             // checks + arrays exist (can be empty)
             Object checks = then().extract().jsonPath().get("defendant_accounts[0].checks");
-            assertNotNull("checks should be present", checks);
+            assertNotNull(checks, "checks should be present");
 
             Object warnings = then().extract().jsonPath().get("defendant_accounts[0].checks.warnings");
             Object errors = then().extract().jsonPath().get("defendant_accounts[0].checks.errors");
-            assertNotNull("checks.warnings should be present", warnings);
-            assertNotNull("checks.errors should be present", errors);
+            assertNotNull(warnings, "checks.warnings should be present");
+            assertNotNull(errors, "checks.errors should be present");
         }
     }
 

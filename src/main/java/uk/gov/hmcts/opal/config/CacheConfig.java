@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
-import org.springframework.boot.actuate.data.redis.RedisHealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.data.redis.health.DataRedisHealthIndicator;
+import org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
@@ -23,8 +23,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 
@@ -68,7 +69,9 @@ public class CacheConfig {
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofHours(redisTtlHours))
-            .serializeValuesWith(SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+            .serializeValuesWith(SerializationPair.fromSerializer(
+                new GenericJacksonJsonRedisSerializer(new ObjectMapper())
+            ));
 
         this.cacheManager = RedisCacheManager.builder(redisConnectionFactory)
             .cacheDefaults(cacheConfig)
@@ -80,8 +83,8 @@ public class CacheConfig {
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     @ConditionalOnEnabledHealthIndicator("redis")
-    public RedisHealthIndicator redisHealthIndicator(RedisConnectionFactory redisConnectionFactory) {
-        return new RedisHealthIndicator(redisConnectionFactory);
+    public DataRedisHealthIndicator redisHealthIndicator(RedisConnectionFactory redisConnectionFactory) {
+        return new DataRedisHealthIndicator(redisConnectionFactory);
     }
 
     @Bean
