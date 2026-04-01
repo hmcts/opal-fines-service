@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences;
+
 
 
 import java.math.BigInteger;
