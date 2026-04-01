@@ -51,6 +51,18 @@
       "allowedVersions": "<2025.1.0"
     },
     {
+      "description": "Group Tomcat embed dependencies",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "org.apache.tomcat.embed:tomcat-embed-core",
+        "org.apache.tomcat.embed:tomcat-embed-websocket",
+        "org.apache.tomcat.embed:tomcat-embed-el",
+        "org.apache.tomcat:tomcat-annotations-api"
+      ],
+      "groupName": "Tomcat Embed",
+      "groupSlug": "tomcat-embed"
+    },
+    {
       "description": "Group all Gradle plugins (Minor/Patch)",
       "matchManagers": ["gradle"],
       "matchPackagePatterns": ["^org\\.springframework\\.boot$", "^io\\.spring\\.dependency-management$", "^com\\.github\\.ben-manes\\.versions$", "^org\\.sonarqube$", "^uk\\.gov\\.hmcts\\.java$", "^org\\.flywaydb\\.flyway$", "^net\\.serenity-bdd\\.serenity-gradle-plugin$", "^org\\.openapi.generator$"],
