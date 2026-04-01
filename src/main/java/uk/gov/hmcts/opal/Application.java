@@ -8,6 +8,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import uk.gov.hmcts.opal.config.FeignConfiguration;
 
 @SpringBootApplication(
     scanBasePackages = {
@@ -16,7 +17,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     }
 )
 @EnableJpaRepositories("uk.gov.hmcts.opal.*")
-@EnableFeignClients("uk.gov.hmcts.opal.*")
+@EnableFeignClients(basePackages = "uk.gov.hmcts.opal.*", defaultConfiguration = FeignConfiguration.class)
 @EntityScan("uk.gov.hmcts.opal.*")
 @EnableCaching
 @Slf4j

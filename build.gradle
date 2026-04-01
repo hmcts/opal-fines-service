@@ -482,6 +482,7 @@ dependencies {
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
+  implementation 'io.github.openfeign:feign-jackson'
 
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 
