@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Defendant Account History Legacy Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "from_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "to_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "item_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Amendment",
+          "Enforcement",
+          "Financial",
+          "Note",
+          "Payment Terms"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+
+  },
+  "required": [
+    "defendant_account_id"
+  ]
+}

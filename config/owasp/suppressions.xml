@@ -14,11 +14,14 @@
     <cve>CVE-2025-7962</cve>
   </suppress>
 
-  <suppress until="2026-04-01Z">
+  <suppress until="2026-06-01Z">
     <notes><![CDATA[
-    This vulnerability relates to nu.validator:validator library which is not used within this project.
-Suppress CVE-2025-15104 only when Dependency-Check maps a dependency to the generic CPE
-"validator:validator" (known false-positive for various *-validator libraries).
+    Reviewed 2026-04-01.
+    CVE-2025-15104 relates to nu.validator:validator, which is not present in this repo's runtime classpath.
+    Keep this suppression only for Dependency-Check false positives where validator libraries are mapped to the
+    generic CPE "validator:validator".
+    Runtime review found org.hibernate.validator:hibernate-validator:8.0.3.Final and
+    com.networknt:json-schema-validator:1.5.9, but no nu.validator:validator dependency.
     ]]></notes>
     <!-- Matches: cpe:2.3:a:validator:validator:<any>:*:*:*:*:*:*:* -->
     <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>

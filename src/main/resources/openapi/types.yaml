@@ -17,3 +17,15 @@ components:
       maximum: 999999999999
       minimum: 0
       multipleOf: 0.01
+    monetaryNegativeOrPositive:
+      type: number
+      description: A monetary value that can be negative, zero, or positive, with up to two decimal places.
+      minimum: -9999999999
+      maximum: 9999999999
+      multipleOf: 0.01
+    monetaryZeroOrNegative:
+      type: number
+      description: A monetary value that is zero or negative, with up to two decimal places.
+      maximum: 0
+      minimum: -9999999999
+      multipleOf: 0.01

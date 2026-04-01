@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/defendantTransactionTypeReference.json",
+  "title": "defendantTransactionTypeReference",
+  "type": "object",
+  "required": ["transactionType", "transactionTypeDisplayName"],
+  "properties": {
+    "transactionType": {
+      "type": "string",
+      "enum": [
+        "CANCHQ", "CHEQUE", "CONSOL", "DISHCQ", "FR-SUS", "MADJ",
+        "PAYMNT", "REPSUS", "REVPAY", "RICHEQ", "RVWOFF", "TFO",
+        "TFOIN", "WRTOFF", "XFER"
+      ]
+    },
+    "transactionTypeDisplayName": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

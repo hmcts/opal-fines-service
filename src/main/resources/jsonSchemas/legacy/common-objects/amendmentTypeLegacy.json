@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/amendmentType.json",
+  "title": "amendmentType",
+  "type": "object",
+  "required": ["attributeName", "oldValue", "newValue"],
+  "properties": {
+    "attributeName": {
+      "type": "string"
+    },
+    "oldValue": {
+      "type": "string"
+    },
+    "newValue": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

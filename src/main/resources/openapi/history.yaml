@@ -1,0 +1,181 @@
+openapi: 3.1.1
+info:
+  description: Opal Fines Service - History items
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  title: Opal Fines Service
+  version: v0.0.1
+components:
+  schemas:
+    defendantAccountHistoryItem:
+      name: historyItem
+      type: object
+      required:
+        - postedDetails
+        - type
+        - details
+      properties:
+        postedDetails:
+          $ref: './common.yaml#/components/schemas/postedDetails'
+        type:
+          type: string
+          description: History item type.
+          enum:
+            - Amendment
+            - Enforcement
+            - Financial
+            - Note
+            - Payment terms
+        details:
+          oneOf:
+            - $ref: './common.yaml#/components/schemas/amendmentType'
+            - $ref: '#/components/schemas/enforcementDetails'
+            - $ref: '#/components/schemas/noteDetails'
+            - $ref: '#/components/schemas/defendantTransactionDetails'
+            - $ref: './common.yaml#/components/schemas/paymentTerms'
+          description: History item details
+        amount:
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
+
+    minorCreditorHistoryItem:
+      name: historyItem
+      type: object
+      required:
+        - postedDetails
+        - type
+        - details
+      properties:
+        postedDetails:
+          $ref: './common.yaml#/components/schemas/postedDetails'
+        type:
+          type: string
+          description: History item type.
+          enum:
+            - Amendment
+            - Financial
+            - Note
+        details:
+          oneOf:
+            - $ref: './common.yaml#/components/schemas/amendmentType'
+            - $ref: '#/components/schemas/noteDetails'
+            - $ref: '#/components/schemas/creditorTransactionDetails'
+          description: History item details
+        amount:
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
+
+    majorCreditorHistoryItem:
+      name: historyItem
+      type: object
+      required:
+        - postedDetails
+        - type
+        - details
+      properties:
+        postedDetails:
+          $ref: './common.yaml#/components/schemas/postedDetails'
+        type:
+          type: string
+          description: History item type.
+          enum:
+            - Financial
+        details:
+          $ref: '#/components/schemas/creditorTransactionDetails'
+        amount:
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
+
+
+    enforcementDetails:
+      type: object
+      required:
+        - enforcementAction
+      properties:
+        enforcementAction:
+          type: string
+        daysInDefault:
+          type: integer
+        warrantNumber:
+          type: string
+        hearingDate:
+            type: string
+            format: date
+        hearingCourt:
+          $ref: './common.yaml#/components/schemas/courtReference'
+        caseNumber:
+          type: string
+        reason:
+          type: string
+        earliestDateOfRelease:
+          type: string
+          format: date
+    noteDetails:
+      type: object
+      required:
+        - note
+      properties:
+        noteText:
+          type: string
+
+    defendantTransactionDetails:
+      name: transactionDetails
+      type: object
+      required:
+        - transactionType
+      properties:
+        transactionType:
+          $ref: './common.yaml#/components/schemas/defendantTransactionTypeReference'
+        paymentMethod:
+          $ref: './common.yaml#/components/schemas/paymentMethodReference'
+        paymentReference:
+          type: string
+        additionalInformation:
+          type: string
+        writeOff:
+          $ref: './common.yaml#/components/schemas/writeOffTypeReference'
+        status:
+          $ref: './common.yaml#/components/schemas/defendantTransactionStatusReference'
+        statusDate:
+          type: string
+          format: date-time
+        associatedRecordType:
+            type: string
+        associatedRecordId:
+            type: string
+        accountNumber:
+            type: string
+        sendingCourt:
+          type: string
+        impositionDate:
+          type: string
+          format: date
+        impositionCode:
+          type: string
+        amountImposed:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrNegative'
+
+    creditorTransactionDetails:
+      name: transactionDetails
+      type: object
+      required:
+        - transactionType
+      properties:
+        transactionType:
+          $ref: './common.yaml#/components/schemas/creditorTransactionTypeReference'
+        paymentReference:
+          type: string
+        status:
+          $ref: './common.yaml#/components/schemas/creditorTransactionStatusReference'
+        statusDate:
+          type: string
+          format: date-time
+        associatedRecordType:
+          type: string
+        associatedRecordId:
+          type: string
+        accountNumber:
+          type: string
+        defendantAccountNumber:
+          type: string
+        defendantAccountId:
+          type: integer
+
