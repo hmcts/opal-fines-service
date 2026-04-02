@@ -8,6 +8,8 @@ import java.util.Map;
 
 public class BaseStepDef {
 
+    protected static final String LATEST_HTTP_RESPONSE = "LATEST_HTTP_RESPONSE";
+
     private static final String TEST_URL =
         System.getenv().getOrDefault("TEST_URL", "http://localhost:4550");
     private static final String LOGGING_TEST_URL =

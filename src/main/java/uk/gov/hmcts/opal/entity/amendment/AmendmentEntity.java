@@ -12,8 +12,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,7 +49,6 @@ public class AmendmentEntity {
 
     @Column(name = "amended_date", nullable = false)
     @JsonProperty("amended_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate amendedDate;
 

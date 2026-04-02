@@ -436,7 +436,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
         assertEquals("0", first.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
-        assertNull(first.getIpAddress());
+        assertEquals("127.0.0.1", first.getIpAddress());
         assertEquals(1, first.getIndividuals().size());
         assertEquals("8", first.getIndividuals().get(0).getIdentifier());
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().get(0).getType());
@@ -446,7 +446,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, second.getCategory());
         assertEquals("0", second.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
-        assertNull(second.getIpAddress());
+        assertEquals("127.0.0.1", second.getIpAddress());
         assertEquals(1, second.getIndividuals().size());
         assertEquals("8", second.getIndividuals().get(0).getIdentifier());
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().get(0).getType());

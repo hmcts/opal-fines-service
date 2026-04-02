@@ -16,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +34,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import tools.jackson.databind.JsonNode;
 
 @Slf4j(topic = "opal.DraftAccountControllerGetIntegrationTest")
 @DisplayName("DraftAccountControllerGetIntegrationTest")

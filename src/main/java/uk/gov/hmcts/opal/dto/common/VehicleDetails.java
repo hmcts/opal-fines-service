@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class VehicleDetails {
 
     @JsonProperty("vehicle_make_and_model")

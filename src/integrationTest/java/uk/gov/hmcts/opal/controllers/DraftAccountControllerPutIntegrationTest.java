@@ -151,7 +151,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
         assertEquals("1", l0.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
-        assertNull(l0.getIpAddress());
+        assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
         assertEquals(1, l0.getIndividuals().size());
         assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
@@ -163,7 +163,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l1.getCategory());
         assertEquals("1", l1.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
-        assertNull(l1.getIpAddress());
+        assertEquals("127.0.0.1", l1.getIpAddress());
         assertNull(l1.getRecipient());
         assertEquals(1, l1.getIndividuals().size());
         assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
@@ -285,7 +285,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
         assertEquals("1", l0.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
-        assertNull(l0.getIpAddress());
+        assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
         assertEquals(1, l0.getIndividuals().size());
         assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
@@ -353,7 +353,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
         assertEquals("1", first.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
-        assertNull(first.getIpAddress());
+        assertEquals("127.0.0.1", first.getIpAddress());
         assertNull(first.getRecipient());
         assertEquals(1, first.getIndividuals().size());
         assertEquals("5", first.getIndividuals().get(0).getIdentifier());

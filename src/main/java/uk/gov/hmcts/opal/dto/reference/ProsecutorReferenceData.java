@@ -2,8 +2,6 @@ package uk.gov.hmcts.opal.dto.reference;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -20,5 +18,5 @@ public record ProsecutorReferenceData(
     @JsonProperty("address_line_4") String addressLine4,
     @JsonProperty("address_line_5") String addressLine5,
     @JsonProperty("postcode") String postcode,
-    @JsonProperty("end_date") @Temporal(TemporalType.TIMESTAMP) LocalDateTime endDate) {
+    @JsonProperty("end_date") LocalDateTime endDate) {
 }

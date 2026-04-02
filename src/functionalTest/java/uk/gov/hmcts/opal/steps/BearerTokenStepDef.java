@@ -2,18 +2,18 @@ package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.AfterAll;
 import io.cucumber.java.Before;
-import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.When;
-import net.serenitybdd.rest.SerenityRest;
+import net.serenitybdd.core.Serenity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.gov.hmcts.opal.utils.TestHttpClient;
+import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 
 import java.util.concurrent.ConcurrentHashMap;
-
-import static net.serenitybdd.rest.SerenityRest.then;
 
 public class BearerTokenStepDef extends BaseStepDef {
 
@@ -36,25 +36,33 @@ public class BearerTokenStepDef extends BaseStepDef {
         return fetchToken(user);
     }
 
-    @BeforeAll
-    public static void setDefaultToken() {
-        TOKEN.set(tokenCache.computeIfAbsent(DEFAULT_USER, BearerTokenStepDef::fetchAccessToken));
-    }
-
     private static String fetchToken(String user) {
-        SerenityRest.given()
-            .accept("*/*")
-            .header("X-User-Email", user)
-            .contentType("application/json")
-            .when()
-            .get(getUserServiceUrl() + "/testing-support/token/user");
+        TestHttpResponse response = TestHttpClient.get(
+            getUserServiceUrl() + "/testing-support/token/user",
+            Map.of(
+                "Accept", "*/*",
+                "Content-Type", "application/json",
+                "X-User-Email", user
+            )
+        );
 
-        then().assertThat().statusCode(200);
-        return then().extract().body().jsonPath().getString("access_token");
+        if (response.statusCode() != 200) {
+            throw new IllegalStateException("Failed to fetch access token, status: " + response.statusCode());
+        }
+
+        return response.jsonPath("access_token");
     }
 
     public static String getToken() {
-        return ALT_TOKEN.get() != null ? ALT_TOKEN.get() : TOKEN.get();
+        if (ALT_TOKEN.get() != null) {
+            return ALT_TOKEN.get();
+        }
+
+        if (TOKEN.get() == null) {
+            TOKEN.set(tokenCache.computeIfAbsent(DEFAULT_USER, BearerTokenStepDef::fetchAccessToken));
+        }
+
+        return TOKEN.get();
     }
 
     @When("I am testing as the {string} user")
@@ -69,21 +77,27 @@ public class BearerTokenStepDef extends BaseStepDef {
 
     @When("I call {word} {string} without a token")
     public void callWithoutToken(String method, String path) {
-        SerenityRest.given()
-            .baseUri(getTestUrl())
-            .accept("*/*")
-            .when()
-            .request(method, path);
+        TestHttpResponse response = TestHttpClient.request(
+            method,
+            getTestUrl() + path,
+            Map.of("Accept", "*/*"),
+            null
+        );
+        Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(response);
     }
 
     @When("I call {word} {string} with an invalid token")
     public void callWithInvalidToken(String method, String path) {
-        SerenityRest.given()
-            .baseUri(getTestUrl())
-            .accept("*/*")
-            .header("Authorization", "Bearer invalidToken")
-            .when()
-            .request(method, path);
+        TestHttpResponse response = TestHttpClient.request(
+            method,
+            getTestUrl() + path,
+            Map.of(
+                "Accept", "*/*",
+                "Authorization", "Bearer invalidToken"
+            ),
+            null
+        );
+        Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(response);
     }
 
     private static String fetchExpiredToken(String user) {
