@@ -9,8 +9,8 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class DefendantAccountParty implements ToJsonString {
 
     @JsonProperty("defendant_account_party_type")

@@ -8,8 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -79,7 +77,6 @@ public class DebtorDetailEntity {
     private Language documentLanguage;
 
     @Column(name = "document_language_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate documentLanguageDate;
 
@@ -88,7 +85,6 @@ public class DebtorDetailEntity {
     private Language hearingLanguage;
 
     @Column(name = "hearing_language_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate hearingLanguageDate;
 }

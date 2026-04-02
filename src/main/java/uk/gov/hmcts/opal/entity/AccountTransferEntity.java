@@ -12,8 +12,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -55,7 +53,6 @@ public class AccountTransferEntity {
     private DefendantAccountEntity defendantAccount;
 
     @Column(name = "initiated_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime initiatedDate;
 
@@ -63,7 +60,6 @@ public class AccountTransferEntity {
     private String initiatedBy;
 
     @Column(name = "printed_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime printedDate;
 
@@ -80,7 +76,6 @@ public class AccountTransferEntity {
     private String reason;
 
     @Column(name = "reminder_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime reminderDate;
 

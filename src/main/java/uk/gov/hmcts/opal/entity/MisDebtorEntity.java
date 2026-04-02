@@ -10,8 +10,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -60,7 +58,6 @@ public class MisDebtorEntity {
     private String accountNumber;
 
     @Column(name = "account_start_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime accountStartDate;
 
@@ -74,7 +71,6 @@ public class MisDebtorEntity {
     private BigDecimal lumpSum;
 
     @Column(name = "terms_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime termsDate;
 
@@ -82,7 +78,6 @@ public class MisDebtorEntity {
     private Short daysInJail;
 
     @Column(name = "date_last_movement")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime dateLastMovement;
 

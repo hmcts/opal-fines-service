@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 @SpringBootTest(classes = {CacheConfig.class, CacheConfigTest.TestConfig.class})
+@Isolated
 class CacheConfigTest {
 
     @Autowired

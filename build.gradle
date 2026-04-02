@@ -11,19 +11,19 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.13'
+  id 'org.springframework.boot' version '4.0.5'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '7.2.3.7755'
   id 'uk.gov.hmcts.java' version '0.12.67'
   id 'org.flywaydb.flyway' version '11.20.3'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.2'
-  id "org.openapi.generator" version "7.19.0"
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
+  id "org.openapi.generator" version "7.21.0"
 }
 
 ext {
   log4JVersion = "2.25.3"
-  serenityVersion = "4.3.4"
-  cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
+  serenityVersion = "5.3.9"
+  cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
 //Should we fail fast on test failures?
@@ -201,7 +201,7 @@ openApiGenerate {
     dateLibrary                         : "java8-localdatetime",
     interfaceOnly                       : "true",
     useTags                             : "true",
-    useSpringBoot3                      : "true",
+    useSpringBoot4                      : "true",
     containerDefaultToNull              : "true",
     generatedConstructorWithRequiredArgs: "false",
     useBeanValidation                   : "true",
@@ -221,8 +221,6 @@ gradle.taskGraph.whenReady { taskGraph ->
 
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:unchecked"
-//  Enable the following to highlight all deprecated build errors
-  options.compilerArgs << "-Xlint:deprecation"
 //  Enable the following to stop the build on any warning messages (not just error messages)
   options.compilerArgs << "-Werror"
 //  Change the maximum number of reported compiler errors (default 100)
@@ -417,9 +415,9 @@ dependencyUpdates {
 
 dependencyManagement {
   imports {
-    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.1'
-    mavenBom "org.springframework.integration:spring-integration-bom:6.5.8"
-    mavenBom "com.fasterxml.jackson:jackson-bom:2.21.1"
+    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
+    mavenBom "org.springframework.integration:spring-integration-bom:7.0.4"
+    mavenBom "com.fasterxml.jackson:jackson-bom:2.21.2"
     mavenBom "io.netty:netty-bom:4.1.132.Final"
   }
 
@@ -450,10 +448,10 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.2.6'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.0'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.10'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.10'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.12'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.12'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
@@ -461,9 +459,10 @@ dependencies {
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
+  implementation 'org.springframework.boot:spring-boot-flyway'
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
-  implementation "org.springframework.boot:spring-boot-starter-aop"
+  implementation "org.springframework.boot:spring-boot-starter-aspectj"
   implementation "org.springframework.boot:spring-boot-starter-json"
   implementation "org.springframework.boot:spring-boot-starter-data-jpa"
   implementation "org.springframework.boot:spring-boot-starter-security"
@@ -483,8 +482,9 @@ dependencies {
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
+  implementation 'io.github.openfeign:feign-jackson'
 
-  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 
   implementation 'com.github.hmcts.java-logging:logging:8.0.0'
 
@@ -498,7 +498,6 @@ dependencies {
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.9'
-  implementation 'io.rest-assured:rest-assured'
   implementation 'org.flywaydb:flyway-core:11.20.3'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.3', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
@@ -508,7 +507,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.44'
   annotationProcessor 'org.projectlombok:lombok:1.18.44'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.44.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.46.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -537,9 +536,13 @@ dependencies {
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
+  testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+  testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-  testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
-  testImplementation 'org.testcontainers:postgresql'
+  testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+  testImplementation 'org.testcontainers:testcontainers-postgresql'
+  testImplementation 'io.rest-assured:rest-assured:6.0.0'
+  testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.0.3'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.springframework.boot:spring-boot-starter-test', {

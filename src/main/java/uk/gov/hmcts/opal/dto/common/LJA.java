@@ -9,8 +9,8 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class LJA implements ToJsonString {
 
     @JsonProperty("lja_id")
