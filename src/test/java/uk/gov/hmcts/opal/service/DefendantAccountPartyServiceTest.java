@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -81,9 +82,10 @@ class DefendantAccountPartyServiceTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // Act & Assert
-        PermissionNotAllowedException ex = assertThrows(PermissionNotAllowedException.class, () ->
-            defendantAccountPartyService
-                .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId, authHeader)
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class, () ->
+                defendantAccountPartyService
+                    .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId, authHeader)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -267,7 +269,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
-            anyLong(), anyLong(), anyString(), anyString(), anyString(), anyString(),any(DefendantAccountParty.class)))
+            anyLong(), anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
             .thenReturn(expectedResponse);
 
         // Act
@@ -316,6 +318,36 @@ class DefendantAccountPartyServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountPartyService.replaceDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, stringBusinessUnitId, request)
+        );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
+        assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
+
+        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
+        verifyNoInteractions(defendantAccountPartyServiceProxy);
+    }
+
+    @Test
+    void addDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
+        // Arrange
+        String authHeader = "Bearer token";
+        Long defendantAccountId = 100L;
+        Long defendantAccountPartyId = 200L;
+        String ifMatch = "W/\"X\"";
+        Short businessUnitId = 3;
+        String stringBusinessUnitId = String.valueOf(businessUnitId);
+        DefendantAccountParty request = new DefendantAccountParty();
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(false);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountPartyService.addDefendantAccountParty(
                 defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, stringBusinessUnitId, request)
         );
 

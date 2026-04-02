@@ -64,7 +64,7 @@ public class DefendantAccountPartyService {
                                                                ifMatch,
                                                                request);
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+            throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
 
