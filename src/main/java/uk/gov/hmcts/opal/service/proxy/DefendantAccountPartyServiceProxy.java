@@ -31,7 +31,6 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
 
     @Override
     public GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
-                                                                         Long defendantAccountPartyId,
                                                                          String businessUnitId,
                                                                          String businessUserId,
                                                                          String postedBy,
@@ -39,7 +38,6 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
                                                                          DefendantAccountParty defendantAccountParty) {
 
         return getCurrentModeService().addDefendantAccountParty(defendantAccountId,
-                                                                defendantAccountPartyId,
                                                                 businessUnitId,
                                                                 businessUserId,
                                                                 postedBy,

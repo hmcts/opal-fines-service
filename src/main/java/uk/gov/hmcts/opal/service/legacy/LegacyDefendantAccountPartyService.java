@@ -312,7 +312,6 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     @Override
     public GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
-        Long dapId,
         String businessUnitId,
         String businessUnitUserId,
         String postedBy,

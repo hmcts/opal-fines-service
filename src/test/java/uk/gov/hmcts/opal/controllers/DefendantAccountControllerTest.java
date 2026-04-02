@@ -165,7 +165,6 @@ class DefendantAccountControllerTest {
     void testAddDefendantAccountParty_Success() {
         // Arrange
         Long defendantAccountId = 1L;
-        Long defendantAccountPartyId = 2L;
         String businessUnitId = "10";
         String ifMatch = "1";
 
@@ -174,7 +173,6 @@ class DefendantAccountControllerTest {
 
         when(defendantAccountPartyService.addDefendantAccountParty(
             defendantAccountId,
-            defendantAccountPartyId,
             BEARER_TOKEN,
             ifMatch,
             businessUnitId,
@@ -185,7 +183,6 @@ class DefendantAccountControllerTest {
         ResponseEntity<GetDefendantAccountPartyResponse> response =
             defendantAccountController.addDefendantAccountParty(
                 defendantAccountId,
-                defendantAccountPartyId,
                 businessUnitId,
                 ifMatch,
                 BEARER_TOKEN,
@@ -198,7 +195,6 @@ class DefendantAccountControllerTest {
 
         verify(defendantAccountPartyService).addDefendantAccountParty(
             defendantAccountId,
-            defendantAccountPartyId,
             BEARER_TOKEN,
             ifMatch,
             businessUnitId,

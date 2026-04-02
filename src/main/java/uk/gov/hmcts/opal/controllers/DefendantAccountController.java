@@ -185,7 +185,6 @@ public class DefendantAccountController {
     @PostMapping(value = "/{defendantAccountId}/defendant-account-parties")
     public ResponseEntity<GetDefendantAccountPartyResponse> addDefendantAccountParty(
         @PathVariable Long defendantAccountId,
-        @PathVariable Long defendantAccountPartyId,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
@@ -194,13 +193,13 @@ public class DefendantAccountController {
 
         log.debug(
             ":POST:addDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
-            defendantAccountId, defendantAccountPartyId
+            defendantAccountId
         );
 
         return buildResponse(
             defendantAccountPartyService.addDefendantAccountParty(
                 defendantAccountId,
-                defendantAccountPartyId, authHeaderValue, ifMatch, businessUnitId, request
+                authHeaderValue, ifMatch, businessUnitId, request
             ));
     }
 

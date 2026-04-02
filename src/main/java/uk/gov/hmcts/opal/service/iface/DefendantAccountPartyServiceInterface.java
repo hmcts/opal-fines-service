@@ -8,7 +8,6 @@ public interface DefendantAccountPartyServiceInterface {
     GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId, Long defendantAccountPartyId);
 
     GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
-                                                                Long defendantAccountPartyId,
                                                                 String businessUnitId,
                                                                 String businessUserId,
                                                                 String postedBy,

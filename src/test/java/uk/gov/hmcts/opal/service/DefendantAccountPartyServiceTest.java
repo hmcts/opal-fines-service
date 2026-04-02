@@ -167,12 +167,12 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
-            anyLong(), anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
+            anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
             .thenReturn(expectedResponse);
 
         // Act
         GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, businessUnitId, request
+            defendantAccountId, authHeader, ifMatch, businessUnitId, request
         );
 
         // Assert
@@ -184,7 +184,6 @@ class DefendantAccountPartyServiceTest {
 
         verify(defendantAccountPartyServiceProxy).addDefendantAccountParty(
             eq(defendantAccountId),
-            eq(defendantAccountPartyId),
             eq(businessUnitId),
             buUserIdCaptor.capture(),
             postedByCaptor.capture(),
@@ -269,12 +268,12 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
-            anyLong(), anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
+            anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
             .thenReturn(expectedResponse);
 
         // Act
         GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, businessUnitId, request
+            defendantAccountId, authHeader, ifMatch, businessUnitId, request
         );
 
         // Assert
@@ -285,7 +284,6 @@ class DefendantAccountPartyServiceTest {
 
         verify(defendantAccountPartyServiceProxy).addDefendantAccountParty(
             eq(defendantAccountId),
-            eq(defendantAccountPartyId),
             eq(businessUnitId),
             buUserIdCaptor.capture(),
             postedByCaptor.capture(),
@@ -348,7 +346,7 @@ class DefendantAccountPartyServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountPartyService.addDefendantAccountParty(
-                defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, stringBusinessUnitId, request)
+                defendantAccountId, authHeader, ifMatch, stringBusinessUnitId, request)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);

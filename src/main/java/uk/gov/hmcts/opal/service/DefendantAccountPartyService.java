@@ -40,7 +40,7 @@ public class DefendantAccountPartyService {
     }
 
     public GetDefendantAccountPartyResponse addDefendantAccountParty(
-        Long defendantAccountId, Long defendantAccountPartyId, String authHeaderValue, String ifMatch,
+        Long defendantAccountId, String authHeaderValue, String ifMatch,
         String businessUnitId, DefendantAccountParty request) {
 
         log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
@@ -57,7 +57,6 @@ public class DefendantAccountPartyService {
         if (userState.hasBusinessUnitUserWithPermission(buId,
                                                         FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountPartyServiceProxy.addDefendantAccountParty(defendantAccountId,
-                                                               defendantAccountPartyId,
                                                                businessUnitId,
                                                                getBusinessUnitUserIdForBusinessUnit(userState, buId),
                                                                postedBy,
