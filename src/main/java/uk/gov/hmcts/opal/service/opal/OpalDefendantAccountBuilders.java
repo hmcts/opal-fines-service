@@ -980,10 +980,6 @@ public class OpalDefendantAccountBuilders {
 
 
     static void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderCommon co) {
-        if (co.getCollectionOrderFlag() == null) {
-            throw new IllegalArgumentException("collection_order_flag is required");
-        }
-
         entity.setCollectionOrder(Boolean.TRUE.equals(co.getCollectionOrderFlag()));
 
         if (Boolean.FALSE.equals(co.getCollectionOrderFlag())) {

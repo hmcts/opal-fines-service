@@ -55,9 +55,13 @@ public interface UpdateDefendantAccountRequestMapper {
         }
 
         Boolean collectionOrderFlag = src.getCollectionOrderFlag();
-        LocalDate collectionOrderDate = Boolean.TRUE.equals(collectionOrderFlag)
-            ? (src.getCollectionOrderDate() == null ? LocalDate.now() : src.getCollectionOrderDate())
-            : null;
+        LocalDate collectionOrderDate = null;
+        if (Boolean.TRUE.equals(collectionOrderFlag)) {
+            collectionOrderDate = src.getCollectionOrderDate();
+            if (collectionOrderDate == null) {
+                collectionOrderDate = LocalDate.now();
+            }
+        }
 
         return CollectionOrder.builder()
             .collectionOrderFlag(collectionOrderFlag)
