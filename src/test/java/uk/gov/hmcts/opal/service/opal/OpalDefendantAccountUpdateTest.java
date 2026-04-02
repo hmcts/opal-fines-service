@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -343,6 +344,73 @@ class OpalDefendantAccountUpdateTest {
 
         var resp = service.updateDefendantAccount(77L, "78", req, "tester");
         assertNotNull(resp.getPayload().getEnforcementOverride());
+    }
+
+    @Test
+    void updateDefendantAccount_collectionOrderDefaultsDateWhenFlagTrueAndDateMissing() {
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(entityManager).lock(any(), any());
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+
+        assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(LocalDate.now(), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
+        assertEquals(LocalDate.now(), entity.getCollectionOrderEffectiveDate());
+    }
+
+    @Test
+    void updateDefendantAccount_collectionOrderClearsDateWhenFlagFalse() {
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .collectionOrder(true)
+            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .versionNumber(0L)
+            .build();
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(entityManager).lock(any(), any());
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(false)
+                    .collectionOrderDate(LocalDate.of(2025, 2, 2))
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+
+        assertEquals(Boolean.FALSE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
+        assertNull(resp.getPayload().getCollectionOrder().getCollectionOrderDate());
+        assertNull(entity.getCollectionOrderEffectiveDate());
     }
 
 }

@@ -3,8 +3,10 @@ package uk.gov.hmcts.opal.mapper.request;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 
 public class UpdateDefendantAccountRequestMapperTest {
     // The mapper is an interface with a default method, so we need to use the implementation class
@@ -36,5 +38,32 @@ public class UpdateDefendantAccountRequestMapperTest {
     void numberToString_negative_values() {
         assertEquals("-5", mapper.numberToString(-5));
         assertEquals("-9", mapper.numberToString(-9.3));
+    }
+
+    @Test
+    @DisplayName("collection order mapping populates today's date when flag is true and date is missing")
+    void mapCollectionOrder_whenFlagTrueAndDateMissing_populatesToday() {
+        CollectionOrderCommon src = CollectionOrderCommon.builder()
+            .collectionOrderFlag(true)
+            .build();
+
+        var result = mapper.map(src);
+
+        assertEquals(Boolean.TRUE, result.getCollectionOrderFlag());
+        assertEquals(LocalDate.now(), result.getCollectionOrderDate());
+    }
+
+    @Test
+    @DisplayName("collection order mapping clears date when flag is false")
+    void mapCollectionOrder_whenFlagFalse_clearsDate() {
+        CollectionOrderCommon src = CollectionOrderCommon.builder()
+            .collectionOrderFlag(false)
+            .collectionOrderDate(LocalDate.of(2025, 1, 1))
+            .build();
+
+        var result = mapper.map(src);
+
+        assertEquals(Boolean.FALSE, result.getCollectionOrderFlag());
+        assertNull(result.getCollectionOrderDate());
     }
 }

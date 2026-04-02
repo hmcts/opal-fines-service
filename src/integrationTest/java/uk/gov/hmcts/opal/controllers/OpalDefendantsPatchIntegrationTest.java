@@ -212,6 +212,19 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     }
 
     @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Collection Order With Missing Date [@PO-3667]")
+    void patch_updatesCollectionOrder_whenDateMissing() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(77L);
+        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+
+        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
+              {"collection_order":{"collection_order_flag":true}}
+            """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
+    }
+
+    @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Override [@PO-1565]")
     void patch_updatesEnforcementOverride() throws Exception {
         authoriseAllPermissions();

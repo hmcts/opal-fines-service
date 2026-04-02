@@ -5,7 +5,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
+import java.time.LocalDate;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
@@ -46,8 +48,22 @@ public interface UpdateDefendantAccountRequestMapper {
     })
     uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes map(CommentsAndNotesCommon src);
 
-    // API CollectionOrderDto -> Legacy CollectionOrder (extend as fields evolve)
-    uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder map(CollectionOrderCommon src);
+    // API CollectionOrderDto -> Legacy CollectionOrder
+    default CollectionOrder map(CollectionOrderCommon src) {
+        if (src == null) {
+            return null;
+        }
+
+        Boolean collectionOrderFlag = src.getCollectionOrderFlag();
+        LocalDate collectionOrderDate = Boolean.TRUE.equals(collectionOrderFlag)
+            ? (src.getCollectionOrderDate() == null ? LocalDate.now() : src.getCollectionOrderDate())
+            : null;
+
+        return CollectionOrder.builder()
+            .collectionOrderFlag(collectionOrderFlag)
+            .collectionOrderDate(collectionOrderDate)
+            .build();
+    }
 
     // API EnforcementOverride -> Legacy EnforcementOverride (extend as needed)
     uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride map(EnforcementOverrideDefendantAccount src);
