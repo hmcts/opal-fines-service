@@ -60,7 +60,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.submitted_by").value("USER01"))
             .andExpect(jsonPath("$.submitted_by_name").value("normal@users.com"))
-            .andExpect(jsonPath("$.account_type").value("Fines"))
+            .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray());
@@ -511,7 +511,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": 0,
               "timeline_data": [
@@ -613,7 +613,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version
             +
@@ -708,7 +708,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
               ,
@@ -775,7 +775,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
               ,
@@ -850,7 +850,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
               ,
@@ -924,7 +924,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
               ,

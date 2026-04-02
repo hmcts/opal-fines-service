@@ -7,7 +7,7 @@ Feature: Delete Draft Account
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fines                                       |
+      | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
@@ -21,7 +21,7 @@ Feature: Delete Draft Account
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fines                                       |
+      | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |

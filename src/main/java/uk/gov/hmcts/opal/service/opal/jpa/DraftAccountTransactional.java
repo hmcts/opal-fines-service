@@ -171,7 +171,6 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         }
 
         DraftAccountStatus newStatus = Optional.ofNullable(dto.getAccountStatus())
-            .map(DraftAccountStatus::fromLabel)
             .filter(VALID_UPDATE_STATUSES::contains)
             .orElseThrow(() -> new IllegalArgumentException("Invalid account status for update: "
                                                                 + dto.getAccountStatus()));

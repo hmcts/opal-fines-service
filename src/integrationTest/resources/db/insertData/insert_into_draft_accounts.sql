@@ -58,7 +58,7 @@ VALUES
           },
           "enforcement_court_id": 101
         }',
-        'Fixed Penalty Registration',
+        'Fixed Penalty',
         NULL,
         '{
           "snapshot": "opal-test"
@@ -125,7 +125,7 @@ VALUES
           },
           "enforcement_court_id": 101
         }',
-        'Fixed Penalty Registration',
+        'Fixed Penalty',
         NULL,
         '{
           "snapshot": "opal-test"
@@ -192,7 +192,7 @@ VALUES
           },
           "enforcement_court_id": 101
         }',
-        'Fixed Penalty Registration',
+        'Fixed Penalty',
         NULL,
         '{
           "snapshot": "opal-test"
@@ -259,7 +259,7 @@ VALUES
           },
           "enforcement_court_id": 101
         }',
-        'Fixed Penalty Registration',
+        'Fixed Penalty',
         NULL,
         '{
           "snapshot": "opal-test"
@@ -326,7 +326,7 @@ VALUES
           },
           "enforcement_court_id": 101
         }',
-        'Fixed Penalty Registration',
+        'Fixed Penalty',
         NULL,
         '{
           "snapshot": "opal-test"
@@ -393,7 +393,7 @@ VALUES
           },
           "enforcement_court_id": 101
         }',
-        'Fixed Penalty Registration',
+        'Fixed Penalty',
         NULL,
         '{
           "snapshot": "opal-test"
@@ -426,7 +426,7 @@ INSERT INTO draft_accounts(
 VALUES
     (
         7, 78, '2024-12-10 16:27:01.023126', 'user_003', 'Joe Bloggs',
-        NULL, NULL, 'Fixed Penalty Registration', NULL, 'SUBMITTED',
+        NULL, NULL, 'Fixed Penalty', NULL, 'SUBMITTED',
         NULL, '2025-02-03 16:27:01.023126', NULL, NULL, 0,
         '{
           "collection_order_made": true,
@@ -476,7 +476,7 @@ VALUES
     ]'
 ), (
     8, 65, '2024-12-10', 'user_003', 'Joe Bloggs',
-    NULL, NULL, 'Fixed Penalty Registration', NULL, 'SUBMITTED',
+    NULL, NULL, 'Fixed Penalty', NULL, 'SUBMITTED',
     NULL, '2025-02-03', NULL, NULL, 0,
     '{
         "account_type": "Fixed Penalty",
@@ -819,7 +819,7 @@ VALUES
     ]'
 ), (
     9, 65, '2024-12-10', 'user_003', 'Joe Bloggs',
-    NULL, NULL, 'Fixed Penalty Registration', NULL, 'SUBMITTED',
+    NULL, NULL, 'Fixed Penalty', NULL, 'SUBMITTED',
     NULL, '2025-02-03', NULL, NULL, 0,
     '{
             "account_type": "Fixed Penalty",
@@ -1487,7 +1487,7 @@ INSERT INTO draft_accounts (
                  { "account_note_serial": 2, "account_note_text": "First AA note", "note_type": "AA" }
                ]
              }',
-             'Fixed Penalty Registration',
+             'Fixed Penalty',
              NULL,
              '{
                "snapshot": "opal-test"
@@ -1794,7 +1794,7 @@ INSERT INTO draft_accounts (
                  }
                ]
              }',                                -- account JSON (wrapped in single quotes)
-             'Fixed Penalty Registration',     -- account_type  (choose canonical value)
+             'Fixed Penalty',     -- account_type  (choose canonical value)
              NULL,                             -- account_id
              '{ "snapshot": "opal-test" }',    -- account_snapshot (JSON as string)
              'SUBMITTED',                      -- account_status
@@ -2081,7 +2081,7 @@ INSERT INTO draft_accounts (
                  }
                ]
              }',                                -- account JSON (wrapped in single quotes)
-             'Fixed Penalty Registration',     -- account_type  (choose canonical value)
+             'Fixed Penalty',     -- account_type  (choose canonical value)
              NULL,                             -- account_id
              '{ "snapshot": "opal-test" }',    -- account_snapshot (JSON as string)
              'SUBMITTED',                      -- account_status
