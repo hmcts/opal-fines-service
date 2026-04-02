@@ -11,6 +11,7 @@
 * ----------  -------  -------  -----------------------------------------------------------------------------------------
 * 02/06/2025  R DODD   1.0      PO-1047 Inserts rows of data into the DEFENDANT_ACCOUNTS table for the Integration Tests.
 * 18/03/2026  TMc      2.0      PO-2850 Amended insert statement for DOCUMENTS. Updated value (0) for PRIORITY column, now an ENUM, to '0'
+* 02/04/2026  Shan     3.0      PO-1897 Added additional seed data for PO-1897.
 *
 **/
 
@@ -130,7 +131,22 @@ VALUES ( 0077, 0, 078, '177A'
        , '099B', NULL, 'Fine'
        , 'Text', NULL, NULL, 'text_note_3'
        , 101
-       );
+       ),
+        (2006, 4, 78, '2006A'
+        ,'2023-11-03 16:05:10', 100.00, 1007.00
+        , 312.45, 800.12,'L', NULL
+        , 780000000185, 780000000185, '2024-01-04 18:06:11'
+        , '2025-01-02 17:08:09', '2025-01-03 12:00:12', 'MPSO'
+        , 'Kingston-upon-Thames Mags Court', NULL, NULL
+        , 'N', 'N', 14, 21
+        , 'FWEC', 780000000021, 240
+        , 'GB pound sterling', 700.00, 'Y', '2024-02-18 00:00:00'
+        , '2024-02-19 00:00:00', NULL, NULL, NULL
+        , 'M', 'Y', '2025-01-01 00:00:00', '11111111A'
+        , '099B', NULL, 'Fine'
+        , 'Text', NULL, NULL, 'text_note_3'
+        , 101
+        );
 
 INSERT INTO parties
 ( party_id, organisation, organisation_name

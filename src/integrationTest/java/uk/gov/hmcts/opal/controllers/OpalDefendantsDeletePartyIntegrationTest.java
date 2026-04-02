@@ -1,0 +1,131 @@
+package uk.gov.hmcts.opal.controllers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+
+@Slf4j(topic = "opal.OpalDefendantsDeletePartyIntegrationTest")
+class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @Test
+    @DisplayName("OPAL: DELETE Remove DAP - Happy path (removed association + bumps version")
+    void delete_happyPath_removesAssociation_returnsResponse() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(77L);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+              "party_details": {
+                "party_id": "77"
+              }
+            }
+            """;
+
+        ResultActions res = mockMvc.perform(
+            delete("/defendant-accounts/77/defendant-account-parties/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("DELETE DAP happy path response:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string(HttpHeaders.ETAG, "\"" + (currentVersion + 1) + "\""))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("77"));
+
+        Integer associationCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM defendant_account_parties "
+                 + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
+            Integer.class,
+            77L,
+            77L
+        );
+
+        assertEquals(0, associationCount);
+    }
+
+    @Test
+    @DisplayName("OPAL: DELETE Remove DAP – Not Found (DAP not on account)")
+    void delete_notFound_whenDefendantAccountPartyNotOnAccount() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(78L);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+              "party_details": {
+                "party_id": "99999"
+              }
+            }
+            """;
+
+        ResultActions res = mockMvc.perform(
+            delete("/defendant-accounts/78/defendant-account-parties/99999")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("DELETE DAP party not on account response:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+    }
+
+    @Test
+    @DisplayName("OPAL: DELETE Remove DAP – Not Found (account not in BU)")
+    void delete_notFound_whenAccountNotInHeaderBU() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(2006L);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "99");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+              "defendant_account_party_id": "2006"
+            }
+            """;
+
+        ResultActions res = mockMvc.perform(
+            delete("/defendant-accounts/2006/defendant-account-parties/2006")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("DELETE DAP wrong BU response:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+    }
+    
+}

@@ -74,7 +74,8 @@ DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
                                991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
                                20010, 22004,
-                               262901, 262902
+                               262901, 262902,
+                               2006
     );
 
 -- Remove from debtor_detail before removing parties

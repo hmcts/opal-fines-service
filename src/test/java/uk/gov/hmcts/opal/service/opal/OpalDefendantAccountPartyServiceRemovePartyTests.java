@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
@@ -24,36 +24,24 @@ import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountPartiesRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 
-@SpringBootTest
-@ContextConfiguration(classes = OpalDefendantAccountPartyService.class)
+@ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountPartyServiceRemovePartyTests {
 
-    @MockitoBean
+    @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
-    @MockitoBean
+    @Mock
     private AmendmentRepositoryService amendmentRepositoryService;
 
-    @MockitoBean
-    private DebtorDetailRepositoryService debtorDetailRepositoryService;
 
-    @MockitoBean
-    private AliasRepositoryService aliasRepositoryService;
-
-    @MockitoBean
-    private PartyRepositoryService partyRepositoryService;
-
-    @MockitoBean
+    @Mock
     private DefendantAccountPartiesRepositoryService defendantAccountPartiesRepositoryService;
 
-    @Autowired
+    @InjectMocks
     private OpalDefendantAccountPartyService service;
 
     private DefendantAccountEntity account;

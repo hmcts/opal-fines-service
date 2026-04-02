@@ -452,7 +452,7 @@ class DefendantAccountPartyServiceTest {
         );
 
         // When BusinessUnitUser is not provided the helper returns an empty string
-        assertThat(buUserIdCaptor.getValue()).isEqualTo("");
+        assertThat(buUserIdCaptor.getValue()).isEmpty();
         assertThat(postedByCaptor.getValue()).isEqualTo("fallback-user");
     }
 
