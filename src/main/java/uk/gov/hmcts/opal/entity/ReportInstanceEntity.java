@@ -75,6 +75,7 @@ public class ReportInstanceEntity {
     private LocalDateTime requestedAt;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "generation_status", nullable = false)
     private ReportInstanceGenerationStatus generationStatus;
 
