@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.report;
 
 import static uk.gov.hmcts.opal.service.report.ReportType.FP_REGISTER;
 
-import groovy.io.FileType;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
