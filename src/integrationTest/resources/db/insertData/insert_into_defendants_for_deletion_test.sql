@@ -111,8 +111,8 @@ INSERT INTO defendant_transactions (defendant_transaction_id, defendant_account_
                                     payment_reference,
                                     text, status, status_date, status_amount, posted_by_name)
 VALUES (9104, 1001, '2023-11-04', '01000000A',
-        'PAY', 100.00, 'CH', 'CHQ123',
-        'Cheque payment', 'A', '2023-11-04', 100.00, 'User9100');
+        'PAYMNT', 100.00, 'NC', 'CHQ123',
+        'Cheque payment', 'C', '2023-11-04', 100.00, 'User9100');
 
 -- Insert imposition (Level 2) - Now with correct foreign key references
 INSERT INTO impositions (imposition_id, defendant_account_id, posted_date, posted_by,
@@ -142,7 +142,7 @@ VALUES (9107, 78, 123456, '2023-11-04 10:00:00',
 INSERT INTO notes(note_id, note_type, associated_record_type,
                          associated_record_id, note_text, posted_date,
                          posted_by, posted_by_name)
-VALUES (1, 'TE', 'DEF', '1001',
+VALUES (1, 'AC', 'defendant_accounts', '1001',
         'testData', '2025-10-27 15:49:42.498414+00',
         '01000000A', 'User9100');
 

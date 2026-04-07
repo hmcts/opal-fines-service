@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
 @Data
@@ -27,7 +28,7 @@ public class UpdateDraftAccountRequestDto implements ToJsonString {
     private Short businessUnitId;
 
     @JsonProperty("account_status")
-    private String accountStatus;
+    private DraftAccountStatus accountStatus;
 
     @JsonProperty("reason_text")
     private String reasonText;

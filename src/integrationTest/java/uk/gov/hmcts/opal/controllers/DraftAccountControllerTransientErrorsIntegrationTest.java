@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.service.DraftAccountService;
 
 import java.net.ConnectException;
@@ -48,7 +49,15 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @Test
     @DisplayName("Update draft account - Should return 406 Not Acceptable [@PO-973, @PO-747]")
     void testUpdateDraftAccount_trap406Response() throws Exception {
-        DraftAccountResponseDto dto = DraftAccountService.toGetResponseDto(createDraftAccountEntity("Test", BU_ID));
+        DraftAccountResponseDto dto = DraftAccountResponseDto.builder()
+            .draftAccountId(1L)
+            .businessUnitId(BU_ID)
+            .submittedBy("Test")
+            .accountType(DraftAccountType.FINE)
+            .accountStatus(SUBMITTED)
+            .account(validAccountJson())
+            .timelineData(validTimelineDataJson())
+            .build();
         when(draftAccountService.updateDraftAccount(any(), any(), any(), any())).thenReturn(dto);
         shouldReturn406WhenResponseContentTypeNotSupported(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody())
@@ -269,7 +278,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
               ]
             }
             ,
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "timeline_data": [
                     {
@@ -317,7 +326,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     private static String validUpdateRequestBody() {
         return "{\n"
-            + "    \"account_status\": \"PENDING\",\n"
+            + "    \"account_status\": \"Publishing Pending\",\n"
             + "    \"validated_by\": \"BUUID1\",\n"
             + "    \"business_unit_id\": 5,\n"
             + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
@@ -425,7 +434,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId(businessUnit).build())
             .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
             .submittedBy(submittedBy)
-            .accountType("DRAFT")
+            .accountType(DraftAccountType.FINE)
             .accountStatus(SUBMITTED)
             .statusMessage("Status is OK")
             .accountStatusDate(LocalDateTime.of(2024, 11, 11, 11, 11))

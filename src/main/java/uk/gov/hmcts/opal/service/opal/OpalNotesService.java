@@ -15,8 +15,10 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
@@ -51,9 +53,9 @@ public class OpalNotesService implements NotesServiceInterface {
 
         NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());
-        note.setNoteType(requestNote.getNoteType());
+        note.setNoteType(NoteType.valueOf(requestNote.getNoteType()));
         note.setAssociatedRecordId(requestNote.getRecordId());
-        note.setAssociatedRecordType(requestNote.getRecordType().toString());
+        note.setAssociatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS);
         note.setBusinessUnitUserId(managed.getBusinessUnit().getBusinessUnitId().toString());
         note.setPostedDate(LocalDateTime.now());
         note.setPostedByUsername(user.getUserName());

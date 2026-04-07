@@ -53,6 +53,7 @@ import uk.gov.hmcts.opal.dto.common.VehicleDetails.VehicleDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
@@ -67,9 +68,9 @@ import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
-import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -949,9 +950,9 @@ public class OpalDefendantAccountBuilders {
     static NoteEntity buildNoteEntity(DefendantAccountEntity managed, String combined, String postedBy) {
         return NoteEntity.builder()
             .noteText(combined)
-            .noteType("AA")
+            .noteType(NoteType.AA)
             .associatedRecordId(String.valueOf(managed.getDefendantAccountId()))
-            .associatedRecordType(RecordType.DEFENDANT_ACCOUNTS.toString())
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .businessUnitUserId(String.valueOf(managed.getBusinessUnit().getBusinessUnitId()))
             .postedDate(LocalDateTime.now())
             .postedByUsername(postedBy)

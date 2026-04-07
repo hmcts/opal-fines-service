@@ -7,7 +7,7 @@ Feature: Add Draft Account
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fines                                       |
+      | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
       | submitted_by      | L106C2                                      |
       | submitted_by_name | Laura Clerk                                 |
@@ -20,7 +20,7 @@ Feature: Add Draft Account
 
     And The draft account response contains the following data
       | business_unit_id                    | 73                               |
-      | account_type                        | Fines                            |
+      | account_type                        | Fine                             |
       | account_status                      | Submitted                        |
       | account_snapshot.defendant_name     | LNAME, FNAME                     |
       | account_snapshot.date_of_birth      | 2000-01-01                       |
@@ -42,7 +42,7 @@ Feature: Add Draft Account
     When I create a draft account with the following details
       | business_unit_id  | 77                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fines                                                  |
+      | account_type      | Fine                                                   |
       | account_status    | Submitted                                              |
       | submitted_by      | PG1234                                                 |
       | submitted_by_name | opal-test                                              |
@@ -55,7 +55,7 @@ Feature: Add Draft Account
 
     And The draft account response contains the following data
       | business_unit_id                   | 77                               |
-      | account_type                       | Fines                            |
+      | account_type                       | Fine                             |
       | account_status                     | Submitted                        |
       | account_snapshot.defendant_name    | LNAME, FNAME                     |
       | account_snapshot.date_of_birth     | 2000-01-01                       |
@@ -77,7 +77,7 @@ Feature: Add Draft Account
     When I create a draft account with the following details
       | business_unit_id  | 77                                                  |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
-      | account_type      | Fines                                               |
+      | account_type      | Fine                                                |
       | account_status    | Submitted                                           |
       | submitted_by      | MC1234                                              |
       | submitted_by_name | opal-test                                           |
@@ -90,7 +90,7 @@ Feature: Add Draft Account
 
     And The draft account response contains the following data
       | business_unit_id                   | 77                               |
-      | account_type                       | Fines                            |
+      | account_type                       | Fine                             |
       | account_status                     | Submitted                        |
       | account_snapshot.defendant_name    | LNAME, FNAME                     |
       | account_snapshot.account_type      | Fine                             |

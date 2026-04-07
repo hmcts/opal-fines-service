@@ -273,7 +273,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     void testUpdateDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
-            + "                \"account_status\": \"PENDING\",\n"
+            + "                \"account_status\": \"Publishing Pending\",\n"
             + "                \"validated_by\": \"BUUID1\",\n"
             + "                \"business_unit_id\": 5,\n"
             + "                \"timeline_data\": "
