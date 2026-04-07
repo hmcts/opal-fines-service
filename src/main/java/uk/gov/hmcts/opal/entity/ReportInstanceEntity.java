@@ -64,7 +64,6 @@ public class ReportInstanceEntity {
     @Column(name = "requested_by_name", length = 100, nullable = false)
     private String requestedByName;
 
-    @Column(name = "report_parameters", nullable = false)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "report_parameters", columnDefinition = "json", nullable = false)
     private String reportParameters;
