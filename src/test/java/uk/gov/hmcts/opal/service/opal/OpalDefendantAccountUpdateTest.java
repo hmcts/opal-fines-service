@@ -140,7 +140,7 @@ class OpalDefendantAccountUpdateTest {
                         .freeTextNote3("n3")
                         .build())
                 .enforcementCourt(EnforcementCourtDefendantAccount.builder()
-                    .courtId(100)
+                    .courtId(100L)
                     .build())
                 .collectionOrder(CollectionOrderCommon.builder()
                     .collectionOrderFlag(true)
@@ -411,6 +411,43 @@ class OpalDefendantAccountUpdateTest {
         assertEquals(Boolean.FALSE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
         assertNull(resp.getPayload().getCollectionOrder().getCollectionOrderDate());
         assertNull(entity.getCollectionOrderEffectiveDate());
+    }
+
+    @Test
+    void updateDefendantAccount_enforcementCourtAcceptsLongCourtId() {
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(entityManager).lock(any(), any());
+
+        long courtId = 780000000185L;
+        CourtEntity.Lite court = CourtEntity.Lite.builder()
+            .courtId(courtId)
+            .name("Test Court")
+            .build();
+        when(courtRepo.findById(courtId)).thenReturn(Optional.of(court));
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .enforcementCourt(EnforcementCourtDefendantAccount.builder()
+                    .courtId(courtId)
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+
+        assertEquals(courtId, resp.getPayload().getEnforcementCourt().getCourtId());
     }
 
 }

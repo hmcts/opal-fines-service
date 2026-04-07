@@ -864,9 +864,9 @@ public class OpalDefendantAccountBuilders {
 
     static EnforcementCourtDefendantAccount buildCourtReference(CourtEntity.Lite court) {
         return Optional.ofNullable(court)
-            .filter(c -> safeInt(c.getCourtId()) != null)
+            .filter(c -> c.getCourtId() != null)
             .map(c -> EnforcementCourtDefendantAccount.builder()
-                .courtId(safeInt(c.getCourtId()))
+                .courtId(c.getCourtId())
                 .build())
             .orElse(null);
     }
