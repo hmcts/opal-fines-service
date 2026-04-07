@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -184,7 +185,7 @@ class OpalDefendantAccountServiceCoreTest {
                         .build())
                     .build()))
             .defendantAccountId(1L)
-            .accountStatus("L")
+            .accountStatus(DefendantAccountStatus.L)
             .build();
 
         EnforcementEntity.Lite enforcementEntity = EnforcementEntity.Lite.builder()

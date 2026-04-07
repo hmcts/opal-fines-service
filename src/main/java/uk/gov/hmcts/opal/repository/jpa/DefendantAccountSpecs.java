@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
@@ -159,7 +160,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     public Specification<DefendantAccountEntity> filterByActiveOnly(Boolean activeOnly) {
         return (root, query, cb) ->
             Boolean.TRUE.equals(activeOnly)
-                ? cb.notEqual(root.get(DefendantAccountEntity_.accountStatus), "CS")
+                ? cb.notEqual(root.get(DefendantAccountEntity_.accountStatus), DefendantAccountStatus.CS)
                 : cb.conjunction();
     }
 

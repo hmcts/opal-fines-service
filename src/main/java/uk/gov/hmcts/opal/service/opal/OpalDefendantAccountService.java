@@ -14,7 +14,6 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildP
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.mapToDto;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -93,6 +92,7 @@ import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
+import uk.gov.hmcts.opal.mapper.DefendantAccountHeaderSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
@@ -177,6 +177,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final ReportEntryServiceInterface reportEntryService;
 
     // Mappers
+    private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
     private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
     private final PaymentTermsMapper paymentTermsMapper;
 
@@ -204,7 +205,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
                 + defendantAccountId));
 
-        return mapToDto(entity);
+        return defendantAccountHeaderSummaryMapper.toDto(entity);
     }
 
     @Override

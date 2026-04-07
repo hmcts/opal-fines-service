@@ -16,7 +16,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -60,6 +59,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
@@ -73,7 +73,6 @@ import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
@@ -92,6 +91,7 @@ import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
+import uk.gov.hmcts.opal.util.DefendantAccountStatusDisplay;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 public class OpalDefendantAccountBuilders {
@@ -192,17 +192,23 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static AccountStatusReference buildAccountStatusReference(String code) {
+    static AccountStatusReference buildAccountStatusReference(DefendantAccountStatus status) {
+        if (status == null) {
+            return null;
+        }
         return AccountStatusReference.builder()
-            .accountStatusCode(code)
-            .accountStatusDisplayName(resolveStatusDisplayName(code))
+            .accountStatusCode(status.name())
+            .accountStatusDisplayName(DefendantAccountStatusDisplay.toDisplayName(status))
             .build();
     }
 
-    static AccountStatusReferenceCommon buildAccountStatusReferenceCommon(String code) {
+    static AccountStatusReferenceCommon buildAccountStatusReferenceCommon(DefendantAccountStatus status) {
+        if (status == null) {
+            return null;
+        }
         return AccountStatusReferenceCommon.builder()
-            .accountStatusCode(AccountStatusCodeEnum.fromValue(code))
-            .accountStatusDisplayName(resolveStatusDisplayName(code))
+            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.name()))
+            .accountStatusDisplayName(DefendantAccountStatusDisplay.toDisplayName(status))
             .build();
     }
 
@@ -535,19 +541,6 @@ public class OpalDefendantAccountBuilders {
 
     static String orEmpty(String s) {
         return (s == null) ? "" : s;
-    }
-
-    static String resolveStatusDisplayName(String code) {
-        return switch (code) {
-            case "L" -> "Live";
-            case "C" -> "Completed";
-            case "TO" -> "TFO to be acknowledged";
-            case "TS" -> "TFO to NI/Scotland to be acknowledged";
-            case "TA" -> "TFO acknowledged";
-            case "CS" -> "Account consolidated";
-            case "WO" -> "Account written off";
-            default -> "Unknown";
-        };
     }
 
     static String normaliseAccountType(String raw) {
@@ -1153,38 +1146,6 @@ public class OpalDefendantAccountBuilders {
             .fixedPenaltyTicketDetails(ticketDetails)
             .vehicleFixedPenaltyDetails(vehicleDetails)
             .version(account.getVersion())
-            .build();
-    }
-
-    static DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
-        return DefendantAccountHeaderSummary.builder()
-            .defendantAccountId(
-                e.getDefendantAccountId() != null ? e.getDefendantAccountId().toString() : null
-            )
-            .defendantAccountPartyId(
-                e.getDefendantAccountPartyId() != null ? e.getDefendantAccountPartyId().toString() : null
-            )
-            .debtorType(
-                e.getDebtorType() != null
-                    ? e.getDebtorType()
-                    : (Boolean.TRUE.equals(e.getHasParentGuardian()) ? "Parent/Guardian" : "Defendant")
-            )
-            .isYouth(
-                e.getBirthDate() != null
-                    ? java.time.Period.between(e.getBirthDate(), java.time.LocalDate.now()).getYears() < 18
-                    : Boolean.FALSE
-            )
-            .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
-                .map(Object::toString).orElse(null))
-            .accountNumber(e.getAccountNumber())
-            .accountType(normaliseAccountType(e.getAccountType()))
-            .prosecutorCaseReference(e.getProsecutorCaseReference())
-            .fixedPenaltyTicketNumber(e.getFixedPenaltyTicketNumber())
-            .accountStatusReference(buildAccountStatusReference(e.getAccountStatus()))
-            .businessUnitSummary(OpalDefendantAccountBuilders.buildBusinessUnitSummary(e))
-            .paymentStateSummary(OpalDefendantAccountBuilders.buildPaymentStateSummary(e))
-            .partyDetails(buildPartyDetails(e))
-            .version(BigInteger.valueOf(e.getVersion()))
             .build();
     }
 

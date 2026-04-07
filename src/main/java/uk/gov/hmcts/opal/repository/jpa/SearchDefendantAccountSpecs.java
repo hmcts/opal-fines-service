@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantDto;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_;
 
@@ -66,7 +67,7 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
 
     public Specification<E> isActive(Boolean ignored) {
         return (root, query, builder) ->
-            builder.notEqual(root.get(SearchDefendantAccount_.accountStatus), "CS");
+            builder.notEqual(root.get(SearchDefendantAccount_.accountStatus), DefendantAccountStatus.CS);
     }
 
     public Specification<E> equalsOrganisation(Boolean orgFlag) {
