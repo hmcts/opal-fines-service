@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
-import static uk.gov.hmcts.opal.service.report.ReportInstanceGenerationStatus.IN_PROGRESS;
-import static uk.gov.hmcts.opal.service.report.ReportInstanceGenerationStatus.READY;
+import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.IN_PROGRESS;
+import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.exception.EntityNotSavedException;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;

@@ -7,8 +7,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.service.report.ReportInstanceGenerationStatus.ERROR;
-import static uk.gov.hmcts.opal.service.report.ReportInstanceGenerationStatus.READY;
+import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.ERROR;
+import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
