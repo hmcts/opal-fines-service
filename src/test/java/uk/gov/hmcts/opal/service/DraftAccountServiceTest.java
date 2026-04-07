@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -36,12 +35,14 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
+import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -53,8 +54,6 @@ import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
-
-    DraftAccountMapper mapper = Mappers.getMapper(DraftAccountMapper.class);
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
@@ -89,6 +88,8 @@ class DraftAccountServiceTest {
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
                 BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
+        when(draftAccountMapper.toResponseDto(draftAccountEntity))
+            .thenReturn(DraftAccountResponseDto.builder().build());
         when(draftAccountTransactional.getDraftAccount(anyLong())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
@@ -108,6 +109,7 @@ class DraftAccountServiceTest {
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
                 BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
+        when(draftAccountMapper.toDto(draftAccountEntity)).thenReturn(DraftAccountSummaryDto.builder().build());
         when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any()))
             .thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
@@ -131,6 +133,9 @@ class DraftAccountServiceTest {
         // Arrange
         final String accountText = "myaccount";
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().account(accountText).build();
+        when(draftAccountMapper.toResponseDto(draftAccountEntity)).thenReturn(
+            DraftAccountResponseDto.builder().account(accountText).build()
+        );
         when(draftAccountTransactional.searchDraftAccounts(any())).thenReturn(List.of(draftAccountEntity));
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
@@ -146,17 +151,19 @@ class DraftAccountServiceTest {
     void testSubmitDraftAccounts_success() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
+        when(draftAccountMapper.toResponseDto(draftAccountEntity))
+            .thenReturn(DraftAccountResponseDto.builder().build());
+        when(draftAccountTransactional.submitDraftAccount(any())).thenReturn(draftAccountEntity);
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .submittedBy("SpoofedUser")
             .submittedByName("Spoofed Name")
             .account(createAccountString())
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .timelineData(createTimelineDataString())
             .build();
-        when(draftAccountTransactional.submitDraftAccount(any())).thenReturn(draftAccountEntity);
-        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
         // Act
         DraftAccountResponseDto result = draftAccountService
             .submitDraftAccount(addDraftAccountDto, "authHeaderValue");
@@ -177,7 +184,7 @@ class DraftAccountServiceTest {
         Short businessUnitId = (short)1;
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId(businessUnitId)
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
@@ -226,28 +233,39 @@ class DraftAccountServiceTest {
     void testReplaceDraftAccount_success() {
         // Arrange
         Long draftAccountId = 1L;
-        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
-            .businessUnitId((short) 2)
-            .submittedBy("SpoofedUser")
-            .submittedByName("Spoofed Name")
-            .account(createAccountString())
-            .accountType("Fine")
-            .timelineData(createTimelineDataString())
-            .version(BigInteger.valueOf(0L))
-            .build();
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .submittedBy("USER01")
             .submittedByName("normal@users.com")
             .account(createAccountString())
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .accountStatus(DraftAccountStatus.RESUBMITTED)
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
             .build();
+        when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .submittedBy("USER01")
+                .submittedByName("normal@users.com")
+                .account(createAccountString())
+                .accountType(DraftAccountType.FINE)
+                .accountStatus(DraftAccountStatus.RESUBMITTED)
+                .timelineData(createTimelineDataString())
+                .build()
+        );
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .submittedBy("SpoofedUser")
+            .submittedByName("Spoofed Name")
+            .account(createAccountString())
+            .accountType(DraftAccountType.FINE)
+            .timelineData(createTimelineDataString())
+            .version(BigInteger.valueOf(0L))
+            .build();
         // Act
         DraftAccountResponseDto result = draftAccountService
             .replaceDraftAccount(draftAccountId, replaceDto, "authHeaderValue", "");
@@ -258,7 +276,7 @@ class DraftAccountServiceTest {
         assertEquals("USER01", result.getSubmittedBy());
         assertEquals("normal@users.com", result.getSubmittedByName());
         assertEquals(createAccountString(), result.getAccount());
-        assertEquals("Fine", result.getAccountType());
+        assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
         assertEquals(createTimelineDataString(), result.getTimelineData());
 
@@ -278,7 +296,7 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short)1)
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("SpoofedUser")
             .submittedByName("Spoofed Name")
@@ -307,7 +325,7 @@ class DraftAccountServiceTest {
             .build();
         ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .accountType("Fine")
+            .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("SpoofedUser")
             .submittedByName("Spoofed Name")
@@ -331,7 +349,7 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .accountStatus("SUBMITTED")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
             .build();
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
@@ -356,7 +374,7 @@ class DraftAccountServiceTest {
         // Arrange
         Long draftAccountId = 1L;
         final UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
-            .accountStatus("PENDING")
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("SpoofedUser")
             .validatedByName("Spoofed Name")
             .timelineData(createTimelineDataString())
@@ -388,10 +406,9 @@ class DraftAccountServiceTest {
         assertEquals("normal@users.com", captor.getValue().getValidatedByName());
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
-        String expectedOutcome = "Success";
         verify(securityEventLoggingService, times(1)).logEvent(
             eq("Business Function - Approval of Draft Account"),
-            eq(expectedOutcome),
+            eq("Success"),
             eq((short) 2),
             eq("Approval"),
             any(LocalDateTime.class),
@@ -403,6 +420,7 @@ class DraftAccountServiceTest {
         );
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
+        verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
     }
 
     private void publishPending_success(DraftAccountEntity updatedAccount, Long draftAccountId,
@@ -421,6 +439,17 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenReturn(publishedAccount);
+        when(draftAccountMapper.toResponseDto(publishedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.PUBLISHED)
+                .validatedBy("USER01")
+                .validatedByName("normal@users.com")
+                .validatedDate(updatedAccount.getValidatedDate().atOffset(java.time.ZoneOffset.UTC))
+                .accountSnapshot(updatedAccount.getAccountSnapshot())
+                .timelineData(updatedAccount.getTimelineData())
+                .build()
+        );
 
         // Act
         DraftAccountResponseDto result = draftAccountService
@@ -436,7 +465,6 @@ class DraftAccountServiceTest {
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertEquals(createTimelineDataString(), result.getTimelineData());
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
-
     }
 
     private String createTimelineDataString() {

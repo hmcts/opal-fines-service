@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
@@ -40,7 +41,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .submittedBy("BUUID1")
             .submittedByName("John")
             .account(validAccountJsonString())
-            .accountType("Fines")
+            .accountType(DraftAccountType.FINE)
             .timelineData(validTimelineDataString())
             .build();
 
@@ -114,7 +115,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.submitted_by").value("USER01"))
             .andExpect(jsonPath("$.submitted_by_name").value("normal@users.com"))
-            .andExpect(jsonPath("$.account_type").value("Fines"))
+            .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
                 .value("LNAME"))
@@ -158,7 +159,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Should return 400 when account_type is blank")
     void shouldReturn400WhenAccountTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
-            .replace("\"account_type\": \"Fines\"", "\"account_type\": \"\"");
+            .replace("\"account_type\": \"Fine\"", "\"account_type\": \"\"");
 
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
@@ -448,7 +449,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                   }
                 ]
               },
-              "account_type": "Fines",
+              "account_type": "Fine",
               "account_status": "Submitted",
               "version": 0,
               "timeline_data": [
@@ -503,7 +504,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "business_unit_id": 78,
               "validated_by": null,
               "account": {
-                "account_type": "Fines",
+                "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
                 "originator_name": "LJS",
                 "originator_id": 123,
@@ -601,7 +602,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "account_notes": null
               },
               "account_snapshot": null,
-              "account_type": "Fines",
+              "account_type": "Fine",
               "timeline_data": [
                 {
                   "username": "johndoe123",

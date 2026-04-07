@@ -29,8 +29,10 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.NoteRepository;
@@ -95,9 +97,9 @@ class NotesServiceTest {
         NoteEntity toSave = captor.getValue();
 
         assertEquals("hello world", toSave.getNoteText());
-        assertEquals("AA", toSave.getNoteType());
+        assertEquals(NoteType.AA, toSave.getNoteType());
         assertEquals("77", toSave.getAssociatedRecordId());
-        assertEquals(RecordType.DEFENDANT_ACCOUNTS.toString(), toSave.getAssociatedRecordType());
+        assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, toSave.getAssociatedRecordType());
         assertEquals("1", toSave.getBusinessUnitUserId()); // short -> "1"
         assertEquals("USER1", toSave.getPostedByUsername());
         assertNotNull(toSave.getPostedDate(), "postedDate should be set");

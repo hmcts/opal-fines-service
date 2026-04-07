@@ -57,7 +57,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(header().string("ETag", "\"0\""))
             .andExpect(jsonPath("$.draft_account_id").value(1))
             .andExpect(jsonPath("$.business_unit_id").value(77))
-            .andExpect(jsonPath("$.account_type").value("Fixed Penalty Registration"))
+            .andExpect(jsonPath("$.account_type").value("Fixed Penalty"))
             .andExpect(jsonPath("$.submitted_by").value("user_001"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account_status_date").value("2024-12-10T16:27:01.023126Z"))
@@ -88,7 +88,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(header().string("ETag", "\"0\""))
             .andExpect(jsonPath("$.draft_account_id").value(3))
             .andExpect(jsonPath("$.business_unit_id").value(73))
-            .andExpect(jsonPath("$.account_type").value("Fixed Penalty Registration"))
+            .andExpect(jsonPath("$.account_type").value("Fixed Penalty"))
             .andExpect(jsonPath("$.submitted_by").value("user_003"))
             .andExpect(jsonPath("$.account_status").value("Publishing Failed"))
             .andExpect(jsonPath("$.status_message").value("Account failed publishing to the target system."));
@@ -163,7 +163,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
-                .value("Fixed Penalty Registration"))
+                .value("Fixed Penalty"))
             .andExpect(jsonPath("$.summaries[2].submitted_by").value("user_003"))
             .andExpect(jsonPath("$.summaries[2].account_status").value("Publishing Failed"));
 
@@ -266,7 +266,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
-                .value("Fixed Penalty Registration"))
+                .value("Fixed Penalty"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
             .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"));
 
@@ -297,7 +297,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(7))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.summaries[0].account_type")
-                .value("Fixed Penalty Registration"))
+                .value("Fixed Penalty"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
             .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"));
 
@@ -323,7 +323,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
-                .value("Fixed Penalty Registration"))
+                .value("Fixed Penalty"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
             .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"));
 
@@ -349,7 +349,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[0].account_type")
-                .value("Fixed Penalty Registration"))
+                .value("Fixed Penalty"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_002"))
             .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"));
 

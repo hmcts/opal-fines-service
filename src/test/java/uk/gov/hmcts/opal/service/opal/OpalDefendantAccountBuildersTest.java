@@ -556,7 +556,7 @@ class OpalDefendantAccountBuildersTest {
             .defendantAccountId(77L)
             .defendantAccountPartyId(77L)
             .accountNumber("177A")
-            .accountType("Fines")
+            .accountType("Fine")
             .accountStatus("L")
             .version(1L)
             .build();

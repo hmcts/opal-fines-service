@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-
-import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
@@ -31,7 +29,6 @@ import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
@@ -164,7 +161,7 @@ public class DraftAccountService {
 
         return draftAccountTransactional.searchDraftAccounts(criteria)
             .stream()
-            .map(DraftAccountService::toGetResponseDto)
+            .map(draftAccountMapper::toResponseDto)
             .toList();
     }
 
@@ -184,7 +181,7 @@ public class DraftAccountService {
 
             loggingService.pdplForDraftAccount(entity, Action.SUBMIT, userState);
 
-            return toGetResponseDto(entity);
+            return draftAccountMapper.toResponseDto(entity);
 
         } else {
             throw new PermissionNotAllowedException(
@@ -213,7 +210,7 @@ public class DraftAccountService {
             loggingService.pdplForDraftAccount(replacedEntity, Action.REPLACE, userState);
 
 
-            return toGetResponseDto(replacedEntity);
+            return draftAccountMapper.toResponseDto(replacedEntity);
         } else {
             throw new PermissionNotAllowedException(
                 dto.getBusinessUnitId(),
@@ -227,31 +224,31 @@ public class DraftAccountService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
-        if (!UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
-            throw new PermissionNotAllowedException(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+            applyValidatedBy(dto, userState, unitUser.orElseThrow());
+            jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+
+            BigInteger updateVersion = extractBigInteger(ifMatch);
+
+            DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
+                draftAccountTransactional, updateVersion, userState);
+            verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
+
+            loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
+
+            if (updatedEntity.getAccountStatus().isPublishingPending()) {
+                log.info(":updateDraftAccount: publishing: ");
+                DraftAccountEntity entity = accountPublishProxy.publishDefendantAccount(
+                    updatedEntity, unitUser.orElseThrow());
+                logApprovalSuccess(dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
+                    updatedEntity.getSubmittedBy());
+                return draftAccountMapper.toResponseDto(entity);
+            }
+
+            return draftAccountMapper.toResponseDto(updatedEntity);
         }
 
-        applyValidatedBy(dto, userState, unitUser.orElseThrow());
-        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
-
-        BigInteger updateVersion = extractBigInteger(ifMatch);
-
-        DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
-            draftAccountTransactional, updateVersion, userState);
-        verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
-
-        loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
-
-        if (updatedEntity.getAccountStatus().isPublishingPending()) {
-            log.info(":updateDraftAccount: publishing: ");
-            DraftAccountEntity entity = accountPublishProxy.publishDefendantAccount(
-                updatedEntity, unitUser.orElseThrow());
-            logApprovalSuccess(dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
-                updatedEntity.getSubmittedBy());
-            return toGetResponseDto(entity);
-        }
-
-        return toGetResponseDto(updatedEntity);
+        throw new PermissionNotAllowedException(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
     }
 
     private void logApprovalSuccess(Short buId, Long approverId, Long accountId, String submittedBy) {
@@ -262,28 +259,8 @@ public class DraftAccountService {
             LogUtil.getRequestTimestamp(), data);
     }
 
-    public static DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
-        return DraftAccountResponseDto.builder()
-            .draftAccountId(entity.getDraftAccountId())
-            .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
-                                .map(BusinessUnitFullEntity::getBusinessUnitId).orElse(null))
-            .createdDate(toUtcDateTime(entity.getCreatedDate()))
-            .submittedBy(entity.getSubmittedBy())
-            .submittedByName(entity.getSubmittedByName())
-            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
-            .validatedBy(entity.getValidatedBy())
-            .validatedByName(entity.getValidatedByName())
-            .account(entity.getAccount())
-            .accountSnapshot(entity.getAccountSnapshot())
-            .accountType(entity.getAccountType())
-            .accountStatus(entity.getAccountStatus())
-            .accountStatusDate(toUtcDateTime(entity.getAccountStatusDate()))
-            .statusMessage(entity.getStatusMessage())
-            .timelineData(entity.getTimelineData())
-            .accountNumber(entity.getAccountNumber())
-            .accountId(entity.getAccountId())
-            .version(entity.getVersion())
-            .build();
+    public DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
+        return draftAccountMapper.toResponseDto(entity);
     }
 
     public DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
