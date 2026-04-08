@@ -21,7 +21,7 @@ plugins {
 }
 
 ext {
-  log4JVersion = "2.25.3"
+  log4JVersion = "2.25.4"
   serenityVersion = "5.3.9"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
@@ -453,9 +453,9 @@ dependencies {
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.12'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.12'
 
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.39"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.46"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.46"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
@@ -497,7 +497,7 @@ dependencies {
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.9'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
   implementation 'org.flywaydb:flyway-core:11.20.3'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.3', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
@@ -532,7 +532,7 @@ dependencies {
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.9.0'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
@@ -564,8 +564,8 @@ dependencies {
 
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.18'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.21'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.21'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 
