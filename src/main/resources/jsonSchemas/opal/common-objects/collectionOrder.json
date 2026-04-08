@@ -14,5 +14,5 @@
       "description": "The date when the collection order was applied"
     }
   },
-  "required": ["collection_order_flag", "collection_order_date"]
+  "required": ["collection_order_flag"]
 }

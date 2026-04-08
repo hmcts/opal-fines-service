@@ -868,9 +868,9 @@ public class OpalDefendantAccountBuilders {
 
     static EnforcementCourtDefendantAccount buildCourtReference(CourtEntity.Lite court) {
         return Optional.ofNullable(court)
-            .filter(c -> safeInt(c.getCourtId()) != null)
+            .filter(c -> c.getCourtId() != null)
             .map(c -> EnforcementCourtDefendantAccount.builder()
-                .courtId(safeInt(c.getCourtId()))
+                .courtId(c.getCourtId())
                 .build())
             .orElse(null);
     }
@@ -984,12 +984,17 @@ public class OpalDefendantAccountBuilders {
 
 
     static void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderCommon co) {
-        if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {
-            throw new IllegalArgumentException("collection_order_flag and collection_order_date are required");
-        }
         entity.setCollectionOrder(Boolean.TRUE.equals(co.getCollectionOrderFlag()));
+
+        if (Boolean.FALSE.equals(co.getCollectionOrderFlag())) {
+            entity.setCollectionOrderEffectiveDate(null);
+            return;
+        }
+
         try {
-            entity.setCollectionOrderEffectiveDate(co.getCollectionOrderDate());
+            entity.setCollectionOrderEffectiveDate(
+                Optional.ofNullable(co.getCollectionOrderDate()).orElseGet(LocalDate::now)
+            );
         } catch (DateTimeParseException ex) {
             throw new IllegalArgumentException("collection_order_date must be ISO date (yyyy-MM-dd)", ex);
         }

@@ -708,11 +708,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private void applyEnforcementCourt(DefendantAccountEntity entity, EnforcementCourtDefendantAccount courtRef) {
-        Integer courtId = courtRef.getCourtId();
+        Long courtId = courtRef.getCourtId();
         if (courtId == null) {
             throw new IllegalArgumentException("enforcement_court.court_id is required");
         }
-        CourtEntity court = courtRepository.findById(courtId.longValue())
+        CourtEntity court = courtRepository.findById(courtId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found: " + courtId));
         entity.setEnforcingCourt(OpalDefendantAccountBuilders.asLite(court));
         log.debug(":applyEnforcementCourt: accountId={}, courtId={}",
