@@ -17,7 +17,7 @@ This file covers repo-specific guidance for `opal-fines-service`.
 
 ```text
 WARNING: Shared Opal agent skills are not installed correctly.
-Install `opal-dev-agent-skills` and run `opal-skills install backend` before relying on Java code generation or review in this repo.
+Clone the `opal-dev-agent-skills` repository and follow its README to install the shared skills before relying on Java code generation or review in this repo.
 ```
 
 ## Project Structure
