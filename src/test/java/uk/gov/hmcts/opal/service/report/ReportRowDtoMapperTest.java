@@ -16,10 +16,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +48,6 @@ class ReportRowDtoMapperTest {
         p1.setSurname("One");
 
         DefendantAccountPartiesEntity link1 = new DefendantAccountPartiesEntity();
-        link1.setAssociationType("something else");
         link1.setParty(p1);
 
         PartyEntity p2 = new PartyEntity();
@@ -55,7 +55,7 @@ class ReportRowDtoMapperTest {
         p2.setSurname("Two");
 
         DefendantAccountPartiesEntity link2 = new DefendantAccountPartiesEntity();
-        link2.setAssociationType("DEFENDANT");
+        link2.setAssociationType(AssociationType.DEFENDANT);
         link2.setParty(p2);
 
         DefendantAccountEntity acc = new DefendantAccountEntity();
@@ -64,7 +64,7 @@ class ReportRowDtoMapperTest {
         assertThat(mapper.pickPrimaryParty(acc)).isSameAs(p2);
 
         // if no DEFENDANT, prefer debtor == true
-        link2.setAssociationType("notdef");
+        link2.setAssociationType(null);
         link1.setDebtor(Boolean.TRUE);
         assertThat(mapper.pickPrimaryParty(acc)).isSameAs(p1);
 
@@ -97,12 +97,12 @@ class ReportRowDtoMapperTest {
         party.setSecondaryEmailAddress("p2@example.com");
 
         DefendantAccountPartiesEntity link = new DefendantAccountPartiesEntity();
-        link.setAssociationType("DEFENDANT");
+        link.setAssociationType(AssociationType.DEFENDANT);
         link.setParty(party);
 
         // add a parent/guardian link to test PG detection
         DefendantAccountPartiesEntity pgLink = new DefendantAccountPartiesEntity();
-        pgLink.setAssociationType("Parent/Guardian");
+        pgLink.setAssociationType(AssociationType.PARENT_GUARDIAN);
 
         entity.setParties(Arrays.asList(link, pgLink));
 

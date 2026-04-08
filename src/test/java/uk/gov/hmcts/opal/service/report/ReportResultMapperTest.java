@@ -17,8 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +65,7 @@ class ReportResultMapperTest {
         DefendantAccountEntity account = new DefendantAccountEntity();
         when(rowMapper.map(any(DefendantAccountEntity.class), eq(enrichment))).thenReturn(row);
 
-        OperationReportByEnforcementTransaction report = mapper.map(Arrays.asList(account));
+        OperationReportByEnforcementTransaction report = mapper.map(List.of(account));
 
         assertThat(report.getTransactionList()).hasSize(1);
 
@@ -173,7 +173,7 @@ class ReportResultMapperTest {
     void operationReport_transaction_and_metadata_accessors_work() {
         OperationReportByEnforcementTransaction tx = new OperationReportByEnforcementTransaction();
 
-        List<EnforcementReportRowDto> rows = Arrays.asList(
+        List<EnforcementReportRowDto> rows = Collections.singletonList(
             EnforcementReportRowDto.builder().defname("X").build()
         );
         tx.setTransactionList(rows);
@@ -184,7 +184,7 @@ class ReportResultMapperTest {
         assertThat(tx.getTransactionList()).isSameAs(rows);
         assertThat(tx.getReportMetaData()).isSameAs(meta);
 
-        List<ParticipantIdentifier> parts = Arrays.asList(
+        List<ParticipantIdentifier> parts = Collections.singletonList(
             ParticipantIdentifier.builder().identifier("id1").type(PdplIdentifierType.PARTY_NAME).build()
         );
         meta.setPdpoParticipants(parts);
