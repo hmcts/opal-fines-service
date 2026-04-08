@@ -394,7 +394,9 @@ public class OpalDefendantAccountBuilders {
             .paymentTermsType(
                 PaymentTermsType.builder()
                     .paymentTermsTypeCode(
-                        safePaymentTermsTypeCode(String.valueOf(entity.getTermsTypeCode()))
+                        safePaymentTermsTypeCode(
+                            entity.getTermsTypeCode() == null ? null : entity.getTermsTypeCode().getCode()
+                        )
                     )
                     .build()
             )
@@ -402,7 +404,9 @@ public class OpalDefendantAccountBuilders {
             .instalmentPeriod(
                 InstalmentPeriod.builder()
                     .instalmentPeriodCode(
-                        safeInstalmentPeriodCode(String.valueOf(entity.getInstalmentPeriod()))
+                        safeInstalmentPeriodCode(
+                            entity.getInstalmentPeriod() == null ? null : entity.getInstalmentPeriod().getCode()
+                        )
                     )
                     .build()
             )
