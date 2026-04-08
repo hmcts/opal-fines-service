@@ -10,9 +10,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -43,8 +44,7 @@ public interface ReportRowDtoMapper {
             if (link == null) {
                 continue;
             }
-            String assoc = link.getAssociationType();
-            if (assoc != null && "DEFENDANT".equalsIgnoreCase(assoc.trim())) {
+            if (link.getAssociationType().equals(AssociationType.DEFENDANT)) {
                 return link.getParty();
             }
         }
@@ -181,11 +181,10 @@ public interface ReportRowDtoMapper {
                 if (link == null) {
                     continue;
                 }
-                String assoc = link.getAssociationType();
-                if (assoc == null) {
+                if (link.getAssociationType() == null) {
                     continue;
                 }
-                if ("PARENT/GUARDIAN".equalsIgnoreCase(assoc.trim())) {
+                if (link.getAssociationType().equals(AssociationType.PARENT_GUARDIAN)) {
                     hasPg = true;
                     break;
                 }

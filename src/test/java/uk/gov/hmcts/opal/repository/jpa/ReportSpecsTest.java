@@ -14,7 +14,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Fetch;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -30,8 +29,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 
@@ -79,7 +78,7 @@ public class ReportSpecsTest {
     private Path<Object> makeSafePath() {
         Path<Object> p = mock(Path.class);
         doReturn(p).when(p).get(anyString());
-        doReturn(p).when(p).as(ArgumentMatchers.<Class<Object>>any());
+        doReturn(p).when(p).as(ArgumentMatchers.any());
         return p;
     }
 
@@ -87,16 +86,8 @@ public class ReportSpecsTest {
     private void stubFetchPartiesChain(Root<DefendantAccountEntity> r) {
         Fetch fetchParties = mock(Fetch.class);
         Fetch fetchParty = mock(Fetch.class);
-        when(r.fetch(eq("parties"), ArgumentMatchers.<JoinType>any())).thenReturn((Fetch) fetchParties);
-        when(fetchParties.fetch(eq("party"), ArgumentMatchers.<JoinType>any())).thenReturn((Fetch) fetchParty);
-    }
-
-    // make root.get(...) resilient and return a Path that supports further .get/.as chaining
-    private Path<Object> stubRootGetAny(Root<DefendantAccountEntity> r) {
-        Path<Object> anyPath = makeSafePath();
-        doReturn(anyPath).when(r).get(anyString());
-        doReturn(anyPath).when(r).<Object>get(anyString());
-        return anyPath;
+        when(r.fetch(eq("parties"), ArgumentMatchers.any())).thenReturn(fetchParties);
+        when(fetchParties.fetch(eq("party"), ArgumentMatchers.any())).thenReturn(fetchParty);
     }
 
     @BeforeEach
@@ -129,22 +120,22 @@ public class ReportSpecsTest {
         // literal / expression helpers (return non-null Expression)
         Expression<Object> anyExpr = mock(Expression.class);
         when(cb.literal(ArgumentMatchers.anyLong())).thenReturn((Expression) anyExpr);
-        when(cb.literal(ArgumentMatchers.any())).thenReturn((Expression) anyExpr);
+        when(cb.literal(ArgumentMatchers.any())).thenReturn(anyExpr);
 
-        when(cb.upper(ArgumentMatchers.<Expression<String>>any())).thenReturn((Expression) anyExpr);
-        when(cb.trim(ArgumentMatchers.<Expression<String>>any())).thenReturn((Expression) anyExpr);
-        when(cb.coalesce(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn((Expression) anyExpr);
-        when(cb.substring(ArgumentMatchers.<Expression<String>>any(), anyInt(),
+        when(cb.upper(ArgumentMatchers.any())).thenReturn((Expression) anyExpr);
+        when(cb.trim(ArgumentMatchers.any())).thenReturn((Expression) anyExpr);
+        when(cb.coalesce(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(anyExpr);
+        when(cb.substring(ArgumentMatchers.any(), anyInt(),
             anyInt())).thenReturn((Expression) anyExpr);
 
         // between for LocalDate / LocalDateTime
         when(cb.between(ArgumentMatchers.<Expression<LocalDate>>any(),
-            ArgumentMatchers.<LocalDate>any(),
+            ArgumentMatchers.any(),
             ArgumentMatchers.<LocalDate>any()))
             .thenReturn(conjunctionPredicate);
 
         when(cb.between(ArgumentMatchers.<Expression<LocalDateTime>>any(),
-            ArgumentMatchers.<LocalDateTime>any(),
+            ArgumentMatchers.any(),
             ArgumentMatchers.<LocalDateTime>any()))
             .thenReturn(conjunctionPredicate);
 
@@ -153,17 +144,17 @@ public class ReportSpecsTest {
         doReturn(subqueryDateTime).when(query).subquery(LocalDateTime.class);
 
         // subquery.from(...) defaults
-        doReturn((Root) enforcementRoot).when(subqueryLong).from(EnforcementEntity.class);
-        doReturn((Root) enforcementRoot2).when(subqueryDateTime).from(EnforcementEntity.class);
+        doReturn(enforcementRoot).when(subqueryLong).from(EnforcementEntity.class);
+        doReturn(enforcementRoot2).when(subqueryDateTime).from(EnforcementEntity.class);
 
         // make enforcement roots' get(...) safe
         Path<Object> enforcementPath = makeSafePath();
         doReturn(enforcementPath).when(enforcementRoot).get(anyString());
         doReturn(enforcementPath).when(enforcementRoot2).get(anyString());
-        doReturn(enforcementPath).when(enforcementPath).as(ArgumentMatchers.<Class<Object>>any());
+        doReturn(enforcementPath).when(enforcementPath).as(ArgumentMatchers.any());
 
         // postedExpr path returned when getting postedDate and/or cb.greatest(...)
-        doReturn((Path) postedExpr).when(enforcementRoot2).get("postedDate");
+        doReturn(postedExpr).when(enforcementRoot2).get("postedDate");
         doReturn(postedExpr).when(postedExpr).as(LocalDateTime.class);
         when(cb.greatest(ArgumentMatchers.<Expression<LocalDateTime>>any())).thenReturn(postedExpr);
 
@@ -196,7 +187,7 @@ public class ReportSpecsTest {
 
         // postedDate path already stubbed in @BeforeEach via enforcementRoot
         when(cb.between(ArgumentMatchers.<Expression<LocalDate>>any(),
-            ArgumentMatchers.<LocalDate>any(),
+            ArgumentMatchers.any(),
             ArgumentMatchers.<LocalDate>any()))
             .thenReturn(conjunctionPredicate);
 
@@ -267,13 +258,13 @@ public class ReportSpecsTest {
 
         // ensure the subquery.from(...) for DefendantAccountPartiesEntity returns dapRoot
         doReturn(subqueryLong).when(query).subquery(Long.class);
-        doReturn((Root) dapRoot).when(subqueryLong).from(DefendantAccountPartiesEntity.class);
+        doReturn(dapRoot).when(subqueryLong).from(DefendantAccountPartiesEntity.class);
 
         // ensure nested get("defendantAccount").get("defendantAccountId") won't NPE
         Path<Object> dapDefAccountPath = makeSafePath();
         doReturn(dapDefAccountPath).when(dapRoot).get("defendantAccount");
         doReturn(dapDefAccountPath).when(dapDefAccountPath).get("defendantAccountId");
-        doReturn(dapDefAccountPath).when(dapDefAccountPath).as(ArgumentMatchers.<Class<Object>>any());
+        doReturn(dapDefAccountPath).when(dapDefAccountPath).as(ArgumentMatchers.any());
 
         // ensure associationType path available (used by cb.trim/upper)
         Path<Object> assocPath = makeSafePath();

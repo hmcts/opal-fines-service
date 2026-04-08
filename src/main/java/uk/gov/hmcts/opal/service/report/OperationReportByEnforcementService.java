@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.report;
 
-import groovy.io.FileType;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.ReportSpecs;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
@@ -28,7 +27,7 @@ public class OperationReportByEnforcementService implements ReportInterface {
         String reportType = safeReadString(context, "$.Report_types", "Detailed");
 
         // Build filters from JSON
-        ReportFiltersDto filters = buildFiltersFromContext(context, reportType);
+        ReportFiltersDto filters = buildFiltersFromContext(context);
 
         // Build specification and fetch accounts
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -47,7 +46,7 @@ public class OperationReportByEnforcementService implements ReportInterface {
         return new byte[0];
     }
 
-    private ReportFiltersDto buildFiltersFromContext(DocContext context, String reportType) {
+    private ReportFiltersDto buildFiltersFromContext(DocContext context) {
         ReportFiltersDto.ReportFiltersDtoBuilder builder = ReportFiltersDto.builder();
 
         try {
@@ -131,10 +130,12 @@ public class OperationReportByEnforcementService implements ReportInterface {
                 return (Boolean) v;
             }
             String s = String.valueOf(v).trim();
-            if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("y") || s.equalsIgnoreCase("yes")) {
+            if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("y")
+                || s.equalsIgnoreCase("yes")) {
                 return Boolean.TRUE;
             }
-            if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("n") || s.equalsIgnoreCase("no")) {
+            if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("n")
+                || s.equalsIgnoreCase("no")) {
                 return Boolean.FALSE;
             }
             return def;
