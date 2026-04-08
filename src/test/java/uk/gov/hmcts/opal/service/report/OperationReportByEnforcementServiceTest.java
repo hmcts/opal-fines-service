@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 
 import groovy.io.FileType;
 import java.lang.reflect.Method;
@@ -18,8 +19,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
@@ -38,7 +39,7 @@ class OperationReportByEnforcementServiceTest {
 
     @Test
     void convertReportDataToFileType_returnsEmptyByteArray() {
-        byte[] out = service.convertReportDataToFileType(null, null, FileType.FILES);
+        byte[] out = service.convertReportDataToFileType(null, null, CSV);
         assertThat(out).isNotNull();
         assertThat(out.length).isZero();
     }
@@ -64,28 +65,29 @@ class OperationReportByEnforcementServiceTest {
 
     @Test
     void generateReportData_withFullParameters_parsesFilters_and_uses_repository_and_mapper() {
-        String json = "{\n"
-            + "  \"Report_types\": \"Detailed\",\n"
-            + "  \"business_unit_ids\": [1, 2, 3],\n"
-            + "  \"enforcementMode\": \"LAST_ACTION\",\n"
-            + "  \"enforcementDateFrom\": \"2024-01-01\",\n"
-            + "  \"enforcementDateTo\": \"2024-12-31\",\n"
-            + "  \"lastActionDateFrom\": \"2024-02-01\",\n"
-            + "  \"lastActionDateTo\": \"2024-02-28\",\n"
-            + "  \"regfDateFrom\": \"2024-03-01\",\n"
-            + "  \"regfDateTo\": \"2024-03-31\",\n"
-            + "  \"includeAdult\": \"true\",\n"
-            + "  \"includeYouth\": \"false\",\n"
-            + "  \"includeCompany\": \"y\",\n"
-            + "  \"onlyAccountsWithParentGuardian\": \"n\",\n"
-            + "  \"collectionOrderChoice\": \"with\",\n"
-            + "  \"accountStatus\": \"live\",\n"
-            + "  \"minBalance\": 10.5,\n"
-            + "  \"maxBalance\": \"1000.75\",\n"
-            + "  \"firstPaymentOrPaybyInNext7Days\": \"yes\",\n"
-            + "  \"lowerNameRange\": \"a\",\n"
-            + "  \"upperNameRange\": \"z\"\n"
-            + "}";
+        String json = """
+            {
+              "Report_types": "Detailed",
+              "business_unit_ids": [1, 2, 3],
+              "enforcementMode": "LAST_ACTION",
+              "enforcementDateFrom": "2024-01-01",
+              "enforcementDateTo": "2024-12-31",
+              "lastActionDateFrom": "2024-02-01",
+              "lastActionDateTo": "2024-02-28",
+              "regfDateFrom": "2024-03-01",
+              "regfDateTo": "2024-03-31",
+              "includeAdult": "true",
+              "includeYouth": "false",
+              "includeCompany": "y",
+              "onlyAccountsWithParentGuardian": "n",
+              "collectionOrderChoice": "with",
+              "accountStatus": "live",
+              "minBalance": 10.5,
+              "maxBalance": "1000.75",
+              "firstPaymentOrPaybyInNext7Days": "yes",
+              "lowerNameRange": "a",
+              "upperNameRange": "z"
+            }""";
 
         ReportInstanceEntity reportInstance = new ReportInstanceEntity();
         reportInstance.setReportParameters(json);

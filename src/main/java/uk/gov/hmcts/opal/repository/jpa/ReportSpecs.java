@@ -13,9 +13,11 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 
@@ -23,7 +25,8 @@ import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 public final class ReportSpecs {
 
     public static Specification<DefendantAccountEntity> build(ReportFiltersDto f) {
-        Specification<DefendantAccountEntity> spec = (root, query, cb) -> cb.conjunction();
+        Specification<DefendantAccountEntity> spec =
+            (root, query, cb) -> cb.conjunction();
 
         spec = spec.and(fetchJoins());
         spec = spec.and(businessUnitSpec(f.getBusinessUnitIds()));
@@ -41,7 +44,7 @@ public final class ReportSpecs {
 
     private static Specification<DefendantAccountEntity> fetchJoins() {
         return (root, query, cb) -> {
-            Class<?> rt = query.getResultType();
+            Class<?> rt = Objects.requireNonNull(query).getResultType();
             if (rt != Long.class && rt != long.class) {
                 try {
                     root.fetch("parties", JoinType.LEFT).fetch("party", JoinType.LEFT);
@@ -97,8 +100,8 @@ public final class ReportSpecs {
     }
 
     /**
-     * Filter for accounts that have a defendant_account_parties association_type indicating a parent/guardian.
-     * Uses the exact association_type value "Parent/Guardian" (case-insensitive).
+     * Filter for accounts that have a defendant_account_parties association_type indicating a parent/guardian. Uses the
+     * exact association_type value "Parent/Guardian" (case-insensitive).
      */
     private static Specification<DefendantAccountEntity> parentGuardianSpec(ReportFiltersDto f) {
         return (root, query, cb) -> {
@@ -106,8 +109,8 @@ public final class ReportSpecs {
                 return cb.conjunction();
             }
 
-            Subquery<Long> sq = query.subquery(Long.class);
-            Root<?> dap = sq.from(uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity.class);
+            Subquery<Long> sq = Objects.requireNonNull(query).subquery(Long.class);
+            Root<?> dap = sq.from(DefendantAccountPartiesEntity.class);
             sq.select(cb.literal(1L));
 
             Predicate sameAccount = cb.equal(dap.get("defendantAccount").get("defendantAccountId"),
@@ -188,9 +191,6 @@ public final class ReportSpecs {
             if (upper != null) {
                 p.add(cb.lessThanOrEqualTo(firstLetter, upper.toLowerCase()));
             }
-            if (p.isEmpty()) {
-                return cb.conjunction();
-            }
             return cb.and(p.toArray(new Predicate[0]));
         };
     }
@@ -254,99 +254,101 @@ public final class ReportSpecs {
             }
             String m = mode.trim().toUpperCase();
 
-            if ("ALL".equals(m)) {
-                if (f.getEnforcementDateFrom() != null || f.getEnforcementDateTo() != null) {
-                    Subquery<Long> sq = query.subquery(Long.class);
-                    Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
-                    sq.select(cb.literal(1L));
-                    List<Predicate> where = new ArrayList<>();
-                    where.add(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")));
+            switch (m) {
+                case "ALL" -> {
+                    if (f.getEnforcementDateFrom() != null || f.getEnforcementDateTo() != null) {
+                        Subquery<Long> sq = Objects.requireNonNull(query).subquery(Long.class);
+                        Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
+                        sq.select(cb.literal(1L));
+                        List<Predicate> where = new ArrayList<>();
+                        where.add(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")));
 
-                    // typed Expression for postedDate (LocalDateTime)
-                    Expression<LocalDateTime> posted = ea.get("postedDate").as(LocalDateTime.class);
+                        // typed Expression for postedDate (LocalDateTime)
+                        Expression<LocalDateTime> posted = ea.get("postedDate").as(LocalDateTime.class);
 
-                    if (f.getEnforcementDateFrom() != null && f.getEnforcementDateTo() != null) {
-                        where.add(cb.between(posted, startOf(f.getEnforcementDateFrom()),
-                            endOf(f.getEnforcementDateTo())));
-                    } else if (f.getEnforcementDateFrom() != null) {
-                        where.add(cb.greaterThanOrEqualTo(posted, startOf(f.getEnforcementDateFrom())));
+                        if (f.getEnforcementDateFrom() != null && f.getEnforcementDateTo() != null) {
+                            where.add(cb.between(posted, startOf(f.getEnforcementDateFrom()),
+                                endOf(f.getEnforcementDateTo())));
+                        } else if (f.getEnforcementDateFrom() != null) {
+                            where.add(cb.greaterThanOrEqualTo(posted, startOf(f.getEnforcementDateFrom())));
+                        } else {
+                            where.add(cb.lessThanOrEqualTo(posted, endOf(f.getEnforcementDateTo())));
+                        }
+                        sq.where(where.toArray(new Predicate[0]));
+                        return cb.exists(sq);
+                    }
+                    return cb.conjunction();
+                }
+
+                // LAST_ACTION mode: ensure latest postedDate satisfies optional date range,
+                // ensure an enforcement exists
+                case "LAST_ACTION" -> {
+                    List<Predicate> preds = new ArrayList<>();
+
+                    // subquery returning greatest(postedDate) for this account
+                    Subquery<LocalDateTime> maxDateSq = Objects.requireNonNull(query).subquery(LocalDateTime.class);
+                    Root<EnforcementEntity> eaMax = maxDateSq.from(EnforcementEntity.class);
+
+                    // cast postedDate to LocalDateTime before taking greatest
+                    Expression<LocalDateTime> postedForMax = eaMax.get("postedDate").as(LocalDateTime.class);
+                    maxDateSq.select(cb.greatest(postedForMax));
+                    maxDateSq.where(cb.equal(eaMax.get("defendantAccountId"), root.get("defendantAccountId")));
+
+                    if (f.getLastActionDateFrom() != null) {
+                        preds.add(cb.greaterThanOrEqualTo(maxDateSq, startOf(f.getLastActionDateFrom())));
+                    }
+                    if (f.getLastActionDateTo() != null) {
+                        preds.add(cb.lessThanOrEqualTo(maxDateSq, endOf(f.getLastActionDateTo())));
+                    }
+
+                    // ensure at least one enforcement exists for this account
+                    Subquery<Long> existsSq = query.subquery(Long.class);
+                    Root<EnforcementEntity> eaExists = existsSq.from(EnforcementEntity.class);
+                    existsSq.select(cb.literal(1L));
+                    existsSq.where(cb.equal(eaExists.get("defendantAccountId"), root.get("defendantAccountId")));
+                    preds.add(cb.exists(existsSq));
+
+                    return cb.and(preds.toArray(new Predicate[0]));
+                }
+
+                // REGF mode
+                case "REGF" -> {
+                    if (f.getRegfDateFrom() == null && f.getRegfDateTo() == null) {
+                        Subquery<Long> sq = Objects.requireNonNull(query).subquery(Long.class);
+                        Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
+                        sq.select(cb.literal(1L));
+                        sq.where(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")),
+                            cb.equal(ea.get("resultId"), "REGF"));
+                        return cb.or(cb.exists(sq), cb.isNotNull(root.get("fineRegistrationDate")));
                     } else {
-                        where.add(cb.lessThanOrEqualTo(posted, endOf(f.getEnforcementDateTo())));
+                        Subquery<Long> sq = Objects.requireNonNull(query).subquery(Long.class);
+                        Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
+                        sq.select(cb.literal(1L));
+                        List<Predicate> where = new ArrayList<>();
+                        where.add(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")));
+                        where.add(cb.equal(ea.get("resultId"), "REGF"));
+
+                        Expression<LocalDateTime> posted = ea.get("postedDate").as(LocalDateTime.class);
+
+                        if (f.getRegfDateFrom() != null) {
+                            where.add(cb.greaterThanOrEqualTo(posted, startOf(f.getRegfDateFrom())));
+                        }
+                        if (f.getRegfDateTo() != null) {
+                            where.add(cb.lessThanOrEqualTo(posted, endOf(f.getRegfDateTo())));
+                        }
+                        sq.where(where.toArray(new Predicate[0]));
+                        return cb.exists(sq);
                     }
-                    sq.where(where.toArray(new Predicate[0]));
-                    return cb.exists(sq);
-                }
-                return cb.conjunction();
-            }
-
-            // LAST_ACTION mode: ensure latest postedDate satisfies optional date range,
-            // ensure an enforcement exists
-            if ("LAST_ACTION".equals(m)) {
-                List<Predicate> preds = new ArrayList<>();
-
-                // subquery returning greatest(postedDate) for this account
-                Subquery<LocalDateTime> maxDateSq = query.subquery(LocalDateTime.class);
-                Root<EnforcementEntity> eaMax = maxDateSq.from(EnforcementEntity.class);
-
-                // cast postedDate to LocalDateTime before taking greatest
-                Expression<LocalDateTime> postedForMax = eaMax.get("postedDate").as(LocalDateTime.class);
-                maxDateSq.select(cb.greatest(postedForMax));
-                maxDateSq.where(cb.equal(eaMax.get("defendantAccountId"), root.get("defendantAccountId")));
-
-                if (f.getLastActionDateFrom() != null) {
-                    preds.add(cb.greaterThanOrEqualTo(maxDateSq, startOf(f.getLastActionDateFrom())));
-                }
-                if (f.getLastActionDateTo() != null) {
-                    preds.add(cb.lessThanOrEqualTo(maxDateSq, endOf(f.getLastActionDateTo())));
                 }
 
-                // ensure at least one enforcement exists for this account
-                Subquery<Long> existsSq = query.subquery(Long.class);
-                Root<EnforcementEntity> eaExists = existsSq.from(EnforcementEntity.class);
-                existsSq.select(cb.literal(1L));
-                existsSq.where(cb.equal(eaExists.get("defendantAccountId"), root.get("defendantAccountId")));
-                preds.add(cb.exists(existsSq));
-
-                return cb.and(preds.toArray(new Predicate[0]));
-            }
-
-            // REGF mode
-            if ("REGF".equals(m)) {
-                if (f.getRegfDateFrom() == null && f.getRegfDateTo() == null) {
-                    Subquery<Long> sq = query.subquery(Long.class);
+                // NOT_UNDER_ENFORCEMENT
+                case "NOT_UNDER_ENFORCEMENT" -> {
+                    Subquery<Long> sq = Objects.requireNonNull(query).subquery(Long.class);
                     Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
                     sq.select(cb.literal(1L));
-                    sq.where(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")),
-                        cb.equal(ea.get("resultId"), "REGF"));
-                    return cb.or(cb.exists(sq), cb.isNotNull(root.get("fineRegistrationDate")));
-                } else {
-                    Subquery<Long> sq = query.subquery(Long.class);
-                    Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
-                    sq.select(cb.literal(1L));
-                    List<Predicate> where = new ArrayList<>();
-                    where.add(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")));
-                    where.add(cb.equal(ea.get("resultId"), "REGF"));
-
-                    Expression<LocalDateTime> posted = ea.get("postedDate").as(LocalDateTime.class);
-
-                    if (f.getRegfDateFrom() != null) {
-                        where.add(cb.greaterThanOrEqualTo(posted, startOf(f.getRegfDateFrom())));
-                    }
-                    if (f.getRegfDateTo() != null) {
-                        where.add(cb.lessThanOrEqualTo(posted, endOf(f.getRegfDateTo())));
-                    }
-                    sq.where(where.toArray(new Predicate[0]));
-                    return cb.exists(sq);
+                    sq.where(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")));
+                    return cb.not(cb.exists(sq));
                 }
-            }
-
-            // NOT_UNDER_ENFORCEMENT
-            if ("NOT_UNDER_ENFORCEMENT".equals(m)) {
-                Subquery<Long> sq = query.subquery(Long.class);
-                Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
-                sq.select(cb.literal(1L));
-                sq.where(cb.equal(ea.get("defendantAccountId"), root.get("defendantAccountId")));
-                return cb.not(cb.exists(sq));
             }
 
             return cb.conjunction();
