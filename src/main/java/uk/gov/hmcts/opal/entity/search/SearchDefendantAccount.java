@@ -2,9 +2,8 @@ package uk.gov.hmcts.opal.entity.search;
 
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Table;
@@ -15,9 +14,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 
 import java.math.BigDecimal;
@@ -44,8 +43,8 @@ public abstract class SearchDefendantAccount {
     private String lastEnforcement;
 
     @Column(name = "account_status")
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "account_status::text")
+    @Convert(converter = DefendantAccountStatusConverter.class)
     private DefendantAccountStatus accountStatus;
 
     @Column(name = "defendant_account_balance")

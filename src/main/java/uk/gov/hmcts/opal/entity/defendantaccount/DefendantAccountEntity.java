@@ -7,8 +7,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,10 +31,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.converter.ConsolidatedAccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.OriginatorTypeConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -83,8 +82,8 @@ public class DefendantAccountEntity implements Versioned {
     private BigDecimal accountBalance;
 
     @Column(name = "account_status", length = 2)
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "account_status::text", write = "?::t_da_account_status_enum")
+    @Convert(converter = DefendantAccountStatusConverter.class)
     private DefendantAccountStatus accountStatus;
 
     @Column(name = "completed_date")
@@ -121,8 +120,8 @@ public class DefendantAccountEntity implements Versioned {
     private String originatorId;
 
     @Column(name = "originator_type", length = 10)
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "originator_type::text", write = "?::t_originator_type_enum")
+    @Convert(converter = OriginatorTypeConverter.class)
     private OriginatorType originatorType;
 
     @Column(name = "allow_writeoffs")
@@ -172,8 +171,8 @@ public class DefendantAccountEntity implements Versioned {
     private LocalDate fineRegistrationDate;
 
     @Column(name = "consolidated_account_type", length = 1)
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "consolidated_account_type::text", write = "?::t_consolidated_account_type_enum")
+    @Convert(converter = ConsolidatedAccountTypeConverter.class)
     private ConsolidatedAccountType consolidatedAccountType;
 
     @Column(name = "payment_card_requested")

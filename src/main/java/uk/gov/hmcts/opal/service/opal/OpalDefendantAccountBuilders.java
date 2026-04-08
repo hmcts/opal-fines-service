@@ -92,7 +92,6 @@ import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
-import uk.gov.hmcts.opal.util.DefendantAccountStatusDisplay;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 public class OpalDefendantAccountBuilders {
@@ -198,8 +197,8 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
         return AccountStatusReference.builder()
-            .accountStatusCode(status.name())
-            .accountStatusDisplayName(DefendantAccountStatusDisplay.toDisplayName(status))
+            .accountStatusCode(status.getLabel())
+            .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
 
@@ -208,8 +207,8 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
         return AccountStatusReferenceCommon.builder()
-            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.name()))
-            .accountStatusDisplayName(DefendantAccountStatusDisplay.toDisplayName(status))
+            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getLabel()))
+            .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
 

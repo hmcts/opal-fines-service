@@ -16,54 +16,44 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
-import uk.gov.hmcts.opal.util.DefendantAccountStatusDisplay;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface DefendantAccountHeaderSummaryMapper {
 
-    @Mapping(target = "defendantAccountId",
-        expression = "java(entity.getDefendantAccountId() == null ? null : "
-            + "String.valueOf(entity.getDefendantAccountId()))")
-    @Mapping(target = "defendantAccountPartyId",
-        expression = "java(entity.getDefendantAccountPartyId() == null ? null : "
-            + "String.valueOf(entity.getDefendantAccountPartyId()))")
-    @Mapping(target = "debtorType", expression = "java(resolveDebtorType(entity))")
-    @Mapping(target = "isYouth", expression = "java(isYouth(entity.getBirthDate()))")
-    @Mapping(target = "parentGuardianPartyId",
-        expression = "java(entity.getParentGuardianAccountPartyId() == null ? null : "
-            + "String.valueOf(entity.getParentGuardianAccountPartyId()))")
-    @Mapping(
-        target = "accountType",
-        expression = "java(entity.getAccountType() == null ? null : entity.getAccountType().getLabel())"
-    )
+    @Mapping(target = "defendantAccountId", source = "defendantAccountId")
+    @Mapping(target = "defendantAccountPartyId", source = "defendantAccountPartyId")
+    @Mapping(target = "debtorType", source = ".")
+    @Mapping(target = "isYouth", source = "birthDate")
+    @Mapping(target = "parentGuardianPartyId", source = "parentGuardianAccountPartyId")
+    @Mapping(target = "accountType", source = "accountType")
     @Mapping(target = "accountStatusReference", source = "accountStatus")
     @Mapping(target = "businessUnitSummary", source = ".")
     @Mapping(target = "paymentStateSummary", source = ".")
     @Mapping(target = "partyDetails", source = ".")
-    @Mapping(target = "version", expression = "java(toVersion(entity.getVersion()))")
+    @Mapping(target = "version", source = "version")
     DefendantAccountHeaderSummary toDto(DefendantAccountHeaderViewEntity entity);
+
+    @Mapping(target = "businessUnitId", source = "businessUnitId")
+    @Mapping(target = "businessUnitName", source = "businessUnitName")
+    @Mapping(target = "welshSpeaking", constant = "N")
+    BusinessUnitSummary toBusinessUnitSummary(DefendantAccountHeaderViewEntity entity);
+
+    @Mapping(target = "imposedAmount", source = "imposed")
+    @Mapping(target = "arrearsAmount", source = "arrears")
+    @Mapping(target = "paidAmount", source = "paid")
+    @Mapping(target = "accountBalance", source = "accountBalance")
+    PaymentStateSummary toPaymentStateSummary(DefendantAccountHeaderViewEntity entity);
 
     default AccountStatusReference toAccountStatusReference(DefendantAccountStatus status) {
         if (status == null) {
             return null;
         }
         return AccountStatusReference.builder()
-            .accountStatusCode(status.name())
-            .accountStatusDisplayName(DefendantAccountStatusDisplay.toDisplayName(status))
+            .accountStatusCode(status.getLabel())
+            .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
-
-    @Mapping(target = "businessUnitId",
-        expression = "java(entity.getBusinessUnitId() == null ? null : String.valueOf(entity.getBusinessUnitId()))")
-    @Mapping(target = "businessUnitName", source = "businessUnitName")
-    @Mapping(target = "welshSpeaking", constant = "N")
-    BusinessUnitSummary toBusinessUnitSummary(DefendantAccountHeaderViewEntity entity);
-
-    @Mapping(target = "imposedAmount", expression = "java(nullToZero(entity.getImposed()))")
-    @Mapping(target = "arrearsAmount", expression = "java(nullToZero(entity.getArrears()))")
-    @Mapping(target = "paidAmount", expression = "java(nullToZero(entity.getPaid()))")
-    @Mapping(target = "accountBalance", expression = "java(nullToZero(entity.getAccountBalance()))")
-    PaymentStateSummary toPaymentStateSummary(DefendantAccountHeaderViewEntity entity);
 
     default PartyDetails toPartyDetails(DefendantAccountHeaderViewEntity entity) {
         boolean isOrganisation = Boolean.TRUE.equals(entity.getOrganisation());
@@ -102,12 +92,16 @@ public interface DefendantAccountHeaderSummaryMapper {
         return Boolean.TRUE.equals(entity.getHasParentGuardian()) ? "Parent/Guardian" : "Defendant";
     }
 
-    default boolean isYouth(LocalDate birthDate) {
-        return birthDate != null && Period.between(birthDate, LocalDate.now()).getYears() < 18;
+    default String toAccountTypeLabel(DefendantAccountType accountType) {
+        return accountType == null ? null : accountType.getLabel();
     }
 
-    default BigDecimal nullToZero(BigDecimal value) {
+    default BigDecimal toZeroIfNull(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
+    }
+
+    default boolean isYouth(LocalDate birthDate) {
+        return birthDate != null && Period.between(birthDate, LocalDate.now()).getYears() < 18;
     }
 
     default BigInteger toVersion(Long version) {

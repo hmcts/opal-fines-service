@@ -185,7 +185,7 @@ class OpalDefendantAccountServiceCoreTest {
                         .build())
                     .build()))
             .defendantAccountId(1L)
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .build();
 
         EnforcementEntity.Lite enforcementEntity = EnforcementEntity.Lite.builder()

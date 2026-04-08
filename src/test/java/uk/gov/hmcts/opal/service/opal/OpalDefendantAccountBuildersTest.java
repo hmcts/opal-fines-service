@@ -71,7 +71,8 @@ class OpalDefendantAccountBuildersTest {
 
     @Test
     void testBuildAccountStatusReference() {
-        AccountStatusReference ref = OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.L);
+        AccountStatusReference ref =
+            OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.LIVE);
         assertEquals("L", ref.getAccountStatusCode());
         assertEquals("Live", ref.getAccountStatusDisplayName());
     }

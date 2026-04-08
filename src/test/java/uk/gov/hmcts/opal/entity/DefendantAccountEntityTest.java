@@ -33,7 +33,7 @@ public class DefendantAccountEntityTest {
         defendantAccount.setAmountImposed(BigDecimal.valueOf(1.1));
         defendantAccount.setAmountPaid(BigDecimal.valueOf(1.1));
         defendantAccount.setAccountBalance(BigDecimal.valueOf(1.1));
-        defendantAccount.setAccountStatus(DefendantAccountStatus.L);
+        defendantAccount.setAccountStatus(DefendantAccountStatus.LIVE);
         defendantAccount.setCompletedDate(now);
         defendantAccount.setEnforcingCourt(CourtEntity.Lite.builder().build());
         defendantAccount.setLastHearingCourt(CourtEntity.Lite.builder().build());
@@ -43,7 +43,7 @@ public class DefendantAccountEntityTest {
         defendantAccount.setLastChangedDate(now);
         defendantAccount.setOriginatorName("name");
         defendantAccount.setOriginatorId("reference");
-        defendantAccount.setOriginatorType(OriginatorType.NEW);
+        defendantAccount.setOriginatorType(OriginatorType.MAC_NEW_ACCOUNT);
         defendantAccount.setAllowWriteoffs(true);
         defendantAccount.setAllowCheques(true);
         defendantAccount.setChequeClearancePeriod((short)1);
@@ -58,7 +58,7 @@ public class DefendantAccountEntityTest {
         defendantAccount.setFurtherStepsNoticeDate(now);
         defendantAccount.setConfiscationOrderDate(now);
         defendantAccount.setFineRegistrationDate(now);
-        defendantAccount.setConsolidatedAccountType(ConsolidatedAccountType.M);
+        defendantAccount.setConsolidatedAccountType(ConsolidatedAccountType.MASTER);
         defendantAccount.setPaymentCardRequested(true);
         defendantAccount.setPaymentCardRequestedDate(now);
         defendantAccount.setPaymentCardRequestedBy("requested");
@@ -76,7 +76,7 @@ public class DefendantAccountEntityTest {
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAmountImposed());
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAmountPaid());
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAccountBalance());
-        assertEquals(DefendantAccountStatus.L, defendantAccount.getAccountStatus());
+        assertEquals(DefendantAccountStatus.LIVE, defendantAccount.getAccountStatus());
         assertEquals(now, defendantAccount.getCompletedDate());
         assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getEnforcingCourt());
         assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getLastHearingCourt());
@@ -86,7 +86,7 @@ public class DefendantAccountEntityTest {
         assertEquals(now, defendantAccount.getLastChangedDate());
         assertEquals("name", defendantAccount.getOriginatorName());
         assertEquals("reference", defendantAccount.getOriginatorId());
-        assertEquals(OriginatorType.NEW, defendantAccount.getOriginatorType());
+        assertEquals(OriginatorType.MAC_NEW_ACCOUNT, defendantAccount.getOriginatorType());
         assertTrue(defendantAccount.getAllowWriteoffs());
         assertTrue(defendantAccount.getAllowCheques());
         assertEquals(Short.valueOf((short) 1), defendantAccount.getChequeClearancePeriod());
@@ -101,7 +101,7 @@ public class DefendantAccountEntityTest {
         assertEquals(now, defendantAccount.getFurtherStepsNoticeDate());
         assertEquals(now, defendantAccount.getConfiscationOrderDate());
         assertEquals(now, defendantAccount.getFineRegistrationDate());
-        assertEquals(ConsolidatedAccountType.M, defendantAccount.getConsolidatedAccountType());
+        assertEquals(ConsolidatedAccountType.MASTER, defendantAccount.getConsolidatedAccountType());
         assertTrue(defendantAccount.getPaymentCardRequested());
         assertEquals(now, defendantAccount.getPaymentCardRequestedDate());
         assertEquals("requested", defendantAccount.getPaymentCardRequestedBy());

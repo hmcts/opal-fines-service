@@ -67,7 +67,8 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
 
     public Specification<E> isActive(Boolean ignored) {
         return (root, query, builder) ->
-            builder.notEqual(root.get(SearchDefendantAccount_.accountStatus), DefendantAccountStatus.CS);
+            builder.notEqual(root.get(SearchDefendantAccount_.accountStatus),
+                DefendantAccountStatus.ACCOUNT_CONSOLIDATED);
     }
 
     public Specification<E> equalsOrganisation(Boolean orgFlag) {

@@ -28,7 +28,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .debtorType(null)
             .hasParentGuardian(true)
             .birthDate(LocalDate.now().minusYears(15))
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .version(1L)
             .build();
 
@@ -43,7 +43,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .debtorType(null)
             .hasParentGuardian(false)
             .birthDate(null)
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .version(1L)
             .build();
 
@@ -61,7 +61,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .accountType(DefendantAccountType.FINES)
             .prosecutorCaseReference("PCR1")
             .fixedPenaltyTicketNumber("FPT1")
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .businessUnitId((short) 77)
             .businessUnitName("BUName")
             .imposed(BigDecimal.valueOf(11))
@@ -89,7 +89,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .defendantAccountPartyId(77L)
             .partyId(999L)
             .accountNumber("177A")
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .version(1L)
             .build();
 
@@ -105,7 +105,7 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderViewEntity entity = DefendantAccountHeaderViewEntity.builder()
             .defendantAccountId(88L)
             .defendantAccountPartyId(null)
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .version(1L)
             .build();
 
@@ -121,7 +121,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .defendantAccountPartyId(77L)
             .accountNumber("177A")
             .accountType(DefendantAccountType.FINES)
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .version(1L)
             .build();
 
@@ -136,7 +136,7 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderViewEntity entity = DefendantAccountHeaderViewEntity.builder()
             .defendantAccountId(77L)
             .defendantAccountPartyId(77L)
-            .accountStatus(DefendantAccountStatus.CS)
+            .accountStatus(DefendantAccountStatus.ACCOUNT_CONSOLIDATED)
             .version(1L)
             .build();
 
@@ -147,11 +147,41 @@ class DefendantAccountHeaderSummaryMapperTest {
     }
 
     @Test
+    void given_parent_guardian_party_id_when_mapping_then_parent_guardian_party_id_is_stringified() {
+        DefendantAccountHeaderViewEntity entity = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .parentGuardianAccountPartyId(88L)
+            .accountStatus(DefendantAccountStatus.LIVE)
+            .version(1L)
+            .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(entity);
+
+        assertEquals("88", dto.getParentGuardianPartyId());
+    }
+
+    @Test
+    void given_null_account_type_when_mapping_then_account_type_is_null() {
+        DefendantAccountHeaderViewEntity entity = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .accountType(null)
+            .accountStatus(DefendantAccountStatus.LIVE)
+            .version(1L)
+            .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(entity);
+
+        assertNull(dto.getAccountType());
+    }
+
+    @Test
     void given_null_payment_amounts_when_mapping_then_payment_state_amounts_are_zero() {
         DefendantAccountHeaderViewEntity entity = DefendantAccountHeaderViewEntity.builder()
             .defendantAccountId(77L)
             .defendantAccountPartyId(77L)
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .imposed(null)
             .arrears(null)
             .paid(null)
@@ -175,7 +205,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .partyId(101L)
             .organisation(true)
             .organisationName("Acme Ltd")
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .version(1L)
             .build();
 
@@ -197,7 +227,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .organisation(false)
             .firstnames("Anna")
             .surname("Graham")
-            .accountStatus(DefendantAccountStatus.L)
+            .accountStatus(DefendantAccountStatus.LIVE)
             .version(1L)
             .build();
 

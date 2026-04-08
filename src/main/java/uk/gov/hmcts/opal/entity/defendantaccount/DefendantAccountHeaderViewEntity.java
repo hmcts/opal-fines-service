@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.entity.defendantaccount;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -12,11 +10,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
 
 @Entity
@@ -41,8 +38,8 @@ public class DefendantAccountHeaderViewEntity {
     private String prosecutorCaseReference;
 
     @Column(name = "account_status")
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "account_status::text")
+    @Convert(converter = DefendantAccountStatusConverter.class)
     private DefendantAccountStatus accountStatus;
 
     @Column(name = "account_type")
