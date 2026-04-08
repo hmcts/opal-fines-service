@@ -429,9 +429,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         if (language != null) {
             debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
-                ? Language.valueOf(language.getDocumentLanguagePreference().getLanguageCode()) : null);
+                ? Language.fromCode(language.getDocumentLanguagePreference().getLanguageCode()) : null);
             debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
-                ? Language.valueOf(language.getHearingLanguagePreference().getLanguageCode()) : null);
+                ? Language.fromCode(language.getHearingLanguagePreference().getLanguageCode()) : null);
             debtor.setDocumentLanguageDate(LocalDate.now());
             debtor.setHearingLanguageDate(LocalDate.now());
         } else {

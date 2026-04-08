@@ -449,7 +449,7 @@ public class OpalDefendantAccountBuilders {
     static LanguagePreference buildLanguagePreference(Optional<DebtorDetailEntity> debtorDetail,
         Function<DebtorDetailEntity, Language> getter) {
 
-        return LanguagePreference.fromCode(debtorDetail.map(getter).map(Language::name).orElse(null));
+        return LanguagePreference.fromCode(debtorDetail.map(getter).map(Language::getCode).orElse(null));
     }
 
     static VehicleDetails buildVehicleDetails(DebtorDetailEntity debtorDetail) {

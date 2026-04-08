@@ -93,8 +93,8 @@ class OpalDefendantAccountBuildersTest {
     @Test
     void given_debtorDetailLanguages_when_buildLanguagePreferences_then_mapEnumCodes() {
         DebtorDetailEntity debtorDetail = DebtorDetailEntity.builder()
-            .documentLanguage(Language.CY)
-            .hearingLanguage(Language.EN)
+            .documentLanguage(Language.WELSH_AND_ENGLISH)
+            .hearingLanguage(Language.ENGLISH)
             .build();
 
         LanguagePreferences preferences = OpalDefendantAccountBuilders.buildLanguagePreferences(debtorDetail);

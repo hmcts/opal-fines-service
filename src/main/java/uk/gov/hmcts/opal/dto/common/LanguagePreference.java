@@ -40,7 +40,7 @@ public class LanguagePreference {
             return java.util.Arrays.stream(values())
                 .filter(value -> value.name().equalsIgnoreCase(code.trim()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid instalment period code: " + code));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid language code: " + code));
         }
     }
 

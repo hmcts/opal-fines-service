@@ -16,8 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Entity
@@ -73,7 +72,7 @@ public class DebtorDetailEntity {
     private String employerEmail;
 
     @Column(name = "document_language", columnDefinition = "t_language_enum")
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "document_language::text", write = "?::t_language_enum")
     private Language documentLanguage;
 
     @Column(name = "document_language_date")
@@ -81,7 +80,7 @@ public class DebtorDetailEntity {
     private LocalDate documentLanguageDate;
 
     @Column(name = "hearing_language", columnDefinition = "t_language_enum")
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "hearing_language::text", write = "?::t_language_enum")
     private Language hearingLanguage;
 
     @Column(name = "hearing_language_date")
