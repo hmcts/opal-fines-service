@@ -21,28 +21,21 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface DefendantAccountHeaderSummaryMapper {
 
-    @Mapping(target = "defendantAccountId", source = "defendantAccountId")
-    @Mapping(target = "defendantAccountPartyId", source = "defendantAccountPartyId")
     @Mapping(target = "debtorType", source = ".")
     @Mapping(target = "isYouth", source = "birthDate")
     @Mapping(target = "parentGuardianPartyId", source = "parentGuardianAccountPartyId")
-    @Mapping(target = "accountType", source = "accountType")
     @Mapping(target = "accountStatusReference", source = "accountStatus")
     @Mapping(target = "businessUnitSummary", source = ".")
     @Mapping(target = "paymentStateSummary", source = ".")
     @Mapping(target = "partyDetails", source = ".")
-    @Mapping(target = "version", source = "version")
     DefendantAccountHeaderSummary toDto(DefendantAccountHeaderViewEntity entity);
 
-    @Mapping(target = "businessUnitId", source = "businessUnitId")
-    @Mapping(target = "businessUnitName", source = "businessUnitName")
     @Mapping(target = "welshSpeaking", constant = "N")
     BusinessUnitSummary toBusinessUnitSummary(DefendantAccountHeaderViewEntity entity);
 
     @Mapping(target = "imposedAmount", source = "imposed")
     @Mapping(target = "arrearsAmount", source = "arrears")
     @Mapping(target = "paidAmount", source = "paid")
-    @Mapping(target = "accountBalance", source = "accountBalance")
     PaymentStateSummary toPaymentStateSummary(DefendantAccountHeaderViewEntity entity);
 
     default AccountStatusReference toAccountStatusReference(DefendantAccountStatus status) {
