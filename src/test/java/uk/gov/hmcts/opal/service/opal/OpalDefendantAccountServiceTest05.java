@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -38,6 +39,9 @@ class OpalDefendantAccountServiceTest05 {
 
     @Mock
     private DebtorDetailRepositoryService debtorRepoService;
+
+    @Mock
+    private DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
     // Service under test
     @InjectMocks

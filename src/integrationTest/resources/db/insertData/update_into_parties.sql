@@ -95,3 +95,39 @@ ON CONFLICT (alias_id) DO UPDATE
         sequence_number  = EXCLUDED.sequence_number,
         organisation_name = EXCLUDED.organisation_name;
 
+DELETE FROM defendant_account_parties
+WHERE defendant_account_id = 20010
+  AND association_type = 'Parent/Guardian';
+
+INSERT INTO parties (
+    party_id, organisation, organisation_name,
+    surname, forenames, account_type
+)
+VALUES (
+           920010, 'N', NULL,
+           'Guardian', 'Paula', 'Defendant'
+       )
+ON CONFLICT (party_id) DO UPDATE
+    SET
+        organisation      = EXCLUDED.organisation,
+        organisation_name = EXCLUDED.organisation_name,
+        surname           = EXCLUDED.surname,
+        forenames         = EXCLUDED.forenames,
+        account_type      = EXCLUDED.account_type;
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id,
+    defendant_account_id,
+    party_id,
+    association_type,
+    debtor
+)
+VALUES (
+           920011, 20010, 920010, 'Parent/Guardian', 'Y'
+       )
+ON CONFLICT (defendant_account_party_id) DO UPDATE
+    SET
+        defendant_account_id = EXCLUDED.defendant_account_id,
+        party_id = EXCLUDED.party_id,
+        association_type = EXCLUDED.association_type,
+        debtor = EXCLUDED.debtor;
