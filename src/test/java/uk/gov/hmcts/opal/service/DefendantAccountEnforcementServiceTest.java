@@ -211,20 +211,19 @@ class DefendantAccountEnforcementServiceTest {
         RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
             RemoveDefendantAccountEnforcementHoldResponse.builder().build();
 
-        UserState userState = mock(UserState.class);
-        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        UserState userState = allPermissionsUser();
+
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
-        when(userState.getUserName()).thenReturn("user-name");
-        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ENTER_ENFORCEMENT))
-            .thenReturn(true);
-        when(buUser.getBusinessUnitUserId()).thenReturn("BU-USER-1");
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
-            eq("BU-USER-1"),
+            eq(businessUnitUserId),
             eq(ifMatch),
             eq(authHeader),
             eq(request)
@@ -245,7 +244,7 @@ class DefendantAccountEnforcementServiceTest {
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
-            eq("BU-USER-1"),
+            eq(businessUnitUserId),
             eq(ifMatch),
             eq(authHeader),
             eq(request)
