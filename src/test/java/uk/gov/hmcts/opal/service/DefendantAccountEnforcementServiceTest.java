@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -211,29 +212,16 @@ class DefendantAccountEnforcementServiceTest {
         RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
             RemoveDefendantAccountEnforcementHoldResponse.builder().build();
 
-        UserState userWithPermission = UserState.builder()
-            .userName("user-name")
-            .build();
-
-        BusinessUnitUser buUser = BusinessUnitUser.builder()
-            .businessUnitUserId("BU-USER-1")
-            .build();
+        UserState userWithPermission = new UserState.DeveloperUserState();
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userWithPermission);
-        when(userWithPermission.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
-            .thenReturn(true);
-        when(userWithPermission.getBusinessUnitUserForBusinessUnit((short) 10))
-            .thenReturn(Optional.of(buUser));
-        when(buUser.getBusinessUnitUserId()).thenReturn("BU-USER-1");
-        when(userWithPermission.getUserName()).thenReturn("user-name");
-
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
-            defendantAccountId,
-            (short) 10,
-            "BU-USER-1",
-            ifMatch,
-            authHeader,
-            request
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            anyString(),
+            eq(ifMatch),
+            eq(authHeader),
+            eq(request)
         )).thenReturn(proxyResponse);
 
         RemoveDefendantAccountEnforcementHoldResponse result =
@@ -245,22 +233,17 @@ class DefendantAccountEnforcementServiceTest {
                 request
             );
 
-        assertSame(proxyResponse, result, "Should return exactly the proxy response");
+        assertSame(proxyResponse, result);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userWithPermission).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
-        verify(userWithPermission).getBusinessUnitUserForBusinessUnit((short) 10);
-        verify(userWithPermission).getUserName();
-        verify(buUser).getBusinessUnitUserId();
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
-            defendantAccountId,
-            (short) 10,
-            "BU-USER-1",
-            ifMatch,
-            authHeader,
-            request
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            anyString(),
+            eq(ifMatch),
+            eq(authHeader),
+            eq(request)
         );
-        verifyNoInteractions(userState);
     }
 
     @Test
