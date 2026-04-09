@@ -738,12 +738,6 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        LegacyRemoveDefendantAccountEnforcementHoldResponse legacyResp =
-            LegacyRemoveDefendantAccountEnforcementHoldResponse.builder()
-                .defendantAccountId(2L)
-                .version(new BigInteger("2"))
-                .build();
-
         when(removeEnforcementHoldMapper.toLegacyRequest(
             eq(2L),
             eq((short) 10),
@@ -753,7 +747,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         )).thenReturn(legacyReq);
 
         GatewayService.Response<LegacyRemoveDefendantAccountEnforcementHoldResponse> resp =
-            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, legacyResp, null, null);
+            new GatewayService.Response<>(HttpStatus.BAD_REQUEST, null, null, null);
 
         doReturn(resp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountEnforcementService.REMOVE_ENFORCEMENT_HOLD),
