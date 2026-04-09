@@ -194,7 +194,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             ifMatch,
             auth,
             req
-            );
+        );
         verifyNoInteractions(opalService);
     }
 }
