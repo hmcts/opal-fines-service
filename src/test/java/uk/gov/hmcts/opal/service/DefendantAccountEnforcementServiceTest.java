@@ -209,10 +209,15 @@ class DefendantAccountEnforcementServiceTest {
                 .build();
 
         RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
-            mock(RemoveDefendantAccountEnforcementHoldResponse.class);
+            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
 
-        UserState userWithPermission = mock(UserState.class);
-        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        UserState userWithPermission = UserState.builder()
+            .userName("user-name")
+            .build();
+
+        BusinessUnitUser buUser = BusinessUnitUser.builder()
+            .businessUnitUserId("BU-USER-1")
+            .build();
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userWithPermission);
         when(userWithPermission.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
