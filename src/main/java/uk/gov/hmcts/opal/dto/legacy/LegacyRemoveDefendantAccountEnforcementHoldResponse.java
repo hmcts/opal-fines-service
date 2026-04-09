@@ -24,7 +24,7 @@ public class LegacyRemoveDefendantAccountEnforcementHoldResponse implements ToJs
 
     @JsonProperty("defendant_account_id")
     @XmlElement(name = "defendant_account_id")
-    private String defendantAccountId;
+    private Long defendantAccountId;
     @JsonProperty("version")
     @XmlElement(name = "version")
     private BigInteger version;

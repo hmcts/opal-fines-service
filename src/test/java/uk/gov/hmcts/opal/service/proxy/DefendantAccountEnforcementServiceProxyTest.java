@@ -162,10 +162,10 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         String auth = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest req =
-            mock(RemoveDefendantAccountEnforcementHoldRequest.class);
+            RemoveDefendantAccountEnforcementHoldRequest.builder().build();
 
         RemoveDefendantAccountEnforcementHoldResponse expected =
-            mock(RemoveDefendantAccountEnforcementHoldResponse.class);
+            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
 
         when(legacyService.removeEnforcementHold(
             defendantAccountId,
