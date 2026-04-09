@@ -131,7 +131,7 @@ class DefendantAccountControllerTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldResponse mockResponse =
+        RemoveDefendantAccountEnforcementHoldResponse expectedResponse =
             RemoveDefendantAccountEnforcementHoldResponse.builder().build();
 
         when(defendantAccountEnforcementService.removeEnforcementHold(
@@ -140,7 +140,7 @@ class DefendantAccountControllerTest {
             ifMatch,
             BEARER_TOKEN,
             request
-        )).thenReturn(mockResponse);
+        )).thenReturn(expectedResponse);
 
         ResponseEntity<RemoveDefendantAccountEnforcementHoldResponse> response =
             defendantAccountController.removeEnforcementHold(
@@ -153,7 +153,7 @@ class DefendantAccountControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(mockResponse, response.getBody());
+        assertEquals(expectedResponse, response.getBody());
     }
 
     @Test
