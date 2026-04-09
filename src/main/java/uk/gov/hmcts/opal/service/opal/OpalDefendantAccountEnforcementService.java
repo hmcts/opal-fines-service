@@ -63,7 +63,7 @@ public class OpalDefendantAccountEnforcementService
         String ifMatch,
         String authHeader,
         RemoveDefendantAccountEnforcementHoldRequest request) {
-        return null;
+        throw new UnsupportedOperationException("Remove enforcement hold not yet implemented for OPAL mode");
     }
 
     EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
