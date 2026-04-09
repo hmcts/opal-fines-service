@@ -595,6 +595,29 @@ public class LegacyDefendantAccountEnforcementServiceTest {
     }
 
     @Test
+    void getEnforcementStatus_whenNoOverrideFields_returnsNullOverride() {
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false); // or build one with all override ids null
+
+        when(restClient.responseSpec
+            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+            .thenReturn(responseBody);
+
+        when(courtService.getCourtById(anyLong()))
+            .thenReturn(Lite.builder().courtCode((short) 123).build());
+
+        ResponseEntity<String> serverSuccessResponse =
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        EnforcementStatus response =
+            legacyDefendantAccountEnforcementService.getEnforcementStatus(33L);
+
+        assertNotNull(response);
+        assertNull(response.getEnforcementOverride());
+    }
+
+    @Test
     void removeEnforcementHold_gatewayResponseWithException_throwsRuntimeException() {
         LegacyRemoveDefendantAccountEnforcementHoldRequest legacyReq =
             LegacyRemoveDefendantAccountEnforcementHoldRequest.builder()
