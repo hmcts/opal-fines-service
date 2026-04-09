@@ -8,6 +8,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountEnforcementServiceProxy;
@@ -57,5 +59,35 @@ public class DefendantAccountEnforcementService {
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
         }
+    }
+
+    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+        Long defendantAccountId,
+        Short businessUnitId,
+        String ifMatch,
+        String authHeaderValue,
+        RemoveDefendantAccountEnforcementHoldRequest request) {
+
+        log.debug(":removeEnforcementHold:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        if (userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ENTER_ENFORCEMENT)) {
+            return defendantAccountEnforcementServiceProxy.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                businessUnitUserId,
+                ifMatch,
+                authHeaderValue,
+                request
+            );
+        }
+
+        throw new PermissionNotAllowedException(businessUnitId, FinesPermission.ENTER_ENFORCEMENT);
     }
 }

@@ -9,6 +9,8 @@ import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountEnforcementService;
@@ -149,5 +151,50 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         assertEquals(expected, result);
     }
 
+    @Test
+    void shouldDelegateRemoveEnforcementHoldToLegacyServiceWhenInLegacyMode() {
+        setMode(LEGACY);
 
+        long defendantAccountId = 77L;
+        Short businessUnitId = (short) 10;
+        String businessUnitUserId = "BU-USER";
+        String ifMatch = "\"7\"";
+        String auth = "Bearer abc";
+
+        RemoveDefendantAccountEnforcementHoldRequest req =
+            mock(RemoveDefendantAccountEnforcementHoldRequest.class);
+
+        RemoveDefendantAccountEnforcementHoldResponse expected =
+            mock(RemoveDefendantAccountEnforcementHoldResponse.class);
+
+        when(legacyService.removeEnforcementHold(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            ifMatch,
+            auth,
+            req
+        )).thenReturn(expected);
+
+        RemoveDefendantAccountEnforcementHoldResponse result =
+            serviceProxy.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                businessUnitUserId,
+                ifMatch,
+                auth,
+                req
+            );
+
+        assertEquals(expected, result);
+        verify(legacyService).removeEnforcementHold(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            ifMatch,
+            auth,
+            req
+            );
+        verifyNoInteractions(opalService);
+    }
 }

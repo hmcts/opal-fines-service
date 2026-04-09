@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +31,8 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
@@ -216,5 +219,28 @@ public class DefendantAccountController {
 
         return buildResponse(response);
     }
+
+    @PatchMapping(value = "/{defendantAccountId}/remove-enf-hold", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Remove an enforcement hold for a given defendant account")
+    public ResponseEntity<RemoveDefendantAccountEnforcementHoldResponse> removeEnforcementHold(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader("Business-Unit-Id") Short businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestBody RemoveDefendantAccountEnforcementHoldRequest request
+    ) {
+        log.debug(":PATCH:removeEnforcementHold: for defendantAccountId={}", defendantAccountId);
+
+        return buildResponse(
+            defendantAccountEnforcementService.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                authHeaderValue,
+                request
+            )
+        );
+    }
+
 
 }
