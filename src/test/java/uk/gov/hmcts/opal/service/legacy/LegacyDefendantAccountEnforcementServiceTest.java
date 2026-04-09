@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +43,8 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
@@ -50,6 +53,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusRe
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyRemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyRemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
@@ -64,6 +69,7 @@ import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountSta
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,6 +88,9 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
     @InjectMocks
     private  LegacyDefendantAccountEnforcementService legacyDefendantAccountEnforcementService;
+
+    @Mock
+    private LegacyRemoveDefendantEnforcementHoldMapper removeEnforcementHoldMapper;
 
     @BeforeEach
     void openMocks() throws Exception {
@@ -521,6 +530,198 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             .version("1234567890123456789012345678901234567890")
             .employerFlag("true")
             .build();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void removeEnforcementHold_success_returnsMappedResponse_simple() {
+        LegacyRemoveDefendantAccountEnforcementHoldRequest legacyReq =
+            mock(LegacyRemoveDefendantAccountEnforcementHoldRequest.class);
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        LegacyRemoveDefendantAccountEnforcementHoldResponse legacyResp =
+            mock(LegacyRemoveDefendantAccountEnforcementHoldResponse.class);
+        when(legacyResp.getDefendantAccountId()).thenReturn(123L);
+        when(legacyResp.getVersion()).thenReturn(new BigInteger("7"));
+
+        RemoveDefendantAccountEnforcementHoldResponse mappedResponse =
+            RemoveDefendantAccountEnforcementHoldResponse.builder()
+                .defendantAccountId("123")
+                .version(new BigInteger("7"))
+                .build();
+
+        when(removeEnforcementHoldMapper.toLegacyRequest(
+            eq(123L),
+            eq((short) 10),
+            eq("user-1"),
+            eq("\"7\""),
+            eq(request)
+        )).thenReturn(legacyReq);
+
+        when(removeEnforcementHoldMapper.toOpalResponse(legacyResp)).thenReturn(mappedResponse);
+
+        GatewayService.Response<LegacyRemoveDefendantAccountEnforcementHoldResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountEnforcementService.REMOVE_ENFORCEMENT_HOLD),
+            eq(LegacyRemoveDefendantAccountEnforcementHoldResponse.class),
+            eq(legacyReq),
+            Mockito.nullable(String.class)
+        );
+
+        RemoveDefendantAccountEnforcementHoldResponse out =
+            legacyDefendantAccountEnforcementService.removeEnforcementHold(
+                123L,
+                (short) 10,
+                "user-1",
+                "\"7\"",
+                "auth",
+                request
+            );
+
+        assertNotNull(out);
+        assertEquals("123", out.getDefendantAccountId());
+        assertEquals(new BigInteger("7"), out.getVersion());
+    }
+
+    @Test
+    void removeEnforcementHold_gatewayResponseWithException_throwsRuntimeException() {
+        LegacyRemoveDefendantAccountEnforcementHoldRequest legacyReq =
+            mock(LegacyRemoveDefendantAccountEnforcementHoldRequest.class);
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        RuntimeException cause = new RuntimeException("boom");
+
+        GatewayService.Response<LegacyRemoveDefendantAccountEnforcementHoldResponse> resp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, cause, "<err/>");
+
+        when(removeEnforcementHoldMapper.toLegacyRequest(
+            eq(1L),
+            eq((short) 10),
+            eq("user-1"),
+            eq("\"1\""),
+            eq(request)
+        )).thenReturn(legacyReq);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountEnforcementService.REMOVE_ENFORCEMENT_HOLD),
+            eq(LegacyRemoveDefendantAccountEnforcementHoldResponse.class),
+            eq(legacyReq),
+            Mockito.nullable(String.class)
+        );
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountEnforcementService.removeEnforcementHold(
+                1L,
+                (short) 10,
+                "user-1",
+                "\"1\"",
+                "auth",
+                request
+            )
+        );
+
+        assertEquals("Legacy exception during removeEnforcementHold", ex.getMessage());
+        assertSame(cause, ex.getCause());
+    }
+
+    @Test
+    void removeEnforcementHold_gatewayResponseWithLegacyFailure_throwsRuntimeException() {
+        LegacyRemoveDefendantAccountEnforcementHoldRequest legacyReq =
+            mock(LegacyRemoveDefendantAccountEnforcementHoldRequest.class);
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        LegacyRemoveDefendantAccountEnforcementHoldResponse legacyResp =
+            mock(LegacyRemoveDefendantAccountEnforcementHoldResponse.class);
+
+        GatewayService.Response<LegacyRemoveDefendantAccountEnforcementHoldResponse> resp =
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>", null);
+
+        when(removeEnforcementHoldMapper.toLegacyRequest(
+            eq(500L),
+            eq((short) 10),
+            eq("user-1"),
+            eq("\"5\""),
+            eq(request)
+        )).thenReturn(legacyReq);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountEnforcementService.REMOVE_ENFORCEMENT_HOLD),
+            eq(LegacyRemoveDefendantAccountEnforcementHoldResponse.class),
+            eq(legacyReq),
+            Mockito.nullable(String.class)
+        );
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountEnforcementService.removeEnforcementHold(
+                500L,
+                (short) 10,
+                "user-1",
+                "\"5\"",
+                "auth",
+                request
+            )
+        );
+
+        assertEquals("Legacy failure during removeEnforcementHold", ex.getMessage());
+    }
+
+    @Test
+    void removeEnforcementHold_gatewayResponseUnknownError_throwsRuntimeException() {
+        LegacyRemoveDefendantAccountEnforcementHoldRequest legacyReq =
+            mock(LegacyRemoveDefendantAccountEnforcementHoldRequest.class);
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        LegacyRemoveDefendantAccountEnforcementHoldResponse legacyResp =
+            mock(LegacyRemoveDefendantAccountEnforcementHoldResponse.class);
+
+        GatewayService.Response<LegacyRemoveDefendantAccountEnforcementHoldResponse> resp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, legacyResp, null, null);
+
+        when(removeEnforcementHoldMapper.toLegacyRequest(
+            eq(1L),
+            eq((short) 10),
+            eq("user-1"),
+            eq("\"1\""),
+            eq(request)
+        )).thenReturn(legacyReq);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountEnforcementService.REMOVE_ENFORCEMENT_HOLD),
+            eq(LegacyRemoveDefendantAccountEnforcementHoldResponse.class),
+            eq(legacyReq),
+            Mockito.nullable(String.class)
+        );
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountEnforcementService.removeEnforcementHold(
+                1L,
+                (short) 10,
+                "user-1",
+                "\"1\"",
+                "auth",
+                request
+            )
+        );
+
+        assertEquals("Unknown error during removeEnforcementHold", ex.getMessage());
     }
 
     @Test
