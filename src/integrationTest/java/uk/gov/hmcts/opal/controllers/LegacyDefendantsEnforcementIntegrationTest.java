@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,9 +24,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -74,6 +73,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         }
         """;
 
+    private static final String BUSINESS_UNIT_ID = "78";
+    private static final String IF_MATCH_VERSION = "\"1\"";
+
     private HttpHeaders enforcementHeaders(String bearerToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(bearerToken);
@@ -81,7 +83,6 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
         return headers;
     }
-
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - success")
@@ -165,8 +166,8 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     private HttpHeaders removeEnforcementHeaders(String bearerToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(bearerToken);
-        headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, "\"1\"");
+        headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
+        headers.add(HttpHeaders.IF_MATCH, IF_MATCH_VERSION);
         return headers;
     }
 
@@ -231,8 +232,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", "78");
-        // no If-Match header
+        headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
 
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -252,7 +252,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", "78");
+        headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
         headers.add(HttpHeaders.IF_MATCH, "not-a-version");
 
         mockMvc.perform(
@@ -265,5 +265,4 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
-
 }
