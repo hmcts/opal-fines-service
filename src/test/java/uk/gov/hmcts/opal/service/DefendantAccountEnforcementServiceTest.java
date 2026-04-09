@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -212,13 +211,20 @@ class DefendantAccountEnforcementServiceTest {
         RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
             RemoveDefendantAccountEnforcementHoldResponse.builder().build();
 
-        UserState userWithPermission = new UserState.DeveloperUserState();
+        UserState userState = mock(UserState.class);
+        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userWithPermission);
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
+        when(userState.getUserName()).thenReturn("user-name");
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ENTER_ENFORCEMENT))
+            .thenReturn(true);
+        when(buUser.getBusinessUnitUserId()).thenReturn("BU-USER-1");
+
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
-            anyString(),
+            eq("BU-USER-1"),
             eq(ifMatch),
             eq(authHeader),
             eq(request)
@@ -239,11 +245,12 @@ class DefendantAccountEnforcementServiceTest {
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
-            anyString(),
+            eq("BU-USER-1"),
             eq(ifMatch),
             eq(authHeader),
             eq(request)
         );
+        verifyNoMoreInteractions(defendantAccountEnforcementServiceProxy);
     }
 
     @Test
