@@ -1,0 +1,18 @@
+Timing is on.
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:272: NOTICE:  === Setting up test data for v_defendant_accounts_header tests ===
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:272: NOTICE:  Test data setup completed: defendant_account_id = 999901 and 999902
+DO
+Time: 9.627 ms
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:399: NOTICE:  === TEST 1: Comprehensive test for account with parent/guardian ===
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:399: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account with parent/guardian
+DO
+Time: 9.220 ms
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:498: NOTICE:  === TEST 2: Comprehensive test for account without parent/guardian ===
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:498: NOTICE:  TEST 2 PASSED: All information retrieved and validated successfully for account without parent/guardian
+DO
+Time: 3.337 ms
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:521: NOTICE:  === Cleaning up test data ===
+psql:viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v2.sql:521: NOTICE:  Test data cleanup completed
+DO
+Time: 9.695 ms
+Timing is off.

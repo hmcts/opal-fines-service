@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.entity.search;
 
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
@@ -13,7 +14,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.Immutable;
+import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 
 import java.math.BigDecimal;
 
@@ -39,7 +43,9 @@ public abstract class SearchDefendantAccount {
     private String lastEnforcement;
 
     @Column(name = "account_status")
-    private String accountStatus;
+    @ColumnTransformer(read = "account_status::text")
+    @Convert(converter = DefendantAccountStatusConverter.class)
+    private DefendantAccountStatus accountStatus;
 
     @Column(name = "defendant_account_balance")
     private BigDecimal defendantAccountBalance;
@@ -114,4 +120,3 @@ public abstract class SearchDefendantAccount {
     public static class BasicEntity extends SearchDefendantAccount {
     }
 }
-

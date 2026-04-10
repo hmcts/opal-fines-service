@@ -462,4 +462,56 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         Integer updatedVersion = versionFor(20010L);
         assertEquals(currentVersion + 1, updatedVersion);
     }
+
+    @Test
+    @Sql(scripts = "classpath:db/insertData/update_into_parties.sql", executionPhase = BEFORE_TEST_METHOD)
+    @DisplayName("OPAL: PUT Replace DAP – individual to organisation removes parent/guardian DAP in same tx")
+    void put_convertIndividualToOrganisation_removesParentGuardianParty() throws Exception {
+        authoriseAllPermissions();
+
+        Integer parentGuardianCountBefore = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM defendant_account_parties "
+                + "WHERE defendant_account_id = 20010 AND association_type = 'Parent/Guardian'",
+            Integer.class);
+        assertEquals(1, parentGuardianCountBefore);
+
+        Integer currentVersion = versionFor(20010L);
+        String etag = "\"" + currentVersion + "\"";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, etag);
+
+        String body = """
+            {
+                "defendant_account_party_type": "Defendant",
+                "is_debtor": false,
+                "party_details": {
+                    "party_id": "20010",
+                    "organisation_flag": true,
+                    "organisation_details": {
+                        "organisation_name": "Converted Co Ltd"
+                    }
+                }
+            }
+            """;
+
+        ResultActions call = mockMvc.perform(
+            put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+
+        call.andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.ETAG, "\"" + (currentVersion + 1) + "\""))
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
+
+        Integer parentGuardianCountAfter = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM defendant_account_parties "
+                + "WHERE defendant_account_id = 20010 AND association_type = 'Parent/Guardian'",
+            Integer.class);
+        assertEquals(0, parentGuardianCountAfter);
+    }
+
 }

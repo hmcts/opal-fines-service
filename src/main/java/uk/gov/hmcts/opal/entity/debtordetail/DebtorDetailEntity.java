@@ -1,6 +1,7 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.debtordetail;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,9 +16,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDate;
 
 @Entity
 @Data
@@ -71,15 +71,17 @@ public class DebtorDetailEntity {
     @Column(name = "employer_email")
     private String employerEmail;
 
-    @Column(name = "document_language")
-    private String documentLanguage;
+    @Column(name = "document_language", columnDefinition = "t_language_enum")
+    @ColumnTransformer(read = "document_language::text", write = "?::t_language_enum")
+    private Language documentLanguage;
 
     @Column(name = "document_language_date")
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate documentLanguageDate;
 
-    @Column(name = "hearing_language")
-    private String hearingLanguage;
+    @Column(name = "hearing_language", columnDefinition = "t_language_enum")
+    @ColumnTransformer(read = "hearing_language::text", write = "?::t_language_enum")
+    private Language hearingLanguage;
 
     @Column(name = "hearing_language_date")
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)

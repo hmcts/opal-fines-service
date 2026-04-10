@@ -3,7 +3,9 @@ package uk.gov.hmcts.opal.mapper.request;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.paymentterms.TermsTypeCode;
 
 @org.mapstruct.Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PaymentTermsMapper {
@@ -13,22 +15,27 @@ public interface PaymentTermsMapper {
     @org.mapstruct.Mapping(source = "instalmentPeriod.instalmentPeriodCode", target = "instalmentPeriod")
     @org.mapstruct.Mapping(source = "postedDetails.postedBy", target = "postedBy")
     @org.mapstruct.Mapping(source = "postedDetails.postedByName", target = "postedByUsername")
-    PaymentTermsEntity toEntity(uk.gov.hmcts.opal.dto.PaymentTerms dto);
+    PaymentTermsEntity toEntity(PaymentTerms dto);
 
-    @org.mapstruct.Mapping(source = "instalmentPeriod", target = "instalmentPeriod")
+    @org.mapstruct.Mapping(source = "termsTypeCode", target = "paymentTermsType.paymentTermsTypeCode")
+    @org.mapstruct.Mapping(source = "instalmentPeriod", target = "instalmentPeriod.instalmentPeriodCode")
     PaymentTerms toDto(PaymentTermsEntity savedPaymentTerms);
 
-    // MapStruct will use this to convert a String code -> InstalmentPeriod
-    default InstalmentPeriod map(String code) {
-        if (code == null) {
-            return null;
-        }
-
-        return InstalmentPeriod.fromCode(code);
+    default uk.gov.hmcts.opal.entity.paymentterms.InstalmentPeriod map(
+        InstalmentPeriod.InstalmentPeriodCode code
+    ) {
+        return code == null ? null : uk.gov.hmcts.opal.entity.paymentterms.InstalmentPeriod.fromCode(code.name());
     }
 
-    // MapStruct will use this to convert InstalmentPeriod -> String code
-    default String map(InstalmentPeriod period) {
-        return period == null ? null : period.getInstalmentPeriodDisplayName();
+    default InstalmentPeriod.InstalmentPeriodCode map(uk.gov.hmcts.opal.entity.paymentterms.InstalmentPeriod period) {
+        return period == null ? null : InstalmentPeriod.InstalmentPeriodCode.fromValue(period.getCode());
+    }
+
+    default TermsTypeCode map(PaymentTermsType.PaymentTermsTypeCode code) {
+        return code == null ? null : TermsTypeCode.fromCode(code.name());
+    }
+
+    default PaymentTermsType.PaymentTermsTypeCode map(TermsTypeCode code) {
+        return code == null ? null : PaymentTermsType.PaymentTermsTypeCode.fromValue(code.getCode());
     }
 }

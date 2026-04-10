@@ -199,6 +199,29 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     }
 
     @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Court With Long Court Id [@PO-3667]")
+    void patch_updatesEnforcementCourt_withLongCourtId() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(77L);
+        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+              "enforcement_court": {
+                "court_id": 780000000185
+              }
+            }
+            """;
+
+        mockMvc.perform(
+            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(jsonPath("$.enforcement_court.court_id").value(780000000185L));
+    }
+
+    @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Collection Order [@PO-1565]")
     void patch_updatesCollectionOrder() throws Exception {
         authoriseAllPermissions();
@@ -208,6 +231,19 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
               {"collection_order":{"collection_order_flag":true,"collection_order_date":"2025-01-01"}}
+            """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
+    }
+
+    @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Collection Order With Missing Date [@PO-3667]")
+    void patch_updatesCollectionOrder_whenDateMissing() throws Exception {
+        authoriseAllPermissions();
+
+        Integer currentVersion = versionFor(77L);
+        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+
+        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
+              {"collection_order":{"collection_order_flag":true}}
             """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
     }
 

@@ -18,13 +18,13 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DocumentEntity;
 import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
 import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.DocumentRepository;
-import uk.gov.hmcts.opal.util.RecordTypeConstants;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceTest {
@@ -62,7 +62,7 @@ class DocumentServiceTest {
         assertSame(buFullEntity, saved.getBusinessUnit());
         assertEquals(DocumentEntityStatus.NEW, saved.getStatus());
         assertEquals(defAccountId, saved.getAssociatedRecordId());
-        assertEquals(RecordTypeConstants.DEFENDANT_ACCOUNTS, saved.getAssociatedRecordType());
+        assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, saved.getAssociatedRecordType());
     }
 
     @Test

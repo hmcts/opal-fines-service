@@ -30,8 +30,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.converter.ConsolidatedAccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.OriginatorTypeConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -78,7 +82,9 @@ public class DefendantAccountEntity implements Versioned {
     private BigDecimal accountBalance;
 
     @Column(name = "account_status", length = 2)
-    private String accountStatus;
+    @ColumnTransformer(read = "account_status::text", write = "?::t_da_account_status_enum")
+    @Convert(converter = DefendantAccountStatusConverter.class)
+    private DefendantAccountStatus accountStatus;
 
     @Column(name = "completed_date")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
@@ -114,7 +120,9 @@ public class DefendantAccountEntity implements Versioned {
     private String originatorId;
 
     @Column(name = "originator_type", length = 10)
-    private String originatorType;
+    @ColumnTransformer(read = "originator_type::text", write = "?::t_originator_type_enum")
+    @Convert(converter = OriginatorTypeConverter.class)
+    private OriginatorType originatorType;
 
     @Column(name = "allow_writeoffs")
     private Boolean allowWriteoffs;
@@ -163,7 +171,9 @@ public class DefendantAccountEntity implements Versioned {
     private LocalDate fineRegistrationDate;
 
     @Column(name = "consolidated_account_type", length = 1)
-    private String consolidatedAccountType;
+    @ColumnTransformer(read = "consolidated_account_type::text", write = "?::t_consolidated_account_type_enum")
+    @Convert(converter = ConsolidatedAccountTypeConverter.class)
+    private ConsolidatedAccountType consolidatedAccountType;
 
     @Column(name = "payment_card_requested")
     private Boolean paymentCardRequested;
@@ -188,6 +198,7 @@ public class DefendantAccountEntity implements Versioned {
     private List<DefendantAccountPartiesEntity> parties;
 
     @Column(name = "account_type", length = 30, nullable = false)
+    @ColumnTransformer(read = "account_type::text", write = "?::t_da_account_type_enum")
     @Convert(converter = DefendantAccountTypeConverter.class)
     private DefendantAccountType accountType;
 

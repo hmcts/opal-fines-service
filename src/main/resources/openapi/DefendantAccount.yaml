@@ -577,6 +577,7 @@ components:
       properties:
         court_id:
           type: integer
+          format: int64
       required:
         - court_id
     enforcementOverride:

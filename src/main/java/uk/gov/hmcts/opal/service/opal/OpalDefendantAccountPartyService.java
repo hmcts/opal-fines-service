@@ -35,12 +35,14 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.entity.AliasEntity;
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -63,6 +65,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final AliasRepositoryService aliasRepositoryService;
 
     private final PartyRepositoryService partyRepositoryService;
+
+    private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
 
     @Override
@@ -178,6 +182,11 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             throw new IllegalArgumentException("Request body is required");
         }
 
+        PartyDetails partyDetails = request.getPartyDetails();
+        if (isConvertingFromIndividualToOrganisation(party, partyDetails)) {
+            removeParentGuardianParties(account, dapId);
+        }
+
         Optional.ofNullable(request.getDefendantAccountPartyType())
             .map(AssociationType::getByLabel)
             .ifPresent(dap::setAssociationType);
@@ -198,7 +207,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             party.getOrganisationName(),
             party.getSurname());
 
-        OpalDefendantAccountBuilders.applyPartyCoreReplace(party, request.getPartyDetails());
+        OpalDefendantAccountBuilders.applyPartyCoreReplace(party, partyDetails);
         OpalDefendantAccountBuilders.applyPartyAddressReplace(party, request.getAddress());
         OpalDefendantAccountBuilders.applyPartyContactReplace(party, request.getContactDetails());
 
@@ -210,7 +219,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             request.getLanguagePreferences(), isDebtor
         );
 
-        replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
+        replaceAliasesForParty(party.getPartyId(), partyDetails);
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
@@ -229,6 +238,25 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(bumpVersion(accountId).getVersion())
             .build();
+    }
+
+    private boolean isConvertingFromIndividualToOrganisation(PartyEntity party, PartyDetails partyDetails) {
+        return !party.isOrganisation()
+            && Boolean.TRUE.equals(Optional.ofNullable(partyDetails)
+                .map(PartyDetails::getOrganisationFlag)
+                .orElse(null));
+    }
+
+    private void removeParentGuardianParties(DefendantAccountEntity account, Long dapId) {
+        int deletedRows = defendantAccountPartiesRepository.deleteByAccountIdAndAssociationTypeExcludingDapId(
+            account.getDefendantAccountId(),
+            AssociationType.PARENT_GUARDIAN,
+            dapId
+        );
+        if (deletedRows > 0) {
+            log.info("replaceDefendantAccountParty: removed {} parent/guardian parties for accountId={}",
+                deletedRows, account.getDefendantAccountId());
+        }
     }
 
     private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
@@ -428,9 +456,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         if (language != null) {
             debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
-                ? language.getDocumentLanguagePreference().getLanguageCode() : null);
+                ? Language.fromCode(language.getDocumentLanguagePreference().getLanguageCode()) : null);
             debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
-                ? language.getHearingLanguagePreference().getLanguageCode() : null);
+                ? Language.fromCode(language.getHearingLanguagePreference().getLanguageCode()) : null);
             debtor.setDocumentLanguageDate(LocalDate.now());
             debtor.setHearingLanguageDate(LocalDate.now());
         } else {

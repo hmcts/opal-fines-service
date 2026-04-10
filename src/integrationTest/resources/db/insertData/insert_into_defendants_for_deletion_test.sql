@@ -58,7 +58,7 @@ VALUES (1001, 78, '100B',
         NULL, NULL, NULL,
         'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
         '2023-12-19 00:00:00', NULL, NULL, NULL,
-        'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
+        'M', 'Y', '2024-01-01 00:00:00', '11111111A',
         '090A', NULL, 'Fine', 1);
 
 --  Ensure the version is initialized so deletes include a bound value

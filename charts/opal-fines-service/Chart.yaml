@@ -11,11 +11,11 @@ dependencies:
     version: 5.3.0
     repository: 'oci://hmctsprod.azurecr.io/helm'
   - name: opal-user-service
-    version: 0.0.38
+    version: 0.0.39
     repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: opal-user-service.enabled
   - name: opal-logging-service
-    version: 0.0.20
+    version: 0.0.22
     repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: opal-logging-service.enabled
   - name: servicebus

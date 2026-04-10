@@ -3,7 +3,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.20.3")
+    classpath("org.flywaydb:flyway-database-postgresql:12.3.0")
   }
 }
 
@@ -14,15 +14,15 @@ plugins {
   id 'org.springframework.boot' version '4.0.5'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '7.2.3.7755'
-  id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.20.3'
+  id 'uk.gov.hmcts.java' version '0.12.68'
+  id 'org.flywaydb.flyway' version '12.3.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
   id "org.openapi.generator" version "7.21.0"
 }
 
 ext {
-  log4JVersion = "2.25.3"
-  serenityVersion = "5.3.9"
+  log4JVersion = "2.25.4"
+  serenityVersion = "5.3.10"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
@@ -448,14 +448,14 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.0'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.1'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.12'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.12'
 
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.38"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.43"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.39"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.46"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.46"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
@@ -495,14 +495,14 @@ dependencies {
   implementation 'org.apache.qpid:qpid-jms-client:2.10.0'
   implementation 'com.google.guava:guava:33.5.0-jre'
 
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.12.0'
+  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.2'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.9'
-  implementation 'org.flywaydb:flyway-core:11.20.3'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.3', {
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
+  implementation 'org.flywaydb:flyway-core:12.3.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.3.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -510,7 +510,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.44'
   annotationProcessor 'org.projectlombok:lombok:1.18.44'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.46.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:7.3.0.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -535,7 +535,7 @@ dependencies {
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.9.0'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
@@ -567,8 +567,8 @@ dependencies {
 
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.18'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.21'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.21'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 
