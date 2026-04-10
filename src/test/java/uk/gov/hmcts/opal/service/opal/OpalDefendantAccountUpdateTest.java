@@ -346,7 +346,6 @@ class OpalDefendantAccountUpdateTest {
         assertNotNull(resp.getPayload().getEnforcementOverride());
     }
 
-    @Test
     void updateDefendantAccount_collectionOrderDefaultsDateWhenFlagTrueAndDateMissing() {
         var bu = BusinessUnitFullEntity.builder()
             .businessUnitId((short) 78)
@@ -483,5 +482,4 @@ class OpalDefendantAccountUpdateTest {
 
         assertEquals(courtId, resp.getPayload().getEnforcementCourt().getCourtId());
     }
-
 }

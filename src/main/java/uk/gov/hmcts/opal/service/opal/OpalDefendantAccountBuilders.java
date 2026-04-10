@@ -1001,13 +1001,13 @@ public class OpalDefendantAccountBuilders {
     }
 
     static void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverrideDefendantAccount override) {
-        if (override.getEnforcementOverrideResult() != null) {
-            entity.setEnforcementOverrideResultId(
-                override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
-        }
+        String resultId = override.getEnforcementOverrideResult() == null
+            ? null
+            : override.getEnforcementOverrideResult().getEnforcementOverrideResultId();
         Long enforcerId = override.getEnforcer() == null ? null : override.getEnforcer().getEnforcerId();
         Integer ljaId = override.getLja() == null ? null : override.getLja().getLjaId();
 
+        entity.setEnforcementOverrideResultId(resultId);
         entity.setEnforcementOverrideEnforcerId(enforcerId);
         entity.setEnforcementOverrideTfoLjaId(ljaId == null ? null : ljaId.shortValue());
     }
