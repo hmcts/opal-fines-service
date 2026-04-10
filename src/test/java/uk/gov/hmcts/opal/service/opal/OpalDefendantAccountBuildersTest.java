@@ -32,6 +32,7 @@ import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,16 +52,13 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
-    void testResolveStatusDisplayName() {
-        assertEquals("Live", OpalDefendantAccountBuilders.resolveStatusDisplayName("L"));
-        assertEquals("Completed", OpalDefendantAccountBuilders.resolveStatusDisplayName("C"));
-        assertEquals("TFO to be acknowledged", OpalDefendantAccountBuilders.resolveStatusDisplayName("TO"));
-        assertEquals("TFO to NI/Scotland to be acknowledged",
-            OpalDefendantAccountBuilders.resolveStatusDisplayName("TS"));
-        assertEquals("TFO acknowledged", OpalDefendantAccountBuilders.resolveStatusDisplayName("TA"));
-        assertEquals("Account consolidated", OpalDefendantAccountBuilders.resolveStatusDisplayName("CS"));
-        assertEquals("Account written off", OpalDefendantAccountBuilders.resolveStatusDisplayName("WO"));
-        assertEquals("Unknown", OpalDefendantAccountBuilders.resolveStatusDisplayName("nonsense"));
+    void testBuildAccountStatusReference() {
+        AccountStatusReference reference =
+            OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.LIVE);
+
+        assertNotNull(reference);
+        assertEquals("L", reference.getAccountStatusCode());
+        assertEquals("Live", reference.getAccountStatusDisplayName());
     }
 
     @Test
@@ -149,10 +147,15 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
-    void testBuildAccountStatusReference() {
-        AccountStatusReference ref =
-            OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.LIVE);
-        assertEquals("L", ref.getAccountStatusCode());
+    void testBuildAccountStatusReference_handlesNullStatus() {
+        assertNull(OpalDefendantAccountBuilders.buildAccountStatusReference(null));
+    }
+
+    @Test
+    void testBuildAccountStatusReferenceCommon() {
+        AccountStatusReferenceCommon ref =
+            OpalDefendantAccountBuilders.buildAccountStatusReferenceCommon(DefendantAccountStatus.LIVE);
+        assertEquals("L", ref.getAccountStatusCode().getValue());
         assertEquals("Live", ref.getAccountStatusDisplayName());
     }
 
