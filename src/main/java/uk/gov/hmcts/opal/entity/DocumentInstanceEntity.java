@@ -2,9 +2,8 @@ package uk.gov.hmcts.opal.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,9 +20,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.DocumentEntityStatusConverter;
 import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -60,14 +62,17 @@ public class DocumentInstanceEntity {
     @Column(name = "generated_by", length = 20, nullable = false)
     private String generatedBy;
 
-    @Column(name = "associated_record_type", length = 30, nullable = false)
-    private String associatedRecordType;
+    @Convert(converter = AssociatedRecordTypeConverter.class)
+    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @Column(name = "associated_record_type", length = 30, columnDefinition = "t_associated_record_type_enum")
+    private AssociatedRecordType associatedRecordType;
 
     @Column(name = "associated_record_id", nullable = false)
     private Long associatedRecordId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 20, nullable = false)
+    @Convert(converter = DocumentEntityStatusConverter.class)
+    @ColumnTransformer(write = "?::t_di_status_enum")
+    @Column(name = "status", length = 20, nullable = false, columnDefinition = "t_di_status_enum")
     private DocumentEntityStatus status;
 
     @Column(name = "printed_date")

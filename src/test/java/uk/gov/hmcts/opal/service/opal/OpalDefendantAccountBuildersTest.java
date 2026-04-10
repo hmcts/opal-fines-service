@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,17 +15,20 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountBuildersTest {
@@ -42,19 +44,6 @@ class OpalDefendantAccountBuildersTest {
         int age = OpalDefendantAccountBuilders.calculateAge(LocalDate.now().minusYears(22));
         assertTrue(age == 22 || age == 21); // depending on birthday
         assertEquals(0, OpalDefendantAccountBuilders.calculateAge(null));
-    }
-
-    @Test
-    void testResolveStatusDisplayName() {
-        assertEquals("Live", OpalDefendantAccountBuilders.resolveStatusDisplayName("L"));
-        assertEquals("Completed", OpalDefendantAccountBuilders.resolveStatusDisplayName("C"));
-        assertEquals("TFO to be acknowledged", OpalDefendantAccountBuilders.resolveStatusDisplayName("TO"));
-        assertEquals("TFO to NI/Scotland to be acknowledged",
-            OpalDefendantAccountBuilders.resolveStatusDisplayName("TS"));
-        assertEquals("TFO acknowledged", OpalDefendantAccountBuilders.resolveStatusDisplayName("TA"));
-        assertEquals("Account consolidated", OpalDefendantAccountBuilders.resolveStatusDisplayName("CS"));
-        assertEquals("Account written off", OpalDefendantAccountBuilders.resolveStatusDisplayName("WO"));
-        assertEquals("Unknown", OpalDefendantAccountBuilders.resolveStatusDisplayName("nonsense"));
     }
 
     @Test
@@ -82,7 +71,8 @@ class OpalDefendantAccountBuildersTest {
 
     @Test
     void testBuildAccountStatusReference() {
-        AccountStatusReference ref = OpalDefendantAccountBuilders.buildAccountStatusReference("L");
+        AccountStatusReference ref =
+            OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.LIVE);
         assertEquals("L", ref.getAccountStatusCode());
         assertEquals("Live", ref.getAccountStatusDisplayName());
     }
@@ -98,6 +88,20 @@ class OpalDefendantAccountBuildersTest {
         assertEquals("55", summary.getBusinessUnitId());
         assertEquals("NorthEast", summary.getBusinessUnitName());
         assertEquals("N", summary.getWelshSpeaking());
+    }
+
+    @Test
+    void given_debtorDetailLanguages_when_buildLanguagePreferences_then_mapEnumCodes() {
+        DebtorDetailEntity debtorDetail = DebtorDetailEntity.builder()
+            .documentLanguage(Language.WELSH_AND_ENGLISH)
+            .hearingLanguage(Language.ENGLISH)
+            .build();
+
+        LanguagePreferences preferences = OpalDefendantAccountBuilders.buildLanguagePreferences(debtorDetail);
+
+        assertNotNull(preferences);
+        assertEquals("CY", preferences.getDocumentLanguagePreference().getLanguageCode());
+        assertEquals("EN", preferences.getHearingLanguagePreference().getLanguageCode());
     }
 
     @Test
@@ -436,140 +440,6 @@ class OpalDefendantAccountBuildersTest {
             .vehicleFixedPenalty(isVehicle)
             .timeOfOffence(LocalTime.parse("12:34"))
             .build();
-    }
-
-    @Test
-    void mapToDto_setsParentGuardianDebtorTypeAndYouthFlag() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .debtorType(null)
-            .hasParentGuardian(true)
-            .birthDate(LocalDate.now().minusYears(15))
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        assertEquals("Parent/Guardian", dto.getDebtorType());
-        assertTrue(dto.getIsYouth());
-    }
-
-    @Test
-    void mapToDto_setsDefaultDebtorTypeAndNotYouthWhenBirthDateMissing() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .debtorType(null)
-            .hasParentGuardian(false)
-            .birthDate(null)
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        assertEquals("Defendant", dto.getDebtorType());
-        assertFalse(dto.getIsYouth());
-    }
-
-    @Test
-    void testMapToDtoCoversFields() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .partyId(123L)
-            .parentGuardianAccountPartyId(456L)
-            .accountNumber("ACCT100")
-            .accountType("Fine")
-            .prosecutorCaseReference("PCR1")
-            .fixedPenaltyTicketNumber("FPT1")
-            .accountStatus("L")
-            .businessUnitId((short) 77)
-            .businessUnitName("BUName")
-            .imposed(BigDecimal.valueOf(11))
-            .arrears(BigDecimal.valueOf(22))
-            .paid(BigDecimal.valueOf(33))
-            .accountBalance(BigDecimal.valueOf(44))
-            .organisation(false)
-            .organisationName("MyOrg")
-            .title("Sir")
-            .firstnames("Robo")
-            .surname("Cop")
-            .birthDate(LocalDate.now().minusYears(10))
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        assertEquals("ACCT100", dto.getAccountNumber());
-        assertNotNull(dto.getPartyDetails());
-    }
-
-    @Test
-    void testMapToDto_DefendantPartyId_ComesFromDefendantAccountPartyId() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(77L)
-            .defendantAccountPartyId(77L)
-            .partyId(999L)
-            .accountNumber("177A")
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-
-        assertNotNull(dto, "DTO should not be null");
-        assertEquals("77", dto.getDefendantAccountPartyId(),
-            "defendant_account_party_id should map from defendantAccountPartyId");
-        assertNotEquals("999", dto.getDefendantAccountPartyId(),
-            "should not map from partyId");
-    }
-
-    @Test
-    void testMapToDto_DefendantPartyId_NullWhenDefendantAccountPartyIdIsNull() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(88L)
-            .defendantAccountPartyId(null)
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-
-        assertNull(dto.getDefendantAccountPartyId(),
-            "defendantAccountPartyId should be null when defendantAccountPartyId is null");
-    }
-
-    @Test
-    void testMapToDto_NormalisesAccountTypeAndStatusDisplayName() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(77L)
-            .defendantAccountPartyId(77L)
-            .accountNumber("177A")
-            .accountType("Fine")
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-
-        assertEquals("Fine", dto.getAccountType()); // Should normalise plural Fines → Fine"
-        assertEquals("Live", dto.getAccountStatusReference().getAccountStatusDisplayName());
-    }
-
-    @Test
-    void testMapToDto_SerialisedStructureMatchesApiFields() throws Exception {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(77L)
-            .defendantAccountPartyId(77L)
-            .partyId(77L)
-            .accountNumber("177A")
-            .organisation(false)
-            .firstnames("Anna")
-            .surname("Graham")
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(dto);
-
-        assertTrue(json.contains("\"defendant_account_party_id\""));
-        assertTrue(json.contains("\"party_details\""));
-        assertTrue(json.contains("\"account_number\""));
     }
 
 }

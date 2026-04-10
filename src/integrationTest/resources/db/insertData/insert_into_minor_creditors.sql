@@ -196,7 +196,7 @@ INSERT INTO public.defendant_accounts (
 )
 VALUES
   (70000000000000, 10, 'DEF123456',
-   700.00, 123.00, 500.00, 'UP', 'Fine');
+   700.00, 123.00, 500.00, 'CS', 'Fine');
 
    -- Need to insert some impositions to delete --
 INSERT INTO public.impositions (

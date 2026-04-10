@@ -1,7 +1,8 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.paymentterms;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -22,6 +23,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
+import uk.gov.hmcts.opal.entity.converter.InstalmentPeriodConverter;
+import uk.gov.hmcts.opal.entity.converter.TermsTypeCodeConverter;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
@@ -57,15 +61,19 @@ public class PaymentTermsEntity {
     @Column(name = "posted_by")
     private String postedBy;
 
-    @Column(name = "terms_type_code", nullable = false)
-    private String termsTypeCode;
+    @Column(name = "terms_type_code", nullable = false, columnDefinition = "t_terms_type_code_enum")
+    @Convert(converter = TermsTypeCodeConverter.class)
+    @ColumnTransformer(write = "?::t_terms_type_code_enum")
+    private TermsTypeCode termsTypeCode;
 
     @Column(name = "effective_date")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate effectiveDate;
 
-    @Column(name = "instalment_period")
-    private String instalmentPeriod;
+    @Column(name = "instalment_period", columnDefinition = "t_instalment_period_enum")
+    @Convert(converter = InstalmentPeriodConverter.class)
+    @ColumnTransformer(write = "?::t_instalment_period_enum")
+    private InstalmentPeriod instalmentPeriod;
 
     @Column(name = "instalment_amount")
     private BigDecimal instalmentAmount;
