@@ -44,6 +44,12 @@ java:
           alias: OPAL_SFTP_OUTBOUND_USER
         - name: outbound-password
           alias: OPAL_SFTP_OUTBOUND_PASSWORD
+        - name: servicebus-report-queue-name
+          alias: SERVICEBUS_REPORT_QUEUE_NAME
+        - name: storage-connection-string
+          alias: AZURE_STORAGE_CONNECTION_STRING
+        - name: reports-storage-container-name
+          alias: REPORTS_AZURE_STORAGE_CONTAINER
   environment:
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "opal-fines-db"
@@ -61,6 +67,7 @@ java:
     DEFAULT_APP_MODE: ${APP_MODE}
     SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
+    SERVICEBUS_REPORT_PROTOCOL: amqps
   postgresql:
     enabled: true
     primary:
