@@ -371,7 +371,10 @@
           "script": {
             "exec": [
               "console.log(\"Status:\", pm.response.code);",
-              "console.log(\"Body:\", pm.response.text());"
+              "console.log(\"Body:\", pm.response.text());",
+              "var jsonData = pm.response.json();",
+              "pm.collectionVariables.set('scenario_1_def_acc_id', jsonData.account_number);",
+              "pm.environment.set('defendant_account_id', jsonData.account_id);"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -588,6 +591,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_2_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -805,6 +809,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_3_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -1021,6 +1026,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_4_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -1233,6 +1239,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_4_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -1447,6 +1454,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_6_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -1664,6 +1672,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_7_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -1881,6 +1890,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_8_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -2097,6 +2107,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_9_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -2314,6 +2325,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_10_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -2531,6 +2543,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_11_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -2748,6 +2761,7 @@
             "exec": [
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set('scenario_11_def_acc_id', jsonData.account_number);",
+              "    pm.environment.set('defendant_account_id', jsonData.account_id);",
               ""
             ],
             "type": "text/javascript",
@@ -2807,42 +2821,6 @@
           "path": [
             "draft-accounts",
             "{{scenario_12_draft_acc_id}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "temp",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{token_opal-test}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"draft_account_id\": null,\n  \"created_at\": null,\n  \"account_snapshot\": null,\n  \"account_status_date\": null,\n  \"business_unit_id\": 77,\n  \"submitted_by\": \"L077JG\",\n  \"submitted_by_name\": \"opal-test\",\n  \"account\": {\n    \"originator_type\": \"TFO\",\n    \"account_type\": \"Fine\",\n    \"defendant_type\": \"adultOrYouthOnly\",\n    \"originator_name\": \"Aberdeen JP Court\",\n    \"originator_id\": 9251,\n    \"prosecutor_case_reference\": \"AADS\",\n    \"enforcement_court_id\": 770000000001,\n    \"collection_order_made\": null,\n    \"collection_order_made_today\": null,\n    \"collection_order_date\": null,\n    \"suspended_committal_date\": null,\n    \"payment_card_request\": null,\n    \"account_sentence_date\": \"2025-05-15\",\n    \"defendant\": {\n      \"company_flag\": false,\n      \"title\": \"Mr\",\n      \"surname\": \"TEST\",\n      \"forenames\": \"Jonathan\",\n      \"company_name\": null,\n      \"dob\": \"2025-05-08\",\n      \"address_line_1\": \"Street\",\n      \"address_line_2\": null,\n      \"address_line_3\": null,\n      \"address_line_4\": null,\n      \"address_line_5\": null,\n      \"post_code\": null,\n      \"telephone_number_home\": null,\n      \"telephone_number_business\": null,\n      \"telephone_number_mobile\": null,\n      \"email_address_1\": null,\n      \"email_address_2\": null,\n      \"national_insurance_number\": \"AA123456A\",\n      \"driving_licence_number\": null,\n      \"pnc_id\": null,\n      \"nationality_1\": null,\n      \"nationality_2\": null,\n      \"ethnicity_self_defined\": null,\n      \"ethnicity_observed\": null,\n      \"cro_number\": null,\n      \"occupation\": null,\n      \"gender\": null,\n      \"custody_status\": null,\n      \"prison_number\": null,\n      \"interpreter_lang\": null,\n      \"debtor_detail\": {\n        \"vehicle_make\": null,\n        \"vehicle_registration_mark\": null,\n        \"document_language\": null,\n        \"hearing_language\": null,\n        \"employee_reference\": null,\n        \"employer_company_name\": null,\n        \"employer_address_line_1\": null,\n        \"employer_address_line_2\": null,\n        \"employer_address_line_3\": null,\n        \"employer_address_line_4\": null,\n        \"employer_address_line_5\": null,\n        \"employer_post_code\": null,\n        \"employer_telephone_number\": null,\n        \"employer_email_address\": null,\n        \"aliases\": null\n      },\n      \"parent_guardian\": null\n    },\n    \"offences\": [\n      {\n        \"date_of_sentence\": \"2025-05-15\",\n        \"imposing_court_id\": 770000000001,\n        \"offence_id\": 33369,\n        \"impositions\": [\n          {\n            \"result_id\": \"FCOST\",\n            \"amount_imposed\": 125,\n            \"amount_paid\": 10,\n            \"major_creditor_id\": 770000000041,\n            \"minor_creditor\": null\n          }\n        ]\n      }\n    ],\n    \"fp_ticket_detail\": null,\n    \"payment_terms\": {\n      \"payment_terms_type_code\": \"B\",\n      \"effective_date\": \"2025-05-30\",\n      \"instalment_period\": null,\n      \"lump_sum_amount\": null,\n      \"instalment_amount\": null,\n      \"default_days_in_jail\": null,\n      \"enforcements\": null\n    },\n    \"account_notes\": null\n  },\n  \"account_type\": \"fine\",\n  \"account_status\": \"Submitted\",\n  \"timeline_data\": [\n    {\n      \"username\": \"opal-test\",\n      \"status\": \"Submitted\",\n      \"status_date\": \"2025-05-21\",\n      \"reason_text\": null\n    }\n  ]\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{env_url}}/draft-accounts",
-          "host": [
-            "{{env_url}}"
-          ],
-          "path": [
-            "draft-accounts"
           ]
         }
       },
@@ -2979,8 +2957,7 @@
     },
     {
       "key": "scenario_11_def_acc_id",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "scenario_12_draft_acc_id",
@@ -3044,6 +3021,10 @@
     },
     {
       "key": "token_opal-test-8",
+      "value": ""
+    },
+    {
+      "key": "defendant_account_id",
       "value": ""
     }
   ]
