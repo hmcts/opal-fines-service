@@ -1001,16 +1001,15 @@ public class OpalDefendantAccountBuilders {
     }
 
     static void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverrideDefendantAccount override) {
-        if (override.getEnforcementOverrideResult() != null) {
-            entity.setEnforcementOverrideResultId(
-                override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
-        }
-        if (override.getEnforcer() != null && override.getEnforcer().getEnforcerId() != null) {
-            entity.setEnforcementOverrideEnforcerId(override.getEnforcer().getEnforcerId());
-        }
-        if (override.getLja() != null && override.getLja().getLjaId() != null) {
-            entity.setEnforcementOverrideTfoLjaId(override.getLja().getLjaId().shortValue());
-        }
+        String resultId = override.getEnforcementOverrideResult() == null
+            ? null
+            : override.getEnforcementOverrideResult().getEnforcementOverrideResultId();
+        Long enforcerId = override.getEnforcer() == null ? null : override.getEnforcer().getEnforcerId();
+        Integer ljaId = override.getLja() == null ? null : override.getLja().getLjaId();
+
+        entity.setEnforcementOverrideResultId(resultId);
+        entity.setEnforcementOverrideEnforcerId(enforcerId);
+        entity.setEnforcementOverrideTfoLjaId(ljaId == null ? null : ljaId.shortValue());
     }
 
     static Long safeParseLong(String s) {

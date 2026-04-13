@@ -346,7 +346,6 @@ class OpalDefendantAccountUpdateTest {
         assertNotNull(resp.getPayload().getEnforcementOverride());
     }
 
-    @Test
     void updateDefendantAccount_collectionOrderDefaultsDateWhenFlagTrueAndDateMissing() {
         var bu = BusinessUnitFullEntity.builder()
             .businessUnitId((short) 78)
@@ -376,6 +375,40 @@ class OpalDefendantAccountUpdateTest {
         assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
         assertEquals(LocalDate.now(), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
         assertEquals(LocalDate.now(), entity.getCollectionOrderEffectiveDate());
+    }
+
+    @Test
+    void updateDefendantAccount_enforcementOverrideResultNull_clearsEntireOverride() {
+        var bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+        entity.setEnforcementOverrideResultId("FWEC");
+        entity.setEnforcementOverrideEnforcerId(21L);
+        entity.setEnforcementOverrideTfoLjaId((short) 240);
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        doNothing().when(entityManager).lock(any(), any());
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .enforcementOverride(EnforcementOverrideDefendantAccount.builder()
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+
+        assertNull(resp.getPayload().getEnforcementOverride());
+        assertNull(entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
     }
 
     @Test
@@ -449,5 +482,4 @@ class OpalDefendantAccountUpdateTest {
 
         assertEquals(courtId, resp.getPayload().getEnforcementCourt().getCourtId());
     }
-
 }

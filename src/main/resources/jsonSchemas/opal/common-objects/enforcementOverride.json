@@ -4,9 +4,23 @@
   "type": ["object", "null"],
   "additionalProperties": false,
   "properties": {
-    "enforcement_override_result": { "$ref": "../common-objects/enforcementOverrideResultReference.json" },
-    "enforcer": {"$ref": "../common-objects/enforcerReference.json" },
-    "lja": {"$ref": "../common-objects/ljaReference.json"}
-  },
-  "required": ["enforcement_override_result", "enforcer", "lja"]
+    "enforcement_override_result": {
+      "anyOf": [
+        { "$ref": "../common-objects/enforcementOverrideResultReference.json" },
+        { "type": "null" }
+      ]
+    },
+    "enforcer": {
+      "anyOf": [
+        { "$ref": "../common-objects/enforcerReference.json" },
+        { "type": "null" }
+      ]
+    },
+    "lja": {
+      "anyOf": [
+        { "$ref": "../common-objects/ljaReference.json" },
+        { "type": "null" }
+      ]
+    }
+  }
 }

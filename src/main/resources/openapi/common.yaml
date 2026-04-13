@@ -393,13 +393,17 @@ components:
       additionalProperties: false
       properties:
         enforcement_override_result:
-          $ref: '#/components/schemas/enforcementOverrideResultReference'
+          allOf:
+            - $ref: '#/components/schemas/enforcementOverrideResultReference'
+          nullable: true
         enforcer:
-          $ref: '#/components/schemas/enforcerReference'
+          allOf:
+            - $ref: '#/components/schemas/enforcerReference'
+          nullable: true
         lja:
-          $ref: '#/components/schemas/ljaReference'
-      required:
-        - enforcement_override_result
+          allOf:
+            - $ref: '#/components/schemas/ljaReference'
+          nullable: true
     resultResponses:
       title: Result Responses
       type: object

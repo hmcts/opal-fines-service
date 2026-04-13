@@ -27,8 +27,13 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
+import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountBuildersTest {
@@ -44,6 +49,78 @@ class OpalDefendantAccountBuildersTest {
         int age = OpalDefendantAccountBuilders.calculateAge(LocalDate.now().minusYears(22));
         assertTrue(age == 22 || age == 21); // depending on birthday
         assertEquals(0, OpalDefendantAccountBuilders.calculateAge(null));
+    }
+
+    @Test
+    void testBuildAccountStatusReference() {
+        AccountStatusReference reference =
+            OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.LIVE);
+
+        assertNotNull(reference);
+        assertEquals("L", reference.getAccountStatusCode());
+        assertEquals("Live", reference.getAccountStatusDisplayName());
+    }
+
+    @Test
+    void applyEnforcementOverride_clearsIds_whenEnforcerAndLjaObjectsAreNull() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        entity.setEnforcementOverrideResultId("OLD");
+        entity.setEnforcementOverrideEnforcerId(22L);
+        entity.setEnforcementOverrideTfoLjaId((short) 33);
+
+        EnforcementOverrideDefendantAccount override = EnforcementOverrideDefendantAccount.builder()
+            .enforcementOverrideResult(EnforcementOverrideResultDefendantAccount.builder()
+                .enforcementOverrideResultId("FWEC")
+                .build())
+            .build();
+
+        OpalDefendantAccountBuilders.applyEnforcementOverride(entity, override);
+
+        assertEquals("FWEC", entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
+    }
+
+    @Test
+    void applyEnforcementOverride_clearsAllIds_whenResultEnforcerAndLjaObjectsAreNull() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        entity.setEnforcementOverrideResultId("OLD");
+        entity.setEnforcementOverrideEnforcerId(22L);
+        entity.setEnforcementOverrideTfoLjaId((short) 33);
+
+        EnforcementOverrideDefendantAccount override = EnforcementOverrideDefendantAccount.builder().build();
+
+        OpalDefendantAccountBuilders.applyEnforcementOverride(entity, override);
+
+        assertNull(entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
+    }
+
+    @Test
+    void applyEnforcementOverride_clearsIds_whenEnforcerAndLjaIdsAreNull() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        entity.setEnforcementOverrideResultId("OLD");
+        entity.setEnforcementOverrideEnforcerId(22L);
+        entity.setEnforcementOverrideTfoLjaId((short) 33);
+
+        EnforcementOverrideDefendantAccount override = EnforcementOverrideDefendantAccount.builder()
+            .enforcementOverrideResult(EnforcementOverrideResultDefendantAccount.builder()
+                .enforcementOverrideResultId(null)
+                .build())
+            .enforcer(EnforcerDefendantAccount.builder()
+                .enforcerId(null)
+                .build())
+            .lja(LocalJusticeAreaDefendantAccount.builder()
+                .ljaId(null)
+                .build())
+            .build();
+
+        OpalDefendantAccountBuilders.applyEnforcementOverride(entity, override);
+
+        assertNull(entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
     }
 
     @Test
@@ -70,10 +147,15 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
-    void testBuildAccountStatusReference() {
-        AccountStatusReference ref =
-            OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.LIVE);
-        assertEquals("L", ref.getAccountStatusCode());
+    void testBuildAccountStatusReference_handlesNullStatus() {
+        assertNull(OpalDefendantAccountBuilders.buildAccountStatusReference(null));
+    }
+
+    @Test
+    void testBuildAccountStatusReferenceCommon() {
+        AccountStatusReferenceCommon ref =
+            OpalDefendantAccountBuilders.buildAccountStatusReferenceCommon(DefendantAccountStatus.LIVE);
+        assertEquals("L", ref.getAccountStatusCode().getValue());
         assertEquals("Live", ref.getAccountStatusDisplayName());
     }
 
