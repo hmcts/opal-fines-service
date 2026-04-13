@@ -584,13 +584,17 @@ components:
       type: object
       properties:
         enforcement_override_result:
-          $ref: '#/components/schemas/enforcementOverrideResult'
+          allOf:
+            - $ref: '#/components/schemas/enforcementOverrideResult'
+          nullable: true
         enforcer:
-            $ref: '#/components/schemas/enforcer'
+            allOf:
+              - $ref: '#/components/schemas/enforcer'
+            nullable: true
         lja:
-            $ref: '#/components/schemas/localJusticeArea'
-      required:
-        - enforcement_override_result
+            allOf:
+              - $ref: '#/components/schemas/localJusticeArea'
+            nullable: true
     enforcementOverrideResult:
       type: object
       properties:
