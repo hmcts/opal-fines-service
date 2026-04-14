@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -21,6 +23,8 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyRemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyRemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
@@ -32,6 +36,7 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterfa
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.util.VersionUtils;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -40,9 +45,11 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
 
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
     public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
+    public static final String REMOVE_ENFORCEMENT_HOLD = "LIBRA.of_remove_defendant_account_enf_hold";
 
     private final GatewayService gatewayService;
     private final CourtService courtService;
+    private final LegacyRemoveDefendantEnforcementHoldMapper removeEnforcementHoldMapper;
 
     /* This is probably common code that will be needed across multiple Legacy requests to get
     Defendant Account details. */
@@ -90,6 +97,54 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
             .defendantAccountId(enforcementResponse.getDefendantAccountId()).version(enforcementResponse.getVersion())
             .build();
 
+    }
+
+    @Override
+    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+        Long defendantAccountId,
+        Short businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader,
+        RemoveDefendantAccountEnforcementHoldRequest request) {
+
+        LegacyRemoveDefendantAccountEnforcementHoldRequest legacyRequest =
+            removeEnforcementHoldMapper.toLegacyRequest(
+                defendantAccountId,
+                businessUnitId,
+                businessUnitUserId,
+                ifMatch,
+                request
+            );
+
+        Response<LegacyRemoveDefendantAccountEnforcementHoldResponse> response =
+            gatewayService.postToGateway(
+                REMOVE_ENFORCEMENT_HOLD,
+                LegacyRemoveDefendantAccountEnforcementHoldResponse.class,
+                legacyRequest,
+                null
+            );
+
+        if (response.isError()) {
+            log.error(":RemoveEnforcementHold: Legacy error HTTP {}", response.code);
+
+            if (response.isException()) {
+                log.error(":RemoveEnforcementHold: exception:", response.exception);
+                throw new RuntimeException("Legacy exception during removeEnforcementHold", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":RemoveEnforcementHold: legacy failure body:\n{}", response.body);
+                throw new RuntimeException("Legacy failure during removeEnforcementHold");
+            }
+
+            throw new RuntimeException("Unknown error during removeEnforcementHold");
+        }
+
+        if (response.isSuccessful()) {
+            log.info(":RemoveEnforcementHold: Legacy success.");
+            return removeEnforcementHoldMapper.toOpalResponse(response.responseEntity);
+        }
+
+        throw new IllegalStateException("Unexpected response state during removeEnforcementHold");
     }
 
     private List<ResultResponsesLegacy> mapResultResponses(List<ResultResponse> responses) {

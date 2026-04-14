@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +32,8 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountEnforcementServiceProxy;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountEnforcementServiceTest {
@@ -191,5 +194,99 @@ class DefendantAccountEnforcementServiceTest {
         assertTrue(response.getIsHmrcCheckEligible());
         assertEquals(new BigInteger("1234567890123345678901234567890"), response.getVersion());
 
+    }
+
+    @Test
+    void removeEnforcementHold_whenUserHasPermission_callsProxyAndReturnsResult() {
+        Long defendantAccountId = 77L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"7\"";
+        String authHeader = "Bearer abc";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
+            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
+
+        UserState userState = allPermissionsUser();
+
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+
+        when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            eq(businessUnitUserId),
+            eq(ifMatch),
+            eq(authHeader),
+            eq(request)
+        )).thenReturn(proxyResponse);
+
+        RemoveDefendantAccountEnforcementHoldResponse result =
+            defendantAccountEnforcementService.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                authHeader,
+                request
+            );
+
+        assertSame(proxyResponse, result);
+
+        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            eq(businessUnitUserId),
+            eq(ifMatch),
+            eq(authHeader),
+            eq(request)
+        );
+        verifyNoMoreInteractions(defendantAccountEnforcementServiceProxy);
+    }
+
+    @Test
+    void removeEnforcementHold_whenUserLacksPermission_throwsPermissionNotAllowedException() {
+        Long defendantAccountId = 77L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"7\"";
+        String authHeader = "Bearer abc";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
+        when(userState.getUserName()).thenReturn("user-1");
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
+            .thenReturn(false);
+
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountEnforcementService.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                authHeader,
+                request
+            )
+        );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
+
+        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
+        verify(userState).getUserName();
+        verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
+        verifyNoInteractions(defendantAccountEnforcementServiceProxy);
     }
 }

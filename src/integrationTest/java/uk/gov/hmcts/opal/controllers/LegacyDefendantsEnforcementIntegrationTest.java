@@ -68,6 +68,15 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         }
         """;
 
+    private static final String REMOVE_ENFORCEMENT_REQUEST = """
+        {
+          "reason": "remove hold reason"
+        }
+        """;
+
+    private static final String BUSINESS_UNIT_ID = "78";
+    private static final String IF_MATCH_VERSION = "\"1\"";
+
     private HttpHeaders enforcementHeaders(String bearerToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(bearerToken);
@@ -153,5 +162,108 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             )
             .andExpect(status().isUnauthorized())
             .andExpect(content().string(""));
+    }
+
+    private HttpHeaders removeEnforcementHeaders(String bearerToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(bearerToken);
+        headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
+        headers.add(HttpHeaders.IF_MATCH, IF_MATCH_VERSION);
+        return headers;
+    }
+
+    @Test
+    @DisplayName("LEGACY: PATCH Remove Enforcement Hold - success")
+    void testPatchRemoveEnforcementHold_Success() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                    .patch("/defendant-accounts/72/remove-enf-hold")
+                    .headers(removeEnforcementHeaders("good_token"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(REMOVE_ENFORCEMENT_REQUEST)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("LEGACY: PATCH Remove Enforcement Hold - forbidden without ENTER_ENFORCEMENT")
+    void testPatchRemoveEnforcementHold_403Forbidden() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            UserState.builder()
+                .userId(999L)
+                .userName("no-permission-user")
+                .businessUnitUser(Collections.emptySet())
+                .build()
+        );
+
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                    .patch("/defendant-accounts/72/remove-enf-hold")
+                    .headers(removeEnforcementHeaders("good_token"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(REMOVE_ENFORCEMENT_REQUEST)
+            )
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("LEGACY: PATCH Remove Enforcement Hold - unauthorized token rejected")
+    void testPatchRemoveEnforcementHold_401Unauthorized() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                    .patch("/defendant-accounts/72/remove-enf-hold")
+                    .headers(removeEnforcementHeaders("bad_token"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(REMOVE_ENFORCEMENT_REQUEST)
+            )
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    @Test
+    @DisplayName("LEGACY: PATCH Remove Enforcement Hold - missing If-Match rejected")
+    void testPatchRemoveEnforcementHold_missingIfMatch() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
+
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                    .patch("/defendant-accounts/72/remove-enf-hold")
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(REMOVE_ENFORCEMENT_REQUEST)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @DisplayName("LEGACY: PATCH Remove Enforcement Hold - invalid If-Match rejected")
+    void testPatchRemoveEnforcementHold_invalidIfMatch() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
+        headers.add(HttpHeaders.IF_MATCH, "not-a-version");
+
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                    .patch("/defendant-accounts/72/remove-enf-hold")
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(REMOVE_ENFORCEMENT_REQUEST)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 }

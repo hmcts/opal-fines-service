@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -51,6 +53,17 @@ public class OpalDefendantAccountEnforcementService
         String authHeader,
         AddDefendantAccountEnforcementRequest request) {
         return null;
+    }
+
+    @Override
+    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+        Long defendantAccountId,
+        Short businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader,
+        RemoveDefendantAccountEnforcementHoldRequest request) {
+        throw new UnsupportedOperationException("Remove enforcement hold not yet implemented for OPAL mode");
     }
 
     EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
