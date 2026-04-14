@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
@@ -35,9 +35,10 @@ public class NotesService {
                     HttpStatus.NOT_FOUND, "Account %s not found".formatted(request.getActivityNote().getRecordId())
                 ));
 
+        Short businessUnitId = account.getBusinessUnit().getBusinessUnitId();
         if (!userState.hasBusinessUnitUserWithPermission(
-            account.getBusinessUnit().getBusinessUnitId(), FinesPermission.ACCOUNT_MAINTENANCE)) {
-            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+            businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE)) {
+            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         }
 
         return notesProxy.addNote(request, ifMatch, userState, account);

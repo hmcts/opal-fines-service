@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DocumentEntity;
 import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
 import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
@@ -12,7 +13,6 @@ import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.DocumentRepository;
 import uk.gov.hmcts.opal.service.iface.DocumentServiceInterface;
 import uk.gov.hmcts.opal.util.DocumentIdConstants;
-import uk.gov.hmcts.opal.util.RecordTypeConstants;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +40,7 @@ public class DocumentService implements DocumentServiceInterface {
             .generatedDate(LocalDateTime.now())
             .generatedBy("generatedby")
             .associatedRecordId(defAccountId)
-            .associatedRecordType(RecordTypeConstants.DEFENDANT_ACCOUNTS)
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .status(DocumentEntityStatus.NEW)
             .build();
 

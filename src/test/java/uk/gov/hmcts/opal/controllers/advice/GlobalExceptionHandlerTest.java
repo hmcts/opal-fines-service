@@ -17,7 +17,6 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -25,6 +24,7 @@ import java.util.NoSuchElementException;
 import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.Mockito;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
@@ -35,6 +35,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -45,6 +46,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.TransactionSystemException;
@@ -57,17 +59,17 @@ import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationErro
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 @SpringBootTest
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
+@Isolated
 class GlobalExceptionHandlerTest {
 
     @MockitoBean FeatureDisabledException featureDisabledException;
@@ -110,10 +112,10 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleForbidden_false() {
-        PermissionNotAllowedException ex = new PermissionNotAllowedException(FinesPermission.ACCOUNT_ENQUIRY);
+        AccessDeniedException ex = new AccessDeniedException("acces denied");
         HttpServletRequest req = new MockHttpServletRequest();
 
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handlePermissionNotAllowedException(ex, req);
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleAccessDeniedException(ex, req);
         assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
         ProblemDetail pd = r.getBody();
         assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
@@ -232,7 +234,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleServlet_noResource_false() {
-        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/x");
+        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/x", "missing");
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleServletExceptions(ex);
         assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
         assertEquals(false, r.getBody().getProperties().get("retriable"));
@@ -336,7 +338,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleHttpServerError_forced500_retriableFalse() {
-        HttpServerErrorException ex = new HttpServerErrorException(HttpStatusCode.valueOf(404), "Not Found!");
+        HttpServerErrorException ex = HttpServerErrorException.create(
+            HttpStatusCode.valueOf(404), "Not Found!", HttpHeaders.EMPTY, null, null);
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleHttpServerErrorException(ex);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
@@ -352,7 +355,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleHttpServerError_forced500_retriableTrueOn503() {
-        HttpServerErrorException ex = new HttpServerErrorException(HttpStatusCode.valueOf(503), "Service Unavailable");
+        HttpServerErrorException ex = HttpServerErrorException.create(
+            HttpStatusCode.valueOf(503), "Service Unavailable", HttpHeaders.EMPTY, null, null);
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleHttpServerErrorException(ex);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
@@ -426,7 +430,7 @@ class GlobalExceptionHandlerTest {
         UnprocessableException ex = new UnprocessableException("Too many results");
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleUnprocessableException(ex);
 
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, r.getStatusCode());
+        assertEquals(HttpStatus.UNPROCESSABLE_CONTENT, r.getStatusCode());
         ProblemDetail pd = r.getBody();
         assertEquals(false, pd.getProperties().get("retriable"));
         assertEquals("Too many results", pd.getProperties().get("unprocessableReason"));
@@ -435,9 +439,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleSubmitterCannotValidate_forbidden() {
-        SubmitterCannotValidateException ex =
-            new SubmitterCannotValidateException("A single user cannot submit and validate the same Draft Account");
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleSubmitterCannotValidateException(ex);
+        SubmitterDeniedException ex = new SubmitterDeniedException("Pable", "validate");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleActionDeniedForSubmitterException(ex);
 
         assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
         ProblemDetail pd = r.getBody();
@@ -482,8 +485,7 @@ class GlobalExceptionHandlerTest {
             Request.HttpMethod.GET,
             "/test",
             headers,
-            null,
-            StandardCharsets.UTF_8,
+            Request.Body.empty(),
             new RequestTemplate()
         );
 

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.when;
         "opal.testing-support-endpoints.enabled=true"
     }
 )
+@Isolated
 class TestingSupportControllerTest {
 
     @Autowired
@@ -51,7 +53,6 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private AccessTokenService accessTokenService;
-
 
     @MockitoBean DefendantAccountDeletionService defendantAccountDeletionService;
 

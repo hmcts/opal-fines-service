@@ -13,14 +13,14 @@ WHERE alias_id IN (
 DELETE FROM aliases
 WHERE party_id IN (
                    77, 88, 901, 333, 555, 666, 777, 444, 999, 77444, 10001, 10002, 10003,
-                   20010, 22004              -- NEW: party used by individual-aliases IT
+                   20010, 22004, 920010      -- NEW: party used by individual-aliases IT
     );
 
 -- Remove defendant_account_parties links
 DELETE FROM defendant_account_parties
 WHERE defendant_account_party_id IN (
                                      991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
-                                     20010, 22004         -- NEW
+                                     20010, 22004, 920011 -- NEW
     );
 
 -- PO-2629 isolated cleanup (delete links by account id - robust)
@@ -81,7 +81,7 @@ WHERE defendant_account_id IN (
 DELETE FROM debtor_detail
 WHERE party_id IN (
                    77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
-                   20010, 22004,
+                   20010, 22004, 920010,
                    262901, 262902
     );
 
@@ -89,7 +89,7 @@ WHERE party_id IN (
 DELETE FROM parties
 WHERE party_id IN (
                    991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
-                   20010, 22004,
+                   20010, 22004, 920010,
                    262901, 262902
     );
 

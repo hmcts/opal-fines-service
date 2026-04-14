@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.entity.creditoraccount;
 
+import lombok.Getter;
+
+@Getter
 public enum CreditorAccountType {
     CF("Central Fund"),
     MJ("Major Creditor"),
@@ -21,10 +24,6 @@ public enum CreditorAccountType {
 
     public boolean isCentralFund() {
         return this.equals(CF);
-    }
-
-    public String getLabel() {
-        return label;
     }
 
     public static String getDisplayName(String code) {

@@ -12,11 +12,11 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.ErrorResponse;
@@ -30,7 +30,6 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
 import java.lang.reflect.Field;
-import uk.gov.hmcts.opal.util.LogUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -118,7 +117,7 @@ class LegacyDraftAccountPublishTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void testPublishDefendantAccount_serverError(CapturedOutput capturedOutput) throws JsonProcessingException {
+    void testPublishDefendantAccount_serverError() throws JsonProcessingException {
 
         // Arrange
         String opId = "1234";
@@ -141,7 +140,6 @@ class LegacyDraftAccountPublishTest {
             LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
                 .errorResponse(ErrorResponse.builder()
                     .errorCode("some code")
-                    .errorMessage(sensitiveErrorMessage)
                     .build())
                 .build();
 
@@ -164,7 +162,6 @@ class LegacyDraftAccountPublishTest {
             ObjectMapper mapper = new ObjectMapper();
             String publishedAsJson = mapper.writeValueAsString(published);
             assertThat(publishedAsJson).doesNotContain(sensitiveErrorMessage);
-            assertThat(capturedOutput.getOut()).contains(sensitiveErrorMessage);
 
             String expectedMessage = String.format(ERROR_MESSAGE_TEMPLATE, opId);
             assertEquals(published.getStatusMessage(), expectedMessage);

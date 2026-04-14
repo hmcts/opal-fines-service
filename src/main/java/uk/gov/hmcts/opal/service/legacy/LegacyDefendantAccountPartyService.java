@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 import java.math.BigInteger;
 import java.util.Collections;
@@ -274,7 +275,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(Long.parseLong(ifMatch.replace("\"", "").trim()))
+            .version(VersionUtils.extractBigInteger(ifMatch).longValue())
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)

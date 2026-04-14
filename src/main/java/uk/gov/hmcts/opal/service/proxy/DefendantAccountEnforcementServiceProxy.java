@@ -10,6 +10,8 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterfa
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountEnforcementServiceProxy")
@@ -41,4 +43,22 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
             ifMatch, authHeader, request);
     }
 
+    @Override
+    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+        Long defendantAccountId,
+        Short businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader,
+        RemoveDefendantAccountEnforcementHoldRequest request) {
+
+        return getCurrentModeService().removeEnforcementHold(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            ifMatch,
+            authHeader,
+            request
+        );
+    }
 }

@@ -42,16 +42,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.exception.SubmitterCannotValidateException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
-import uk.gov.hmcts.opal.util.LogUtil;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
@@ -92,8 +92,8 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
-    @ExceptionHandler({PermissionNotAllowedException.class, AccessDeniedException.class})
-    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(Exception ex,
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAccessDeniedException(AccessDeniedException ex,
                                                                              HttpServletRequest request) {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractUsername(authorization);
@@ -228,7 +228,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnprocessableException.class)
     public ResponseEntity<ProblemDetail> handleUnprocessableException(UnprocessableException ex) {
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNPROCESSABLE_ENTITY,
+            HttpStatus.UNPROCESSABLE_CONTENT,
             "Unprocessable Entity",
             "The request could not be processed",
             "unprocessable-entity",
@@ -238,7 +238,7 @@ public class GlobalExceptionHandler {
 
         problemDetail.setProperty("unprocessableReason", ex.getDetailedReason());
 
-        return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, problemDetail);
+        return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, problemDetail);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -494,13 +494,13 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
     }
 
-    @ExceptionHandler(SubmitterCannotValidateException.class)
-    public ResponseEntity<ProblemDetail> handleSubmitterCannotValidateException(SubmitterCannotValidateException e) {
+    @ExceptionHandler(SubmitterDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleActionDeniedForSubmitterException(SubmitterDeniedException e) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.FORBIDDEN,
-            "Submitter cannot validate",
-            "A single user cannot submit and validate the same Draft Account",
-            "submitter-cannot-validate",
+            "Submitter cannot " + e.getUpdateType(),
+            "A single user cannot submit and " + e.getUpdateType() + " the same Draft Account",
+            "submitter-cannot-" + e.getUpdateType(),
             false,
             e
         );

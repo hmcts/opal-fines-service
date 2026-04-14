@@ -1,9 +1,8 @@
 package uk.gov.hmcts.opal.util;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 
 import java.util.List;
@@ -18,10 +17,10 @@ public class HttpUtil {
         """
     { "error": "Not Found", "message": "No resource found at provided URI"}""";
 
-    private static final MultiValueMap<String, String> HEADERS;
+    private static final HttpHeaders HEADERS;
 
     static {
-        HEADERS = new LinkedMultiValueMap<>();
+        HEADERS = new HttpHeaders();
         HEADERS.add("content-type", "application/json");
     }
 
@@ -38,7 +37,7 @@ public class HttpUtil {
     public static <T> ResponseEntity<T> buildResponse(T contents, HttpStatus status) {
         if (contents == null) {
             contents = (T) NOT_FOUND_MESSAGE;
-            return new ResponseEntity<>(contents, HEADERS, HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).headers(HEADERS).body(contents);
         }
 
         ResponseEntity.BodyBuilder builder = ResponseEntity.status(status);

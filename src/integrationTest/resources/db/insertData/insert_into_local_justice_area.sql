@@ -23,17 +23,17 @@ VALUES
 (
 001,  'AAAA Trial Court'
 , 'Alpha Trial Courts', 'Court Quarter', '666 Trial Street'
-, 'TR12 1TR', '0007', 'TYPE_1', 'Trialton', 'Trialshire', NULL
+, 'TR12 1TR', '0007', 'LJA', 'Trialton', 'Trialshire', NULL
 ),
 
 (
   010,  'BBBB Trial Court'
 , 'Beta Trial Courts', 'Court Quarter', '666 Trial Street'
-, 'TR12 1TR', '0008', 'TYPE_2', 'Trialton', 'Trialshire', NULL
+, 'TR12 1TR', '0008', 'SJCRT', 'Trialton', 'Trialshire', NULL
 ),
 
 (
   020,  'CCCC Trial Court'
 , 'Charlie Trial Courts', 'Court Quarter', '666 Trial Street'
-, 'TR12 1TR', '0009', 'TYPE_2', 'Trialton', 'Trialshire', NULL
+, 'TR12 1TR', '0009', 'SJCRT', 'Trialton', 'Trialshire', NULL
 );

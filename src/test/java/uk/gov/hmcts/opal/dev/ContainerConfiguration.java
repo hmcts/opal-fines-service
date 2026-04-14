@@ -8,7 +8,7 @@ import org.springframework.boot.devtools.restart.RestartScope;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class ContainerConfiguration {
@@ -21,8 +21,8 @@ public class ContainerConfiguration {
     @Bean
     @ServiceConnection
     @RestartScope
-    PostgreSQLContainer<?> databaseContainer() {
-        return new PostgreSQLContainer<>("postgres:17.5")
+    PostgreSQLContainer databaseContainer() {
+        return new PostgreSQLContainer("postgres:17.5")
             .withCreateContainerCmdModifier(cmd ->
                 cmd.withHostConfig(new HostConfig().withPortBindings(DB_PORT_BINDING)))
             .withExposedPorts(DB_EXPOSED_PORT)

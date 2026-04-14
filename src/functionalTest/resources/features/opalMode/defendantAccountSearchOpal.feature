@@ -2,7 +2,7 @@
 #Feature: Test the defendant account search API Opal
 #
 #  Scenario: exact search with correct parameters - exact result match
-#    Given I am testing as the "opal-test@hmcts.net" user
+#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #    When I make a call to the defendant search API using the parameters
 #      | forename      | Smart          |
 #      | surname       | John           |
@@ -17,7 +17,7 @@
 #      | addressLine1  | 10 Brooks Lake  |
 #
 #  Scenario: exact search with incorrect parameters - no result match
-#    Given I am testing as the "opal-test@hmcts.net" user
+#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #    When I make a call to the defendant search API using the parameters
 #      | forename      | Smart          |
 #      | surname       | John           |
@@ -30,7 +30,7 @@
 #
 #
 #  Scenario: partial search on surname - results contain partial surname
-#    Given I am testing as the "opal-test@hmcts.net" user
+#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #    When I make a call to the defendant search API using the parameters
 #      | forename       | Smart          |
 #      | surname        | Joh            |
@@ -46,7 +46,7 @@
 #
 #
 #  Scenario: broad search - all relevant results returned
-#    Given I am testing as the "opal-test@hmcts.net" user
+#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 #    When I make a call to the defendant search API using the parameters
 #      | forename       | il |
 #      | surname        |    |

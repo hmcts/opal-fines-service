@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.service.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -122,7 +123,7 @@ class DraftAccountControllerTest {
     void testSaveDraftAccounts_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .accountType("Large")
+            .accountType(DraftAccountType.FINE)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .account(getAccountJson())
             .businessUnit(BusinessUnitFullEntity.builder().build())
@@ -130,7 +131,7 @@ class DraftAccountControllerTest {
             .timelineData(getTimelineJson())
             .build();
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
-            .accountType("Large")
+            .accountType(DraftAccountType.FINE)
             .account(getAccountJson())
             .businessUnitId((short)1)
             .submittedBy("USER_ID")
@@ -147,7 +148,7 @@ class DraftAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         DraftAccountResponseDto responseEntity = response.getBody();
-        assertEquals("Large", responseEntity.getAccountType());
+        assertEquals(DraftAccountType.FINE, responseEntity.getAccountType());
         assertEquals("Submitted", responseEntity.getAccountStatus().getLabel());
         assertEquals(getAccountJson(), responseEntity.getAccount());
         assertEquals("USER_ID", responseEntity.getSubmittedBy());
@@ -233,7 +234,7 @@ class DraftAccountControllerTest {
     private String getAccountJson() {
         return """
                {
-                 "account_type": "fine",
+                 "account_type": "Fine",
                  "defendant_type": "company",
                  "originator_name": "Asylum & Immigration Tribunal",
                  "originator_id": 3865,

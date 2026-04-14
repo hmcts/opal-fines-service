@@ -9,7 +9,6 @@ import org.apache.http.HttpStatus;
 import static org.hamcrest.Matchers.equalTo;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.junit.Assert;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -48,6 +47,11 @@ public class RefDataStepDef extends BaseStepDef {
 
         methods.getRequest(BUSINESS_UNIT_REF_DATA_URI + "?q=" + filter);
 
+    }
+
+    @When("I make a raw request to the business unit ref data api filtering by business unit type {string}")
+    public void getRawRequestToBusinessUnitRefData(String filter) {
+        methods.getRequestUsingRawHttpClient(BUSINESS_UNIT_REF_DATA_URI + "?q=" + filter);
     }
 
     @When("I make a request to the offence ref data api filtering by business unit {int}")
@@ -332,7 +336,7 @@ public class RefDataStepDef extends BaseStepDef {
             if (apiResponseValue == null && expectedData.get(key).equals("null")) {
                 apiResponseValue = "null";
             }
-            Assert.assertEquals("Values are not equal : ", expectedData.get(key), apiResponseValue);
+            assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
         }
     }
 
@@ -371,8 +375,6 @@ public class RefDataStepDef extends BaseStepDef {
     }
 
 }
-
-
 
 
 

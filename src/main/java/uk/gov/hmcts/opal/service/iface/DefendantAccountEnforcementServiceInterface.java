@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.service.iface;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 
 public interface DefendantAccountEnforcementServiceInterface {
 
@@ -11,4 +13,11 @@ public interface DefendantAccountEnforcementServiceInterface {
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 
+    RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+        Long defendantAccountId,
+        Short businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader,
+        RemoveDefendantAccountEnforcementHoldRequest request);
 }

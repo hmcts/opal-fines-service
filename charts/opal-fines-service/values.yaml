@@ -1,6 +1,6 @@
 java:
   applicationPort: 4550
-  image: 'sdshmctspublic.azurecr.io/opal/fines-service:latest'
+  image: 'hmctsprod.azurecr.io/opal/fines-service:latest'
   ingressHost: opal-fines-service.{{ .Values.global.environment }}.platform.hmcts.net
   keyVaults:
     opal:
@@ -45,15 +45,22 @@ java:
           alias: SERVICEBUS_SHARED_ACCESS_KEY
         - name: servicebus-logging-pdpl-queue-name
           alias: SERVICEBUS_LOGGING_PDPL_QUEUE_NAME
+        - name: servicebus-report-queue-name
+          alias: SERVICEBUS_REPORT_QUEUE_NAME
+        - name: storage-connection-string
+          alias: AZURE_STORAGE_CONNECTION_STRING
+        - name: reports-storage-container-name
+          alias: REPORTS_AZURE_STORAGE_CONTAINER
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.apps.hmcts.net
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: true
-    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.{{ .Values.global.environment }}.platform.hmcts.net
+    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub-{{ .Values.global.environment }}.platform.hmcts.net/opal
     OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
+    SERVICEBUS_REPORT_PROTOCOL: amqps
   postgresql:
     enabled: false
     image:
@@ -68,7 +75,7 @@ servicebus:
   enabled: false
 redis:
   image:
-    registry: hmctspublic.azurecr.io
+    registry: hmctsprod.azurecr.io
     repository: imported/bitnami/redis
   enabled: false
 global:

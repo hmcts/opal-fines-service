@@ -81,10 +81,22 @@ paths:
             format: int64
           required: true
         - in: header
-          name: ETag
+          name: If-Match
           description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
           schema:
             $ref: "./types.yaml#/components/schemas/BigInt"
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
+          schema:
+            type: string
+          required: true
       requestBody:
         content:
           application/json:
@@ -114,6 +126,100 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/minorCreditorAccountResponse"
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /minor-creditor-accounts/{id}/history:
+    get:
+      tags:
+        - Minor Creditor
+      summary: Get Minor Creditor History
+      description: The Get Minor Creditor History API will be used to return history items, representing a chronology of activity on the account - ordered from latest to oldest.
+      operationId: getMinorCreditorHistory
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+        - in: query
+          name: dateFrom
+          description: Optional date parameter to filter history items from a specific date.
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateTo
+          description: Optional date parameter to filter history items up to a specific date.
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: itemTypes
+          description: Optional comma-separated list of history item types to filter by.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - amendment
+                - financial
+                - note
+            style: form
+            explode: false
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  historyItems:
+                    type: array
+                    items:
+                      $ref: './history.yaml#/components/schemas/minorCreditorHistoryItem'
         400:
           description: Bad request
           content:

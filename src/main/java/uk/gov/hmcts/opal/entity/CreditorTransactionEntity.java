@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -20,6 +21,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
@@ -48,7 +53,6 @@ public class CreditorTransactionEntity {
     private Long creditorAccountId;
 
     @Column(name = "posted_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime postedDate;
 
@@ -58,8 +62,11 @@ public class CreditorTransactionEntity {
     @Column(name = "posted_by_name", nullable = false)
     private String postedByName;
 
-    @Column(name = "transaction_type", length = 6, nullable = false)
-    private String transactionType;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "transaction_type", length = 6, nullable = false,
+        columnDefinition = "t_creditor_transaction_type_enum")
+    private CreditorTransactionType transactionType;
 
     @Column(name = "transaction_amount", precision = 18, scale = 2, nullable = false)
     private BigDecimal transactionAmount;
@@ -73,16 +80,19 @@ public class CreditorTransactionEntity {
     @Column(name = "payment_reference", length = 10)
     private String paymentReference;
 
-    @Column(name = "status", length = 1)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", length = 1, columnDefinition = "t_creditor_transaction_status_enum")
+    private CreditorTransactionStatus status;
 
     @Column(name = "status_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime statusDate;
 
-    @Column(name = "associated_record_type", length = 30)
-    private String associatedRecordType;
+    @Convert(converter = AssociatedRecordTypeConverter.class)
+    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @Column(name = "associated_record_type", length = 30, columnDefinition = "t_associated_record_type_enum")
+    private AssociatedRecordType associatedRecordType;
 
     @Column(name = "associated_record_id", length = 30)
     private String associatedRecordId;

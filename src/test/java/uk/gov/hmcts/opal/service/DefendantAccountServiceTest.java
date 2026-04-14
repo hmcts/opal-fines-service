@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -14,9 +15,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import java.math.BigInteger;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,9 +41,9 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
-
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountServiceTest {
@@ -55,6 +56,9 @@ class DefendantAccountServiceTest {
 
     @Mock
     private UserState userState;
+
+    @Mock
+    private OpalDefendantAccountService opalDefendantAccountService;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -126,6 +130,7 @@ class DefendantAccountServiceTest {
 
     @Test
     void testGetHeaderSummary_forbiddenWhenUserHasNoPermission() {
+        // Arrange
         UserState user = UserState.builder()
             .userId(456L)
             .userName("noperms")
@@ -133,9 +138,12 @@ class DefendantAccountServiceTest {
             .build();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        Assertions.assertThrows(PermissionNotAllowedException.class, () -> {
-            defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
-        });
+        // Act & Assert
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () ->  defendantAccountService.getHeaderSummary(1L, "authHeaderValue")
+        );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -171,6 +179,8 @@ class DefendantAccountServiceTest {
 
     @Test
     void testSearchDefendantAccounts_forbiddenWhenUserHasNoPermission() {
+
+        //Arrange
         UserState user = UserState.builder()
             .userId(456L)
             .userName("noperms")
@@ -179,9 +189,14 @@ class DefendantAccountServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         AccountSearchDto dto = AccountSearchDto.builder().build();
-        Assertions.assertThrows(PermissionNotAllowedException.class, () -> {
-            defendantAccountService.searchDefendantAccounts(dto, "authHeaderValue");
-        });
+
+        // Act & Assert
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountService.searchDefendantAccounts(dto, "authHeaderValue")
+        );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -305,6 +320,7 @@ class DefendantAccountServiceTest {
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
             "Exception should mention the denied permission"
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         // proxy must not be called
         verify(userStateService).checkForAuthorisedUser(authHeader);
@@ -374,11 +390,11 @@ class DefendantAccountServiceTest {
             PermissionNotAllowedException.class,
             () -> defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", authHeader, null)
         );
-
         assertTrue(
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.ENTER_ENFORCEMENT.name()),
             "Exception should mention ENTER_ENFORCEMENT"
         );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
@@ -441,7 +457,7 @@ class DefendantAccountServiceTest {
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))
             .build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser("Bearer a_bearer_token")).thenReturn(allPermissionsUser());
         when(defendantAccountServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
 
         // Act
@@ -454,5 +470,24 @@ class DefendantAccountServiceTest {
         assertTrue(response.getIsHmrcCheckEligible());
         assertEquals(new BigInteger("1234567890123345678901234567890"), response.getVersion());
 
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
+        // Arrange
+        Long id = 1L;
+        UpdateDefendantAccountRequestPayload req = UpdateDefendantAccountRequestPayload.builder().build();
+        when(userStateService.checkForAuthorisedUser("UNIT_TEST")).thenReturn(allPermissionsUser());
+
+        // Act
+        final String buHeader = "10";
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+            defendantAccountService.updateDefendantAccount(id, buHeader, req, "UNIT_TEST",
+                "1")
+        );
+
+        // Assert
+        assertTrue(ex.getMessage().contains("Exactly one update group must be provided"));
+        verifyNoInteractions(opalDefendantAccountService);
     }
 }

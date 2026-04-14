@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +9,9 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -42,7 +40,7 @@ public class MinorCreditorService {
         }
     }
 
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId,
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
         String authHeaderValue) {
 
         log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
@@ -74,13 +72,14 @@ public class MinorCreditorService {
     public MinorCreditorAccountResponse updateMinorCreditorAccount(
         Long minorCreditorId,
         PatchMinorCreditorAccountRequest request,
-        BigInteger etag,
-        String authHeaderValue) {
+        BigInteger ifMatch,
+        String authHeaderValue,
+        String businessUnitId) {
         log.debug(":updateMinorCreditorAccount:");
 
-        if (etag == null) {
+        if (ifMatch == null) {
             throw new ResourceConflictException(
-                "CreditorAccount", minorCreditorId, "ETag header is required", null);
+                "CreditorAccount", minorCreditorId, "If-Match header is required", null);
         }
 
         if (request == null
@@ -91,26 +90,23 @@ public class MinorCreditorService {
             throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
         }
 
-        CreditorAccountEntity.Lite account = creditorAccountRepository.findById(minorCreditorId)
-            .orElseThrow(() -> new EntityNotFoundException("Minor creditor account not found: " + minorCreditorId));
+        Short businessUnitIdShort = businessUnitId != null ? Short.valueOf(businessUnitId) : null;
 
-        if (account.getCreditorAccountType() == null || !account.getCreditorAccountType().isMinorCreditor()) {
-            throw new EntityNotFoundException("Minor creditor account not found: " + minorCreditorId);
-        }
-
-        Short businessUnitId = account.getBusinessUnitId();
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-        if (businessUnitId == null || !userState.hasBusinessUnitUserWithPermission(businessUnitId,
+        if (businessUnitId == null || !userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
             FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
-            throw new PermissionNotAllowedException(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+            throw new PermissionNotAllowedException(
+                businessUnitIdShort,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
 
-        String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+        String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
-        return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, etag, postedBy);
+        return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, ifMatch, postedBy,
+            businessUnitIdShort);
     }
 
 }

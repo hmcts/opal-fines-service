@@ -15,22 +15,35 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse.AtAGlanceDefendant;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.Payment;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapper;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import uk.gov.hmcts.opal.repository.PartyRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -52,6 +65,17 @@ class OpalMinorCreditorServiceTest {
     @Mock
     private MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
 
+    @Mock
+    private MinorCreditorAccountHeaderSummaryMapper headerSummaryMapper;
+
+    @Mock
+    private MinorCreditorAccountAtAGlanceRepository minorCreditorAccountAtAGlanceRepository;
+
+    @Mock
+    private PartyRepository partyRepository;
+
+    @Mock
+    private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @InjectMocks
     private OpalMinorCreditorService service;
@@ -218,16 +242,17 @@ class OpalMinorCreditorServiceTest {
     }
 
     @Test
-    void getHeaderSummary_foundOrganisation_mapsCorrectly_andHasAssociatedDefendantFalse() {
+    void getHeaderSummary_happyPath_callsCorrectRepositoriesAndMappers() {
         // Arrange
         long id = 99000000000800L;
+        long partyId = 99000000000900L;
 
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
             .creditorAccountNumber("87654321")
-            .creditorAccountType("MN")
+            .creditorAccountType(CreditorAccountType.MN)
             .versionNumber(5L)
-            .partyId(99000000000900L)
+            .partyId(partyId)
             .title(null)
             .forenames(null)
             .surname(null)
@@ -242,110 +267,28 @@ class OpalMinorCreditorServiceTest {
             .outstanding(BigDecimal.ZERO)
             .build();
 
+        PartyEntity party = PartyEntity.builder().partyId(partyId).build();
+
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
 
         // Assert
-        assertNotNull(res);
-        assertEquals(String.valueOf(id), res.getCreditorAccountId());
-        assertEquals("87654321", res.getAccountNumber());
-        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertEquals(BigInteger.valueOf(5L), res.getVersion());
-
-        BusinessUnitSummary bu = res.getBusinessUnitSummary();
-        assertNotNull(bu);
-        assertEquals("77", bu.getBusinessUnitId());
-        assertEquals("Camberwell Green", bu.getBusinessUnitName());
-        assertEquals("N", bu.getWelshSpeaking()); // welshLanguage=false -> "N"
-
-        PartyDetails party = res.getPartyDetails();
-        assertNotNull(party);
-        assertEquals("99000000000900", party.getPartyId());
-        assertTrue(party.getOrganisationFlag());
-
-        OrganisationDetails org = party.getOrganisationDetails();
-        assertNotNull(org);
-        assertEquals("Minor Creditor Test Ltd", org.getOrganisationName());
-        assertNull(party.getIndividualDetails());
-
-        assertEquals(BigDecimal.ZERO, res.getAwardedAmount());
-        assertEquals(BigDecimal.ZERO, res.getPaidOutAmount());
-        assertEquals(BigDecimal.ZERO, res.getAwaitingPayoutAmount());
-        assertEquals(BigDecimal.ZERO, res.getOutstandingAmount());
-
-        // hasAssociatedDefendant() is based on awarded/outstanding > 0
-        assertFalse(res.getHasAssociatedDefendant());
-
+        assertSame(mapped, res);
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
+        verify(partyRepository, times(1)).findById(partyId);
+        verify(headerSummaryMapper).toResponse(entity, party);
     }
 
     @Test
-    void getHeaderSummary_foundIndividual_mapsCorrectly_andHasAssociatedDefendantTrue() {
-        // Arrange
-        long id = 99000000000801L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("87654322")
-            .creditorAccountType("MN")
-            .versionNumber(null) // verify null -> null
-            .partyId(99000000000901L)
-            .title("Mr")
-            .forenames("John")
-            .surname("Smith")
-            .organisation(false)
-            .organisationName(null)
-            .businessUnitId((short) 77)
-            .businessUnitName("Camberwell Green")
-            .welshLanguage(true)
-            .awarded(new BigDecimal("10.00")) // makes hasAssociatedDefendant true
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
-            .build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
-
-        // Assert
-        assertNotNull(res);
-        assertEquals(String.valueOf(id), res.getCreditorAccountId());
-        assertEquals("87654322", res.getAccountNumber());
-        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertNull(res.getVersion());
-
-        BusinessUnitSummary bu = res.getBusinessUnitSummary();
-        assertNotNull(bu);
-        assertEquals("77", bu.getBusinessUnitId());
-        assertEquals("Camberwell Green", bu.getBusinessUnitName());
-        assertEquals("Y", bu.getWelshSpeaking());
-
-        PartyDetails party = res.getPartyDetails();
-        assertNotNull(party);
-        assertEquals("99000000000901", party.getPartyId());
-        assertFalse(party.getOrganisationFlag());
-
-        IndividualDetails ind = party.getIndividualDetails();
-        assertNotNull(ind);
-        assertEquals("Mr", ind.getTitle());
-        assertEquals("John", ind.getForenames());
-        assertEquals("Smith", ind.getSurname());
-        assertNull(party.getOrganisationDetails());
-
-        assertEquals(new BigDecimal("10.00"), res.getAwardedAmount());
-        assertTrue(res.getHasAssociatedDefendant());
-
-        verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
-    }
-
-    @Test
-    void getHeaderSummary_notFound_throwsEntityNotFoundException_withExpectedMessage() {
+    void getHeaderSummary_creditorNotFound_throwsEntityNotFoundException_withExpectedMessage() {
         // Arrange
         long missingId = 123456789L;
+
         when(minorCreditorAccountHeaderRepository.findById(missingId)).thenReturn(Optional.empty());
 
         // Act
@@ -357,240 +300,222 @@ class OpalMinorCreditorServiceTest {
         assertTrue(ex.getMessage().contains("Minor creditor account not found: " + missingId));
 
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(missingId);
+        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any(), Mockito.any());
     }
 
     @Test
-    void getHeaderSummary_hasAssociatedDefendant_trueWhenOutstandingPositive_evenIfAwardedNull() {
+    void getHeaderSummary_partyNotFound_throwsEntityNotFoundException_withExpectedMessage() {
         // Arrange
-        long id = 222L;
+        long id = 99000000000801L;
+        long missingId = 123456789L;
+
 
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(id)
-            .creditorAccountNumber("X")
-            .creditorAccountType("MN")
-            .versionNumber(null)
-            .partyId(333L)
-            .organisation(true)
-            .organisationName("Org")
-            .businessUnitId((short) 77)
-            .businessUnitName("BU")
-            .welshLanguage(false)
-            .awarded(null)
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(new BigDecimal("0.01"))
-            .build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
-
-        // Assert
-        assertTrue(res.getHasAssociatedDefendant());
-    }
-
-    @Test
-    void getHeaderSummary_orgAccount_mapsOrganisationDetails_andSetsHasAssociatedDefendantFalse_whenZeroes() {
-        // Arrange
-        long id = 99000000000800L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("87654321")
-            .creditorAccountType("MN")
-            .versionNumber(null) // covers version null branch
-            .partyId(99000000000900L)
-            .organisation(true)
-            .organisationName("Minor Creditor Test Ltd")
-            .title(null)
-            .forenames(null)
-            .surname(null)
-            .businessUnitId((short) 77)
-            .businessUnitName("Camberwell Green")
-            .welshLanguage(false) // -> "N"
-            .awarded(BigDecimal.ZERO)
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
-            .build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
-
-        // Assert (top level)
-        assertNotNull(resp);
-        assertEquals(String.valueOf(id), resp.getCreditorAccountId());
-        assertEquals("87654321", resp.getAccountNumber());
-        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertNull(resp.getVersion());
-
-        // business unit mapping
-        assertNotNull(resp.getBusinessUnitSummary());
-        assertEquals("77", resp.getBusinessUnitSummary().getBusinessUnitId());
-        assertEquals("Camberwell Green", resp.getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals("N", resp.getBusinessUnitSummary().getWelshSpeaking());
-
-        // party mapping - organisation branch
-        assertNotNull(resp.getPartyDetails());
-        assertEquals("99000000000900", resp.getPartyDetails().getPartyId());
-        assertEquals(Boolean.TRUE, resp.getPartyDetails().getOrganisationFlag());
-
-        assertNotNull(resp.getPartyDetails().getOrganisationDetails());
-        assertEquals("Minor Creditor Test Ltd", resp.getPartyDetails().getOrganisationDetails().getOrganisationName());
-        assertNull(resp.getPartyDetails().getIndividualDetails());
-
-        // amounts + defendant flag
-        assertEquals(BigDecimal.ZERO, resp.getAwardedAmount());
-        assertEquals(BigDecimal.ZERO, resp.getPaidOutAmount());
-        assertEquals(BigDecimal.ZERO, resp.getAwaitingPayoutAmount());
-        assertEquals(BigDecimal.ZERO, resp.getOutstandingAmount());
-        assertEquals(Boolean.FALSE, resp.getHasAssociatedDefendant());
-
-        verify(minorCreditorAccountHeaderRepository).findById(id);
-    }
-
-    @Test
-    void getHeaderSummary_individualAccount_mapsIndividualDetails_andWelshSpeakingY() {
-        // Arrange
-        long id = 123L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC123")
-            .creditorAccountType("MN")
-            .versionNumber(5L) // covers version non-null branch
-            .partyId(456L)
-            .organisation(false)
-            .organisationName(null)
+            .creditorAccountNumber("87654322")
+            .creditorAccountType(CreditorAccountType.MN)
+            .hasAssociatedDefendant(true)
+            .versionNumber(null) // verify null -> null
+            .partyId(missingId)
             .title("Mr")
             .forenames("John")
             .surname("Smith")
-            .businessUnitId((short) 10)
-            .businessUnitName("Derbyshire")
-            .welshLanguage(true) // -> "Y"
-            .awarded(BigDecimal.ZERO)
+            .organisation(false)
+            .organisationName(null)
+            .businessUnitId((short) 77)
+            .businessUnitName("Camberwell Green")
+            .welshLanguage(true)
+            .awarded(new BigDecimal("10.00"))
             .paidOut(BigDecimal.ZERO)
             .awaitingPayment(BigDecimal.ZERO)
             .outstanding(BigDecimal.ZERO)
             .build();
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(partyRepository.findById(missingId)).thenReturn(Optional.empty());
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                                                  () -> service.getHeaderSummary(id));
 
         // Assert
-        assertNotNull(resp);
-        assertEquals("123", resp.getCreditorAccountId());
-        assertEquals("ACC123", resp.getAccountNumber());
-        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
-        assertNotNull(resp.getVersion());
-        assertEquals(new java.math.BigInteger("5"), resp.getVersion());
+        assertNotNull(ex.getMessage());
+        assertTrue(ex.getMessage().contains("Minor creditor party not found: " + missingId));
 
-        assertNotNull(resp.getBusinessUnitSummary());
-        assertEquals("10", resp.getBusinessUnitSummary().getBusinessUnitId());
-        assertEquals("Derbyshire", resp.getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals("Y", resp.getBusinessUnitSummary().getWelshSpeaking());
-
-        assertNotNull(resp.getPartyDetails());
-        assertEquals("456", resp.getPartyDetails().getPartyId());
-        assertEquals(Boolean.FALSE, resp.getPartyDetails().getOrganisationFlag());
-
-        assertNull(resp.getPartyDetails().getOrganisationDetails());
-        assertNotNull(resp.getPartyDetails().getIndividualDetails());
-        assertEquals("Mr", resp.getPartyDetails().getIndividualDetails().getTitle());
-        assertEquals("John", resp.getPartyDetails().getIndividualDetails().getForenames());
-        assertEquals("Smith", resp.getPartyDetails().getIndividualDetails().getSurname());
+        verify(minorCreditorAccountHeaderRepository, times(1)).findById(id);
+        verify(partyRepository, times(1)).findById(missingId);
+        verify(headerSummaryMapper, Mockito.never()).toResponse(Mockito.any(), Mockito.any());
     }
 
     @Test
-    void getHeaderSummary_hasAssociatedDefendant_true_whenAwardedPositive() {
+    void getMinorCreditorAtAGlance_happyPath_allFields() {
         // Arrange
         long id = 200L;
 
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC200")
-            .creditorAccountType("MN")
-            .versionNumber(null)
-            .partyId(300L)
+        MinorCreditorAccountAtAGlanceEntity creditor = getFullAtAGlanceEntity();
+        PartyEntity party = PartyEntity.builder()
+            .partyId(100L)
             .organisation(true)
-            .organisationName("Org")
-            .businessUnitId((short) 1)
-            .businessUnitName("BU")
-            .welshLanguage(false)
-            .awarded(new BigDecimal("0.01")) // awarded > 0 => true branch
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(BigDecimal.ZERO)
+            .organisationName("The Republic")
+            .addressLine1("Coruscant")
+            .postcode("SP4CE")
             .build();
 
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(minorCreditorAccountAtAGlanceRepository.findById(id)).thenReturn(Optional.of(creditor));
+        when(partyRepository.findById(id)).thenReturn(Optional.of(party));
+
+        GetMinorCreditorAccountAtAGlanceResponse mapped = GetMinorCreditorAccountAtAGlanceResponse.builder()
+            .party(PartyDetails.builder().partyId("100").organisationFlag(true).organisationDetails(
+                OrganisationDetails.builder().organisationName("The Republic").build()).build())
+            .address(AddressDetails.builder().addressLine1("Coruscant").postcode("SP4CE").build())
+            .creditorAccountId(1977L)
+            .defendant(AtAGlanceDefendant.builder()
+                .accountNumber("066")
+                .accountId(66L)
+                .title("Mr")
+                .forenames("Obi Wan")
+                .surname("Kenobi")
+                .build())
+            .payment(Payment.builder().holdPayment(false).bacs(true).build())
+            .build();
+
+        when(atAGlanceResponseMapper.toDto(creditor, party)).thenReturn(mapped);
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
+        GetMinorCreditorAccountAtAGlanceResponse response = service.getMinorCreditorAtAGlance(id);
 
         // Assert
-        assertEquals(Boolean.TRUE, resp.getHasAssociatedDefendant());
+        assertNotNull(response);
+
+        // Party
+        assertNotNull(response.getParty());
+        assertEquals("100", response.getParty().getPartyId());
+        assertTrue(response.getParty().getOrganisationFlag());
+
+        assertNotNull(response.getParty().getOrganisationDetails());
+        assertEquals("The Republic",
+            response.getParty().getOrganisationDetails().getOrganisationName());
+        assertNull(response.getParty().getOrganisationDetails().getOrganisationAliases());
+
+        assertNull(response.getParty().getIndividualDetails());
+
+        // Address
+        assertNotNull(response.getAddress());
+        assertEquals("Coruscant", response.getAddress().getAddressLine1());
+        assertNull(response.getAddress().getAddressLine2());
+        assertNull(response.getAddress().getAddressLine3());
+        assertNull(response.getAddress().getAddressLine4());
+        assertNull(response.getAddress().getAddressLine5());
+        assertEquals("SP4CE", response.getAddress().getPostcode());
+
+        // Creditor Account
+        assertEquals(1977, response.getCreditorAccountId());
+
+        // Defendant
+        assertNotNull(response.getDefendant());
+        assertEquals("066", response.getDefendant().getAccountNumber());
+        assertEquals(66, response.getDefendant().getAccountId());
+        assertEquals("Mr", response.getDefendant().getTitle());
+        assertEquals("Obi Wan", response.getDefendant().getForenames());
+        assertEquals("Kenobi", response.getDefendant().getSurname());
+
+        // Payment
+        assertNotNull(response.getPayment());
+        assertTrue(response.getPayment().getBacs());
+        assertFalse(response.getPayment().getHoldPayment());
     }
 
     @Test
-    void getHeaderSummary_hasAssociatedDefendant_true_whenOutstandingPositive_evenIfAwardedNull() {
+    void getMinorCreditorAtAGlance_creditorNotFound() {
         // Arrange
-        long id = 201L;
-
-        MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
-            .creditorAccountId(id)
-            .creditorAccountNumber("ACC201")
-            .creditorAccountType("MN")
-            .versionNumber(null)
-            .partyId(301L)
-            .organisation(false)
-            .title("Ms")
-            .forenames("A")
-            .surname("B")
-            .businessUnitId((short) 2)
-            .businessUnitName("BU2")
-            .welshLanguage(false)
-            .awarded(null) // covers null check on awarded
-            .paidOut(BigDecimal.ZERO)
-            .awaitingPayment(BigDecimal.ZERO)
-            .outstanding(new BigDecimal("1.00")) // outstanding > 0 => true
-            .build();
-
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
+        long id = 200L;
+        when(minorCreditorAccountAtAGlanceRepository.findById(id)).thenReturn(Optional.empty());
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse resp = service.getHeaderSummary(id);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            service.getMinorCreditorAtAGlance(id));
 
         // Assert
-        assertEquals(Boolean.TRUE, resp.getHasAssociatedDefendant());
+        assertEquals("Minor creditor account not found: " + id, ex.getMessage());
+
+        verify(minorCreditorAccountAtAGlanceRepository).findById(id);
     }
 
     @Test
-    void getHeaderSummary_notFound_throwsEntityNotFoundException_withReason() {
+    void getMinorCreditorAtAGlance_partyNotFound() {
         // Arrange
-        long id = 999L;
-        when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.empty());
+        long id = 200L;
+        when(minorCreditorAccountAtAGlanceRepository.findById(id)).thenReturn(
+            Optional.of(getFullAtAGlanceEntity()));
+        when(partyRepository.findById(id)).thenReturn(Optional.empty());
 
         // Act
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> service.getHeaderSummary(id));
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            service.getMinorCreditorAtAGlance(id));
 
         // Assert
-        assertTrue(ex.getMessage().contains("Minor creditor account not found: " + id));
+        assertEquals("Party not found: " + id, ex.getMessage());
 
-        verify(minorCreditorAccountHeaderRepository).findById(id);
+        verify(partyRepository).findById(id);
     }
 
-    private static void assertCreditorAccountType(CreditorAccountTypeReference reference,
-                                                  String expectedType,
-                                                  String expectedDisplayName) {
-        assertNotNull(reference);
-        assertEquals(expectedType, reference.getType());
-        assertEquals(expectedDisplayName, reference.getDisplayName());
+    private MinorCreditorAccountAtAGlanceEntity getFullAtAGlanceEntity() {
+        return MinorCreditorAccountAtAGlanceEntity.builder()
+           .creditorId(1977L)
+           .accountNumber("66")
+           .payByBacs(true)
+           .versionNumber(9L)
+           .holdPayout(false)
+           .partyId(200L)
+           .creditorTitle("Mr")
+           .creditorForenames("Obi Wan")
+           .creditorSurname("Kenobi")
+           .creditorOrganisation(false)
+           .addressLine1("Tatooine")
+           .postcode("T S4ND")
+           .defendantAccountId(66L)
+           .defendantAccountNumber("O66")
+           .defendantTitle("Senator")
+           .defendantForenames("Sheev")
+           .defendantSurname("Palpatine")
+           .build();
     }
 
+    private GetMinorCreditorAccountHeaderSummaryResponse buildHeaderSummaryResponse(String creditorAccountId) {
+        return GetMinorCreditorAccountHeaderSummaryResponse.builder()
+            .version(BigInteger.valueOf(5L))
+            .party(PartyDetails.builder()
+                .partyId("99000000000900")
+                .organisationFlag(true)
+                .organisationDetails(OrganisationDetails.builder()
+                    .organisationName("Minor Creditor Test Ltd")
+                    .build())
+                .individualDetails(IndividualDetails.builder()
+                    .title("Mr")
+                    .forenames("John")
+                    .surname("Smith")
+                    .build())
+                .build())
+            .businessUnit(BusinessUnitSummary.builder()
+                .businessUnitId("77")
+                .businessUnitName("Camberwell Green")
+                .welshSpeaking("N")
+                .build())
+            .creditor(CreditorHeader.builder()
+                .accountId(creditorAccountId)
+                .accountNumber("404")
+                .accountType(CreditorAccountTypeReference.builder()
+                    .type("MN")
+                    .displayName("Minor Creditor")
+                    .build())
+                .hasAssociatedDefendant(false)
+                .build())
+            .financials(Financials.builder()
+                .awarded(BigDecimal.ZERO)
+                .paidOut(BigDecimal.ZERO)
+                .awaitingPayout(BigDecimal.ZERO)
+                .outstanding(BigDecimal.ZERO)
+                .build())
+            .build();
+    }
 }

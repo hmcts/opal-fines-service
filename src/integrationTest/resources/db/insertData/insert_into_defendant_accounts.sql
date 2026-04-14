@@ -10,6 +10,7 @@
 * Date        Author   Version  Nature of Change
 * ----------  -------  -------  -----------------------------------------------------------------------------------------
 * 02/06/2025  R DODD   1.0      PO-1047 Inserts rows of data into the DEFENDANT_ACCOUNTS table for the Integration Tests.
+* 18/03/2026  TMc      2.0      PO-2850 Amended insert statement for DOCUMENTS. Updated value (0) for PRIORITY column, now an ENUM, to '0'
 *
 **/
 
@@ -81,7 +82,7 @@ ON CONFLICT (court_id) DO UPDATE
 
 -- Basic setup for document template.
 INSERT INTO documents (document_id, recipient, document_language, priority)
-VALUES ('TTPLET', 'DEF', 'EN', 0)
+VALUES ('TTPLET', 'DEF', 'EN', '0')
 ON CONFLICT (document_id) DO NOTHING;
 
 INSERT INTO defendant_accounts
@@ -110,7 +111,7 @@ VALUES ( 0077, 0, 078, '177A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090A', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 101
@@ -125,7 +126,7 @@ VALUES ( 0077, 0, 078, '177A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2024-02-18 00:00:00'
        , '2024-02-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2025-01-01 00:00:00', '11111111A'
+       , 'C', 'Y', '2025-01-01 00:00:00', '11111111A'
        , '099B', NULL, 'Fine'
        , 'Text', NULL, NULL, 'text_note_3'
        , 101
@@ -141,12 +142,12 @@ VALUES ( 0077, 'N', 'Sainsco'
        , 'Graham', 'Anna', 'Ms'
        , 'Lumber House', '77 Gordon Road', 'Maidstone, Kent'
        , NULL, NULL, 'MA4 1AL'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL),
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL),
        ( 0078, 'N', 'Sainsco'
        , 'Wilkins', 'Dave', 'Mr'
        , 'Lumber House', '78 Gordon Road', 'Maidstone, Kent'
        , NULL, NULL, 'MA5 1AL'
-       , 'Debtor', '1970-02-03 00:00:00', 43, 'A11111A', NULL);
+       , 'Defendant', '1970-02-03 00:00:00', 43, 'A11111A', NULL);
 
 INSERT INTO debtor_detail
 ( party_id, vehicle_make, vehicle_registration,
@@ -211,11 +212,11 @@ WHERE payment_terms_id = 77
 -- Account A: multiple payment_terms, exactly one active
 INSERT INTO defendant_accounts
 (defendant_account_id, version_number, business_unit_id, account_number,
- amount_paid, account_balance, amount_imposed, account_status,
+ amount_paid, account_balance, amount_imposed, account_status, last_movement_date,
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
  collection_order, payment_card_requested)
 VALUES (262901, 0, 78, '262901A',
-        0.00, 500.00, 500.00, 'L',
+        0.00, 500.00, 500.00, 'L', '2025-01-02 17:08:09',
         '262901PCR', 'N', 'N', 'Fine',
         'N', 'N')
     ON CONFLICT (defendant_account_id) DO NOTHING;
@@ -272,11 +273,11 @@ WHERE payment_terms_id = 26290102
 -- Account B: payment_terms exist but none active
 INSERT INTO defendant_accounts
 (defendant_account_id, version_number, business_unit_id, account_number,
- amount_paid, account_balance, amount_imposed, account_status,
+ amount_paid, account_balance, amount_imposed, account_status, last_movement_date,
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
  collection_order, payment_card_requested)
 VALUES (262902, 0, 78, '262902A',
-        0.00, 500.00, 500.00, 'L',
+        0.00, 500.00, 500.00, 'L', '2025-01-03 10:00:00',
         '262902PCR', 'N', 'N', 'Fine',
         'N', 'N')
     ON CONFLICT (defendant_account_id) DO NOTHING;
@@ -318,7 +319,7 @@ VALUES ( 001077, 'AC', 'defendant_accounts', 0077
 -- Add multiple aliases for individual party 77 (Anna Graham) to test aliases array
 INSERT INTO aliases
 (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
-VALUES 
+VALUES
 (7701, 77, 'Smith', 'Annie', 1, NULL),
 (7702, 77, 'Johnson', 'Anne', 2, NULL),
 (7703, 77, 'Williams', 'Ana', 3, NULL);
@@ -341,14 +342,14 @@ INSERT INTO defendant_accounts (
 VALUES (
   9077, 78, '177B',
   '2023-11-03 16:05:10', 780000000185, 700.58, 700.58, 0.00,           -- balance 0 => inactive
-  'C', '2024-02-01 00:00:00', 780000000185, 780000000185, '2024-01-04 18:06:11',
+  'CS', '2024-02-01 00:00:00', 780000000185, 780000000185, '2024-01-04 18:06:11',
   '2024-01-02 17:08:09', '2024-01-03 12:00:12', '10',
   'Seed data', NULL, NULL,
   'N', 'N', 14, 21,
   'FWEC', 780000000021, 240,
   'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
   '2023-12-19 00:00:00', NULL, NULL, NULL,
-  'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
+  'M', 'Y', '2024-01-01 00:00:00', '11111111A',
   '090B', NULL, 'Fine',
   'Text - Account Comment 177B', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3', 1
 );
@@ -425,7 +426,7 @@ INSERT INTO business_units (business_unit_id,
                             business_unit_type)
 VALUES (9999,
         '', -- Empty name to simulate "missing"
-        'INVALID' -- Invalid type (must not match enum/expected values)
+        'Area' -- Valid type (must match enum/expected values)
        );
 
 --  Test record with non-existent business_unit_id to test fallback logic (getBusinessUnit() == null)
@@ -509,7 +510,7 @@ VALUES (555, 'Y', 'TechCorp Solutions Ltd',
         NULL, NULL, NULL,
         'Business Park', '42 Innovation Drive', 'Tech District',
         'Birmingham', NULL, 'B15 3TG',
-        'Debtor', NULL, NULL, NULL, NULL);
+        'Defendant', NULL, NULL, NULL, NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -535,7 +536,7 @@ VALUES (666, 'Y', 'TechCorp Global Ltd',
         NULL, NULL, NULL,
         'Corporate Plaza', '15 Finance Street', 'Business Quarter',
         'Manchester', NULL, 'M1 4BD',
-        'Debtor', NULL, NULL, NULL, NULL);
+        'Defendant', NULL, NULL, NULL, NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -548,7 +549,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 completed_date, prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (777, 0, 78, '777CC',
-        500.00, 0.00, 500.00, 'C',
+        500.00, 0.00, 500.00, 'CS',
         '2024-01-15 10:00:00', '777PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -561,7 +562,7 @@ VALUES (777, 'Y', 'TechCorp Completed Ltd',
         NULL, NULL, NULL,
         'Completed Business Park', '99 Finished Drive', 'Final District',
         'London', NULL, 'EC1A 1BB',
-        'Debtor', NULL, NULL, NULL, NULL);
+        'Defendant', NULL, NULL, NULL, NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -585,7 +586,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 prosecutor_case_reference, enforcement_case_status, account_type)
 VALUES (444, 0, 78, '444C',
         '2023-10-15 14:30:00', 780000000185, 300.00,
-        300.00, 0.00, 'C',
+        300.00, 0.00, 'CS',
         '2024-02-15 10:00:00', 780000000185, 780000000185, '2024-02-14 16:00:00',
         '2024-02-15 10:00:00', '2024-02-15 10:00:00', 'PAID',
         'Magistrates Court', NULL, NULL,
@@ -593,7 +594,7 @@ VALUES (444, 0, 78, '444C',
         NULL, NULL, NULL,
         'GB pound sterling', 300.00, 'Y', '2023-10-20 00:00:00',
         '2023-10-21 00:00:00', NULL, NULL, NULL,
-        'Y', 'N', NULL, NULL,
+        'M', 'N', NULL, NULL,
         '444PCR', NULL, 'Fine');
 
 INSERT INTO parties (party_id, organisation, organisation_name,
@@ -605,7 +606,7 @@ VALUES (444, 'N', NULL,
         'Graham', 'Robert', 'Mr',
         'High Street', '123 Main Road', 'London',
         NULL, NULL, 'SW1A 1AA',
-        'Debtor', '1975-05-15 00:00:00', 48, 'B22222B', NULL);
+        'Defendant', '1975-05-15 00:00:00', 48, 'B22222B', NULL);
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
                                        association_type, debtor)
@@ -651,7 +652,7 @@ VALUES ( 10001, 078, '10001A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'REF100001', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 1);
@@ -666,7 +667,7 @@ VALUES ( 10001, 'Y', 'Kings Arms'
        , 'McNamara', 'Peter', 'Ms'
        , 'Regent Court', '10001 Sydney Road', 'Bournemouth, Dorset'
        , NULL, NULL, 'BH3 2AG'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 
 INSERT INTO defendant_account_parties
@@ -677,7 +678,7 @@ VALUES (10001, 10001, 10001,
 
 INSERT INTO aliases
 (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
-VALUES 
+VALUES
 (100011, 10001, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg'),
 (100012, 10001, 'SecondAlias', 'SecondForenames', 2, 'SecondAliasOrg'),
 (100013, 10001, 'ThirdAlias', 'ThirdForenames', 3, 'ThirdAliasOrg');
@@ -743,7 +744,7 @@ VALUES ( 10002, 078, '10002A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'REF100001', NULL, 'Fine'
        , NULL, NULL, NULL, NULL
        , 1);
@@ -758,7 +759,7 @@ VALUES ( 10002, 'Y', 'Kings Arms'
        , 'McNamara', 'Peter', 'Ms'
        , 'Regent Court', '10001 Sydney Road', 'Bournemouth, Dorset'
        , NULL, NULL, 'BH3 2AG'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 
 INSERT INTO defendant_account_parties
@@ -832,7 +833,7 @@ VALUES ( 10003, 078, '10003A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'REF100001', NULL, 'Fine'
        , 'Text - Account Comment', NULL, 'free_text_note_2', 'free_text_note_3'
        , 1);
@@ -847,7 +848,7 @@ VALUES ( 10003, 'Y', 'Kings Arms'
        , 'McNamara', 'Peter', 'Ms'
        , 'Regent Court', '10001 Sydney Road', 'Bournemouth, Dorset'
        , NULL, NULL, 'BH3 2AG'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 
 INSERT INTO defendant_account_parties
@@ -920,7 +921,7 @@ VALUES ( 10004, 078, '10004A'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'PRREF10004', NULL, 'Fine'
        , NULL, NULL, NULL, NULL
        , 1);
@@ -935,7 +936,7 @@ VALUES ( 10004, 'N', 'Sainsco'
        , 'Gallagher', 'Eduardo', 'Mr'
        , 'Round House', '123 Holdenhurst Road', 'Poole, Dorset'
        , NULL, NULL, 'BH13 1PO'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI1111C', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'NI1111C', NULL);
 
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
@@ -1126,7 +1127,7 @@ VALUES ( 991199, 0, 78, '1989'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090B', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 0
@@ -1142,7 +1143,7 @@ VALUES ( 991199, 'N', 'Sainsco'
        , 'Surnamey', 'Forenamey', 'Mr'
        , 'Square House', '123 Holdenhurst Close', 'Poole, Dorset'
        , NULL, NULL, 'BH13 1PO'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
 
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
@@ -1176,7 +1177,7 @@ VALUES ( 991198, 0, 78, '1988'
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
-       , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
+       , 'M', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090B', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
        , 1
@@ -1192,7 +1193,7 @@ VALUES ( 991198, 'N', 'Sainsco'
        , 'Surnamey', 'Forenamey', 'Mr'
        , 'Square House', '123 Holdenhurst Close', 'Poole, Dorset'
        , NULL, NULL, 'BH13 1PO'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
+       , 'Defendant', '1980-02-03 00:00:00', 33, 'NI2221C', NULL);
 
 
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,

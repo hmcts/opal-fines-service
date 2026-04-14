@@ -1,0 +1,15 @@
+Timing is on.
+psql:viewAuditDefCredAccountTest/create_view_v_audit_creditor_accounts_unit_tests_v2.sql:139: NOTICE:  === Setting up test data for v_audit_creditor_accounts tests ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_creditor_accounts_unit_tests_v2.sql:139: NOTICE:  Test data setup completed: creditor_account_id = 999901
+DO
+Time: 10.361 ms
+psql:viewAuditDefCredAccountTest/create_view_v_audit_creditor_accounts_unit_tests_v2.sql:219: NOTICE:  === TEST 1: Comprehensive test for individual party with full details ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_creditor_accounts_unit_tests_v2.sql:219: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for individual party
+DO
+Time: 3.491 ms
+psql:viewAuditDefCredAccountTest/create_view_v_audit_creditor_accounts_unit_tests_v2.sql:236: NOTICE:  === Cleaning up test data ===
+psql:viewAuditDefCredAccountTest/create_view_v_audit_creditor_accounts_unit_tests_v2.sql:236: NOTICE:  Test data cleanup completed
+psql:viewAuditDefCredAccountTest/create_view_v_audit_creditor_accounts_unit_tests_v2.sql:236: NOTICE:  === All tests completed for v_audit_creditor_accounts view ===
+DO
+Time: 10.937 ms
+Timing is off.

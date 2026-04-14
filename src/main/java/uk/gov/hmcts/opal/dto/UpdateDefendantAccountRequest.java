@@ -1,34 +1,29 @@
 package uk.gov.hmcts.opal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.util.Versioned;
 
-/**
- * Request payload for PATCH /defendant-accounts/{id} (Opal mode).
- * Exactly one update group must be present. No IDs in the body.
- */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UpdateDefendantAccountRequest implements ToJsonString {
+@Builder
+public class UpdateDefendantAccountRequest implements ToJsonString, Versioned {
 
-    @JsonProperty("comment_and_notes")
-    private CommentsAndNotes commentsAndNotes;
+    private Long defendantAccountId;
 
-    @JsonProperty("enforcement_court")
-    private CourtReferenceDto enforcementCourt;
+    private String businessUnitId;
 
-    @JsonProperty("collection_order")
-    private CollectionOrderDto collectionOrder;
+    private String businessUnitUserId;
 
-    @JsonProperty("enforcement_override")
-    private EnforcementOverride enforcementOverride;
+    private UpdateDefendantAccountRequestPayload payload;
+
+    private BigInteger version;
+
 }

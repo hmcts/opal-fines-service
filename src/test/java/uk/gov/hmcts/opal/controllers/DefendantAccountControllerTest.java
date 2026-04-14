@@ -7,20 +7,26 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,10 +41,7 @@ class DefendantAccountControllerTest {
     private DefendantAccountService defendantAccountService;
 
     @Mock
-    private UserStateService userStateService;
-
-    @Mock
-    private DefendantAccountServiceProxy defendantAccountServiceProxy;
+    private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
@@ -70,17 +73,6 @@ class DefendantAccountControllerTest {
         // Arrange
         DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
 
-        var userWithPermission = UserState.builder()
-            .userId(99L)
-            .userName("tester")
-            .businessUnitUser(java.util.Set.of(
-                BusinessUnitUser.builder()
-                    .businessUnitUserId("1L")
-                    .businessUnitId((short) 78)
-                    .build()
-            ))
-            .build();
-
         when(defendantAccountService.getHeaderSummary(eq(1L), any()))
             .thenReturn(mockBody);
 
@@ -103,4 +95,129 @@ class DefendantAccountControllerTest {
         assertEquals(id, req.getDefendantAccountId());
     }
 
+    @Test
+    void testAddEnforcement_Success() {
+        // Arrange
+        Long defendantAccountId = 1L;
+        String businessUnitId = "10";
+        String ifMatch = "1";
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder().build();
+        AddEnforcementResponse mockResponse = AddEnforcementResponse.builder().build();
+
+        when(defendantAccountEnforcementService.addEnforcement(defendantAccountId, businessUnitId, ifMatch,
+            BEARER_TOKEN, request)).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<AddEnforcementResponse> response =
+            defendantAccountController.addEnforcement(defendantAccountId, BEARER_TOKEN, businessUnitId, ifMatch,
+                request);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockResponse, response.getBody());
+
+        verify(defendantAccountEnforcementService).addEnforcement(defendantAccountId, businessUnitId, ifMatch,
+            BEARER_TOKEN, request);
+    }
+
+    @Test
+    void testRemoveEnforcementHold_Success() {
+        Long defendantAccountId = 1L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"7\"";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        RemoveDefendantAccountEnforcementHoldResponse expectedResponse =
+            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
+
+        when(defendantAccountEnforcementService.removeEnforcementHold(
+            defendantAccountId,
+            businessUnitId,
+            ifMatch,
+            BEARER_TOKEN,
+            request
+        )).thenReturn(expectedResponse);
+
+        ResponseEntity<RemoveDefendantAccountEnforcementHoldResponse> response =
+            defendantAccountController.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                BEARER_TOKEN,
+                request
+            );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedResponse, response.getBody());
+    }
+
+    @Test
+    void testRemoveEnforcementHold_forbiddenWhenServiceThrowsPermissionNotAllowedException() {
+        Long defendantAccountId = 1L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"7\"";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        when(defendantAccountEnforcementService.removeEnforcementHold(
+            defendantAccountId,
+            businessUnitId,
+            ifMatch,
+            BEARER_TOKEN,
+            request
+        )).thenThrow(new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT));
+
+        assertThrows(PermissionNotAllowedException.class, () ->
+            defendantAccountController.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                BEARER_TOKEN,
+                request
+            )
+        );
+    }
+
+    @Test
+    void testRemoveEnforcementHold_conflictWhenServiceThrowsResourceConflictException() {
+        Long defendantAccountId = 1L;
+        Short businessUnitId = 10;
+        String ifMatch = null;
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        when(defendantAccountEnforcementService.removeEnforcementHold(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            isNull(),
+            eq(BEARER_TOKEN),
+            eq(request)
+        )).thenThrow(new ResourceConflictException(
+            "Defendant Account",
+            defendantAccountId,
+            "If-Match header is required",
+            null
+        ));
+
+        assertThrows(ResourceConflictException.class, () ->
+            defendantAccountController.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                BEARER_TOKEN,
+                request
+            )
+        );
+    }
 }

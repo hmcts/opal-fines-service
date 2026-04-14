@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -58,7 +59,7 @@ public class DraftAccountResponseDto implements ToJsonString, Versioned {
     private String accountSnapshot;
 
     @JsonProperty("account_type")
-    private String accountType;
+    private DraftAccountType accountType;
 
     @JsonProperty("account_status")
     private DraftAccountStatus accountStatus;

@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,17 +15,25 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountBuildersTest {
@@ -45,16 +52,75 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
-    void testResolveStatusDisplayName() {
-        assertEquals("Live", OpalDefendantAccountBuilders.resolveStatusDisplayName("L"));
-        assertEquals("Completed", OpalDefendantAccountBuilders.resolveStatusDisplayName("C"));
-        assertEquals("TFO to be acknowledged", OpalDefendantAccountBuilders.resolveStatusDisplayName("TO"));
-        assertEquals("TFO to NI/Scotland to be acknowledged",
-            OpalDefendantAccountBuilders.resolveStatusDisplayName("TS"));
-        assertEquals("TFO acknowledged", OpalDefendantAccountBuilders.resolveStatusDisplayName("TA"));
-        assertEquals("Account consolidated", OpalDefendantAccountBuilders.resolveStatusDisplayName("CS"));
-        assertEquals("Account written off", OpalDefendantAccountBuilders.resolveStatusDisplayName("WO"));
-        assertEquals("Unknown", OpalDefendantAccountBuilders.resolveStatusDisplayName("nonsense"));
+    void testBuildAccountStatusReference() {
+        AccountStatusReference reference =
+            OpalDefendantAccountBuilders.buildAccountStatusReference(DefendantAccountStatus.LIVE);
+
+        assertNotNull(reference);
+        assertEquals("L", reference.getAccountStatusCode());
+        assertEquals("Live", reference.getAccountStatusDisplayName());
+    }
+
+    @Test
+    void applyEnforcementOverride_clearsIds_whenEnforcerAndLjaObjectsAreNull() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        entity.setEnforcementOverrideResultId("OLD");
+        entity.setEnforcementOverrideEnforcerId(22L);
+        entity.setEnforcementOverrideTfoLjaId((short) 33);
+
+        EnforcementOverrideDefendantAccount override = EnforcementOverrideDefendantAccount.builder()
+            .enforcementOverrideResult(EnforcementOverrideResultDefendantAccount.builder()
+                .enforcementOverrideResultId("FWEC")
+                .build())
+            .build();
+
+        OpalDefendantAccountBuilders.applyEnforcementOverride(entity, override);
+
+        assertEquals("FWEC", entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
+    }
+
+    @Test
+    void applyEnforcementOverride_clearsAllIds_whenResultEnforcerAndLjaObjectsAreNull() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        entity.setEnforcementOverrideResultId("OLD");
+        entity.setEnforcementOverrideEnforcerId(22L);
+        entity.setEnforcementOverrideTfoLjaId((short) 33);
+
+        EnforcementOverrideDefendantAccount override = EnforcementOverrideDefendantAccount.builder().build();
+
+        OpalDefendantAccountBuilders.applyEnforcementOverride(entity, override);
+
+        assertNull(entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
+    }
+
+    @Test
+    void applyEnforcementOverride_clearsIds_whenEnforcerAndLjaIdsAreNull() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        entity.setEnforcementOverrideResultId("OLD");
+        entity.setEnforcementOverrideEnforcerId(22L);
+        entity.setEnforcementOverrideTfoLjaId((short) 33);
+
+        EnforcementOverrideDefendantAccount override = EnforcementOverrideDefendantAccount.builder()
+            .enforcementOverrideResult(EnforcementOverrideResultDefendantAccount.builder()
+                .enforcementOverrideResultId(null)
+                .build())
+            .enforcer(EnforcerDefendantAccount.builder()
+                .enforcerId(null)
+                .build())
+            .lja(LocalJusticeAreaDefendantAccount.builder()
+                .ljaId(null)
+                .build())
+            .build();
+
+        OpalDefendantAccountBuilders.applyEnforcementOverride(entity, override);
+
+        assertNull(entity.getEnforcementOverrideResultId());
+        assertNull(entity.getEnforcementOverrideEnforcerId());
+        assertNull(entity.getEnforcementOverrideTfoLjaId());
     }
 
     @Test
@@ -81,9 +147,15 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
-    void testBuildAccountStatusReference() {
-        AccountStatusReference ref = OpalDefendantAccountBuilders.buildAccountStatusReference("L");
-        assertEquals("L", ref.getAccountStatusCode());
+    void testBuildAccountStatusReference_handlesNullStatus() {
+        assertNull(OpalDefendantAccountBuilders.buildAccountStatusReference(null));
+    }
+
+    @Test
+    void testBuildAccountStatusReferenceCommon() {
+        AccountStatusReferenceCommon ref =
+            OpalDefendantAccountBuilders.buildAccountStatusReferenceCommon(DefendantAccountStatus.LIVE);
+        assertEquals("L", ref.getAccountStatusCode().getValue());
         assertEquals("Live", ref.getAccountStatusDisplayName());
     }
 
@@ -98,6 +170,20 @@ class OpalDefendantAccountBuildersTest {
         assertEquals("55", summary.getBusinessUnitId());
         assertEquals("NorthEast", summary.getBusinessUnitName());
         assertEquals("N", summary.getWelshSpeaking());
+    }
+
+    @Test
+    void given_debtorDetailLanguages_when_buildLanguagePreferences_then_mapEnumCodes() {
+        DebtorDetailEntity debtorDetail = DebtorDetailEntity.builder()
+            .documentLanguage(Language.WELSH_AND_ENGLISH)
+            .hearingLanguage(Language.ENGLISH)
+            .build();
+
+        LanguagePreferences preferences = OpalDefendantAccountBuilders.buildLanguagePreferences(debtorDetail);
+
+        assertNotNull(preferences);
+        assertEquals("CY", preferences.getDocumentLanguagePreference().getLanguageCode());
+        assertEquals("EN", preferences.getHearingLanguagePreference().getLanguageCode());
     }
 
     @Test
@@ -436,140 +522,6 @@ class OpalDefendantAccountBuildersTest {
             .vehicleFixedPenalty(isVehicle)
             .timeOfOffence(LocalTime.parse("12:34"))
             .build();
-    }
-
-    @Test
-    void mapToDto_setsParentGuardianDebtorTypeAndYouthFlag() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .debtorType(null)
-            .hasParentGuardian(true)
-            .birthDate(LocalDate.now().minusYears(15))
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        assertEquals("Parent/Guardian", dto.getDebtorType());
-        assertTrue(dto.getIsYouth());
-    }
-
-    @Test
-    void mapToDto_setsDefaultDebtorTypeAndNotYouthWhenBirthDateMissing() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .debtorType(null)
-            .hasParentGuardian(false)
-            .birthDate(null)
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        assertEquals("Defendant", dto.getDebtorType());
-        assertFalse(dto.getIsYouth());
-    }
-
-    @Test
-    void testMapToDtoCoversFields() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .partyId(123L)
-            .parentGuardianAccountPartyId(456L)
-            .accountNumber("ACCT100")
-            .accountType("Fine")
-            .prosecutorCaseReference("PCR1")
-            .fixedPenaltyTicketNumber("FPT1")
-            .accountStatus("L")
-            .businessUnitId((short) 77)
-            .businessUnitName("BUName")
-            .imposed(BigDecimal.valueOf(11))
-            .arrears(BigDecimal.valueOf(22))
-            .paid(BigDecimal.valueOf(33))
-            .accountBalance(BigDecimal.valueOf(44))
-            .organisation(false)
-            .organisationName("MyOrg")
-            .title("Sir")
-            .firstnames("Robo")
-            .surname("Cop")
-            .birthDate(LocalDate.now().minusYears(10))
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        assertEquals("ACCT100", dto.getAccountNumber());
-        assertNotNull(dto.getPartyDetails());
-    }
-
-    @Test
-    void testMapToDto_DefendantPartyId_ComesFromDefendantAccountPartyId() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(77L)
-            .defendantAccountPartyId(77L)
-            .partyId(999L)
-            .accountNumber("177A")
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-
-        assertNotNull(dto, "DTO should not be null");
-        assertEquals("77", dto.getDefendantAccountPartyId(),
-            "defendant_account_party_id should map from defendantAccountPartyId");
-        assertNotEquals("999", dto.getDefendantAccountPartyId(),
-            "should not map from partyId");
-    }
-
-    @Test
-    void testMapToDto_DefendantPartyId_NullWhenDefendantAccountPartyIdIsNull() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(88L)
-            .defendantAccountPartyId(null)
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-
-        assertNull(dto.getDefendantAccountPartyId(),
-            "defendantAccountPartyId should be null when defendantAccountPartyId is null");
-    }
-
-    @Test
-    void testMapToDto_NormalisesAccountTypeAndStatusDisplayName() {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(77L)
-            .defendantAccountPartyId(77L)
-            .accountNumber("177A")
-            .accountType("Fines")
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-
-        assertEquals("Fine", dto.getAccountType()); // Should normalise plural Fines → Fine"
-        assertEquals("Live", dto.getAccountStatusReference().getAccountStatusDisplayName());
-    }
-
-    @Test
-    void testMapToDto_SerialisedStructureMatchesApiFields() throws Exception {
-        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
-            .defendantAccountId(77L)
-            .defendantAccountPartyId(77L)
-            .partyId(77L)
-            .accountNumber("177A")
-            .organisation(false)
-            .firstnames("Anna")
-            .surname("Graham")
-            .accountStatus("L")
-            .version(1L)
-            .build();
-
-        DefendantAccountHeaderSummary dto = OpalDefendantAccountBuilders.mapToDto(e);
-        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(dto);
-
-        assertTrue(json.contains("\"defendant_account_party_id\""));
-        assertTrue(json.contains("\"party_details\""));
-        assertTrue(json.contains("\"account_number\""));
     }
 
 }

@@ -5,10 +5,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.CollectionOrderDto;
+import java.time.LocalDate;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
+import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UpdateDefendantAccountRequestMapper {
@@ -25,36 +27,50 @@ public interface UpdateDefendantAccountRequestMapper {
         @Mapping(target = "version",               source = "version"),
 
         // nested groups from body
-        @Mapping(target = "commentAndNotes",       source = "request.commentsAndNotes"),
-        @Mapping(target = "enforcementCourtId",    source = "request.enforcementCourt.courtId",
+        @Mapping(target = "commentAndNotes",       source = "payload.commentAndNotes"),
+        @Mapping(target = "enforcementCourtId",    source = "payload.enforcementCourt.courtId",
             qualifiedByName = "numberToString"),
-        @Mapping(target = "collectionOrder",       source = "request.collectionOrder"),
-        @Mapping(target = "enforcementOverride",   source = "request.enforcementOverride")
+        @Mapping(target = "collectionOrder",       source = "payload.collectionOrder"),
+        @Mapping(target = "enforcementOverride",   source = "payload.enforcementOverride")
     })
     uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest toLegacyUpdateDefendantAccountRequest(
-        UpdateDefendantAccountRequest request,
-        String defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        Integer version
+        UpdateDefendantAccountRequest request
     );
 
     /* ----------- Nested type mappings ----------- */
 
     // API CommentsAndNotes -> Legacy CommentsAndNotes
     @Mappings({
-        @Mapping(target = "accountComment",  source = "accountNotesAccountComments"),
-        @Mapping(target = "freeTextNote1",   source = "accountNotesFreeTextNote1"),
-        @Mapping(target = "freeTextNote2",   source = "accountNotesFreeTextNote2"),
-        @Mapping(target = "freeTextNote3",   source = "accountNotesFreeTextNote3")
+        @Mapping(target = "accountComment",  source = "accountComment"),
+        @Mapping(target = "freeTextNote1",   source = "freeTextNote1"),
+        @Mapping(target = "freeTextNote2",   source = "freeTextNote2"),
+        @Mapping(target = "freeTextNote3",   source = "freeTextNote3")
     })
-    uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes map(CommentsAndNotes src);
+    uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes map(CommentsAndNotesCommon src);
 
-    // API CollectionOrderDto -> Legacy CollectionOrder (extend as fields evolve)
-    uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder map(CollectionOrderDto src);
+    // API CollectionOrderDto -> Legacy CollectionOrder
+    default CollectionOrder map(CollectionOrderCommon src) {
+        if (src == null) {
+            return null;
+        }
+
+        Boolean collectionOrderFlag = src.getCollectionOrderFlag();
+        LocalDate collectionOrderDate = null;
+        if (Boolean.TRUE.equals(collectionOrderFlag)) {
+            collectionOrderDate = src.getCollectionOrderDate();
+            if (collectionOrderDate == null) {
+                collectionOrderDate = LocalDate.now();
+            }
+        }
+
+        return CollectionOrder.builder()
+            .collectionOrderFlag(collectionOrderFlag)
+            .collectionOrderDate(collectionOrderDate)
+            .build();
+    }
 
     // API EnforcementOverride -> Legacy EnforcementOverride (extend as needed)
-    uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride map(EnforcementOverride src);
+    uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride map(EnforcementOverrideDefendantAccount src);
 
     /* ----------- Converters ----------- */
     @Named("numberToString")

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.entity.converter;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.entity.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

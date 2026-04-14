@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,10 +31,12 @@ import static org.mockito.Mockito.when;
     FeatureToggleAspect.class,
     FeatureToggleApi.class
 })
+@Isolated
 class FeatureToggleAspectTest {
 
     private static final String NEW_FEATURE = "NEW_FEATURE";
     private static final String EXCEPTION = "Feature NEW_FEATURE is not enabled for method myFeatureToggledMethod";
+
     @Autowired
     FeatureToggleAspect featureToggleAspect;
 
@@ -42,10 +45,13 @@ class FeatureToggleAspectTest {
 
     @MockitoBean
     LDClient ldClient;
+
     @MockitoBean
     ProceedingJoinPoint proceedingJoinPoint;
+
     @MockitoBean
     FeatureToggle featureToggle;
+
     @MockitoBean
     MethodSignature methodSignature;
 

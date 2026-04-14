@@ -58,7 +58,7 @@ VALUES (1001, 78, '100B',
         NULL, NULL, NULL,
         'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
         '2023-12-19 00:00:00', NULL, NULL, NULL,
-        'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
+        'M', 'Y', '2024-01-01 00:00:00', '11111111A',
         '090A', NULL, 'Fine', 1);
 
 --  Ensure the version is initialized so deletes include a bound value
@@ -77,7 +77,7 @@ VALUES (9101, 'N', NULL,
         'Graham', 'Anna', 'Ms',
         'Lumber House', '54 Gordon Road', 'Maidstone, Kent',
         NULL, NULL, 'MA4 1AL',
-        'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+        'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
 
 -- Insert defendant account parties (Level 2)
 INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
@@ -111,8 +111,8 @@ INSERT INTO defendant_transactions (defendant_transaction_id, defendant_account_
                                     payment_reference,
                                     text, status, status_date, status_amount, posted_by_name)
 VALUES (9104, 1001, '2023-11-04', '01000000A',
-        'PAY', 100.00, 'CH', 'CHQ123',
-        'Cheque payment', 'A', '2023-11-04', 100.00, 'User9100');
+        'PAYMNT', 100.00, 'NC', 'CHQ123',
+        'Cheque payment', 'C', '2023-11-04', 100.00, 'User9100');
 
 -- Insert imposition (Level 2) - Now with correct foreign key references
 INSERT INTO impositions (imposition_id, defendant_account_id, posted_date, posted_by,
@@ -142,7 +142,7 @@ VALUES (9107, 78, 123456, '2023-11-04 10:00:00',
 INSERT INTO notes(note_id, note_type, associated_record_type,
                          associated_record_id, note_text, posted_date,
                          posted_by, posted_by_name)
-VALUES (1, 'TE', 'DEF', '1001',
+VALUES (1, 'AC', 'defendant_accounts', '1001',
         'testData', '2025-10-27 15:49:42.498414+00',
         '01000000A', 'User9100');
 

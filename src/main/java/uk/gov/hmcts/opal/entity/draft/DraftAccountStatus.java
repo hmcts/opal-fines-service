@@ -31,11 +31,21 @@ public enum DraftAccountStatus {
 
     @JsonCreator
     public static DraftAccountStatus fromLabel(String label) {
-        return Arrays.stream(values()).filter(s -> s.getLabel().equals(label)).findFirst()
+        if (label == null) {
+            return null;
+        }
+
+        return Arrays.stream(values())
+            .filter(status -> status.getLabel().equals(label))
+            .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("'" + label + "' is not a valid Draft Account Status."));
     }
 
     public boolean isPublishingPending() {
         return this == PUBLISHING_PENDING;
+    }
+
+    public boolean isDeleted() {
+        return this == DELETED;
     }
 }

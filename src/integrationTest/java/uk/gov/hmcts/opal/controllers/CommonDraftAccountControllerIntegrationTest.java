@@ -4,7 +4,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -12,12 +11,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
-@Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
 @Sql(
     scripts = {
         "classpath:db/deleteData/delete_from_draft_accounts.sql",
@@ -26,7 +26,7 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
     executionPhase = BEFORE_TEST_CLASS
 )
 @Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_CLASS)
-@DisplayName("DraftAccountController Integration Tests")
+@DisplayName("CommonDraftAccountControllerIntegrationTest")
 class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     static final Short BU_ID = (short)73;
@@ -38,7 +38,13 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     UserStateService userStateService;
 
     @MockitoBean
+    UserStateClientService userStateClientService;
+
+    @MockitoBean
     LoggingService loggingService;
+
+    @MockitoBean
+    SecurityEventLoggingService securityEventLoggingService;
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;

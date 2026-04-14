@@ -1,9 +1,12 @@
 package uk.gov.hmcts.opal.mapper.response;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -21,9 +24,11 @@ import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = GetMinorCreditorAccountAtAGlanceResponseMapperTest.MapperTestConfig.class)
+@Isolated
 public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
 
     @Autowired
@@ -35,7 +40,7 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
     }
 
     @Test
-    public void testToOpalFullConversion() {
+    public void testLegacyToOpalFullConversion() {
 
         //Arrange
         LegacyPartyDetails legacyParty = LegacyPartyDetails.builder()
@@ -101,6 +106,57 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
             .getIndividualAliases().getFirst().getSurname());
         assertEquals("SP4 C3", result.getAddress().getPostcode());
         assertEquals(66L, result.getDefendant().getAccountId());
-        assertTrue(result.getPayment().isBacs());
+        assertTrue(result.getPayment().getBacs());
     }
+
+    @Test
+    public void testEntityToOpalFullConversion() {
+        MinorCreditorAccountAtAGlanceEntity entity = MinorCreditorAccountAtAGlanceEntity.builder()
+            .creditorId(66L)
+            .accountNumber("ORDER-66")
+            .addressLine1("Jedi Temple")
+            .addressLine2("Galactic City")
+            .addressLine3("Coruscant")
+            .addressLine4("Core Worlds")
+            .addressLine5("Galactic Republic")
+            .postcode("C0R U5C")
+            .defendantAccountId(1977L)
+            .defendantAccountNumber("REB-1977")
+            .defendantTitle("Master")
+            .defendantForenames("Luke")
+            .defendantSurname("Skywalker")
+            .payByBacs(Boolean.TRUE)
+            .holdPayout(Boolean.FALSE)
+            .build();
+
+        GetMinorCreditorAccountAtAGlanceResponse dto = mapper.toDto(entity, null);
+
+        assertNotNull(dto);
+
+        // creditor account
+        assertEquals(66L, dto.getCreditorAccountId());
+
+        // address
+        assertNotNull(dto.getAddress());
+        assertEquals("Jedi Temple", dto.getAddress().getAddressLine1());
+        assertEquals("Galactic City", dto.getAddress().getAddressLine2());
+        assertEquals("Coruscant", dto.getAddress().getAddressLine3());
+        assertEquals("Core Worlds", dto.getAddress().getAddressLine4());
+        assertEquals("Galactic Republic", dto.getAddress().getAddressLine5());
+        assertEquals("C0R U5C", dto.getAddress().getPostcode());
+
+        // defendant
+        assertNotNull(dto.getDefendant());
+        assertEquals("REB-1977", dto.getDefendant().getAccountNumber());
+        assertEquals(1977L, dto.getDefendant().getAccountId());
+        assertEquals("Master", dto.getDefendant().getTitle());
+        assertEquals("Luke", dto.getDefendant().getForenames());
+        assertEquals("Skywalker", dto.getDefendant().getSurname());
+
+        // payment
+        assertNotNull(dto.getPayment());
+        assertTrue(dto.getPayment().getBacs());
+        assertFalse(dto.getPayment().getHoldPayment());
+    }
+
 }

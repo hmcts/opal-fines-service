@@ -63,7 +63,7 @@ VALUES
 , 'Graham', 'Anna',  'Ms'
 , 'Lumber House', '54 Gordon Road', 'Maidstone, Kent'
 , NULL, NULL, 'MA4 1AL'
-, 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL
+, 'Defendant', '1980-02-03 00:00:00', 33, 'A11111A', NULL
 );
 
 INSERT INTO defendant_account_parties

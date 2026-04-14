@@ -42,13 +42,15 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
     public MinorCreditorAccountResponse updateMinorCreditorAccount(
         Long minorCreditorAccountId,
         PatchMinorCreditorAccountRequest request,
-        BigInteger etag,
-        String postedBy) {
-        return getCurrentModeService().updateMinorCreditorAccount(minorCreditorAccountId, request, etag, postedBy);
+        BigInteger ifMatch,
+        String postedBy,
+        Short businessUnitId) {
+        return getCurrentModeService().updateMinorCreditorAccount(minorCreditorAccountId, request, ifMatch, postedBy,
+            businessUnitId);
     }
 
     @Override
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
         return getCurrentModeService().getMinorCreditorAtAGlance(minorCreditorId);
     }
 }

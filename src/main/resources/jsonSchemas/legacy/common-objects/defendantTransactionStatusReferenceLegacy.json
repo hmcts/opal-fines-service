@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/defendantTransactionStatusReference.json",
+  "title": "defendantTransactionStatusReference",
+  "type": "object",
+  "required": [
+    "defendantTransactionStatus",
+    "defendantTransactionStatusDisplayName"
+  ],
+  "properties": {
+    "defendantTransactionStatus": {
+      "type": "string",
+      "enum": ["PND", "COMP", "CAN"]
+    },
+    "defendantTransactionStatusDisplayName": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

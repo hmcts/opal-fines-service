@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/opal-fines-service.history-items.schema.json",
+  "title": "Get Major Creditor Account History Legacy Response",
+  "type": "object",
+  "properties": {
+    "historyItems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/majorCreditorHistoryItem"
+      }
+    }
+  },
+  "$defs": {
+    "majorCreditorHistoryItem": {
+      "title": "historyItem",
+      "type": "object",
+      "required": ["postedDetails", "type", "details"],
+      "properties": {
+        "postedDetails": {
+          "$ref": "./common-objects/postedDetailsLegacy.json"
+        },
+        "type": {
+          "type": "string",
+          "description": "History item type.",
+          "enum": ["Financial"]
+        },
+        "details": {
+          "$ref": "#/$defs/creditorTransactionDetails",
+          "description": "History item details"
+        },
+        "amount": {
+          "$ref": "./common-objects/monetaryNegativeOrPositive.json"
+        }
+      }
+    },
+    "creditorTransactionDetails": {
+      "title": "transactionDetails",
+      "type": "object",
+      "required": ["transactionType"],
+      "properties": {
+        "transactionType": {
+          "$ref": "./common-objects/creditorTransactionTypeReferenceLegacy.json"
+        },
+        "paymentReference": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "./common-objects/creditorTransactionStatusReferenceLegacy.json"
+        },
+        "statusDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "associatedRecordType": {
+          "type": "string"
+        },
+        "associatedRecordId": {
+          "type": "string"
+        },
+        "accountNumber": {
+          "type": "string"
+        },
+        "defendantAccountNumber": {
+          "type": "string"
+        },
+        "defendantAccountId": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

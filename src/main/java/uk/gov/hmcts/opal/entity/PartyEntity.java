@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,8 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -25,7 +24,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.UpdateTimestamp;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Entity
@@ -80,10 +82,11 @@ public class PartyEntity implements FullNameBuilder {
     private String postcode;
 
     @Column(name = "account_type", length = 20)
-    private String accountType;
+    @ColumnTransformer(write = "?::t_party_account_type_enum")
+    @Convert(converter = AccountTypeConverter.class)
+    private AccountType accountType;
 
     @Column(name = "birth_date")
-    @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate birthDate;
 
@@ -109,7 +112,6 @@ public class PartyEntity implements FullNameBuilder {
     private String secondaryEmailAddress;
 
     @Column(name = "last_changed_date")
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime lastChangedDate;
 

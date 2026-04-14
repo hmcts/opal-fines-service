@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -18,8 +20,6 @@ import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
-
-import java.util.Optional;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
@@ -55,6 +55,17 @@ public class OpalDefendantAccountEnforcementService
         return null;
     }
 
+    @Override
+    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+        Long defendantAccountId,
+        Short businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader,
+        RemoveDefendantAccountEnforcementHoldRequest request) {
+        throw new UnsupportedOperationException("Remove enforcement hold not yet implemented for OPAL mode");
+    }
+
     EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
         if (entity.getEnforcementOverrideResultId() == null
             && entity.getEnforcementOverrideEnforcerId() == null
@@ -64,11 +75,11 @@ public class OpalDefendantAccountEnforcementService
             return EnforcementOverride.builder()
                 .enforcementOverrideResult(
                     buildEnforcementOverrideResult(
-                        resultRepositoryService.getResultById(entity.getEnforcementOverrideResultId())))
+                        resultRepositoryService.getResultById(entity.getEnforcementOverrideResultId()).orElse(null)))
                 .enforcer(OpalDefendantAccountBuilders.buildEnforcer(
-                    enforcerRepositoryService.findById(entity.getEnforcementOverrideEnforcerId())))
+                    enforcerRepositoryService.findById(entity.getEnforcementOverrideEnforcerId()).orElse(null)))
                 .lja(OpalDefendantAccountBuilders.buildLja(
-                    localJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId())))
+                    localJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId()).orElse(null)))
                 .build();
         }
     }
@@ -82,20 +93,20 @@ public class OpalDefendantAccountEnforcementService
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService
             .findById(defendantAccountId);
         DefendantAccountPartiesEntity defendantParty = filterDefendantParty(defendantEntity);
-        Optional<EnforcementEntity.Lite> recentEnforcement =
+        EnforcementEntity.Lite recentEnforcement =
             enforcementRepositoryService.getEnforcementMostRecent(
-                defendantEntity.getDefendantAccountId(), defendantEntity.getLastEnforcement());
+                defendantEntity.getDefendantAccountId(), defendantEntity.getLastEnforcement()).orElse(null);
 
         return buildEnforcementStatus(
             defendantEntity,
             defendantParty,
-            debtorDetailRepositoryService.findByPartyId(defendantParty.getParty().getPartyId()),
-            recentEnforcement.map(EnforcementEntity::getResult),
+            debtorDetailRepositoryService.findByPartyId(defendantParty.getParty().getPartyId()).orElse(null),
+            recentEnforcement != null ? recentEnforcement.getResult() : null,
             buildEnforcementOverride(defendantEntity),
             buildEnforcementAction(
                 recentEnforcement,
-                recentEnforcement
-                    .map(EnforcementEntity::getEnforcerId)
-                    .flatMap(enforcerRepositoryService::findById)));
+                recentEnforcement != null
+                    ? enforcerRepositoryService.findById(recentEnforcement.getEnforcerId()).orElse(null)
+                    : null));
     }
 }

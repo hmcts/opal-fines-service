@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,21 +22,17 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
@@ -186,27 +182,6 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
-
-    @PatchMapping(value = "/{defendantAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Update defendant account (comments, notes, enforcement details)")
-    public ResponseEntity<DefendantAccountResponse> updateDefendantAccount(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @JsonSchemaValidated(schemaPath = SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_REQUEST)
-        @RequestBody UpdateDefendantAccountRequest request
-    ) {
-        log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);
-
-        DefendantAccountResponse response = defendantAccountService.updateDefendantAccount(
-            defendantAccountId, businessUnitId, request, ifMatch, authHeaderValue
-        );
-
-        return buildResponse(response);
-    }
-
     @PutMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<GetDefendantAccountPartyResponse> replaceDefendantAccountParty(
@@ -244,5 +219,28 @@ public class DefendantAccountController {
 
         return buildResponse(response);
     }
+
+    @PatchMapping(value = "/{defendantAccountId}/remove-enf-hold", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Remove an enforcement hold for a given defendant account")
+    public ResponseEntity<RemoveDefendantAccountEnforcementHoldResponse> removeEnforcementHold(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader("Business-Unit-Id") Short businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestBody RemoveDefendantAccountEnforcementHoldRequest request
+    ) {
+        log.debug(":PATCH:removeEnforcementHold: for defendantAccountId={}", defendantAccountId);
+
+        return buildResponse(
+            defendantAccountEnforcementService.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                authHeaderValue,
+                request
+            )
+        );
+    }
+
 
 }

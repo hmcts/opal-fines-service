@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -22,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +53,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     UserStateService userStateService;
 
+    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
     JdbcTemplate jdbcTemplate;
 
@@ -204,7 +205,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                                     "exact_match_forenames": true,
                                     "birth_date": "1980-02-03",
                                     "national_insurance_number": "A11111A"
-                                     }},
+                                     },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -217,10 +218,16 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
-    @DisplayName("OPAL: Account number 'starts with' (177*) — active flag respected in new search view")
-    void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith(boolean consolidation) throws Exception {
+    @ParameterizedTest(name = "consolidated={0}, count={1}")
+    @CsvSource({
+        "false, 2",
+        "true, 1"
+    })
+    @DisplayName("OPAL: Account number 'starts with' (177*) — consolidated search excludes zero-balance matches")
+    void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith_ConsolidatedExcludesZeroBalance(
+        boolean consolidation,
+        int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -234,8 +241,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                                         "prosecutor_case_reference": null,
                                         "organisation": false
                                       },
-                                      "defendant": null
-                                    }},
+                                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -244,10 +250,15 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[*].defendant_account_id").value(containsInAnyOrder("77", "9077")))
-            .andExpect(jsonPath("$.defendant_accounts[*].account_number").value(containsInAnyOrder("177A", "177B")))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.count").value(count))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].account_number")
+                .value("177A"));
+        if (!consolidation) {
+            actions.andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')]").exists())
+                .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number")
+                    .value("177B"));
+        }
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -267,8 +278,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": "090A",
                         "organisation": false
                       },
-                      "defendant": null
-                    },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -299,8 +309,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": "ZZZ999",
                         "organisation": false
                       },
-                      "defendant": null
-                    },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -481,9 +490,13 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @CsvSource({
+        "false, 2",
+        "true, 1"
+    })
     @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
-    void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation) throws Exception {
+    void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation, int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
@@ -515,10 +528,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[*].defendant_account_id").value(containsInAnyOrder("77", "9077")))
-            .andExpect(jsonPath("$.defendant_accounts[*].account_number").value(containsInAnyOrder("177A", "177B")))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.count").value(count))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].account_number")
+                .value("177A"))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].business_unit_id")
+                .value("78"));
+        if (!consolidation) {
+            actions.andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')]").exists())
+                .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number")
+                    .value("177B"));
+        }
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -538,8 +558,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
-                    },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -572,8 +591,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
-                    },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -605,8 +623,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
-                    },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -805,8 +822,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
-                    },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -838,8 +854,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
-                  },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)))
             .andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
@@ -1165,9 +1180,13 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @CsvSource({
+        "false, 3",
+        "true, 1"
+    })
     @DisplayName("AC3a: Active accounts only filtering - false includes both active and completed accounts [@PO-710]")
-    void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation) throws Exception {
+    void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation, int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // Test AC3a: active_accounts_only = false should include both active and completed accounts
@@ -1199,11 +1218,15 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         log.info(":testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
-        allAccountsActions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(3))
-            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists()).andExpect(
+        allAccountsActions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(count))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists());
+        if (!consolidation) {
+            allAccountsActions.andExpect(
                 jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number").value("177B"))
-            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists()).andExpect(
-                jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number").value("444C"));
+                .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
+                .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number")
+                    .value("444C"));
+        }
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -1494,9 +1517,13 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @CsvSource({
+        "false, 2",
+        "true, 1"
+    })
     @DisplayName("AC9b: Active accounts only filtering for company accounts - excludes completed accounts [@PO-710]")
-    void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation) throws Exception {
+    void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation, int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // active_accounts_only = false should include both active and completed company accounts
@@ -1528,9 +1555,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}",
             ToJsonString.toPrettyJson(allBody));
 
-        allAccountsActions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '555')]").exists())
-            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '777')]").exists());
+        allAccountsActions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(count))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '555')]").exists());
+        if  (!consolidation) {
+            allAccountsActions
+                .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '777')]").exists());
+        }
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -1697,13 +1727,20 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
-    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; 177A and 177B returned (active flag ignored)")
-    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(boolean consolidation) throws Exception {
+    @ParameterizedTest(name = "consolidated={0}, count={1}")
+    @CsvSource({
+        "false, 2",
+        "true, 1"
+    })
+    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; consolidated search returns only non-zero-balance matches")
+    void testPostDefendantAccountsSearch_PO2241_Core177_ConsolidatedExcludesZeroBalance(
+        boolean consolidation,
+        int count)
+        throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
-        // Case 1: active_accounts_only = true (ignored because account_number provided)
+        // active_accounts_only is ignored because account_number is provided.
+        // When consolidation_search=true, the consolidated path also drops zero-balance matches, so only 177A remains.
         ResultActions activeTrue = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON).content("""
@@ -1715,8 +1752,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
-                   },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -1724,9 +1760,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
 
         activeTrue.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
-            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+            .andExpect(jsonPath("$.count").value(count))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists());
+        if (!consolidation) {
+            activeTrue.andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+        }
 
         // Case 2: active_accounts_only = false (also ignored; set should be identical)
         ResultActions activeFalse = mockMvc.perform(
@@ -1740,8 +1778,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
-                   },
+                      "defendant": null,
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
 
@@ -1749,9 +1786,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
 
         activeFalse.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
-            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+            .andExpect(jsonPath("$.count").value(count))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists());
+        if (!consolidation) {
+            activeFalse.andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+        }
     }
 
     @ParameterizedTest(name = "consolidated={0}")

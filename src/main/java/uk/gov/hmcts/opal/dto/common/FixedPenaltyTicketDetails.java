@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonInclude(Include.ALWAYS)
 public class FixedPenaltyTicketDetails {
 

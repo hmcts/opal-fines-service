@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.service.iface;
 
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 
 public interface NotesServiceInterface {
 

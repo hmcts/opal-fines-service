@@ -1,16 +1,17 @@
 package uk.gov.hmcts.opal.controllers;
 
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -53,11 +54,11 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     private static final String MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE =
         "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
 
-    @Autowired
-    protected JdbcTemplate jdbcTemplate;
-
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -309,7 +310,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             patch(URL_BASE + "/607")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer some_value")
-                .header("ETag", currentVersion)
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", "10")
                 .content(requestJson));
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -334,12 +336,16 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
 
+        UserState userState = UserState.builder().userId(123L).build();
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
+
         Integer currentVersion = getCurrentCreditorAccountVersion(607L);
 
         mockMvc.perform(patch(URL_BASE + "/606")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("ETag", currentVersion)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", "10")
                             .content(patchMinorCreditorWithoutPermissionRequestJson()))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -354,7 +360,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(patch(URL_BASE + "/607")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer some_value")
-                            .header("ETag", currentVersion)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", "10")
                             .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(org.hamcrest.Matchers.anything()));
@@ -841,29 +848,29 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
-            .andExpect(jsonPath("$.creditor_account_id").value(String.valueOf(minorCreditorId)))
-            .andExpect(jsonPath("$.account_number").value("87654321"))
-            .andExpect(jsonPath("$.creditor_account_type.type").value("MN"))
-            .andExpect(jsonPath("$.creditor_account_type.display_name").value("Minor Creditor"))
+            .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorId)))
+            .andExpect(jsonPath("$.creditor.account_number").value("87654321"))
+            .andExpect(jsonPath("$.creditor.account_type.type").value("MN"))
+            .andExpect(jsonPath("$.creditor.account_type.display_name").value("Minor Creditor"))
+            .andExpect(jsonPath("$.creditor.has_associated_defendant").value(false))
 
             .andExpect(header().exists("ETag"))
 
-            .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("77"))
-            .andExpect(jsonPath("$.business_unit_summary.business_unit_name").value("Camberwell Green"))
-            .andExpect(jsonPath("$.business_unit_summary.welsh_speaking").value(matchesPattern("Y|N")))
+            .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
+            .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))
 
-            .andExpect(jsonPath("$.party_details.party_id").value("99000000000900"))
-            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
-            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+            .andExpect(jsonPath("$.party.party_id").value("99000000000900"))
+            .andExpect(jsonPath("$.party.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party.organisation_details.organisation_name")
                 .value("Minor Creditor Test Ltd"))
-            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases")
+            .andExpect(jsonPath("$.party.organisation_details.organisation_aliases")
                 .value(nullValue()))
 
-            .andExpect(jsonPath("$.awarded_amount").value(0))
-            .andExpect(jsonPath("$.paid_out_amount").value(0))
-            .andExpect(jsonPath("$.awaiting_payout_amount").value(0))
-            .andExpect(jsonPath("$.outstanding_amount").value(0))
-            .andExpect(jsonPath("$.has_associated_defendant").value(false));
+            .andExpect(jsonPath("$.financials.awarded").value(0))
+            .andExpect(jsonPath("$.financials.paid_out").value(0))
+            .andExpect(jsonPath("$.financials.awaiting_payout").value(0))
+            .andExpect(jsonPath("$.financials.outstanding").value(0));
 
         jsonSchemaValidationService.validate(body, MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE);
     }
@@ -948,7 +955,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "1")
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
             .contentType(MediaType.APPLICATION_JSON)
             .header("authorization", "Bearer some_value"));
 
@@ -961,48 +968,59 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
             // party
-            .andExpect(jsonPath("$.party.party_id").value("JEDI-1977"))
-            .andExpect(jsonPath("$.party.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party.party_id").value("99000000000901"))
+            .andExpect(jsonPath("$.party.organisation_flag").value(true))
 
             // individual_details
-            .andExpect(jsonPath("$.party.individual_details.title").value("Mr"))
-            .andExpect(jsonPath("$.party.individual_details.forenames").value("Luke"))
-            .andExpect(jsonPath("$.party.individual_details.surname").value("Skywalker"))
-            .andExpect(jsonPath("$.party.individual_details.date_of_birth").value("1977-05-27"))
-            .andExpect(jsonPath("$.party.individual_details.age").value("23"))
-            .andExpect(jsonPath("$.party.individual_details.national_insurance_number").value("LS1977SW"))
-
-            // individual_aliases[0]
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].alias_id").value("AL-001"))
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].sequence_number").value(1))
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].surname").value("Skywalker"))
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[0].forenames").value("Red Five"))
-
-            // individual_aliases[1]
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].alias_id").value("AL-002"))
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].sequence_number").value(2))
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].surname").value("Skywalker"))
-            .andExpect(jsonPath("$.party.individual_details.individual_aliases[1].forenames").value("Jedi Knight"))
+            .andExpect(jsonPath("$.party.organisation_details.organisation_name").value("Speed Camera Services Ltd"))
 
             // address
-            .andExpect(jsonPath("$.address.address_line_1").value("Lars Homestead"))
-            .andExpect(jsonPath("$.address.address_line_2").value("Dune Sea"))
-            .andExpect(jsonPath("$.address.address_line_3").value("Tatooine"))
-            .andExpect(jsonPath("$.address.address_line_4").value("Outer Rim Territories"))
-            .andExpect(jsonPath("$.address.address_line_5").value("Desert Planet"))
-            .andExpect(jsonPath("$.address.postcode").value("TAT-1977"))
+            .andExpect(jsonPath("$.address.address_line_1").value("10 Technology Way"))
+            .andExpect(jsonPath("$.address.address_line_2").value("Reading"))
+            .andExpect(jsonPath("$.address.postcode").value("RG6 1PT"))
 
             // creditor_account_id
-            .andExpect(jsonPath("$.creditor_account_id").value(900000000000456L))
+            .andExpect(jsonPath("$.creditor_account_id").value(99000000000801L))
 
             // defendant
             .andExpect(jsonPath("$.defendant.account_number").value("12345678"))
-            .andExpect(jsonPath("$.defendant.account_id").value(456789123))
+            .andExpect(jsonPath("$.defendant.account_id").value(99000000000001L))
+            .andExpect(jsonPath("$.defendant.title").value("Mr"))
+            .andExpect(jsonPath("$.defendant.forenames").value("Michael James"))
+            .andExpect(jsonPath("$.defendant.surname").value("Johnson"))
 
             // payment
-            .andExpect(jsonPath("$.payment.bacs").value(true))
             .andExpect(jsonPath("$.payment.is_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
+    }
+
+    void getMinorCreditorAtAGlanceImpl_failure_creditorNotFound(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        Long missingId = 999999L;
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", missingId)
+            .accept(MediaType.APPLICATION_JSON)
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorCreditorAtAGlance_creditorNotFound: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound());
+    }
+
+    void getMinorCreditorAtAGlanceImpl_serverError_throws500(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/at-a-glance", 104L).header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getAtAGlance_serverError_returns500: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isInternalServerError());
     }
 
     void legacyGetMinorCreditorAtAGlanceImpl_500Error(Logger log) throws Exception {

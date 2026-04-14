@@ -18,10 +18,12 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.entity.AliasEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -38,6 +40,9 @@ class OpalDefendantAccountServiceTest05 {
     @Mock
     private DebtorDetailRepositoryService debtorRepoService;
 
+    @Mock
+    private DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+
     // Service under test
     @InjectMocks
     private OpalDefendantAccountPartyService service;
@@ -52,7 +57,7 @@ class OpalDefendantAccountServiceTest05 {
         // Link party into DefendantAccountPartiesEntity
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
             .defendantAccountPartyId(100L)
-            .associationType("DEFENDANT")
+            .associationType(AssociationType.DEFENDANT)
             .debtor(true)
             .party(party)
             .build();
@@ -118,7 +123,7 @@ class OpalDefendantAccountServiceTest05 {
 
         var dap = DefendantAccountPartiesEntity.builder()
             .defendantAccountPartyId(200L)
-            .associationType("DEFENDANT")
+            .associationType(AssociationType.DEFENDANT)
             .debtor(true)
             .party(party)
             .build();
@@ -191,7 +196,7 @@ class OpalDefendantAccountServiceTest05 {
             .build();
 
         var dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(100L).associationType("DEFENDANT").debtor(true).party(party)
+            .defendantAccountPartyId(100L).associationType(AssociationType.DEFENDANT).debtor(true).party(party)
             .build();
 
         var account = DefendantAccountEntity.builder()
@@ -246,7 +251,7 @@ class OpalDefendantAccountServiceTest05 {
             .build();
 
         var dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(200L).associationType("DEFENDANT").debtor(true).party(party)
+            .defendantAccountPartyId(200L).associationType(AssociationType.DEFENDANT).debtor(true).party(party)
             .build();
 
         var account = DefendantAccountEntity.builder()
