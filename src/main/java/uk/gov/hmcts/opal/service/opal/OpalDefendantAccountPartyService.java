@@ -100,37 +100,13 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     }
 
     @Override
-    public GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
-                                                                     String businessUnitId,
-                                                                     String businessUserId,
-                                                                     String postedBy,
-                                                                     String ifMatch,
-                                                                     DefendantAccountParty defendantAccountParty) {
+    @Transactional
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+        Long accountId, String businessUnitId,
+        String postedBy, String businessUserId, String ifMatch, DefendantAccountParty request) {
 
-        //Look up Defendant Account using the provided ID
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
-
-        log.debug(":addDefendantAccountParty: Opal mode: accountId={}, dapId={}, buId={}, businessUserId={}"
-                + " postedBy={} ",
-                defendantAccountId, defendantAccountPartyId, businessUnitId, businessUserId, postedBy);
-
-        //Verify that the Account is in the same business unit
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
-        }
-
-        //Verifying that the Defendant Account matches then adds the new Defendant Account Party
-        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addDefendantAccountParty");
-        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
-
-        //Checking if the Account Party Details are there for the new added Defendant Account Party
-        Long requestedPartyId = OpalDefendantAccountBuilders.safeParseLong(defendantAccountParty != null
-            && defendantAccountParty.getPartyDetails() != null ? defendantAccountParty.getPartyDetails()
-            .getPartyId() : null);
-
-        return null;
+        // not implemented.
+        throw new UnsupportedOperationException("Adding a party to an account is not yet supported in Opal");
     }
 
     private DefendantAccountParty mapDefendantAccountParty(

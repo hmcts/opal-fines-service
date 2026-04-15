@@ -330,6 +330,38 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     @Test
+    void addDefendantAccountParty_error_exceptionBranch_returnsWrapperWithNulls() {
+        // arrange: exception path (no entity)
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("boom"), null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType =
+            AddDefendantAccountPartyLegacyResponse.class;
+
+        // stub the spy’d gateway to hit the (String, Class<T>, Object, String) overload
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // act
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountPartyService.addDefendantAccountParty(77L, "78",
+                                                                         "1", "poster",
+                                                                         "\"2\"", null
+        );
+
+        // assert
+        assertNotNull(out);
+        assertNull(out.getVersion());
+        assertNull(out.getDefendantAccountParty());
+
+
+    }
+
+    @Test
     void addDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
         // Build a legacy entity with only organisationDetails populated
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()

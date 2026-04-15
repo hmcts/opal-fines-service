@@ -62,6 +62,18 @@ public class DefendantAccountPartyLegacyResponseMapperTest {
         assertNull(mapped.getDefendantAccountParty().getLanguagePreferences());
     }
 
+    @Test
+    void defendantAccountPartyResponse_mapsNull_toEmptyResponse() {
+
+        //Arrange
+        AddDefendantAccountPartyLegacyResponse legacyBody = null;
+
+        //Act
+        GetDefendantAccountPartyResponse mapped = mapper.toDefendantAccountPartyResponse(legacyBody);
+
+        //Assert
+        assertNotNull(mapped);
+    }
 
     @Test
     void defendantAccountParty_mapsLanguagePreference() {

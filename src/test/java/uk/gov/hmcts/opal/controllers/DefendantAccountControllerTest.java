@@ -161,6 +161,7 @@ class DefendantAccountControllerTest {
         assertNotNull(response.getBody());
         assertEquals(expectedResponse, response.getBody());
     }
+
     @Test
     void testAddDefendantAccountParty_Success() {
         // Arrange
@@ -201,9 +202,6 @@ class DefendantAccountControllerTest {
             request
         );
     }
-
-
-}
 
     @Test
     void testRemoveEnforcementHold_forbiddenWhenServiceThrowsPermissionNotAllowedException() {
