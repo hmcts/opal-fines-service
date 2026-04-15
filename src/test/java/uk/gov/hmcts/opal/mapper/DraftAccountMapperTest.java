@@ -17,7 +17,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
@@ -154,7 +154,7 @@ class DraftAccountMapperTest {
     private DraftAccountEntity buildEntity() {
         return DraftAccountEntity.builder()
             .draftAccountId(1001L)
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 77).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 77).build())
             .createdDate(LocalDateTime.of(2026, 3, 1, 10, 15, 30))
             .submittedBy("USER01")
             .submittedByName("Normal User")

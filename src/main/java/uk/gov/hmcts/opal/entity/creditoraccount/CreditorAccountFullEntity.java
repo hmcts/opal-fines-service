@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 
 @Getter
@@ -22,7 +22,7 @@ public class CreditorAccountFullEntity extends CreditorAccountEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", insertable = false, updatable = false)
-    private BusinessUnitFullEntity businessUnit;
+    private BusinessUnitEntity businessUnit;
 
     @OneToOne
     @JoinColumn(name = "major_creditor_id", insertable = false, updatable = false)

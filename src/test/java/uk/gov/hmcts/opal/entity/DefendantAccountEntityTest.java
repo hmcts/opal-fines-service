@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.entity;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.ConsolidatedAccountType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -26,7 +26,7 @@ public class DefendantAccountEntityTest {
 
         // Set values using setters
         defendantAccount.setDefendantAccountId(1L);
-        defendantAccount.setBusinessUnit(new BusinessUnitFullEntity());
+        defendantAccount.setBusinessUnit(new BusinessUnitEntity());
         defendantAccount.setAccountNumber("123456");
         defendantAccount.setImposedHearingDate(now);
         defendantAccount.setImposingCourtId(1L);
@@ -69,7 +69,7 @@ public class DefendantAccountEntityTest {
 
         // Test getters
         assertEquals(Long.valueOf(1L), defendantAccount.getDefendantAccountId());
-        assertEquals(new BusinessUnitFullEntity(), defendantAccount.getBusinessUnit());
+        assertEquals(new BusinessUnitEntity(), defendantAccount.getBusinessUnit());
         assertEquals("123456", defendantAccount.getAccountNumber());
         assertEquals(now, defendantAccount.getImposedHearingDate());
         assertEquals(Long.valueOf(1L), defendantAccount.getImposingCourtId());

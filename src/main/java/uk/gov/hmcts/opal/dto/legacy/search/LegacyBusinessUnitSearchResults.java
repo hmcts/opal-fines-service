@@ -6,7 +6,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ import java.util.List;
 public class LegacyBusinessUnitSearchResults {
 
     @XmlElement(name = "businessUnitEntity")
-    private List<BusinessUnitFullEntity> businessUnitEntities;
+    private List<BusinessUnitEntity> businessUnitEntities;
     private int totalCount;
 }

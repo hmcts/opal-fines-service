@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState.UserBusinessUnits;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -43,12 +43,12 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnit_Success() {
         // Arrange
-        BusinessUnitFullEntity entity = BusinessUnitFullEntity.builder().build();
+        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
 
         when(businessUnitService.getBusinessUnit(any(Short.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<BusinessUnitFullEntity> response = businessUnitController.getBusinessUnitById((short)1);
+        ResponseEntity<BusinessUnitEntity> response = businessUnitController.getBusinessUnitById((short)1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -59,14 +59,14 @@ class BusinessUnitControllerTest {
     @Test
     void testSearchBusinessUnits_Success() {
         // Arrange
-        BusinessUnitFullEntity entity = BusinessUnitFullEntity.builder().build();
-        List<BusinessUnitFullEntity> businessUnitList = List.of(entity);
+        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
+        List<BusinessUnitEntity> businessUnitList = List.of(entity);
 
         when(businessUnitService.searchBusinessUnits(any())).thenReturn(businessUnitList);
 
         // Act
         BusinessUnitSearchDto searchDto = BusinessUnitSearchDto.builder().build();
-        ResponseEntity<List<BusinessUnitFullEntity>> response = businessUnitController
+        ResponseEntity<List<BusinessUnitEntity>> response = businessUnitController
             .postBusinessUnitsSearch(searchDto);
 
         // Assert

@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -66,7 +66,7 @@ class OpalDefendantAccountServiceTest05 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(1L)
             .parties(List.of(dap))
-            .businessUnit(BusinessUnitFullEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
             .versionNumber(0L)
             .build();
@@ -130,7 +130,7 @@ class OpalDefendantAccountServiceTest05 {
 
         var account = DefendantAccountEntity.builder()
             .defendantAccountId(2L).parties(List.of(dap))
-            .businessUnit(BusinessUnitFullEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
             .versionNumber(0L).build();
 
@@ -202,7 +202,7 @@ class OpalDefendantAccountServiceTest05 {
         var account = DefendantAccountEntity.builder()
             .defendantAccountId(1L)
             .parties(List.of(dap))
-            .businessUnit(BusinessUnitFullEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
             .versionNumber(0L)
             .build();
@@ -257,7 +257,7 @@ class OpalDefendantAccountServiceTest05 {
         var account = DefendantAccountEntity.builder()
             .defendantAccountId(2L)
             .parties(List.of(dap))
-            .businessUnit(BusinessUnitFullEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
             .versionNumber(0L)
             .build();
