@@ -37,13 +37,13 @@ import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AliasEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
-import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
@@ -259,7 +259,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Transactional
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUserId,
         String ifMatch,
         String postedBy,
@@ -272,8 +272,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         if (account.getBusinessUnit() == null
             || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+            || !Objects.equals(account.getBusinessUnit().getBusinessUnitId(), businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit."
+                + " Defendant Account: " + defendantAccountId
+                + " Business Unit: " + businessUnitId);
         }
 
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
@@ -300,7 +302,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
             RecordType.DEFENDANT_ACCOUNTS,
-            Short.parseShort(businessUnitId),
+            businessUnitId,
             postedBy,
             account.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"

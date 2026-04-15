@@ -485,7 +485,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
         String postedBy,

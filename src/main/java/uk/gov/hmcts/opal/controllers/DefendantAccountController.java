@@ -232,7 +232,7 @@ public class DefendantAccountController {
     public ResponseEntity<RemoveDefendantAccountPartyResponse> removeDefendantAccountParty(
         @PathVariable Long defendantAccountId,
         @PathVariable Long defendantAccountPartyId,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader("Business-Unit-Id") Short businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestBody DefendantAccountParty request

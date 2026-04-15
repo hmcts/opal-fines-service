@@ -133,7 +133,7 @@ VALUES ( 0077, 0, 078, '177A'
        , 101
        ),
         (2006, 4, 78, '2006A'
-        ,'2023-11-03 16:05:10', 100.00, 1007.00
+        ,'2023-11-03 16:05:10', 780000000185, 1007.00
         , 312.45, 800.12,'L', NULL
         , 780000000185, 780000000185, '2024-01-04 18:06:11'
         , '2025-01-02 17:08:09', '2025-01-03 12:00:12', 'MPSO'
@@ -142,11 +142,12 @@ VALUES ( 0077, 0, 078, '177A'
         , 'FWEC', 780000000021, 240
         , 'GB pound sterling', 700.00, 'Y', '2024-02-18 00:00:00'
         , '2024-02-19 00:00:00', NULL, NULL, NULL
-        , 'M', 'Y', '2025-01-01 00:00:00', '11111111A'
+        , 'C', 'Y', '2025-01-01 00:00:00', '11111111A'
         , '099B', NULL, 'Fine'
         , 'Text', NULL, NULL, 'text_note_3'
         , 101
-        );
+        ) -- record for testing remove DAP
+        ;
 
 INSERT INTO parties
 ( party_id, organisation, organisation_name
@@ -163,7 +164,14 @@ VALUES ( 0077, 'N', 'Sainsco'
        , 'Wilkins', 'Dave', 'Mr'
        , 'Lumber House', '78 Gordon Road', 'Maidstone, Kent'
        , NULL, NULL, 'MA5 1AL'
-       , 'Defendant', '1970-02-03 00:00:00', 43, 'A11111A', NULL);
+       , 'Defendant', '1970-02-03 00:00:00', 43, 'A11111A', NULL),
+         -- record for testing remove DAP
+        (206, 'N', NULL
+       , 'Shae', 'Michael', 'Mr'
+       , 'Dorset House', '21 Overcliff Road', 'Bournemouth'
+       , NULL, NULL, 'BH1 1AP'
+       , 'Defendant', '1970-02-03 00:00:00', 49, 'A11111A', NULL
+       );
 
 INSERT INTO debtor_detail
 ( party_id, vehicle_make, vehicle_registration,
@@ -181,6 +189,11 @@ VALUES
   'Tesco Ltd', '123 Employer Road', NULL,
   NULL, NULL, NULL,
   'EMP1 2AA', 'EMPREF78', '02079997777', 'employer78@company.com',
+  'EN', NULL, 'EN', NULL ),
+( 206, 'Toyota Prius', 'AB206CDE',
+  'Tesco Ltd', '206 Employer Road', NULL,
+  NULL, NULL, NULL,
+  'EMP2 2AA', 'EMPREF206', '02079997777', 'employer206@company.com',
   'EN', NULL, 'EN', NULL );
 
 
@@ -193,7 +206,11 @@ INSERT INTO defendant_account_parties
 VALUES ( 0077, 0077, 0077
        , 'Defendant', 'Y'),
        ( 0078, 0078, 0078
-       , 'Defendant', 'Y');
+       , 'Defendant', 'Y'),
+            -- record for testing remove DAP
+       (2006, 2006, 206
+       ,'Defendant', 'Y'
+       );
 
 -- Enhance fixed penalty offence for account 77 (for PO-1819 integration test completeness)
 UPDATE fixed_penalty_offences

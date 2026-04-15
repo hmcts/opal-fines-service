@@ -22,7 +22,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     void delete_happyPath_removesAssociation_returnsResponse() throws Exception {
         authoriseAllPermissions();
 
-        Integer currentVersion = versionFor(77L);
+        Integer currentVersion = versionFor(2006L);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -32,13 +32,13 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
         String body = """
             {
               "party_details": {
-                "party_id": "77"
+                "party_id": "206"
               }
             }
             """;
 
         ResultActions res = mockMvc.perform(
-            delete("/defendant-accounts/77/defendant-account-parties/77")
+            delete("/defendant-accounts/2006/defendant-account-parties/2006")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -49,14 +49,14 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
         res.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"" + (currentVersion + 1) + "\""))
-            .andExpect(jsonPath("$.defendant_account_party_id").value("77"));
+            .andExpect(jsonPath("$.defendant_account_party_id").value("2006"));
 
         Integer associationCount = jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM defendant_account_parties "
                  + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
             Integer.class,
-            77L,
-            77L
+            2006L,
+            206L
         );
 
         assertEquals(0, associationCount);

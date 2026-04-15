@@ -85,7 +85,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         RemoveDefendantAccountPartyResponse response = service.removeDefendantAccountParty(
             1L,
             5L,
-            "10",
+            (short) 10,
             "businessUser",
             "1",
             "posted",
@@ -110,6 +110,6 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             .build();
 
         assertThrows(IllegalArgumentException.class, () ->
-            service.removeDefendantAccountParty(1L, 5L, "10", "businessUser", "1", "posted", request));
+            service.removeDefendantAccountParty(1L, 5L, (short) 10, "businessUser", "1", "posted", request));
     }
 }

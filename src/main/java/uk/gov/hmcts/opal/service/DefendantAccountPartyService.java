@@ -97,7 +97,7 @@ public class DefendantAccountPartyService {
 
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        String businessUnitId,
+        Short businessUnitId,
         String ifMatch,
         String authHeaderValue,
         DefendantAccountParty request) {
@@ -106,19 +106,17 @@ public class DefendantAccountPartyService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        short buId = Short.parseShort(businessUnitId);
-
-        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+        String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
-        if (userState.hasBusinessUnitUserWithPermission(buId,
+        if (userState.hasBusinessUnitUserWithPermission(businessUnitId,
             FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId,
                 businessUnitId,
-                getBusinessUnitUserIdForBusinessUnit(userState, buId),
+                getBusinessUnitUserIdForBusinessUnit(userState, businessUnitId),
                 ifMatch,
                 postedBy,
                 request);
