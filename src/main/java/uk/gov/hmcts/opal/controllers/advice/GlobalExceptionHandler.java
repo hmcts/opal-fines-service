@@ -51,7 +51,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")

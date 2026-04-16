@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 
 @Service
 public class DynamicConfigService {
