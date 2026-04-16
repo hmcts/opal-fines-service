@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation
 Feature: Get Draft Account
 
-  @JIRA-STORY:PO-591 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @JIRA-KEY:POT-4476
+  @JIRA-STORY:PO-591 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging
   Scenario: Get draft account - happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -36,7 +36,7 @@ Feature: Get Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4477
+  @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Get draft account - Parent + MinorCreditor yields two PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -73,7 +73,7 @@ Feature: Get Draft Account
     Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4478
+  @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Invalid token is blocked and no PDPO logs emitted
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -99,7 +99,7 @@ Feature: Get Draft Account
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4479
+  @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Attempt to create a draft with an invalid token - no logs created
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"

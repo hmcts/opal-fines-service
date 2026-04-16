@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation
 Feature: Update Draft Account
 
-  @JIRA-STORY:PO-745 @JIRA-STORY:PO-991 @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-KEY:POT-4518
+  @JIRA-STORY:PO-745 @JIRA-STORY:PO-991 @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2220
   Scenario: Patch draft account - Pending - happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -28,7 +28,7 @@ Feature: Update Draft Account
     Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-KEY:POT-4519
+  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220
   Scenario: Patch draft account - Rejected - happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -67,7 +67,7 @@ Feature: Update Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-KEY:POT-4520
+  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220
   Scenario: Patch draft account - Deleted - happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -106,7 +106,7 @@ Feature: Update Draft Account
     Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4521
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Patch draft account - Parent or Guardian - happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -131,7 +131,7 @@ Feature: Update Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4522
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Patch draft account - Minor Creditor - happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -156,7 +156,7 @@ Feature: Update Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4523
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Patch draft account - Defendant + Minor Creditor creates two logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -181,7 +181,7 @@ Feature: Update Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4524
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Attempt to patch with invalid token - no logs created
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -203,7 +203,7 @@ Feature: Update Draft Account
     Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-KEY:POT-4525
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData
   Scenario: Patch unknown draft account id returns 406 and does not create PDPO log
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
