@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.report;
 
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 

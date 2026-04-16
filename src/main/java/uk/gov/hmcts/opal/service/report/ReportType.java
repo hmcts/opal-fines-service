@@ -1,31 +1,21 @@
 package uk.gov.hmcts.opal.service.report;
 
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.Getter;
-import uk.gov.hmcts.opal.exception.ReportNotFoundException;
+import java.util.Arrays;
 
-@Getter
 public enum ReportType {
+    DETAILED("Detailed"),
+    SUMMARY("Summary");
 
-    FP_REGISTER("fp_register");
+    private final String label;
 
-    public final String reportId;
-
-    ReportType(String reportId) {
-        this.reportId = reportId;
+    ReportType(String label) {
+        this.label = label;
     }
 
-    private static final Map<String, ReportType> BY_REPORT_ID =
-        Stream.of(values())
-            .collect(Collectors.toMap(ReportType::getReportId, reportType -> reportType));
-
-    public static ReportType fromReportId(String reportId) {
-        ReportType type = BY_REPORT_ID.get(reportId);
-        if (type == null) {
-            throw new ReportNotFoundException("Report id is not a valid report type: " + reportId);
-        }
-        return type;
+    public static ReportType fromLabel(String label) {
+        return Arrays.stream(values())
+            .filter(t -> t.label.equalsIgnoreCase(label))
+            .findFirst()
+            .orElse(DETAILED);
     }
 }

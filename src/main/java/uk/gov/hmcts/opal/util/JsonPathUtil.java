@@ -5,6 +5,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
+import java.math.BigDecimal;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j(topic = "opal.JsonPathUtil")
@@ -44,6 +45,69 @@ public class JsonPathUtil {
             } catch (PathNotFoundException pnfe) {
                 return null;
             }
+        }
+    }
+
+    public static String safeReadString(DocContext ctx, String path, String def) {
+        try {
+            Object v = ctx.read(path);
+            if (v == null) {
+                return def;
+            }
+            return String.valueOf(v);
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    public static java.time.LocalDate safeReadLocalDate(DocContext ctx, String path) {
+        try {
+            String s = safeReadString(ctx, path, null);
+            if (s == null || s.isBlank()) {
+                return null;
+            }
+            return java.time.LocalDate.parse(s);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Boolean safeReadBoolean(DocContext ctx, String path, Boolean def) {
+        try {
+            Object v = ctx.read(path);
+            if (v == null) {
+                return def;
+            }
+            if (v instanceof Boolean) {
+                return (Boolean) v;
+            }
+            String s = String.valueOf(v).trim();
+            if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("y")
+                || s.equalsIgnoreCase("yes")) {
+                return Boolean.TRUE;
+            }
+            if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("n")
+                || s.equalsIgnoreCase("no")) {
+                return Boolean.FALSE;
+            }
+            return def;
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    public static java.math.BigDecimal safeReadBigDecimal(DocContext ctx, String path) {
+        try {
+            Object v = ctx.read(path);
+            if (v == null) {
+                return null;
+            }
+            if (v instanceof Number) {
+                return new BigDecimal(String.valueOf(v));
+            }
+            return new BigDecimal(String.valueOf(v));
+        } catch (Exception e) {
+            return null;
         }
     }
 }
