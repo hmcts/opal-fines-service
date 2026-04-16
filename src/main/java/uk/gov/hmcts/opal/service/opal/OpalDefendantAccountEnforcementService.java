@@ -1,18 +1,26 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -20,6 +28,8 @@ import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
+import uk.gov.hmcts.opal.service.proxy.NotesProxy;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
@@ -44,6 +54,14 @@ public class OpalDefendantAccountEnforcementService
 
     private final ResultRepositoryService resultRepositoryService;
 
+    private final NotesProxy notesProxy;
+
+    private final UserStateService userStateService;
+
+    private final AmendmentService amendmentService;
+
+    private final ReportEntryService reportEntryService;
+
     @Override
     public AddEnforcementResponse addEnforcement(
         Long defendantAccountId,
@@ -56,6 +74,7 @@ public class OpalDefendantAccountEnforcementService
     }
 
     @Override
+    @Transactional
     public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
         Long defendantAccountId,
         Short businessUnitId,
@@ -63,7 +82,76 @@ public class OpalDefendantAccountEnforcementService
         String ifMatch,
         String authHeader,
         RemoveDefendantAccountEnforcementHoldRequest request) {
-        throw new UnsupportedOperationException("Remove enforcement hold not yet implemented for OPAL mode");
+
+        log.debug(":removeEnforcementHold: defendantAccountId={}, businessUnitId={}",
+            defendantAccountId, businessUnitId);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+        DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
+
+        VersionUtils.verifyIfMatch(defendantEntity, ifMatch, defendantAccountId, "removeEnforcementHold");
+
+        if (defendantEntity.getLastEnforcement() == null) {
+            throw new ResourceConflictException(
+                "Defendant Account",
+                defendantAccountId,
+                "No enforcement hold to remove",
+                defendantEntity
+            );
+        }
+
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        try {
+            defendantEntity.setLastEnforcement(null);
+            defendantEntity.setLastMovementDate(LocalDate.now());
+
+            DefendantAccountEntity savedEntity = defendantAccountRepositoryService.saveAndFlush(defendantEntity);
+
+            notesProxy.addNote(
+                buildRemoveEnforcementHoldNoteRequest(defendantAccountId, request),
+                ifMatch,
+                userState,
+                savedEntity
+            );
+
+            reportEntryService.createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
+
+            amendmentService.auditFinaliseStoredProc(
+                defendantAccountId,
+                RecordType.DEFENDANT_ACCOUNTS,
+                businessUnitId,
+                businessUnitUserId,
+                null,
+                "Remove Enforcement Hold"
+            );
+
+            return RemoveDefendantAccountEnforcementHoldResponse.builder()
+                .defendantAccountId(String.valueOf(savedEntity.getDefendantAccountId()))
+                .version(savedEntity.getVersion())
+                .build();
+
+        } catch (ObjectOptimisticLockingFailureException ex) {
+            throw new ResourceConflictException(
+                "Defendant Account",
+                defendantAccountId,
+                "Account version has changed",
+                defendantEntity
+            );
+        }
+    }
+
+    private AddNoteRequest buildRemoveEnforcementHoldNoteRequest(
+        Long defendantAccountId,
+        RemoveDefendantAccountEnforcementHoldRequest request) {
+
+        Note note = new Note();
+        note.setRecordType(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS);
+        note.setRecordId(String.valueOf(defendantAccountId));
+        note.setNoteText(request.getReason());
+        note.setNoteType("AN");
+
+        return new AddNoteRequest(note);
     }
 
     EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
