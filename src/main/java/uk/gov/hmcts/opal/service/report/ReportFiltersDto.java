@@ -14,8 +14,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReportFiltersDto {
 
+    private ReportType reportType;
     private List<Long> businessUnitIds;
-    private String enforcementMode;
+    private ReportEnforcementMode reportEnforcementMode;
     private LocalDate enforcementDateFrom;
     private LocalDate enforcementDateTo;
     private LocalDate lastActionDateFrom;

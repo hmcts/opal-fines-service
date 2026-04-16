@@ -36,7 +36,7 @@ import uk.gov.hmcts.opal.service.report.ReportError;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportRegistry;
-import uk.gov.hmcts.opal.service.report.ReportType;
+import uk.gov.hmcts.opal.service.report.ReportId;
 
 @Transactional
 @DirtiesContext
@@ -139,8 +139,8 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     private static class TestReportTemplate implements ReportInterface<TestReportData> {
 
         @Override
-        public ReportType getType() {
-            return ReportType.FP_REGISTER;
+        public ReportId getReportId() {
+            return ReportId.FP_REGISTER;
         }
 
         @Override
