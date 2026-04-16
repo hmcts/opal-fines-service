@@ -1,12 +1,15 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+
+import java.math.BigInteger;
 
 @Data
 @Builder
@@ -16,7 +19,8 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 public class AddDefendantAccountPartyLegacyRequest {
 
     @JsonProperty("version")
-    private Long version;
+    @NotNull
+    private BigInteger version;
 
     @JsonProperty("defendant_account_id")
     private Long defendantAccountId;

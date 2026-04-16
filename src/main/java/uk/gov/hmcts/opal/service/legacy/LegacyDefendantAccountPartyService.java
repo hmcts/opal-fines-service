@@ -319,7 +319,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         DefendantAccountParty defendantAccountPartyRequest) {
 
         AddDefendantAccountPartyLegacyRequest req = AddDefendantAccountPartyLegacyRequest.builder()
-            .version(Long.parseLong(ifMatch.replace("\"", "").trim()))
+            .version(VersionUtils.extractBigInteger(ifMatch))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)

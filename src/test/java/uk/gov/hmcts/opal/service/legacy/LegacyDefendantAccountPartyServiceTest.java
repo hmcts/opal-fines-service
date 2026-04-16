@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
@@ -135,17 +137,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        /*GetDefendantAccountPartyResponse mappedResponse =
-            GetDefendantAccountPartyResponse.builder().version(BigInteger.valueOf(4)).build();
-        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyBody);*/
-
         // Call service; inputs for the request are not important for this mapping test
         GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "dev_user", "3", null
         );
-
-        /*assertSame(mappedResponse, out);
-        verify(mapper).toDefendantAccountPartyResponse(legacyBody);*/
 
         assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
         assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
@@ -181,15 +176,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        /*GetDefendantAccountPartyResponse mappedResponse =
-            GetDefendantAccountPartyResponse.builder().version(BigInteger.TEN).build();
-        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyResponse);*/
-
         GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
             999L, "BU-1", "USR-9", "poster", "\"10\"", requestParty
         );
-
-        /*assertSame(mappedResponse, result);*/
 
         ArgumentCaptor<AddDefendantAccountPartyLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(AddDefendantAccountPartyLegacyRequest.class);
@@ -202,7 +191,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         AddDefendantAccountPartyLegacyRequest sentRequest = requestCaptor.getValue();
-        assertEquals(10L, sentRequest.getVersion());
+        assertThat(result.getVersion()).isEqualTo(extractBigInteger("10"));
         assertEquals(999L, sentRequest.getDefendantAccountId());
         assertEquals("BU-1", sentRequest.getBusinessUnitId());
         assertEquals("USR-9", sentRequest.getBusinessUnitUserId());
@@ -228,16 +217,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        /*GetDefendantAccountPartyResponse mappedResponse =
-            GetDefendantAccountPartyResponse.builder().version(BigInteger.valueOf(2)).build();
-        doReturn(mappedResponse).when(mapper).toDefendantAccountPartyResponse(legacyResponse);*/
-
         GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
             55L,"BU-2", "USR-2", "poster", "\"2\"", null
         );
-
-        //assertSame(mappedResponse, result);
-        //verify(mapper).toDefendantAccountPartyResponse(legacyResponse);
 
         assertNotNull(result);
         assertEquals(BigInteger.valueOf(2), result.getVersion());
