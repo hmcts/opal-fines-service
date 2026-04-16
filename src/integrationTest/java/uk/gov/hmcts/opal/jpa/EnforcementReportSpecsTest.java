@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,6 +14,7 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
@@ -70,18 +73,29 @@ public class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void enforcementSpec_filterByLastActionWithDateFilters_returnsLastAction() {
         //Arrange
+        LocalDateTime start = LocalDate.of(2000, 1, 1).atStartOfDay();
+        LocalDateTime end = LocalDate.of(2000, 2, 2).atStartOfDay();
+
         ReportFiltersDto filters = ReportFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.LAST_ACTION)
-            .enforcementDateTo(LocalDate.of(2000, 2, 1))
-            .enforcementDateFrom(LocalDate.of(2000, 1, 1))
+            .lastActionDateTo(end.toLocalDate())
+            .lastActionDateFrom(start.toLocalDate())
             .build();
         Specification<DefendantAccountEntity> spec = EnforcementReportSpecs.enforcementSpec(filters);
         //Act
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
         //Assert
-        assertThat(results)
-            .allMatch(entity -> entity.getFineRegistrationDate() != null)
-            .extracting(DefendantAccountEntity::getDefendantAccountId);
+        assertThat(results).allSatisfy(account -> {
+            LocalDateTime maxPostedDate = enforcementRepository
+                .findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(account.getDefendantAccountId())
+                .orElseThrow()
+                .getPostedDate();
+
+            assertThat(maxPostedDate)
+                .isNotNull()
+                .isAfter(start)
+                .isBefore(end);
+        });
     }
 
     @Test
