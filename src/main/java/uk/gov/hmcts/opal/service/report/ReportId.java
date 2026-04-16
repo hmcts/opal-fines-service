@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 public enum ReportId {
 
     FP_REGISTER("fp_register"),
-    OP_ENFORCEMENT("operational_by_enforcement");
+    OP_ENFORCEMENT("operational_report_enforcement");
 
     public final String reportId;
 
