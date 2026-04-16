@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation
 Feature: Replace Draft Account
 
-  @JIRA-STORY:PO-746 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4501
+  @JIRA-STORY:PO-746 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Update draft account - update account details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -56,7 +56,7 @@ Feature: Replace Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-947 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4502
+  @JIRA-STORY:PO-947 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Update draft account - update account details ignores submitted by name
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -110,7 +110,7 @@ Feature: Replace Draft Account
 
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4503
+  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Update draft account - Update (Defendant) logs PDPO
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -142,7 +142,7 @@ Feature: Replace Draft Account
     Then I delete the created draft accounts
 
 
-  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-4504
+  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
   Scenario: Update draft account - Parent + MinorCreditor yields two PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
