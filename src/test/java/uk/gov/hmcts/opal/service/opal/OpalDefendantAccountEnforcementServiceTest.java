@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
@@ -31,13 +30,11 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
-import uk.gov.hmcts.opal.util.Versioned;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountEnforcementServiceTest {
@@ -90,10 +87,10 @@ class OpalDefendantAccountEnforcementServiceTest {
 
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
             versionUtils.when(() -> VersionUtils.verifyIfMatch(
-                any(Versioned.class),
-                anyString(),
-                any(),
-                eq("removeEnforcementHold")
+                defendantEntity,
+                ifMatch,
+                defendantAccountId,
+                "removeEnforcementHold"
             )).thenAnswer(invocation -> null);
 
             RemoveDefendantAccountEnforcementHoldResponse result =
@@ -118,14 +115,14 @@ class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                RecordType.DEFENDANT_ACCOUNTS
+                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
             verify(notesProxy).addNote(noteCaptor.capture(), eq(ifMatch), eq(userState), eq(defendantEntity));
             verify(reportEntryService).createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
-                RecordType.DEFENDANT_ACCOUNTS,
+                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
                 businessUnitId,
                 businessUnitUserId,
                 null,
@@ -214,10 +211,10 @@ class OpalDefendantAccountEnforcementServiceTest {
 
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
             versionUtils.when(() -> VersionUtils.verifyIfMatch(
-                any(Versioned.class),
-                anyString(),
-                any(),
-                eq("removeEnforcementHold")
+                defendantEntity,
+                ifMatch,
+                defendantAccountId,
+                "removeEnforcementHold"
             )).thenAnswer(invocation -> null);
 
             ResourceConflictException ex = assertThrows(
@@ -268,16 +265,16 @@ class OpalDefendantAccountEnforcementServiceTest {
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
-        doThrow(new ObjectOptimisticLockingFailureException(DefendantAccountEntity.class, defendantAccountId))
+        doThrow(new ObjectOptimisticLockingFailureException(defendantEntity.getClass(), defendantAccountId))
             .when(defendantAccountRepositoryService)
             .saveAndFlush(any(DefendantAccountEntity.class));
 
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
             versionUtils.when(() -> VersionUtils.verifyIfMatch(
-                any(Versioned.class),
-                anyString(),
-                any(),
-                eq("removeEnforcementHold")
+                defendantEntity,
+                ifMatch,
+                defendantAccountId,
+                "removeEnforcementHold"
             )).thenAnswer(invocation -> null);
 
             ResourceConflictException ex = assertThrows(
@@ -302,9 +299,17 @@ class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                RecordType.DEFENDANT_ACCOUNTS
+                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
+            verify(amendmentService, org.mockito.Mockito.never()).auditFinaliseStoredProc(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            );
             verifyNoInteractions(reportEntryService, notesProxy);
         }
     }
