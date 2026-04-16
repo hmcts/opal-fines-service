@@ -9,8 +9,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
@@ -155,10 +155,10 @@ public interface ReportRowDtoMapper {
                 } catch (Throwable ignored) {
                     ignored.getMessage();
                 }
-                if (resultId == null && entity != null) {
+                if (resultId == null) {
                     resultId = entity.getLastEnforcement();
                 }
-                if (resultId != null && "PRIS".equalsIgnoreCase(resultId)) {
+                if ("PRIS".equalsIgnoreCase(resultId)) {
                     dto.setEdrDate(LocalDate.from(e.getHearingDate()));
                 }
             });
@@ -170,7 +170,7 @@ public interface ReportRowDtoMapper {
             if (co == null) {
                 dto.setCo(null);
             } else {
-                dto.setCo(Boolean.TRUE.equals(co) ? "Y" : "N");
+                dto.setCo(co ? "Y" : "N");
             }
         }
 
