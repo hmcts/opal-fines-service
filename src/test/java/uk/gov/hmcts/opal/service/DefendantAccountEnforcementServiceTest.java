@@ -413,4 +413,59 @@ class DefendantAccountEnforcementServiceTest {
         verifyNoMoreInteractions(defendantAccountEnforcementServiceProxy);
     }
 
+    @Test
+    void removeEnforcementHold_whenIfMatchIsNull_passesNullToProxy() {
+        Long defendantAccountId = 77L;
+        Short businessUnitId = 10;
+        String authHeader = "Bearer abc";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
+            RemoveDefendantAccountEnforcementHoldResponse.builder()
+                .defendantAccountId("77")
+                .version(BigInteger.valueOf(7))
+                .build();
+
+        UserState userState = allPermissionsUser();
+
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+
+        when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            eq(businessUnitUserId),
+            isNull(), // key assertion
+            eq(authHeader),
+            eq(request)
+        )).thenReturn(proxyResponse);
+
+        RemoveDefendantAccountEnforcementHoldResponse result =
+            defendantAccountEnforcementService.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                null, // key input
+                authHeader,
+                request
+            );
+
+        assertSame(proxyResponse, result);
+
+        verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            eq(businessUnitUserId),
+            isNull(),
+            eq(authHeader),
+            eq(request)
+        );
+    }
 }
