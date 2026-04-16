@@ -44,7 +44,7 @@ public interface ReportRowDtoMapper {
             if (link == null) {
                 continue;
             }
-            if (link.getAssociationType().equals(AssociationType.DEFENDANT)) {
+            if (link.getAssociationType() != null && link.getAssociationType().equals(AssociationType.DEFENDANT)) {
                 return link.getParty();
             }
         }
