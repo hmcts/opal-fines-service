@@ -289,4 +289,65 @@ class DefendantAccountEnforcementServiceTest {
         verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
         verifyNoInteractions(defendantAccountEnforcementServiceProxy);
     }
+
+    @Test
+    void removeEnforcementHold_whenBusinessUnitUserIdBlank_usesUserNameInProxyCall() {
+        Long defendantAccountId = 77L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"7\"";
+        String authHeader = "Bearer abc";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
+            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
+
+        UserState userState = mock(UserState.class);
+        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
+            .thenReturn(true);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
+            .thenReturn(Optional.of(buUser));
+        when(buUser.getBusinessUnitUserId()).thenReturn("   ");
+        when(userState.getUserName()).thenReturn("user-1");
+
+        when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            eq("user-1"),
+            eq(ifMatch),
+            eq(authHeader),
+            eq(request)
+        )).thenReturn(proxyResponse);
+
+        RemoveDefendantAccountEnforcementHoldResponse result =
+            defendantAccountEnforcementService.removeEnforcementHold(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                authHeader,
+                request
+            );
+
+        assertSame(proxyResponse, result);
+
+        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
+        verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
+        verify(userState).getUserName();
+        verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
+            eq(defendantAccountId),
+            eq(businessUnitId),
+            eq("user-1"),
+            eq(ifMatch),
+            eq(authHeader),
+            eq(request)
+        );
+        verifyNoMoreInteractions(defendantAccountEnforcementServiceProxy);
+    }
 }
