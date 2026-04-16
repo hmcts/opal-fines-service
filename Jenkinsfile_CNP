@@ -43,7 +43,7 @@ def determineDevEnvironmentDeployment() {
       env.OPAL_FRONT_END_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-frontend.dev.apps.hmcts.net"
 
       if (label ==~ /enable_opal_front_end:pr-.*/) {
-        env.OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
+        env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
       }
       echo "Deploying Opal Front end (${env.OPAL_FRONT_END_URL} - ${env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX}) instance in PR environment"
     }
