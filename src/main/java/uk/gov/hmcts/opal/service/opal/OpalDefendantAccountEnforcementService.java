@@ -89,6 +89,15 @@ public class OpalDefendantAccountEnforcementService
         UserState userState = userStateService.checkForAuthorisedUser(authHeader);
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
 
+        if (ifMatch == null || ifMatch.isBlank()) {
+            throw new ResourceConflictException(
+                "Defendant Account",
+                defendantAccountId,
+                "If-Match header is required",
+                defendantEntity
+            );
+        }
+
         VersionUtils.verifyIfMatch(defendantEntity, ifMatch, defendantAccountId, "removeEnforcementHold");
 
         if (defendantEntity.getLastEnforcement() == null) {
@@ -100,7 +109,10 @@ public class OpalDefendantAccountEnforcementService
             );
         }
 
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentService.auditInitialiseStoredProc(
+            defendantAccountId,
+            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
+        );
 
         try {
             defendantEntity.setLastEnforcement(null);
@@ -119,7 +131,7 @@ public class OpalDefendantAccountEnforcementService
 
             amendmentService.auditFinaliseStoredProc(
                 defendantAccountId,
-                RecordType.DEFENDANT_ACCOUNTS,
+                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
                 businessUnitId,
                 businessUnitUserId,
                 null,
@@ -146,7 +158,7 @@ public class OpalDefendantAccountEnforcementService
         RemoveDefendantAccountEnforcementHoldRequest request) {
 
         Note note = new Note();
-        note.setRecordType(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS);
+        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
         note.setRecordId(String.valueOf(defendantAccountId));
         note.setNoteText(request.getReason());
         note.setNoteType("AN");
