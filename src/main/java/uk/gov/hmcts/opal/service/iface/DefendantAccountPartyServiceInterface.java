@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.iface;
 
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 
 public interface DefendantAccountPartyServiceInterface {
 
@@ -12,7 +13,7 @@ public interface DefendantAccountPartyServiceInterface {
                                                                 String businessUserId,
                                                                 String postedBy,
                                                                 String ifMatch,
-                                                                DefendantAccountParty defendantAccountParty);
+                                                                AddDefendantAccountPartyRequest request);
 
     GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
                                            Long defendantAccountPartyId,

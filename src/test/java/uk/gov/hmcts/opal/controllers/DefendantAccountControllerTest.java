@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -169,7 +169,7 @@ class DefendantAccountControllerTest {
         String businessUnitId = "10";
         String ifMatch = "1";
 
-        DefendantAccountParty request = new DefendantAccountParty();
+        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
         GetDefendantAccountPartyResponse mockResponse = new GetDefendantAccountPartyResponse();
 
         when(defendantAccountPartyService.addDefendantAccountParty(

@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
 @Service
@@ -41,9 +42,9 @@ public class DefendantAccountPartyService {
 
     public GetDefendantAccountPartyResponse addDefendantAccountParty(
         Long defendantAccountId, String authHeaderValue, String ifMatch,
-        String businessUnitId, DefendantAccountParty request) {
+        String businessUnitId, AddDefendantAccountPartyRequest request) {
 
-        log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
+        log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request);
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 

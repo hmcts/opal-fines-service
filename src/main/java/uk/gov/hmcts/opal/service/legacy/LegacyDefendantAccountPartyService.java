@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
@@ -312,18 +313,18 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     @Override
     public GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String postedBy,
-        String ifMatch,
-        DefendantAccountParty defendantAccountPartyRequest) {
+                                                                     String businessUnitId,
+                                                                     String businessUnitUserId,
+                                                                     String postedBy,
+                                                                     String ifMatch,
+                                                                     AddDefendantAccountPartyRequest request) {
 
         AddDefendantAccountPartyLegacyRequest req = AddDefendantAccountPartyLegacyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
-            .defendantAccountParty(defendantAccountPartyRequest)
+            .defendantAccountParty(request.getDefendantAccountParty())
             .build();
 
         Response<AddDefendantAccountPartyLegacyResponse> response = gatewayService.postToGateway(

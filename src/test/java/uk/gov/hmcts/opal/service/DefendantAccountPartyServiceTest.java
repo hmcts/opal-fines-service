@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -156,7 +157,8 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
 
-        DefendantAccountParty request = new DefendantAccountParty(); // DTO - constructor should exist
+        // DTO - constructor should exist
+        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
         GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
@@ -167,7 +169,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
-            anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
+            anyLong(), anyString(), anyString(), anyString(), anyString(), any(AddDefendantAccountPartyRequest.class)))
             .thenReturn(expectedResponse);
 
         // Act
@@ -257,7 +259,7 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "7";
         short buId = Short.parseShort(businessUnitId);
 
-        DefendantAccountParty request = new DefendantAccountParty();
+        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
         GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
 
         // No BusinessUnitUser present
@@ -268,7 +270,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
-            anyLong(), anyString(), anyString(), anyString(), anyString(), any(DefendantAccountParty.class)))
+            anyLong(), anyString(), anyString(), anyString(), anyString(), any(AddDefendantAccountPartyRequest.class)))
             .thenReturn(expectedResponse);
 
         // Act
@@ -336,7 +338,7 @@ class DefendantAccountPartyServiceTest {
         String ifMatch = "W/\"X\"";
         Short businessUnitId = 3;
         String stringBusinessUnitId = String.valueOf(businessUnitId);
-        DefendantAccountParty request = new DefendantAccountParty();
+        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))

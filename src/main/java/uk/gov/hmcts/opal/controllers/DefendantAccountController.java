@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -188,8 +189,8 @@ public class DefendantAccountController {
         @RequestHeader("Business-Unit-Id") String businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestBody DefendantAccountParty request
-    ) {
+        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_ADD_PARTY)
+        @RequestBody AddDefendantAccountPartyRequest request) {
 
         log.debug(
             ":POST:addDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
@@ -202,8 +203,6 @@ public class DefendantAccountController {
                 authHeaderValue, ifMatch, businessUnitId, request
             ));
     }
-
-
 
     @PutMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
