@@ -161,7 +161,7 @@ public class OpalDefendantAccountEnforcementService
         note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
         note.setRecordId(String.valueOf(defendantAccountId));
         note.setNoteText(request.getReason());
-        note.setNoteType("AN");
+        note.setNoteType("AA");
 
         return new AddNoteRequest(note);
     }

@@ -134,7 +134,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS, capturedNote.getRecordType());
             assertEquals(String.valueOf(defendantAccountId), capturedNote.getRecordId());
             assertEquals("remove hold reason", capturedNote.getNoteText());
-            assertEquals("AN", capturedNote.getNoteType());
+            assertEquals("AA", capturedNote.getNoteType());
         }
     }
 
