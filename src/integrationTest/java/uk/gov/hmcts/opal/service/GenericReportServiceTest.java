@@ -33,10 +33,10 @@ import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportError;
+import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportRegistry;
-import uk.gov.hmcts.opal.service.report.ReportType;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -148,8 +148,8 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     private static class TestReportTemplate implements ReportInterface<TestReportData> {
 
         @Override
-        public ReportType getType() {
-            return ReportType.FP_REGISTER;
+        public ReportId getReportId() {
+            return ReportId.FP_REGISTER;
         }
 
         @Override

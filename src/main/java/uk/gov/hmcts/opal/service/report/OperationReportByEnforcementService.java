@@ -1,6 +1,11 @@
 package uk.gov.hmcts.opal.service.report;
 
-import java.math.BigDecimal;
+import static uk.gov.hmcts.opal.service.report.ReportId.OP_ENFORCEMENT;
+import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadBigDecimal;
+import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadBoolean;
+import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadLocalDate;
+import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadString;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -18,25 +23,23 @@ import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
 @RequiredArgsConstructor
 public class OperationReportByEnforcementService implements ReportInterface {
 
+    public static final String ALL = "ALL";
     private final DefendantAccountRepository defendantAccountRepository;
     private final ReportResultMapper resultMapper;
 
     @Override
+    public ReportId getReportId() {
+        return OP_ENFORCEMENT;
+    }
+
+    @Override
     public ReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
         DocContext context = JsonPathUtil.createDocContext(reportInstance.getReportParameters(), "");
-        String reportType = safeReadString(context, "$.Report_types", "Detailed");
-
-        // Build filters from JSON
-        ReportFiltersDto filters = buildFiltersFromContext(context);
-
-        // Build specification and fetch accounts
+        ReportType reportType = ReportType.fromLabel(safeReadString(context, "$.Report_types", "Detailed"));
+        ReportFiltersDto filters = buildFiltersFromContext(context, reportType);
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
-
-        // Deterministic ordering
         Sort sort = Sort.by(Sort.Direction.ASC, "accountNumber");
-
         List<DefendantAccountEntity> accounts = defendantAccountRepository.findAll(spec, sort);
-
         return resultMapper.map(accounts);
     }
 
@@ -46,9 +49,9 @@ public class OperationReportByEnforcementService implements ReportInterface {
         return new byte[0];
     }
 
-    private ReportFiltersDto buildFiltersFromContext(DocContext context) {
+    private ReportFiltersDto buildFiltersFromContext(DocContext context, ReportType reportType) {
         ReportFiltersDto.ReportFiltersDtoBuilder builder = ReportFiltersDto.builder();
-
+        builder.reportType(reportType);
         try {
             List<Number> buIds = context.read("$.business_unit_ids");
             if (buIds != null) {
@@ -57,13 +60,9 @@ public class OperationReportByEnforcementService implements ReportInterface {
         } catch (Exception ignored) {
             ignored.getMessage();
         }
-
-        String enforcementMode = safeReadString(context, "$.enforcementMode", null);
-        if (enforcementMode == null) {
-            enforcementMode = "ALL";
-        }
-        builder.enforcementMode(enforcementMode);
-
+        builder.reportEnforcementMode(parseEnforcementMode(
+            safeReadString(context, "$.enforcementMode", ALL)
+        ));
         builder.enforcementDateFrom(safeReadLocalDate(context, "$.enforcementDateFrom"));
         builder.enforcementDateTo(safeReadLocalDate(context, "$.enforcementDateTo"));
 
@@ -80,8 +79,8 @@ public class OperationReportByEnforcementService implements ReportInterface {
         builder.onlyAccountsWithParentGuardian(safeReadBoolean(context, "$.onlyAccountsWithParentGuardian",
             Boolean.FALSE));
 
-        builder.collectionOrderChoice(safeReadString(context, "$.collectionOrderChoice", "all"));
-        builder.accountStatus(safeReadString(context, "$.accountStatus", "all"));
+        builder.collectionOrderChoice(safeReadString(context, "$.collectionOrderChoice", ALL));
+        builder.accountStatus(safeReadString(context, "$.accountStatus", ALL));
 
         builder.minBalance(safeReadBigDecimal(context, "$.minBalance"));
         builder.maxBalance(safeReadBigDecimal(context, "$.maxBalance"));
@@ -95,67 +94,15 @@ public class OperationReportByEnforcementService implements ReportInterface {
         return builder.build();
     }
 
-
-    private static String safeReadString(DocContext ctx, String path, String def) {
-        try {
-            Object v = ctx.read(path);
-            if (v == null) {
-                return def;
-            }
-            return String.valueOf(v);
-        } catch (Exception e) {
-            return def;
+    private ReportEnforcementMode parseEnforcementMode(String value) {
+        if (value == null) {
+            return ReportEnforcementMode.ALL;
         }
-    }
 
-    private static java.time.LocalDate safeReadLocalDate(DocContext ctx, String path) {
         try {
-            String s = safeReadString(ctx, path, null);
-            if (s == null || s.isBlank()) {
-                return null;
-            }
-            return java.time.LocalDate.parse(s);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private static Boolean safeReadBoolean(DocContext ctx, String path, Boolean def) {
-        try {
-            Object v = ctx.read(path);
-            if (v == null) {
-                return def;
-            }
-            if (v instanceof Boolean) {
-                return (Boolean) v;
-            }
-            String s = String.valueOf(v).trim();
-            if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("y")
-                || s.equalsIgnoreCase("yes")) {
-                return Boolean.TRUE;
-            }
-            if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("n")
-                || s.equalsIgnoreCase("no")) {
-                return Boolean.FALSE;
-            }
-            return def;
-        } catch (Exception e) {
-            return def;
-        }
-    }
-
-    private static java.math.BigDecimal safeReadBigDecimal(DocContext ctx, String path) {
-        try {
-            Object v = ctx.read(path);
-            if (v == null) {
-                return null;
-            }
-            if (v instanceof Number) {
-                return new BigDecimal(String.valueOf(v));
-            }
-            return new BigDecimal(String.valueOf(v));
-        } catch (Exception e) {
-            return null;
+            return ReportEnforcementMode.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ReportEnforcementMode.ALL;
         }
     }
 }
