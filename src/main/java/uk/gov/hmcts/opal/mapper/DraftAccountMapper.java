@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 
 import java.time.LocalDate;
@@ -16,21 +16,16 @@ import java.time.ZoneOffset;
 @Mapper(componentModel = "spring")
 public interface DraftAccountMapper {
 
-    @Mapping(source = "version", target = "version")
     @Mapping(source = "createdDate", target = "createdDate", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "validatedDate", target = "validatedDate", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "accountStatusDate", target = "accountStatusDate", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "businessUnit", target = "businessUnitId", qualifiedByName = "toBusinessUnitId")
     DraftAccountResponseDto toResponseDto(DraftAccountEntity entity);
 
-    @Mapping(source = "version", target = "version")
     @Mapping(source = "createdDate", target = "createdDate", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "validatedDate", target = "validatedDate", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "accountStatusDate", target = "accountStatusDate", qualifiedByName = "toLocalDate")
     @Mapping(source = "businessUnit", target = "businessUnitId", qualifiedByName = "toBusinessUnitId")
-    @Mapping(source = "statusMessage", target = "statusMessage")
-    @Mapping(source = "validatedByName", target = "validatedByName")
-    @Mapping(source = "submittedByName", target = "submittedByName")
     DraftAccountSummaryDto toDto(DraftAccountEntity entity);
 
     DraftAccountEntity clone(DraftAccountEntity entity);
@@ -46,7 +41,7 @@ public interface DraftAccountMapper {
     }
 
     @Named("toBusinessUnitId")
-    static Short toBusinessUnitId(BusinessUnitFullEntity businessUnit) {
+    static Short toBusinessUnitId(BusinessUnitEntity businessUnit) {
         return businessUnit == null ? null : businessUnit.getBusinessUnitId();
     }
 }

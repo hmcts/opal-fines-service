@@ -39,7 +39,7 @@ import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
@@ -68,7 +68,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
@@ -87,7 +87,7 @@ class DraftAccountTransactionalTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -150,7 +150,7 @@ class DraftAccountTransactionalTest {
             .timelineData("[]")
             .build();
 
-        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
             .businessUnitName("Old Bailey")
             .build();
 
@@ -205,12 +205,12 @@ class DraftAccountTransactionalTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .createdDate(LocalDateTime.now())
             .versionNumber(0L)
             .build();
 
-        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
             .businessUnitId(((short) 2))
             .businessUnitName("New Bailey")
             .build();
@@ -302,11 +302,11 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
 
-        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
             .businessUnitId(((short) 3))
             .build();
 
@@ -340,7 +340,7 @@ class DraftAccountTransactionalTest {
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
 
@@ -369,7 +369,7 @@ class DraftAccountTransactionalTest {
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .timelineData(createTimelineDataString())
             .versionNumber(0L)
             .build();
@@ -425,7 +425,7 @@ class DraftAccountTransactionalTest {
             .draftAccountId(draftAccountId)
             .submittedBy("BUUID1")
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .timelineData(createTimelineDataString())
             .versionNumber(0L)
             .build();
@@ -473,7 +473,7 @@ class DraftAccountTransactionalTest {
             .draftAccountId(draftAccountId)
             .submittedBy("BUUID1")
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .timelineData(createTimelineDataString())
             .versionNumber(0L)
             .build();
@@ -516,7 +516,7 @@ class DraftAccountTransactionalTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
             .versionNumber(0L)
@@ -560,7 +560,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
             .draftAccountId(007L)
-            .businessUnit(BusinessUnitFullEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short)78)
                 .build())
             .submittedBy("BU001")

@@ -39,7 +39,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
@@ -86,7 +86,7 @@ class DraftAccountServiceTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountMapper.toResponseDto(draftAccountEntity))
             .thenReturn(DraftAccountResponseDto.builder().build());
@@ -107,7 +107,7 @@ class DraftAccountServiceTest {
     void testGetDraftAccounts() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountMapper.toDto(draftAccountEntity)).thenReturn(DraftAccountSummaryDto.builder().build());
         when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any()))
@@ -320,7 +320,7 @@ class DraftAccountServiceTest {
         // Arrange
         Long draftAccountId = 1L;
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
         ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
@@ -353,7 +353,7 @@ class DraftAccountServiceTest {
             .timelineData(createTimelineDataString())
             .build();
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))

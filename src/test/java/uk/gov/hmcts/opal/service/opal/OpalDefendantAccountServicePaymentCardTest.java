@@ -29,7 +29,7 @@ import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRe
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -56,7 +56,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_happyPath_createsPCRAndUpdatesAccount() {
         Long accountId = 99L;
 
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
@@ -90,7 +90,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     @Test
     void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
             .versionNumber(1L)
             .build();
 
@@ -105,7 +105,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     @Test
     void addPaymentCardRequest_failsWhenBusinessUnitMismatch() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 77).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 77).build())
             .versionNumber(1L)
             .build();
 
@@ -119,7 +119,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     @Test
     void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
             .versionNumber(1L)
             .build();
 
@@ -138,7 +138,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     @Test
     void addPaymentCardRequest_versionConflictThrows() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
             .versionNumber(5L)  // expected If-Match
             .build();
 
@@ -152,7 +152,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     @Test
     void addPaymentCardRequest_newSignature_failsWhenBusinessUnitMismatch() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 20).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 20).build())
             .versionNumber(1L)
             .build();
 
@@ -170,7 +170,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_newSignature_succeedsWhenBusinessUnitMatches() {
         Long accountId = 99L;
 
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()

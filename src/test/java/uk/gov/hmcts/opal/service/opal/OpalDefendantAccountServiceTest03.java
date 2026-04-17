@@ -44,7 +44,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -83,7 +83,7 @@ class OpalDefendantAccountServiceTest03 {
         Long accountId = 100L;
         Long dapId = 200L;
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
@@ -117,7 +117,7 @@ class OpalDefendantAccountServiceTest03 {
         Long accountId = 100L;
         Long dapId = 200L;
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         PartyEntity party = mock(PartyEntity.class);
@@ -145,7 +145,7 @@ class OpalDefendantAccountServiceTest03 {
     void replaceDefendantAccountParty_wrongBusinessUnit_throws() {
         Long accountId = 100L;
 
-        BusinessUnitFullEntity buWrong = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buWrong = BusinessUnitEntity.builder()
             .businessUnitId((short) 77).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
@@ -165,7 +165,7 @@ class OpalDefendantAccountServiceTest03 {
         Long accountId = 200L;
         Long dapId = 201L;
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         PartyEntity party = mock(PartyEntity.class);
@@ -212,7 +212,7 @@ class OpalDefendantAccountServiceTest03 {
         Long accountId = 400L;
         Long dapId = 401L;
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         PartyEntity party = mock(PartyEntity.class);
@@ -274,7 +274,7 @@ class OpalDefendantAccountServiceTest03 {
         String bu = "10";
         String ifMatch = "\"1\"";
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId(Short.valueOf(bu)).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
@@ -362,7 +362,7 @@ class OpalDefendantAccountServiceTest03 {
         Long dapId = 200L;
         String bu = "10";
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId(Short.valueOf(bu)).build();
 
         PartyEntity partyProxy = mock(PartyEntity.class);
@@ -409,7 +409,7 @@ class OpalDefendantAccountServiceTest03 {
         Long accountId = 300L;
         Long dapId = 301L;
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         PartyEntity party = mock(PartyEntity.class);
@@ -489,7 +489,7 @@ class OpalDefendantAccountServiceTest03 {
         Long defendantDapId = 3001L;
         Long parentGuardianDapId = 3002L;
 
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
             .businessUnitId((short) 10).build();
 
         PartyEntity defendantParty = PartyEntity.builder()

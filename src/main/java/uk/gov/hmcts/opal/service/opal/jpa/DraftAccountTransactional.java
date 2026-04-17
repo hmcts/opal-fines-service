@@ -36,7 +36,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
@@ -108,7 +108,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     @Transactional
     public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
         LocalDateTime created = LocalDateTime.now();
-        BusinessUnitFullEntity businessUnit = businessUnitRepository.getReferenceById(
+        BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(
             dto.getBusinessUnitId());
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
@@ -124,7 +124,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, ifMatch, draftAccountId, "replaceDraftAccount");
 
-        BusinessUnitFullEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
+        BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
@@ -253,19 +253,19 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
-                                         BusinessUnitFullEntity businessUnit) {
+                                         BusinessUnitEntity businessUnit) {
         return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
                              "AddDraftAccountRequestDto.account").toPrettyJson();
     }
 
     private String createUpdateSnapshot(ReplaceDraftAccountRequestDto dto, LocalDateTime created,
-                                         BusinessUnitFullEntity businessUnit) {
+                                         BusinessUnitEntity businessUnit) {
         return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
                              "ReplaceDraftAccountRequestDto.account").toPrettyJson();
     }
 
     private  DraftAccountSnapshots.Snapshot buildSnapshot(String document, LocalDateTime created,
-                                                          BusinessUnitFullEntity businessUnit, String submittedBy,
+                                                          BusinessUnitEntity businessUnit, String submittedBy,
                                                           String submittedByName, String errorSource) {
 
         JsonPathUtil.DocContext docContext = createDocContext(document, errorSource);
@@ -296,7 +296,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     DraftAccountEntity toEntity(DraftAccountRequestDto dto, LocalDateTime created,
-                                BusinessUnitFullEntity businessUnit, String snapshot) {
+                                BusinessUnitEntity businessUnit, String snapshot) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)
             .createdDate(created)

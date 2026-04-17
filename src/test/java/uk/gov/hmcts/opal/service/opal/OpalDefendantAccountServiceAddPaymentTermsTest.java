@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -89,7 +89,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         final String ifMatch = "\"1\"";
         final String postedBy = "tester";
 
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10)
             .build();
 
@@ -169,7 +169,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         final String ifMatch = "\"1\"";
         final String authHeader = "Bearer token";
 
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10)
             .build();
 

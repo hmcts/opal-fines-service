@@ -29,7 +29,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
@@ -87,7 +87,7 @@ class OpalDefendantAccountUpdateTest {
         // ---------- Arrange ----------
         Long id = 1L;
 
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10)
             .build();
 
@@ -206,7 +206,7 @@ class OpalDefendantAccountUpdateTest {
         Long id = 1L;
         String buHeader = "10";
 
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 77)
             .build();
 
@@ -251,7 +251,7 @@ class OpalDefendantAccountUpdateTest {
 
     @Test
     void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
-        var bu = BusinessUnitFullEntity.builder()
+        var bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 78)
             .build();
 
@@ -279,7 +279,7 @@ class OpalDefendantAccountUpdateTest {
 
     @Test
     void updateDefendantAccount_callsAuditProcs() {
-        var bu = BusinessUnitFullEntity.builder()
+        var bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 78)
             .build();
 
@@ -312,7 +312,7 @@ class OpalDefendantAccountUpdateTest {
 
     @Test
     void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
-        var bu = BusinessUnitFullEntity.builder()
+        var bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 78)
             .build();
 
@@ -347,7 +347,7 @@ class OpalDefendantAccountUpdateTest {
     }
 
     void updateDefendantAccount_collectionOrderDefaultsDateWhenFlagTrueAndDateMissing() {
-        var bu = BusinessUnitFullEntity.builder()
+        var bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 78)
             .build();
 
@@ -379,7 +379,7 @@ class OpalDefendantAccountUpdateTest {
 
     @Test
     void updateDefendantAccount_enforcementOverrideResultNull_clearsEntireOverride() {
-        var bu = BusinessUnitFullEntity.builder()
+        var bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 78)
             .build();
 
@@ -413,7 +413,7 @@ class OpalDefendantAccountUpdateTest {
 
     @Test
     void updateDefendantAccount_collectionOrderClearsDateWhenFlagFalse() {
-        var bu = BusinessUnitFullEntity.builder()
+        var bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 78)
             .build();
 
@@ -448,7 +448,7 @@ class OpalDefendantAccountUpdateTest {
 
     @Test
     void updateDefendantAccount_enforcementCourtAcceptsLongCourtId() {
-        var bu = BusinessUnitFullEntity.builder()
+        var bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 78)
             .build();
 
