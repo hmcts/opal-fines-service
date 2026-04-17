@@ -373,4 +373,16 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         assertNotNull(etag, "ETag must be present");
         assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
     }
+
+    @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Missing required headers [@PO-2281]")
+    void patch_badRequest_whenMissingRequiredHeader() throws Exception {
+        authoriseAllPermissions();
+        HttpHeaders headers = new HttpHeaders();
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON).content("")
+            ).andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"));
+    }
 }
