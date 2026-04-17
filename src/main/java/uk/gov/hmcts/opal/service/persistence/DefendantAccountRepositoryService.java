@@ -23,6 +23,13 @@ public class DefendantAccountRepositoryService {
     }
 
     @Transactional
+    public DefendantAccountEntity findByDefendantAccountIdForUpdate(long defendantAccountId) {
+        return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
+            .orElseThrow(
+                () -> new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId));
+    }
+
+    @Transactional
     public DefendantAccountEntity saveAndFlush(DefendantAccountEntity defendantAccountEntity) {
         return defendantAccountRepository.saveAndFlush(defendantAccountEntity);
     }
