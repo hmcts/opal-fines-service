@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="aliases_element.xsd"/>
+    <xsd:complexType name="aliases">
+      <xsd:sequence>
+        <xsd:element name="aliases_element" type="aliases_element" maxOccurs="5"/>
+      </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

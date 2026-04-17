@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:include schemaLocation="enforcements.xsd"/>
+  <xsd:complexType name="payment_terms">
+    <xsd:all>
+      <xsd:element name="payment_terms_type_code" type="TermsType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="effective_date" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="instalment_period" type="PeriodType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="lump_sum_amount" type="xsd:decimal"  minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="instalment_amount" type="xsd:decimal" nillable="true" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="default_days_in_jail" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="enforcements" type="enforcements" minOccurs="0" maxOccurs="1"/>
+    </xsd:all>
+  </xsd:complexType>
+</xsd:schema>

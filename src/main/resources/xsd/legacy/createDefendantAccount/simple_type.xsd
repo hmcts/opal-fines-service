@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:simpleType name="NoteType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="AA"/>
+      <xsd:enumeration value="AC"/>
+      <xsd:enumeration value="AN"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="PeriodType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="W"/>
+      <xsd:enumeration value="F"/>
+      <xsd:enumeration value="M"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="TermsType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="B"/>
+      <xsd:enumeration value="I"/>
+      <xsd:enumeration value="P"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="OriginatorType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="NEW"/>
+      <xsd:enumeration value="TFO"/>
+      <xsd:enumeration value="FP"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

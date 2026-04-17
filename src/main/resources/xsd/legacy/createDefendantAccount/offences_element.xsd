@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="impositions.xsd"/>
+  <xsd:complexType name="offences_element">
+    <xsd:all>
+      <xsd:element name="date_of_sentence" type="xsd:date" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="imposing_court_id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="offence_id" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="impositions" type="impositions" minOccurs="1" maxOccurs="1"/>
+    </xsd:all>
+  </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="enforcements_element.xsd"/>
+  <xsd:complexType name="enforcements">
+    <xsd:sequence>
+      <xsd:element name="enforcements_element" type="enforcements_element" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

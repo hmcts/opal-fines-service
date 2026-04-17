@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:include schemaLocation="debtor_detail.xsd"/>
+  <xsd:complexType name="parent_guardian">
+    <xsd:choice>
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="0"/>
+      </xsd:sequence>
+      <xsd:sequence>
+        <xsd:element name="company_flag" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="company_name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="surname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="forenames" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="dob" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="national_insurance_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="address_line_1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="address_line_2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="address_line_3" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="address_line_4" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="address_line_5" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="post_code" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="telephone_number_home" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="telephone_number_business" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="telephone_number_mobile" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="email_address_1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="email_address_2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="debtor_detail" type="debtor_detail" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:choice>
+  </xsd:complexType>
+</xsd:schema>
