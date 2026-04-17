@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="aliases_element.xsd"/>
+  <xsd:complexType name="fp_ticket_detail">
+    <xsd:choice>
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="0"/>
+      </xsd:sequence>
+      <xsd:sequence>
+        <xsd:element name="notice_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="date_of_issue" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="time_of_issue" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="fp_registration_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="notice_to_owner_hirer" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="place_of_offence" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="fp_driving_licence_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:choice>
+  </xsd:complexType>
+</xsd:schema>

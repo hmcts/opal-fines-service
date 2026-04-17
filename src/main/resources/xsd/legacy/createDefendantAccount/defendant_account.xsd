@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:include schemaLocation="defendant.xsd"/>
+  <xsd:include schemaLocation="offences.xsd"/>
+  <xsd:include schemaLocation="fp_ticket_detail.xsd"/>
+  <xsd:include schemaLocation="payment_terms.xsd"/>
+  <xsd:include schemaLocation="account_notes.xsd"/>
+  <xsd:complexType name="defendant_account">
+    <xsd:all>
+      <xsd:element name="account_type" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="defendant_type" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="originator_name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="originator_id" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="originator_type" type="OriginatorType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="prosecutor_case_reference" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="enforcement_court_id" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="collection_order_made" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="collection_order_made_today" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="collection_order_date" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="suspended_committal_date" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="payment_card_request" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="account_sentence_date" type="xsd:date" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="defendant" type="defendant" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="offences" type="offences" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="fp_ticket_detail" type="fp_ticket_detail" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="payment_terms" type="payment_terms" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="account_notes" type="account_notes" minOccurs="0" maxOccurs="1"/>
+    </xsd:all>
+  </xsd:complexType>
+</xsd:schema>

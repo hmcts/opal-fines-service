@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:include schemaLocation="parent_guardian.xsd"/>
+  <xsd:include schemaLocation="debtor_detail.xsd"/>
+  <xsd:complexType name="defendant">
+    <xsd:all>
+      <xsd:element name="company_flag" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="company_name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="surname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="forenames" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="dob" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="address_line_1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="address_line_2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="address_line_3" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="address_line_4" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="address_line_5" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="post_code" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="telephone_number_home" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="telephone_number_business" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="telephone_number_mobile" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="email_address_1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="email_address_2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="national_insurance_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="driving_licence_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="pnc_id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="nationality_1" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="nationality_2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ethnicity_self_defined" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="ethnicity_observed" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="cro_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="occupation" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="gender" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="custody_status" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="prison_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="interpreter_lang" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="debtor_detail" type="debtor_detail" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="parent_guardian" type="parent_guardian" minOccurs="0" maxOccurs="1"/>
+    </xsd:all>
+  </xsd:complexType>
+</xsd:schema>
