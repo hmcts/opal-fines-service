@@ -422,7 +422,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.5.0-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.6.0-jre'
   }
 }
 
@@ -493,7 +493,7 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
   implementation 'org.apache.qpid:qpid-jms-client:2.10.0'
-  implementation 'com.google.guava:guava:33.5.0-jre'
+  implementation 'com.google.guava:guava:33.6.0-jre'
 
   implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.2'
 
