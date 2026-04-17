@@ -2,7 +2,7 @@
 Feature: Replace Draft Account Error Handling
 
 
-  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6132
   Scenario: Put draft account - CEP1 - Invalid Request Payload
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -40,13 +40,13 @@ Feature: Replace Draft Account Error Handling
     Then The draft account response returns 400
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6134
   Scenario: Put draft account - CEP2 - Invalid or No Access Token
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to put a draft account with an invalid token
     Then The draft account response returns 401
 
-  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6137
   Scenario: Put draft account - CEP4 - Resource Not Found
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -85,7 +85,7 @@ Feature: Replace Draft Account Error Handling
     Then The draft account response returns 404
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6139
   Scenario: Put draft account - CEP5 - Unsupported Content Type for Response
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -122,7 +122,7 @@ Feature: Replace Draft Account Error Handling
     Then The draft account response returns 406
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6141
   Scenario: Put draft account - CEP7 - Unsupported Media Type for Request
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -159,7 +159,7 @@ Feature: Replace Draft Account Error Handling
     Then The draft account response returns 406
     Then I delete the created draft accounts
 
-  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6142
   Scenario: Put draft account - CEP9 - Other Server Error
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I put the draft account trying to provoke an internal server error

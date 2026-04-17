@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:account-enquiry
 Feature: Defendant Account Enforcements
 
-  @cleanUpData @JIRA-STORY:PO-1854 @JIRA-EPIC:PO-1675
+  @cleanUpData @JIRA-STORY:PO-1854 @JIRA-EPIC:PO-1675 @JIRA-KEY:POT-6017
   Scenario: Enforcement override happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
