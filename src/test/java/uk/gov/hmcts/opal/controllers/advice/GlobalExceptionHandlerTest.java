@@ -52,12 +52,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
-import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -80,8 +80,10 @@ class GlobalExceptionHandlerTest {
     // ---------- Simple false (non-retriable) buckets ----------
 
     @Test
-    void handleMissingHeader_false() {
-        MissingRequestHeaderException ex = new MissingRequestHeaderException("TYPE");
+    void handleMissingHeader_false() throws NoSuchMethodException {
+        Method method = TestMissingHeaderClass.class.getMethod("testMethod");
+        MethodParameter param = new MethodParameter(method, 0);
+        MissingRequestHeaderException ex = new MissingRequestHeaderException("TYPE", param);
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMissingRequestHeaderException(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
@@ -90,6 +92,10 @@ class GlobalExceptionHandlerTest {
         assertEquals("Missing Required Header", pd.getTitle());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), pd.getType());
         assertEquals(false, pd.getProperties().get("retriable"));
+    }
+
+    static class TestMissingHeaderClass {
+        public void testMethod() {}
     }
 
     @Test
