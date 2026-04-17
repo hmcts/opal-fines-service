@@ -72,7 +72,7 @@ import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
@@ -778,7 +778,7 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static EnforcementActionDefendantAccount buildEnforcementAction(Lite recentEnforcement,
+    static EnforcementActionDefendantAccount buildEnforcementAction(EnforcementEntity recentEnforcement,
         EnforcerEntity recentEnforcer) {
         if (recentEnforcement == null) {
             return null;

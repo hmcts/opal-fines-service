@@ -16,6 +16,6 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 public class LegacyEnforcementSearchResults {
 
     @XmlElement(name = "enforcementEntity")
-    private List<EnforcementEntity.Lite> enforcementEntities;
+    private List<EnforcementEntity> enforcementEntities;
     private int totalCount;
 }

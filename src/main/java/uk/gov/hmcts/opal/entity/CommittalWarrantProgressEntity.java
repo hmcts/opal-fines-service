@@ -40,7 +40,7 @@ public class CommittalWarrantProgressEntity {
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "enforcement_id", nullable = false)
-    private EnforcementEntity.Lite enforcement;
+    private EnforcementEntity enforcement;
 
     @Column(name = "amount", precision = 18, scale = 2)
     private BigDecimal amount;
