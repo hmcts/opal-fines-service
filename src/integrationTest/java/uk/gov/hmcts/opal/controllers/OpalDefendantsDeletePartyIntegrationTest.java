@@ -60,6 +60,9 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
         );
 
         assertEquals(0, associationCount);
+
+        Integer updatedVersion = versionFor(2006L);
+        assertEquals(currentVersion + 1, updatedVersion);
     }
 
     @Test

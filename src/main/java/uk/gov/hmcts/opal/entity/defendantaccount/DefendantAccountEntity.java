@@ -32,6 +32,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import org.hibernate.annotations.OptimisticLock;
 import uk.gov.hmcts.opal.entity.converter.ConsolidatedAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
@@ -194,7 +195,11 @@ public class DefendantAccountEntity implements Versioned {
     @Column(name = "enforcement_case_status", length = 10)
     private String enforcementCaseStatus;
 
-    @OneToMany(mappedBy = "defendantAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    // Note: orphanRemoval = true on the parties field: only applies to the child rows in
+    // DefendantAccountPartiesEntity (the association rows), not to PartyEntity rows.
+
+    @OneToMany(mappedBy = "defendantAccount", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OptimisticLock(excluded = false)
     private List<DefendantAccountPartiesEntity> parties;
 
     @Column(name = "account_type", length = 30, nullable = false)

@@ -49,7 +49,6 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.DefendantAccountPartiesRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -70,9 +69,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final PartyRepositoryService partyRepositoryService;
 
     private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
-
-    private final DefendantAccountPartiesRepositoryService defendantAccountPartiesRepositoryService;
-
 
     @Override
     @Transactional(readOnly = true)
@@ -265,7 +261,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         String postedBy,
         DefendantAccountParty defendantAccountParty) {
 
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService
+            .findById(defendantAccountId);
 
         log.debug(":removeDefendantAccountParty: accountId={}, dapId={}, buId={}, postedBy={}",
             defendantAccountId, defendantAccountPartyId, businessUnitId, postedBy);
@@ -281,6 +278,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
         amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
+        // Verify the DAP association is valid for this Defendant Account
         DefendantAccountPartiesEntity partyToRemove = account.getParties().stream()
             .filter(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId))
             .findFirst()
@@ -288,6 +286,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
                 "Defendant Account Party not found for accountId=" + defendantAccountId
                     + ", partyId=" + defendantAccountPartyId));
 
+        // Ensure the entity being removed matches the request party_id (if present in the request)
         if (defendantAccountParty != null && defendantAccountParty.getPartyDetails() != null) {
             String requestedPartyId = defendantAccountParty.getPartyDetails().getPartyId();
             if (requestedPartyId != null
@@ -297,7 +296,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
 
         account.getParties().removeIf(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId));
-        defendantAccountPartiesRepositoryService.delete(partyToRemove);
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
@@ -308,7 +306,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             "ACCOUNT_ENQUIRY"
         );
 
-        BigInteger newVersion = bumpVersion(defendantAccountId).getVersion();
+        // Flush the managed entity to the DB to ensure the updated version is returned.
+        BigInteger newVersion = defendantAccountRepositoryService.saveAndFlush(account).getVersion();
 
         return RemoveDefendantAccountPartyResponse.builder()
             .defendantAccountPartyId(String.valueOf(defendantAccountPartyId))
