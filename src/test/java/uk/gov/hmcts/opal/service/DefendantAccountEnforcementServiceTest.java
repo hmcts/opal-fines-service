@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -20,6 +21,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionsFor;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -354,13 +356,14 @@ class DefendantAccountEnforcementServiceTest {
                 .version(BigInteger.valueOf(7))
                 .build();
 
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("user-1")
-            .businessUnitUser(Set.of())
-            .build();
+        UserState userState = mock(UserState.class);
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
+            .thenReturn(true);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
+            .thenReturn(Optional.empty());
+        when(userState.getUserName()).thenReturn("user-1");
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
@@ -383,6 +386,9 @@ class DefendantAccountEnforcementServiceTest {
         assertSame(proxyResponse, result);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
+        verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
+        verify(userState).getUserName();
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
