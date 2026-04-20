@@ -17,7 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 @Entity
 @Table(name = "report_entries")
@@ -37,7 +37,7 @@ public class ReportEntryEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id")
-    private BusinessUnitFullEntity businessUnit;
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "report_id")
     private String reportId;

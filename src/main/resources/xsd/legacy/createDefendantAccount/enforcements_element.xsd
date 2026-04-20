@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="enforcement_result_responses.xsd"/>
+  <xsd:complexType name="enforcements_element">
+    <xsd:choice>
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="0"/>
+      </xsd:sequence>
+      <xsd:sequence>
+        <xsd:element name="result_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="enforcement_result_responses" type="enforcement_result_responses" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:choice>
+  </xsd:complexType>
+</xsd:schema>

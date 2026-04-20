@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation
 Feature: Add Draft Account Submitted By Name
 
-  @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4473
+  @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6050
   Scenario: Post draft account - Submitted By Name populates snapshot
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

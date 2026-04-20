@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Get Draft Account Authorisation
 
-  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4481
+  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6069
   Scenario: Get Draft Account - No Permission
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -32,7 +32,8 @@ Feature: Get Draft Account Authorisation
 
   @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData
     ### This test is currently ignored as the permissions are not quite right for this test to pass.
-  @JIRA-KEY:POT-4482
+
+  @JIRA-KEY:POT-6071
   Scenario: Get Draft Account - No Permission in same BU
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -59,7 +60,7 @@ Feature: Get Draft Account Authorisation
       | account_snapshot.business_unit_name |  |
     Then The draft account response returns 403
 
-  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-4483
+  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6074
   Scenario: Get Draft Account - Permission in different BU
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

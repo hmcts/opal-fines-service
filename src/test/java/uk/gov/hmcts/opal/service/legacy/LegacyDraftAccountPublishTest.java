@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.ErrorResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
@@ -86,7 +86,7 @@ class LegacyDraftAccountPublishTest {
             .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
-                BusinessUnitFullEntity.builder()
+                BusinessUnitEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())
@@ -131,7 +131,7 @@ class LegacyDraftAccountPublishTest {
                 .build();
             DraftAccountEntity publish = DraftAccountEntity.builder()
                 .businessUnit(
-                    BusinessUnitFullEntity.builder()
+                    BusinessUnitEntity.builder()
                         .businessUnitId((short)6)
                         .build())
                 .timelineData(emptyTimelineData())
@@ -181,7 +181,7 @@ class LegacyDraftAccountPublishTest {
             .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
-                BusinessUnitFullEntity.builder()
+                BusinessUnitEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())
@@ -215,7 +215,7 @@ class LegacyDraftAccountPublishTest {
             .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
-                BusinessUnitFullEntity.builder()
+                BusinessUnitEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())
@@ -254,7 +254,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
-                    BusinessUnitFullEntity.builder()
+                    BusinessUnitEntity.builder()
                         .businessUnitId((short) 6)
                         .build())
                 .account("{}")
@@ -272,7 +272,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
-                    BusinessUnitFullEntity.builder()
+                    BusinessUnitEntity.builder()
                         .businessUnitId((short) 6)
                         .build())
                 .account(null)
@@ -287,7 +287,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testcreateDefendantAccountRequest_invalidJson_throwsException() {
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 6).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
             .account("{invalidJson:}") // malformed JSON
             .build();
         BusinessUnitUser user = BusinessUnitUser.builder().businessUnitUserId("testUser").build();
@@ -303,7 +303,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
-                    BusinessUnitFullEntity.builder()
+                    BusinessUnitEntity.builder()
                         .businessUnitId((short) 6)
                         .build())
                 .account("{\"defendantAccountId\":12345,\"accountNumber\":\"77-007\"}")

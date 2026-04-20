@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DocumentEntity;
 import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
 import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.DocumentRepository;
@@ -49,9 +49,9 @@ class DocumentServiceTest {
         long defAccountId = 123L;
         short businessUnitId = 5;
         DocumentEntity document = new DocumentEntity();
-        BusinessUnitFullEntity buFullEntity = new BusinessUnitFullEntity();
+        BusinessUnitEntity buEntity = new BusinessUnitEntity();
         when(documentRepository.findByDocumentId(anyString())).thenReturn(Optional.of(document));
-        when(businessUnitService.getBusinessUnit(businessUnitId)).thenReturn(buFullEntity);
+        when(businessUnitService.getBusinessUnit(businessUnitId)).thenReturn(buEntity);
 
         documentService.createDocumentInstance(defAccountId, businessUnitId);
 
@@ -59,7 +59,7 @@ class DocumentServiceTest {
         DocumentInstanceEntity saved = instanceCaptor.getValue();
 
         assertSame(document, saved.getDocument());
-        assertSame(buFullEntity, saved.getBusinessUnit());
+        assertSame(buEntity, saved.getBusinessUnit());
         assertEquals(DocumentEntityStatus.NEW, saved.getStatus());
         assertEquals(defAccountId, saved.getAssociatedRecordId());
         assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, saved.getAssociatedRecordType());

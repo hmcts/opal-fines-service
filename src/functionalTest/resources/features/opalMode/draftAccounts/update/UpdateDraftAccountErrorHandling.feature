@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:error-handling
 Feature: Update Draft Account Error Handling
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4532
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6170
   Scenario: Patch draft account - CEP1 - Invalid Request Payload
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -23,7 +23,7 @@ Feature: Update Draft Account Error Handling
       | If-Match           | 0                    |
     Then The draft account response returns 400
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4533
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6171
   Scenario: Patch draft account - CEP2 - Invalid or No Access Token
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -48,7 +48,7 @@ Feature: Update Draft Account Error Handling
 
     Then I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4534
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6173
   Scenario: Patch draft account - CEP4 - Resource Not Found
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I patch the "1000000000" draft account with the following details
@@ -60,25 +60,25 @@ Feature: Update Draft Account Error Handling
 
     Then The draft account response returns 404
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4535
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6175
   Scenario: Patch draft account - CEP5 - Unsupported Content Type
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to patch a draft account with an unsupported content type
     Then The draft account response returns 406
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4536
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6178
   Scenario: Patch draft account - CEP7 - Unsupported Media Type
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I attempt to patch a draft account with an unsupported media type
     Then The draft account response returns 415
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4537
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6179
   Scenario: Patch draft account - CEP9 - Other Server Error
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I patch the draft account trying to provoke an internal server error
     Then The draft account response returns 500
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-4538
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6181
   Scenario: Patch draft account - Stale If-Match results in 409 Conflict
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

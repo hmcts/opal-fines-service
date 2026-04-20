@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DocumentEntityStatusConverter;
 import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
@@ -53,7 +53,7 @@ public class DocumentInstanceEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
-    private BusinessUnitFullEntity businessUnit;
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "generated_date", nullable = false)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)

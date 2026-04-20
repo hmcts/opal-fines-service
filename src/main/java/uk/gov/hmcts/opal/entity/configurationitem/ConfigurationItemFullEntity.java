@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -15,7 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 @Entity
 @Table(name = "configuration_items")
@@ -31,9 +32,9 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 public class ConfigurationItemFullEntity extends ConfigurationItemEntity {
 
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_unit_id", insertable = false, updatable = false)
-    private BusinessUnitFullEntity businessUnit;
+    private BusinessUnitEntity businessUnit;
 
 
 }

@@ -13,10 +13,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitLiteEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitType;
-import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemFullEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -45,11 +44,11 @@ class BusinessUnitServiceTest {
     @Test
     void testGetBusinessUnit() {
         // Arrange
-        BusinessUnitFullEntity businessUnitEntity = BusinessUnitFullEntity.builder().build();
+        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
         when(businessUnitRepository.findById(any())).thenReturn(Optional.of(businessUnitEntity));
 
         // Act
-        BusinessUnitFullEntity result = businessUnitService.getBusinessUnit((short)1);
+        BusinessUnitEntity result = businessUnitService.getBusinessUnit((short)1);
 
         // Assert
         assertNotNull(result);
@@ -61,15 +60,15 @@ class BusinessUnitServiceTest {
         // Arrange
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
-        BusinessUnitFullEntity businessUnitEntity = BusinessUnitFullEntity.builder().build();
-        Page<BusinessUnitFullEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
+        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
+        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
         when(businessUnitRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         // Act
-        List<BusinessUnitFullEntity> result = businessUnitService
+        List<BusinessUnitEntity> result = businessUnitService
             .searchBusinessUnits(BusinessUnitSearchDto.builder().build());
 
         // Assert
@@ -83,21 +82,20 @@ class BusinessUnitServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        // Use BusinessUnitLiteEntity instead of BusinessUnitFullEntity
-        BusinessUnitLiteEntity businessUnitEntityLite = BusinessUnitLiteEntity.builder()
+        BusinessUnitEntity businessUnitEntityLite = BusinessUnitEntity.builder()
             .businessUnitId((short)3)
             .businessUnitName("Big Business Unit")
             .businessUnitType(BusinessUnitType.AREA)
             .welshLanguage(true)
             .configurationItems(List.of(
-                ConfigurationItemEntity.Lite.builder()
+                ConfigurationItemFullEntity.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
                     .itemValues(List.of("Item Values One", "Item Values Two"))
                     .build()))
             .build();
 
-        Page<BusinessUnitLiteEntity> mockPage = new PageImpl<>(List.of(businessUnitEntityLite),
+        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntityLite),
                                                                Pageable.unpaged(), 999L);
 
         // Mock the lite repository instead of the full repository

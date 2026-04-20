@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:reference-data
 Feature: Results Reference Data
 
-  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-4572
+  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-6247
   Scenario: get results - happy path
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to get the results ""
@@ -35,7 +35,7 @@ Feature: Results Reference Data
       | imposition_creditor         | Any          |
       | imposition_allocation_order | 1            |
 
-  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-4573
+  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-6249
   Scenario: get results - happy path filtered by result id
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to get the results "FO,ABDC"

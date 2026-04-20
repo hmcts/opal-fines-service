@@ -1,7 +1,8 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-STORY:PO-2117 @JIRA-EPIC:PO-2744 @JIRA-LABEL:test-support-endpoint-test
 Feature: Delete Draft Account
 
-  @JIRA-KEY:POT-4474
+
+  @JIRA-KEY:POT-6052
   Scenario: Delete the just-created draft account with concurrency control
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details
@@ -15,7 +16,7 @@ Feature: Delete Draft Account
 
     Then I delete the last created draft account using concurrency control
 
-  @cleanUpData @JIRA-KEY:POT-4475
+  @cleanUpData @JIRA-KEY:POT-6055
   Scenario: Cleanup should not fail if the account is already gone
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a draft account with the following details

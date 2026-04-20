@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:complexType name="account_notes_element">
+    <xsd:choice>
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="0"/>
+      </xsd:sequence>
+      <xsd:sequence>
+        <xsd:element name="account_note_serial" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="account_note_text" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="note_type" type="NoteType" minOccurs="1" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:choice>
+  </xsd:complexType>
+</xsd:schema>

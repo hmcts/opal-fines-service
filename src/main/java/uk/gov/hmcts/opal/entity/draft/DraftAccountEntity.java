@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.converter.DraftAccountTypeConverter;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -71,7 +71,7 @@ public class DraftAccountEntity implements Versioned {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
-    private BusinessUnitFullEntity businessUnit;
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate;

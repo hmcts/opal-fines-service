@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
@@ -53,7 +53,7 @@ class DraftAccountControllerTest {
     void testGetDraftAccount_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId(BU_ID).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
             .build();
         DraftAccountResponseDto responseDto = toGetDto(entity);
 
@@ -74,7 +74,7 @@ class DraftAccountControllerTest {
     void testGetDraftAccounts_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId(BU_ID).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
             .build();
         DraftAccountsResponseDto responseDto = DraftAccountsResponseDto.builder()
             .summaries(List.of(toSummaryDto(entity)))
@@ -103,7 +103,7 @@ class DraftAccountControllerTest {
     void testSearchDraftAccounts_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
+            BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         DraftAccountResponseDto responseDto = toGetDto(entity);
 
@@ -126,7 +126,7 @@ class DraftAccountControllerTest {
             .accountType(DraftAccountType.FINE)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .account(getAccountJson())
-            .businessUnit(BusinessUnitFullEntity.builder().build())
+            .businessUnit(BusinessUnitEntity.builder().build())
             .submittedBy("USER_ID")
             .timelineData(getTimelineJson())
             .build();
