@@ -42,16 +42,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-
+import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
@@ -65,19 +63,6 @@ public class GlobalExceptionHandler {
     private static final Set<Integer> RETRIABLE_HTTP = Set.of(429, 502, 503, 504);
 
     private final AccessTokenService tokenService;
-
-    @ExceptionHandler(FeatureDisabledException.class)
-    public ResponseEntity<ProblemDetail> handleFeatureDisabledException(FeatureDisabledException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.METHOD_NOT_ALLOWED,
-            "Feature Disabled",
-            "The requested feature is not currently available",
-            "feature-disabled",
-            false,
-            ex
-        );
-        return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
-    }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ProblemDetail> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
