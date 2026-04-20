@@ -86,7 +86,7 @@ opal-frontend:
   nodejs:
     releaseNameOverride: ${SERVICE_NAME}-frontend
     image: 'hmctsprod.azurecr.io/opal/frontend:${DEV_OPAL_FRONT_END_IMAGE_SUFFIX}'
-    ingressHost: "opal-fines-service-pr-${CHANGE_ID}-frontend.dev.platform.hmcts.net"
+    ingressHost: "opal-fines-service-pr-${CHANGE_ID}-frontend.dev.apps.hmcts.net"
     keyVaults:
       opal:
         secrets:
