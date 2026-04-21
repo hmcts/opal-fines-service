@@ -372,9 +372,10 @@
                     "description": "Date of issue"
                 },
                 "time_of_issue": {
-                    "type": "string",
-                    "maxLength": 5,
-                    "description": "Time of issue in HH:mm format"
+                    "type": ["string", "null"],
+                    "maxLength": 8,
+                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$",
+                    "description": "Time of issue in HH:MM:SS format"
                 },
                 "fp_registration_number": {
                     "type": ["string", "null"],
