@@ -5,10 +5,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -16,27 +20,47 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountFullEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@MappedSuperclass
+@Entity
+@Table(name = "impositions")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "impositionId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public abstract class ImpositionEntity {
+@EqualsAndHashCode(exclude = {"defendantAccount", "imposingCourt", "creditorAccount"})
+@ToString(exclude = {"defendantAccount", "imposingCourt", "creditorAccount"})
+@NamedEntityGraph(name = ImpositionEntity.ENTITY_GRAPH_LITE)
+@NamedEntityGraph(
+    name = ImpositionEntity.ENTITY_GRAPH_FULL,
+    attributeNodes = {
+        @NamedAttributeNode("defendantAccount"),
+        @NamedAttributeNode("imposingCourt"),
+        @NamedAttributeNode("creditorAccount")
+    }
+)
+public class ImpositionEntity {
+
+    public static final String ENTITY_GRAPH_LITE = "ImpositionEntity.lite";
+    public static final String ENTITY_GRAPH_FULL = "ImpositionEntity.full";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "imposition_id_seq_generator")
@@ -92,12 +116,15 @@ public abstract class ImpositionEntity {
     @Column(name = "completed")
     private Boolean completed;
 
-    @Entity
-    @Getter
-    @EqualsAndHashCode(callSuper = true)
-    @Table(name = "impositions")
-    @SuperBuilder
-    @NoArgsConstructor
-    public static class Lite extends ImpositionEntity {
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "defendant_account_id", insertable = false, updatable = false)
+    private DefendantAccountEntity defendantAccount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "imposing_court_id", insertable = false, updatable = false, nullable = false)
+    private CourtEntity.Lite imposingCourt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creditor_account_id", insertable = false, updatable = false)
+    private CreditorAccountFullEntity creditorAccount;
 }

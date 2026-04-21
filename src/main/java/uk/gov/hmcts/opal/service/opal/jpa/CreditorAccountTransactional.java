@@ -39,7 +39,7 @@ public class CreditorAccountTransactional implements CreditorAccountTransactiona
 
     @Transactional
     public boolean deleteAllByDefendantAccountId(long defendantAccountId, CreditorAccountTransactionalProxy proxy) {
-        List<ImpositionEntity.Lite> impositions = impositionRepository.findAllByDefendantAccountId(defendantAccountId);
+        List<ImpositionEntity> impositions = impositionRepository.findAllByDefendantAccountId(defendantAccountId);
         // First delete all the minor creditors and associated data
         impositions.stream().map(ImpositionEntity::getCreditorAccountId)
             .peek(creditAccId -> log.debug(":deleteAllByDefendantAccountId: creditor account id: {}", creditAccId))

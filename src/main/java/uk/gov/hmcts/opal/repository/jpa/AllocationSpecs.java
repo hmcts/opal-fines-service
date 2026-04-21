@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.DeleteSpecification;
 import uk.gov.hmcts.opal.entity.AllocationEntity;
 import uk.gov.hmcts.opal.entity.AllocationEntity_;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
-import uk.gov.hmcts.opal.entity.imposition.ImpositionFullEntity;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 
 public class AllocationSpecs extends EntitySpecs<AllocationEntity> {
 
@@ -16,7 +16,7 @@ public class AllocationSpecs extends EntitySpecs<AllocationEntity> {
     }
 
     public static DeleteSpecification<AllocationEntity> equalsImpositionDefendantAccountId(Long defendantAccountId) {
-        return (root, query, builder) -> ImpositionFullSpecs.equalsDefendantAccountIdPredicate(
+        return (root, query, builder) -> ImpositionSpecs.equalsDefendantAccountIdPredicate(
             joinImposition(root), builder, defendantAccountId);
     }
 
@@ -25,7 +25,7 @@ public class AllocationSpecs extends EntitySpecs<AllocationEntity> {
         return root.join(AllocationEntity_.defendantTransaction);
     }
 
-    public static Join<AllocationEntity, ImpositionFullEntity> joinImposition(
+    public static Join<AllocationEntity, ImpositionEntity> joinImposition(
         Root<AllocationEntity> root) {
         return root.join(AllocationEntity_.imposition);
     }
