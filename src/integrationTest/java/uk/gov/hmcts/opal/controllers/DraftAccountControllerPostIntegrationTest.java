@@ -59,7 +59,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .businessUnitId((short) 78)
             .submittedBy("BUUID1")
             .submittedByName("John")
-            .account(validAccountJsonString()
+            .account(validAccountJsonStringWithDebtorLanguages()
                 .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
             .accountType(DraftAccountType.FINE)
             .timelineData(validTimelineDataString())
@@ -70,6 +70,39 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         } catch (Exception e) {
             throw new RuntimeException("Failed to serialize AddDraftAccountRequestDto", e);
         }
+    }
+
+    private static String validAccountJsonStringWithDebtorLanguages() {
+        return """
+            {
+              "account_type": "Fine",
+              "defendant_type": "Adult",
+              "originator_name": "Police Force",
+              "originator_id": 12345,
+              "originator_type": "NEW",
+              "enforcement_court_id": 101,
+              "payment_card_request": true,
+              "account_sentence_date": "2023-12-01",
+              "defendant": {
+                "company_flag": false,
+                "surname": "LNAME",
+                "address_line_1": "123 Main Street",
+                "debtor_detail": {
+                  "document_language": "EN",
+                  "hearing_language": "EN"
+                }
+              },
+              "offences": [],
+              "payment_terms": {
+                "payment_terms_type_code": "P",
+                "effective_date": "2023-11-01",
+                "instalment_period": "M",
+                "lump_sum_amount": 1000.00,
+                "instalment_amount": 200.00,
+                "default_days_in_jail": 5
+              }
+            }
+            """;
     }
 
     private static String validAccountJsonString() {
