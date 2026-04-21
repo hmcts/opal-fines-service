@@ -137,5 +137,73 @@ class JsonSchemaValidationServiceTest {
             "Expected error about 'submitted_by_email'");
     }
 
+    @Test
+    void testValidate_accountSchema_allowsTimeOfIssueInHoursAndMinutesFormat() {
+        String validJson = """
+        {
+          "account_type": "Fixed Penalty",
+          "defendant_type": "adultOrYouthOnly",
+          "originator_name": "Central London Magistrates' Court",
+          "originator_id": 2570,
+          "originator_type": "FP",
+          "enforcement_court_id": 770000000001,
+          "payment_card_request": null,
+          "account_sentence_date": "2025-08-01",
+          "defendant": {
+            "company_flag": false,
+            "address_line_1": "1 High Street"
+          },
+          "offences": [],
+          "payment_terms": {
+            "payment_terms_type_code": "B"
+          },
+          "fp_ticket_detail": {
+            "date_of_issue": "2025-08-01",
+            "time_of_issue": "14:30"
+          }
+        }
+            """;
+
+        Set<String> messages = jsonSchemaValidationService
+            .validate(validJson, "opal/defendant-account/account.json");
+
+        assertTrue(messages.isEmpty(), "Expected no validation errors, but got: " + messages);
+    }
+
+    @Test
+    void testValidate_accountSchema_rejectsNonHoursAndMinutesTimeOfIssueFormat() {
+        String invalidJson = """
+        {
+          "account_type": "Fixed Penalty",
+          "defendant_type": "adultOrYouthOnly",
+          "originator_name": "Central London Magistrates' Court",
+          "originator_id": 2570,
+          "originator_type": "FP",
+          "enforcement_court_id": 770000000001,
+          "payment_card_request": null,
+          "account_sentence_date": "2025-08-01",
+          "defendant": {
+            "company_flag": false,
+            "address_line_1": "1 High Street"
+          },
+          "offences": [],
+          "payment_terms": {
+            "payment_terms_type_code": "B"
+          },
+          "fp_ticket_detail": {
+            "date_of_issue": "2025-08-01",
+            "time_of_issue": "2:30 PM"
+          }
+        }
+            """;
+
+        Set<String> messages = jsonSchemaValidationService
+            .validate(invalidJson, "opal/defendant-account/account.json");
+
+        assertFalse(messages.isEmpty(), "Expected validation errors but got none.");
+        assertTrue(messages.stream().anyMatch(msg -> msg.contains("time_of_issue")),
+            "Expected error about 'time_of_issue'");
+    }
+
 
 }
