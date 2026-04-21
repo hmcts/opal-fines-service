@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -108,7 +107,7 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
 
-        DefendantAccountParty request = new DefendantAccountParty(); // DTO - constructor should exist
+        DefendantAccountParty request = new DefendantAccountParty();
         GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
@@ -378,9 +377,13 @@ class DefendantAccountPartyServiceTest {
         when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
-        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(anyLong(), anyLong(), anyShort(),
-            anyString(),
-            anyString(), anyString(), any(DefendantAccountParty.class))).thenReturn(expectedResponse);
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyId,
+            businessUnitId,
+            "bu-user-id",
+            ifMatch,
+            "bu-user-id",
+            request)).thenReturn(expectedResponse);
 
         // Act
         RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
@@ -426,9 +429,13 @@ class DefendantAccountPartyServiceTest {
         when(userState.getUserName()).thenReturn("fallback-user");
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
-        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(anyLong(), anyLong(), anyShort(),
-            anyString(),
-            anyString(), anyString(), any(DefendantAccountParty.class))).thenReturn(expectedResponse);
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyId,
+            businessUnitId,
+            "",
+            ifMatch,
+            "fallback-user",
+            request)).thenReturn(expectedResponse);
 
         // Act
         RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(

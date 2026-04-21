@@ -3,9 +3,11 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,5 +110,19 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         assertThrows(IllegalArgumentException.class, () ->
             service.removeDefendantAccountParty(1L, 5L, (short) 10, "businessUser", "1", "posted", request));
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenBusinessUnitMismatch_throwsEntityNotFoundException() {
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+            service.removeDefendantAccountParty(1L, 5L, (short) 11, "businessUser", "1", "posted", null));
+
+        assertEquals("Defendant Account not found in business unit. Defendant Account: 1 Business Unit: 11",
+            exception.getMessage());
+        verify(defendantAccountRepositoryService).findById(1L);
+        verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
     }
 }
