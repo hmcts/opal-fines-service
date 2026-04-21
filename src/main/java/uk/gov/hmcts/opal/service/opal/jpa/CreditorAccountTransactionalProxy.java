@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public interface CreditorAccountTransactionalProxy {
     @Transactional(readOnly = true)
-    CreditorAccountEntity.Lite getCreditorAccountById(long creditorAccountId);
+    CreditorAccountEntity getCreditorAccountById(long creditorAccountId);
 
     @Transactional
     boolean deleteMinorCreditorAccountAndRelatedData(long creditorAccountId, CreditorAccountTransactionalProxy proxy);

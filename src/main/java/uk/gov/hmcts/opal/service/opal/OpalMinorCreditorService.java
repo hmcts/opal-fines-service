@@ -110,7 +110,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         Short businessUnitId) {
         log.debug(":updateMinorCreditorAccount (Opal): id={}", minorCreditorAccountId);
 
-        CreditorAccountEntity.Lite creditorAccount = creditorAccountRepository
+        CreditorAccountEntity creditorAccount = creditorAccountRepository
             .findByCreditorAccountIdAndBusinessUnitId(minorCreditorAccountId, businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Minor creditor account not found: " + minorCreditorAccountId));

@@ -27,7 +27,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountFullEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
@@ -135,5 +135,5 @@ public class ImpositionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creditor_account_id", insertable = false, updatable = false)
-    private CreditorAccountFullEntity creditorAccount;
+    private CreditorAccountEntity creditorAccount;
 }

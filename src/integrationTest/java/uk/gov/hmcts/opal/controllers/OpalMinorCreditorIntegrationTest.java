@@ -287,7 +287,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         log.info(":deleteMinorCreditorAccount: party: {}", party);
         assertTrue(party.isPresent());
 
-        Optional<CreditorAccountEntity.Lite> creditAccount = creditorAccountRepository.findById(creditorAccountId);
+        Optional<CreditorAccountEntity> creditAccount = creditorAccountRepository.findById(creditorAccountId);
         log.info(":deleteMinorCreditorAccount: creditAccount: {}", creditAccount);
         assertTrue(creditAccount.isPresent());
 
