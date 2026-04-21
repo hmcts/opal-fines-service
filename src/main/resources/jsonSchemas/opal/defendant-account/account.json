@@ -372,9 +372,8 @@
                     "description": "Date of issue"
                 },
                 "time_of_issue": {
-                    "type": ["string", "null"],
-                    "format": "time",
-                    "description": "Date of issue"
+                    "type": "string",
+                    "description": "Time of issue"
                 },
                 "fp_registration_number": {
                     "type": ["string", "null"],
