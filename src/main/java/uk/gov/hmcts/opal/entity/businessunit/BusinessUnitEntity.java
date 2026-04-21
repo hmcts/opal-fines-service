@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.converter.BusinessUnitTypeConverter;
-import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemFullEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 
 import java.util.List;
 
@@ -87,5 +87,5 @@ public class BusinessUnitEntity {
     private BusinessUnitEntity parentBusinessUnit;
 
     @OneToMany(mappedBy = "businessUnit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ConfigurationItemFullEntity> configurationItems;
+    private List<ConfigurationItemEntity> configurationItems;
 }
