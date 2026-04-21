@@ -54,6 +54,24 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         }
     }
 
+    private String invalidLanguageRawJsonCreateRequestBody(String languageField) {
+        AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short) 78)
+            .submittedBy("BUUID1")
+            .submittedByName("John")
+            .account(validAccountJsonString()
+                .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
+            .accountType(DraftAccountType.FINE)
+            .timelineData(validTimelineDataString())
+            .build();
+
+        try {
+            return objectMapper.writeValueAsString(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize AddDraftAccountRequestDto", e);
+        }
+    }
+
     private static String validAccountJsonString() {
         return """
             {
@@ -222,23 +240,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @ValueSource(strings = {"document_language", "hearing_language"})
     @DisplayName("Should return 400 when debtor detail language is set to English")
     void shouldReturn400WhenDebtorDetailLanguageIsEnglish(String languageField) throws Exception {
-        String defendantBlock = """
-            "defendant": {
-                "company_flag": false,
-                "surname": "LNAME",
-                "address_line_1": "123 Main Street"
-              },""";
-        String request = validCreateRequestBody()
-            .replace(defendantBlock,
-                     """
-                     "defendant": {
-                       "company_flag": false,
-                       "surname": "LNAME",
-                       "address_line_1": "123 Main Street",
-                       "debtor_detail": {
-                         "%s": "English"
-                       }
-                     },""".formatted(languageField));
+        String request = invalidLanguageRawJsonCreateRequestBody(languageField);
 
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
