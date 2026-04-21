@@ -2,8 +2,9 @@ package uk.gov.hmcts.opal.service.iface;
 
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 
 public interface DefendantAccountPartyServiceInterface {
 
@@ -25,10 +26,10 @@ public interface DefendantAccountPartyServiceInterface {
                                            String businessUserId);
 
     RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        Short businessUnitId,
-        String businessUserId,
-        String ifMatch,
-        String postedBy,
-        DefendantAccountParty defendantAccountParty);
+                                                                    Long defendantAccountPartyId,
+                                                                    Short businessUnitId,
+                                                                    String businessUserId,
+                                                                    String ifMatch,
+                                                                    String postedBy
+                                                                    RemoveDefendantAccountPartyRequest request);
 }
