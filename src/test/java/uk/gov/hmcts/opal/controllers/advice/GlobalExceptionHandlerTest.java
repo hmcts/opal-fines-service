@@ -34,8 +34,8 @@ import org.springframework.core.MethodParameter;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -55,24 +55,22 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
-import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 @SpringBootTest
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
 @Isolated
 class GlobalExceptionHandlerTest {
 
-    @MockitoBean FeatureDisabledException featureDisabledException;
     @MockitoBean MissingRequestHeaderException missingRequestHeaderException;
     @MockitoBean PermissionNotAllowedException permissionNotAllowedException;
     @MockitoBean AccessTokenService tokenService;
@@ -80,22 +78,6 @@ class GlobalExceptionHandlerTest {
     @Autowired GlobalExceptionHandler globalExceptionHandler;
 
     // ---------- Simple false (non-retriable) buckets ----------
-
-    @Test
-    void handleFeatureDisabledException_false() {
-        FeatureDisabledException ex = new FeatureDisabledException("off");
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleFeatureDisabledException(ex);
-
-        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, r.getStatusCode());
-        ProblemDetail pd = r.getBody();
-        assertEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), pd.getStatus());
-        assertEquals("Feature Disabled", pd.getTitle());
-        assertEquals("The requested feature is not currently available", pd.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/feature-disabled"), pd.getType());
-        assertEquals(false, pd.getProperties().get("retriable"));
-        assertNotNull(pd.getInstance());
-        assertTrue(r.getHeaders().getContentType().toString().contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
 
     @Test
     void handleMissingHeader_false() {

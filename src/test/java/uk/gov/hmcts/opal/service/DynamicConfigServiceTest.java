@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

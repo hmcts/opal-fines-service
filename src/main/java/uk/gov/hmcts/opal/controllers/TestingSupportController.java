@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 
