@@ -69,7 +69,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Missing Required Header",
-            "A required request header is missing",
+            String.format("Required request header \"%s\" is missing", ex.getHeaderName()),
             "missing-header",
             false,
             ex

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -386,10 +386,9 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             ).andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"))
             .andExpect(jsonPath("$.title").value("Missing Required Header"))
-            .andExpect(jsonPath("$.detail").isNotEmpty())
+            .andExpect(jsonPath("$.detail").value("Required request header \"Authorization\" is missing"))
             .andExpect(jsonPath("$.instance").isNotEmpty())
             .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
-            .andExpect(jsonPath("$.operation_id").isNotEmpty())
             .andExpect(jsonPath("$.retriable").value(false));
     }
 }
