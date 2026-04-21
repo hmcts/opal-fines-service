@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
@@ -97,6 +98,16 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .version(account.getVersion())
             .build();
 
+    }
+
+    @Override
+    @Transactional
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+        Long accountId, String businessUnitId,
+        String postedBy, String businessUserId, String ifMatch, AddDefendantAccountPartyRequest request) {
+
+        // not implemented.
+        throw new UnsupportedOperationException("Adding a party to an account is not yet supported in Opal");
     }
 
     private DefendantAccountParty mapDefendantAccountParty(

@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
 @Service
@@ -38,6 +39,35 @@ public class DefendantAccountPartyService {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
     }
+
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+        Long defendantAccountId, String authHeaderValue, String ifMatch,
+        String businessUnitId, AddDefendantAccountPartyRequest request) {
+
+        log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        short buId = Short.parseShort(businessUnitId);
+
+        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        if (userState.hasBusinessUnitUserWithPermission(buId,
+                                                        FinesPermission.ACCOUNT_MAINTENANCE)) {
+            return defendantAccountPartyServiceProxy.addDefendantAccountParty(defendantAccountId,
+                                                               businessUnitId,
+                                                               getBusinessUnitUserIdForBusinessUnit(userState, buId),
+                                                               postedBy,
+                                                               ifMatch,
+                                                               request);
+        } else {
+            throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+    }
+
 
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long defendantAccountId, Long defendantAccountPartyId, String authHeaderValue, String ifMatch,

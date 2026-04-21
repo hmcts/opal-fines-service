@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -27,6 +28,22 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
                                                                      Long defendantAccountPartyId) {
         return getCurrentModeService().getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
+    }
+
+    @Override
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
+                                                                         String businessUnitId,
+                                                                         String businessUserId,
+                                                                         String postedBy,
+                                                                         String ifMatch,
+                                                                     AddDefendantAccountPartyRequest request) {
+
+        return getCurrentModeService().addDefendantAccountParty(defendantAccountId,
+                                                                businessUnitId,
+                                                                businessUserId,
+                                                                postedBy,
+                                                                ifMatch,
+                                                                request);
     }
 
     @Override

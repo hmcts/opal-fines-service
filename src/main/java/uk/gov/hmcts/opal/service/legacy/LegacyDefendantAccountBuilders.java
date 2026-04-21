@@ -120,7 +120,7 @@ public class LegacyDefendantAccountBuilders {
 
     static EnforcementActionDefendantAccount buildEnforcementActionDefendantAccount(
         EnforcementAction enforcementAction) {
-        
+
         return Optional.ofNullable(enforcementAction).map(action ->
             EnforcementActionDefendantAccount.builder()
                 .warrantNumber(action.getWarrantNumber())

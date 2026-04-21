@@ -14,10 +14,13 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 
@@ -42,6 +45,9 @@ class DefendantAccountControllerTest {
 
     @Mock
     private DefendantAccountEnforcementService defendantAccountEnforcementService;
+
+    @Mock
+    private DefendantAccountPartyService defendantAccountPartyService;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
@@ -154,6 +160,47 @@ class DefendantAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(expectedResponse, response.getBody());
+    }
+
+    @Test
+    void testAddDefendantAccountParty_Success() {
+        // Arrange
+        Long defendantAccountId = 1L;
+        String businessUnitId = "10";
+        String ifMatch = "1";
+
+        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
+        GetDefendantAccountPartyResponse mockResponse = new GetDefendantAccountPartyResponse();
+
+        when(defendantAccountPartyService.addDefendantAccountParty(
+            defendantAccountId,
+            BEARER_TOKEN,
+            ifMatch,
+            businessUnitId,
+            request
+        )).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<GetDefendantAccountPartyResponse> response =
+            defendantAccountController.addDefendantAccountParty(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                BEARER_TOKEN,
+                request
+            );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockResponse, response.getBody());
+
+        verify(defendantAccountPartyService).addDefendantAccountParty(
+            defendantAccountId,
+            BEARER_TOKEN,
+            ifMatch,
+            businessUnitId,
+            request
+        );
     }
 
     @Test

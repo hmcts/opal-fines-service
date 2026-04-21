@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -12,12 +13,14 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -28,7 +31,10 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -42,6 +48,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,11 +69,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     @InjectMocks
     private  LegacyDefendantAccountPartyService legacyDefendantAccountPartyService;
 
+    private final DefendantAccountPartyLegacyResponseMapper mapper =
+        Mappers.getMapper(DefendantAccountPartyLegacyResponseMapper.class);
+
     @BeforeEach
     void openMocks() throws Exception {
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDefendantAccountPartyService, gatewayService);
-
+        injectMapper(legacyDefendantAccountPartyService, mapper);
     }
 
     private void injectGatewayService(
@@ -76,6 +87,756 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         field.setAccessible(true);
         field.set(legacyDefendantAccountService, gatewayService);
 
+    }
+
+    private void injectMapper(LegacyDefendantAccountPartyService service,
+        DefendantAccountPartyLegacyResponseMapper mapper)
+        throws NoSuchFieldException, IllegalAccessException {
+        Field field = LegacyDefendantAccountPartyService.class
+            .getDeclaredField("defendantAccountPartyLegacyResponseMapper");
+        field.setAccessible(true);
+        field.set(service, mapper);
+    }
+
+    @Test
+    void addDefendantAccountParty_mapsNullNestedObjects_toNulls() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        // Build a legacy response body where nested objects are null
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(4)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(false)
+                    // partyDetails present but with nested organisation and individual null
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("20010")
+                            .organisationFlag(null) // intentionally null -> modern should be null
+                            .organisationDetails(null)
+                            .individualDetails(null)
+                            .build()
+                    )
+                    // address, contact, vehicle, employer, languagePreferences all null
+                    .address(null)
+                    .contactDetails(null)
+                    .vehicleDetails(null)
+                    .employerDetails(null)
+                    .languagePreferences(null)
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Call service; inputs for the request are not important for this mapping test
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "1", "dev_user", "3", request
+        );
+
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertEquals(null, out.getDefendantAccountParty().getAddress());
+        assertEquals(null, out.getDefendantAccountParty().getContactDetails());
+        assertEquals(null, out.getDefendantAccountParty().getVehicleDetails());
+        assertEquals(null, out.getDefendantAccountParty().getEmployerDetails());
+        assertEquals(null, out.getDefendantAccountParty().getLanguagePreferences());
+    }
+
+    @Test
+    void addDefendantAccountParty_buildsRequestUsingIfMatchVersionAndIds() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        AddDefendantAccountPartyLegacyResponse legacyResponse = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(10)
+            .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            999L, "BU-1", "USR-9", "poster", "\"10\"", request
+        );
+
+        ArgumentCaptor<AddDefendantAccountPartyLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(AddDefendantAccountPartyLegacyRequest.class);
+
+        verify(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            requestCaptor.capture(),
+            Mockito.nullable(String.class)
+        );
+
+        AddDefendantAccountPartyLegacyRequest sentRequest = requestCaptor.getValue();
+        assertThat(result.getVersion()).isEqualTo(extractBigInteger("10"));
+        assertEquals(999L, sentRequest.getDefendantAccountId());
+        assertEquals("BU-1", sentRequest.getBusinessUnitId());
+        assertEquals("USR-9", sentRequest.getBusinessUnitUserId());
+        assertEquals(request.getDefendantAccountParty(), sentRequest.getDefendantAccountParty());
+    }
+
+    @Test
+    void addDefendantAccountParty_gatewayErrorStillReturnsMapperResult() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        AddDefendantAccountPartyLegacyResponse legacyResponse = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(2)
+            .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResponse, "<legacy-error/>", null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            55L, "BU-2", "USR-2", "poster", "\"2\"", request
+        );
+
+        assertNotNull(result);
+        assertEquals(BigInteger.valueOf(2), result.getVersion());
+    }
+
+
+    @Test
+    void addDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        // Build a minimal legacy response body (service should still map fields even on 5xx)
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("300")
+                            .organisationFlag(true)
+                            .organisationDetails(null)
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Call the service. The production code logs legacy failure but still returns a mapped response
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "dev_user", "poster", "\"2\"", request
+        );
+
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertTrue(out.getDefendantAccountParty().getIsDebtor());
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails());
+        assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+    }
+
+    @Test
+    void addDefendantAccountParty_exceptionBranch_rethrows() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("300")
+                            .organisationFlag(true)
+                            .organisationDetails(null)
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        // We no longer return a response; instead we make the gateway throw a RuntimeException
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        // Option A: use doThrow to throw when the specific call is made
+        doThrow(new RuntimeException("boom")).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Assert the exception is propagated by the service (production code logs and should rethrow)
+        assertThrows(
+            RuntimeException.class, () ->
+                legacyDefendantAccountPartyService.addDefendantAccountParty(
+                    77L, "78", "1", "poster", "\"2\"", request)
+        );
+    }
+
+    @Test
+    void addDefendantAccountParty_error_exceptionBranch_returnsWrapperWithNulls() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+        // arrange: exception path (no entity)
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("boom"), null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType =
+            AddDefendantAccountPartyLegacyResponse.class;
+
+        // stub the spy’d gateway to hit the (String, Class<T>, Object, String) overload
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // act
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountPartyService.addDefendantAccountParty(
+                77L, "78",
+                "1", "poster",
+                "\"2\"", request
+            );
+
+        // assert
+        assertNotNull(out);
+        assertNull(out.getVersion());
+        assertNull(out.getDefendantAccountParty());
+    }
+
+    @Test
+    void addDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+        // Build a legacy entity with only organisationDetails populated
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("300")
+                            .organisationFlag(true)
+                            .organisationDetails(
+                                uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy.builder()
+                                    .organisationName("StillCo Ltd")
+                                    .build()
+                            )
+                            .individualDetails(null) // explicitly null
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "1", "poster",
+            "\"2\"", request
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails());
+        assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+
+        // Organisation should be present
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertEquals(
+            "StillCo Ltd",
+            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().getOrganisationName()
+        );
+
+        // Individual must be null when organisation is present
+        assertNull(
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails(),
+            "Individual details must be null when organisation details are present"
+        );
+    }
+
+    @Test
+    void addDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        // Build a legacy entity with only individualDetails populated
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("301")
+                            .organisationFlag(false)
+                            .organisationDetails(null) // explicitly null
+                            .individualDetails(
+                                uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy.builder()
+                                    .title("Ms")
+                                    .forenames("Jane")
+                                    .surname("Roe")
+                                    .dateOfBirth("1990-05-10")
+                                    .age("35")
+                                    .nationalInsuranceNumber("AB123456C")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "1", "poster", "\"2\"", request
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails());
+        assertEquals("301", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+
+        // Individual should be present
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertEquals(
+            "Ms",
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getTitle()
+        );
+        assertEquals(
+            "Jane",
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getForenames()
+        );
+        assertEquals(
+            "Roe",
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getSurname()
+        );
+
+        // Organisation must be null when individual is present
+        assertNull(
+            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails(),
+            "Organisation details must be null when individual details are present"
+        );
+    }
+
+    @Test
+    void addDefendantAccountParty_mapsEmployerDetails_andEmployerAddress() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        // Build a legacy entity with employer details (including employerAddress)
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("400")
+                            .organisationFlag(false)
+                            .organisationDetails(null)
+                            .individualDetails(null)
+                            .build()
+                    )
+                    .employerDetails(
+                        EmployerDetailsLegacy.builder()
+                            .employerName("Acme Ltd")
+                            .employerReference("REF-ACME")
+                            .employerEmailAddress("hr@acme.example")
+                            .employerTelephoneNumber("02071234567")
+                            .employerAddress(
+                                AddressDetailsLegacy.builder()
+                                    .addressLine1("Acme HQ")
+                                    .addressLine2("Floor 1")
+                                    .addressLine3(null)
+                                    .addressLine4(null)
+                                    .addressLine5(null)
+                                    .postcode("AC1 2CD")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "1", "poster", "\"2\"", request
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+
+        // Employer details present and mapped
+        assertNotNull(out.getDefendantAccountParty().getEmployerDetails(), "Employer details should be mapped");
+        EmployerDetails emp = out.getDefendantAccountParty().getEmployerDetails();
+        assertEquals("Acme Ltd", emp.getEmployerName());
+        assertEquals("REF-ACME", emp.getEmployerReference());
+        assertEquals("hr@acme.example", emp.getEmployerEmailAddress());
+        assertEquals("02071234567", emp.getEmployerTelephoneNumber());
+
+        // Employer address mapped
+        assertNotNull(emp.getEmployerAddress(), "Employer address should be mapped");
+        assertEquals("Acme HQ", emp.getEmployerAddress().getAddressLine1());
+        assertEquals("Floor 1", emp.getEmployerAddress().getAddressLine2());
+        assertEquals("AC1 2CD", emp.getEmployerAddress().getPostcode());
+    }
+
+    @Test
+    void addDefendantAccountParty_mapsNullEmployerDetails_toNull() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        // Build a legacy entity with employerDetails == null
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(false)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("401")
+                            .organisationFlag(false)
+                            .organisationDetails(null)
+                            .individualDetails(null)
+                            .build()
+                    )
+                    .employerDetails(null) // explicitly null
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "1", "poster", "\"2\"", request
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+
+        // Employer details should be null in modern model when legacy had none
+        assertNull(
+            out.getDefendantAccountParty().getEmployerDetails(),
+            "Employer details should be null when legacy employerDetails is null"
+        );
+    }
+
+    @Test
+    void addDefendantAccountParty_mapsLanguagePreferences() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        // Build a legacy entity with language preferences populated
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(5)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("500")
+                            .organisationFlag(false)
+                            .organisationDetails(null)
+                            .individualDetails(null)
+                            .build()
+                    )
+                    .languagePreferences(
+                        LanguagePreferencesLegacy.builder()
+                            .documentLanguagePreference(
+                                LanguagePreferencesLegacy.LanguagePreference.builder()
+                                    .languageCode("en")
+                                    .languageDisplayName("English")
+                                    .build()
+                            )
+                            .hearingLanguagePreference(
+                                LanguagePreferencesLegacy.LanguagePreference.builder()
+                                    .languageCode("EN")
+                                    .languageDisplayName("English")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "1", "poster", "\"2\"", request
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(5), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+
+        // language preferences should be mapped and use codes (document -> "en", hearing -> "fr")
+        assertNotNull(
+            out.getDefendantAccountParty().getLanguagePreferences(),
+            "Language preferences should be mapped when provided by legacy"
+        );
+        assertEquals(
+            "EN",
+            out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode()
+        );
+
+    }
+
+    @Test
+    void addDefendantAccountParty_mapsNullLanguagePreferences_toNull() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .build()
+            )
+            .build();
+
+        // Build a legacy entity with languagePreferences == null
+        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
+            .version(6)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(false)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("501")
+                            .organisationFlag(false)
+                            .organisationDetails(null)
+                            .individualDetails(null)
+                            .build()
+                    )
+                    .languagePreferences(null) // explicitly null
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<AddDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(AddDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+            77L, "78", "1", "poster", "\"2\"", request
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(6), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+
+        // language preferences should be null in modern model when legacy had none
+        assertNull(
+            out.getDefendantAccountParty().getLanguagePreferences(),
+            "Language preferences should be null when legacy languagePreferences is null"
+        );
     }
 
     @Test
@@ -721,6 +1482,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails(),
             "Individual details must be null when organisation details are present");
     }
+
+
 
     @Test
     void replaceDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {

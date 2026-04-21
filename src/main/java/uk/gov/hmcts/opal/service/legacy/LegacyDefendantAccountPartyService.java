@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigInteger;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,8 @@ import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -27,12 +31,11 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.util.VersionUtils;
-
-import java.math.BigInteger;
-import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -41,8 +44,13 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
+    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
 
+    /* ---- Services ---- */
     private final GatewayService gatewayService;
+
+    /* ---- Mappers ---- */
+    private final DefendantAccountPartyLegacyResponseMapper defendantAccountPartyLegacyResponseMapper;
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
@@ -302,6 +310,43 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
         return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
     }
+
+    @Override
+    public GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
+                                                                     String businessUnitId,
+                                                                     String businessUnitUserId,
+                                                                     String postedBy,
+                                                                     String ifMatch,
+                                                                     AddDefendantAccountPartyRequest request) {
+
+        AddDefendantAccountPartyLegacyRequest req = AddDefendantAccountPartyLegacyRequest.builder()
+            .version(VersionUtils.extractBigInteger(ifMatch))
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .defendantAccountParty(request.getDefendantAccountParty())
+            .build();
+
+        Response<AddDefendantAccountPartyLegacyResponse> response = gatewayService.postToGateway(
+            ADD_DEFENDANT_ACCOUNT_PARTY,
+            AddDefendantAccountPartyLegacyResponse.class,
+            req,
+            null
+        );
+
+        if (response.isError()) {
+            log.error(":addDefendantAccountParty: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":addDefendantAccountParty: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":addDefendantAccountParty: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":addDefendantAccountParty: Legacy success.");
+        }
+        return defendantAccountPartyLegacyResponseMapper.toDefendantAccountPartyResponse(response.responseEntity);
+    }
+
 
     private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy(
         LegacyReplaceDefendantAccountPartyResponse legacy) {
