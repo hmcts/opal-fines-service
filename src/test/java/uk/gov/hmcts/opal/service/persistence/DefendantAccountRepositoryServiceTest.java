@@ -26,7 +26,7 @@ class DefendantAccountRepositoryServiceTest {
 
     @Test
     void findById_whenAccountExists_returnsAccount() {
-        // given
+        // arrange
         long defendantAccountId = 1L;
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
@@ -35,23 +35,23 @@ class DefendantAccountRepositoryServiceTest {
         when(defendantAccountRepository.findById(defendantAccountId))
             .thenReturn(Optional.of(account));
 
-        // when
+        // act
         DefendantAccountEntity result = service.findById(defendantAccountId);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(account);
         verify(defendantAccountRepository).findById(defendantAccountId);
     }
 
     @Test
     void findById_whenAccountNotFound_throwsEntityNotFoundException() {
-        // given
+        // arrange
         long defendantAccountId = 99L;
 
         when(defendantAccountRepository.findById(defendantAccountId))
             .thenReturn(Optional.empty());
 
-        // when / then
+        // act / assert
         assertThatThrownBy(() -> service.findById(defendantAccountId))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessage("Defendant Account not found with id: " + defendantAccountId);
@@ -60,44 +60,8 @@ class DefendantAccountRepositoryServiceTest {
     }
 
     @Test
-    void findByDefendantAccountIdForUpdate_whenAccountExists_returnsAccount() {
-        // given
-        long defendantAccountId = 42L;
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(defendantAccountId)
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
-            .thenReturn(Optional.of(account));
-
-        // when
-        DefendantAccountEntity result = service.findByDefendantAccountIdForUpdate(defendantAccountId);
-
-        // then
-        assertThat(result).isEqualTo(account);
-        verify(defendantAccountRepository).findByDefendantAccountIdForUpdate(defendantAccountId);
-    }
-
-    @Test
-    void findByDefendantAccountIdForUpdate_whenAccountNotFound_throwsEntityNotFoundException() {
-        // given
-        long defendantAccountId = 42L;
-
-        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
-            .thenReturn(Optional.empty());
-
-        // when / then
-        assertThatThrownBy(() -> service.findByDefendantAccountIdForUpdate(defendantAccountId))
-            .isInstanceOf(EntityNotFoundException.class)
-            .hasMessage("Defendant Account not found with id: " + defendantAccountId);
-
-        verify(defendantAccountRepository).findByDefendantAccountIdForUpdate(defendantAccountId);
-    }
-
-    @Test
     void saveAndFlush_whenValidAccount_returnsSavedAccount() {
-        // given
+        // arrange
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(10L)
             .versionNumber(1L)
@@ -111,10 +75,10 @@ class DefendantAccountRepositoryServiceTest {
         when(defendantAccountRepository.saveAndFlush(account))
             .thenReturn(savedAccount);
 
-        // when
+        // act
         DefendantAccountEntity result = service.saveAndFlush(account);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(savedAccount);
         assertThat(result.getVersionNumber()).isEqualTo(2L);
         verify(defendantAccountRepository).saveAndFlush(account);
@@ -122,7 +86,7 @@ class DefendantAccountRepositoryServiceTest {
 
     @Test
     void save_whenValidAccount_returnsSavedAccount() {
-        // given
+        // arrange
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(5L)
             .versionNumber(1L)
@@ -136,10 +100,10 @@ class DefendantAccountRepositoryServiceTest {
         when(defendantAccountRepository.save(account))
             .thenReturn(savedAccount);
 
-        // when
+        // act
         DefendantAccountEntity result = service.save(account);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(savedAccount);
         verify(defendantAccountRepository).save(account);
     }

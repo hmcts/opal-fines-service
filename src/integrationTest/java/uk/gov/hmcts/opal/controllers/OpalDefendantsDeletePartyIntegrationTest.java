@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +23,10 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     void delete_happyPath_removesAssociation_returnsResponse() throws Exception {
         authoriseAllPermissions();
 
-        Integer currentVersion = versionFor(2006L);
+        long defendantAccountId = 2006L;
+        long dapId = 2006L;
+
+        Integer currentVersion = versionFor(defendantAccountId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -36,6 +40,8 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
               }
             }
             """;
+
+        Integer associationCountBefore = getAssociationCountForDAP(defendantAccountId, dapId);
 
         ResultActions res = mockMvc.perform(
             delete("/defendant-accounts/2006/defendant-account-parties/2006")
@@ -51,18 +57,26 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
             .andExpect(header().string(HttpHeaders.ETAG, "\"" + (currentVersion + 1) + "\""))
             .andExpect(jsonPath("$.defendant_account_party_id").value("2006"));
 
+        // Assert that 1 association existing before the deletion
+        assertEquals(1, associationCountBefore);
+
+        // Assert that associated DAP count dropped after deletion
+        Integer associationCountAfter = getAssociationCountForDAP(defendantAccountId, dapId);
+        assertEquals(0, associationCountAfter);
+
+        Integer updatedVersion = versionFor(defendantAccountId);
+        assertEquals(currentVersion + 1, updatedVersion);
+    }
+
+    private @Nullable Integer getAssociationCountForDAP(Long defAccountId, Long dapId) {
         Integer associationCount = jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM defendant_account_parties "
                  + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
             Integer.class,
-            2006L,
-            206L
+            defAccountId,
+            dapId
         );
-
-        assertEquals(0, associationCount);
-
-        Integer updatedVersion = versionFor(2006L);
-        assertEquals(currentVersion + 1, updatedVersion);
+        return associationCount;
     }
 
     @Test

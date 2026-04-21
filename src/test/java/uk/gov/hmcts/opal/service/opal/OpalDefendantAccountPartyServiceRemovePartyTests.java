@@ -125,4 +125,20 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
     }
+
+    @Test
+    void removeDefendantAccountParty_whenAssociationMissing_throwsEntityNotFoundException() {
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+            service.removeDefendantAccountParty(1L, 999L, (short) 10, "businessUser", "1", "posted", null));
+
+        assertEquals("Defendant Account Party not found for accountId=1, partyId=999", exception.getMessage());
+        verify(defendantAccountRepositoryService).findById(1L);
+        verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(amendmentRepositoryService, never())
+            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "CASE-REF",
+                "ACCOUNT_ENQUIRY");
+        verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
+    }
 }

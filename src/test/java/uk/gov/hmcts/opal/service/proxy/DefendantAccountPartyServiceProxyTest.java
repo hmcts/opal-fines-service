@@ -31,7 +31,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void replaceDefendantAccountParty_whenOpalMode_delegatesToOpalService() {
-        // given
+        // arrange
         Long accountId = 1L;
         Long dapId = 5L;
         String businessUnitId = "10";
@@ -51,11 +51,11 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId))
             .thenReturn(expectedResponse);
 
-        // when
+        // act
         GetDefendantAccountPartyResponse result = proxy.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(opalDefendantAccountPartyService).replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
@@ -63,7 +63,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void replaceDefendantAccountParty_whenLegacyMode_delegatesToLegacyService() {
-        // given
+        // arrange
         Long accountId = 2L;
         Long dapId = 10L;
         String businessUnitId = "20";
@@ -83,11 +83,11 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId))
             .thenReturn(expectedResponse);
 
-        // when
+        // act
         GetDefendantAccountPartyResponse result = proxy.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(legacyDefendantAccountPartyService).replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
@@ -95,7 +95,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void getDefendantAccountParty_whenOpalMode_delegatesToOpalService() {
-        // given
+        // arrange
         Long accountId = 1L;
         Long dapId = 5L;
 
@@ -107,17 +107,17 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         when(opalDefendantAccountPartyService.getDefendantAccountParty(accountId, dapId))
             .thenReturn(expectedResponse);
 
-        // when
+        // act
         GetDefendantAccountPartyResponse result = proxy.getDefendantAccountParty(accountId, dapId);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(opalDefendantAccountPartyService).getDefendantAccountParty(accountId, dapId);
     }
 
     @Test
     void getDefendantAccountParty_whenLegacyMode_delegatesToLegacyService() {
-        // given
+        // arrange
         Long accountId = 2L;
         Long dapId = 10L;
 
@@ -129,17 +129,17 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         when(legacyDefendantAccountPartyService.getDefendantAccountParty(accountId, dapId))
             .thenReturn(expectedResponse);
 
-        // when
+        // act
         GetDefendantAccountPartyResponse result = proxy.getDefendantAccountParty(accountId, dapId);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(legacyDefendantAccountPartyService).getDefendantAccountParty(accountId, dapId);
     }
 
     @Test
     void removeDefendantAccountParty_whenOpalMode_delegatesToOpalService() {
-        // given
+        // arrange
         Long accountId = 1L;
         Long dapId = 5L;
         Short businessUnitId = 10;
@@ -158,11 +158,11 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request))
             .thenReturn(expectedResponse);
 
-        // when
+        // act
         RemoveDefendantAccountPartyResponse result = proxy.removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(opalDefendantAccountPartyService).removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
@@ -170,7 +170,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void removeDefendantAccountParty_whenLegacyMode_delegatesToLegacyService() {
-        // given
+        // arrange
         Long accountId = 2L;
         Long dapId = 10L;
         Short businessUnitId = 20;
@@ -189,11 +189,11 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request))
             .thenReturn(expectedResponse);
 
-        // when
+        // act
         RemoveDefendantAccountPartyResponse result = proxy.removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
 
-        // then
+        // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(legacyDefendantAccountPartyService).removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
