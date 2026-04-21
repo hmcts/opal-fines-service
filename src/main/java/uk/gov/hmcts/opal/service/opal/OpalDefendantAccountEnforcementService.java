@@ -122,7 +122,7 @@ public class OpalDefendantAccountEnforcementService
 
             notesProxy.addNote(
                 buildRemoveEnforcementHoldNoteRequest(defendantAccountId, request),
-                ifMatch,
+                VersionUtils.createETag(savedEntity),
                 userState,
                 savedEntity
             );

@@ -63,6 +63,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
+        String updatedIfMatch = "\"7\"";
         String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
@@ -82,7 +83,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
         when(defendantAccountRepositoryService.saveAndFlush(any(DefendantAccountEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        when(notesProxy.addNote(any(AddNoteRequest.class), eq(ifMatch), eq(userState), eq(defendantEntity)))
+        when(notesProxy.addNote(any(AddNoteRequest.class), eq(updatedIfMatch), eq(userState), eq(defendantEntity)))
             .thenReturn("NOTE-1");
 
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
@@ -92,6 +93,7 @@ class OpalDefendantAccountEnforcementServiceTest {
                 defendantAccountId,
                 "removeEnforcementHold"
             )).thenAnswer(invocation -> null);
+            versionUtils.when(() -> VersionUtils.createETag(defendantEntity)).thenReturn(updatedIfMatch);
 
             RemoveDefendantAccountEnforcementHoldResponse result =
                 opalDefendantAccountEnforcementService.removeEnforcementHold(
@@ -118,7 +120,7 @@ class OpalDefendantAccountEnforcementServiceTest {
                 uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
-            verify(notesProxy).addNote(noteCaptor.capture(), eq(ifMatch), eq(userState), eq(defendantEntity));
+            verify(notesProxy).addNote(noteCaptor.capture(), eq(updatedIfMatch), eq(userState), eq(defendantEntity));
             verify(reportEntryService).createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
@@ -135,6 +137,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(String.valueOf(defendantAccountId), capturedNote.getRecordId());
             assertEquals("remove hold reason", capturedNote.getNoteText());
             assertEquals("AA", capturedNote.getNoteType());
+            versionUtils.verify(() -> VersionUtils.createETag(defendantEntity));
         }
     }
 
