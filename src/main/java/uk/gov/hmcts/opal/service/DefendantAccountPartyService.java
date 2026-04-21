@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
@@ -96,11 +97,11 @@ public class DefendantAccountPartyService {
     }
 
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        Short businessUnitId,
-        String ifMatch,
-        String authHeaderValue,
-        DefendantAccountParty request) {
+                                                                           Long defendantAccountPartyId,
+                                                                           Short businessUnitId,
+                                                                           String ifMatch,
+                                                                           String authHeaderValue,
+                                                                           RemoveDefendantAccountPartyRequest request) {
 
         log.debug(":removeDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
 
