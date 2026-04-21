@@ -20,6 +20,8 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -208,6 +210,38 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"document_language", "hearing_language"})
+    @DisplayName("Should return 400 when debtor detail language is set to English")
+    void shouldReturn400WhenDebtorDetailLanguageIsEnglish(String languageField) throws Exception {
+        String defendantBlock = """
+            "defendant": {
+                "company_flag": false,
+                "surname": "LNAME",
+                "address_line_1": "123 Main Street"
+              },""";
+        String request = validCreateRequestBody()
+            .replace(defendantBlock,
+                     """
+                     "defendant": {
+                       "company_flag": false,
+                       "surname": "LNAME",
+                       "address_line_1": "123 Main Street",
+                       "debtor_detail": {
+                         "%s": "English"
+                       }
+                     },""".formatted(languageField));
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
                 .header("Authorization", "Bearer some_value")
