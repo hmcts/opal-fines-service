@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -383,6 +384,12 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON).content("")
             ).andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"))
+            .andExpect(jsonPath("$.title").value("Missing Required Header"))
+            .andExpect(jsonPath("$.detail").isNotEmpty())
+            .andExpect(jsonPath("$.instance").isNotEmpty())
+            .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+            .andExpect(jsonPath("$.operation_id").isNotEmpty())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 }

@@ -81,7 +81,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleMissingHeader_false() throws NoSuchMethodException {
-        Method method = TestMissingHeaderClass.class.getMethod("testMethod");
+        Method method = TestMissingHeaderClass.class.getMethod("testMethod", String.class);
         MethodParameter param = new MethodParameter(method, 0);
         MissingRequestHeaderException ex = new MissingRequestHeaderException("TYPE", param);
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMissingRequestHeaderException(ex);
@@ -95,7 +95,8 @@ class GlobalExceptionHandlerTest {
     }
 
     static class TestMissingHeaderClass {
-        public void testMethod() {}
+        public void testMethod(String type) {
+        }
     }
 
     @Test
