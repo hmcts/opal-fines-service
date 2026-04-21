@@ -20,8 +20,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -269,11 +267,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(status().isBadRequest());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"document_language", "hearing_language"})
-    @DisplayName("Should return 400 when debtor detail language is set to English")
-    void shouldReturn400WhenDebtorDetailLanguageIsEnglish(String languageField) throws Exception {
-        String request = invalidLanguageRawJsonCreateRequestBody(languageField);
+    @Test
+    @DisplayName("Should return 400 when document language is set to English")
+    void shouldReturn400WhenDocumentLanguageIsEnglish() throws Exception {
+        String request = invalidLanguageRawJsonCreateRequestBody("document_language");
 
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
@@ -282,7 +279,30 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .header("Authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when hearing language is set to English")
+    void shouldReturn400WhenHearingLanguageIsEnglish() throws Exception {
+        String request = invalidLanguageRawJsonCreateRequestBody("hearing_language");
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 
     @Test
