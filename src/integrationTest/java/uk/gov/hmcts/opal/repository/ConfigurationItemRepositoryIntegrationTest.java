@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceUnitUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,41 +45,42 @@ class ConfigurationItemRepositoryIntegrationTest extends AbstractIntegrationTest
     @PersistenceContext
     private EntityManager entityManager;
 
+    private PersistenceUnitUtil unitUtil;
+
+    @BeforeEach
+    void setUp() {
+        entityManager.clear();
+        unitUtil = entityManagerFactory.getPersistenceUnitUtil();
+    }
+
     @Test
     void shouldKeepBusinessUnitLazyWhenNoEntityGraphIsUsed() {
-        entityManager.clear();
-
         ConfigurationItemEntity configurationItem = entityManager.find(
             ConfigurationItemEntity.class,
             CONFIGURATION_ITEM_ID
         );
-        PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
         assertFalse(unitUtil.isLoaded(configurationItem, "businessUnit"));
     }
 
     @Test
     void shouldLoadLiteEntityGraphForDirectFetch() {
-        entityManager.clear();
-
         ConfigurationItemEntity configurationItem = findWithEntityGraph(ConfigurationItemEntity.ENTITY_GRAPH_LITE);
-        PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
         assertFalse(unitUtil.isLoaded(configurationItem, "businessUnit"));
     }
 
     @Test
     void shouldLoadFullEntityGraphForDirectFetch() {
-        entityManager.clear();
-
         ConfigurationItemEntity configurationItem = findWithEntityGraph(ConfigurationItemEntity.ENTITY_GRAPH_FULL);
-        PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
         BusinessUnitEntity businessUnit = configurationItem.getBusinessUnit();
 
-        assertTrue(unitUtil.isLoaded(configurationItem, "businessUnit"));
-        assertEquals(BUSINESS_UNIT_ID, businessUnit.getBusinessUnitId());
-        assertFalse(unitUtil.isLoaded(businessUnit, "parentBusinessUnit"));
-        assertFalse(unitUtil.isLoaded(businessUnit, "configurationItems"));
+        assertAll(
+            () -> assertTrue(unitUtil.isLoaded(configurationItem, "businessUnit")),
+            () -> assertEquals(BUSINESS_UNIT_ID, businessUnit.getBusinessUnitId()),
+            () -> assertFalse(unitUtil.isLoaded(businessUnit, "parentBusinessUnit")),
+            () -> assertFalse(unitUtil.isLoaded(businessUnit, "configurationItems"))
+        );
     }
 
     private ConfigurationItemEntity findWithEntityGraph(String entityGraphName) {
