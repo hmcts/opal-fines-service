@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -123,8 +123,6 @@ class OpalDefendantAccountEnforcementServiceTest {
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
         when(defendantAccountRepositoryService.saveAndFlush(defendantEntity)).thenReturn(defendantEntity);
-        when(notesProxy.addNote(any(AddNoteRequest.class), eq(updatedIfMatch), eq(userState), eq(defendantEntity)))
-            .thenReturn("NOTE-1");
 
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
             versionUtils.when(() -> VersionUtils.verifyIfMatch(
@@ -346,12 +344,12 @@ class OpalDefendantAccountEnforcementServiceTest {
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
             verify(amendmentService, org.mockito.Mockito.never()).auditFinaliseStoredProc(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
+                eq(defendantAccountId),
+                eq(uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS),
+                eq(businessUnitId),
+                eq(businessUnitUserId),
+                isNull(),
+                eq("Remove Enforcement Hold")
             );
             verifyNoInteractions(reportEntryService, notesProxy);
         }
