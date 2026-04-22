@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,7 +130,11 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
         AddEnforcementResponse out =
             legacyDefendantAccountEnforcementService.addEnforcement(123L,
-                "BU-1", "user-1", "\"1\"", "auth", null);
+                                                                    (short) 1,
+                                                                    "user-1",
+                                                                    1L,
+                                                                    "auth",
+                                                                    null);
 
         assertNotNull(out);
         assertEquals("ENF-1", out.getEnforcementId());
@@ -159,7 +164,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         // Act
         AddEnforcementResponse out =
             legacyDefendantAccountEnforcementService.addEnforcement(500L,
-                "BU-500", "user-500", "\"5\"", "auth", null);
+                                                                    (short) 500, "user-500", 5L, "auth", null);
 
         // Assert
         assertNotNull(out);
@@ -211,8 +216,8 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         // Act
         AddEnforcementResponse out =
             legacyDefendantAccountEnforcementService
-                .addEnforcement(999L, "BU-TEST", "user-test",
-                    "\"11\"", "auth", request);
+                .addEnforcement(999L, (short) 101, "user-test",
+                                11L, "auth", request);
 
         // Assert - public DTO returned correctly
         assertNotNull(out);
@@ -241,7 +246,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         var enforcementList = clazz.getMethod("getEnforcementResultResponses").invoke(sentLegacyRequest);
 
         assertNotNull(enforcementList);
-        assertTrue(((java.util.Collection<?>) enforcementList).size() >= 1);
+        assertFalse(((Collection<?>) enforcementList).isEmpty());
 
         var paymentTermsLegacy = clazz.getMethod("getPaymentTerms").invoke(sentLegacyRequest);
 
@@ -270,8 +275,8 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
         // Act
         AddEnforcementResponse out =
-            legacyDefendantAccountEnforcementService.addEnforcement(500L, "BU-500",
-                "user-500", "\"5\"", "auth", null);
+            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
+                                                                    "user-500", 5L, "auth", null);
 
         // Assert
         assertNotNull(out);
@@ -295,8 +300,8 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
         // Act & Assert: calling the public method should throw a NullPointerException inside production code
         assertThrows(NullPointerException.class, () ->
-            legacyDefendantAccountEnforcementService.addEnforcement(1L, "BU",
-                "U", "\"1\"", "auth", null)
+            legacyDefendantAccountEnforcementService.addEnforcement(1L, (short) 1,
+                                                                    "U", 1L, "auth", null)
         );
     }
 

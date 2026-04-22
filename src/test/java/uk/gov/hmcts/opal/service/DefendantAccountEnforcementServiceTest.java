@@ -20,6 +20,8 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionsFor;
 
 import java.math.BigInteger;
 import java.util.Optional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,11 +55,11 @@ class DefendantAccountEnforcementServiceTest {
     private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @Test
-    void addEnforcement_whenUserHasPermission_callsProxyAndReturnsResult() {
+    void addEnforcement_whenUserHasPermission_callsProxyAndReturnsResult() throws JsonProcessingException {
         // arrange
         Long defendantAccountId = 77L;
-        String businessUnitId = "10";
-        String ifMatch = "\"3\"";
+        Short businessUnitId = 10;
+        Long ifMatch = 3L;
         String authHeader = "Bearer abc";
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
@@ -101,7 +103,7 @@ class DefendantAccountEnforcementServiceTest {
     void addEnforcement_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // arrange
         Long defendantAccountId = 77L;
-        String businessUnitId = "10";
+        Short businessUnitId = 10;
         String authHeader = "Bearer abc";
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
@@ -112,7 +114,7 @@ class DefendantAccountEnforcementServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountEnforcementService
-                .addEnforcement(defendantAccountId, businessUnitId, "\"3\"", authHeader, null)
+                .addEnforcement(defendantAccountId, businessUnitId, 3L, authHeader, null)
         );
 
         assertTrue(
@@ -127,10 +129,10 @@ class DefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void addEnforcement_whenBusinessUnitUserIdBlank_usesNullInProxyCall() {
+    void addEnforcement_whenBusinessUnitUserIdBlank_usesNullInProxyCall() throws JsonProcessingException {
         // arrange
         Long defendantAccountId = 77L;
-        String businessUnitId = "10";
+        Short businessUnitId = 10;
         String authHeader = "Bearer abc";
 
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
@@ -152,7 +154,7 @@ class DefendantAccountEnforcementServiceTest {
             eq(defendantAccountId),
             eq(businessUnitId),
             isNull(),                   // IMPORTANT: businessUnitUserId expected to be null
-            eq("\"3\""),
+            eq(3L),
             eq(authHeader),
             eq(req)
         )).thenReturn(proxyResult);
@@ -160,7 +162,7 @@ class DefendantAccountEnforcementServiceTest {
         // act
         AddEnforcementResponse out =
             defendantAccountEnforcementService
-                .addEnforcement(defendantAccountId, businessUnitId, "\"3\"", authHeader, req);
+                .addEnforcement(defendantAccountId, businessUnitId, 3L, authHeader, req);
 
         // assert
         assertNotNull(out);
@@ -168,7 +170,7 @@ class DefendantAccountEnforcementServiceTest {
             eq(defendantAccountId),
             eq(businessUnitId),
             isNull(),                   // verifies null is passed
-            eq("\"3\""),
+            eq(3L),
             eq(authHeader),
             eq(req)
         );

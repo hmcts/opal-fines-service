@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,11 +35,12 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
 
     @Override
     public AddEnforcementResponse addEnforcement(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        String authHeader,
-        AddDefendantAccountEnforcementRequest request) {
+                                                 Short businessUnitId,
+                                                 String businessUnitUserId,
+                                                 Long ifMatch,
+                                                 String authHeader,
+                                                 AddDefendantAccountEnforcementRequest request)
+        throws JsonProcessingException {
         return getCurrentModeService().addEnforcement(defendantAccountId, businessUnitId, businessUnitUserId,
             ifMatch, authHeader, request);
     }

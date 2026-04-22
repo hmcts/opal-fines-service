@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -250,11 +251,11 @@ public class DefendantAccountController {
     public ResponseEntity<AddEnforcementResponse> addEnforcement(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @RequestHeader("Business-Unit-Id") Short businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) Long ifMatch,
         @RequestBody AddDefendantAccountEnforcementRequest request
 
-    ) {
+    ) throws JsonProcessingException {
         log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
 
         AddEnforcementResponse response = defendantAccountEnforcementService.addEnforcement(
