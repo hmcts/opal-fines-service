@@ -98,6 +98,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
     @Test
     void removeEnforcementHold_whenValidRequest_clearsHoldAddsNoteCreatesReportAndReturnsResponse() {
+        // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
@@ -121,8 +122,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
-        when(defendantAccountRepositoryService.saveAndFlush(any(DefendantAccountEntity.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(defendantAccountRepositoryService.saveAndFlush(defendantEntity)).thenReturn(defendantEntity);
         when(notesProxy.addNote(any(AddNoteRequest.class), eq(updatedIfMatch), eq(userState), eq(defendantEntity)))
             .thenReturn("NOTE-1");
 
@@ -135,6 +135,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             )).thenAnswer(invocation -> null);
             versionUtils.when(() -> VersionUtils.createETag(defendantEntity)).thenReturn(updatedIfMatch);
 
+            // act
             RemoveDefendantAccountEnforcementHoldResponse result =
                 opalDefendantAccountEnforcementService.removeEnforcementHold(
                     defendantAccountId,
@@ -145,6 +146,7 @@ class OpalDefendantAccountEnforcementServiceTest {
                     request
                 );
 
+            // assert
             assertNotNull(result);
             assertEquals(String.valueOf(defendantAccountId), result.getDefendantAccountId());
             assertEquals(BigInteger.valueOf(7L), result.getVersion());
