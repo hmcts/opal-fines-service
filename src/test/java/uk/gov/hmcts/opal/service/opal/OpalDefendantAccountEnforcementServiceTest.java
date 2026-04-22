@@ -16,10 +16,13 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import java.math.BigInteger;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,7 +35,12 @@ import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -54,8 +62,39 @@ class OpalDefendantAccountEnforcementServiceTest {
     @Mock
     private UserStateService userStateService;
 
-    @InjectMocks
+    @Mock
+    private LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
+
+    @Mock
+    private EnforcerRepositoryService enforcerRepositoryService;
+
+    @Mock
+    private EnforcementRepositoryService enforcementRepositoryService;
+
+    @Mock
+    private DebtorDetailRepositoryService debtorDetailRepositoryService;
+
+    @Mock
+    private ResultRepositoryService resultRepositoryService;
+
     private OpalDefendantAccountEnforcementService opalDefendantAccountEnforcementService;
+
+    @BeforeEach
+    void setUp() {
+        opalDefendantAccountEnforcementService = new OpalDefendantAccountEnforcementService(
+            defendantAccountRepositoryService,
+            localJusticeAreaRepositoryService,
+            enforcerRepositoryService,
+            enforcementRepositoryService,
+            debtorDetailRepositoryService,
+            resultRepositoryService,
+            notesProxy,
+            userStateService,
+            amendmentService,
+            reportEntryService,
+            Clock.fixed(java.time.Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC)
+        );
+    }
 
     @Test
     void removeEnforcementHold_whenValidRequest_clearsHoldAddsNoteCreatesReportAndReturnsResponse() {
@@ -78,6 +117,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             .build();
 
         UserState userState = allPermissionsUser();
+        LocalDate expectedLastMovementDate = LocalDate.of(2026, 4, 22);
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
@@ -109,7 +149,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(String.valueOf(defendantAccountId), result.getDefendantAccountId());
             assertEquals(BigInteger.valueOf(7L), result.getVersion());
             assertNull(defendantEntity.getLastEnforcement());
-            assertNotNull(defendantEntity.getLastMovementDate());
+            assertEquals(expectedLastMovementDate, defendantEntity.getLastMovementDate());
 
             ArgumentCaptor<AddNoteRequest> noteCaptor = ArgumentCaptor.forClass(AddNoteRequest.class);
 

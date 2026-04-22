@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,8 @@ public class OpalDefendantAccountEnforcementService
 
     private final ReportEntryService reportEntryService;
 
+    private final Clock clock;
+
     @Override
     public AddEnforcementResponse addEnforcement(
         Long defendantAccountId,
@@ -116,7 +119,7 @@ public class OpalDefendantAccountEnforcementService
 
         try {
             defendantEntity.setLastEnforcement(null);
-            defendantEntity.setLastMovementDate(LocalDate.now());
+            defendantEntity.setLastMovementDate(LocalDate.now(clock));
 
             DefendantAccountEntity savedEntity = defendantAccountRepositoryService.saveAndFlush(defendantEntity);
 
