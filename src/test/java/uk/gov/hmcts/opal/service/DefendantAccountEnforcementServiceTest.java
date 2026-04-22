@@ -300,6 +300,7 @@ class DefendantAccountEnforcementServiceTest {
 
     @Test
     void removeEnforcementHold_whenBusinessUnitUserIdBlank_usesUserNameInProxyCall() {
+        // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
@@ -334,6 +335,7 @@ class DefendantAccountEnforcementServiceTest {
             eq(request)
         )).thenReturn(proxyResponse);
 
+        // act
         RemoveDefendantAccountEnforcementHoldResponse result =
             defendantAccountEnforcementService.removeEnforcementHold(
                 defendantAccountId,
@@ -343,6 +345,7 @@ class DefendantAccountEnforcementServiceTest {
                 request
             );
 
+        // assert
         assertSame(proxyResponse, result);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);
