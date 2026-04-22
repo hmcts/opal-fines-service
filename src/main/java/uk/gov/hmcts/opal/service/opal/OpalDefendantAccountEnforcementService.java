@@ -160,11 +160,12 @@ public class OpalDefendantAccountEnforcementService
         Long defendantAccountId,
         RemoveDefendantAccountEnforcementHoldRequest request) {
 
-        Note note = new Note();
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setRecordId(String.valueOf(defendantAccountId));
-        note.setNoteText(request.getReason());
-        note.setNoteType("AA");
+        Note note = Note.builder()
+            .recordType(RecordType.DEFENDANT_ACCOUNTS)
+            .recordId(String.valueOf(defendantAccountId))
+            .noteText(request.getReason())
+            .noteType("AA")
+            .build();
 
         return new AddNoteRequest(note);
     }
