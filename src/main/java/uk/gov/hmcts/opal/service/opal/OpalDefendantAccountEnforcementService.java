@@ -4,7 +4,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -117,43 +116,33 @@ public class OpalDefendantAccountEnforcementService
             uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
         );
 
-        try {
-            defendantEntity.setLastEnforcement(null);
-            defendantEntity.setLastMovementDate(LocalDate.now(clock));
+        defendantEntity.setLastEnforcement(null);
+        defendantEntity.setLastMovementDate(LocalDate.now(clock));
 
-            DefendantAccountEntity savedEntity = defendantAccountRepositoryService.saveAndFlush(defendantEntity);
+        DefendantAccountEntity savedEntity = defendantAccountRepositoryService.saveAndFlush(defendantEntity);
 
-            notesProxy.addNote(
-                buildRemoveEnforcementHoldNoteRequest(defendantAccountId, request),
-                VersionUtils.createETag(savedEntity),
-                userState,
-                savedEntity
-            );
+        notesProxy.addNote(
+            buildRemoveEnforcementHoldNoteRequest(defendantAccountId, request),
+            VersionUtils.createETag(savedEntity),
+            userState,
+            savedEntity
+        );
 
-            reportEntryService.createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
+        reportEntryService.createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
 
-            amendmentService.auditFinaliseStoredProc(
-                defendantAccountId,
-                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
-                businessUnitId,
-                businessUnitUserId,
-                null,
-                "Remove Enforcement Hold"
-            );
+        amendmentService.auditFinaliseStoredProc(
+            defendantAccountId,
+            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
+            businessUnitId,
+            businessUnitUserId,
+            null,
+            "Remove Enforcement Hold"
+        );
 
-            return RemoveDefendantAccountEnforcementHoldResponse.builder()
-                .defendantAccountId(String.valueOf(savedEntity.getDefendantAccountId()))
-                .version(savedEntity.getVersion())
-                .build();
-
-        } catch (ObjectOptimisticLockingFailureException ex) {
-            throw new ResourceConflictException(
-                "Defendant Account",
-                defendantAccountId,
-                "Account version has changed",
-                defendantEntity
-            );
-        }
+        return RemoveDefendantAccountEnforcementHoldResponse.builder()
+            .defendantAccountId(String.valueOf(savedEntity.getDefendantAccountId()))
+            .version(savedEntity.getVersion())
+            .build();
     }
 
     private AddNoteRequest buildRemoveEnforcementHoldNoteRequest(

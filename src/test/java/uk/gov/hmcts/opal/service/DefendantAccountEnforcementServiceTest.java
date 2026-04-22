@@ -256,6 +256,7 @@ class DefendantAccountEnforcementServiceTest {
 
     @Test
     void removeEnforcementHold_whenUserLacksPermission_throwsPermissionNotAllowedException() {
+        // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
@@ -272,6 +273,7 @@ class DefendantAccountEnforcementServiceTest {
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
             .thenReturn(false);
 
+        // act
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountEnforcementService.removeEnforcementHold(
@@ -283,6 +285,7 @@ class DefendantAccountEnforcementServiceTest {
             )
         );
 
+        // assert
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
         verify(userStateService).checkForAuthorisedUser(authHeader);

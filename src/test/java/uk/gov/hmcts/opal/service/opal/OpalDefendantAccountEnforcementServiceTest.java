@@ -288,7 +288,7 @@ class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void removeEnforcementHold_whenSaveThrowsOptimisticLockingException_throwsResourceConflictException() {
+    void removeEnforcementHold_whenSaveThrowsOptimisticLockingException_bubblesUpException() {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
@@ -312,7 +312,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
         doThrow(new ObjectOptimisticLockingFailureException(defendantEntity.getClass(), defendantAccountId))
             .when(defendantAccountRepositoryService)
-            .saveAndFlush(any(DefendantAccountEntity.class));
+            .saveAndFlush(defendantEntity);
 
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
             versionUtils.when(() -> VersionUtils.verifyIfMatch(
@@ -322,8 +322,8 @@ class OpalDefendantAccountEnforcementServiceTest {
                 "removeEnforcementHold"
             )).thenAnswer(invocation -> null);
 
-            ResourceConflictException ex = assertThrows(
-                ResourceConflictException.class,
+            ObjectOptimisticLockingFailureException ex = assertThrows(
+                ObjectOptimisticLockingFailureException.class,
                 () -> opalDefendantAccountEnforcementService.removeEnforcementHold(
                     defendantAccountId,
                     businessUnitId,
@@ -335,10 +335,8 @@ class OpalDefendantAccountEnforcementServiceTest {
             );
 
             assertNotNull(ex);
-            assertEquals("Defendant Account", ex.getResourceType());
-            assertEquals(String.valueOf(defendantAccountId), ex.getResourceId());
-            assertEquals("Account version has changed", ex.getConflictReason());
-            assertSame(defendantEntity, ex.getVersioned());
+            assertEquals(defendantEntity.getClass().getName(), ex.getPersistentClassName());
+            assertEquals(defendantAccountId, ex.getIdentifier());
 
             verify(userStateService).checkForAuthorisedUser(authHeader);
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
