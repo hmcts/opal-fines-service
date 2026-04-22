@@ -1017,6 +1017,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("etag", "\"1\""))
 
             // party
             .andExpect(jsonPath("$.party.party_id").value("99000000000901"))

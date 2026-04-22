@@ -1,20 +1,26 @@
 package uk.gov.hmcts.opal.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GetMinorCreditorAccountAtAGlanceResponse implements ToJsonString {
+public class GetMinorCreditorAccountAtAGlanceResponse implements ToJsonString, Versioned {
+
+    @JsonIgnore
+    private BigInteger version;
 
     @JsonProperty("party")
     private PartyDetails party;

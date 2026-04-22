@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.mapper.common.PaymentMapper;
     }
 )
 public interface GetMinorCreditorAccountAtAGlanceResponseMapper {
+    @Mapping(target = "version", source = "creditorAccountVersion")
     GetMinorCreditorAccountAtAGlanceResponse toDto(LegacyGetMinorCreditorAccountAtAGlanceResponse legacy);
 
     @Mappings({
@@ -35,6 +36,7 @@ public interface GetMinorCreditorAccountAtAGlanceResponseMapper {
         @Mapping(target = "address.postcode", source = "entity.postcode"),
 
         @Mapping(target = "creditorAccountId", source = "entity.creditorId"),
+        @Mapping(target = "version", source = "entity.versionNumber"),
 
         @Mapping(target = "defendant.accountId", source = "entity.defendantAccountId"),
         @Mapping(target = "defendant.accountNumber", source = "entity.defendantAccountNumber"),

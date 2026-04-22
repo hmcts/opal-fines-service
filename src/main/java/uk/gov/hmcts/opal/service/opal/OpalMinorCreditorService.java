@@ -77,7 +77,14 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
                 "Party not found: " + minorCreditorEntity.getPartyId()
             ));
 
-        return atAGlanceResponseMapper.toDto(minorCreditorEntity, partyEntity);
+        GetMinorCreditorAccountAtAGlanceResponse response =
+            atAGlanceResponseMapper.toDto(minorCreditorEntity, partyEntity);
+
+        if (minorCreditorEntity.getVersionNumber() != null) {
+            response.setVersion(BigInteger.valueOf(minorCreditorEntity.getVersionNumber()));
+        }
+
+        return response;
     }
 
     @Override
