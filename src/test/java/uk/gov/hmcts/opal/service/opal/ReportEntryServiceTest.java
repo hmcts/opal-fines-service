@@ -49,7 +49,7 @@ class ReportEntryServiceTest {
     void createRemoveEnforcementHoldReportEntry_savesExpectedReportEntry() {
         Long defendantAccountId = 77L;
         short businessUnitId = 10;
-        LocalDateTime expectedEntryTimestamp = LocalDateTime.of(2026, 4, 22, 9, 15);
+        final LocalDateTime expectedEntryTimestamp = LocalDateTime.of(2026, 4, 22, 9, 15);
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
             .businessUnitId(businessUnitId)
             .businessUnitName("Test BU")

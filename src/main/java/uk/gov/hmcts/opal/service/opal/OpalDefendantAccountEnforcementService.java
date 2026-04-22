@@ -88,7 +88,7 @@ public class OpalDefendantAccountEnforcementService
         log.debug(":removeEnforcementHold: defendantAccountId={}, businessUnitId={}",
             defendantAccountId, businessUnitId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+        final UserState userState = userStateService.checkForAuthorisedUser(authHeader);
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
 
         if (ifMatch == null || ifMatch.isBlank()) {
