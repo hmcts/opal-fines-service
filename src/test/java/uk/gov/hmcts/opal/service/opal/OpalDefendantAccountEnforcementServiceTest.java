@@ -119,6 +119,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
         UserState userState = allPermissionsUser();
         LocalDate expectedLastMovementDate = LocalDate.of(2026, 4, 22);
+        ArgumentCaptor<AddNoteRequest> addNoteRequestCaptor = ArgumentCaptor.forClass(AddNoteRequest.class);
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
@@ -151,8 +152,6 @@ class OpalDefendantAccountEnforcementServiceTest {
             assertNull(defendantEntity.getLastEnforcement());
             assertEquals(expectedLastMovementDate, defendantEntity.getLastMovementDate());
 
-            ArgumentCaptor<AddNoteRequest> noteCaptor = ArgumentCaptor.forClass(AddNoteRequest.class);
-
             verify(userStateService).checkForAuthorisedUser(authHeader);
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
@@ -160,7 +159,12 @@ class OpalDefendantAccountEnforcementServiceTest {
                 uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
-            verify(notesProxy).addNote(noteCaptor.capture(), eq(updatedIfMatch), eq(userState), eq(defendantEntity));
+            verify(notesProxy).addNote(
+                addNoteRequestCaptor.capture(),
+                eq(updatedIfMatch),
+                eq(userState),
+                eq(defendantEntity)
+            );
             verify(reportEntryService).createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
@@ -171,7 +175,8 @@ class OpalDefendantAccountEnforcementServiceTest {
                 "Remove Enforcement Hold"
             );
 
-            Note capturedNote = noteCaptor.getValue().getActivityNote();
+            assertNotNull(addNoteRequestCaptor.getValue());
+            Note capturedNote = addNoteRequestCaptor.getValue().getActivityNote();
             assertNotNull(capturedNote);
             assertEquals(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS, capturedNote.getRecordType());
             assertEquals(String.valueOf(defendantAccountId), capturedNote.getRecordId());
