@@ -36,7 +36,6 @@ import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
@@ -351,7 +350,10 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         } else if (response.isSuccessful()) {
             log.info(":addDefendantAccountParty: Legacy success.");
         }
-        return defendantAccountPartyLegacyResponseMapper.toDefendantAccountPartyResponse(response.responseEntity);
+
+        RemoveDefendantAccountPartyResponse result = new RemoveDefendantAccountPartyResponse();
+        result.setDefendantAccountPartyId(String.valueOf(defendantAccountPartyId));
+        return result;
     }
 
 

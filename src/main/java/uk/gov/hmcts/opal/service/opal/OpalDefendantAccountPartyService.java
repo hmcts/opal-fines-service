@@ -193,7 +193,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     @Override
     @Transactional
-    public GetDefendantAccountPartyResponse removeDefendantAccountParty(
+    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(
         Long accountId, String businessUnitId,
         String postedBy, String businessUserId, String ifMatch, RemoveDefendantAccountPartyRequest request) {
 

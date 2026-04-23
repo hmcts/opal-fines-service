@@ -26,7 +26,7 @@ public class RemoveDefendantAccountPartyLegacyRequest {
     private Long defendantAccountId;
 
     @JsonProperty("business_unit_id")
-    private String businessUnitId;
+    private Short businessUnitId;
 
     @JsonProperty("business_unit_user_id")
     private String businessUnitUserId;
