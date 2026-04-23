@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
         String businessUnitId,
-        Long ifMatch,
+        String ifMatch,
         String authHeaderValue,
         PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest) {
 
@@ -39,7 +40,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
 
         MinorCreditorAccountResponse result =
             minorCreditorService.updateMinorCreditorAccount(id, patchMinorCreditorAccountRequest,
-                Optional.ofNullable(ifMatch).map(java.math.BigInteger::valueOf).orElse(null),
+                Optional.ofNullable(ifMatch).map(BigInteger::new).orElse(null),
                 authHeaderValue, businessUnitId);
 
         return buildResponse(result);
