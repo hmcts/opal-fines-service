@@ -4,41 +4,11 @@ Feature: Get Draft Accounts
   @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6087
   Scenario: Get draft accounts - filtering on business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    When I create the following draft accounts and store their IDs
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
     When I get the draft accounts filtering on the Business unit "73" then the response contains
       | business_unit_id                    | 73          |
@@ -91,29 +61,10 @@ Feature: Get Draft Accounts
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    When I create the following draft accounts and store their IDs
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
     When I get the draft accounts filtering on the Status "SUBMITTED" then the response contains
       | account_status | Submitted |
@@ -128,41 +79,11 @@ Feature: Get Draft Accounts
   @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6092
   Scenario: Get draft accounts - filtering on submitted_by
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                      |
-      | account           | draftAccounts/accountJson/account.json  |
-      | account_type      | Fine                                    |
-      | account_status    | Submitted                               |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID_TWO                                   |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    When I create the following draft accounts and store their IDs
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
     When I get the draft accounts filtering on Submitted by "BUUID" then the response contains
       | account_snapshot.submitted_by | BUUID |
@@ -177,41 +98,11 @@ Feature: Get Draft Accounts
   @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6094
   Scenario: Get draft accounts - filtering on multiple fields
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                      |
-      | account           | draftAccounts/accountJson/account.json  |
-      | account_type      | Fine                                    |
-      | account_status    | Submitted                               |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID_TWO                                   |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    When I create the following draft accounts and store their IDs
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
     When I get the draft accounts filtering on the Status "SUBMITTED" and Submitted by "BUUID" then the response contains
       | account_status | Submitted |
@@ -233,38 +124,11 @@ Feature: Get Draft Accounts
   Scenario: Get all draft accounts - created three accounts and verify logging contains all three
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    When I create the following draft accounts and store their IDs
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
     # Do a GET all
     When I get the draft accounts
@@ -282,38 +146,11 @@ Feature: Get Draft Accounts
   Scenario: Get all draft accounts - Verify that 2 logs are created containing when the get all endpoint
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                                     |
-      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                                   |
-      | account_status    | Submitted                                              |
-      | submitted_by      | BUUID                                                  |
-      | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                                     |
-      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                                   |
-      | account_status    | Submitted                                              |
-      | submitted_by      | BUUID                                                  |
-      | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                                     |
-      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                                   |
-      | account_status    | Submitted                                              |
-      | submitted_by      | BUUID                                                  |
-      | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    When I create the following draft accounts and store their IDs
+      | business_unit_id | account                                                | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
     # Do a GET all
     When I get the draft accounts

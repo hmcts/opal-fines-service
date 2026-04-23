@@ -36,16 +36,16 @@ public class DraftAccountPostSteps extends BaseStepDef {
 
     @When("I create a draft account with the following details")
     public void postDraftAccount(DataTable accountData) throws JSONException, IOException {
-        JSONObject postBody = buildDraftAccountPostBody(accountData.asMap(String.class, String.class));
+        submitDraftAccount(accountData.asMap(String.class, String.class));
+    }
 
-        SerenityRest
-            .given().log().all()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .when()
-            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
+    @When("I create the following draft accounts and store their IDs")
+    public void postDraftAccountsAndStoreIds(DataTable accountData) throws JSONException, IOException {
+        for (Map<String, String> row : accountData.asMaps(String.class, String.class)) {
+            submitDraftAccount(row);
+            then().assertThat().statusCode(201);
+            storeCreatedDraftAccountId();
+        }
     }
 
     @When("I create a draft account with the following details using a raw HTTP client")
@@ -301,5 +301,18 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
         return postBody;
+    }
+
+    private void submitDraftAccount(Map<String, String> accountData) throws JSONException, IOException {
+        JSONObject postBody = buildDraftAccountPostBody(accountData);
+
+        SerenityRest
+            .given().log().all()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .body(postBody.toString())
+            .when()
+            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
     }
 }

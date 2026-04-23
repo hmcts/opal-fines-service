@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -131,161 +132,55 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
     @When("I get the draft accounts filtering on the Business unit {string} then the response contains")
     public void getDraftAccountsFilteringOnBU(String filter, DataTable data) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
-
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-        String count = then().extract().body().jsonPath().getString("count");
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
-            }
-        }
+        getDraftAccountsWithFiltersThenAssert(Map.of("business_unit", filter), data);
     }
 
     @When("I get the draft accounts filtering on the Status {string} then the response contains")
     public void getDraftAccountsFilteringOnStatuses(String filter, DataTable data) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?status=" + filter);
-
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-
-
-        String count = then().extract().body().jsonPath().getString("count");
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
-            }
-        }
+        getDraftAccountsWithFiltersThenAssert(Map.of("status", filter), data);
     }
 
     @When("I get the draft accounts filtering on Submitted by {string} then the response contains")
     public void getDraftAccountsFilteringOnSubmittedBy(String filter, DataTable data) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=" + filter);
-
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-
-        String count = then().extract().body().jsonPath().getString("count");
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
-            }
-        }
+        getDraftAccountsWithFiltersThenAssert(Map.of("submitted_by", filter), data);
     }
 
     @When("I get the draft accounts filtering on Not Submitted by {string} then the response contains")
     public void getDraftAccountsFilteringOnNotSubmittedBy(String filter, DataTable data) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?not_submitted_by=" + filter);
-
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-
-        String count = then().extract().body().jsonPath().getString("count");
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertTrue(
-                    String.valueOf(expectedData.get(key))
-                        .equalsIgnoreCase(String.valueOf(apiResponseValue)),
-                    "Value " + apiResponseValue
-                        + " is not equal to expected (case-insensitive): '"
-                        + expectedData.get(key) + "'"
-                );
-
-            }
-        }
+        getDraftAccountsWithFiltersThenAssert(Map.of("not_submitted_by", filter), data, false);
     }
 
     @When("I get the draft accounts filtering on Submitted by {string} and Not Submitted by {string}")
     public void getDraftAccountsFilterOnSubByAndNotSubBy(String submittedByFilter, String notSubmittedByFilter) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=" + submittedByFilter + "&not_submitted_by="
-                     + notSubmittedByFilter);
+        Map<String, String> filters = new LinkedHashMap<>();
+        filters.put("submitted_by", submittedByFilter);
+        filters.put("not_submitted_by", notSubmittedByFilter);
+        executeDraftAccountsGet(getToken(), filters);
     }
 
     @When("I get the draft accounts filtering on the Status {string} and Submitted by {string} "
         + "then the response contains")
     public void getDraftAccountsFilteringOnStatusesAndSubmittedBy(String statusFilter, String submittedByFilter,
                                                                   DataTable data) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?status=" + statusFilter + "&submitted_by="
-                     + submittedByFilter);
-
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-
-        String count = then().extract().body().jsonPath().getString("count");
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
-            }
-        }
+        Map<String, String> filters = new LinkedHashMap<>();
+        filters.put("status", statusFilter);
+        filters.put("submitted_by", submittedByFilter);
+        getDraftAccountsWithFiltersThenAssert(filters, data);
     }
 
     @And("The draft account filtered response does not contain accounts in the {string} business unit")
     public void draftAccountFilteredResponseDoesNotContainAccountsInBusinessUnit(String filter) {
-        String count = then().extract().body().jsonPath().getString("count");
-        for (int i = 0; i < Integer.parseInt(count); i++) {
-            String buID = then().extract().body().jsonPath().getString("summaries[" + i + "].business_unit_id");
-            assertNotEquals(filter, buID, "should not contain " + filter);
-        }
+        assertSummaryFieldDoesNotContain("business_unit_id", filter);
     }
 
     @And("The draft account filtered response does not contain accounts with status {string}")
     public void draftAccountFilteredResponseDoesNotContainAccountsInStatus(String filter) {
-        String count = then().extract().body().jsonPath().getString("count");
-        for (int i = 0; i < Integer.parseInt(count); i++) {
-            String status = then().extract().body().jsonPath().getString("summaries[" + i + "].account_status");
-            assertNotEquals(filter, status, "should not contain " + filter);
-        }
+        assertSummaryFieldDoesNotContain("account_status", filter);
     }
 
     @And("The draft account filtered response does not contain accounts submitted by {string}")
     public void draftAccountFilteredResponseDoesNotContainAccountsSubmittedBy(String filter) {
-        String count = then().extract().body().jsonPath().getString("count");
-        for (int i = 0; i < Integer.parseInt(count); i++) {
-            String submittedBy = then().extract().body().jsonPath().getString("summaries[" + i + "].submitted_by");
-            assertNotEquals(filter, submittedBy, "should not contain " + filter);
-        }
+        assertSummaryFieldDoesNotContain("submitted_by", filter);
     }
 
     @When("I attempt to get draft accounts with an invalid token")
@@ -324,61 +219,19 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
     @Then("I get all the draft accounts and the response contains")
     public void getDraftAccountsAndTheResponseContains(DataTable data) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI);
-
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-        String count = then().extract().body().jsonPath().getString("count");
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
-            }
-        }
+        getDraftAccountsWithFiltersThenAssert(Map.of(), data);
     }
 
 
     @When("I get no draft accounts related to business unit {string} then the response contains")
     public void getNoDraftAccountsRelatedToBusinessUnitThenTheResponseContains(String filter, DataTable data) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
-
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-
-
-        String count = then().extract().body().jsonPath().getString("count");
-        if (Integer.parseInt(count) == 0) {
-
-            for (String key : expectedData.keySet()) {
-                for (int i = 0; i < Integer.parseInt(count); i++) {
-                    String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                               + key);
-                    assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
-                }
-            }
-        }
+        executeDraftAccountsGet(getToken(), Map.of("business_unit", filter));
+        assertSummaryFields(data, true);
     }
 
     @Then("I get the draft accounts filtering on the Business unit {string}")
     public void getTheDraftAccountsFilteringOnTheBusinessUnit(String filter) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
+        executeDraftAccountsGet(getToken(), Map.of("business_unit", filter));
 
     }
 
@@ -388,6 +241,20 @@ public class DraftAccountGetSteps extends BaseStepDef {
         Object tokenObj = Serenity.sessionVariableCalled("BEARER_TOKEN");
         String token = tokenObj == null ? getToken() : String.valueOf(tokenObj);
 
+        executeDraftAccountsGet(token, Map.of());
+    }
+
+    private void getDraftAccountsWithFiltersThenAssert(Map<String, String> filters, DataTable data) {
+        getDraftAccountsWithFiltersThenAssert(filters, data, true);
+    }
+
+    private void getDraftAccountsWithFiltersThenAssert(Map<String, String> filters, DataTable data,
+                                                       boolean caseSensitive) {
+        executeDraftAccountsGet(getToken(), filters);
+        assertSummaryFields(data, caseSensitive);
+    }
+
+    private void executeDraftAccountsGet(String token, Map<String, String> filters) {
         var given = SerenityRest.given().contentType("application/json").accept("*/*");
 
         if (token != null && !token.isBlank()) {
@@ -404,8 +271,37 @@ public class DraftAccountGetSteps extends BaseStepDef {
             Serenity.setSessionVariable("CUSTOM_HEADER_VALUE").to(null);
         }
 
+        filters.forEach(given::queryParam);
+
         Response resp = given.when().get(getTestUrl() + DRAFT_ACCOUNTS_URI);
-        // store latest response for later assertions / steps
         Serenity.setSessionVariable("LATEST_RESPONSE").to(resp);
+    }
+
+    private void assertSummaryFields(DataTable data, boolean caseSensitive) {
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+        int count = then().extract().body().jsonPath().getInt("count");
+
+        for (String key : expectedData.keySet()) {
+            for (int i = 0; i < count; i++) {
+                String actual = then().extract().body().jsonPath().getString("summaries[" + i + "]." + key);
+                String expected = expectedData.get(key);
+                if (caseSensitive) {
+                    assertEquals(expected, actual, "Values are not equal : ");
+                } else {
+                    assertTrue(
+                        String.valueOf(expected).equalsIgnoreCase(String.valueOf(actual)),
+                        "Value " + actual + " is not equal to expected (case-insensitive): '" + expected + "'"
+                    );
+                }
+            }
+        }
+    }
+
+    private void assertSummaryFieldDoesNotContain(String fieldName, String unexpectedValue) {
+        int count = then().extract().body().jsonPath().getInt("count");
+        for (int i = 0; i < count; i++) {
+            String actual = then().extract().body().jsonPath().getString("summaries[" + i + "]." + fieldName);
+            assertNotEquals(unexpectedValue, actual, "should not contain " + unexpectedValue);
+        }
     }
 }
