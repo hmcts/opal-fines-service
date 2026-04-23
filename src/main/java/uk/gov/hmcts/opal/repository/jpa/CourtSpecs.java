@@ -10,9 +10,9 @@ import uk.gov.hmcts.opal.entity.court.CourtEntity_;
 
 import java.util.Optional;
 
-public class CourtSpecs extends AddressCySpecs<CourtEntity.Lite> {
+public class CourtSpecs extends AddressCySpecs<CourtEntity> {
 
-    public Specification<CourtEntity.Lite> findBySearchCriteria(CourtSearchDto criteria) {
+    public Specification<CourtEntity> findBySearchCriteria(CourtSearchDto criteria) {
         return Specification.allOf(specificationList(
             findByAddressCyCriteria(criteria),
             numericLong(criteria.getCourtId()).map(CourtSpecs::equalsCourtId),
@@ -22,38 +22,38 @@ public class CourtSpecs extends AddressCySpecs<CourtEntity.Lite> {
         ));
     }
 
-    public Specification<CourtEntity.Lite> referenceDataFilter(Optional<String> filter,
-                                                               Optional<Short> businessUnitId) {
+    public Specification<CourtEntity> referenceDataFilter(Optional<String> filter,
+                                                          Optional<Short> businessUnitId) {
         return Specification.allOf(specificationList(
             filter.filter(s -> !s.isBlank()).map(this::likeAnyCourt),
             businessUnitId.map(CourtSpecs::equalsBusinessUnitId)
         ));
     }
 
-    public static Specification<CourtEntity.Lite> equalsCourtId(Long courtId) {
+    public static Specification<CourtEntity> equalsCourtId(Long courtId) {
         return (root, query, builder) -> equalsCourtIdPredicate(root, builder, courtId);
     }
 
-    public static Predicate equalsCourtIdPredicate(From<?, CourtEntity.Lite> from,
+    public static Predicate equalsCourtIdPredicate(From<?, CourtEntity> from,
                                                    CriteriaBuilder builder, Long courtId) {
         return builder.equal(from.get(CourtEntity_.courtId), courtId);
     }
 
-    public static Specification<CourtEntity.Lite> equalsBusinessUnitId(Short businessUnitId) {
+    public static Specification<CourtEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
             builder.equal(root.get(CourtEntity_.businessUnitId), businessUnitId);
     }
 
-    public static Specification<CourtEntity.Lite> equalsCourtCode(String courtCode) {
+    public static Specification<CourtEntity> equalsCourtCode(String courtCode) {
         return (root, query, builder) -> builder.equal(root.get(CourtEntity_.courtCode), courtCode);
     }
 
-    public static Specification<CourtEntity.Lite> equalsLocalJusticeAreaId(Short localJusticeAreaId) {
+    public static Specification<CourtEntity> equalsLocalJusticeAreaId(Short localJusticeAreaId) {
         return (root, query, builder) ->
             builder.equal(root.get(CourtEntity_.localJusticeAreaId), localJusticeAreaId);
     }
 
-    public Specification<CourtEntity.Lite> likeAnyCourt(String filter) {
+    public Specification<CourtEntity> likeAnyCourt(String filter) {
         return Specification.anyOf(
             likeName(filter),
             likeNameCy(filter)
