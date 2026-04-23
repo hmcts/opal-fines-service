@@ -104,6 +104,15 @@ public class ImpositionEntity {
     @Column(name = "offence_id")
     private Long offenceId;
 
+    @Column(name = "offence_title", length = 120)
+    private String offenceTitle;
+
+    @Column(name = "offence_code", length = 10)
+    private String offenceCode;
+
+    @Column(name = "original_imposition_id")
+    private Long originalImpositionId;
+
     @Column(name = "creditor_account_id", insertable = false, updatable = false, nullable = false)
     private Long creditorAccountId;
 
