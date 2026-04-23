@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.VersionUtils.extractOptionalBigInteger;
 
-import java.math.BigInteger;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
 
         MinorCreditorAccountResponse result =
             minorCreditorService.updateMinorCreditorAccount(id, patchMinorCreditorAccountRequest,
-                Optional.ofNullable(ifMatch).map(BigInteger::new).orElse(null),
+                extractOptionalBigInteger(ifMatch).orElse(null),
                 authHeaderValue, businessUnitId);
 
         return buildResponse(result);

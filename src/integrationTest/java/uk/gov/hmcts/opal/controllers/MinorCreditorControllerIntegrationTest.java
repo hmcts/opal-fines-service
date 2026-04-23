@@ -309,6 +309,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
         Integer currentVersion = getCurrentCreditorAccountVersion();
+        String currentEtag = "\"" + currentVersion + "\"";
 
         String requestJson = patchMinorCreditorPayoutHoldRequestJson();
 
@@ -316,7 +317,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", AUTH_HEADER)
-                .header("If-Match", currentVersion)
+                .header("If-Match", currentEtag)
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                 .content(requestJson));
 
