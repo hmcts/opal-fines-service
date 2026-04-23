@@ -188,7 +188,7 @@ class OpalDefendantAccountServiceCoreTest {
             .accountStatus(DefendantAccountStatus.LIVE)
             .build();
 
-        EnforcementEntity.Lite enforcementEntity = EnforcementEntity.Lite.builder()
+        EnforcementEntity enforcementEntity = EnforcementEntity.builder()
                 .build();
 
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(defAccount);

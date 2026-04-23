@@ -649,7 +649,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return debtorDetailRepository.findByPartyId(party.getPartyId()).orElse(null);
     }
 
-    private EnforcementEntity.Lite fetchEnforcementMostRecent(DefendantAccountEntity entity) {
+    private EnforcementEntity fetchEnforcementMostRecent(DefendantAccountEntity entity) {
         return enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
             entity.getDefendantAccountId(), entity.getLastEnforcement()).orElse(null);
     }
@@ -664,7 +664,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         DefendantAccountEntity defendantEntity = getDefendantAccountById(defendantAccountId);
         DefendantAccountPartiesEntity defendantParty = filterDefendantParty(defendantEntity);
-        EnforcementEntity.Lite recentEnforcement = fetchEnforcementMostRecent(defendantEntity);
+        EnforcementEntity recentEnforcement = fetchEnforcementMostRecent(defendantEntity);
 
         return buildEnforcementStatus(
             defendantEntity,
@@ -1129,7 +1129,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
      */
     private void clearLastEnforcementAction(DefendantAccountEntity defAccount) {
         // Retrieve most recent enforcement action for this account using the result
-        EnforcementEntity.Lite mostRecentEnforcement = fetchEnforcementMostRecent(defAccount);
+        EnforcementEntity mostRecentEnforcement = fetchEnforcementMostRecent(defAccount);
 
         if (mostRecentEnforcement != null) {
             ResultEntity.Lite resultEntityLite = resultService.getResultById(mostRecentEnforcement.getResultId());

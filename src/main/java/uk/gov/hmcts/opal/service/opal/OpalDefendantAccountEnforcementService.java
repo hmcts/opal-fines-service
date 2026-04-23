@@ -186,7 +186,7 @@ public class OpalDefendantAccountEnforcementService
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService
             .findById(defendantAccountId);
         DefendantAccountPartiesEntity defendantParty = filterDefendantParty(defendantEntity);
-        EnforcementEntity.Lite recentEnforcement =
+        EnforcementEntity recentEnforcement =
             enforcementRepositoryService.getEnforcementMostRecent(
                 defendantEntity.getDefendantAccountId(), defendantEntity.getLastEnforcement()).orElse(null);
 

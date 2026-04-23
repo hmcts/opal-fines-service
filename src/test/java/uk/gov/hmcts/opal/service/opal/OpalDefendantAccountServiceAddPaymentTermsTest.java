@@ -127,7 +127,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         when(paymentTermsMapper.toEntity(any(PaymentTerms.class))).thenReturn(paymentTerms);
 
-        EnforcementEntity.Lite enforcementLite = new EnforcementEntity.Lite();
+        EnforcementEntity enforcementLite = new EnforcementEntity();
         enforcementLite.setEnforcementId(300L);
         enforcementLite.setDefendantAccountId(defendantAccountId);
         enforcementLite.setPostedDate(LocalDateTime.now());
