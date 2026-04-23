@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,18 +28,18 @@ class EnforcementRepositoryServiceTest {
         // given
         Long defendantAccountId = 123L;
         String lastEnforcement = "RESULT_1";
-        Lite lite = mock(Lite.class);
+        EnforcementEntity enforcement = mock(EnforcementEntity.class);
 
         when(enforcementRepository
             .findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(defendantAccountId, lastEnforcement))
-            .thenReturn(Optional.of(lite));
+            .thenReturn(Optional.of(enforcement));
 
         // when
-        Optional<Lite> result = service.getEnforcementMostRecent(defendantAccountId, lastEnforcement);
+        Optional<EnforcementEntity> result = service.getEnforcementMostRecent(defendantAccountId, lastEnforcement);
 
         // then
         assertThat(result).isPresent();
-        assertThat(result.get()).isSameAs(lite);
+        assertThat(result.get()).isSameAs(enforcement);
         verify(enforcementRepository).findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(defendantAccountId,
             lastEnforcement);
     }
@@ -55,7 +55,7 @@ class EnforcementRepositoryServiceTest {
             .thenReturn(Optional.empty());
 
         // when
-        Optional<Lite> result = service.getEnforcementMostRecent(defendantAccountId, lastEnforcement);
+        Optional<EnforcementEntity> result = service.getEnforcementMostRecent(defendantAccountId, lastEnforcement);
 
         // then
         assertThat(result).isEmpty();
@@ -74,7 +74,7 @@ class EnforcementRepositoryServiceTest {
             .thenReturn(Optional.empty());
 
         // when
-        Optional<Lite> result = service.getEnforcementMostRecent(defendantAccountId, lastEnforcement);
+        Optional<EnforcementEntity> result = service.getEnforcementMostRecent(defendantAccountId, lastEnforcement);
 
         // then
         assertThat(result).isEmpty();

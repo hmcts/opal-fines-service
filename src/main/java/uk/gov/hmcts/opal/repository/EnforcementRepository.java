@@ -2,20 +2,27 @@ package uk.gov.hmcts.opal.repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
 @Repository
-public interface EnforcementRepository extends JpaRepository<Lite, Long>,
-    JpaSpecificationExecutor<Lite> {
+public interface EnforcementRepository extends JpaRepository<EnforcementEntity, Long>,
+    JpaSpecificationExecutor<EnforcementEntity> {
+
+    @Override
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
+    Optional<EnforcementEntity> findById(Long enforcementId);
 
     void deleteByDefendantAccountId(long defendantAccountId);
 
-    Optional<Lite> findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    Optional<EnforcementEntity> findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
         Long defendantAccountId, String resultId);
 
-    List<Lite> findAllByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    List<EnforcementEntity> findAllByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
         Long defendantAccountId, String resultId);
 }
