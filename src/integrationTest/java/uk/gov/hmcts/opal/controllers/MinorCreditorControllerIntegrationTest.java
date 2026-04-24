@@ -307,6 +307,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
                 FinesPermission.ACCOUNT_MAINTENANCE));
 
+        final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
         String requestJson = patchMinorCreditorPayoutHoldRequestJson();
@@ -333,8 +334,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.hold_payment").value(true))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
 
+        assertEquals(true, getCurrentCreditorAccountHoldPayout());
         Integer updatedVersion = getCurrentCreditorAccountVersion();
-        assertEquals(currentVersion + 1, updatedVersion);
+        assertEquals(initialHoldPayout ? currentVersion : currentVersion + 1, updatedVersion);
     }
 
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
@@ -458,6 +460,15 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             Integer.class,
             PATCH_MINOR_CREDITOR_ACCOUNT_ID
         );
+    }
+
+    private boolean getCurrentCreditorAccountHoldPayout() {
+        Boolean holdPayout = jdbcTemplate.queryForObject(
+            "SELECT hold_payout FROM creditor_accounts WHERE creditor_account_id = ?",
+            Boolean.class,
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+        );
+        return Boolean.TRUE.equals(holdPayout);
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value

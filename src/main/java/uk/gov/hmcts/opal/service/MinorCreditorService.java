@@ -99,6 +99,11 @@ public class MinorCreditorService {
                 businessUnitIdShort,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
+        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.ACCOUNT_MAINTENANCE)) {
+            throw new PermissionNotAllowedException(
+                businessUnitIdShort,
+                FinesPermission.ACCOUNT_MAINTENANCE);
+        }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
