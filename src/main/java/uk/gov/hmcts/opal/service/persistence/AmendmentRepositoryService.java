@@ -8,9 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.jpa.AmendmentSpecs;
 
@@ -40,14 +40,14 @@ public class AmendmentRepositoryService {
 
     @Transactional
     public void auditInitialiseStoredProc(Long accountId, RecordType recordType) {
-        amendmentRepository.auditInitialise(accountId, recordType.getType());
+        amendmentRepository.auditInitialise(accountId, recordType.toString());
     }
 
     @Transactional
     public void auditFinaliseStoredProc(Long accountId, RecordType recordType,
                                         Short businessUnitId, String postedBy, String caseRef, String functionCode) {
         amendmentRepository
-            .auditFinalise(accountId, recordType.getType(), businessUnitId, postedBy, caseRef, functionCode);
+            .auditFinalise(accountId, recordType.toString(), businessUnitId, postedBy, caseRef, functionCode);
     }
 
 }

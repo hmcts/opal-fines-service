@@ -113,7 +113,7 @@ public class OpalDefendantAccountEnforcementService
 
         amendmentService.auditInitialiseStoredProc(
             defendantAccountId,
-            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
+            RecordType.DEFENDANT_ACCOUNTS
         );
 
         defendantEntity.setLastEnforcement(null);
@@ -132,7 +132,7 @@ public class OpalDefendantAccountEnforcementService
 
         amendmentService.auditFinaliseStoredProc(
             defendantAccountId,
-            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
+            RecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             businessUnitUserId,
             null,

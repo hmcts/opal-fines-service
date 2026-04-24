@@ -156,7 +156,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
+                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
             verify(notesProxy).addNote(
@@ -168,7 +168,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             verify(reportEntryService).createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
+                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS,
                 businessUnitId,
                 businessUnitUserId,
                 null,
@@ -345,12 +345,12 @@ class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS
+                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
             verify(amendmentService, org.mockito.Mockito.never()).auditFinaliseStoredProc(
                 eq(defendantAccountId),
-                eq(uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS),
+                eq(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS),
                 eq(businessUnitId),
                 eq(businessUnitUserId),
                 isNull(),
