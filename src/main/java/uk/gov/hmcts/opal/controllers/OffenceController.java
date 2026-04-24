@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.offence.OffenceFullEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import java.util.List;
@@ -41,11 +41,11 @@ public class OffenceController {
 
     @GetMapping(value = "/{offenceId}")
     @Operation(summary = "Returns the Offence for the given offenceId.")
-    public ResponseEntity<OffenceFullEntity> getOffenceById(@PathVariable Long offenceId) {
+    public ResponseEntity<OffenceEntity> getOffenceById(@PathVariable Long offenceId) {
 
         log.debug(":GET:getOffenceById: offenceId: {}", offenceId);
 
-        OffenceFullEntity response = opalOffenceService.getOffence(offenceId);
+        OffenceEntity response = opalOffenceService.getOffence(offenceId);
         if (response == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

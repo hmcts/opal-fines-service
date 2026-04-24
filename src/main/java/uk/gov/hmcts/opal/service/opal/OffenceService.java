@@ -12,11 +12,9 @@ import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
-import uk.gov.hmcts.opal.entity.offence.OffenceFullEntity;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
-import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
 
 import java.util.Collections;
@@ -33,14 +31,12 @@ public class OffenceService {
 
     private final OffenceRepository offenceRepository;
 
-    private final OffenceRepositoryFull offenceRepositoryFull;
-
     private final OffenceMapper offenceMapper;
 
     private final OffenceSpecs specs = new OffenceSpecs();
 
-    public OffenceFullEntity getOffence(long offenceId) {
-        return offenceRepositoryFull.findById(offenceId).orElse(null);
+    public OffenceEntity getOffence(long offenceId) {
+        return offenceRepository.findById(offenceId).orElse(null);
     }
 
     @Cacheable(cacheNames = "offenceSearchDataCache", key = "#criteria")
@@ -48,7 +44,7 @@ public class OffenceService {
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
         int limit = Optional.ofNullable(criteria.getMaxResults()).orElse(NO_REQUESTED_LIMIT);
 
-        Page<OffenceEntity.Lite> page = offenceRepository
+        Page<OffenceEntity> page = offenceRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(codeSort)
@@ -73,7 +69,7 @@ public class OffenceService {
 
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
 
-        Page<OffenceEntity.Lite> page = offenceRepository
+        Page<OffenceEntity> page = offenceRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId, cjsCode),
                     ffq -> ffq
                         .sortBy(codeSort)
