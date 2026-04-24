@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.java.AfterAll;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.When;
-import net.serenitybdd.core.Serenity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.utils.TestHttpClient;
@@ -15,6 +14,9 @@ import java.util.Map;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Defines Cucumber steps and token helpers for authenticated functional-test calls.
+ */
 public class BearerTokenStepDef extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(BearerTokenStepDef.class.getName());
@@ -23,19 +25,40 @@ public class BearerTokenStepDef extends BaseStepDef {
     private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
     private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();
 
+    /**
+     * Clears any scenario-specific alternate bearer token.
+     */
     @Before
     public void resetAltToken() {
-        ALT_TOKEN.remove();
+        clearTokenOverride();
     }
 
+    /**
+     * Returns a cached access token for the supplied user, fetching one when needed.
+     *
+     * @param user user alias or email used to resolve the bearer token.
+     * @return access token for the supplied user.
+     */
     public String getAccessTokenForUser(String user) {
         return tokenCache.computeIfAbsent(user, BearerTokenStepDef::fetchAccessToken);
     }
 
+    /**
+     * Fetches and caches an access token for the supplied user.
+     *
+     * @param user user alias or email used to resolve the bearer token.
+     * @return access token for the supplied user.
+     */
     private static String fetchAccessToken(String user) {
         return fetchToken(user);
     }
 
+    /**
+     * Calls the user-service test-support endpoint to fetch an access token.
+     *
+     * @param user user alias or email used to resolve the bearer token.
+     * @return access token returned by the user-service test-support endpoint.
+     */
     private static String fetchToken(String user) {
         TestHttpResponse response = TestHttpClient.get(
             getUserServiceUrl() + "/testing-support/token/user",
@@ -53,6 +76,11 @@ public class BearerTokenStepDef extends BaseStepDef {
         return response.jsonPath("access_token");
     }
 
+    /**
+     * Returns the bearer token that should be used for the current scenario.
+     *
+     * @return bearer token that should be used for the current scenario.
+     */
     public static String getToken() {
         if (ALT_TOKEN.get() != null) {
             return ALT_TOKEN.get();
@@ -65,16 +93,47 @@ public class BearerTokenStepDef extends BaseStepDef {
         return TOKEN.get();
     }
 
+    /**
+     * Applies a scenario-scoped bearer-token override for subsequent requests on the current
+     * thread.
+     *
+     * @param token bearer token override to use for subsequent requests.
+     */
+    public static void setTokenOverride(String token) {
+        ALT_TOKEN.set(token);
+    }
+
+    /**
+     * Clears any scenario-scoped bearer-token override for the current thread.
+     */
+    public static void clearTokenOverride() {
+        ALT_TOKEN.remove();
+    }
+
+    /**
+     * Uses the access token for the supplied user in the current scenario.
+     *
+     * @param user user alias or email used to resolve the bearer token.
+     */
     @When("I am testing as the {string} user")
     public void setTokenWithUser(String user) {
-        ALT_TOKEN.set(getAccessTokenForUser(user));
+        setTokenOverride(getAccessTokenForUser(user));
     }
 
+    /**
+     * Sets the current scenario to use an invalid bearer token.
+     */
     @When("I set an invalid token")
     public void setInvalidToken() {
-        ALT_TOKEN.set("invalid-token");
+        setTokenOverride("invalid-token");
     }
 
+    /**
+     * Calls the supplied endpoint without an Authorization header.
+     *
+     * @param method HTTP method to invoke.
+     * @param path relative API path to call.
+     */
     @When("I call {word} {string} without a token")
     public void callWithoutToken(String method, String path) {
         TestHttpResponse response = TestHttpClient.request(
@@ -83,9 +142,15 @@ public class BearerTokenStepDef extends BaseStepDef {
             Map.of("Accept", "*/*"),
             null
         );
-        Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(response);
+        scenarioContext().setLatestHttpResponse(response);
     }
 
+    /**
+     * Calls the supplied endpoint with an invalid Authorization header.
+     *
+     * @param method HTTP method to invoke.
+     * @param path relative API path to call.
+     */
     @When("I call {word} {string} with an invalid token")
     public void callWithInvalidToken(String method, String path) {
         TestHttpResponse response = TestHttpClient.request(
@@ -97,9 +162,15 @@ public class BearerTokenStepDef extends BaseStepDef {
             ),
             null
         );
-        Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(response);
+        scenarioContext().setLatestHttpResponse(response);
     }
 
+    /**
+     * Builds a syntactically valid but expired bearer token for negative-auth scenarios.
+     *
+     * @param user user alias or email used to resolve the bearer token.
+     * @return syntactically valid but expired bearer token.
+     */
     private static String fetchExpiredToken(String user) {
         // Create a dummy JWT that looks real but has an expired "exp" timestamp
         long now = System.currentTimeMillis() / 1000L;
@@ -129,12 +200,20 @@ public class BearerTokenStepDef extends BaseStepDef {
         return expiredToken;
     }
 
+    /**
+     * Uses an expired access token for the supplied user in the current scenario.
+     *
+     * @param user user alias or email used to resolve the bearer token.
+     */
     @When("I am testing with an expired token for the {string} user")
     public void setExpiredTokenForUser(String user) {
-        ALT_TOKEN.set(fetchExpiredToken(user));
+        setTokenOverride(fetchExpiredToken(user));
     }
 
 
+    /**
+     * Clears the cached bearer tokens after the test run.
+     */
     @AfterAll
     public static void clearCache() {
         tokenCache.clear();

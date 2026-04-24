@@ -1,178 +1,94 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import net.serenitybdd.rest.SerenityRest;
-import net.serenitybdd.core.Serenity;
-import org.json.JSONArray;
+import java.io.IOException;
+import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
+import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
+import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountRequestFactory;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
-import uk.gov.hmcts.opal.utils.DraftAccountUtils;
-import uk.gov.hmcts.opal.utils.TestHttpClient;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.text.IsBlankString.blankOrNullString;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
+/**
+ * Defines Cucumber steps for creating draft accounts.
+ */
 public class DraftAccountPostSteps extends BaseStepDef {
-    private static final Logger log = LoggerFactory.getLogger(DraftAccountPostSteps.class);
+    private final DraftAccountActions actions = new DraftAccountActions();
+    private final DraftAccountRequestFactory requestFactory = new DraftAccountRequestFactory();
 
+    /**
+     * Creates a draft account from the values supplied in the scenario table.
+     *
+     * @param accountData Cucumber table containing the draft-account values for the request.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
     @When("I create a draft account with the following details")
     public void postDraftAccount(DataTable accountData) throws JSONException, IOException {
-        submitDraftAccount(accountData.asMap(String.class, String.class));
+        actions.createDraftAccount(accountData.asMap(String.class, String.class));
     }
 
+    /**
+     * Creates each draft account described by the scenario table and stores the generated
+     * identifiers for later steps.
+     *
+     * @param accountData Cucumber table containing one row per draft account to create.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
     @When("I create the following draft accounts and store their IDs")
     public void postDraftAccountsAndStoreIds(DataTable accountData) throws JSONException, IOException {
-        for (Map<String, String> row : accountData.asMaps(String.class, String.class)) {
-            submitDraftAccount(row);
-            then().assertThat().statusCode(201);
-            storeCreatedDraftAccountId();
-        }
+        actions.createDraftAccountsAndStoreIds(accountData.asMaps(String.class, String.class));
     }
 
+    /**
+     * Creates a draft account using the raw HTTP client instead of SerenityRest.
+     *
+     * @param accountData Cucumber table containing the draft-account values for the request.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
     @When("I create a draft account with the following details using a raw HTTP client")
     public void postDraftAccountUsingRawHttpClient(DataTable accountData) throws JSONException, IOException {
-        JSONObject postBody = buildDraftAccountPostBody(accountData.asMap(String.class, String.class));
-
-        Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(
-            TestHttpClient.request(
-                "POST",
-                getTestUrl() + DRAFT_ACCOUNTS_URI,
-                Map.of(
-                    "Accept", "*/*",
-                    "Authorization", "Bearer " + getToken(),
-                    "Content-Type", "application/json"
-                ),
-                postBody.toString()
-            )
-        );
+        actions.createDraftAccountUsingRawHttpClient(accountData.asMap(String.class, String.class));
     }
 
+    /**
+     * Stores the created draft-account ID from the latest response for later steps.
+     */
     @Then("I store the created draft account ID")
     public void storeCreatedDraftAccountId() {
-        var resp = SerenityRest.lastResponse();
-
-        log.info("CREATE status={}", resp.getStatusCode());
-        log.info("CREATE headers={}", resp.getHeaders());
-        log.info("CREATE body={}", resp.asString());
-
-        String id = null;
-
-        try {
-            Object idObj = resp.jsonPath().get("draft_account_id");
-            if (idObj != null) {
-                id = String.valueOf(idObj);
-            }
-        } catch (Exception ignored) {
-            // No JSON or no field; fall through to Location
-        }
-
-        // Fallback to Location header’s last path segment
-        if (id == null || id.isBlank()) {
-            String location = resp.getHeader("Location");
-            if (location != null && !location.isBlank()) {
-                id = location.substring(location.lastIndexOf('/') + 1);
-            }
-        }
-
-        // Fail fast if still missing to avoid /null deletes later
-        assertThat(
-            "Create must include draft_account_id in body or a Location header with the ID",
-            id,
-            not(blankOrNullString())
-        );
-
-        // preserve existing behaviour (if you still need DraftAccountUtils)
-        DraftAccountUtils.addDraftAccountId(id);
-
-        // accumulate created IDs into a list in Serenity session
-        try {
-            // Try to retrieve an existing list
-            Object existing = null;
-            try {
-                existing = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_IDS");
-            } catch (Exception e) {
-                log.debug("No CREATED_DRAFT_ACCOUNT_IDS found in session: {}", e.getMessage());
-            }
-
-            List<String> idsList;
-            if (existing instanceof List) {
-                // safe copy with toString for elements
-                idsList = ((List<?>) existing).stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.toCollection(ArrayList::new));
-            } else if (existing instanceof String) {
-                String s = ((String) existing).trim();
-                if (s.isEmpty()) {
-                    idsList = new ArrayList<>();
-                } else {
-                    idsList = Stream.of(s.split(","))
-                        .map(String::trim)
-                        .filter(str -> !str.isEmpty())
-                        .collect(Collectors.toCollection(ArrayList::new));
-                }
-            } else {
-                idsList = new ArrayList<>();
-            }
-
-            // add new id if not already present
-            if (!idsList.contains(id)) {
-                idsList.add(id);
-            }
-
-            // store the accumulated list
-            Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_IDS").to(idsList);
-        } catch (Exception e) {
-            log.warn("Failed to store CREATED_DRAFT_ACCOUNT_IDS list in Serenity session: {}", e.getMessage());
-        }
-
-        // store in Serenity session so other steps can read the most recent id (backwards compatibility)
-        Serenity.setSessionVariable("CREATED_DRAFT_ACCOUNT_ID").to(id);
-
-        Object saved = null;
-        try {
-            saved = Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_ID");
-        } catch (Exception e) {
-            log.debug("Error reading back CREATED_DRAFT_ACCOUNT_ID: {}", e.getMessage());
-        }
-        if (saved == null) {
-            throw new RuntimeException("Failed to store CREATED_DRAFT_ACCOUNT_ID into Serenity session after create. "
-                                           + "Response body: " + resp.asString());
-        }
-        log.info("Stored draft id={} into Serenity sess (CREATED_DRAFT_ACCOUNT_ID={}; CREATED_DRAFT_ACCOUNT_IDS={})",
-                 id, saved, Serenity.sessionVariableCalled("CREATED_DRAFT_ACCOUNT_IDS"));
+        actions.storeCreatedDraftAccountIdFromLastResponse();
     }
 
+    /**
+     * Stores the `created_at` timestamp from the latest draft-account response.
+     */
     @Then("I store the created draft account created_at time")
     public void storeDraftAccountCreatedTime() {
         String createdAt = then().extract().body().jsonPath().getString("created_at");
-        DraftAccountUtils.addDraftAccountCreatedAtTime(createdAt);
+        scenarioContext().setDraftAccountCreatedAtTime(createdAt);
     }
 
+    /**
+     * Stores the initial `account_status_date` from the latest draft-account response.
+     */
     @Then("I store the created draft account initial account_status_date")
     public void storeDraftAccountInitialAccountStatusDate() {
         String initialAccountStatusDate = then().extract().body().jsonPath().getString("account_status_date");
-        DraftAccountUtils.addInitialAccountStatusDate(initialAccountStatusDate);
+        scenarioContext().setInitialAccountStatusDate(initialAccountStatusDate);
     }
 
+    /**
+     * Asserts that the draft account response contains the following data.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("The draft account response contains the following data")
     public void draftAccountResponseContains(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -184,14 +100,16 @@ public class DraftAccountPostSteps extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the latest draft-account response returned the expected HTTP status code.
+     *
+     * @param statusCode expected HTTP status code.
+     */
     @Then("The draft account response returns {int}")
     public void draftAccountResponse(int statusCode) {
-        var httpResponse = Serenity.<uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse>sessionVariableCalled(
-            LATEST_HTTP_RESPONSE
-        );
+        var httpResponse = scenarioContext().consumeLatestHttpResponse();
         if (httpResponse != null) {
             assertEquals(statusCode, httpResponse.statusCode(), "Unexpected HTTP status");
-            Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(null);
             return;
         }
 
@@ -199,72 +117,57 @@ public class DraftAccountPostSteps extends BaseStepDef {
             .statusCode(statusCode);
     }
 
+    /**
+     * Attempts to create a draft account using an invalid bearer token.
+     *
+     * @param createdBy user identifier to place in the `submitted_by` field.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     */
     @When("I attempt to create a draft account with an invalid token using created by ID {string}")
     public void postDraftAccountWithInvalidToken(String createdBy) throws JSONException {
-        JSONObject postBody = new JSONObject();
+        JSONObject postBody;
+        try {
+            postBody = requestFactory.buildDefaultCreateRequestBody("77", createdBy);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load the default draft-account fixture", e);
+        }
 
-        postBody.put("business_unit_id", "77");
-        postBody.put("account", "{\"account_create_request\":{\"defendant\":{},\"account\":{}}}");
-        postBody.put("account_type", "Fine");
-        postBody.put("account_status", "");
-        postBody.put("submitted_by", createdBy);
-        postBody.put("timeline_data", JSONObject.NULL);
-
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + "invalidToken")
-            .accept("*/*")
-            .contentType("application/json")
+        jsonRequestWithToken("invalidToken")
             .body(postBody.toString())
             .when()
             .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
 
     }
 
+    /**
+     * Attempts to create a draft account while requesting an unsupported response content type.
+     *
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
     @When("I attempt to create a draft account with an unsupported content type")
     public void postDraftAccountWithUnsupportedContentType() throws JSONException, IOException {
-        JSONObject postBody = new JSONObject();
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + "draftAccounts/accountJson/account.json";
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-        postBody.put("business_unit_id", 77);
-        postBody.put("account", accountObject);
-        postBody.put("account_type", "Fine");
-        postBody.put("account_status", "");
-        postBody.put("submitted_by", "BUUID");
-        postBody.put("timeline_data", new JSONObject());
+        JSONObject postBody = requestFactory.buildDefaultCreateRequestBody("77", "BUUID");
 
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
+        authorisedJsonRequest()
             .accept("text/plain")
-            .contentType("application/json")
             .body(postBody.toString())
             .when()
             .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
 
     }
 
+    /**
+     * Attempts to create a draft account with an unsupported request media type.
+     *
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
     @When("I attempt to create a draft account with an unsupported media type")
     public void postDraftAccountWithUnsupportedMediaType() throws JSONException, IOException {
-        JSONObject postBody = new JSONObject();
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + "draftAccounts/accountJson/account.json";
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
+        JSONObject postBody = requestFactory.buildDefaultCreateRequestBody("77", "BUUID");
 
-        postBody.put("business_unit_id", 77);
-        postBody.put("account", accountObject);
-        postBody.put("account_type", "Fine");
-        postBody.put("account_status", "");
-        postBody.put("submitted_by", "BUUID");
-        postBody.put("timeline_data", new JSONObject());
-
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
+        authorisedJsonRequest()
             .contentType("application/xml")
             .body(postBody.toString())
             .when()
@@ -272,47 +175,4 @@ public class DraftAccountPostSteps extends BaseStepDef {
 
     }
 
-    private JSONObject buildDraftAccountPostBody(Map<String, String> dataToPost) throws JSONException, IOException {
-        JSONObject postBody = new JSONObject();
-
-        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addAllToJsonObject(postBody, dataToPost, "submitted_by", "submitted_by_name", "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get("account");
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-
-        accountObject.put("originator_id", accountObject.getLong("originator_id"));
-        accountObject.put("enforcement_court_id", accountObject.getLong("enforcement_court_id"));
-
-        JSONArray offences = accountObject.getJSONArray("offences");
-        for (int i = 0; i < offences.length(); i++) {
-            JSONObject offence = offences.getJSONObject(i);
-            offence.put("offence_id", offence.getLong("offence_id"));
-        }
-
-        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-            + "/draftAccounts/timelineJson/default.json";
-        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONArray timelineArray = new JSONArray(timeline);
-
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
-        return postBody;
-    }
-
-    private void submitDraftAccount(Map<String, String> accountData) throws JSONException, IOException {
-        JSONObject postBody = buildDraftAccountPostBody(accountData);
-
-        SerenityRest
-            .given().log().all()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .when()
-            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
-    }
 }

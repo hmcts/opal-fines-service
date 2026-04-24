@@ -1,25 +1,32 @@
 package uk.gov.hmcts.opal.steps;
 
-import net.serenitybdd.core.Serenity;
-import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.utils.TestHttpClient;
 
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
+/**
+ * Provides reusable HTTP helpers for functional-test step definitions.
+ */
 public class CommonMethods extends BaseStepDef {
 
+    /**
+     * Executes an authorised GET request against the supplied reference-data path.
+     *
+     * @param refDataUri reference-data URI to request.
+     */
     public void getRequest(String refDataUri) {
-        SerenityRest
-            .given()
-            .accept("*/*")
-            .header("Authorization", "Bearer " + getToken())
-            .contentType("application/json")
+        authorisedJsonRequest()
             .when()
             .get(getTestUrl() + refDataUri);
     }
 
+    /**
+     * Executes a raw authorised GET request against the supplied reference-data path.
+     *
+     * @param refDataUri reference-data URI to request.
+     */
     public void getRequestUsingRawHttpClient(String refDataUri) {
-        Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(
+        scenarioContext().setLatestHttpResponse(
             TestHttpClient.request(
                 "GET",
                 getTestUrl() + refDataUri,

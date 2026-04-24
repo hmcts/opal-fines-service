@@ -1,14 +1,11 @@
 package uk.gov.hmcts.opal.steps;
 
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.HttpStatus;
 import static org.hamcrest.Matchers.equalTo;
-import org.json.JSONArray;
-import org.json.JSONException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -26,7 +23,6 @@ import static org.hamcrest.Matchers.not;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import net.serenitybdd.core.Serenity;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static uk.gov.hmcts.opal.config.Constants.BUSINESS_UNIT_REF_DATA_URI;
 import static uk.gov.hmcts.opal.config.Constants.COURTS_REF_DATA_URI;
@@ -36,12 +32,19 @@ import static uk.gov.hmcts.opal.config.Constants.MAJOR_CREDITORS_URI;
 import static uk.gov.hmcts.opal.config.Constants.OFFENCES_REF_DATA_URI;
 
 
+/**
+ * Defines Cucumber steps for reference-data API scenarios.
+ */
 public class RefDataStepDef extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(RefDataStepDef.class.getName());
     CommonMethods methods = new CommonMethods();
-    DatabaseStepDef db = new DatabaseStepDef();
 
+    /**
+     * Retrieves business-unit reference data filtered by business-unit type.
+     *
+     * @param filter business-unit type filter to apply to the request.
+     */
     @When("I make a request to the business unit ref data api filtering by business unit type {string}")
     public void getRequestToBusinessUnitRefData(String filter) {
 
@@ -49,56 +52,109 @@ public class RefDataStepDef extends BaseStepDef {
 
     }
 
+    /**
+     * Retrieves business-unit reference data with the raw HTTP client to exercise the same
+     * business-unit-type filter path.
+     *
+     * @param filter business-unit type filter to apply to the request.
+     */
     @When("I make a raw request to the business unit ref data api filtering by business unit type {string}")
     public void getRawRequestToBusinessUnitRefData(String filter) {
         methods.getRequestUsingRawHttpClient(BUSINESS_UNIT_REF_DATA_URI + "?q=" + filter);
     }
 
+    /**
+     * Retrieves offence reference data for a specific business unit.
+     *
+     * @param businessUnitId business-unit identifier to apply to the request.
+     */
     @When("I make a request to the offence ref data api filtering by business unit {int}")
     public void getRequestToOffencesRefDataBusinessUnit(int businessUnitId) {
         methods.getRequest(OFFENCES_REF_DATA_URI + "?business_unit_id=" + businessUnitId);
     }
 
+    /**
+     * Retrieves offence reference data filtered by CJS code.
+     *
+     * @param cjsCode CJS code to apply to the request.
+     */
     @When("I make a request to the offence ref data api filtering by cjs code {string}")
     public void getRequestToOffencesRefDataCjsCode(String cjsCode) {
         methods.getRequest(OFFENCES_REF_DATA_URI + "?q=" + cjsCode);
     }
 
+    /**
+     * Retrieves offence reference data filtered by offence wording.
+     *
+     * @param filter offence-title filter to apply to the request.
+     */
     @When("I make a request to the offence ref data api filtering with the offence title {string}")
     public void getRequestToOffencesRefDataWording(String filter) {
         methods.getRequest(OFFENCES_REF_DATA_URI + "?q=" + filter);
     }
 
+    /**
+     * Retrieves the major-creditor reference-data record for a specific identifier.
+     *
+     * @param majorCreditorId major-creditor identifier to request.
+     */
     @When("I make a request to the major creditors ref data api filter by major creditor id {long}")
     public void getRequestToMajorCreditorsBy(long majorCreditorId) {
         methods.getRequest(MAJOR_CREDITORS_URI + "/" + majorCreditorId);
     }
 
+    /**
+     * Sends a request to the LJA reference-data API.
+     */
     @When("I make a request to the LJA ref data api with")
     public void getRequestToLJARefData() {
         methods.getRequest(LJA_REF_DATA_URI);
     }
 
-    @When("I make a request to the court ref data api with")
-    public void getRequestToCourtsRefData() {
-        methods.getRequest(COURTS_REF_DATA_URI);
+    /**
+     * Retrieves LJA reference data filtered by one or more `lja_type` values.
+     *
+     * @param ljaTypeOrCsv single `lja_type` value or comma-separated list of allowed values.
+     */
+    @When("I make a request to the LJA ref data api with lja_type {string}")
+    public void getRequestToLjaRefDataWithLjaType(String ljaTypeOrCsv) {
+        methods.getRequest(LJA_REF_DATA_URI + "?lja_type=" + ljaTypeOrCsv);
     }
 
+    /**
+     * Retrieves court reference data filtered by court name or code.
+     *
+     * @param filter filter value to apply to the request.
+     */
     @When("I make a request to the court ref data api with a filter of {string}")
     public void getRequestToCourtsRefDataWithFilter(String filter) {
         methods.getRequest(COURTS_REF_DATA_URI + "?q=" + filter);
     }
 
+    /**
+     * Retrieves court reference data using both a free-text filter and a business-unit filter.
+     *
+     * @param filter filter value to apply to the request.
+     * @param businessUnitId business-unit identifier to apply to the request.
+     */
     @When("I make a request to the court ref data api with a filter of {string} and a business unit of {int}")
     public void getRequestToCourtsRefDataWithFilterAndBU(String filter, int businessUnitId) {
         methods.getRequest(COURTS_REF_DATA_URI + "?q=" + filter + "?business_unit=" + businessUnitId);
     }
 
+    /**
+     * Retrieves court reference data for a specific business unit.
+     *
+     * @param businessUnitId business-unit identifier to apply to the request.
+     */
     @When("I make a request to the court ref data api with a business unit of {int}")
     public void getRequestToCourtsRefDataWithBU(int businessUnitId) {
         methods.getRequest(COURTS_REF_DATA_URI + "?business_unit=" + businessUnitId);
     }
 
+    /**
+     * Asserts that the response count matches the number of returned reference-data records.
+     */
     @Then("the LJA ref data matching to result")
     @Then("the court ref data matching to result")
     @Then("the offence ref data matching to result")
@@ -112,28 +168,9 @@ public class RefDataStepDef extends BaseStepDef {
         then().assertThat().statusCode(200).body("count", equalTo(refDataList));
     }
 
-    @Then("the response contains the correct court data when filtered by court name {string}")
-    public void theResponseContainsTheCorrectCourt(String courtName) throws SQLException, JSONException {
-        int totalCount = then().extract().jsonPath().getInt("count");
-        JSONArray court;
-        court = db.getCourtsByCourtName(courtName);
-        then().assertThat().statusCode(200);
-        for (int i = 0; i < totalCount; i++) {
-            String courtId = then().extract().jsonPath().getString("refData.court_id[" + i + "]");
-            assertEquals(courtId, court.getJSONObject(i).getString("court_id"));
-
-            String businessUnitId = then().extract().jsonPath().getString("refData.business_unit_id[" + i + "]");
-            assertEquals(businessUnitId, court.getJSONObject(i).getString("business_unit_id"));
-
-            String courtCode = then().extract().jsonPath().getString("refData.court_code[" + i + "]");
-            assertEquals(courtCode, court.getJSONObject(i).getString("court_code"));
-
-            String name = then().extract().jsonPath().getString("refData.name[" + i + "]");
-            assertEquals(name, court.getJSONObject(i).getString("court_name"));
-
-        }
-    }
-
+    /**
+     * Asserts that the response returns the seeded major-creditor record used by this scenario.
+     */
     @Then("the major creditors ref data matching to result")
     public void theMajorCreditorsRefDataMatching() {
         then().assertThat().statusCode(HttpStatus.SC_OK).body("name", equalTo("LORD CHANCELLORS DEPARTMENT")).body(
@@ -143,6 +180,11 @@ public class RefDataStepDef extends BaseStepDef {
         );
     }
 
+    /**
+     * Asserts that the latest response contains the expected major-creditor data.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("the response contains the below major creditor data")
     public void responseContainsMajorCreditorData(DataTable data) {
         Map<String, String> expected = data.asMap(String.class, String.class);
@@ -163,6 +205,11 @@ public class RefDataStepDef extends BaseStepDef {
         );
     }
 
+    /**
+     * Asserts that the latest response does not contain the supplied major-creditor data.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("the response does not contain the below major creditor data")
     public void responseDoesNotContainMajorCreditorData(DataTable data) {
         Map<String, String> expected = data.asMap(String.class, String.class);
@@ -183,6 +230,11 @@ public class RefDataStepDef extends BaseStepDef {
         );
     }
 
+    /**
+     * Asserts that the latest response contains the expected court data.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("the response contains the below courts data")
     public void responseContainsCourtData(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -208,6 +260,11 @@ public class RefDataStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the latest response does not contain the supplied court data.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("the response does not contain the below courts data")
     public void responseDoesNotContainCourtData(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -233,6 +290,11 @@ public class RefDataStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the latest response contains the expected offence data.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("the response contains the below offence data")
     public void responseContainsOffenceData(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -267,6 +329,11 @@ public class RefDataStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the latest response does not contain the supplied offence data.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("the response does not contain the below offence data")
     public void responseDoesNotContainOffenceData(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -283,49 +350,21 @@ public class RefDataStepDef extends BaseStepDef {
         }
     }
 
-    @Then("the response contains the correct major creditor data when filtered by id {int}")
-    public void theResponseContainsTheCorrectMajorCreditor(int majorCreditorId) throws SQLException, JSONException {
-        JSONArray majorCreditor;
-        majorCreditor = db.getMajorCredByID(String.valueOf(majorCreditorId));
-        then().assertThat().statusCode(200);
-        String majorCreditorFromAPI = then().extract().jsonPath().getString("major_creditor_id");
-        assertEquals(majorCreditorFromAPI, majorCreditor.getJSONObject(0).getString("major_creditor_id"));
-
-        String businessUnitId = then().extract().jsonPath().getString("businessUnit.business_unit_id");
-        assertEquals(businessUnitId, majorCreditor.getJSONObject(0).getString("business_unit_id"));
-
-        String majorCreditorCode = then().extract().jsonPath().getString("major_creditor_code");
-        assertEquals(majorCreditorCode, majorCreditor.getJSONObject(0).getString("major_creditor_code"));
-
-        String name = then().extract().jsonPath().getString("name");
-        assertEquals(name, majorCreditor.getJSONObject(0).getString("major_creditor_name"));
-
-        Serenity.recordReportData().withTitle("Data from DB").andContents(majorCreditor.toString());
-    }
-
-    @Then("the response does not contain the major creditor data for {int}")
-    public void theResponseDoesNotContainTheCorrectMajorCreditor(int majorCreditorId)
-        throws SQLException, JSONException {
-        JSONArray majorCreditor;
-        majorCreditor = db.getMajorCredByID(String.valueOf(majorCreditorId));
-        then().assertThat().statusCode(200);
-        String majorCreditorFromAPI = then().extract().jsonPath().getString("major_creditor_id");
-        assertNotEquals(majorCreditorFromAPI, majorCreditor.getJSONObject(0).getString("major_creditor_id"));
-
-        String majorCreditorCode = then().extract().jsonPath().getString("major_creditor_code");
-        assertNotEquals(majorCreditorCode, majorCreditor.getJSONObject(0).getString("major_creditor_code"));
-
-        String name = then().extract().jsonPath().getString("name");
-        assertNotEquals(name, majorCreditor.getJSONObject(0).getString("major_creditor_name"));
-
-        Serenity.recordReportData().withTitle("Data from DB").andContents(majorCreditor.toString());
-    }
-
+    /**
+     * Retrieves enforcer reference data filtered by enforcer name.
+     *
+     * @param enforcerName enforcer name to append to the request path.
+     */
     @When("I make a request to enforcer ref data api filtering by name {string}")
     public void getRequestToEnforcerRefDataByName(String enforcerName) {
         methods.getRequest(ENFORCERS_REF_DATA_URI + enforcerName);
     }
 
+    /**
+     * Asserts that the first returned offence contains the expected field values.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("the response contains the below offence data fields and values")
     public void theResponseContainsTheBelowOffenceDataFieldsAndValues(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -340,11 +379,11 @@ public class RefDataStepDef extends BaseStepDef {
         }
     }
 
-    @When("I make a request to the LJA ref data api with lja_type {string}")
-    public void getRequestToLjaRefDataWithLjaType(String ljaTypeOrCsv) {
-        methods.getRequest(LJA_REF_DATA_URI + "?lja_type=" + ljaTypeOrCsv);
-    }
-
+    /**
+     * Asserts that every returned LJA has the expected `lja_type` value.
+     *
+     * @param expectedType expected `lja_type` value.
+     */
     @Then("all returned LJAs have lja_type {string}")
     public void allReturnedLjasHaveLjaType(String expectedType) {
         List<String> types = then().extract().jsonPath().getList("refData.lja_type");
@@ -359,6 +398,11 @@ public class RefDataStepDef extends BaseStepDef {
         );
     }
 
+    /**
+     * Asserts that every returned LJA has an `lja_type` contained in the supplied allow-list.
+     *
+     * @param allowedTypesCsv comma-separated list of allowed `lja_type` values.
+     */
     @Then("all returned LJAs have lja_type in {string}")
     public void allReturnedLjasHaveTypeIn(String allowedTypesCsv) {
         List<String> allowed = Arrays.stream(allowedTypesCsv.split(","))
@@ -375,7 +419,3 @@ public class RefDataStepDef extends BaseStepDef {
     }
 
 }
-
-
-
-

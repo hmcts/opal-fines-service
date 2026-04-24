@@ -3,10 +3,8 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
-import net.serenitybdd.rest.SerenityRest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.ArrayList;
@@ -18,7 +16,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.empty;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 import static uk.gov.hmcts.opal.steps.draftaccount.DraftAccountCommonSteps.fetchStrongEtag;
 
@@ -34,14 +31,19 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
     // - Only sends If-Match when an ETag is provided (non-null/non-blank)
     // - Returns the raw Response (no assertions here)
     // - Logs request URL, If-Match value, and response details for easy debugging
+    /**
+     * Executes a draft-account delete request with the supplied concurrency settings.
+     *
+     * @param id draft-account identifier to delete.
+     * @param etag ETag value to send with the request.
+     * @param ignoreMissingResource whether cleanup should ignore resources that are already
+     *                              missing.
+     * @return response returned by the delete request.
+     */
     private io.restassured.response.Response deleteWithIfMatch(String id, String etag, boolean ignoreMissingResource) {
         final String url = getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + id + "?ignore_missing=" + ignoreMissingResource;
 
-        io.restassured.specification.RequestSpecification spec = net.serenitybdd.rest.SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json");
+        io.restassured.specification.RequestSpecification spec = authorisedJsonRequest();
 
         if (etag != null && !etag.isBlank()) {
             spec.header("If-Match", etag);
@@ -60,8 +62,14 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
         return resp;
     }
 
-    /** Delete with If-Match when possible; be resilient to flaky 406/500 by falling back;
-     *  consider cleanup successful if the resource is gone afterwards (GET=404). */
+    /**
+     * Deletes a draft account using the current ETag and retries once if a concurrency conflict is
+     * detected.
+     *
+     * @param id draft-account identifier to delete.
+     * @param ignoreMissingResource whether cleanup should ignore resources that are already
+     *                              missing.
+     */
     private void deleteWithConcurrency(String id, boolean ignoreMissingResource) {
         String etag = fetchStrongEtag(getTestUrl(), id);
 
@@ -86,8 +94,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
         }
 
         // Check if the resource is actually gone — this is what matters for cleanup
-        Response after = SerenityRest.given()
-            .header("Authorization", "Bearer " + getToken())
+        Response after = authorisedJsonRequest()
             .accept("application/json")
             .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + id);
 
@@ -110,47 +117,51 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
     }
 
 
+    /**
+     * Returns the most recently created draft-account identifier from scenario state.
+     *
+     * @return most recently created draft-account identifier.
+     */
     private String lastCreatedIdOrFail() {
-        List<String> all = new ArrayList<>(DraftAccountUtils.getAllDraftAccountIds());
+        List<String> all = new ArrayList<>(scenarioContext().getDraftAccountIds());
         assertThat("No recorded draft account IDs to delete", all, is(not(empty())));
         return all.getLast();
     }
 
     // ─────────────── steps (instance, not static) ───────────────
 
-    /** Uses If-Match where available; fails if resource missing. */
-    @When("I delete the draft account {string} using concurrency control")
-    public void deleteByIdWithIfMatch(String draftAccountId) {
-        this.deleteWithConcurrency(draftAccountId, false);
-    }
-
-    /** Ignores missing *resource* (adds ?ignore_missing=true). */
-    @When("I delete the draft account {string} ignoring missing resource")
-    public void deleteByIdIgnoringMissingResource(String draftAccountId) {
-        this.deleteWithConcurrency(draftAccountId, true);
-    }
-
-    /** Same as above, but for the last created account. */
+    /**
+     * Deletes the last created draft-account using concurrency control.
+     */
     @When("I delete the last created draft account using concurrency control")
     public void deleteLastCreatedWithIfMatch() {
         this.deleteWithConcurrency(this.lastCreatedIdOrFail(), false);
     }
 
-    /** Last created; ignore missing resource. */
+    /**
+     * Deletes the last created draft-account ignoring missing resource.
+     */
     @When("I delete the last created draft account ignoring missing resource")
     public void deleteLastCreatedIgnoringMissingResource() {
         this.deleteWithConcurrency(this.lastCreatedIdOrFail(), true);
     }
 
-    /** Bulk clean-up of any accounts recorded during the run. */
+    /**
+     * Deletes every draft account recorded for the current scenario.
+     */
     @Then("I delete the created draft accounts")
     public void deleteAllCreatedDraftAccounts() {
         this.actualDeleteAllCreatedDraftAccounts(false);
     }
 
-    /** Exposed so hooks can call it. */
+    /**
+     * Deletes every draft account recorded for the current scenario.
+     *
+     * @param ignoreMissingResource whether cleanup should ignore resources that are already
+     *                              missing.
+     */
     public void actualDeleteAllCreatedDraftAccounts(boolean ignoreMissingResource) {
-        List<String> accounts = new ArrayList<>(DraftAccountUtils.getAllDraftAccountIds());
+        List<String> accounts = new ArrayList<>(scenarioContext().getDraftAccountIds());
         if (accounts.isEmpty()) {
             log.info("No draft accounts to clean up.");
             return;
@@ -160,7 +171,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
             this.deleteWithIfMatch(id, null, ignoreMissingResource);
         }
         try {
-            DraftAccountUtils.clearDraftAccountIds();
+            scenarioContext().clearDraftAccountIds();
         } catch (Throwable t) {
             log.debug("clearDraftAccountIds() failed/absent (ignored): {}", t.getMessage());
         }

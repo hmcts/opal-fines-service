@@ -1,21 +1,24 @@
 package uk.gov.hmcts.opal.steps.defendantaccount;
 
 import io.cucumber.java.en.Then;
-import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.serenitybdd.rest.SerenityRest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
+/**
+ * Defines Cucumber steps for deleting defendant accounts created during scenarios.
+ */
 public class DefendantAccountDeleteStep extends BaseStepDef {
     private static final Logger log = LoggerFactory.getLogger(DefendantAccountDeleteStep.class.getName());
 
+    /**
+     * Deletes the defendant accounts linked to the draft accounts created in the current scenario.
+     */
     @Then("I delete the created defendant accounts")
     public void deleteCreatedDefendantAccounts() {
         List<Long> defendantAccountIds = getDefendantAccountIdsFromDraftAccounts();
@@ -30,19 +33,26 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
         }
     }
 
+    /**
+     * Deletes the supplied defendant account by identifier.
+     *
+     * @param defendantAccountId defendant-account identifier to use for the request.
+     */
     private void deleteDefendantAccount(Long defendantAccountId) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
+        authorisedJsonRequest()
             .when()
             .delete(getTestUrl() + "/testing-support/defendant-accounts/" + defendantAccountId);
     }
 
 
-    public static List<Long> getDefendantAccountIdsFromDraftAccounts() {
-        List<String> draftAccounts = DraftAccountUtils.getAllDraftAccountIds();
+    /**
+     * Collects defendant-account identifiers from the draft accounts created in the current
+     * scenario.
+     *
+     * @return defendant-account identifiers linked to the created draft accounts.
+     */
+    private List<Long> getDefendantAccountIdsFromDraftAccounts() {
+        List<String> draftAccounts = scenarioContext().getDraftAccountIds();
         if (draftAccounts == null || draftAccounts.isEmpty()) {
             return Collections.emptyList();
         }
@@ -53,12 +63,16 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
             .collect(Collectors.toList());
     }
 
-    private static Long getDefendantAccountIdFromDraftAccount(String draftAccountId) {
+    /**
+     * Reads the defendant-account identifier linked to the supplied draft account.
+     *
+     * @param draftAccountId draft-account identifier to use for the request.
+     * @return defendant-account identifier linked to the supplied draft account, or null when none
+     *         can be resolved.
+     */
+    private Long getDefendantAccountIdFromDraftAccount(String draftAccountId) {
         try {
-            var response = SerenityRest
-                .given()
-                .header("Authorization", "Bearer " + getToken())
-                .accept("*/*")
+            var response = authorisedJsonRequest()
                 .when()
                 .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
 

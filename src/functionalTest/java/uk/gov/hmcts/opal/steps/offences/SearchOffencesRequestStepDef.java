@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.steps.offences;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.When;
-import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -10,9 +9,17 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import java.util.Map;
 
 import static uk.gov.hmcts.opal.config.Constants.OFFENCES_SEARCH_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
+/**
+ * Defines Cucumber steps for offence-search requests.
+ */
 public class SearchOffencesRequestStepDef extends BaseStepDef {
+    /**
+     * Searches offences using the supplied CJS code, wording, act/section, and date filters.
+     *
+     * @param filters Cucumber table containing the filter values for the request.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     */
     @When("I make a request to the offence search api filtering by")
     public void postOffencesSearchRequest(DataTable filters) throws JSONException {
         Map<String, String> dataToPost = filters.asMap(String.class, String.class);
@@ -24,11 +31,7 @@ public class SearchOffencesRequestStepDef extends BaseStepDef {
         requestBody.put("active_date", dataToPost.get("active_date") != null ? dataToPost.get("active_date") : "");
         requestBody.put("max_results", dataToPost.get("max_results") != null ? dataToPost.get("max_results") : "100");
 
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
+        authorisedJsonRequest()
             .body(requestBody.toString())
             .when()
             .post(getTestUrl() + OFFENCES_SEARCH_URI);

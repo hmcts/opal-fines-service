@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.And;
 import io.restassured.response.Response;
-import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.config.Constants;
-import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -38,7 +37,7 @@ import static org.hamcrest.Matchers.notNullValue;
  *   </li>
  * </ul>
  */
-public class DraftAccountCommonSteps {
+public class DraftAccountCommonSteps extends BaseStepDef {
 
     private static final Logger log = LoggerFactory.getLogger(DraftAccountCommonSteps.class);
 
@@ -53,27 +52,27 @@ public class DraftAccountCommonSteps {
     /**
      * Determine whether an ETag value is strong and quoted.
      *
-     * @param etag the ETag header value (may be {@code null})
-     * @return {@code true} if the value matches the strong, quoted pattern
-     *         (e.g., {@code "\"42\""}), otherwise {@code false}
+     * @param etag ETag value to send with the request.
+     * @return true if the ETag is strong and quoted; otherwise false.
      */
     public static boolean isStrongEtag(String etag) {
         return etag != null && STRONG_ETAG.matcher(etag).matches();
     }
 
     /**
-     * Fetch the ETag for a draft account by issuing a GET to {@code /draft-accounts/{id}}.
+     * Fetches the current strong ETag for a draft account by issuing a GET to
+     * {@code /draft-accounts/{id}}.
      *
-     * <p>Returns a strong, quoted ETag string when the resource exists. Returns {@code null} if the resource
-     * is not found (HTTP 404).</p>
+     * <p>Returns a strong, quoted ETag string when the resource exists. Returns {@code null} if the
+     * resource is not found (HTTP 404).</p>
      *
-     * @param baseUrl base URL for the API under test
-     * @param id the draft account identifier
-     * @return strong, quoted ETag value; or {@code null} if the resource does not exist
+     * @param baseUrl base URL for the API under test.
+     * @param id draft-account identifier to fetch.
+     * @return strong quoted ETag for the draft account, or null when the draft account does not
+     *         exist.
      */
     public static String fetchStrongEtag(String baseUrl, String id) {
-        Response r = SerenityRest.given()
-            .header("Authorization", "Bearer " + BearerTokenStepDef.getToken())
+        Response r = authorisedJsonRequestForCurrentUser()
             .accept("application/json")
             .get(baseUrl + Constants.DRAFT_ACCOUNTS_URI + "/" + id);
 
@@ -94,10 +93,10 @@ public class DraftAccountCommonSteps {
     // ──────────────────────────────  JSON utilities  ──────────────────────────────
 
     /**
-     * Attempt to parse a response body as JSON into {@link JSONObject} or {@link JSONArray}.
+     * Attempts to parse a response body as JSON into {@link JSONObject} or {@link JSONArray}.
      *
-     * @param body raw response body (may be {@code null})
-     * @return parsed JSON container or {@link Optional#empty()} if not JSON
+     * @param body response body to parse.
+     * @return parsed JSON value when the body contains valid JSON; otherwise an empty optional.
      */
     private static Optional<Object> tryParseJson(String body) {
         if (body == null) {
@@ -118,11 +117,12 @@ public class DraftAccountCommonSteps {
     }
 
     /**
-     * Recursively test whether a field exists anywhere in a {@link JSONObject}/{@link JSONArray} tree.
+     * Recursively tests whether a field exists anywhere in a {@link JSONObject}/{@link JSONArray}
+     * tree.
      *
-     * @param json  parsed JSON object/array (or primitive/null)
-     * @param field field name to search for
-     * @return {@code true} if the field appears at any depth; otherwise {@code false}
+     * @param json parsed JSON object or array to inspect.
+     * @param field field name to search for in the response body.
+     * @return true if the field exists anywhere in the JSON tree; otherwise false.
      */
     private static boolean containsFieldAnywhere(Object json, String field) {
         if (json == null) {
@@ -165,7 +165,7 @@ public class DraftAccountCommonSteps {
     // ──────────────────────────────  Step definitions  ──────────────────────────────
 
     /**
-     * Verify the last response includes a strong, quoted ETag header.
+     * Asserts that the response must include a strong quoted ETag header.
      */
     @Then("the response must include a strong quoted ETag header")
     public void responseHasStrongQuotedEtag() {
@@ -176,9 +176,10 @@ public class DraftAccountCommonSteps {
     }
 
     /**
-     * Verify the last response body does not contain the specified field anywhere in the JSON structure.
+     * Asserts that the response body does not include the supplied field anywhere in the JSON
+     * structure.
      *
-     * @param field the property name that must not appear in the response body
+     * @param field field name to search for in the response body.
      */
     @Then("the response body must not include the {string} field anywhere")
     public void responseBodyMustNotIncludeFieldAnywhere(String field) {
@@ -195,7 +196,9 @@ public class DraftAccountCommonSteps {
     }
 
     /**
-     * Remember the ETag from the last response under a named key for later reuse.
+     * Stores the ETag from the latest response under a named scenario-context key for later reuse.
+     *
+     * @param name logical name used to store and retrieve the remembered ETag.
      */
     @And("I remember the last response ETag as {string}")
     public void rememberLastResponseEtagAs(String name) {
@@ -204,6 +207,6 @@ public class DraftAccountCommonSteps {
         if (etag == null || etag.isBlank()) {
             Assertions.fail("No ETag available to remember");
         }
-        Serenity.setSessionVariable("etag:" + name).to(etag);
+        scenarioContext().rememberEtag(name, etag);
     }
 }

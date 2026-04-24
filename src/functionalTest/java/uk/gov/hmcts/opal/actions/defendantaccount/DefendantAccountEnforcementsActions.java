@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.actions.defendantaccount;
 
-import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,35 +7,45 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 import static uk.gov.hmcts.opal.utils.JsonObjectUtils.addIntObjectIfPresent;
 import static uk.gov.hmcts.opal.utils.JsonObjectUtils.addLongObjectIfPresent;
 
+/**
+ * Encapsulates reusable calls and session-state handling for defendant-account enforcement
+ * scenarios.
+ */
 public class DefendantAccountEnforcementsActions extends BaseStepDef {
 
-    private static final String CREATED_DEFENDANT_ACCOUNT_ID = "CREATED_DEFENDANT_ACCOUNT_ID";
-    private static final String DEFENDANT_ACCOUNT_ETAG = "DEFENDANT_ACCOUNT_ETAG";
-
+    /**
+     * Extracts the created defendant-account ID from the last response and stores it in the typed
+     * scenario context for later enforcement steps.
+     */
     public void storeCreatedDefendantAccountIdFromLastResponse() {
         Object accountId = SerenityRest.lastResponse().jsonPath().get("account_id");
         assertNotNull(accountId, "Expected published draft account response to contain account_id");
-        Serenity.setSessionVariable(CREATED_DEFENDANT_ACCOUNT_ID).to(String.valueOf(accountId));
+        scenarioContext().setCreatedDefendantAccountId(String.valueOf(accountId));
     }
 
+    /**
+     * Retrieves the enforcement status for the defendant account created during the current
+     * scenario and remembers the returned ETag for later update requests.
+     */
     public void getCreatedDefendantAccountEnforcementStatus() {
-        var response = SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
+        var response = authorisedJsonRequest()
             .when()
             .get(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountIdOrFail() + "/enforcement-status");
 
-        Serenity.setSessionVariable(DEFENDANT_ACCOUNT_ETAG).to(response.getHeader("ETag"));
+        scenarioContext().setDefendantAccountEtag(response.getHeader("ETag"));
     }
 
+    /**
+     * Patches the enforcement override for the defendant account created during the current
+     * scenario.
+     *
+     * @param data table-driven values used to build the override payload and request headers.
+     * @throws JSONException if the JSON request body cannot be assembled.
+     */
     public void patchCreatedDefendantAccountEnforcementOverride(Map<String, String> data) throws JSONException {
         JSONObject enforcementOverride = new JSONObject()
             .put("enforcement_override_result", new JSONObject()
@@ -49,25 +58,24 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
 
         String ifMatch = data.get("If-Match");
         if (ifMatch == null || ifMatch.isBlank()) {
-            ifMatch = Serenity.sessionVariableCalled(DEFENDANT_ACCOUNT_ETAG);
+            ifMatch = scenarioContext().getDefendantAccountEtag();
         }
 
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
+        authorisedJsonRequest()
             .header("Business-Unit-Id", data.get("business_unit_id"))
             .header("If-Match", ifMatch)
-            .accept("*/*")
-            .contentType("application/json")
             .body(requestBody.toString())
             .when()
             .patch(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountIdOrFail());
     }
 
+    /**
+     * Returns the created defendant-account ID stored for the current scenario, failing when it
+     * has not yet been captured.
+     *
+     * @return created defendant-account ID recorded in the typed scenario context.
+     */
     private String createdDefendantAccountIdOrFail() {
-        String defendantAccountId = Serenity.sessionVariableCalled(CREATED_DEFENDANT_ACCOUNT_ID);
-        assertNotNull(defendantAccountId, "No created defendant account ID found in session");
-        assertFalse(defendantAccountId.isBlank(), "Created defendant account ID is blank");
-        return defendantAccountId;
+        return scenarioContext().getCreatedDefendantAccountIdOrFail();
     }
 }

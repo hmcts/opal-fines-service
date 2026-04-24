@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import net.serenitybdd.core.Serenity;
-import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 import java.util.Map;
@@ -13,27 +11,40 @@ import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.config.Constants.RESULTS_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
+/**
+ * Defines Cucumber steps for the results API.
+ */
 public class GetResultsStepDef extends BaseStepDef {
+    /**
+     * Requests the results endpoint for the supplied result identifiers.
+     *
+     * @param resultIds comma-separated result identifiers to request.
+     */
     @When("I make a request to get the results {string}")
     public void getResults(String resultIds) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
+        authorisedJsonRequest()
             .param("result_ids", resultIds)
             .when()
             .get(getTestUrl() + RESULTS_URI);
     }
 
+    /**
+     * Asserts that the results response contains the expected number of records.
+     *
+     * @param count expected number of matching records.
+     */
     @Then("The results response contains {int} results")
     public void resultsResponseContainsCount(int count) {
         then().assertThat()
             .statusCode(200).body("count", equalTo(count));
     }
 
+    /**
+     * Asserts that the results response contains the following result.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
     @Then("The results response contains the following result")
     public void resultsResponseContains(DataTable data) {
         Map<String, String> expected = data.asMap(String.class, String.class);
@@ -45,13 +56,16 @@ public class GetResultsStepDef extends BaseStepDef {
         }
     }
 
-    /** Verifies the HTTP status code of the last API response. */
+    /**
+     * Asserts that the latest API or raw-client response returned the expected HTTP status code.
+     *
+     * @param status expected HTTP status code.
+     */
     @Then("the response status is {int}")
     public void theResponseStatusIs(int status) {
-        TestHttpResponse httpResponse = Serenity.sessionVariableCalled(LATEST_HTTP_RESPONSE);
+        TestHttpResponse httpResponse = scenarioContext().consumeLatestHttpResponse();
         if (httpResponse != null) {
             assertEquals(status, httpResponse.statusCode(), "Unexpected HTTP status");
-            Serenity.setSessionVariable(LATEST_HTTP_RESPONSE).to(null);
             return;
         }
         then()

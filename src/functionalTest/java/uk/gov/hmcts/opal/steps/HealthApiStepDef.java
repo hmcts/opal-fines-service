@@ -1,30 +1,20 @@
 package uk.gov.hmcts.opal.steps;
 
-import io.cucumber.java.PendingException;
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import uk.gov.hmcts.opal.utils.TestHttpClient;
-import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
+import uk.gov.hmcts.opal.workflows.HealthApiWorkflow;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-//import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
-
+/**
+ * Defines Cucumber steps for the health endpoint.
+ */
 public class HealthApiStepDef extends BaseStepDef {
+    private final HealthApiWorkflow workflow = new HealthApiWorkflow();
 
+    /**
+     * Calls the fines-service health endpoint and asserts that the service reports as UP.
+     */
     @Then("I check the health of the fines api")
     public void checkHealthOfFinesApi() {
-        System.out.println("Test URL: " + getTestUrl());
-        TestHttpResponse response = TestHttpClient.get(getTestUrl() + "/health", Map.of());
-        assertEquals(200, response.statusCode());
-        assertEquals("UP", response.jsonPath("status"));
+        workflow.checkHealthApiIsUp();
     }
 
-    @And("this test is todo")
-    public void thisStepIsTodo() {
-        //TODO step is todo
-        throw new PendingException();
-    }
 }
