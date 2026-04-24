@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceUnitUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -51,23 +53,28 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     @PersistenceContext
     private EntityManager entityManager;
 
+    private PersistenceUnitUtil unitUtil;
+
+    @BeforeEach
+    void setUp() {
+        entityManager.clear();
+        unitUtil = entityManagerFactory.getPersistenceUnitUtil();
+    }
+
     @Test
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
-        entityManager.clear();
-
         CourtEntity court = entityManager.find(CourtEntity.class, COURT_ID);
-        PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
-        assertNotNull(court);
-        assertFalse(unitUtil.isLoaded(court, "businessUnit"));
-        assertFalse(unitUtil.isLoaded(court, "localJusticeArea"));
-        assertFalse(unitUtil.isLoaded(court, "parentCourt"));
+        assertAll(
+            () -> assertNotNull(court),
+            () -> assertFalse(unitUtil.isLoaded(court, "businessUnit")),
+            () -> assertFalse(unitUtil.isLoaded(court, "localJusticeArea")),
+            () -> assertFalse(unitUtil.isLoaded(court, "parentCourt"))
+        );
     }
 
     @Test
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForDirectFetch() {
-        entityManager.clear();
-
         CourtEntity court = courtLiteRepository.findById(COURT_ID).orElseThrow();
 
         assertAssociationsRemainLazy(court);
@@ -75,8 +82,6 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForSpecificationFetch() {
-        entityManager.clear();
-
         Page<CourtEntity> page = courtLiteRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),
             ffq -> ffq.page(Pageable.unpaged())
@@ -89,41 +94,39 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void shouldLoadFullEntityGraphForDirectFetch() {
-        entityManager.clear();
-
         CourtEntity court = courtRepository.findById(COURT_ID).orElseThrow();
-        PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
-        assertTrue(unitUtil.isLoaded(court, "businessUnit"));
-        assertTrue(unitUtil.isLoaded(court, "localJusticeArea"));
-        assertTrue(unitUtil.isLoaded(court, "parentCourt"));
-        assertEquals(BUSINESS_UNIT_ID, court.getBusinessUnit().getBusinessUnitId());
-        assertEquals(LOCAL_JUSTICE_AREA_ID, court.getLocalJusticeArea().getLocalJusticeAreaId());
-        assertEquals(PARENT_COURT_ID, court.getParentCourt().getCourtId());
+        assertAll(
+            () -> assertTrue(unitUtil.isLoaded(court, "businessUnit")),
+            () -> assertTrue(unitUtil.isLoaded(court, "localJusticeArea")),
+            () -> assertTrue(unitUtil.isLoaded(court, "parentCourt")),
+            () -> assertEquals(BUSINESS_UNIT_ID, court.getBusinessUnit().getBusinessUnitId()),
+            () -> assertEquals(LOCAL_JUSTICE_AREA_ID, court.getLocalJusticeArea().getLocalJusticeAreaId()),
+            () -> assertEquals(PARENT_COURT_ID, court.getParentCourt().getCourtId())
+        );
     }
 
     @Test
     void shouldLoadFullEntityGraphForSpecificationFetch() {
-        entityManager.clear();
-
         Page<CourtEntity> page = courtRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),
             ffq -> ffq.page(Pageable.unpaged())
         );
         CourtEntity court = page.getContent().getFirst();
-        PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
-        assertEquals(1, page.getContent().size());
-        assertTrue(unitUtil.isLoaded(court, "businessUnit"));
-        assertTrue(unitUtil.isLoaded(court, "localJusticeArea"));
-        assertTrue(unitUtil.isLoaded(court, "parentCourt"));
+        assertAll(
+            () -> assertEquals(1, page.getContent().size()),
+            () -> assertTrue(unitUtil.isLoaded(court, "businessUnit")),
+            () -> assertTrue(unitUtil.isLoaded(court, "localJusticeArea")),
+            () -> assertTrue(unitUtil.isLoaded(court, "parentCourt"))
+        );
     }
 
     private void assertAssociationsRemainLazy(CourtEntity court) {
-        PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
-
-        assertFalse(unitUtil.isLoaded(court, "businessUnit"));
-        assertFalse(unitUtil.isLoaded(court, "localJusticeArea"));
-        assertFalse(unitUtil.isLoaded(court, "parentCourt"));
+        assertAll(
+            () -> assertFalse(unitUtil.isLoaded(court, "businessUnit")),
+            () -> assertFalse(unitUtil.isLoaded(court, "localJusticeArea")),
+            () -> assertFalse(unitUtil.isLoaded(court, "parentCourt"))
+        );
     }
 }
