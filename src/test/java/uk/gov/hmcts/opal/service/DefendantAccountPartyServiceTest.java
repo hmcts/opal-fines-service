@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,7 +107,7 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
 
-        DefendantAccountParty request = new DefendantAccountParty(); // DTO - constructor should exist
+        DefendantAccountParty request = new DefendantAccountParty();
         GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
@@ -354,6 +355,135 @@ class DefendantAccountPartyServiceTest {
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
         assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
 
+        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
+        verifyNoInteractions(defendantAccountPartyServiceProxy);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
+        // Arrange
+        String authHeader = "Bearer token";
+        Long defendantAccountId = 33L;
+        Long defendantAccountPartyId = 44L;
+        short businessUnitId = 9;
+        String ifMatch = "W/\"3\"";
+        DefendantAccountParty request = new DefendantAccountParty();
+        RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
+
+        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyId,
+            businessUnitId,
+            "bu-user-id",
+            ifMatch,
+            "bu-user-id",
+            request)).thenReturn(expectedResponse);
+
+        // Act
+        RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request);
+
+        // Assert
+        assertThat(actual).isSameAs(expectedResponse);
+
+        // Capture the postedBy and businessUnitUserId arguments for verification
+        ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(defendantAccountPartyServiceProxy).removeDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            buUserIdCaptor.capture(),
+            eq(ifMatch),
+            postedByCaptor.capture(),
+            eq(request)
+        );
+
+        // When businessUnitUserId is not null, not blank, it should be the same as the value derived from the auth
+        // token
+        assertThat(buUserIdCaptor.getValue()).isEqualTo("bu-user-id");
+        assertThat(postedByCaptor.getValue()).isEqualTo("bu-user-id");
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameAndEmptyBusinessUnitUserId() {
+        // Arrange
+        String authHeader = "Bearer token";
+        Long defendantAccountId = 55L;
+        Long defendantAccountPartyId = 66L;
+        short businessUnitId = 11;
+        String ifMatch = "W/\"4\"";
+        DefendantAccountParty request = new DefendantAccountParty();
+        RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
+
+        // No BusinessUnitUser present
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.empty());
+        when(userState.getUserName()).thenReturn("fallback-user");
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyId,
+            businessUnitId,
+            "",
+            ifMatch,
+            "fallback-user",
+            request)).thenReturn(expectedResponse);
+
+        // Act
+        RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request);
+
+        // Assert
+        assertThat(actual).isSameAs(expectedResponse);
+
+        ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(defendantAccountPartyServiceProxy).removeDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            buUserIdCaptor.capture(),
+            eq(ifMatch),
+            postedByCaptor.capture(),
+            eq(request)
+        );
+
+        // When BusinessUnitUser is not provided the helper returns an empty string
+        assertThat(buUserIdCaptor.getValue()).isEmpty();
+        assertThat(postedByCaptor.getValue()).isEqualTo("fallback-user");
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
+        // Arrange
+        String authHeader = "Bearer token";
+        Long defendantAccountId = 77L;
+        Long defendantAccountPartyId = 88L;
+        short businessUnitId = 13;
+        String ifMatch = "W/\"5\"";
+        DefendantAccountParty request = new DefendantAccountParty();
+
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId,
+            FinesPermission.ACCOUNT_MAINTENANCE)).thenReturn(false);
+
+        PermissionNotAllowedException ex = assertThrows(PermissionNotAllowedException.class, () ->
+            defendantAccountPartyService.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request)
+        );
+
+        // When the user does not have the correct permission, the call is not passed to the proxy
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
+        assertThat(ex.getBusinessUnitId()).isNull();
         verify(userStateService).checkForAuthorisedUser(authHeader);
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);

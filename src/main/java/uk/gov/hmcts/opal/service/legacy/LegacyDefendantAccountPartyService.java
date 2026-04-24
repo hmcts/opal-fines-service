@@ -33,6 +33,7 @@ import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -480,5 +481,16 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             .version(legacy.getVersion() == null ? null : BigInteger.valueOf(legacy.getVersion()))
             .defendantAccountParty(modernParty)
             .build();
+    }
+
+    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        Short businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String postedBy,
+        DefendantAccountParty defendantAccountParty) {
+
+        throw new UnsupportedOperationException("Legacy removeDefendantAccountParty is not implemented");
     }
 }
