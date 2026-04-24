@@ -1,5 +1,11 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
+import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
+import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
+import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity_;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -7,12 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.RecordType;
-import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
-import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
-import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
-import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity_;
-import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 
 @Service
