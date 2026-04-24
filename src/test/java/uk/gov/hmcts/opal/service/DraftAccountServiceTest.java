@@ -43,6 +43,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -200,6 +201,30 @@ class DraftAccountServiceTest {
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
+    }
+
+    @Test
+    void testSubmitDraftAccounts_invalidHearingLanguage_rejectedBySchema() {
+        AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .submittedBy("SpoofedUser")
+            .submittedByName("Spoofed Name")
+            .account(createAccountString().replace("\"hearing_language\": \"EN\"", "\"hearing_language\": \"English\""))
+            .accountType(DraftAccountType.FINE)
+            .timelineData(createTimelineDataString())
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)
+        );
+
+        JsonSchemaValidationException ex = assertThrows(
+            JsonSchemaValidationException.class,
+            () -> draftAccountService.submitDraftAccount(addDraftAccountDto, "authHeaderValue")
+        );
+
+        assertTrue(ex.getMessage().contains("hearing_language"));
+        verify(draftAccountTransactional, never()).submitDraftAccount(any());
     }
 
     @Test
@@ -519,8 +544,8 @@ class DraftAccountServiceTest {
                         "nationality_1": "British",
                         "occupation": "Engineer",
                         "debtor_detail": {
-                            "document_language": "English",
-                            "hearing_language": "English",
+                            "document_language": "EN",
+                            "hearing_language": "EN",
                             "vehicle_make": "Toyota",
                             "vehicle_registration_mark": "ABC123",
                             "aliases": [

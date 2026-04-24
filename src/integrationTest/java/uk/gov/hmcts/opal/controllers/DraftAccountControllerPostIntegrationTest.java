@@ -52,6 +52,57 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         }
     }
 
+    private String invalidLanguageRawJsonCreateRequestBody(String languageField) {
+        AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short) 78)
+            .submittedBy("BUUID1")
+            .submittedByName("John")
+            .account(validAccountJsonStringWithDebtorLanguages()
+                .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
+            .accountType(DraftAccountType.FINE)
+            .timelineData(validTimelineDataString())
+            .build();
+
+        try {
+            return objectMapper.writeValueAsString(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize AddDraftAccountRequestDto", e);
+        }
+    }
+
+    private static String validAccountJsonStringWithDebtorLanguages() {
+        return """
+            {
+              "account_type": "Fine",
+              "defendant_type": "Adult",
+              "originator_name": "Police Force",
+              "originator_id": 12345,
+              "originator_type": "NEW",
+              "enforcement_court_id": 101,
+              "payment_card_request": true,
+              "account_sentence_date": "2023-12-01",
+              "defendant": {
+                "company_flag": false,
+                "surname": "LNAME",
+                "address_line_1": "123 Main Street",
+                "debtor_detail": {
+                  "document_language": "EN",
+                  "hearing_language": "EN"
+                }
+              },
+              "offences": [],
+              "payment_terms": {
+                "payment_terms_type_code": "P",
+                "effective_date": "2023-11-01",
+                "instalment_period": "M",
+                "lump_sum_amount": 1000.00,
+                "instalment_amount": 200.00,
+                "default_days_in_jail": 5
+              }
+            }
+            """;
+    }
+
     private static String validAccountJsonString() {
         return """
             {
@@ -214,6 +265,44 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when document language is set to English")
+    void shouldReturn400WhenDocumentLanguageIsEnglish() throws Exception {
+        String request = invalidLanguageRawJsonCreateRequestBody("document_language");
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when hearing language is set to English")
+    void shouldReturn400WhenHearingLanguageIsEnglish() throws Exception {
+        String request = invalidLanguageRawJsonCreateRequestBody("hearing_language");
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 
     @Test
@@ -406,8 +495,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                   "nationality_1": "British",
                   "occupation": "Engineer",
                   "debtor_detail": {
-                    "document_language": "English",
-                    "hearing_language": "English",
+                    "document_language": "EN",
+                    "hearing_language": "EN",
                     "vehicle_make": "Toyota",
                     "vehicle_registration_mark": "ABC123",
                     "aliases": [

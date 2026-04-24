@@ -468,8 +468,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   "nationality_1": "British",
                   "occupation": "Engineer",
                   "debtor_detail": {
-                    "document_language": "English",
-                    "hearing_language": "English",
+                    "document_language": "EN",
+                    "hearing_language": "EN",
                     "vehicle_make": "Toyota",
                     "vehicle_registration_mark": "ABC123",
                     "aliases": [
@@ -570,8 +570,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                   "nationality_1": "British",
                   "occupation": "Engineer",
                   "debtor_detail": {
-                    "document_language": "English",
-                    "hearing_language": "English",
+                    "document_language": "EN",
+                    "hearing_language": "EN",
                     "vehicle_make": "Toyota",
                     "vehicle_registration_mark": "ABC123",
                     "aliases": [
