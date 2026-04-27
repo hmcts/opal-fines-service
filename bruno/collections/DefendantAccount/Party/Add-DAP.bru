@@ -1,0 +1,56 @@
+meta {
+  name: Add-DAP
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseURL}}/defendant-accounts/{{defendantAccountId}}/defendant-account-parties
+  body: json
+  auth: bearer
+}
+
+headers {
+  Business-Unit-Id: 78
+  If-Match: 1
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+body:json {
+  {
+    "defendant_account_party": {
+      "defendant_account_party_type": "Defendant",
+      "is_debtor": true,
+      "party_details": {
+        "party_id": "PARTY-12345",
+        "organisation_flag": true,
+        "organisation_details": {
+          "organisation_name": "Acme Legal Services Ltd",
+          "organisation_aliases": null
+        }
+      },
+      "address": {
+        "address_line_1": "1 High Street",
+        "address_line_2": null,
+        "address_line_3": null,
+        "address_line_4": null,
+        "address_line_5": null,
+        "postcode": "SW1A 1AA"
+      },
+      "contact_details": null,
+      "vehicle_details": null,
+      "employer_details": null,
+      "language_preferences": null
+    }
+  }
+  
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
