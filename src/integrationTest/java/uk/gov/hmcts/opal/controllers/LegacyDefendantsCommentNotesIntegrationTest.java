@@ -76,8 +76,8 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     }
 
     @Test
-    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 500 Error [@PO-1908]")
-    void testUpdateDefAcc_CommentNotes_500Error() throws Exception {
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 400 Error [@PO-1908]")
+    void testUpdateDefAcc_CommentNotes_400ErrorForMissingRequiredHeader() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         String requestJson = commentAndNotesPayload(
@@ -88,16 +88,16 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
         );
 
         ResultActions actions = mockMvc.perform(
-            patch(URL_BASE + "/500")
+            patch(URL_BASE + "/400")
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
         );
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":Legacy_UpdateDefendantAccount_CommentNotes_500Error body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":Legacy_UpdateDefendantAccount_CommentNotes_400Error body:\n{}", ToJsonString.toPrettyJson(body));
 
-        actions.andExpect(status().is5xxServerError())
+        actions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(header().doesNotExist("ETag"));
     }

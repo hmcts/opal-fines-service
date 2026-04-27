@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -372,5 +373,22 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
         assertNotNull(etag, "ETag must be present");
         assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
+    }
+
+    @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - Missing required headers [@PO-2281]")
+    void patch_badRequest_whenMissingRequiredHeader() throws Exception {
+        authoriseAllPermissions();
+        HttpHeaders headers = new HttpHeaders();
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON).content("")
+            ).andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"))
+            .andExpect(jsonPath("$.title").value("Missing Required Header"))
+            .andExpect(jsonPath("$.detail").value("Required request header \"Authorization\" is missing"))
+            .andExpect(jsonPath("$.instance").isNotEmpty())
+            .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 }
