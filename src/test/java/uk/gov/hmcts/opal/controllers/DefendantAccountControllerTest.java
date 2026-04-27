@@ -17,6 +17,8 @@ import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -125,6 +127,47 @@ class DefendantAccountControllerTest {
 
         verify(defendantAccountEnforcementService).addEnforcement(defendantAccountId, businessUnitId, ifMatch,
             BEARER_TOKEN, request);
+    }
+
+    @Test
+    void testRemoveDefendantAccountParty_Success() {
+        // Arrange
+        Long defendantAccountId = 1L;
+        String businessUnitId = "10";
+        String ifMatch = "1";
+
+        RemoveDefendantAccountPartyResponse request = new RemoveDefendantAccountPartyResponse();
+        GetDefendantAccountPartyResponse mockResponse = new GetDefendantAccountPartyResponse();
+
+        when(defendantAccountPartyService.removeDefendantAccountParty(
+            defendantAccountId,
+            BEARER_TOKEN,
+            ifMatch,
+            businessUnitId,
+            request
+        )).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<GetDefendantAccountPartyResponse> response =
+            defendantAccountController.removeDefendantAccountParty(
+                defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                BEARER_TOKEN,
+                request
+            );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockResponse, response.getBody());
+
+        verify(defendantAccountPartyService).removeDefendantAccountParty(
+            defendantAccountId,
+            BEARER_TOKEN,
+            ifMatch,
+            businessUnitId,
+            request
+        );
     }
 
     @Test

@@ -488,4 +488,29 @@ class DefendantAccountPartyServiceTest {
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }
+
+    @Test
+    void removeDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
+        // Arrange
+        String authHeader = "Bearer token";
+        Long defendantAccountId = 33L;
+        Long defendantAccountPartyId = 44L;
+        short businessUnitId = 9;
+        String ifMatch = "W/\"3\"";
+        DefendantAccountParty request = new DefendantAccountParty();
+        RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
+
+        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
+        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+                                                                           businessUnitId,
+                                                                           ifMatch,
+                                                                           "bu-user-id",
+                                                                           "bu-user-id",
+                                                                           request)).thenReturn(expectedResponse);
 }
