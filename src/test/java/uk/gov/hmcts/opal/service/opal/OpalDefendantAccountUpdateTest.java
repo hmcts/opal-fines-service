@@ -112,7 +112,7 @@ class OpalDefendantAccountUpdateTest {
         when(courtLiteRepo.findById(100L)).thenReturn(Optional.of(court));
 
         // Reference entities: stub getters so the service can copy IDs onto the account
-        ResultEntity.Lite eor = mock(ResultEntity.Lite.class);
+        ResultEntity eor = mock(ResultEntity.class);
         when(eor.getResultId()).thenReturn("EO-1");
         when(resultRepo.findById("EO-1")).thenReturn(Optional.of(eor));
 

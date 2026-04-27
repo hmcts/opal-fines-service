@@ -18,7 +18,7 @@ class ResultMapperTest {
     @Test
     void toRefData_shouldMapLiteEntityToDto() {
         // Arrange
-        ResultEntity.Lite entity = ResultEntity.Lite.builder()
+        ResultEntity entity = ResultEntity.builder()
             .resultId("R123")
             .resultTitle("Test Result")
             .resultTitleCy("Test Result Welsh")
@@ -45,7 +45,7 @@ class ResultMapperTest {
     @Test
     void toRefDataFromFull_shouldMapFullEntityToDto() {
         // Arrange
-        ResultEntity.Lite entity = ResultEntity.Lite.builder()
+        ResultEntity entity = ResultEntity.builder()
             .resultId("R456")
             .resultTitle("Full Result")
             .resultTitleCy("Full Result Welsh")
@@ -76,7 +76,7 @@ class ResultMapperTest {
     @Test
     void toReferenceDataResponse_shouldConvertListToResponse() {
         // Arrange
-        ResultEntity.Lite entity1 = ResultEntity.Lite.builder()
+        ResultEntity entity1 = ResultEntity.builder()
             .resultId("R1")
             .resultTitle("Result 1")
             .resultTitleCy("Result 1 Welsh")
@@ -84,7 +84,7 @@ class ResultMapperTest {
             .active(true)
             .build();
 
-        ResultEntity.Lite entity2 = ResultEntity.Lite.builder()
+        ResultEntity entity2 = ResultEntity.builder()
             .resultId("R2")
             .resultTitle("Result 2")
             .resultTitleCy("Result 2 Welsh")
@@ -92,7 +92,7 @@ class ResultMapperTest {
             .active(false)
             .build();
 
-        List<ResultEntity.Lite> entities = List.of(entity1, entity2);
+        List<ResultEntity> entities = List.of(entity1, entity2);
 
         // Act
         ResultReferenceDataResponse response = resultMapper.toReferenceDataResponse(entities);
@@ -110,7 +110,7 @@ class ResultMapperTest {
     @Test
     void toDto_shouldMapLiteEntityToFullResultDto() {
         // Arrange — build full entity
-        ResultEntity.Lite entity = ResultEntity.Lite.builder()
+        ResultEntity entity = ResultEntity.builder()
             .resultId("R999")
             .resultTitle("Full Title")
             .resultTitleCy("Teitl Llawn")

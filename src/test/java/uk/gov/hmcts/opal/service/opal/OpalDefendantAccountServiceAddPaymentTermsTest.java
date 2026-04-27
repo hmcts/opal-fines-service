@@ -137,7 +137,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(any(Long.class),
             any(String.class))).thenReturn(Optional.of(enforcementLite));
 
-        ResultEntity.Lite resultEntityLite = new ResultEntity.Lite();
+        ResultEntity resultEntityLite = new ResultEntity();
         resultEntityLite.setResultId(String.valueOf(55L));
         resultEntityLite.setExtendTtpPreserveLastEnf(Boolean.FALSE);
         //when(resultRepository.findById(Long.valueOf("55"))).thenReturn(Optional.of(resultEntityLite));

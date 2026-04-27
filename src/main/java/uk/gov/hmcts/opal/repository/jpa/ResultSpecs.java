@@ -1,38 +1,36 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
-import org.springframework.stereotype.Component;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity_;
-import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 
 import java.util.List;
 import java.util.Optional;
 
-
 @Component
-public class ResultSpecsLite extends EntitySpecs<Lite> {
+public class ResultSpecs extends EntitySpecs<ResultEntity> {
 
-    public Specification<Lite> findBySearchCriteria(ResultSearchDto criteria) {
+    public Specification<ResultEntity> findBySearchCriteria(ResultSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getResultId()).map(ResultSpecsLite::likeResultId),
-            notBlank(criteria.getResultTitle()).map(ResultSpecsLite::likeResultTitle),
-            notBlank(criteria.getResultTitleCy()).map(ResultSpecsLite::likeResultTitleCy),
-            notBlank(criteria.getResultType()).map(ResultSpecsLite::likeResultType),
+            notBlank(criteria.getResultId()).map(ResultSpecs::likeResultId),
+            notBlank(criteria.getResultTitle()).map(ResultSpecs::likeResultTitle),
+            notBlank(criteria.getResultTitleCy()).map(ResultSpecs::likeResultTitleCy),
+            notBlank(criteria.getResultType()).map(ResultSpecs::likeResultType),
             numericShort(criteria.getImpositionAllocationPriority())
-                .map(ResultSpecsLite::equalsImpositionAllocationPriority),
-            notBlank(criteria.getImpositionCreditor()).map(ResultSpecsLite::likeImpositionCreditor)
+                .map(ResultSpecs::equalsImpositionAllocationPriority),
+            notBlank(criteria.getImpositionCreditor()).map(ResultSpecs::likeImpositionCreditor)
         ));
     }
 
-    public Specification<Lite> referenceDataFilter(Optional<String> filter) {
+    public Specification<ResultEntity> referenceDataFilter(Optional<String> filter) {
         return Specification.allOf(specificationList(
             filter.filter(s -> !s.isBlank()).map(this::likeAnyResult)
         ));
     }
 
-    public Specification<ResultEntity.Lite> referenceDataByIds(
+    public Specification<ResultEntity> referenceDataByIds(
         Optional<List<String>> resultIds,
         Boolean active,
         Boolean manualEnforcement,
@@ -42,54 +40,53 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
 
         return Specification.allOf(specificationList(
             // optional resultIds clause
-            resultIds.map(ResultSpecsLite::equalsAnyResultId),
+            resultIds.map(ResultSpecs::equalsAnyResultId),
 
-            Optional.ofNullable(active).map(ResultSpecsLite::hasActive),
-            Optional.ofNullable(manualEnforcement).map(ResultSpecsLite::hasManualEnforcementOnly),
-            Optional.ofNullable(generatesHearing).map(ResultSpecsLite::hasGeneratesHearing),
-            Optional.ofNullable(enforcement).map(ResultSpecsLite::hasEnforcement),
-            Optional.ofNullable(enforcementOverride).map(ResultSpecsLite::hasEnforcementOverride)
+            Optional.ofNullable(active).map(ResultSpecs::hasActive),
+            Optional.ofNullable(manualEnforcement).map(ResultSpecs::hasManualEnforcementOnly),
+            Optional.ofNullable(generatesHearing).map(ResultSpecs::hasGeneratesHearing),
+            Optional.ofNullable(enforcement).map(ResultSpecs::hasEnforcement),
+            Optional.ofNullable(enforcementOverride).map(ResultSpecs::hasEnforcementOverride)
 
         ));
     }
 
-
-    public static Specification<ResultEntity.Lite> equalsAnyResultId(List<String> resultIds) {
+    public static Specification<ResultEntity> equalsAnyResultId(List<String> resultIds) {
         return (root, query, builder) -> root.get(ResultEntity_.resultId).in(resultIds);
     }
 
-    public static Specification<Lite> likeResultId(String resultId) {
+    public static Specification<ResultEntity> likeResultId(String resultId) {
         return (root, query, builder) -> likeWildcardPredicate(
             root.get(ResultEntity_.resultId), builder, resultId);
     }
 
-    public static Specification<Lite> likeResultTitle(String resultTitle) {
+    public static Specification<ResultEntity> likeResultTitle(String resultTitle) {
         return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.resultTitle), builder,
                                                                resultTitle);
     }
 
-    public static Specification<ResultEntity.Lite> likeResultTitleCy(String resultTitleCy) {
+    public static Specification<ResultEntity> likeResultTitleCy(String resultTitleCy) {
         return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.resultTitleCy), builder,
                                                                resultTitleCy);
     }
 
-    public static Specification<Lite> likeResultType(String resultType) {
+    public static Specification<ResultEntity> likeResultType(String resultType) {
         return (root, query, builder) ->
             likeWildcardPredicate(root.get(ResultEntity_.resultType), builder, resultType);
     }
 
-    public static Specification<Lite>
+    public static Specification<ResultEntity>
         equalsImpositionAllocationPriority(Short impositionAllocationPriority) {
         return (root, query, builder) -> builder.equal(root.get(ResultEntity_.impositionAllocationPriority),
                                                        impositionAllocationPriority);
     }
 
-    public static Specification<ResultEntity.Lite> likeImpositionCreditor(String impositionCreditor) {
+    public static Specification<ResultEntity> likeImpositionCreditor(String impositionCreditor) {
         return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.impositionCreditor), builder,
                                                                impositionCreditor);
     }
 
-    public Specification<Lite> likeAnyResult(String filter) {
+    public Specification<ResultEntity> likeAnyResult(String filter) {
         return Specification.anyOf(
             likeResultId(filter),
             likeResultTitle(filter),
@@ -97,29 +94,28 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         );
     }
 
-    public static Specification<ResultEntity.Lite> hasActive(boolean active) {
+    public static Specification<ResultEntity> hasActive(boolean active) {
         return (root, query, builder) -> builder.equal(root.get(
             ResultEntity_.active), active);
     }
 
-    public static Specification<ResultEntity.Lite> hasManualEnforcementOnly(boolean manualEnforcement) {
+    public static Specification<ResultEntity> hasManualEnforcementOnly(boolean manualEnforcement) {
         return (root, query, builder) -> builder.equal(root.get(
             ResultEntity_.manualEnforcement), manualEnforcement);
     }
 
-    public static Specification<ResultEntity.Lite> hasGeneratesHearing(boolean generatesHearing) {
+    public static Specification<ResultEntity> hasGeneratesHearing(boolean generatesHearing) {
         return (root, query, builder) -> builder.equal(root.get(
             ResultEntity_.generatesHearing), generatesHearing);
     }
 
-    public static Specification<ResultEntity.Lite> hasEnforcement(boolean hasEnforcement) {
+    public static Specification<ResultEntity> hasEnforcement(boolean hasEnforcement) {
         return (root, query, builder) -> builder.equal(root.get(
             ResultEntity_.enforcement), hasEnforcement);
     }
 
-    public static Specification<ResultEntity.Lite> hasEnforcementOverride(boolean enforcementOverride) {
+    public static Specification<ResultEntity> hasEnforcementOverride(boolean enforcementOverride) {
         return (root, query, builder) -> builder.equal(root.get(ResultEntity_.enforcementOverride),
             enforcementOverride);
     }
-
 }

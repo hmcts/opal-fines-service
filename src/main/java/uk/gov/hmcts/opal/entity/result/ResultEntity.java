@@ -3,24 +3,40 @@ package uk.gov.hmcts.opal.entity.result;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+
+import java.util.List;
 
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@MappedSuperclass
+@Entity
+@Table(name = "results")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public abstract class ResultEntity {
+@NamedEntityGraph(name = ResultEntity.ENTITY_GRAPH_LITE)
+@NamedEntityGraph(
+    name = ResultEntity.ENTITY_GRAPH_FULL,
+    attributeNodes = {
+        @NamedAttributeNode("enforcements")
+    }
+)
+public class ResultEntity {
+
+    public static final String ENTITY_GRAPH_LITE = "ResultEntity.lite";
+    public static final String ENTITY_GRAPH_FULL = "ResultEntity.full";
 
     @Id
     @Column(name = "result_id")
@@ -99,14 +115,6 @@ public abstract class ResultEntity {
     @Column(name = "enf_next_permitted_actions")
     private String enfNextPermittedActions;
 
-    @Entity
-    @Getter
-    @EqualsAndHashCode(callSuper = true)
-    @Table(name = "results")
-    @SuperBuilder
-    @NoArgsConstructor
-    public static class Lite extends ResultEntity {
-
-    }
-
+    @OneToMany(mappedBy = "result", fetch = FetchType.LAZY)
+    private List<EnforcementEntity> enforcements;
 }

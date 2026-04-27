@@ -704,7 +704,7 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static EnforcementOverrideResult buildEnforcementOverrideResult(ResultEntity.Lite entity) {
+    static EnforcementOverrideResult buildEnforcementOverrideResult(ResultEntity entity) {
         return Optional.ofNullable(entity).map(r -> EnforcementOverrideResult.builder()
                 .enforcementOverrideId(r.getResultId())
                 .enforcementOverrideTitle(r.getResultTitle())
@@ -713,7 +713,7 @@ public class OpalDefendantAccountBuilders {
     }
 
     static EnforcementOverrideResultDefendantAccount buildEnforcementOverrideResultDefendantAccount(
-        ResultEntity.Lite entity) {
+        ResultEntity entity) {
         return Optional.ofNullable(entity).map(r -> EnforcementOverrideResultDefendantAccount.builder()
                 .enforcementOverrideResultId(r.getResultId())
                 .build())
@@ -750,7 +750,7 @@ public class OpalDefendantAccountBuilders {
 
     static EnforcementStatus buildEnforcementStatus(DefendantAccountEntity defendantEntity,
         DefendantAccountPartiesEntity defendantParty, DebtorDetailEntity debtDetails,
-        ResultEntity.Lite recentResult, EnforcementOverride override,
+        ResultEntity recentResult, EnforcementOverride override,
         EnforcementActionDefendantAccount enfActDefAcc) {
 
         return EnforcementStatus.builder()
@@ -772,7 +772,7 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
 
-        ResultEntity.Lite recentResult = recentEnforcement.getResult();
+        ResultEntity recentResult = recentEnforcement.getResult();
 
         return EnforcementActionDefendantAccount.builder()
             .enforcementAction(ResultReferenceCommon.builder()
