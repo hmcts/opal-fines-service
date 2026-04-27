@@ -223,11 +223,11 @@
                     "description": "Registration mark of the vehicle"
                 },
                 "document_language": {
-                    "type": ["string", "null"],
+                    "$ref": "#/$defs/language_code",
                     "description": "Language of the document"
                 },
                 "hearing_language": {
-                    "type": ["string", "null"],
+                    "$ref": "#/$defs/language_code",
                     "description": "Language for the hearing"
                 },
                 "employee_reference": {
@@ -279,6 +279,10 @@
                     "description": "Aliases of the party"
                 }
             }
+        },
+        "language_code": {
+            "type": ["string", "null"],
+            "enum": ["CY", "EN", null]
         },
         "parent_guardian": {
             "type": ["object", "null"],
@@ -372,9 +376,9 @@
                     "description": "Date of issue"
                 },
                 "time_of_issue": {
-                    "type": ["string", "null"],
-                    "format": "time",
-                    "description": "Date of issue"
+                    "type": "string",
+                    "maxLength": 5,
+                    "description": "Time of issue in HH:mm format"
                 },
                 "fp_registration_number": {
                     "type": ["string", "null"],

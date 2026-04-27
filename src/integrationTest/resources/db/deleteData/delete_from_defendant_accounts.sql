@@ -20,6 +20,7 @@ WHERE party_id IN (
 DELETE FROM defendant_account_parties
 WHERE defendant_account_party_id IN (
                                      991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                                     2006, -- test for remove DAP
                                      20010, 22004, 920011 -- NEW
     );
 
@@ -73,6 +74,7 @@ WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001,
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
                                991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                               2006, -- test for remove DAP
                                20010, 22004,
                                262901, 262902
     );
@@ -81,6 +83,7 @@ WHERE defendant_account_id IN (
 DELETE FROM debtor_detail
 WHERE party_id IN (
                    77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
+                   206, -- test for remove DAP
                    20010, 22004, 920010,
                    262901, 262902
     );
@@ -89,6 +92,7 @@ WHERE party_id IN (
 DELETE FROM parties
 WHERE party_id IN (
                    991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
+                   206, -- test for remove DAP
                    20010, 22004, 920010,
                    262901, 262902
     );

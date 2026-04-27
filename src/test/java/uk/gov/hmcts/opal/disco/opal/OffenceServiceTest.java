@@ -15,10 +15,8 @@ import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
-import uk.gov.hmcts.opal.entity.offence.OffenceFullEntity;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
-import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import java.time.LocalDateTime;
@@ -31,6 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,23 +41,23 @@ class OffenceServiceTest {
     private OffenceRepository offenceRepository;
 
     @Mock
-    private OffenceRepositoryFull offenceRepositoryFull;
-
-    @Mock
     private OffenceMapper offenceMapper;
 
     @InjectMocks
     private OffenceService offenceService;
 
+    @SuppressWarnings("unchecked")
     @Test
     void testGetOffence() {
         // Arrange
-        OffenceFullEntity offenceEntity = OffenceFullEntity.builder().build();
-        when(offenceRepositoryFull.findById(any())).thenReturn(Optional.of(offenceEntity));
+        OffenceEntity offenceEntity = OffenceEntity.builder().build();
+        when(offenceRepository.findById(any())).thenReturn(Optional.of(offenceEntity));
         // Act
-        OffenceFullEntity result = offenceService.getOffence((short) 1);
+        OffenceEntity result = offenceService.getOffence((short) 1);
         // Assert
         assertNotNull(result);
+        verify(offenceRepository).findById(1L);
+        verify(offenceRepository, never()).findBy(any(Specification.class), any());
     }
 
     @SuppressWarnings("unchecked")
@@ -67,7 +68,7 @@ class OffenceServiceTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
         when(sfq.limit(anyInt())).thenReturn(sfq);
 
-        OffenceEntity offenceEntity = OffenceEntity.Lite.builder().build();
+        OffenceEntity offenceEntity = OffenceEntity.builder().build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
@@ -81,6 +82,8 @@ class OffenceServiceTest {
         List<OffenceSearchData> result = offenceService.searchOffences(OffenceSearchDto.builder().build());
         // Assert
         assertEquals(List.of(mappedSearchData), result);
+        verify(offenceRepository).findBy(any(Specification.class), any());
+        verify(offenceRepository, never()).findById(anyLong());
     }
 
     @SuppressWarnings("unchecked")
@@ -90,7 +93,7 @@ class OffenceServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        OffenceEntity offenceEntity = OffenceEntity.Lite.builder()
+        OffenceEntity offenceEntity = OffenceEntity.builder()
             .offenceId(1L)
             .cjsCode("NINE")
             .offenceTitle("Theft from a Palace")
@@ -120,5 +123,7 @@ class OffenceServiceTest {
                                                                             Optional.empty());
         // Assert
         assertEquals(List.of(mappedRefData), result);
+        verify(offenceRepository).findBy(any(Specification.class), any());
+        verify(offenceRepository, never()).findById(anyLong());
     }
 }

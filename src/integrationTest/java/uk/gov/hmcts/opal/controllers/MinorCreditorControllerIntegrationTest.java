@@ -47,6 +47,9 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
     protected static final String URL_BASE = "/minor-creditor-accounts";
+    private static final String AUTH_HEADER = "Bearer some_value";
+    private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
+    private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
 
     private static final String MINOR_CREDITOR_RESPONSE =
         "opal/minor-creditor/postMinorCreditorAccountSearchResponse.json";
@@ -299,19 +302,22 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short)10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
 
-        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
+        final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
+        Integer currentVersion = getCurrentCreditorAccountVersion();
 
         String requestJson = patchMinorCreditorPayoutHoldRequestJson();
 
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/607")
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer some_value")
+                .header("Authorization", AUTH_HEADER)
                 .header("If-Match", currentVersion)
-                .header("Business-Unit-Id", "10")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                 .content(requestJson));
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -321,15 +327,16 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         a.andExpect(status().isOk())
             .andExpect(header().exists("ETag"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.creditor_account_id").value(607))
+            .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Updated"))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Creditor"))
             .andExpect(jsonPath("$.address.postcode").value("NW1 1AA"))
             .andExpect(jsonPath("$.payment.hold_payment").value(true))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
 
-        Integer updatedVersion = getCurrentCreditorAccountVersion(607L);
-        assertEquals(currentVersion + 1, updatedVersion);
+        assertEquals(true, getCurrentCreditorAccountHoldPayout());
+        Integer updatedVersion = getCurrentCreditorAccountVersion();
+        assertEquals(initialHoldPayout ? currentVersion : currentVersion + 1, updatedVersion);
     }
 
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
@@ -339,7 +346,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         UserState userState = UserState.builder().userId(123L).build();
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
-        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
+        Integer currentVersion = getCurrentCreditorAccountVersion();
 
         mockMvc.perform(patch(URL_BASE + "/606")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -351,17 +358,52 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
-    void patchMinorCreditor_missingPayload_returns400() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short)10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
+    void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
 
-        Integer currentVersion = getCurrentCreditorAccountVersion(607L);
+        Integer currentVersion = getCurrentCreditorAccountVersion();
 
-        mockMvc.perform(patch(URL_BASE + "/607")
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer some_value")
+                            .header("Authorization", AUTH_HEADER)
                             .header("If-Match", currentVersion)
-                            .header("Business-Unit-Id", "10")
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", AUTH_HEADER)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_missingPayload_returns400() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", AUTH_HEADER)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                             .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(org.hamcrest.Matchers.anything()));
@@ -412,12 +454,21 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             """;
     }
 
-    private Integer getCurrentCreditorAccountVersion(Long creditorAccountId) {
+    private Integer getCurrentCreditorAccountVersion() {
         return jdbcTemplate.queryForObject(
             "SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
             Integer.class,
-            creditorAccountId
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
         );
+    }
+
+    private boolean getCurrentCreditorAccountHoldPayout() {
+        Boolean holdPayout = jdbcTemplate.queryForObject(
+            "SELECT hold_payout FROM creditor_accounts WHERE creditor_account_id = ?",
+            Boolean.class,
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+        );
+        return Boolean.TRUE.equals(holdPayout);
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value

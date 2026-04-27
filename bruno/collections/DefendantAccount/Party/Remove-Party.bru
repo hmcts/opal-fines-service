@@ -1,0 +1,29 @@
+meta {
+  name: Remove-Party
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{baseURL}}/defendant-accounts/99000000000018/defendant-account-parties/99000000002018
+  body: json
+  auth: inherit
+}
+
+headers {
+  Business-Unit-Id: 77
+  If-Match: 1
+}
+
+body:json {
+  {
+    "party_details": {
+      "party_id": "99000000000018"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
