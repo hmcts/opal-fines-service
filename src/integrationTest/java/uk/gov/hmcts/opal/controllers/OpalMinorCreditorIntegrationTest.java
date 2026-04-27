@@ -269,13 +269,13 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         final Long partyId = 99007L;
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        Specification<ImpositionEntity.Lite> impositionSpec = ImpositionSpecs
+        Specification<ImpositionEntity> impositionSpec = ImpositionSpecs
             .equalsCreditorAccountId(creditorAccountId);
         Specification<CreditorTransactionEntity> creditorTransSpec = CreditorTransactionSpecs
             .equalsCreditorAccountId(creditorAccountId);
 
         // Check the number of rows in the DB before we Act.
-        List<ImpositionEntity.Lite> impositions = impositionRepository.findAll(impositionSpec);
+        List<ImpositionEntity> impositions = impositionRepository.findAll(impositionSpec);
         log.info(":deleteMinorCreditorAccount: impositions: {}", impositions);
         assertEquals(2, impositions.size());
 

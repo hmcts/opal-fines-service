@@ -98,12 +98,12 @@ class CreditorAccountTransactionalTest {
         CreditorAccountTransactionalProxy proxy = mock(CreditorAccountTransactionalProxy.class);
         long defendantAccountId = 99L;
 
-        List<ImpositionEntity.Lite> initialImpositions = List.of(
-            ImpositionEntity.Lite.builder().creditorAccountId(11L).build(),
-            ImpositionEntity.Lite.builder().creditorAccountId(12L).build()
+        List<ImpositionEntity> initialImpositions = List.of(
+            ImpositionEntity.builder().creditorAccountId(11L).build(),
+            ImpositionEntity.builder().creditorAccountId(12L).build()
         );
-        List<ImpositionEntity.Lite> remainingImpositions = List.of(
-            ImpositionEntity.Lite.builder().creditorAccountId(77L).build()
+        List<ImpositionEntity> remainingImpositions = List.of(
+            ImpositionEntity.builder().creditorAccountId(77L).build()
         );
 
         when(impositionRepository.findAllByDefendantAccountId(defendantAccountId))
