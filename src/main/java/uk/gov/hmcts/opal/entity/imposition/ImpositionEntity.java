@@ -131,7 +131,7 @@ public class ImpositionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "imposing_court_id", insertable = false, updatable = false, nullable = false)
-    private CourtEntity.Lite imposingCourt;
+    private CourtEntity imposingCourt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creditor_account_id", insertable = false, updatable = false)

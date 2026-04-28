@@ -96,7 +96,7 @@ import uk.gov.hmcts.opal.mapper.DefendantAccountHeaderSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
-import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
@@ -139,8 +139,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
 
-    private final CourtRepository courtRepository;
-
+    private final CourtLiteRepository courtLiteRepository;
     private final AmendmentService amendmentService;
 
     private final EntityManager em;
@@ -712,9 +711,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (courtId == null) {
             throw new IllegalArgumentException("enforcement_court.court_id is required");
         }
-        CourtEntity court = courtRepository.findById(courtId)
+        CourtEntity court = courtLiteRepository.findById(courtId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found: " + courtId));
-        entity.setEnforcingCourt(OpalDefendantAccountBuilders.asLite(court));
+        entity.setEnforcingCourt(court);
         log.debug(":applyEnforcementCourt: accountId={}, courtId={}",
             entity.getDefendantAccountId(), court.getCourtId());
     }

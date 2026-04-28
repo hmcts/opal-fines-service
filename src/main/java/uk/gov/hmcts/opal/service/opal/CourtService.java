@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.entity.AddressEntity_;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.mapper.CourtMapper;
-import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
 
 import java.util.List;
@@ -27,23 +27,23 @@ import java.util.Optional;
 @Qualifier("courtService")
 public class CourtService {
 
-    private final CourtRepository courtRepository;
+    private final CourtLiteRepository courtLiteRepository;
 
     private final CourtMapper courtMapper;
 
     private final CourtSpecs specs = new CourtSpecs();
 
-    public CourtEntity.Lite getCourtById(long courtId) {
-        return courtRepository.findById(courtId)
+    public CourtEntity getCourtById(long courtId) {
+        return courtLiteRepository.findById(courtId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found with id: " + courtId));
     }
 
-    public List<CourtEntity.Lite> searchCourts(CourtSearchDto criteria) {
+    public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
 
         log.debug(":searchCourts: criteria: {}", criteria);
         Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<CourtEntity.Lite> courtsPage = courtRepository
+        Page<CourtEntity> courtsPage = courtLiteRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -61,7 +61,7 @@ public class CourtService {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<CourtEntity.Lite> page = courtRepository
+        Page<CourtEntity> page = courtLiteRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(nameSort)

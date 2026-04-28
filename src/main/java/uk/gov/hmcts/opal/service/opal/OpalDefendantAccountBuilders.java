@@ -688,18 +688,6 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static CourtEntity.Lite asLite(CourtEntity court) {
-        return CourtEntity.Lite.builder()
-            .courtId(court.getCourtId())
-            .businessUnitId(court.getBusinessUnitId())
-            .courtCode(court.getCourtCode())
-            .localJusticeAreaId(court.getLocalJusticeAreaId())
-            .courtType(court.getCourtType())
-            .division(court.getDivision())
-            .name(court.getName())
-            .build();
-    }
-
     static Enforcer buildEnforcer(EnforcerEntity enforcer) {
         return Optional.ofNullable(enforcer).map(enf -> Enforcer.builder()
                 .enforcerId(enf.getEnforcerId())
@@ -866,7 +854,7 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static EnforcementCourtDefendantAccount buildCourtReference(CourtEntity.Lite court) {
+    static EnforcementCourtDefendantAccount buildCourtReference(CourtEntity court) {
         return Optional.ofNullable(court)
             .filter(c -> c.getCourtId() != null)
             .map(c -> EnforcementCourtDefendantAccount.builder()
@@ -875,7 +863,7 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static CourtReferenceCommon buildCourtReferenceCommon(CourtEntity.Lite court) {
+    static CourtReferenceCommon buildCourtReferenceCommon(CourtEntity court) {
         return Optional.ofNullable(court)
             .map(c -> CourtReferenceCommon.builder()
                 .courtId(c.getCourtId())
