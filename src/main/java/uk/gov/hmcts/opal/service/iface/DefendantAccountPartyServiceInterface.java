@@ -30,6 +30,6 @@ public interface DefendantAccountPartyServiceInterface {
                                                                     Short businessUnitId,
                                                                     String businessUserId,
                                                                     String ifMatch,
-                                                                    String postedBy
+                                                                    String postedBy,
                                                                     RemoveDefendantAccountPartyRequest request);
 }

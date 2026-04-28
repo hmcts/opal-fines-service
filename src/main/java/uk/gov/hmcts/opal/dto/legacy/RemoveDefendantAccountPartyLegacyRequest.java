@@ -7,15 +7,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 
 import java.math.BigInteger;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
-
 public class RemoveDefendantAccountPartyLegacyRequest {
 
     @JsonProperty("version")
@@ -31,8 +30,8 @@ public class RemoveDefendantAccountPartyLegacyRequest {
     @JsonProperty("business_unit_user_id")
     private String businessUnitUserId;
 
-    @JsonProperty("defendant_account_party")
-    private DefendantAccountParty defendantAccountParty;
+    @JsonProperty("defendant_account_party_id")
+    private Long defendantAccountPartyId;
 
 }
 

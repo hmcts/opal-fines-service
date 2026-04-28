@@ -191,16 +191,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
 
-    @Override
-    @Transactional
-    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(
-        Long accountId, String businessUnitId,
-        String postedBy, String businessUserId, String ifMatch, RemoveDefendantAccountPartyRequest request) {
-
-        // not implemented.
-        throw new UnsupportedOperationException("Adding a party to an account is not yet supported in Opal");
-    }
-
     private DefendantAccountParty mapDefendantAccountParty(
         DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
 
@@ -345,12 +335,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Override
     @Transactional
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        Short businessUnitId,
-        String businessUserId,
-        String ifMatch,
-        String postedBy,
-        DefendantAccountParty defendantAccountParty) {
+                                                                           Long defendantAccountPartyId,
+                                                                           Short businessUnitId,
+                                                                           String businessUserId,
+                                                                           String ifMatch,
+                                                                           String postedBy,
+                                                                           RemoveDefendantAccountPartyRequest request) {
 
         DefendantAccountEntity account = defendantAccountRepositoryService
             .findById(defendantAccountId);
@@ -376,15 +366,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account Party not found for accountId=" + defendantAccountId
                     + ", partyId=" + defendantAccountPartyId));
-
-        // Ensure the entity being removed matches the request party_id (if present in the request)
-        if (defendantAccountParty != null && defendantAccountParty.getPartyDetails() != null) {
-            String requestedPartyId = defendantAccountParty.getPartyDetails().getPartyId();
-            if (requestedPartyId != null
-                && !requestedPartyId.equals(String.valueOf(partyToRemove.getParty().getPartyId()))) {
-                throw new IllegalArgumentException("Request party_id does not match the entity being removed");
-            }
-        }
 
         account.getParties().removeIf(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId));
 

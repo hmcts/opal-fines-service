@@ -351,9 +351,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             log.info(":addDefendantAccountParty: Legacy success.");
         }
 
-        RemoveDefendantAccountPartyResponse result = new RemoveDefendantAccountPartyResponse();
-        result.setDefendantAccountPartyId(String.valueOf(defendantAccountPartyId));
-        return result;
+        return defendantAccountPartyLegacyResponseMapper.toDefendantAccountPartyResponse(response.responseEntity);
     }
 
 
@@ -492,8 +490,9 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     }
 
     @Override
-    public GetDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-                                                                        String businessUnitId,
+    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+                                                                        Long defendantAccountPartyId,
+                                                                        Short businessUnitId,
                                                                         String businessUnitUserId,
                                                                         String postedBy,
                                                                         String ifMatch,
@@ -503,7 +502,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
-            .defendantAccountParty(request.getDefendantAccountParty())
+            .defendantAccountPartyId(defendantAccountPartyId)
             .build();
 
         Response<RemoveDefendantAccountPartyLegacyResponse> response = gatewayService.postToGateway(
@@ -523,6 +522,8 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         } else if (response.isSuccessful()) {
             log.info(":removeDefendantAccountParty: Legacy success.");
         }
-        return defendantAccountPartyLegacyResponseMapper.toDefendantAccountPartyResponse(response.responseEntity);
+        RemoveDefendantAccountPartyResponse result = new RemoveDefendantAccountPartyResponse();
+        result.setDefendantAccountPartyId(String.valueOf(defendantAccountPartyId));
+        return result;
     }
 }

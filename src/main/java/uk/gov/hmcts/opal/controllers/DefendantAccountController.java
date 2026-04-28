@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -236,7 +237,7 @@ public class DefendantAccountController {
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestBody DefendantAccountParty request
+        @RequestBody RemoveDefendantAccountPartyRequest request
     ) {
         log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
             defendantAccountId, defendantAccountPartyId);

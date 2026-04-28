@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -133,27 +134,31 @@ class DefendantAccountControllerTest {
     void testRemoveDefendantAccountParty_Success() {
         // Arrange
         Long defendantAccountId = 1L;
-        String businessUnitId = "10";
+        Long defendantAccountPartyId = 10L;
+        Short businessUnitId = 10;
+        String businessUserId = "20";
         String ifMatch = "1";
 
-        RemoveDefendantAccountPartyResponse request = new RemoveDefendantAccountPartyResponse();
-        GetDefendantAccountPartyResponse mockResponse = new GetDefendantAccountPartyResponse();
+        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
+        RemoveDefendantAccountPartyResponse mockResponse = new RemoveDefendantAccountPartyResponse();
 
         when(defendantAccountPartyService.removeDefendantAccountParty(
             defendantAccountId,
-            BEARER_TOKEN,
-            ifMatch,
+            defendantAccountPartyId,
             businessUnitId,
+            businessUserId,
+            ifMatch,
             request
         )).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<GetDefendantAccountPartyResponse> response =
+        ResponseEntity<RemoveDefendantAccountPartyResponse> response =
             defendantAccountController.removeDefendantAccountParty(
                 defendantAccountId,
+                defendantAccountPartyId,
                 businessUnitId,
+                businessUserId,
                 ifMatch,
-                BEARER_TOKEN,
                 request
             );
 
@@ -163,9 +168,10 @@ class DefendantAccountControllerTest {
 
         verify(defendantAccountPartyService).removeDefendantAccountParty(
             defendantAccountId,
-            BEARER_TOKEN,
-            ifMatch,
+            defendantAccountPartyId,
             businessUnitId,
+            businessUserId,
+            ifMatch,
             request
         );
     }

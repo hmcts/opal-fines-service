@@ -17,9 +17,14 @@ import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
-import uk.gov.hmcts.opal.dto.legacy.*;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
+import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
+import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DefendantAccountPartyLegacyResponseMapper {
@@ -32,10 +37,6 @@ public interface DefendantAccountPartyLegacyResponseMapper {
     })
     GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
         AddDefendantAccountPartyLegacyResponse legacyResponse
-    );
-
-    String toRemoveDefendantAccountPartyResponse(
-        RemoveDefendantAccountPartyLegacyResponse legacyResponse
     );
 
     @Mappings({
