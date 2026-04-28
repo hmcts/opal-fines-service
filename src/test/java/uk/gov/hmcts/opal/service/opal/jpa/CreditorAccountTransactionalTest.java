@@ -51,9 +51,10 @@ class CreditorAccountTransactionalTest {
     @Test
     void testGetCreditorAccount() {
         // Arrange
-        CreditorAccountEntity.Lite creditorAccountEntity = CreditorAccountEntity.Lite
+        CreditorAccountEntity creditorAccountEntity = CreditorAccountEntity
             .builder().businessUnitId((short)77).build();
-        when(creditorAccountRepository.findById(any())).thenReturn(Optional.of(creditorAccountEntity));
+        when(creditorAccountRepository.findById(any()))
+            .thenReturn(Optional.of(creditorAccountEntity));
 
         // Act
         CreditorAccountEntity result = creditorAccountTransactional.getCreditorAccountById(1);
@@ -65,10 +66,11 @@ class CreditorAccountTransactionalTest {
     @Test
     void testDeleteCreditorAccount_success() {
         // Arrange
-        CreditorAccountEntity.Lite creditorAccountEntity = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity creditorAccountEntity = CreditorAccountEntity.builder()
             .creditorAccountType(CreditorAccountType.MN)
             .build();
-        when(creditorAccountRepository.findById(any())).thenReturn(Optional.of(creditorAccountEntity));
+        when(creditorAccountRepository.findById(any()))
+            .thenReturn(Optional.of(creditorAccountEntity));
 
         // Act
         boolean deleted = creditorAccountTransactional

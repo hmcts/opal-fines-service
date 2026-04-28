@@ -14,5 +14,5 @@ public interface MinorCreditorPaymentMapper {
     @Mapping(target = "accountReference", source = "bankAccountReference")
     @Mapping(target = "payByBacs", source = "payByBacs")
     @Mapping(target = "holdPayment", source = "holdPayout")
-    MinorCreditorAccountResponseMinorCreditorPayment toMinorCreditorPayment(CreditorAccountEntity.Lite account);
+    MinorCreditorAccountResponseMinorCreditorPayment toMinorCreditorPayment(CreditorAccountEntity account);
 }

@@ -36,7 +36,7 @@ class MinorCreditorAccountResponseMapperTest {
 
     @Test
     void givenIndividualPartyAndAccount_whenToMinorCreditorAccountResponse_thenMapsAllFields() {
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(101L)
             .creditorAccountType(CreditorAccountType.MN)
             .bankAccountName("A NAME")
@@ -91,7 +91,7 @@ class MinorCreditorAccountResponseMapperTest {
 
     @Test
     void givenOrganisationPartyAndAccount_whenToMinorCreditorAccountResponse_thenMapsOrganisationDetails() {
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(202L)
             .creditorAccountType(CreditorAccountType.MN)
             .bankAccountName("ORG NAME")

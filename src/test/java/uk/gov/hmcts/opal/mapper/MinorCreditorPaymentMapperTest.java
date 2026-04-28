@@ -22,7 +22,7 @@ class MinorCreditorPaymentMapperTest {
 
     @Test
     void givenCreditorAccount_whenToMinorCreditorPayment_thenMapsPaymentFields() {
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(101L)
             .creditorAccountType(CreditorAccountType.MN)
             .bankAccountName("A NAME")

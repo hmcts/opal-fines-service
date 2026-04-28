@@ -32,9 +32,9 @@ public class CreditorAccountTransactional implements CreditorAccountTransactiona
     private final ImpositionRepository impositionRepository;
 
     @Override
-    public CreditorAccountEntity.Lite getCreditorAccountById(long minorCreditorId) {
-        return creditorAccountRepository.findById(minorCreditorId)
-            .orElseThrow(() -> new EntityNotFoundException("Creditor Account not found with id: " + minorCreditorId));
+    public CreditorAccountEntity getCreditorAccountById(long creditorAccountId) {
+        return creditorAccountRepository.findById(creditorAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Creditor Account not found with id: " + creditorAccountId));
     }
 
     @Transactional
@@ -57,7 +57,7 @@ public class CreditorAccountTransactional implements CreditorAccountTransactiona
                                                             CreditorAccountTransactionalProxy proxy) {
 
         // Delete from the various repositories
-        CreditorAccountEntity.Lite creditorAcc = proxy.getCreditorAccountById(creditorAccId);
+        CreditorAccountEntity creditorAcc = proxy.getCreditorAccountById(creditorAccId);
         if (creditorAcc.getCreditorAccountType().isMinorCreditor()) {
             log.debug(":deleteMinorCreditorAccountAndRelatedData: minor creditor account id: {}", creditorAccId);
             Long deleted = creditorTransactionRepository

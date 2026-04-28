@@ -7,10 +7,15 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -20,12 +25,14 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -37,12 +44,26 @@ import java.util.Optional;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@MappedSuperclass
+@EqualsAndHashCode(exclude = {"businessUnit", "majorCreditor"})
+@ToString(exclude = {"businessUnit", "majorCreditor"})
+@Entity
+@Table(name = "creditor_accounts")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "creditorAccountId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public abstract class CreditorAccountEntity implements Versioned {
+@NamedEntityGraph(name = CreditorAccountEntity.ENTITY_GRAPH_LITE)
+@NamedEntityGraph(
+    name = CreditorAccountEntity.ENTITY_GRAPH_FULL,
+    attributeNodes = {
+        @NamedAttributeNode("businessUnit"),
+        @NamedAttributeNode("majorCreditor")
+    }
+)
+public class CreditorAccountEntity implements Versioned {
+
+    public static final String ENTITY_GRAPH_LITE = "CreditorAccountEntity.lite";
+    public static final String ENTITY_GRAPH_FULL = "CreditorAccountEntity.full";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "creditor_account_id_seq_generator")
@@ -53,6 +74,10 @@ public abstract class CreditorAccountEntity implements Versioned {
 
     @Column(name = "business_unit_id", insertable = false, updatable = false)
     private Short businessUnitId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_unit_id", insertable = false, updatable = false)
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "account_number", length = 20, nullable = false)
     private String accountNumber;
@@ -67,6 +92,10 @@ public abstract class CreditorAccountEntity implements Versioned {
 
     @Column(name = "major_creditor_id", updatable = false)
     private Long majorCreditorId;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "major_creditor_id", insertable = false, updatable = false)
+    private MajorCreditorFullEntity majorCreditor;
 
     @Column(name = "minor_creditor_party_id")
     private Long minorCreditorPartyId;
@@ -102,15 +131,6 @@ public abstract class CreditorAccountEntity implements Versioned {
     @Column(name = "version_number")
     @Version
     private Long versionNumber;
-
-    @Getter
-    @Entity
-    @EqualsAndHashCode(callSuper = true)
-    @Table(name = "creditor_accounts")
-    @SuperBuilder
-    @NoArgsConstructor
-    public static class Lite extends CreditorAccountEntity {
-    }
 
     @Override
     public BigInteger getVersion() {

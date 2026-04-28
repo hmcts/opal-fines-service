@@ -76,7 +76,7 @@ class OpalMinorCreditorServiceUpdateTest {
         String postedBy = "test.user@hmcts.net";
         Short businessUnitId = 77;
 
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .businessUnitId(businessUnitId)
@@ -121,7 +121,7 @@ class OpalMinorCreditorServiceUpdateTest {
             .thenReturn(Optional.of(account));
         when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
         when(partyRepository.save(any(PartyEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(creditorAccountRepository.saveAndFlush(any(CreditorAccountEntity.Lite.class)))
+        when(creditorAccountRepository.saveAndFlush(any(CreditorAccountEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
         MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
         mappedResponse.setCreditorAccountId(accountId);
@@ -153,10 +153,10 @@ class OpalMinorCreditorServiceUpdateTest {
         assertNotNull(response.getPayment());
         assertEquals(true, response.getPayment().getHoldPayment());
         assertEquals(BigInteger.valueOf(5L), response.getVersion());
-        ArgumentCaptor<CreditorAccountEntity.Lite> entityCaptor =
-            ArgumentCaptor.forClass(CreditorAccountEntity.Lite.class);
+        ArgumentCaptor<CreditorAccountEntity> entityCaptor =
+            ArgumentCaptor.forClass(CreditorAccountEntity.class);
         verify(creditorAccountRepository).saveAndFlush(entityCaptor.capture());
-        CreditorAccountEntity.Lite savedEntity = entityCaptor.getValue();
+        CreditorAccountEntity savedEntity = entityCaptor.getValue();
         assertNotNull(savedEntity);
         assertEquals(accountId, savedEntity.getCreditorAccountId());
         assertEquals(CreditorAccountType.MN, savedEntity.getCreditorAccountType());
@@ -202,7 +202,7 @@ class OpalMinorCreditorServiceUpdateTest {
         // Arrange
         Long accountId = 102L;
         Short businessUnitId = 77;
-        CreditorAccountEntity.Lite majorAccount = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity majorAccount = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MJ)
             .businessUnitId((short) 77)
@@ -229,7 +229,7 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_nullCreditorAccountType_throwsEntityNotFoundException() {
         Long accountId = 106L;
         Short businessUnitId = 77;
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(null)
             .businessUnitId(businessUnitId)
@@ -255,7 +255,7 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_nullVersion_throwsResourceConflictException() {
         Long accountId = 107L;
         Short businessUnitId = 77;
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .businessUnitId(businessUnitId)
@@ -283,7 +283,7 @@ class OpalMinorCreditorServiceUpdateTest {
         // Arrange
         Long accountId = 103L;
         Short businessUnitId = 55;
-        CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity minorAccount = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(999L)
@@ -313,7 +313,7 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_partyIdMismatch_throwsIllegalArgumentException() {
         Long accountId = 104L;
         Short businessUnitId = 55;
-        CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity minorAccount = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)
@@ -343,7 +343,7 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_missingPartyId_throwsIllegalArgumentException() {
         Long accountId = 105L;
         Short businessUnitId = 55;
-        CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity minorAccount = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)
@@ -375,7 +375,7 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_blankPartyId_throwsIllegalArgumentException() {
         Long accountId = 108L;
         Short businessUnitId = 55;
-        CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity minorAccount = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)
@@ -406,7 +406,7 @@ class OpalMinorCreditorServiceUpdateTest {
     void updateMinorCreditorAccount_invalidPartyIdFormat_throwsIllegalArgumentException() {
         Long accountId = 109L;
         Short businessUnitId = 55;
-        CreditorAccountEntity.Lite minorAccount = CreditorAccountEntity.Lite.builder()
+        CreditorAccountEntity minorAccount = CreditorAccountEntity.builder()
             .creditorAccountId(accountId)
             .creditorAccountType(CreditorAccountType.MN)
             .minorCreditorPartyId(201L)

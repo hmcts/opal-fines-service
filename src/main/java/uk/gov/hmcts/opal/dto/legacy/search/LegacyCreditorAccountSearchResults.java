@@ -6,7 +6,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountFullEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ import java.util.List;
 public class LegacyCreditorAccountSearchResults {
 
     @XmlElement(name = "creditorAccountEntity")
-    private List<CreditorAccountFullEntity> creditorAccountEntities;
+    private List<CreditorAccountEntity> creditorAccountEntities;
     private int totalCount;
 }

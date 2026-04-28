@@ -30,8 +30,6 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
@@ -227,12 +225,6 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_missingBusinessUnit_throwsPermissionNotAllowed() {
         // Arrange
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
-            .creditorAccountId(1L)
-            .creditorAccountType(CreditorAccountType.MN)
-            .businessUnitId(null)
-            .build();
-
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(mock(UserState.class));
 
         PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
@@ -254,12 +246,6 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
         // Arrange
-        CreditorAccountEntity.Lite account = CreditorAccountEntity.Lite.builder()
-            .creditorAccountId(1L)
-            .creditorAccountType(CreditorAccountType.MN)
-            .businessUnitId((short) 10)
-            .build();
-
         UserState userState = mock(UserState.class);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
             .thenReturn(true);
