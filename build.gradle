@@ -494,7 +494,7 @@ dependencies {
   implementation 'org.apache.qpid:qpid-jms-client:2.10.0'
   implementation 'com.google.guava:guava:33.6.0-jre'
 
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.2'
+  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.4'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
