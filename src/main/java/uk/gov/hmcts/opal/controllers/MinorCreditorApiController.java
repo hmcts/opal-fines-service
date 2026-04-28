@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractOptionalBigInteger;
 
 import java.util.Optional;
@@ -28,6 +29,15 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     @Override
     public Optional<NativeWebRequest> getRequest() {
         return Optional.ofNullable(request);
+    }
+
+    @Override
+    public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> getMinorCreditorAccount(Long id) {
+        log.debug(":GET:getMinorCreditorAccount: id={}", id);
+
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
+
+        return buildResponse(result);
     }
 
     @Override
