@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitType;
-import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemFullEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -88,7 +88,7 @@ class BusinessUnitServiceTest {
             .businessUnitType(BusinessUnitType.AREA)
             .welshLanguage(true)
             .configurationItems(List.of(
-                ConfigurationItemFullEntity.builder()
+                ConfigurationItemEntity.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
                     .itemValues(List.of("Item Values One", "Item Values Two"))
