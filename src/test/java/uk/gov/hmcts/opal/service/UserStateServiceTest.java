@@ -47,7 +47,7 @@ class UserStateServiceTest {
         when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
 
         // Act
-        UserState userState = userStateService.checkForAuthorisedUser("");
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         // Assert
         assertSame(expectedUserState, userState);
@@ -61,7 +61,7 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser(""));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("Unexpected token type", ade.getMessage());
@@ -76,7 +76,7 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser(""));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("User state not found in token", ade.getMessage());
@@ -104,5 +104,4 @@ class UserStateServiceTest {
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
     }
-
 }

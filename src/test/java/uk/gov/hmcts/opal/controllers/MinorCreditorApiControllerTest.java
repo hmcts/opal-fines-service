@@ -13,8 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.NativeWebRequest;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,9 +22,6 @@ class MinorCreditorApiControllerTest {
 
     @Mock
     private MinorCreditorService minorCreditorService;
-
-    @Mock
-    private NativeWebRequest request;
 
     @InjectMocks
     private MinorCreditorApiController minorCreditorApiController;
@@ -37,7 +34,8 @@ class MinorCreditorApiControllerTest {
 
         when(minorCreditorService.getMinorCreditorAccount(101L)).thenReturn(response);
 
-        ResponseEntity<?> result = minorCreditorApiController.getMinorCreditorAccount(101L);
+        ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
+            minorCreditorApiController.getMinorCreditorAccount(101L);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("\"7\"", result.getHeaders().getETag());

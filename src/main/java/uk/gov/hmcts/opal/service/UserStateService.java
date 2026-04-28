@@ -24,7 +24,7 @@ public class UserStateService {
 
     private final UserStateMapper userStateMapper;
 
-    //Stop gap solution until we have service layer checking permissions from auth token directly
+    // Stop gap solution until we have service layer checking permissions from auth token directly.
     public UserState checkForAuthorisedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
