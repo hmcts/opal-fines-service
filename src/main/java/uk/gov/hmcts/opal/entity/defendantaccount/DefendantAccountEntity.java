@@ -91,13 +91,13 @@ public class DefendantAccountEntity implements Versioned {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate completedDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id")
-    private CourtEntity.Lite enforcingCourt;
+    private CourtEntity enforcingCourt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id")
-    private CourtEntity.Lite lastHearingCourt;
+    private CourtEntity lastHearingCourt;
 
     @Column(name = "last_hearing_date")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)

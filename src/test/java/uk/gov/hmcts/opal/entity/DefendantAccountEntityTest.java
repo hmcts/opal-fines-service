@@ -35,8 +35,8 @@ public class DefendantAccountEntityTest {
         defendantAccount.setAccountBalance(BigDecimal.valueOf(1.1));
         defendantAccount.setAccountStatus(DefendantAccountStatus.LIVE);
         defendantAccount.setCompletedDate(now);
-        defendantAccount.setEnforcingCourt(CourtEntity.Lite.builder().build());
-        defendantAccount.setLastHearingCourt(CourtEntity.Lite.builder().build());
+        defendantAccount.setEnforcingCourt(CourtEntity.builder().build());
+        defendantAccount.setLastHearingCourt(CourtEntity.builder().build());
         defendantAccount.setLastHearingDate(now);
         defendantAccount.setLastMovementDate(now);
         defendantAccount.setLastEnforcement("123456");
@@ -78,8 +78,8 @@ public class DefendantAccountEntityTest {
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAccountBalance());
         assertEquals(DefendantAccountStatus.LIVE, defendantAccount.getAccountStatus());
         assertEquals(now, defendantAccount.getCompletedDate());
-        assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getEnforcingCourt());
-        assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getLastHearingCourt());
+        assertEquals(CourtEntity.builder().build(), defendantAccount.getEnforcingCourt());
+        assertEquals(CourtEntity.builder().build(), defendantAccount.getLastHearingCourt());
         assertEquals(now, defendantAccount.getLastHearingDate());
         assertEquals(now, defendantAccount.getLastMovementDate());
         assertEquals("123456", defendantAccount.getLastEnforcement());

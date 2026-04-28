@@ -134,5 +134,5 @@ public class EnforcementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hearing_court_id", nullable = false, insertable = false, updatable = false)
-    private CourtEntity.Lite hearingCourt;
+    private CourtEntity hearingCourt;
 }
