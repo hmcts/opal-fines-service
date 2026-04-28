@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
-import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemFullEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
@@ -76,11 +76,11 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
         );
     }
 
-    private List<BusinessUnitReferenceData.ConfigItemRefData> toRefData(List<ConfigurationItemFullEntity> list) {
+    private List<BusinessUnitReferenceData.ConfigItemRefData> toRefData(List<ConfigurationItemEntity> list) {
         return Optional.ofNullable(list).map(items -> items.stream().map(this::toRefData).toList()).orElse(null);
     }
 
-    private BusinessUnitReferenceData.ConfigItemRefData toRefData(ConfigurationItemFullEntity entity) {
+    private BusinessUnitReferenceData.ConfigItemRefData toRefData(ConfigurationItemEntity entity) {
         return new BusinessUnitReferenceData.ConfigItemRefData(
             entity.getItemName(),
             entity.getItemValue(),
