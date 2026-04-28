@@ -6,20 +6,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
@@ -30,24 +32,14 @@ import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 @Isolated
 class MinorCreditorAccountHeaderSummaryMapperTest {
 
-    @Configuration
-    @ComponentScan(basePackageClasses = MinorCreditorAccountHeaderSummaryMapper.class)
-    static class TestConfig {
-
-    }
-
     @Autowired
     private MinorCreditorAccountHeaderSummaryMapper mapper;
-
     @MockitoBean
     private PartyMapper partyMapper;
-
     @MockitoBean
     private BusinessUnitSummaryMapper businessUnitSummaryMapper;
-
     @MockitoBean
     private CreditorAccountTypeMapper creditorAccountTypeMapper;
-
 
     @Test
     void givenFullEntity_whenToResponse_thenMapsExpectedFieldsAndCallsSubmappers() {
@@ -92,9 +84,18 @@ class MinorCreditorAccountHeaderSummaryMapperTest {
         assertEquals(new BigDecimal("1.00"), mapped.getFinancials().getAwaitingPayout());
         assertEquals(BigDecimal.ZERO, mapped.getFinancials().getOutstanding());
 
-
         verify(partyMapper).toDto(party);
         verify(businessUnitSummaryMapper).toBusinessUnitSummary(entity);
         verify(creditorAccountTypeMapper).toDto(entity.getCreditorAccountType());
+    }
+
+    @Configuration
+    @ComponentScan(basePackageClasses = MinorCreditorAccountHeaderSummaryMapper.class)
+    static class TestConfig {
+
+        @Bean
+        public ObjectMapper objectMapper() {
+            return new ObjectMapper();
+        }
     }
 }
