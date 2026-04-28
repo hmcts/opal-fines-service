@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:12.4.0")
+    classpath("org.flywaydb:flyway-database-postgresql:12.5.0")
   }
 }
 
@@ -14,7 +14,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.54.0'
   id 'org.sonarqube' version '7.2.3.7755'
   id 'uk.gov.hmcts.java' version '0.12.68'
-  id 'org.flywaydb.flyway' version '12.4.0'
+  id 'org.flywaydb.flyway' version '12.5.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
   id "org.openapi.generator" version "7.21.0"
 }
@@ -500,8 +500,8 @@ dependencies {
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
-  implementation 'org.flywaydb:flyway-core:12.4.0'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.4.0', {
+  implementation 'org.flywaydb:flyway-core:12.5.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.5.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
