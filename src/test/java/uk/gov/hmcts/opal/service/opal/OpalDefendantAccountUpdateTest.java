@@ -41,7 +41,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
-import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
@@ -58,7 +58,7 @@ class OpalDefendantAccountUpdateTest {
     private NoteRepository noteRepository;
 
     @Mock
-    private CourtRepository courtRepo;
+    private CourtLiteRepository courtLiteRepo;
 
     @Mock
     private LocalJusticeAreaRepository ljaRepo;
@@ -104,12 +104,12 @@ class OpalDefendantAccountUpdateTest {
         // Echo the saved entity (so assertions see updated values)
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CourtEntity.Lite court = CourtEntity.Lite.builder()
+        CourtEntity court = CourtEntity.builder()
             .courtId(100L)
             .name("Central Magistrates")
             .build();
 
-        when(courtRepo.findById(100L)).thenReturn(Optional.of(court));
+        when(courtLiteRepo.findById(100L)).thenReturn(Optional.of(court));
 
         // Reference entities: stub getters so the service can copy IDs onto the account
         ResultEntity.Lite eor = mock(ResultEntity.Lite.class);
@@ -463,11 +463,11 @@ class OpalDefendantAccountUpdateTest {
         doNothing().when(entityManager).lock(any(), any());
 
         long courtId = 780000000185L;
-        CourtEntity.Lite court = CourtEntity.Lite.builder()
+        CourtEntity court = CourtEntity.builder()
             .courtId(courtId)
             .name("Test Court")
             .build();
-        when(courtRepo.findById(courtId)).thenReturn(Optional.of(court));
+        when(courtLiteRepo.findById(courtId)).thenReturn(Optional.of(court));
 
         var req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
