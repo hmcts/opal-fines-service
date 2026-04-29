@@ -21,7 +21,6 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
     "partyDetails",
     "address",
     "payment",
-    "businessUnitId",
     "errorResponse"
 })
 @Data
@@ -44,9 +43,6 @@ public class LegacyGetMinorCreditorAccountResponse implements ToXmlString, HasEr
 
     @XmlElement(name = "payment", required = true)
     private LegacyCreditorAccountPaymentDetails payment;
-
-    @XmlElement(name = "business_unit_id")
-    private Short businessUnitId;
 
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
