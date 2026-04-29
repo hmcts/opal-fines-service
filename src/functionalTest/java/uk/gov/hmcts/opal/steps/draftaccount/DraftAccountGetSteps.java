@@ -105,7 +105,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
      */
     @When("I get the single created draft account without asserting the body")
     public void getSingleDraftAccountWithoutAssertingBody() {
-        actions.getSingleCreatedDraftAccountUsingSessionToken();
+        actions.getSingleCreatedDraftAccount();
     }
 
     /**
