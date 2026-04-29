@@ -17,7 +17,7 @@
       "$ref": "./individualDetails.json"
     }
   },
-  "required": ["party_id", "organisation_flag"],
+  "required": ["organisation_flag"],
   "oneOf": [
     {
       "description": "Organisation party",
