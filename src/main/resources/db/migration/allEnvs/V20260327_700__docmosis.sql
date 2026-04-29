@@ -1,5 +1,5 @@
 create sequence document_templates_id_seq;
-create type document_template_type_enum as enum ('TEST_1', 'TEST_2', 'TEST_3');
+create type document_template_type_enum as enum ('HMRC_REPORT');
 
 create table document_template
 (
