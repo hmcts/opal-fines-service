@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.steps;
 
-import io.cucumber.java.AfterAll;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.When;
 import org.slf4j.Logger;
@@ -20,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BearerTokenStepDef extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(BearerTokenStepDef.class.getName());
-    private static final String DEFAULT_USER = "opal-test@dev.platform.hmcts.net";
+    public static final String DEFAULT_USER = "opal-test@dev.platform.hmcts.net";
     private static final ThreadLocal<String> TOKEN = new ThreadLocal<>();
     private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
     private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();
@@ -31,6 +30,7 @@ public class BearerTokenStepDef extends BaseStepDef {
     @Before
     public void resetAltToken() {
         clearTokenOverride();
+        scenarioContext().setCurrentUser(DEFAULT_USER);
     }
 
     /**
@@ -39,7 +39,7 @@ public class BearerTokenStepDef extends BaseStepDef {
      * @param user user alias or email used to resolve the bearer token.
      * @return access token for the supplied user.
      */
-    public String getAccessTokenForUser(String user) {
+    public static String getAccessTokenForUser(String user) {
         return tokenCache.computeIfAbsent(user, BearerTokenStepDef::fetchAccessToken);
     }
 
@@ -118,6 +118,7 @@ public class BearerTokenStepDef extends BaseStepDef {
     @When("I am testing as the {string} user")
     public void setTokenWithUser(String user) {
         setTokenOverride(getAccessTokenForUser(user));
+        scenarioContext().setCurrentUser(user);
     }
 
     /**
@@ -208,16 +209,6 @@ public class BearerTokenStepDef extends BaseStepDef {
     @When("I am testing with an expired token for the {string} user")
     public void setExpiredTokenForUser(String user) {
         setTokenOverride(fetchExpiredToken(user));
-    }
-
-
-    /**
-     * Clears the cached bearer tokens after the test run.
-     */
-    @AfterAll
-    public static void clearCache() {
-        tokenCache.clear();
-        ALT_TOKEN.remove();
-        TOKEN.remove();
+        scenarioContext().setCurrentUser(user);
     }
 }

@@ -1,20 +1,26 @@
 @Smoke @PO-149
-Feature: Tests to confirm unauthenticated requests are not authenticated
+Feature: Authenticated APIs Reject Invalid Credentials
 
-  Scenario Outline: Unauthenticated requests are rejected
+  Scenario Outline: Requests without a token are rejected for <method> <path>
     When I call <method> "<path>" without a token
-    Then the response status is 401
+    Then the request is rejected as unauthorized
 
     Examples:
       | method | path                                   |
       | GET    | /defendant-accounts/500000009          |
+
+    Examples:
+      | method | path                                   |
       | GET    | /courts?q=magistrates&business_unit=43 |
 
-  Scenario Outline: Invalid token is rejected
+  Scenario Outline: Requests with an invalid token are rejected for <method> <path>
     When I call <method> "<path>" with an invalid token
-    Then the response status is 401
+    Then the request is rejected as unauthorized
 
     Examples:
       | method | path                                   |
       | GET    | /defendant-accounts/500000009          |
+
+    Examples:
+      | method | path                                   |
       | GET    | /courts?q=magistrates&business_unit=43 |

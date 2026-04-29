@@ -1,15 +1,20 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.restassured.response.Response;
 import java.io.IOException;
 import java.util.Map;
+import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountRequestFactory;
+import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
+import uk.gov.hmcts.opal.workflows.draftaccount.DraftAccountCreateWorkflow;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
@@ -20,6 +25,53 @@ import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 public class DraftAccountPostSteps extends BaseStepDef {
     private final DraftAccountActions actions = new DraftAccountActions();
     private final DraftAccountRequestFactory requestFactory = new DraftAccountRequestFactory();
+    private final DraftAccountCreateWorkflow workflow = new DraftAccountCreateWorkflow();
+    private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
+
+    /**
+     * Creates a draft account as scenario setup, asserts that creation succeeded, and stores the
+     * generated draft-account ID for later steps.
+     *
+     * @param accountData Cucumber table containing the draft-account values for the request.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
+    @Given("a draft account exists with the following details")
+    public void givenDraftAccountExists(DataTable accountData) throws JSONException, IOException {
+        workflow.createDraftAccountAndStoreId(accountData.asMap(String.class, String.class));
+    }
+
+    /**
+     * Creates a draft account as scenario setup, stores the generated ID, and remembers the
+     * timestamps required for later replace-flow assertions.
+     *
+     * @param accountData Cucumber table containing the draft-account values for the request.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
+    @Given("a replaceable draft account exists with the following details")
+    public void givenReplaceableDraftAccountExists(DataTable accountData) throws JSONException, IOException {
+        workflow.createDraftAccountAndPrepareForReplacement(accountData.asMap(String.class, String.class));
+    }
+
+    /**
+     * Creates a draft account and immediately replaces it so later list scenarios can work with a
+     * persisted resubmitted record without exposing the setup workflow in the feature.
+     *
+     * @param accountData Cucumber table containing the final draft-account values after
+     *                    replacement.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
+    @Given("a resubmitted draft account exists with the following details")
+    public void givenResubmittedDraftAccountExists(DataTable accountData) throws JSONException, IOException {
+        Map<String, String> replacementData =
+            new java.util.LinkedHashMap<>(accountData.asMap(String.class, String.class));
+        workflow.createDraftAccountAndPrepareForReplacement(replacementData);
+        replacementData.put("If-Match", "0");
+        actions.replaceCreatedDraftAccount(replacementData, DraftAccountRequestFactory.BusinessUnitIdMode.INTEGER);
+        responseAssertions.assertStatus(SerenityRest.lastResponse(), 200);
+    }
 
     /**
      * Creates a draft account from the values supplied in the scenario table.
@@ -30,7 +82,8 @@ public class DraftAccountPostSteps extends BaseStepDef {
      */
     @When("I create a draft account with the following details")
     public void postDraftAccount(DataTable accountData) throws JSONException, IOException {
-        actions.createDraftAccount(accountData.asMap(String.class, String.class));
+        Response response = actions.createDraftAccount(accountData.asMap(String.class, String.class));
+        rememberCreatedDraftAccountState(response);
     }
 
     /**
@@ -41,8 +94,8 @@ public class DraftAccountPostSteps extends BaseStepDef {
      * @throws JSONException if the JSON payload cannot be created from the supplied values.
      * @throws IOException if an account fixture file cannot be read.
      */
-    @When("I create the following draft accounts and store their IDs")
-    public void postDraftAccountsAndStoreIds(DataTable accountData) throws JSONException, IOException {
+    @Given("the following draft accounts exist")
+    public void givenDraftAccountsExist(DataTable accountData) throws JSONException, IOException {
         actions.createDraftAccountsAndStoreIds(accountData.asMaps(String.class, String.class));
     }
 
@@ -59,32 +112,6 @@ public class DraftAccountPostSteps extends BaseStepDef {
     }
 
     /**
-     * Stores the created draft-account ID from the latest response for later steps.
-     */
-    @Then("I store the created draft account ID")
-    public void storeCreatedDraftAccountId() {
-        actions.storeCreatedDraftAccountIdFromLastResponse();
-    }
-
-    /**
-     * Stores the `created_at` timestamp from the latest draft-account response.
-     */
-    @Then("I store the created draft account created_at time")
-    public void storeDraftAccountCreatedTime() {
-        String createdAt = then().extract().body().jsonPath().getString("created_at");
-        scenarioContext().setDraftAccountCreatedAtTime(createdAt);
-    }
-
-    /**
-     * Stores the initial `account_status_date` from the latest draft-account response.
-     */
-    @Then("I store the created draft account initial account_status_date")
-    public void storeDraftAccountInitialAccountStatusDate() {
-        String initialAccountStatusDate = then().extract().body().jsonPath().getString("account_status_date");
-        scenarioContext().setInitialAccountStatusDate(initialAccountStatusDate);
-    }
-
-    /**
      * Asserts that the draft account response contains the following data.
      *
      * @param data Cucumber table containing the expected values for the assertion.
@@ -98,6 +125,17 @@ public class DraftAccountPostSteps extends BaseStepDef {
             String actual = then().extract().body().jsonPath().getString(key);
             assertEquals(expected, actual, "Values are not equal for field '" + key + "'");
         }
+    }
+
+    /**
+     * Asserts that the most recent create response represents a successful draft-account creation,
+     * including the expected body fields, ETag header, and response-shape checks.
+     *
+     * @param data Cucumber table containing the expected values for the create response.
+     */
+    @Then("the draft account is created successfully with the following data")
+    public void draftAccountIsCreatedSuccessfully(DataTable data) {
+        workflow.assertLastCreateSucceeded(data.asMap(String.class, String.class));
     }
 
     /**
@@ -173,6 +211,21 @@ public class DraftAccountPostSteps extends BaseStepDef {
             .when()
             .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
 
+    }
+
+    /**
+     * Stores the created draft-account state needed by later steps when creation succeeded.
+     *
+     * @param response response returned by the create request.
+     */
+    private void rememberCreatedDraftAccountState(Response response) {
+        if (response.statusCode() != 201) {
+            return;
+        }
+
+        actions.storeCreatedDraftAccountId(response);
+        actions.storeDraftAccountCreatedAtTime(response);
+        actions.storeInitialAccountStatusDate(response);
     }
 
 }

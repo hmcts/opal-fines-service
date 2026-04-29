@@ -2,7 +2,7 @@
 Feature: Offence Additional Fields
 
   @JIRA-STORY:PO-614 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-6208
-  Scenario: Checking additional columns are presented in the Offence API
+  Scenario: Offence reference data includes additional fields
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence ref data api filtering by cjs code "AA06001"
     Then the response contains the below offence data fields and values

@@ -1,9 +1,11 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:personal-data-processing-logging
-Feature: Add Draft Account
+Feature: Create Draft Accounts
+
+  Background:
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6019
-  Scenario: Create draft account - Adult
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Create an adult fine draft account
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -13,12 +15,7 @@ Feature: Add Draft Account
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
 
-    Then The draft account response returns 201
-    And the response must include a strong quoted ETag header
-    And the response body must not include the "version" field anywhere
-    And I store the created draft account ID
-
-    And The draft account response contains the following data
+    Then the draft account is created successfully with the following data
       | business_unit_id                    | 73                               |
       | account_type                        | Fine                             |
       | account_status                      | Submitted                        |
@@ -30,15 +27,12 @@ Feature: Add Draft Account
       | account_snapshot.business_unit_name | West London                      |
       | account.originator_type             | TFO                              |
 
-#    Then the logging service contains these PDPO logs:
-#      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
-#      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
-
-    Then I delete the created draft accounts
+    #    Then the logging service contains these PDPO logs:
+    #      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
+    #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6022
-  Scenario: Create draft account - parent or guardian to pay
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Create a parent or guardian draft account
     When I create a draft account with the following details
       | business_unit_id  | 77                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
@@ -48,12 +42,7 @@ Feature: Add Draft Account
       | submitted_by_name | opal-test                                              |
       | timeline_data     | draftAccounts/timelineJson/default.json                |
 
-    Then The draft account response returns 201
-    And the response must include a strong quoted ETag header
-    And the response body must not include the "version" field anywhere
-    And I store the created draft account ID
-
-    And The draft account response contains the following data
+    Then the draft account is created successfully with the following data
       | business_unit_id                   | 77                               |
       | account_type                       | Fine                             |
       | account_status                     | Submitted                        |
@@ -63,17 +52,13 @@ Feature: Add Draft Account
       | account_snapshot.submitted_by      | L077JG                           |
       | account_snapshot.submitted_by_name | opal-test@dev.platform.hmcts.net |
 
-#    Then the logging service contains these PDPO logs:
-#      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
-#      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
-#      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
-
-    Then I delete the created draft accounts
-
+    #    Then the logging service contains these PDPO logs:
+    #      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
+    #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+    #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6025
-  Scenario: Create draft account - company with minor creditor
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Create a minor creditor draft account
     When I create a draft account with the following details
       | business_unit_id  | 77                                                  |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
@@ -83,12 +68,7 @@ Feature: Add Draft Account
       | submitted_by_name | opal-test                                           |
       | timeline_data     | draftAccounts/timelineJson/default.json             |
 
-    Then The draft account response returns 201
-    And the response must include a strong quoted ETag header
-    And the response body must not include the "version" field anywhere
-    And I store the created draft account ID
-
-    And The draft account response contains the following data
+    Then the draft account is created successfully with the following data
       | business_unit_id                   | 77                               |
       | account_type                       | Fine                             |
       | account_status                     | Submitted                        |
@@ -97,17 +77,12 @@ Feature: Add Draft Account
       | account_snapshot.submitted_by      | L077JG                           |
       | account_snapshot.submitted_by_name | opal-test@dev.platform.hmcts.net |
 
-
-#    Then the logging service contains these PDPO logs:
-#      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
-#      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
-#      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
-
-    Then I delete the created draft accounts
+    #    Then the logging service contains these PDPO logs:
+    #      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+    #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+    #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6028
-  Scenario: Attempt to create a draft with an invalid token - no logs created
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Reject draft-account creation with an invalid token
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"
-#    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"
-    Then I delete the created draft accounts
+    #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"

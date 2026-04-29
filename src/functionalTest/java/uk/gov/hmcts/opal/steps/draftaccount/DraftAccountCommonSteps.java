@@ -9,15 +9,13 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.gov.hmcts.opal.config.Constants;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
+import uk.gov.hmcts.opal.utils.draftaccount.DraftAccountEtagHelper;
 
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -26,8 +24,9 @@ import static org.hamcrest.Matchers.notNullValue;
  *
  * <p>Provides:</p>
  * <ul>
- *   <li>{@link #fetchStrongEtag(String, String)} → GET + return strong quoted ETag (or {@code null} on 404)</li>
- *   <li>{@link #isStrongEtag(String)} → validate strong, quoted ETag format</li>
+ *   <li>{@link DraftAccountEtagHelper#fetchStrongEtag(String, String)} → GET + return strong quoted ETag (or
+ *   {@code null} on 404)</li>
+ *   <li>{@link DraftAccountEtagHelper#isStrongEtag(String)} → validate strong, quoted ETag format</li>
  *   <li>Recursive JSON check to ensure a field is absent anywhere in the body</li>
  *   <li>Step defs:
  *     <ul>
@@ -40,55 +39,6 @@ import static org.hamcrest.Matchers.notNullValue;
 public class DraftAccountCommonSteps extends BaseStepDef {
 
     private static final Logger log = LoggerFactory.getLogger(DraftAccountCommonSteps.class);
-
-    /**
-     * Strong, quoted ETag pattern.
-     * Example: {@code "\"42\""}.
-     */
-    private static final Pattern STRONG_ETAG = Pattern.compile("^\"[^\"]+\"$");
-
-    // ──────────────────────────────  Shared helpers  ──────────────────────────────
-
-    /**
-     * Determine whether an ETag value is strong and quoted.
-     *
-     * @param etag ETag value to send with the request.
-     * @return true if the ETag is strong and quoted; otherwise false.
-     */
-    public static boolean isStrongEtag(String etag) {
-        return etag != null && STRONG_ETAG.matcher(etag).matches();
-    }
-
-    /**
-     * Fetches the current strong ETag for a draft account by issuing a GET to
-     * {@code /draft-accounts/{id}}.
-     *
-     * <p>Returns a strong, quoted ETag string when the resource exists. Returns {@code null} if the
-     * resource is not found (HTTP 404).</p>
-     *
-     * @param baseUrl base URL for the API under test.
-     * @param id draft-account identifier to fetch.
-     * @return strong quoted ETag for the draft account, or null when the draft account does not
-     *         exist.
-     */
-    public static String fetchStrongEtag(String baseUrl, String id) {
-        Response r = authorisedJsonRequestForCurrentUser()
-            .accept("application/json")
-            .get(baseUrl + Constants.DRAFT_ACCOUNTS_URI + "/" + id);
-
-        int code = r.getStatusCode();
-        if (code == 404) {
-            log.info("GET {}{} → 404 (no ETag)", baseUrl, Constants.DRAFT_ACCOUNTS_URI + "/" + id);
-            return null;
-        }
-
-        assertThat("GET for ETag should be 200 or 304", code, anyOf(is(200), is(304)));
-
-        String etag = r.getHeader("ETag");
-        assertThat("ETag must be present", etag, notNullValue());
-        assertThat("ETag must be strong and quoted (e.g., \"42\")", isStrongEtag(etag), is(true));
-        return etag;
-    }
 
     // ──────────────────────────────  JSON utilities  ──────────────────────────────
 
@@ -171,8 +121,9 @@ public class DraftAccountCommonSteps extends BaseStepDef {
     public void responseHasStrongQuotedEtag() {
         Response r = SerenityRest.lastResponse();
         String etag = r.getHeader("ETag");
+        log.debug("Validating strong quoted ETag header: {}", etag);
         assertThat("ETag header must be present", etag, notNullValue());
-        assertThat("ETag must be strong and quoted", isStrongEtag(etag), is(true));
+        assertThat("ETag must be strong and quoted", DraftAccountEtagHelper.isStrongEtag(etag), is(true));
     }
 
     /**
@@ -186,10 +137,12 @@ public class DraftAccountCommonSteps extends BaseStepDef {
         Response r = SerenityRest.lastResponse();
         String body = (r.getBody() != null) ? r.getBody().asString() : "";
         if (body.isBlank()) {
+            log.debug("Skipping field absence check for '{}' because the response body is blank", field);
             return;
         }
 
         Optional<Object> parsed = tryParseJson(body);
+        log.debug("Checking that the latest response body does not contain field '{}'", field);
         if (parsed.isPresent() && containsFieldAnywhere(parsed.get(), field)) {
             Assertions.fail("Response must not include field: " + field);
         }
@@ -207,6 +160,7 @@ public class DraftAccountCommonSteps extends BaseStepDef {
         if (etag == null || etag.isBlank()) {
             Assertions.fail("No ETag available to remember");
         }
+        log.info("Remembering last response ETag as '{}'", name);
         scenarioContext().rememberEtag(name, etag);
     }
 }

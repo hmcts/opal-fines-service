@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.actions.defendantaccount;
 
-import net.serenitybdd.rest.SerenityRest;
+import io.restassured.response.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -18,11 +18,13 @@ import static uk.gov.hmcts.opal.utils.JsonObjectUtils.addLongObjectIfPresent;
 public class DefendantAccountEnforcementsActions extends BaseStepDef {
 
     /**
-     * Extracts the created defendant-account ID from the last response and stores it in the typed
-     * scenario context for later enforcement steps.
+     * Extracts the created defendant-account ID from the supplied response and stores it in the
+     * typed scenario context for later enforcement steps.
+     *
+     * @param response response expected to contain the published defendant-account identifier.
      */
-    public void storeCreatedDefendantAccountIdFromLastResponse() {
-        Object accountId = SerenityRest.lastResponse().jsonPath().get("account_id");
+    public void storeCreatedDefendantAccountId(Response response) {
+        Object accountId = response.jsonPath().get("account_id");
         assertNotNull(accountId, "Expected published draft account response to contain account_id");
         scenarioContext().setCreatedDefendantAccountId(String.valueOf(accountId));
     }
@@ -31,12 +33,13 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
      * Retrieves the enforcement status for the defendant account created during the current
      * scenario and remembers the returned ETag for later update requests.
      */
-    public void getCreatedDefendantAccountEnforcementStatus() {
-        var response = authorisedJsonRequest()
+    public Response getCreatedDefendantAccountEnforcementStatus() {
+        Response response = authorisedJsonRequest()
             .when()
             .get(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountIdOrFail() + "/enforcement-status");
 
         scenarioContext().setDefendantAccountEtag(response.getHeader("ETag"));
+        return response;
     }
 
     /**
@@ -46,7 +49,7 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
      * @param data table-driven values used to build the override payload and request headers.
      * @throws JSONException if the JSON request body cannot be assembled.
      */
-    public void patchCreatedDefendantAccountEnforcementOverride(Map<String, String> data) throws JSONException {
+    public Response patchCreatedDefendantAccountEnforcementOverride(Map<String, String> data) throws JSONException {
         JSONObject enforcementOverride = new JSONObject()
             .put("enforcement_override_result", new JSONObject()
                 .put("enforcement_override_result_id", data.get("enforcement_override_result_id")));
@@ -61,7 +64,7 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
             ifMatch = scenarioContext().getDefendantAccountEtag();
         }
 
-        authorisedJsonRequest()
+        return authorisedJsonRequest()
             .header("Business-Unit-Id", data.get("business_unit_id"))
             .header("If-Match", ifMatch)
             .body(requestBody.toString())

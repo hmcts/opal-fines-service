@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
+import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 /**
@@ -58,7 +59,7 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
         }
 
         return draftAccounts.stream()
-            .map(id -> getDefendantAccountIdFromDraftAccount(id))
+            .map(this::getDefendantAccountIdFromDraftAccount)
             .filter(id -> id != null && id > 0)
             .collect(Collectors.toList());
     }
@@ -72,7 +73,12 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
      */
     private Long getDefendantAccountIdFromDraftAccount(String draftAccountId) {
         try {
-            var response = authorisedJsonRequest()
+            String creatorUser = scenarioContext().getDraftAccountCreatorOrDefault(
+                draftAccountId,
+                BearerTokenStepDef.DEFAULT_USER
+            );
+
+            var response = jsonRequestWithToken(BearerTokenStepDef.getAccessTokenForUser(creatorUser))
                 .when()
                 .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
 

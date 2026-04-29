@@ -1,20 +1,35 @@
 package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.en.Then;
-import uk.gov.hmcts.opal.workflows.HealthApiWorkflow;
+import io.cucumber.java.en.When;
+import org.junit.jupiter.api.Assertions;
+import uk.gov.hmcts.opal.actions.HealthApiActions;
+import uk.gov.hmcts.opal.assertions.HealthApiAssertions;
+import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 /**
  * Defines Cucumber steps for the health endpoint.
  */
 public class HealthApiStepDef extends BaseStepDef {
-    private final HealthApiWorkflow workflow = new HealthApiWorkflow();
+    private final HealthApiActions actions = new HealthApiActions();
+    private final HealthApiAssertions assertions = new HealthApiAssertions();
 
     /**
-     * Calls the fines-service health endpoint and asserts that the service reports as UP.
+     * Calls the fines-service health endpoint.
      */
-    @Then("I check the health of the fines api")
-    public void checkHealthOfFinesApi() {
-        workflow.checkHealthApiIsUp();
+    @When("I request the fines api health status")
+    public void requestHealthOfFinesApi() {
+        scenarioContext().setLatestHttpResponse(actions.getHealth());
+    }
+
+    /**
+     * Asserts that the most recent health request reported the service as UP.
+     */
+    @Then("the fines service reports as up")
+    public void finesServiceReportsAsUp() {
+        TestHttpResponse response = scenarioContext().consumeLatestHttpResponse();
+        Assertions.assertNotNull(response, "No health response is available to assert");
+        assertions.assertServiceIsUp(response);
     }
 
 }

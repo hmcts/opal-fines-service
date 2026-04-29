@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public class GetResultsStepDef extends BaseStepDef {
      *
      * @param resultIds comma-separated result identifiers to request.
      */
-    @When("I make a request to get the results {string}")
+    @When("I request results for identifiers {string}")
     public void getResults(String resultIds) {
         authorisedJsonRequest()
             .param("result_ids", resultIds)
@@ -34,7 +33,7 @@ public class GetResultsStepDef extends BaseStepDef {
      *
      * @param count expected number of matching records.
      */
-    @Then("The results response contains {int} results")
+    @Then("{int} results are returned")
     public void resultsResponseContainsCount(int count) {
         then().assertThat()
             .statusCode(200).body("count", equalTo(count));
@@ -45,7 +44,7 @@ public class GetResultsStepDef extends BaseStepDef {
      *
      * @param data Cucumber table containing the expected values for the assertion.
      */
-    @Then("The results response contains the following result")
+    @Then("the returned results include the following result")
     public void resultsResponseContains(DataTable data) {
         Map<String, String> expected = data.asMap(String.class, String.class);
         String resultID = expected.get("result_id");
@@ -56,20 +55,4 @@ public class GetResultsStepDef extends BaseStepDef {
         }
     }
 
-    /**
-     * Asserts that the latest API or raw-client response returned the expected HTTP status code.
-     *
-     * @param status expected HTTP status code.
-     */
-    @Then("the response status is {int}")
-    public void theResponseStatusIs(int status) {
-        TestHttpResponse httpResponse = scenarioContext().consumeLatestHttpResponse();
-        if (httpResponse != null) {
-            assertEquals(status, httpResponse.statusCode(), "Unexpected HTTP status");
-            return;
-        }
-        then()
-            .log().ifValidationFails()  // shows payload on failure
-            .statusCode(status);
-    }
 }

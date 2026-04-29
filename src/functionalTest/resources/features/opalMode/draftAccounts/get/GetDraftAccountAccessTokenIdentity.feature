@@ -1,10 +1,12 @@
 @Opal @JIRA-LABEL:manual-account-creation
-Feature: Get Draft Account Access Token Identity
+Feature: Draft Account Access Token Identity
+
+  Background:
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
   @JIRA-STORY:PO-2292 @JIRA-EPIC:PO-2808 @cleanUpData @JIRA-KEY:POT-6066
-  Scenario: Get Draft Accounts - Fields are populated using the access token ignore request that includes submitted_by or validated_by
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+  Scenario: Access token identity overrides submitted-by and validated-by values
+    And a draft account exists with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -12,10 +14,8 @@ Feature: Get Draft Account Access Token Identity
       | submitted_by      | L071JG                                      |
       | submitted_by_name | opal-test                                   |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
 
-    Then I get the single created draft account and the response contains
+    Then the retrieved draft account contains the following data
       | business_unit_id                    | 73           |
       | account_type                        | Fine         |
       | account_status                      | Submitted    |
@@ -24,8 +24,7 @@ Feature: Get Draft Account Access Token Identity
       | account_snapshot.account_type       | Fine         |
       | account_snapshot.submitted_by       | L073JG       |
       | account_snapshot.business_unit_name | West London  |
-    Then The draft account response returns 200
-
+    And the request succeeds
 
     When I patch the draft account with the following details
       | business_unit_id | 73                  |
@@ -33,6 +32,15 @@ Feature: Get Draft Account Access Token Identity
       | validated_by     | L072JG              |
       | reason_text      | Reason for deletion |
       | If-Match         | 0                   |
-    Then The draft account response returns 200
-
-    Then I delete the created draft accounts
+    Then the created draft account is patched successfully and the retrieved draft account contains the following data
+      | business_unit_id                    | 73                  |
+      | account_type                        | Fine                |
+      | account_status                      | Deleted             |
+      | account_snapshot.defendant_name     | LNAME, FNAME        |
+      | account_snapshot.date_of_birth      | 2000-01-01          |
+      | account_snapshot.account_type       | Fine                |
+      | account_snapshot.submitted_by       | L073JG              |
+      | account_snapshot.business_unit_name | West London         |
+      | timeline_data[0].status             | Deleted             |
+      | timeline_data[0].username           | L073JG              |
+      | timeline_data[0].reason_text        | Reason for deletion |
