@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
+@SuppressWarnings("AbbreviationAsWordInName")
 public class HMRCDocumentDto {
 
     @JsonProperty("first_name")
