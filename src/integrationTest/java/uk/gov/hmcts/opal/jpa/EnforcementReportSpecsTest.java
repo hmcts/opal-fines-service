@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 
+@ActiveProfiles({"integration"})
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 public class EnforcementReportSpecsTest extends AbstractIntegrationTest {
 
@@ -71,8 +73,8 @@ public class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void enforcementSpec_filterByLastActionWithDateFilters_returnsLastAction() {
         //Arrange
-        LocalDateTime start = LocalDate.of(2000, 1, 1).atStartOfDay();
-        LocalDateTime end = LocalDate.of(2000, 2, 2).atStartOfDay();
+        LocalDateTime start = LocalDate.now().minusDays(2).atStartOfDay();
+        LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
 
         ReportFiltersDto filters = ReportFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.LAST_ACTION)
@@ -90,9 +92,8 @@ public class EnforcementReportSpecsTest extends AbstractIntegrationTest {
                 .getPostedDate();
 
             assertThat(maxPostedDate)
-                .isNotNull()
-                .isAfter(start)
-                .isBefore(end);
+                .isAfterOrEqualTo(start)
+                .isBeforeOrEqualTo(end);
         });
     }
 

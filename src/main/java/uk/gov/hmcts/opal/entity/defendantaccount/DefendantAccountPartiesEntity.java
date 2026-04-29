@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -20,8 +21,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.converter.AssociationTypeConverter;
 
 
 @Entity
@@ -51,8 +53,9 @@ public class DefendantAccountPartiesEntity {
     @JoinColumn(name = "party_id",  nullable = false)
     private PartyEntity party;
 
-    @Type(AssociationTypeUserType.class)
-    @Column(name = "association_type", nullable = false, columnDefinition = "t_association_type_enum")
+    @ColumnTransformer(write = "?::t_association_type_enum", read = "association_type::text")
+    @Column(name = "association_type", nullable = false, length = 30, columnDefinition = "t_association_type_enum")
+    @Convert(converter = AssociationTypeConverter.class)
     private AssociationType associationType;
 
     @Column(name = "debtor", nullable = false)

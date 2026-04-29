@@ -1,14 +1,19 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.FINE_REGISTRATION_DATE;
+import static uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity_.DEFENDANT_ACCOUNT_ID;
+import static uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity_.POSTED_DATE;
+import static uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity_.RESULT_ID;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.endOf;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.startOf;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,10 +24,7 @@ import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 
 public class EnforcementReportSpecs {
 
-    public static final String DEFENDANT_ACCOUNT_ID = "defendantAccountId";
-    public static final String POSTED_DATE = "postedDate";
-    public static final String RESULT_ID = "resultId";
-    public static final String REGF = "REGF";
+    public static final String REGISTRATION_OF_FINE = "REGF";
 
     public static Specification<DefendantAccountEntity> enforcementSpec(ReportFiltersDto f) {
         return (root, query, cb) -> {
@@ -36,14 +38,11 @@ public class EnforcementReportSpecs {
                 case ALL -> {
                     if (f.getEnforcementDateFrom() != null || f.getEnforcementDateTo() != null) {
                         Subquery<Long> sq = requireNonNull(query).subquery(Long.class);
-                        Root<EnforcementEntity.Lite> ea = sq.from(EnforcementEntity.Lite.class);
-                        sq.select(cb.literal(1L));
+                        Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
                         List<Predicate> where = new ArrayList<>();
+                        selectExistsWhereDefendantAccountIdMatches(root, cb, sq, ea);
                         where.add(cb.equal(ea.get(DEFENDANT_ACCOUNT_ID), root.get(DEFENDANT_ACCOUNT_ID)));
-
-                        // typed Expression for postedDate (LocalDateTime)
                         Expression<LocalDateTime> posted = ea.get(POSTED_DATE).as(LocalDateTime.class);
-
                         if (f.getEnforcementDateFrom() != null && f.getEnforcementDateTo() != null) {
                             where.add(cb.between(posted, startOf(f.getEnforcementDateFrom()),
                                 endOf(f.getEnforcementDateTo())));
@@ -65,7 +64,7 @@ public class EnforcementReportSpecs {
 
                     // subquery returning greatest(postedDate) for this account
                     Subquery<LocalDateTime> maxDateSq = requireNonNull(query).subquery(LocalDateTime.class);
-                    Root<EnforcementEntity.Lite> eaMax = maxDateSq.from(EnforcementEntity.Lite.class);
+                    Root<EnforcementEntity> eaMax = maxDateSq.from(EnforcementEntity.class);
 
                     // cast postedDate to LocalDateTime before taking greatest
                     Expression<LocalDateTime> postedForMax = eaMax.get(POSTED_DATE).as(LocalDateTime.class);
@@ -81,9 +80,8 @@ public class EnforcementReportSpecs {
 
                     // ensure at least one enforcement exists for this account
                     Subquery<Long> existsSq = query.subquery(Long.class);
-                    Root<EnforcementEntity.Lite> eaExists = existsSq.from(EnforcementEntity.Lite.class);
-                    existsSq.select(cb.literal(1L));
-                    existsSq.where(cb.equal(eaExists.get(DEFENDANT_ACCOUNT_ID), root.get(DEFENDANT_ACCOUNT_ID)));
+                    Root<EnforcementEntity> eaExists = existsSq.from(EnforcementEntity.class);
+                    selectExistsWhereDefendantAccountIdMatches(root, cb, existsSq, eaExists);
                     preds.add(cb.exists(existsSq));
 
                     return cb.and(preds.toArray(new Predicate[0]));
@@ -92,18 +90,16 @@ public class EnforcementReportSpecs {
                 case REGF -> {
                     if (f.getRegfDateFrom() == null && f.getRegfDateTo() == null) {
                         Subquery<Long> sq = requireNonNull(query).subquery(Long.class);
-                        Root<EnforcementEntity.Lite> ea = sq.from(EnforcementEntity.Lite.class);
-                        sq.select(cb.literal(1L));
-                        sq.where(cb.equal(ea.get(DEFENDANT_ACCOUNT_ID), root.get(DEFENDANT_ACCOUNT_ID)),
-                            cb.equal(ea.get(RESULT_ID), REGF));
-                        return cb.or(cb.exists(sq), cb.isNotNull(root.get("fineRegistrationDate")));
+                        Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
+                        selectExistsWhereDefendantAccountIdMatches(root, cb, sq, ea);
+                        cb.equal(ea.get(RESULT_ID), REGISTRATION_OF_FINE);
+                        return cb.or(cb.exists(sq), cb.isNotNull(root.get(FINE_REGISTRATION_DATE)));
                     } else {
                         Subquery<Long> sq = requireNonNull(query).subquery(Long.class);
-                        Root<EnforcementEntity.Lite> ea = sq.from(EnforcementEntity.Lite.class);
-                        sq.select(cb.literal(1L));
+                        Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
                         List<Predicate> where = new ArrayList<>();
-                        where.add(cb.equal(ea.get(DEFENDANT_ACCOUNT_ID), root.get(DEFENDANT_ACCOUNT_ID)));
-                        where.add(cb.equal(ea.get(RESULT_ID), REGF));
+                        selectExistsWhereDefendantAccountIdMatches(root, cb, sq, ea);
+                        where.add(cb.equal(ea.get(RESULT_ID), REGISTRATION_OF_FINE));
 
                         Expression<LocalDateTime> posted = ea.get(POSTED_DATE).as(LocalDateTime.class);
 
@@ -120,22 +116,19 @@ public class EnforcementReportSpecs {
 
                 case NOT_UNDER_ENFORCEMENT -> {
                     Subquery<Long> sq = requireNonNull(query).subquery(Long.class);
-                    Root<EnforcementEntity.Lite> ea = sq.from(EnforcementEntity.Lite.class);
-                    sq.select(cb.literal(1L));
-                    sq.where(cb.equal(ea.get(DEFENDANT_ACCOUNT_ID), root.get(DEFENDANT_ACCOUNT_ID)));
+                    Root<EnforcementEntity> ea = sq.from(EnforcementEntity.class);
+                    selectExistsWhereDefendantAccountIdMatches(root, cb, sq, ea);
                     return cb.not(cb.exists(sq));
                 }
             }
-
             return cb.conjunction();
         };
     }
 
-    private static LocalDateTime startOf(LocalDate d) {
-        return d == null ? null : d.atStartOfDay();
-    }
-
-    private static LocalDateTime endOf(LocalDate d) {
-        return d == null ? null : d.atTime(LocalTime.MAX);
+    private static void selectExistsWhereDefendantAccountIdMatches(Root<DefendantAccountEntity> root,
+        CriteriaBuilder cb, Subquery<Long> sq,
+        Root<EnforcementEntity> ea) {
+        sq.select(cb.literal(1L)); // constant value for EXISTS subquery
+        sq.where(cb.equal(ea.get(DEFENDANT_ACCOUNT_ID), root.get(DEFENDANT_ACCOUNT_ID)));
     }
 }

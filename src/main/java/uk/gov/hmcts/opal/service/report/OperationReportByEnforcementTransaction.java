@@ -11,8 +11,8 @@ public class OperationReportByEnforcementTransaction implements ReportDataInterf
     private ReportMetaData reportMetaData;
 
     @Override
-    public short getNumberOfRecords() {
-        return transactionList == null ? (short) 0 : (short) transactionList.size();
+    public int getNumberOfRecords() {
+        return transactionList == null ?  0 : transactionList.size();
     }
 
     @Override

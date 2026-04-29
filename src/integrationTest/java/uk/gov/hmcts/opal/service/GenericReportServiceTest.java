@@ -173,8 +173,8 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         }
 
         @Override
-        public short getNumberOfRecords() {
-            return (short) numberOfRecords;
+        public int getNumberOfRecords() {
+            return numberOfRecords;
         }
 
         @Override

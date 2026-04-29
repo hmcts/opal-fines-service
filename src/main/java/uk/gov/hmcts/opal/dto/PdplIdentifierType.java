@@ -4,16 +4,11 @@ import uk.gov.hmcts.opal.logging.integration.dto.IdentifierType;
 
 public enum PdplIdentifierType implements IdentifierType {
 
-    DRAFT_ACCOUNT,
-    OPAL_USER_ID,
+    DEFENDANT_ACCOUNT,
     DEBTOR_ACCOUNT,
-    PARTY_NAME,
-    NINO,
-    DOB,
-    ACCOUNT_NUMBER,
-    ORGANISATION,
-    WARRANT_REFERENCE,
-    PROSECUTOR_CASE_REFERENCE;
+    PARENT_GUARDIAN,
+    DRAFT_ACCOUNT,
+    OPAL_USER_ID;
 
     @Override
     public String getType() {
