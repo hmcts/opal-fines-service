@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.launchdarkly.shaded.org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
