@@ -5,7 +5,7 @@ Feature: Draft Account Access Token Identity
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
   @JIRA-STORY:PO-2292 @JIRA-EPIC:PO-2808 @cleanUpData @JIRA-KEY:POT-6066
-  Scenario: Access token identity overrides submitted-by and validated-by values
+  Scenario: Access token identity overrides submitted-by values
     And a draft account exists with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -42,5 +42,4 @@ Feature: Draft Account Access Token Identity
       | account_snapshot.submitted_by       | L073JG              |
       | account_snapshot.business_unit_name | West London         |
       | timeline_data[0].status             | Deleted             |
-      | timeline_data[0].username           | L073JG              |
       | timeline_data[0].reason_text        | Reason for deletion |

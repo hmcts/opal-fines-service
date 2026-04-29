@@ -95,13 +95,6 @@ Feature: Replace Draft Account Error Handling
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
     When I attempt to put a draft account with unsupported media type for request
-      | business_unit_id  | 73                                      |
-      | account           | draftAccounts/accountJson/account.json  |
-      | account_type      | Fine                                    |
-      | account_status    | Submitted                               |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
 
     Then the request is rejected as not acceptable
 
