@@ -12,8 +12,7 @@ import uk.gov.hmcts.opal.documents.docmosis.DocmosisClient;
 public class DocmosisConfiguration {
 
     @Bean
-    public DocmosisClient docmosisClient(
-        @Value("${opal.docmosis.base-url}") String baseUrl) {
+    public DocmosisClient docmosisClient(@Value("${opal.docmosis.endpoint}") String baseUrl) {
         RestClient restClient = RestClient.builder()
             .baseUrl(baseUrl)
             .build();

@@ -139,7 +139,6 @@ quartzProperties:
 opal:
   docmosis:
     endpoint: ${OPAL_DOCMOSIS_BASE_URL:http://localhost:5544}
-    render-url: ${OPAL_DOCMOSIS_RENDER_URL:/api/render}
     token: ${OPAL_DOCMOSIS_TOKEN:}
   redis:
     enabled: ${OPAL_REDIS_ENABLED:false}
