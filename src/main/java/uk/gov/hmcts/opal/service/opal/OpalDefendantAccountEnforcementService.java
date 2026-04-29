@@ -84,9 +84,6 @@ public class OpalDefendantAccountEnforcementService
         String authHeader,
         AddDefendantAccountEnforcementRequest request) throws JsonProcessingException {
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
-        DefendantAccountEntity defendant = defendantAccountRepositoryService.findById(defendantAccountId);
-
         String reason = null;
         Integer jailDays = null;
         Long enforcerId = null;
@@ -108,6 +105,9 @@ public class OpalDefendantAccountEnforcementService
         }
 
         String resultResponses = objectMapper.writeValueAsString(request.getEnforcementResultResponses());
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+        DefendantAccountEntity defendant = defendantAccountRepositoryService.findById(defendantAccountId);
 
         Long enforcementId = enforcementRepositoryService.addDefendantAccountEnforcement(
             request.getResultId().toString(),

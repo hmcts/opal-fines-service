@@ -12,5 +12,15 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     public void testAddEnforcement_whenGivenAllFields_addsEnforcement() throws Exception {
         super.postEnforcementImpl_fullRequest_Success(log);
     }
+
+    @Test
+    public void testAddEnforcement_whenGivenMinimumFields_addsEnforcement() throws Exception {
+        super.postEnforcementImpl_minimumRequest_Success(log);
+    }
+
+    @Test
+    public void testAddEnforcement_whenGivenInvalidDefendant_Fails() throws Exception {
+        super.postEnforcementImpl_invalidDefendant_Failure(log);
+    }
 }
 

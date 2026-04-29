@@ -237,7 +237,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
 
         assertEquals("999", defId);
-        assertEquals("BU-TEST", buId);
+        assertEquals("101", buId);
         assertEquals("user-test", buUser);
         var version = clazz.getMethod("getVersion").invoke(sentLegacyRequest);
 

@@ -60,11 +60,22 @@ public class EnforcementRepositoryService {
             cs.setString(4, "defendant_accounts");
             cs.setString(5, caseReference);
             cs.setString(6, functionCode);
-            cs.setInt(7, jailDays);
+
+            if (jailDays != null) {
+                cs.setInt(7, jailDays);
+            } else {
+                cs.setNull(7, Types.INTEGER);
+            }
+
             cs.setString(8, postedBy);
             cs.setString(9, postedByName);
             cs.setString(10, reason);
-            cs.setLong(11, enforcerId);
+
+            if (enforcerId != null) {
+                cs.setLong(11, enforcerId);
+            } else {
+                cs.setNull(11, Types.BIGINT);
+            }
 
             PGobject json = new PGobject();
             json.setType("json");

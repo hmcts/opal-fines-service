@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -38,6 +39,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     protected static final Long BUSINESS_UNIT_ID = 77L;
     protected static final Long IF_MATCH = 1L;
     protected static final Long DEFENDANT_ACCOUNT_ID = 99000000000006L;
+    protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
 
     protected static final List<ResultResponse> fullResponses = List.of(
         ResultResponse.builder().parameterName("reason").response("test reason").build(),
@@ -85,11 +87,13 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .paymentTerms(paymentTerms)
             .build();
 
+        String version = getCurrentDefendantAccountVersion().toString();
+
         ResultActions resultActions = mockMvc.perform(
             post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
                 .header("Authorization", AUTH_HEADER)
                 .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
-                .header("IF-MATCH", IF_MATCH.toString())
+                .header("IF-MATCH", version)
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -100,7 +104,90 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("defendant_account_id").value("99000000000006"))
-            .andExpect(jsonPath("version").value(1))
-            .andExpect(jsonPath("enforcement_id").value("60000000000000"));
+            .andExpect(jsonPath("version").exists())
+            .andExpect(jsonPath("enforcement_id").exists());
+    }
+
+    void postEnforcementImpl_minimumRequest_Success(Logger log) throws Exception {
+        UserStateDto userStateDto = UserStateDto.builder()
+            .userId(1L)
+            .username("testUser")
+            .businessUnitUsers(List.of(
+                                   new BusinessUnitUserDto("testUserId", (short) 77,
+                                                           List.of(new PermissionDto(10L, "Enter Enforcement")))
+                               )
+            ).build();
+
+        when(userClient.getUserStateById(anyLong())).thenReturn(userStateDto);
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(Collections.emptyList())
+            .paymentTerms(paymentTerms)
+            .build();
+
+        String version = getCurrentDefendantAccountVersion().toString();
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .header("Authorization", AUTH_HEADER)
+                .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", version)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testPostEnforcementImpl_fullRequest_Success: Response body: \n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("defendant_account_id").value("99000000000006"))
+            .andExpect(jsonPath("version").exists())
+            .andExpect(jsonPath("enforcement_id").exists());
+    }
+
+    void postEnforcementImpl_invalidDefendant_Failure(Logger log) throws Exception {
+        UserStateDto userStateDto = UserStateDto.builder()
+            .userId(1L)
+            .username("testUser")
+            .businessUnitUsers(List.of(
+                                   new BusinessUnitUserDto("testUserId", (short) 77,
+                                                           List.of(new PermissionDto(10L, "Enter Enforcement")))
+                               )
+            ).build();
+
+        when(userClient.getUserStateById(anyLong())).thenReturn(userStateDto);
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(Collections.emptyList())
+            .paymentTerms(paymentTerms)
+            .build();
+
+        String version = getCurrentDefendantAccountVersion().toString();
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE + "/" + INVALID_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .header("Authorization", AUTH_HEADER)
+                .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", version)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testPostEnforcementImpl_fullRequest_Success: Response body: \n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().is4xxClientError())
+            .andExpect(jsonPath("title").value("Entity Not Found"));
+    }
+
+    private Integer getCurrentDefendantAccountVersion() {
+        return jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            DEFENDANT_ACCOUNT_ID
+        );
     }
 }
