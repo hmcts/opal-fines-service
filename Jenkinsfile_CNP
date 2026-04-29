@@ -8,7 +8,7 @@ def product = "opal"
 def component = "fines-service"
 
 def secrets = [
-        'darts-${env}': [
+        'opal-${env}': [
                 secret('docmosis-api-key', 'OPAL_DOCMOSIS_BASE_URL'),
                 secret('docmosis-endpoint', 'OPAL_DOCMOSIS_TOKEN'),
         ],
