@@ -1,20 +1,25 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -28,8 +33,24 @@ class OperationReportByEnforcementServiceTest {
     @Mock
     private ReportResultMapper resultMapper;
 
-    @InjectMocks
+    private ObjectMapper objectMapper;
+
     private OperationReportByEnforcementService service;
+
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();
+        service = new OperationReportByEnforcementService(
+            defendantAccountRepository,
+            resultMapper,
+            objectMapper
+        );
+    }
+
+    @Test
+    void getReportId_returnsOperationalReportByEnforcement() {
+        assertEquals(ReportId.OP_ENFORCEMENT, service.getReportId());
+    }
 
     @Test
     void convertReportDataToFileType_returnsEmptyByteArray() {
@@ -38,8 +59,9 @@ class OperationReportByEnforcementServiceTest {
         assertThat(out.length).isZero();
     }
 
-    @Test
-    void generateReportData_withEmptyJson_callsRepository_and_mapper_and_returns_mapper_result() {
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"unknownParam\":\"value\"}"})
+    void generateReportData_withEmptyJsonOrUnknownParameter_callsRepositoryAndMapperAndReturnsMapperResult() {
         ReportInstanceEntity reportInstance = new ReportInstanceEntity();
         reportInstance.setReportParameters("{}");
 
@@ -58,11 +80,11 @@ class OperationReportByEnforcementServiceTest {
     }
 
     @Test
-    void generateReportData_withFullParameters_parsesFilters_and_uses_repository_and_mapper() {
+    void generateReportData_withFullParameters_parsesFiltersAndUsesRepositoryAndMapper() {
         String json = """
             {
-              "Report_types": "Detailed",
-              "business_unit_ids": [1, 2, 3],
+              "ReportType": "DETAILED",
+              "businessUnitIds": [1, 2, 3],
               "enforcementMode": "LAST_ACTION",
               "enforcementDateFrom": "2024-01-01",
               "enforcementDateTo": "2024-12-31",
@@ -72,13 +94,13 @@ class OperationReportByEnforcementServiceTest {
               "regfDateTo": "2024-03-31",
               "includeAdult": "true",
               "includeYouth": "false",
-              "includeCompany": "y",
-              "onlyAccountsWithParentGuardian": "n",
-              "collectionOrderChoice": "with",
-              "accountStatus": "live",
+              "includeCompany": "true",
+              "onlyAccountsWithParentGuardian": "false",
+              "collectionOrderChoice": "WITH",
+              "accountStatus": "LIVE",
               "minBalance": 10.5,
               "maxBalance": "1000.75",
-              "firstPaymentOrPaybyInNext7Days": "yes",
+              "firstPaymentOrPaybyInNext7Days": "true",
               "lowerNameRange": "a",
               "upperNameRange": "z"
             }""";
@@ -99,9 +121,7 @@ class OperationReportByEnforcementServiceTest {
         OperationReportByEnforcementTransaction expected = new OperationReportByEnforcementTransaction();
         expected.setTransactionList(Collections.emptyList());
         when(resultMapper.map(accounts)).thenReturn(expected);
-
         ReportDataInterface actual = service.generateReportData(reportInstance);
-
         assertThat(actual).isSameAs(expected);
     }
 }

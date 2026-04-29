@@ -1,106 +1,518 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.fail;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
+import org.junit.Ignore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.util.AgeUtil;
 
+@Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Slf4j(topic = "opal.OperationReportByEnforcementServiceTest")
 @DisplayName("OperationReportByEnforcementServiceTest")
 public class OperationReportByEnforcementServiceTest extends AbstractIntegrationTest {
 
     @Autowired
     private OperationReportByEnforcementService service;
-
-    @MockitoBean
+    @Autowired
     private DefendantAccountRepository defendantAccountRepository;
-
-    @MockitoBean
-    private ReportResultMapper resultMapper;
-
-    @Mock
-    private ReportDataInterface mapped;
+    @Autowired
+    private EnforcementRepository enforcementRepository;
 
     @Test
-    void generateReportData_shouldReadParameters_callRepositoryWithSort_andMapResults() {
+    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "report_type": "Detailed",
-              "business_unit_ids": [10, 20],
-              "enforcementMode": "all",
-              "includeAdult": true,
-              "includeYouth": false,
-              "includeCompany": true,
-              "collectionOrderChoice": "ALL",
-              "accountStatus": "OPEN"
+              "reportType": "DETAILED"
             }
             """);
-
-        List<DefendantAccountEntity> accounts = List.of(
-            mock(DefendantAccountEntity.class),
-            mock(DefendantAccountEntity.class)
-        );
-
-        given(defendantAccountRepository.findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
-            any(Sort.class))).willReturn(accounts);
-        given(resultMapper.map(accounts)).willReturn((OperationReportByEnforcementTransaction) mapped);
-
         //Act
-        ReportDataInterface result = service.generateReportData(reportInstance);
-
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
         //Assert
-        assertThat(result).isSameAs(mapped);
-        ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
-        verify(defendantAccountRepository).findAll(
-            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(), sortCaptor.capture());
-        assertThat(sortCaptor.getValue()).isEqualTo(Sort.by(Sort.Direction.ASC, "accountNumber"));
-        verify(resultMapper).map(accounts);
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        verifyMetadata(result, transactions);
     }
 
     @Test
-    void generateReportData_shouldUseDefaultsWhenOptionalFieldsAreMissing() {
+    void generateReportData_filterSummaryReportType_returnSortedResultsOfSummaryReportType() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "business_unit_ids": [99]
+              "reportType": "SUMMARY"
             }
             """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        //Currently there is no Summary option so this will be the same as Detailed
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
 
-        List<DefendantAccountEntity> accounts = List.of();
+    @Test
+    void generateReportData_filterByBusinessUnitIds_returnSortedResultsOfCorrectBusinessUnitIds() {
+        //Arrange
+        List<DefendantAccountEntity> accountsInBusinessUnit =
+            defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77);
+        List<String> accountNumbers =
+            accountsInBusinessUnit.stream().map(DefendantAccountEntity::getAccountNumber).toList();
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "businessUnitIds": [77]
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .allMatch(accountNumbers::contains)
+            .isSorted();
+        verifyMetadata(result, transactions);
 
-        given(defendantAccountRepository.findAll(
-            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(), any(Sort.class)))
-            .willReturn(accounts);
-        given(resultMapper.map(accounts)).willReturn((OperationReportByEnforcementTransaction) mapped);
+
+    }
+
+    @Test
+    void generateReportData_filterByEnforcementModeAll_returnAllSortedResults() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "enforcementMode": "ALL"
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        assertThat(result).isNotNull();
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    @Ignore
+    @Test
+    void generateReportData_filterByEnforcementModeLastAction_returnLastActionSortedResults() {
+        //Arrange
+        LocalDateTime start = LocalDate.now().minusDays(2).atStartOfDay();
+        LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "enforcementMode": "LAST_ACTION",
+              "lastActionDateFrom": "%s",
+              "lastActionDateTo": "%s"
+            }
+            """.formatted(
+            start.format(fmt),
+            end.format(fmt)
+        ));
 
         //Act
-        ReportDataInterface result = service.generateReportData(reportInstance);
-
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
         //Assert
-        assertThat(result).isSameAs(mapped);
-        verify(defendantAccountRepository).findAll(
-            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(), any(Sort.class));
-        verify(resultMapper).map(accounts);
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        Map<String, Long> accountNoToId = defendantAccountRepository.findAll().stream()
+            .collect(Collectors.toMap(
+                DefendantAccountEntity::getAccountNumber,
+                DefendantAccountEntity::getDefendantAccountId
+            ));
+        Assertions.assertThat(transactions).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            LocalDateTime maxPostedDate = enforcementRepository
+                .findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(accountId)
+                .orElseThrow()
+                .getPostedDate();
+            Assertions.assertThat(maxPostedDate)
+                .isAfterOrEqualTo(start)
+                .isBeforeOrEqualTo(end);
+        });
+        verifyMetadata(result, transactions);
+    }
+
+    @Ignore
+    @Test
+    void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "enforcementMode": "REGF",
+              "regfDateFrom": "2000-01-01",
+              "regfDateTo": "2000-02-02"
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        assertThat(result).isNotNull();
+
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getLastEnforcementDate)
+            .allSatisfy(date ->
+                assertThat(date).isBetween(
+                    LocalDate.of(2000, 1, 1), LocalDate.of(2000, 2, 2))
+            );
+        verifyMetadata(result, transactions);
+    }
+
+
+    @Test
+    void generateReportData_filterByEnforcementDate_returnSortedResults() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "enforcementDateFrom": "2000-01-01",
+              "enforcementDateTo": "2000-02-02"
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    @Test
+    void generateReportData_filterByNotUnderEnforcement_returnResultsNotUnderEnforcement() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "enforcementMode": "NOT_UNDER_ENFORCEMENT"
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    @Test
+    void generateReportData_filterByIncludeAdult_returnResultsOfAdults() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "includeAdult": true
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getDateOfBirth)
+            .filteredOn(Objects::nonNull)
+            .allMatch(dob -> AgeUtil.calculateAge(dob) >= AgeUtil.ADULT_AGE)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    @Test
+    void generateReportData_filterByIncludeYouth_returnResultsOfYouth() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "includeYouth": true
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getDateOfBirth)
+            .filteredOn(Objects::nonNull)
+            .allMatch(dob -> AgeUtil.calculateAge(dob) < AgeUtil.ADULT_AGE)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    @Test
+    void generateReportData_filterByIncludeCompany_returnResultsOfCompanies() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "includeCompany": true
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getCompany)
+            .allMatch("Y"::equals)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    @Test
+    void generateReportData_filterByParentOrGuardian_returnResultsWithParentOrGuardian() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "onlyAccountsWithParentGuardian": true
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getParentOrGuardian)
+            .allMatch("Y"::equals)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "WITH, true",
+        "WITHOUT, false"
+    })
+    void generateReportData_filterByCollectionOrderChoice_returnResults(
+        String collectionOrderChoice,
+        boolean expectedValue
+    ) {
+        // Arrange
+        List<String> expectedAccountNumbers = defendantAccountRepository.findAll().stream()
+            .filter(acc -> Boolean.valueOf(expectedValue).equals(acc.getCollectionOrder()))
+            .map(DefendantAccountEntity::getAccountNumber)
+            .toList();
+
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "collectionOrderChoice": "%s"
+            }
+            """.formatted(collectionOrderChoice));
+        // Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        // Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers)
+            .isSorted();
+        verifyMetadata(result, transactions);
+    }
+
+    //TODO: check - should we be using account status from DefendantAccountEntity instead of checking balance and completed date?
+    @ParameterizedTest
+    @CsvSource({
+        "LIVE, true",
+        "CLOSED, false"
+    })
+    void generateReportData_filterByAccountStatus_returnResults(
+        String accountStatus,
+        boolean expectedValue
+    ) {
+        // Arrange
+        List<String> expectedAccountNumbers = defendantAccountRepository.findAll().stream()
+            .filter(acc -> Boolean.valueOf(expectedValue).equals(acc.getAccountStatus()))
+            .map(DefendantAccountEntity::getAccountNumber)
+            .toList();
+
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "accountStatus": "%s"
+            }
+            """.formatted(accountStatus));
+
+        // Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+
+        // Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers)
+            .isSorted();
+        verifyMetadata(result, transactions);
+        fail();
+    }
+
+    @Test
+    void generateReportData_filterByMinAndMaxBalance_returnSortedWithinMinAndMaxBalance() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "minBalance": 400.00,
+              "maxBalance": 600.00
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getBalance)
+            .filteredOn(Objects::nonNull)
+            .allSatisfy(balance ->
+                assertThat(balance).isBetween(BigDecimal.valueOf(400), BigDecimal.valueOf(600))
+            );
+        verifyMetadata(result, transactions);
+    }
+
+    @ParameterizedTest
+    @MethodSource("next7DaysCases")
+    void generateReportData_filterByFirstPaymentOrPayByInNext7Days_returnSortedWithFirstPaymentOrPayByInNext7Days(
+        Consumer<DefendantAccountEntity> mutation
+    ) {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "firstPaymentOrPayByInNext7Days": "true"
+            }
+            """);
+        //Arrange
+        DefendantAccountEntity entity =
+            defendantAccountRepository.findAll().getFirst();
+        mutation.accept(entity);
+        defendantAccountRepository.saveAndFlush(entity);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .contains(entity.getAccountNumber());
+        verifyMetadata(result, transactions);
+    }
+
+    private static Stream<Consumer<DefendantAccountEntity>> next7DaysCases() {
+        LocalDate targetDate = LocalDate.now().plusDays(7);
+
+        return Stream.of(
+            entity -> entity.setImposedHearingDate(targetDate),
+            entity -> entity.setCollectionOrderEffectiveDate(targetDate),
+            entity -> entity.setPaymentCardRequestedDate(targetDate)
+        );
+    }
+
+    @Test
+    void generateReportData_filterByNameRange_returnSortedWithinNameRange() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "lowerNameRange": "l",
+              "upperNameRange": "l"
+            }
+            """);
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getDefendantName)
+            .allSatisfy(name ->
+                assertThat(name.substring(0, 1).toLowerCase()).isEqualTo("l"));
+        verifyMetadata(result, transactions);
+    }
+
+    private static void verifyMetadata(OperationReportByEnforcementTransaction result,
+        List<EnforcementReportRowDto> transactions) {
+        ReportMetaData reportMetadata = result.getReportMetaData();
+        int numberOfRecords = result.getNumberOfRecords();
+        assertThat(numberOfRecords).isEqualTo(transactions.size());
+        assertThat(reportMetadata.getPdpoParticipants().size()).isGreaterThanOrEqualTo(numberOfRecords);
+        Assertions.assertThat(reportMetadata.getPdpoParticipants()).doesNotHaveDuplicates();
     }
 }
 

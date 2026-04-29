@@ -2,6 +2,10 @@ package uk.gov.hmcts.opal.jpa;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.CLOSED;
+import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.LIVE;
+import static uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType.WITH;
+import static uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType.WITHOUT;
 import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_GUARDIAN;
 
 import java.math.BigDecimal;
@@ -134,7 +138,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     void collectionOrderSpec_withCollectionOrder_returnAllAccountsWithCollectionOrder() {
         //Arrange
         ReportFiltersDto filters = ReportFiltersDto.builder()
-            .collectionOrderChoice("with")
+            .collectionOrderChoice(WITH)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
         //Act
@@ -149,7 +153,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     void collectionOrderSpec_withoutCollectionOrder_returnAllAccountsWithoutCollectionOrder() {
         //Arrange
         ReportFiltersDto filters = ReportFiltersDto.builder()
-            .collectionOrderChoice("without")
+            .collectionOrderChoice(WITHOUT)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
         //Act
@@ -164,7 +168,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     void accountStatusSpec_live_returnAllAccountsWithLiveStatus() {
         //Arrange
         ReportFiltersDto filters = ReportFiltersDto.builder()
-            .accountStatus("live")
+            .accountStatus(LIVE)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
         //Act
@@ -181,7 +185,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     void accountStatusSpec_closed_returnAllAccountsWithClosedStatus() {
         //Arrange
         ReportFiltersDto filters = ReportFiltersDto.builder()
-            .accountStatus("closed")
+            .accountStatus(CLOSED)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
         //Act
@@ -242,7 +246,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         mutation.accept(entity);
         defendantAccountRepository.saveAndFlush(entity);
         ReportFiltersDto filters = ReportFiltersDto.builder()
-            .firstPaymentOrPaybyInNext7Days(true)
+            .firstPaymentOrPayByInNext7Days(true)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
         //Act
