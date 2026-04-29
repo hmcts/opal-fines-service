@@ -9,7 +9,6 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 @Service
 public class FpRegisterService implements ReportInterface {
 
-
     @Override
     public ReportId getReportId() {
         return FP_REGISTER;
@@ -29,7 +28,7 @@ public class FpRegisterService implements ReportInterface {
     public static class FpRegisterData implements ReportDataInterface {
 
         @Override
-        public short getNumberOfRecords() {
+        public int getNumberOfRecords() {
             return 0;
         }
 

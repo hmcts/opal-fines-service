@@ -96,7 +96,7 @@ class GenericReportServiceTest {
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
-        when(reportData.getNumberOfRecords()).thenReturn((short) 2);
+        when(reportData.getNumberOfRecords()).thenReturn(2);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.getRetentionPeriod()).thenReturn(Duration.ofDays(1));
@@ -127,7 +127,7 @@ class GenericReportServiceTest {
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
-        when(reportData.getNumberOfRecords()).thenReturn((short) 2);
+        when(reportData.getNumberOfRecords()).thenReturn(2);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.getRetentionPeriod()).thenReturn(null);
@@ -199,7 +199,7 @@ class GenericReportServiceTest {
     static class TestData implements ReportDataInterface {
 
         @Override
-        public short getNumberOfRecords() {
+        public int getNumberOfRecords() {
             return 0;
         }
 

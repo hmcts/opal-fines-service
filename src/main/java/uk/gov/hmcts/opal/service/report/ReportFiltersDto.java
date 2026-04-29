@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.AccountStatusReportFilterType;
+import uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType;
 
 @Data
 @Builder
@@ -27,11 +29,11 @@ public class ReportFiltersDto {
     private Boolean includeYouth;
     private Boolean includeCompany;
     private Boolean onlyAccountsWithParentGuardian;
-    private String collectionOrderChoice;
-    private String accountStatus;
+    private CollectionOrderReportFilterType collectionOrderChoice;
+    private AccountStatusReportFilterType accountStatus;
     private BigDecimal minBalance;
     private BigDecimal maxBalance;
-    private Boolean firstPaymentOrPaybyInNext7Days;
+    private Boolean firstPaymentOrPayByInNext7Days;
     private String lowerNameRange;
     private String upperNameRange;
 

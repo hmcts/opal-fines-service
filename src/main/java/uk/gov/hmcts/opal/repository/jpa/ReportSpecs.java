@@ -1,7 +1,32 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.CLOSED;
+import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.LIVE;
+import static uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType.WITH;
+import static uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType.WITHOUT;
 import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_GUARDIAN;
-import static uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs.enforcementSpec;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.ACCOUNT_BALANCE;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.BUSINESS_UNIT;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.COLLECTION_ORDER;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.COLLECTION_ORDER_EFFECTIVE_DATE;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.COMPLETED_DATE;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.ENFORCING_COURT;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.IMPOSED_HEARING_DATE;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.LAST_HEARING_COURT;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.PARTIES;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.PAYMENT_CARD_REQUESTED_DATE;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_.ASSOCIATION_TYPE;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_.DEFENDANT_ACCOUNT;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_.PARTY;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity_.AGE;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity_.ORGANISATION;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity_.ORGANISATION_NAME;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity_.SURNAME;
+import static uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_.BUSINESS_UNIT_ID;
+import static uk.gov.hmcts.opal.util.AgeUtil.ADULT_AGE;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.todayPlusDaysUk;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.todayUk;
 
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
@@ -11,12 +36,13 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.dto.AccountStatusReportFilterType;
+import uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
@@ -24,20 +50,19 @@ import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 @AllArgsConstructor
 public final class ReportSpecs {
 
-    public static Specification<DefendantAccountEntity> build(ReportFiltersDto f) {
+    public static Specification<DefendantAccountEntity> build(ReportFiltersDto filters) {
         Specification<DefendantAccountEntity> spec =
             (root, query, cb) -> cb.conjunction();
-
-        spec = spec.and(fetchJoins());
-        spec = spec.and(businessUnitSpec(f.getBusinessUnitIds()));
-        spec = spec.and(accountTypesSpec(f));
-        spec = spec.and(parentGuardianSpec(f));
-        spec = spec.and(collectionOrderSpec(f.getCollectionOrderChoice()));
-        spec = spec.and(accountStatusSpec(f.getAccountStatus()));
-        spec = spec.and(balanceRangeSpec(f.getMinBalance(), f.getMaxBalance()));
-        spec = spec.and(next7DaysSpec(f.getFirstPaymentOrPaybyInNext7Days()));
-        spec = spec.and(nameRangeSpec(f.getLowerNameRange(), f.getUpperNameRange()));
-        spec = spec.and(enforcementSpec(f));
+        spec = spec.and(fetchJoins())
+            .and(businessUnitSpec(filters.getBusinessUnitIds()))
+            .and(accountTypesSpec(filters))
+            .and(parentGuardianSpec(filters))
+            .and(collectionOrderSpec(filters.getCollectionOrderChoice()))
+            .and(accountStatusSpec(filters.getAccountStatus()))
+            .and(balanceRangeSpec(filters.getMinBalance(), filters.getMaxBalance()))
+            .and(next7DaysSpec(filters.getFirstPaymentOrPayByInNext7Days()))
+            .and(nameRangeSpec(filters.getLowerNameRange(), filters.getUpperNameRange()))
+            .and(EnforcementReportSpecs.enforcementSpec(filters));
 
         return spec;
     }
@@ -47,18 +72,18 @@ public final class ReportSpecs {
             Class<?> rt = Objects.requireNonNull(query).getResultType();
             if (rt != Long.class && rt != long.class) {
                 try {
-                    root.fetch("parties", JoinType.LEFT).fetch("party", JoinType.LEFT);
+                    root.fetch(PARTIES, JoinType.LEFT).fetch(PARTY, JoinType.LEFT);
                 } catch (IllegalArgumentException ignored) {
                     ignored.getMessage();
                 }
                 try {
-                    root.fetch("enforcingCourt", JoinType.LEFT);
+                    root.fetch(ENFORCING_COURT, JoinType.LEFT);
                 } catch (IllegalArgumentException ignored) {
                     ignored.getMessage();
 
                 }
                 try {
-                    root.fetch("lastHearingCourt", JoinType.LEFT);
+                    root.fetch(LAST_HEARING_COURT, JoinType.LEFT);
                 } catch (IllegalArgumentException ignored) {
                     ignored.getMessage();
                 }
@@ -73,24 +98,24 @@ public final class ReportSpecs {
             if (buIds == null || buIds.isEmpty()) {
                 return cb.conjunction();
             }
-            return root.get("businessUnit").get("businessUnitId").in(buIds);
+            return root.get(BUSINESS_UNIT).get(BUSINESS_UNIT_ID).in(buIds);
         };
     }
 
     private static Specification<DefendantAccountEntity> accountTypesSpec(ReportFiltersDto f) {
         return (root, query, cb) -> {
             List<Predicate> preds = new ArrayList<>();
-            Join<?, ?> link = root.join("parties", JoinType.LEFT);
-            Join<?, ?> party = link.join("party", JoinType.LEFT);
+            Join<?, ?> link = root.join(PARTIES, JoinType.LEFT);
+            Join<?, ?> party = link.join(PARTY, JoinType.LEFT);
             if (Boolean.TRUE.equals(f.getIncludeAdult())) {
-                preds.add(cb.greaterThanOrEqualTo(party.get("age"), 18));
+                preds.add(cb.greaterThanOrEqualTo(party.get(AGE), ADULT_AGE));
             }
             if (Boolean.TRUE.equals(f.getIncludeYouth())) {
-                preds.add(cb.lessThan(party.get("age"), 18));
+                preds.add(cb.lessThan(party.get(AGE), ADULT_AGE));
             }
             if (Boolean.TRUE.equals(f.getIncludeCompany())) {
                 // company = party.organisation = true
-                preds.add(cb.isTrue(party.get("organisation")));
+                preds.add(cb.isTrue(party.get(ORGANISATION)));
             }
             if (preds.isEmpty()) {
                 return cb.conjunction();
@@ -113,45 +138,43 @@ public final class ReportSpecs {
             Root<?> dap = sq.from(DefendantAccountPartiesEntity.class);
             sq.select(cb.literal(1L));
 
-            Predicate sameAccount = cb.equal(dap.get("defendantAccount").get("defendantAccountId"),
-                root.get("defendantAccountId"));
+            Predicate sameAccount = cb.equal(dap.get(DEFENDANT_ACCOUNT).get(DEFENDANT_ACCOUNT_ID),
+                root.get(DEFENDANT_ACCOUNT_ID));
 
-            Predicate isParent = cb.equal(dap.get("associationType"), PARENT_GUARDIAN);
+            Predicate isParent = cb.equal(dap.get(ASSOCIATION_TYPE), PARENT_GUARDIAN);
 
             sq.where(sameAccount, isParent);
             return cb.exists(sq);
         };
     }
 
-    private static Specification<DefendantAccountEntity> collectionOrderSpec(String choice) {
+    private static Specification<DefendantAccountEntity> collectionOrderSpec(CollectionOrderReportFilterType choice) {
         return (root, query, cb) -> {
             if (choice == null) {
                 return cb.conjunction();
             }
-            String c = choice.trim().toLowerCase();
-            if ("with".equals(c)) {
-                return cb.isTrue(root.get("collectionOrder"));
+            if (choice.equals(WITH)) {
+                return cb.isTrue(root.get(COLLECTION_ORDER));
             }
-            if ("without".equals(c)) {
-                return cb.isFalse(root.get("collectionOrder"));
+            if (choice.equals(WITHOUT)) {
+                return cb.isFalse(root.get(COLLECTION_ORDER));
             }
             return cb.conjunction();
         };
     }
 
-    private static Specification<DefendantAccountEntity> accountStatusSpec(String status) {
+    private static Specification<DefendantAccountEntity> accountStatusSpec(AccountStatusReportFilterType status) {
         return (root, query, cb) -> {
             if (status == null) {
                 return cb.conjunction();
             }
-            String s = status.trim().toLowerCase();
-            if ("live".equals(s)) {
-                return cb.and(cb.greaterThan(root.get("accountBalance"), cb.literal(0)),
-                    cb.isNull(root.get("completedDate")));
+            if (status.equals(LIVE)) {
+                return cb.and(cb.greaterThan(root.get(ACCOUNT_BALANCE), cb.literal(0)),
+                    cb.isNull(root.get(COMPLETED_DATE)));
             }
-            if ("closed".equals(s)) {
-                return cb.or(cb.equal(root.get("accountBalance"), cb.literal(0)),
-                    cb.isNotNull(root.get("completedDate")));
+            if (status.equals(CLOSED)) {
+                return cb.or(cb.equal(root.get(ACCOUNT_BALANCE), cb.literal(0)),
+                    cb.isNotNull(root.get(ACCOUNT_BALANCE)));
             }
             return cb.conjunction();
         };
@@ -161,10 +184,10 @@ public final class ReportSpecs {
         return (root, query, cb) -> {
             List<Predicate> p = new ArrayList<>();
             if (min != null) {
-                p.add(cb.greaterThanOrEqualTo(root.get("accountBalance"), min));
+                p.add(cb.greaterThanOrEqualTo(root.get(ACCOUNT_BALANCE), min));
             }
             if (max != null) {
-                p.add(cb.lessThanOrEqualTo(root.get("accountBalance"), max));
+                p.add(cb.lessThanOrEqualTo(root.get(ACCOUNT_BALANCE), max));
             }
             if (p.isEmpty()) {
                 return cb.conjunction();
@@ -178,10 +201,10 @@ public final class ReportSpecs {
             if (lower == null && upper == null) {
                 return cb.conjunction();
             }
-            Join<?, ?> link = root.join("parties", JoinType.LEFT);
-            Join<?, ?> party = link.join("party", JoinType.LEFT);
-            Expression<String> firstLetter = cb.lower(cb.substring(cb.coalesce(party.get("surname"),
-                party.get("organisationName")), 1, 1));
+            Join<?, ?> link = root.join(PARTIES, JoinType.LEFT);
+            Join<?, ?> party = link.join(PARTY, JoinType.LEFT);
+            Expression<String> firstLetter = cb.lower(cb.substring(cb.coalesce(party.get(SURNAME),
+                party.get(ORGANISATION_NAME)), 1, 1));
             List<Predicate> p = new ArrayList<>();
             if (lower != null) {
                 p.add(cb.greaterThanOrEqualTo(firstLetter, lower.toLowerCase()));
@@ -198,32 +221,25 @@ public final class ReportSpecs {
             if (!Boolean.TRUE.equals(next7)) {
                 return cb.conjunction();
             }
-
-            LocalDate today = LocalDate.now(ZoneId.of("Europe/London"));
-            LocalDate in7 = today.plusDays(7);
-
+            LocalDate today = todayUk();
+            LocalDate in7 = todayPlusDaysUk(7);
             List<Predicate> preds = new ArrayList<>();
-
-            // Try to use existing LocalDate fields on DefendantAccountEntity
             try {
-                // imposedHearingDate
-                Expression<LocalDate> imposed = root.get("imposedHearingDate").as(LocalDate.class);
+                Expression<LocalDate> imposed = root.get(IMPOSED_HEARING_DATE).as(LocalDate.class);
                 preds.add(cb.between(imposed, today, in7));
             } catch (IllegalArgumentException ignore) {
                 // field doesn't exist — skip
             }
 
             try {
-                // collectionOrderEffectiveDate (was collection_order_date / collectionOrderEffectiveDate)
-                Expression<LocalDate> collOrder = root.get("collectionOrderEffectiveDate").as(LocalDate.class);
+                Expression<LocalDate> collOrder = root.get(COLLECTION_ORDER_EFFECTIVE_DATE).as(LocalDate.class);
                 preds.add(cb.between(collOrder, today, in7));
             } catch (IllegalArgumentException ignore) {
                 ignore.getMessage();
             }
 
             try {
-                // paymentCardRequestedDate
-                Expression<LocalDate> payCard = root.get("paymentCardRequestedDate").as(LocalDate.class);
+                Expression<LocalDate> payCard = root.get(PAYMENT_CARD_REQUESTED_DATE).as(LocalDate.class);
                 preds.add(cb.between(payCard, today, in7));
             } catch (IllegalArgumentException ignore) {
                 ignore.getMessage();
