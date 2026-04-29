@@ -1,7 +1,7 @@
 @PO-118 @PO-120 @Legacy @Ignore
-Feature: Test the defendant account search API Legacy
+Feature: Defendant Account Search API In Legacy Mode
 
-  Scenario: data is returned from the stub when in legacy mode
+  Scenario: Defendant account search returns stubbed data in legacy mode
     When I make a call to the defendant search API using the parameters
       | forename       |  |
       | surname        |  |

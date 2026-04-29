@@ -1,4 +1,6 @@
 @Smoke
-Feature: test the application health API
-  Scenario: I query the status of the health API
-    Then I check the health of the fines api
+Feature: Health API
+
+  Scenario: The health endpoint reports that the service is up
+    When I request the fines api health status
+    Then the fines service reports as up

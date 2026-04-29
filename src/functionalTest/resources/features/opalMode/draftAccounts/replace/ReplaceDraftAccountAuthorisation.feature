@@ -4,7 +4,7 @@ Feature: Replace Draft Account Authorisation
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6119
   Scenario: Update draft account - no auth
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    And a draft account exists with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -12,8 +12,6 @@ Feature: Replace Draft Account Authorisation
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    Then The draft account response returns 201
-    And I store the created draft account ID
 
     When I set an invalid token
     And I update the draft account that was just created with the following details
@@ -26,14 +24,14 @@ Feature: Replace Draft Account Authorisation
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
-    Then The draft account response returns 401
+    Then the request is rejected as unauthorized
 
-    Then I am testing as the "opal-test@dev.platform.hmcts.net" user
+    #    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
 
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6121
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    And a draft account exists with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -41,11 +39,8 @@ Feature: Replace Draft Account Authorisation
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    And I store the created draft account ID
-    Then The draft account response returns 201
 
-    When I am testing as the "opal-test-2@dev.platform.hmcts.net" user
-    And I update the draft account that was just created with the following details
+    When the "opal-test-2@dev.platform.hmcts.net" user attempts to replace the created draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -55,10 +50,7 @@ Feature: Replace Draft Account Authorisation
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
-    Then The draft account response returns 403
-
-    When I am testing as the "opal-test@dev.platform.hmcts.net" user
-    And I get the single created draft account and the response contains
+    Then the request is rejected as forbidden and the created draft account remains with the following data
       | business_unit_id                    | 73          |
       | account_type                        | Fine        |
       | account_status                      | Submitted   |
@@ -68,12 +60,11 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
-    Then I delete the created draft accounts
 
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6123
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    And a draft account exists with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -81,11 +72,8 @@ Feature: Replace Draft Account Authorisation
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    And I store the created draft account ID
-    Then The draft account response returns 201
 
-    When I am testing as the "opal-test-3@dev.platform.hmcts.net" user
-    And I update the draft account that was just created with the following details
+    When the "opal-test-3@dev.platform.hmcts.net" user attempts to replace the created draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -95,10 +83,7 @@ Feature: Replace Draft Account Authorisation
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
-    Then The draft account response returns 403
-
-    When I am testing as the "opal-test@dev.platform.hmcts.net" user
-    And I get the single created draft account and the response contains
+    Then the request is rejected as forbidden and the created draft account remains with the following data
       | business_unit_id                    | 73          |
       | account_type                        | Fine        |
       | account_status                      | Submitted   |
@@ -108,12 +93,11 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
-    Then I delete the created draft accounts
 
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6125
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    And a draft account exists with the following details
       | business_unit_id  | 26                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -121,11 +105,8 @@ Feature: Replace Draft Account Authorisation
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    And I store the created draft account ID
-    Then The draft account response returns 201
 
-    When I am testing as the "opal-test@dev.platform.hmcts.net" user
-    And I update the draft account that was just created with the following details
+    When the "opal-test@dev.platform.hmcts.net" user attempts to replace the created draft account with the following details
       | business_unit_id  | 26                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -135,10 +116,7 @@ Feature: Replace Draft Account Authorisation
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
-    Then The draft account response returns 403
-
-    When I am testing as the "opal-test-3@dev.platform.hmcts.net" user
-    And I get the single created draft account and the response contains
+    Then the request is rejected as forbidden and the created draft account remains with the following data
       | business_unit_id                    | 26            |
       | account_type                        | Fine          |
       | account_status                      | Submitted     |
@@ -147,12 +125,11 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.account_type       | Fine          |
       | account_snapshot.business_unit_name | Hertfordshire |
 
-    Then I delete the created draft accounts
 
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6127
   Scenario: Update draft account - user with permissions in same business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    And a draft account exists with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -160,8 +137,6 @@ Feature: Replace Draft Account Authorisation
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    And I store the created draft account ID
-    Then The draft account response returns 201
 
     When I update the draft account that was just created with the following details
       | business_unit_id  | 73                                          |
@@ -173,9 +148,7 @@ Feature: Replace Draft Account Authorisation
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
-    Then The draft account response returns 200
-
-    And I get the single created draft account and the response contains
+    Then the created draft account is replaced successfully and the retrieved draft account contains the following data
       | business_unit_id                    | 73           |
       | account_type                        | Fine         |
       | account_status                      | Resubmitted  |
@@ -185,12 +158,11 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.submitted_by       | L073JG       |
       | account_snapshot.business_unit_name | West London  |
 
-    Then I delete the created draft accounts
 
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6129
   Scenario: Update draft account - user with permissions in same business unit - updating business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    And a draft account exists with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -198,8 +170,6 @@ Feature: Replace Draft Account Authorisation
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    And I store the created draft account ID
-    Then The draft account response returns 201
 
     When I update the draft account that was just created with the following details
       | business_unit_id  | 77                                          |
@@ -211,9 +181,7 @@ Feature: Replace Draft Account Authorisation
       | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
-    Then The draft account response returns 400
-
-    And I get the single created draft account and the response contains
+    Then the request is rejected as bad request and the created draft account remains with the following data
       | business_unit_id                    | 73          |
       | account_type                        | Fine        |
       | account_status                      | Submitted   |
@@ -223,13 +191,12 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.submitted_by       | L073JG      |
       | account_snapshot.business_unit_name | West London |
 
-    Then I delete the created draft accounts
 
 
   @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-KEY:POT-6130
-  Scenario: Update draft account - unauthorized user produces 401 and no PDPO logs
+  Scenario: Invalid token replacement attempts are rejected and do not create PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    And a draft account exists with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -237,12 +204,6 @@ Feature: Replace Draft Account Authorisation
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
 
     When I attempt to put a draft account with an invalid token
-    Then The draft account response returns 401
-
-#    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
-
-    Then I delete the created draft accounts
+    Then the request is rejected as unauthorized

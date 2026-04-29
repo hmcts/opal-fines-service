@@ -1,10 +1,12 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:error-handling
 Feature: Update Draft Account Error Handling
 
-  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6170
-  Scenario: Patch draft account - CEP1 - Invalid Request Payload
+  Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+
+  @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6170
+  Scenario: Patching a draft account with invalid data is rejected
+    Given a draft account exists with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -12,8 +14,6 @@ Feature: Update Draft Account Error Handling
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    Then The draft account response returns 201
-    And I store the created draft account ID
 
     When I patch the draft account with the following details
       | business_unit_id__ | 73                   |
@@ -21,12 +21,11 @@ Feature: Update Draft Account Error Handling
       | validated_by       | BUUID_REVIEWER       |
       | reason_text        | Reason for rejection |
       | If-Match           | 0                    |
-    Then The draft account response returns 400
+    Then the request is rejected as bad request
 
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6171
-  Scenario: Patch draft account - CEP2 - Invalid or No Access Token
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+  Scenario: Patching a draft account without a valid access token is rejected
+    Given a draft account exists with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -34,8 +33,6 @@ Feature: Update Draft Account Error Handling
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    Then The draft account response returns 201
-    And I store the created draft account ID
 
     When I set an invalid token
     And I patch the draft account with the following details
@@ -44,13 +41,10 @@ Feature: Update Draft Account Error Handling
       | validated_by     | BUUID_REVIEWER       |
       | reason_text      | Reason for rejection |
       | If-Match         | 0                    |
-    Then The draft account response returns 401
-
-    Then I am testing as the "opal-test@dev.platform.hmcts.net" user
+    Then the request is rejected as unauthorized
 
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6173
-  Scenario: Patch draft account - CEP4 - Resource Not Found
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Patching a missing draft account is rejected
     When I patch the "1000000000" draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
@@ -58,29 +52,25 @@ Feature: Update Draft Account Error Handling
       | reason_text      | Reason for rejection |
       | If-Match         | 0                    |
 
-    Then The draft account response returns 404
+    Then the request is rejected as not found
 
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6175
-  Scenario: Patch draft account - CEP5 - Unsupported Content Type
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Patching a draft account with an unsupported response content type is rejected
     When I attempt to patch a draft account with an unsupported content type
-    Then The draft account response returns 406
+    Then the request is rejected as not acceptable
 
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6178
-  Scenario: Patch draft account - CEP7 - Unsupported Media Type
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Patching a draft account with an unsupported request media type is rejected
     When I attempt to patch a draft account with an unsupported media type
-    Then The draft account response returns 415
+    Then the request is rejected as unsupported media type
 
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6179
-  Scenario: Patch draft account - CEP9 - Other Server Error
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Patching a draft account with a malformed request fails
     When I patch the draft account trying to provoke an internal server error
-    Then The draft account response returns 500
+    Then the request fails with an internal server error
 
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6181
-  Scenario: Patch draft account - Stale If-Match results in 409 Conflict
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Reusing a stale ETag when patching a draft account is rejected as conflict
     When I create a draft account with the following details
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
@@ -89,26 +79,25 @@ Feature: Update Draft Account Error Handling
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
       | timeline_data     | draftAccounts/timelineJson/default.json |
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    Then the request creates a resource
     And the response must include a strong quoted ETag header
     And I remember the last response ETag as "before"
 
-    # First PATCH uses the "before" ETag → succeeds and increments version
     When I patch the draft account with the following details
       | business_unit_id | 73                |
       | account_status   | Rejected          |
       | validated_by     | BUUID_REVIEWER    |
       | reason_text      | Reason for change |
       | If-Match         | $etag:before      |
-    Then The draft account response returns 200
+    Then the request succeeds
     And the response must include a strong quoted ETag header
 
-    # Second PATCH reuses the stale "before" eTag again → 409 Conflict
+    # First PATCH uses the "before" ETag → succeeds and increments version
     When I patch the draft account with the following details
       | business_unit_id | 73             |
       | account_status   | Deleted        |
       | validated_by     | BUUID_REVIEWER |
       | reason_text      | Revert         |
       | If-Match         | $etag:before   |
-    Then The draft account response returns 409
+    # Second PATCH reuses the stale "before" eTag again → 409 Conflict
+    Then the request is rejected as conflict
