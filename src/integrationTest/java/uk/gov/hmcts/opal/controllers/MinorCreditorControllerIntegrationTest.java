@@ -8,13 +8,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -23,6 +26,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -62,6 +66,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     @MockitoBean
     UserStateClientService userStateClientService;
+
+    @MockitoBean
+    DynamicConfigService dynamicConfigService;
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -302,6 +309,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
+        when(dynamicConfigService.getAppMode()).thenReturn(AppMode.builder().mode("opal").build());
+        doNothing().when(dynamicConfigService).verifyFeatureEnabled("release-1b", "Update Minor Creditor Account");
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
@@ -340,6 +349,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
+        when(dynamicConfigService.getAppMode()).thenReturn(AppMode.builder().mode("opal").build());
+        doNothing().when(dynamicConfigService).verifyFeatureEnabled("release-1b", "Update Minor Creditor Account");
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
 
@@ -359,6 +370,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
+        when(dynamicConfigService.getAppMode()).thenReturn(AppMode.builder().mode("opal").build());
+        doNothing().when(dynamicConfigService).verifyFeatureEnabled("release-1b", "Update Minor Creditor Account");
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
 
@@ -375,6 +388,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
+        when(dynamicConfigService.getAppMode()).thenReturn(AppMode.builder().mode("opal").build());
+        doNothing().when(dynamicConfigService).verifyFeatureEnabled("release-1b", "Update Minor Creditor Account");
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
@@ -392,6 +407,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
+        when(dynamicConfigService.getAppMode()).thenReturn(AppMode.builder().mode("opal").build());
+        doNothing().when(dynamicConfigService).verifyFeatureEnabled("release-1b", "Update Minor Creditor Account");
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
@@ -407,6 +424,24 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(org.hamcrest.Matchers.anything()));
+    }
+
+    void patchMinorCreditor_featureDisabled_returns405() throws Exception {
+        doThrow(new FeatureDisabledException("Update Minor Creditor Account is disabled by feature flag release-1b"))
+            .when(dynamicConfigService).verifyFeatureEnabled("release-1b", "Update Minor Creditor Account");
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", AUTH_HEADER)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+            .andExpect(status().isMethodNotAllowed())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.title").value("Feature Disabled"))
+            .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
     }
 
     private String patchMinorCreditorPayoutHoldRequestJson() {

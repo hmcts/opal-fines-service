@@ -13,13 +13,18 @@ import uk.gov.hmcts.opal.generated.http.api.MinorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
 @RestController
 @Slf4j(topic = "opal.MinorCreditorApiController")
 @RequiredArgsConstructor
 public class MinorCreditorApiController implements MinorCreditorApi {
 
+    private static final String RELEASE_1B_FEATURE = "release-1b";
+    private static final String PATCH_MINOR_CREDITOR_OPERATION = "Update Minor Creditor Account";
+
     private final MinorCreditorService minorCreditorService;
+    private final DynamicConfigService dynamicConfigService;
     private final NativeWebRequest request;
 
     @Override
@@ -36,6 +41,8 @@ public class MinorCreditorApiController implements MinorCreditorApi {
         PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest) {
 
         log.debug(":PATCH:patchMinorCreditorAccount: id={}", id);
+
+        dynamicConfigService.verifyFeatureEnabled(RELEASE_1B_FEATURE, PATCH_MINOR_CREDITOR_OPERATION);
 
         MinorCreditorAccountResponse result =
             minorCreditorService.updateMinorCreditorAccount(id, patchMinorCreditorAccountRequest,

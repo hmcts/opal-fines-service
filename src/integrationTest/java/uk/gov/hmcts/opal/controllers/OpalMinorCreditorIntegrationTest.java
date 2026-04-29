@@ -223,6 +223,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void patchMinorCreditor_featureDisabled_returns405() throws Exception {
+        super.patchMinorCreditor_featureDisabled_returns405();
+    }
+
+    @Test
     void getHeaderSummary_missingAuthHeader_returns401() throws Exception {
         super.getHeaderSummary_missingAuthHeader_returns401();
     }
