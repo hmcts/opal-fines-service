@@ -18,13 +18,6 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final ReportMapper reportMapper;
 
-    /**
-     * Get report definition by ID.
-     *
-     * @param reportId the report ID
-     * @return the report DTO
-     * @throws EntityNotFoundException if the report is not found
-     */
     @Transactional(readOnly = true)
     public ReportReports getReport(String reportId) {
         log.debug(":getReport: reportId={}", reportId);

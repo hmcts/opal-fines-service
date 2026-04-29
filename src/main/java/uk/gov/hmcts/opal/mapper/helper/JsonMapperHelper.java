@@ -30,7 +30,7 @@ public class JsonMapperHelper {
             return null;
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            return objectMapper.readValue(json, new TypeReference<>() {
             });
         } catch (JsonProcessingException e) {
             return null;
