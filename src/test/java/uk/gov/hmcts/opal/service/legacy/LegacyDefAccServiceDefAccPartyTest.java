@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
@@ -496,9 +497,9 @@ class LegacyDefAccServiceDefAccPartyTest extends AbstractLegacyDefAccServiceTest
             uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse.builder()
             .version(1L).defendantAccountParty(party).build();
 
-        uk.gov.hmcts.opal.service.legacy.GatewayService.Response<uk.gov.hmcts.opal.dto.legacy
+        uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response<uk.gov.hmcts.opal.dto.legacy
             .GetDefendantAccountPartyLegacyResponse> resp =
-            new uk.gov.hmcts.opal.service.legacy.GatewayService.Response<>(
+            new uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response<>(
                 org.springframework.http.HttpStatus.OK, legacy, null, null);
 
         Class<uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse> respType =
