@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -87,17 +87,14 @@ class JsonMapperHelperTest {
     @DisplayName("parseJsonToMap() - Empty/Null Cases")
     class ParseJsonToMapEmptyNullCases {
 
-        @ParameterizedTest(name = "Should return empty map when JSON is {0}")
+        @ParameterizedTest(name = "Should return null when JSON is {0}")
         @NullSource
         @ValueSource(strings = {"", "{}"})
-        @DisplayName("Should return empty map for null, empty string, or empty object")
-        void parseJsonToMap_withNullOrEmptyJson_shouldReturnEmptyMap(String json) {
+        @DisplayName("Should return null for null, empty string, or empty object")
+        void parseJsonToMap_withNullOrEmptyJson_shouldReturnNull(String json) {
             Map<String, Object> actual = cut.parseJsonToMap(json);
 
-            assertAll("Verify null/empty JSON handling",
-                () -> assertNotNull(actual),
-                () -> assertTrue(actual.isEmpty())
-            );
+            assertNull(actual, "Expected null for null/empty/empty-object JSON input");
         }
     }
 
@@ -105,20 +102,17 @@ class JsonMapperHelperTest {
     @DisplayName("parseJsonToMap() - Error Cases")
     class ParseJsonToMapErrorCases {
 
-        @ParameterizedTest(name = "Should return empty map for invalid JSON: {0}")
+        @ParameterizedTest(name = "Should return null for invalid JSON: {0}")
         @ValueSource(strings = {
             "{invalid json}",
             "{\"key\":\"value\"",
             "{\"key\":{\"nested\":\"value\""
         })
-        @DisplayName("Should return empty map when JSON is invalid or malformed")
-        void parseJsonToMap_withInvalidJson_shouldReturnEmptyMap(String invalidJson) {
+        @DisplayName("Should return null when JSON is invalid or malformed")
+        void parseJsonToMap_withInvalidJson_shouldReturnNull(String invalidJson) {
             Map<String, Object> actual = cut.parseJsonToMap(invalidJson);
 
-            assertAll("Verify invalid JSON handling",
-                () -> assertNotNull(actual),
-                () -> assertTrue(actual.isEmpty())
-            );
+            assertNull(actual, "Expected null for invalid/malformed JSON input");
         }
     }
 }

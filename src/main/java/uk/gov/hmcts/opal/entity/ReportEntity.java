@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -15,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
 
 @Entity
 @Table(name = "reports")
@@ -56,6 +58,7 @@ public class ReportEntity {
     @Column(name = "shown_as_worklist", nullable = false)
     private Boolean shownAsWorklist;
 
+    @Convert(converter = DurationToStringConverter.class)
     @Column(name = "retention_period", length = 30)
     private Duration retentionPeriod;
 
