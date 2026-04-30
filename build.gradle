@@ -537,7 +537,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
-
+  implementation "org.springframework.boot:spring-boot-starter-security"
   implementation 'org.springframework.boot:spring-boot-starter-integration'
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
@@ -615,6 +615,7 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
   testImplementation 'org.testcontainers:testcontainers-postgresql'
+  testImplementation 'com.redis:testcontainers-redis'
   testImplementation 'io.rest-assured:rest-assured:6.0.0'
   testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.0.3'))
