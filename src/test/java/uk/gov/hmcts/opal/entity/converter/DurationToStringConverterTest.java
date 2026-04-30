@@ -110,6 +110,13 @@ class DurationToStringConverterTest {
         void convertToEntityAttribute_withPT24H_shouldReturn24Hours() {
             assertEquals(Duration.ofHours(24), cut.convertToEntityAttribute("PT24H"));
         }
+
+        @Test
+        @DisplayName("Should parse plain numeric string '14' to Duration of 14 days")
+        void convertToEntityAttribute_withPlainNumber_shouldReturn14Days() {
+            assertEquals(Duration.ofDays(14), cut.convertToEntityAttribute("14"));
+        }
+
     }
 
     @Nested

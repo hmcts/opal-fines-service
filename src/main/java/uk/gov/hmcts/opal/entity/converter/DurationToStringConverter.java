@@ -34,6 +34,10 @@ public class DurationToStringConverter implements AttributeConverter<Duration, S
         if (dbValue == null || dbValue.isBlank()) {
             return null;
         }
+        // Plain numeric value — treat as days (e.g. "14" → 14 days)
+        if (dbValue.matches("\\d+")) {
+            return Duration.ofDays(Long.parseLong(dbValue));
+        }
         // Period format e.g. "P14D" — contains no 'T' after 'P'
         if (!dbValue.contains("T")) {
             Period period = Period.parse(dbValue);
@@ -41,5 +45,6 @@ public class DurationToStringConverter implements AttributeConverter<Duration, S
         }
         return Duration.parse(dbValue); // e.g. "PT5H30M"
     }
+
 }
 
