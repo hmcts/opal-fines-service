@@ -83,7 +83,8 @@ public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest
         return generateToken(claimsSet, rsaKey, signer);
     }
 
-    protected static String generateToken(JWTClaimsSet claimsSet, RSAKey rsaKey, RSASSASigner signer) throws JOSEException {
+    protected static String generateToken(JWTClaimsSet claimsSet, RSAKey rsaKey, RSASSASigner signer)
+        throws JOSEException {
         var signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256)
             .keyID(rsaKey.getKeyID())
             .build(), claimsSet);
