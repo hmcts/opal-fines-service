@@ -81,8 +81,19 @@ public class ReportTestData {
      * Creates a ReportEntity with complex report parameters.
      */
     public static ReportEntity createReportEntityWithComplexParameters() {
-        String complexJson = "{\"filters\":{\"dateRange\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},"
-            + "\"status\":[\"ACTIVE\",\"PENDING\"]},\"options\":{\"includeArchived\":false}}";
+        String complexJson = """
+            {
+                "filters": {
+                    "dateRange": {
+                        "from": "2026-01-01",
+                        "to": "2026-12-31"
+                    },
+                    "status": ["ACTIVE", "PENDING"]
+                },
+                "options": {
+                    "includeArchived": false
+                }
+            }""";
 
         return defaultReportEntityBuilder()
             .reportId("complex_params_report")

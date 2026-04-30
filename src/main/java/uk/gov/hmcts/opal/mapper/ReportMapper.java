@@ -19,18 +19,10 @@ import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 )
 public abstract class ReportMapper {
 
-    @Mapping(target = "reportId", source = "reportId")
-    @Mapping(target = "reportTitle", source = "reportTitle")
-    @Mapping(target = "reportGroup", source = "reportGroup")
     @Mapping(target = "supportedFileTypes", source = "supportedFileTypes", qualifiedByName = "toFileTypeEnums")
-    @Mapping(target = "auditedReport", source = "auditedReport")
     @Mapping(target = "reportParameters", source = "reportParameters", qualifiedByName = "parseJsonToMap")
     @Mapping(target = "supportsMultipleBusinessUnits", source = "supportsMultiBu")
-    @Mapping(target = "isBespokeJourney", source = "isBespokeJourney")
-    @Mapping(target = "shownAsWorklist", source = "shownAsWorklist")
     @Mapping(target = "retentionPeriod", source = "retentionPeriod", qualifiedByName = "durationToString")
-    @Mapping(target = "permission", source = "permission")
-    @Mapping(target = "canManuallyCreate", source = "canManuallyCreate")
     public abstract ReportReports toDto(ReportEntity entity);
 
     @Named("toFileTypeEnums")
