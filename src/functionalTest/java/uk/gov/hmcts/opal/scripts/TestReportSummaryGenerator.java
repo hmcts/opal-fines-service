@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.scripts;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -15,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestReportSummaryGenerator {
+    private static final Logger log = LoggerFactory.getLogger(TestReportSummaryGenerator.class);
 
     public static void main(String[] args) throws Exception {
         List<Path> xmlIntegrationPaths = new ArrayList<>();
@@ -68,7 +71,7 @@ public class TestReportSummaryGenerator {
                         </tr>""", rowClass, suiteName, total, passed, failures, errors, skipped
                 ));
             } catch (Exception e) {
-                System.out.println("Error reading " + xmlPath + ": " + e.getMessage());
+                log.warn("Error reading {}: {}", xmlPath, e.getMessage());
             }
         }
 
@@ -98,7 +101,7 @@ public class TestReportSummaryGenerator {
                         </tr>""", rowClass, suiteName, total, passed, failures, errors, skipped
                 ));
             } catch (Exception e) {
-                System.out.println("Error reading " + xmlPath + ": " + e.getMessage());
+                log.warn("Error reading {}: {}", xmlPath, e.getMessage());
             }
         }
 
@@ -124,7 +127,7 @@ public class TestReportSummaryGenerator {
                 errorIntegration += errors;
                 skippedIntegration += skipped;
             } catch (Exception e) {
-                System.out.println("Exception: " + e);
+                log.warn("Exception while processing integration test summary", e);
             }
         }
 
@@ -149,7 +152,7 @@ public class TestReportSummaryGenerator {
                 errorFunctional += errors;
                 skippedFunctional += skipped;
             } catch (Exception e) {
-                System.out.println("Exception: " + e);
+                log.warn("Exception while processing functional test summary", e);
             }
         }
 
@@ -269,6 +272,6 @@ public class TestReportSummaryGenerator {
             ), StandardCharsets.UTF_8
         );
 
-        System.out.println("HTML test summary written to: " + output.toAbsolutePath());
+        log.info("HTML test summary written to: {}", output.toAbsolutePath());
     }
 }

@@ -1,9 +1,11 @@
 @Opal @JIRA-LABEL:manual-account-creation
-Feature: Add Draft Account Submitted By Name
+Feature: Draft Account Snapshot Identity
+
+  Background:
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
   @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6050
-  Scenario: Post draft account - Submitted By Name populates snapshot
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Submitted-by snapshot values come from the access token identity
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -13,10 +15,7 @@ Feature: Add Draft Account Submitted By Name
       | submitted_by_name | Laura Clerk1                                |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
 
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    And The draft account response contains the following data
+    Then the draft account is created successfully with the following data
       | business_unit_id                    | 73                               |
       | account_type                        | Fine                             |
       | account_status                      | Submitted                        |
@@ -26,5 +25,3 @@ Feature: Add Draft Account Submitted By Name
       | account_snapshot.submitted_by       | L073JG                           |
       | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net |
       | account_snapshot.business_unit_name | West London                      |
-
-    Then I delete the created draft accounts

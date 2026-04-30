@@ -1,30 +1,35 @@
 package uk.gov.hmcts.opal.steps;
 
-import io.cucumber.java.PendingException;
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import uk.gov.hmcts.opal.utils.TestHttpClient;
+import io.cucumber.java.en.When;
+import org.junit.jupiter.api.Assertions;
+import uk.gov.hmcts.opal.actions.HealthApiActions;
+import uk.gov.hmcts.opal.assertions.HealthApiAssertions;
 import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-//import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
-
+/**
+ * Defines Cucumber steps for the health endpoint.
+ */
 public class HealthApiStepDef extends BaseStepDef {
+    private final HealthApiActions actions = new HealthApiActions();
+    private final HealthApiAssertions assertions = new HealthApiAssertions();
 
-    @Then("I check the health of the fines api")
-    public void checkHealthOfFinesApi() {
-        System.out.println("Test URL: " + getTestUrl());
-        TestHttpResponse response = TestHttpClient.get(getTestUrl() + "/health", Map.of());
-        assertEquals(200, response.statusCode());
-        assertEquals("UP", response.jsonPath("status"));
+    /**
+     * Calls the fines-service health endpoint.
+     */
+    @When("I request the fines api health status")
+    public void requestHealthOfFinesApi() {
+        scenarioContext().setLatestHttpResponse(actions.getHealth());
     }
 
-    @And("this test is todo")
-    public void thisStepIsTodo() {
-        //TODO step is todo
-        throw new PendingException();
+    /**
+     * Asserts that the most recent health request reported the service as UP.
+     */
+    @Then("the fines service reports as up")
+    public void finesServiceReportsAsUp() {
+        TestHttpResponse response = scenarioContext().consumeLatestHttpResponse();
+        Assertions.assertNotNull(response, "No health response is available to assert");
+        assertions.assertServiceIsUp(response);
     }
+
 }

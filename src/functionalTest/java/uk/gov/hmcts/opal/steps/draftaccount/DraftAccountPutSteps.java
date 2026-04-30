@@ -3,322 +3,162 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import net.serenitybdd.core.Serenity;
+import java.io.IOException;
 import net.serenitybdd.rest.SerenityRest;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
+import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountRequestFactory;
+import uk.gov.hmcts.opal.assertions.draftaccount.DraftAccountAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
-import uk.gov.hmcts.opal.utils.DraftAccountUtils;
+import uk.gov.hmcts.opal.workflows.draftaccount.DraftAccountReplaceWorkflow;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.util.Map;
-
-import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
+/**
+ * Defines Cucumber steps for replacing draft accounts.
+ */
 public class DraftAccountPutSteps extends BaseStepDef {
+    private final DraftAccountActions actions = new DraftAccountActions();
+    private final DraftAccountAssertions assertions = new DraftAccountAssertions();
+    private final DraftAccountRequestFactory requestFactory = new DraftAccountRequestFactory();
+    private final DraftAccountReplaceWorkflow workflow = new DraftAccountReplaceWorkflow();
+
+    /**
+     * Replaces the draft account created earlier in the scenario with the supplied values.
+     *
+     * @param data Cucumber table containing the replacement values for the request.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
     @When("I update the draft account that was just created with the following details")
     public void updateCreatedDraftAccount(DataTable data) throws JSONException, IOException {
-        Map<String, String> dataToPost = data.asMap(String.class, String.class);
-
-        assertEquals(
-            1,
-            DraftAccountUtils.getAllDraftAccountIds().size(),
-            "There should be only one draft account but found multiple: "
-                + DraftAccountUtils.getAllDraftAccountIds()
+        actions.replaceCreatedDraftAccount(
+            data.asMap(String.class, String.class),
+            DraftAccountRequestFactory.BusinessUnitIdMode.INTEGER
         );
-
-        JSONObject postBody = new JSONObject();
-
-        addIntToJsonObject(postBody, dataToPost, "business_unit_id");
-        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
-        addToJsonObject(postBody, dataToPost, "submitted_by_name");
-        addToJsonObject(postBody, dataToPost, "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get(
-            "account");
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-
-        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-            + "/draftAccounts/timelineJson/default.json";
-        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONArray timelineArray = new JSONArray(timeline);
-
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
-
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .header(createQuotedLongHeader("If-Match", dataToPost))
-            .when()
-            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
-    @Then("I see the created at time hasn't changed")
+    /**
+     * Asserts that the most recent replace succeeded and that the updated draft account can be
+     * retrieved with the expected values.
+     *
+     * @param data Cucumber table containing the expected values for the retrieved draft account.
+     */
+    @Then(
+        "the created draft account is replaced successfully "
+            + "and the retrieved draft account contains the following data"
+    )
+    public void createdDraftAccountIsReplacedSuccessfullyAndRetrievedDraftAccountContainsTheFollowingData(
+        DataTable data
+    ) {
+        workflow.assertReplacedDraftAccountCanBeRetrieved(data.asMap(String.class, String.class));
+    }
+
+    /**
+     * Asserts that the `created_at` timestamp is unchanged after the update.
+     */
+    @Then("the original creation timestamp is preserved")
     public void checkCreatedAtTime() {
-        Instant apiCreatedAt = Instant.parse(then().extract().body().jsonPath().getString("created_at"));
-
-        Instant createdTime = Instant.parse(DraftAccountUtils.getDraftAccountCreatedAtTime());
-
-        String createdAtTime = String.valueOf(createdTime.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-        String createdAt = String.valueOf(apiCreatedAt.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-
-        assertEquals(createdAtTime, createdAt, "Created at time has changed");
-
-        Serenity.recordReportData().withTitle("Times").andContents(
-            "Created at time: " + createdAtTime + "\nResponse created at time: " + createdAt);
+        assertions.assertCreatedAtUnchanged(
+            SerenityRest.lastResponse(),
+            scenarioContext().getDraftAccountCreatedAtTime()
+        );
     }
 
+    /**
+     * Asserts that the `account_status_date` moved forward after the update.
+     */
     @Then("I see the account status date is now after the initial account status date")
     public void checkAccountStatusDate() {
-        Instant apiAccountStatusDate = Instant.parse(then().extract()
-                                                         .body().jsonPath().getString("account_status_date"));
-        Instant initialAccountStatusDate = Instant.parse(DraftAccountUtils.getInitialAccountStatusDate());
-
-        String accountStatusDate = String.valueOf(initialAccountStatusDate
-                                                      .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-        String accountStatus = String.valueOf(apiAccountStatusDate
-                                                  .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-
-        Serenity.recordReportData().withTitle("Times").andContents(
-            "Initial account status date: " + accountStatusDate
-                + "\nResponse account status date: " + accountStatus);
-
-        assertTrue(
-            apiAccountStatusDate.isAfter(initialAccountStatusDate),
-            "Account status date is not after the initial account status date"
+        assertions.assertAccountStatusDateAfter(
+            SerenityRest.lastResponse(),
+            scenarioContext().getInitialAccountStatusDate()
         );
     }
 
-    @Then("I see the account status date hasn't changed")
-    public void checkAccountStatusDateNotChanged() {
-        Instant apiAccountStatusDate = Instant.parse(then().extract()
-                                                         .body().jsonPath().getString("account_status_date"));
-        Instant initialAccountStatusDate = Instant.parse(DraftAccountUtils.getInitialAccountStatusDate());
-
-        String accountStatusDate = String.valueOf(initialAccountStatusDate
-                                                      .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-        String accountStatus = String.valueOf(apiAccountStatusDate
-                                                  .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-
-        Serenity.recordReportData().withTitle("Times").andContents(
-            "Initial account status date: " + accountStatusDate
-                + "\nResponse account status date: " + accountStatus);
-
-        assertEquals(
-            accountStatusDate,
-            accountStatus,
-            "Account status date has changed"
-        );
-    }
-
+    /**
+     * Attempts to put a draft-account using an invalid bearer token.
+     */
     @When("I attempt to put a draft account with an invalid token")
     public void putADraftAccountWithAnInvalidToken() {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + "invalidToken")
-            .accept("*/*")
-            .contentType("application/json")
+        jsonRequestWithToken("invalidToken")
             .when()
             .put(getTestUrl() + DRAFT_ACCOUNTS_URI);
     }
 
+    /**
+     * Attempts to update the created draft account with a deliberately invalid request payload.
+     *
+     * @param data Cucumber table supplying the invalid values for the request body.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     * @throws IOException if an account fixture file cannot be read.
+     */
     @When("I attempt to put a draft account with an invalid request payload")
     public void putADraftAccountWithAnInvalidRequestPayload(DataTable data) throws JSONException, IOException {
-        Map<String, String> dataToPost = data.asMap(String.class, String.class);
-
-        assertEquals(
-            1,
-            DraftAccountUtils.getAllDraftAccountIds().size(),
-            "There should be only one draft account but found multiple: "
-                + DraftAccountUtils.getAllDraftAccountIds()
+        actions.replaceCreatedDraftAccount(
+            data.asMap(String.class, String.class),
+            DraftAccountRequestFactory.BusinessUnitIdMode.LONG
         );
-
-        JSONObject postBody = new JSONObject();
-
-        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
-        addToJsonObject(postBody, dataToPost, "submitted_by_name");
-        addToJsonObject(postBody, dataToPost, "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get(
-            "account");
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-
-
-        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-            + "/draftAccounts/timelineJson/default.json";
-        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONArray timelineArray = new JSONArray(timeline);
-
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
-
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .when()
-            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
+    /**
+     * Attempts to update a non-existent draft account to exercise the not-found path.
+     *
+     * @param data Cucumber table supplying the request values.
+     * @throws IOException if an account fixture file cannot be read.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     */
     @When("I attempt to put a draft account with resource not found")
     public void putADraftAccountWithResourceNotFound(DataTable data) throws IOException, JSONException {
-        Map<String, String> dataToPost = data.asMap(String.class, String.class);
-        assertEquals(
-            1,
-            DraftAccountUtils.getAllDraftAccountIds().size(),
-            "There should be only one draft account but found multiple: "
-                + DraftAccountUtils.getAllDraftAccountIds()
+        actions.replaceDraftAccount(
+            "999999",
+            data.asMap(String.class, String.class),
+            DraftAccountRequestFactory.BusinessUnitIdMode.LONG
         );
-
-        JSONObject postBody = new JSONObject();
-
-        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
-        addToJsonObject(postBody, dataToPost, "submitted_by_name");
-        addToJsonObject(postBody, dataToPost, "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get(
-            "account");
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-
-
-        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-            + "/draftAccounts/timelineJson/default.json";
-        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONArray timelineArray = new JSONArray(timeline);
-
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
-
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .header(createQuotedLongHeader("If-Match", dataToPost))
-            .when()
-            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "999999");
     }
 
+    /**
+     * Attempts to update the created draft account while requesting an unsupported response
+     * content type.
+     *
+     * @param data Cucumber table supplying the request values.
+     * @throws IOException if an account fixture file cannot be read.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     */
     @When("I attempt to put a draft account with unsupported content type for response")
     public void putADraftAccountWithUnsupportedContentType(DataTable data) throws IOException, JSONException {
-        Map<String, String> dataToPost = data.asMap(String.class, String.class);
-
-        assertEquals(
-            1,
-            DraftAccountUtils.getAllDraftAccountIds().size(),
-            "There should be only one draft account but found multiple: "
-                + DraftAccountUtils.getAllDraftAccountIds()
+        JSONObject postBody = requestFactory.buildReplaceRequestBody(
+            data.asMap(String.class, String.class),
+            DraftAccountRequestFactory.BusinessUnitIdMode.LONG
         );
-
-        JSONObject postBody = new JSONObject();
-
-        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
-        addToJsonObject(postBody, dataToPost, "submitted_by_name");
-        addToJsonObject(postBody, dataToPost, "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get(
-            "account");
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-
-        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-            + "/draftAccounts/timelineJson/default.json";
-        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONArray timelineArray = new JSONArray(timeline);
-
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
+        String draftAccountId = actions.onlyCreatedDraftAccountIdOrFail();
+        authorisedJsonRequest()
             .accept("text/html")
-            .contentType("application/json")
             .body(postBody.toString())
             .when()
             .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
+    /**
+     * Attempts to update the created draft account with an unsupported request media type.
+     *
+     */
     @When("I attempt to put a draft account with unsupported media type for request")
-    public void putADraftAccountWithUnsupportedMediaTypeForRequest(DataTable data) throws IOException, JSONException {
-        Map<String, String> dataToPost = data.asMap(String.class, String.class);
-
-        assertEquals(
-            1,
-            DraftAccountUtils.getAllDraftAccountIds().size(),
-            "There should be only one draft account but found multiple: "
-                + DraftAccountUtils.getAllDraftAccountIds()
-        );
-
-        JSONObject postBody = new JSONObject();
-
-        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
-        addToJsonObject(postBody, dataToPost, "submitted_by_name");
-        addToJsonObject(postBody, dataToPost, "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get(
-            "account");
-        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
-        JSONObject accountObject = new JSONObject(account);
-
-        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-            + "/draftAccounts/timelineJson/default.json";
-        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONArray timelineArray = new JSONArray(timeline);
-
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
-
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
+    public void putADraftAccountWithUnsupportedMediaTypeForRequest() {
+        String draftAccountId = actions.onlyCreatedDraftAccountIdOrFail();
+        authorisedJsonRequest()
             .accept("text/plain")
-            .contentType("application/json")
             .when()
             .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
+    /**
+     * Sends a malformed PUT request to exercise the draft-account internal-server-error path.
+     */
     @When("I put the draft account trying to provoke an internal server error")
     public void putDraftAccountToProvokeAnInternalServerError() {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
+        authorisedJsonRequest()
             .accept("application/json")
             .contentType("application/xml")
             .when()

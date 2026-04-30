@@ -16,7 +16,7 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.68'
   id 'org.flywaydb.flyway' version '12.5.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.21.0"
+  id "org.openapi.generator" version "7.22.0"
 }
 
 ext {
@@ -452,9 +452,9 @@ dependencies {
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.12'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.12'
 
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.40"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.48"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.48"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.41"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.49"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.49"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'

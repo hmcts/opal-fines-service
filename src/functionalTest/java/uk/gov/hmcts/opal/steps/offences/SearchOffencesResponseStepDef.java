@@ -14,15 +14,28 @@ import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Defines Cucumber steps for offence-search response assertions.
+ */
 public class SearchOffencesResponseStepDef extends BaseStepDef {
     //static Logger log = LoggerFactory.getLogger(SearchOffencesResponseStepDef.class.getName());
 
+    /**
+     * Asserts that the offence-search request returned the expected HTTP status code.
+     *
+     * @param statusCode expected HTTP status code.
+     */
     @Then("The offence search response returns {int}")
     public void draftAccountResponse(int statusCode) {
         then().assertThat()
                 .statusCode(statusCode);
     }
 
+    /**
+     * Asserts that every returned offence has a CJS code starting with the requested prefix.
+     *
+     * @param cjsCode CJS code prefix expected in the response.
+     */
     @Then("the response contains results with a cjs code starting with {string}")
     public void offenceResponseCjsStartsWith(String cjsCode) {
 
@@ -36,6 +49,11 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
         });
     }
 
+    /**
+     * Asserts that every returned offence contains the expected field values.
+     *
+     * @param expectedData Cucumber table containing the expected response values.
+     */
     @Then("the offences in the response contain the following data")
     public void offenceResponseContainsData(DataTable expectedData) {
         Map<String, String> expectedDataMap = expectedData.asMap(String.class, String.class);
@@ -50,6 +68,11 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that every returned offence is active for the supplied date.
+     *
+     * @param activeDate active date to compare against the returned offence dates.
+     */
     @Then("the offences in the response are before {string} only")
     public void offenceResponseBeforeDate(String activeDate) {
         // Format the active date string to a LocalDateTime object
@@ -79,6 +102,11 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the response contains the expected number of offence records.
+     *
+     * @param count expected number of matching records.
+     */
     @Then("there are {int} offences in the response")
     public void offenceResponseContainsCount(int count) {
         int responseCount = then().extract().jsonPath().getInt("count");

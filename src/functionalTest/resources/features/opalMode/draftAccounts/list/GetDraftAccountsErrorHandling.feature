@@ -1,42 +1,24 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:error-handling
 Feature: Get Draft Accounts Error Handling
 
-  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6106
-  Scenario: Get draft account - CEP2 - Invalid or No Access Token
+  Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+
+  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6106
+  Scenario: Listing draft accounts without a valid access token is rejected
     When I attempt to get draft accounts with an invalid token
-    Then The draft account response returns 401
+    Then the request is rejected as unauthorized
 
   @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6108
-  Scenario: Get draft account - CEP5 - Unsupported Content Type
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                      |
-      | account           | draftAccounts/accountJson/account.json  |
-      | account_type      | Fine                                    |
-      | account_status    |                                         |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    |                                             |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
+  Scenario: Listing draft accounts with an unsupported response content type is rejected
+    Given the following draft accounts exist
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/account.json      | Fine         |                | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         |                | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
     When I attempt to get draft accounts with an unsupported content type
-    Then The draft account response returns 406
+    Then the request is rejected as not acceptable
 
   @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6109
-  Scenario: Get draft account - CEP9 - Other Server Error
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Listing draft accounts with an invalid request is rejected
     When I get the draft accounts trying to provoke an internal server error
-    Then The draft account response returns 400
+    Then the request is rejected as bad request

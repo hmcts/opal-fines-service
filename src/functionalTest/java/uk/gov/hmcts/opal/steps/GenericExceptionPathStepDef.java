@@ -1,17 +1,17 @@
 package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.en.When;
-import net.serenitybdd.rest.SerenityRest;
 
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
-
+/**
+ * Defines Cucumber steps for generic exception-path scenarios.
+ */
 public class GenericExceptionPathStepDef extends BaseStepDef {
+    /**
+     * Sends a request to a non-existent endpoint to exercise the generic exception path.
+     */
     @When("I attempt to hit an endpoint that doesn't exist")
     public void hitNonExistentEndpoint() {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
+        authorisedJsonRequest()
             .contentType("application/xml")
             .body("{}")
             .when()

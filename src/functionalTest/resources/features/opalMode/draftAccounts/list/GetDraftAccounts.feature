@@ -1,10 +1,41 @@
 @Opal @JIRA-LABEL:manual-account-creation
-Feature: Get Draft Accounts
+Feature: List Draft Accounts
 
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6087
-  Scenario: Get draft accounts - filtering on business unit
+  Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+
+  @cleanUpData
+  Scenario Outline: Draft accounts can be filtered by business unit <business_unit>
+    And the following draft accounts exist
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+
+    When I request draft accounts for business unit "<business_unit>"
+    Then only draft accounts for business unit "<business_unit>" are returned
+    And the returned draft accounts identify business unit as "<business_unit_name>"
+    And the returned draft accounts exclude business units "<excluded_units>"
+    And the response body must not include the "version" field anywhere
+
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6087
+    Examples:
+      | business_unit | business_unit_name   | excluded_units |
+      | 73            | West London          | 77, 65         |
+
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    Examples:
+      | business_unit | business_unit_name | excluded_units |
+      | 77            | Camberwell Green   | 73, 65         |
+
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    Examples:
+      | business_unit | business_unit_name   | excluded_units |
+      | 65            | Camden and Islington | 73, 77         |
+
+  @cleanUpData
+  Scenario Outline: Draft accounts can be filtered by status <status_filter>
+    Given a resubmitted draft account exists with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -13,262 +44,81 @@ Feature: Get Draft Accounts
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
 
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    And the following draft accounts exist
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    When I request draft accounts for status "<status_filter>"
+    Then only draft accounts with status "<expected_status>" are returned
+    And the returned draft accounts exclude status "<excluded_status>"
 
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6090
+    Examples:
+      | status_filter | expected_status | excluded_status |
+      | SUBMITTED     | Submitted       | Resubmitted     |
 
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    Examples:
+      | status_filter | expected_status | excluded_status |
+      | RESUBMITTED   | Resubmitted     | Submitted       |
 
-    Then The draft account response returns 201
-    And I store the created draft account ID
+  @cleanUpData
+  Scenario Outline: Draft accounts can be filtered by submitted_by <submitted_by_filter>
+    And the following draft accounts exist
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
-    When I get the draft accounts filtering on the Business unit "73" then the response contains
-      | business_unit_id                    | 73          |
-      | account_snapshot.business_unit_name | West London |
-    And The draft account filtered response does not contain accounts in the "77" business unit
-    And The draft account filtered response does not contain accounts in the "65" business unit
-    Then The draft account response returns 200
-    And the response body must not include the "version" field anywhere
+    When I request draft accounts submitted by "<submitted_by_filter>"
+    Then only draft accounts submitted by "<expected_submitted_by>" are returned
+    And the returned draft accounts exclude accounts submitted by "<excluded_submitted_by>"
 
-    When I get the draft accounts filtering on the Business unit "77" then the response contains
-      | business_unit_id                    | 77               |
-      | account_snapshot.business_unit_name | Camberwell Green |
-    And The draft account filtered response does not contain accounts in the "73" business unit
-    And The draft account filtered response does not contain accounts in the "65" business unit
-    Then The draft account response returns 200
-    And the response body must not include the "version" field anywhere
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6092
+    Examples:
+      | submitted_by_filter | expected_submitted_by | excluded_submitted_by |
+      | BUUID              | BUUID                 | BUUID_TWO             |
 
-    When I get the draft accounts filtering on the Business unit "65" then the response contains
-      | business_unit_id                    | 65                   |
-      | account_snapshot.business_unit_name | Camden and Islington |
-    And The draft account filtered response does not contain accounts in the "73" business unit
-    And The draft account filtered response does not contain accounts in the "77" business unit
-    Then The draft account response returns 200
-    And the response body must not include the "version" field anywhere
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    Examples:
+      | submitted_by_filter | expected_submitted_by | excluded_submitted_by |
+      | BUUID_TWO           | BUUID_TWO             | BUUID                 |
 
-    Then I delete the created draft accounts
+  @cleanUpData
+  Scenario Outline: Draft accounts can be filtered by status <status_filter> and submitted_by <submitted_by_filter>
+    And the following draft accounts exist
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6090
-  Scenario: Get draft accounts - filtering on status
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                      |
-      | account           | draftAccounts/accountJson/account.json  |
-      | account_type      | Fine                                    |
-      | account_status    | Submitted                               |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
+    When I request draft accounts for status "<status_filter>" and submitted by "<submitted_by_filter>"
+    Then only draft accounts with status "<expected_status>" submitted by "<expected_submitted_by>" are returned
+    And the returned draft accounts exclude status "Resubmitted"
+    And the returned draft accounts exclude accounts submitted by "<excluded_submitted_by>"
 
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6094
+    Examples:
+      | status_filter | submitted_by_filter | expected_status | expected_submitted_by | excluded_submitted_by |
+      | SUBMITTED     | BUUID              | Submitted       | BUUID                 | BUUID_TWO             |
 
-    When I update the draft account that was just created with the following details
-      | business_unit_id  | 73                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-      | If-Match          | 0                                           |
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I get the draft accounts filtering on the Status "SUBMITTED" then the response contains
-      | account_status | Submitted |
-    And The draft account filtered response does not contain accounts with status "Resubmitted"
-
-    When I get the draft accounts filtering on the Status "RESUBMITTED" then the response contains
-      | account_status | Resubmitted |
-    And The draft account filtered response does not contain accounts with status "Submitted"
-
-    Then I delete the created draft accounts
-
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6092
-  Scenario: Get draft accounts - filtering on submitted_by
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                      |
-      | account           | draftAccounts/accountJson/account.json  |
-      | account_type      | Fine                                    |
-      | account_status    | Submitted                               |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID_TWO                                   |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I get the draft accounts filtering on Submitted by "BUUID" then the response contains
-      | account_snapshot.submitted_by | BUUID |
-    And The draft account filtered response does not contain accounts submitted by "BUUID_TWO"
-
-    When I get the draft accounts filtering on Submitted by "BUUID_TWO" then the response contains
-      | account_snapshot.submitted_by | BUUID_TWO |
-    And The draft account filtered response does not contain accounts submitted by "BUUID"
-
-    Then I delete the created draft accounts
-
-  @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6094
-  Scenario: Get draft accounts - filtering on multiple fields
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                      |
-      | account           | draftAccounts/accountJson/account.json  |
-      | account_type      | Fine                                    |
-      | account_status    | Submitted                               |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID_TWO                                   |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I get the draft accounts filtering on the Status "SUBMITTED" and Submitted by "BUUID" then the response contains
-      | account_status | Submitted |
-      | submitted_by   | BUUID     |
-
-    And The draft account filtered response does not contain accounts with status "Resubmitted"
-    And The draft account filtered response does not contain accounts submitted by "BUUID_TWO"
-
-    When I get the draft accounts filtering on the Status "SUBMITTED" and Submitted by "BUUID_TWO" then the response contains
-      | account_status | Submitted |
-      | submitted_by   | BUUID_TWO |
-
-    And The draft account filtered response does not contain accounts with status "Resubmitted"
-    And The draft account filtered response does not contain accounts submitted by "BUUID"
-
-    Then I delete the created draft accounts
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    Examples:
+      | status_filter | submitted_by_filter | expected_status | expected_submitted_by | excluded_submitted_by |
+      | SUBMITTED     | BUUID_TWO           | Submitted       | BUUID_TWO             | BUUID                 |
 
   @PO-2361 @cleanUpData @JIRA-KEY:POT-6097
-  Scenario: Get all draft accounts - created three accounts and verify logging contains all three
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Retrieving all draft accounts produces defendant PDPO logs
 
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    And the following draft accounts exist
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    # Do a GET all
-    When I get the draft accounts
-    Then The draft account response returns 200
+    When I request all draft accounts
+    Then the request succeeds
 
     # Assert that logging has PDPO entries for each created draft id
 #    Then the logging service contains these PDPO logs:
@@ -276,48 +126,18 @@ Feature: Get Draft Accounts
 #      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
 
     # Cleanup
-    Then I delete the created draft accounts
 
   @PO-2361 @cleanUpData @JIRA-KEY:POT-6098
-  Scenario: Get all draft accounts - Verify that 2 logs are created containing when the get all endpoint
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+  Scenario: Retrieving all draft accounts with parent or guardian data produces two PDPO log categories
 
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                                     |
-      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                                   |
-      | account_status    | Submitted                                              |
-      | submitted_by      | BUUID                                                  |
-      | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-    Then The draft account response returns 201
-    And I store the created draft account ID
+    And the following draft accounts exist
+      | business_unit_id | account                                                | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
+      | 73               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 77               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | 65               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
 
-    When I create a draft account with the following details
-      | business_unit_id  | 77                                                     |
-      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                                   |
-      | account_status    | Submitted                                              |
-      | submitted_by      | BUUID                                                  |
-      | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    When I create a draft account with the following details
-      | business_unit_id  | 65                                                     |
-      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                                   |
-      | account_status    | Submitted                                              |
-      | submitted_by      | BUUID                                                  |
-      | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    # Do a GET all
-    When I get the draft accounts
-    Then The draft account response returns 200
+    When I request all draft accounts
+    Then the request succeeds
 
     # Assert that logging has PDPO entries for each created draft id for both Business identifiers
 #    Then the logging service contains these PDPO logs:
@@ -326,12 +146,10 @@ Feature: Get Draft Accounts
 #      | 500000000     | OPAL_USER_ID    | Get Draft Account - Parent or Guardian    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
 
     # Cleanup
-    Then I delete the created draft accounts
 
   @PO-2361 @cleanUpData @JIRA-KEY:POT-6100
   Scenario: Invalid token is blocked and no PDPO logs emitted
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a draft account with the following details
+    Given a draft account exists with the following details
       | business_unit_id  | 73                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
       | account_type      | Fine                                                   |
@@ -339,17 +157,9 @@ Feature: Get Draft Accounts
       | submitted_by      | BUUID                                                  |
       | submitted_by_name | Laura Clerk                                            |
       | timeline_data     | draftAccounts/timelineJson/default.json                |
-    Then The draft account response returns 201
-    And I store the created draft account ID
 
-  # switch to a non-OPAL user/token
-    When I set an invalid token manually
-    And I get the draft accounts
-    Then The draft account response returns 401
+    When I attempt to get draft accounts with an invalid token
+    Then the request is rejected as unauthorized
 
   # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
-#    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
-
-  # switch back to an OPAL user so cleanup can delete the created draft (or delete via admin API)
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    Then I delete the created draft accounts
+  # Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"

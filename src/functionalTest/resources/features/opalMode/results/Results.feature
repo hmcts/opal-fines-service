@@ -1,13 +1,15 @@
 @Opal @JIRA-LABEL:reference-data
 Feature: Results Reference Data
 
-  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-6247
-  Scenario: get results - happy path
+  Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I make a request to get the results ""
-    Then The results response contains 60 results
 
-    And The results response contains the following result
+  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-6247
+  Scenario: All results are returned when no result id filter is supplied
+    When I request results for identifiers ""
+    Then 60 results are returned
+
+    And the returned results include the following result
       | result_id                   | REM                                           |
       | result_title                | Reminder of Unpaid Fine                       |
       | result_title_cy             | Nodyn atgoffa terfynol am ddirwy heb ei thalu |
@@ -17,7 +19,7 @@ Feature: Results Reference Data
       | imposition_allocation_order |                                               |
 
 
-    And The results response contains the following result
+    And the returned results include the following result
       | result_id                   | UPWO              |
       | result_title                | Unpaid Work Order |
       | result_title_cy             |                   |
@@ -26,7 +28,7 @@ Feature: Results Reference Data
       | imposition_creditor         |                   |
       | imposition_allocation_order |                   |
 
-    And The results response contains the following result
+    And the returned results include the following result
       | result_id                   | FCOMP        |
       | result_title                | Compensation |
       | result_title_cy             | Iawndal      |
@@ -36,12 +38,11 @@ Feature: Results Reference Data
       | imposition_allocation_order | 1            |
 
   @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-KEY:POT-6249
-  Scenario: get results - happy path filtered by result id
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I make a request to get the results "FO,ABDC"
-    Then The results response contains 2 results
+  Scenario: Only requested results are returned when result ids are supplied
+    When I request results for identifiers "FO,ABDC"
+    Then 2 results are returned
 
-    And The results response contains the following result
+    And the returned results include the following result
       | result_id                   | FO     |
       | result_title                | Fine   |
       | result_title_cy             | Dirwy  |
@@ -50,7 +51,7 @@ Feature: Results Reference Data
       | imposition_creditor         | CF     |
       | imposition_allocation_order | 6      |
 
-    And The results response contains the following result
+    And the returned results include the following result
       | result_id                   | ABDC                                    |
       | result_title                | Application made for Benefit Deductions |
       | result_title_cy             | Cais am dynnu arian o fudd-daliadau     |
@@ -58,4 +59,3 @@ Feature: Results Reference Data
       | result_type                 | Result                                  |
       | imposition_creditor         |                                         |
       | imposition_allocation_order |                                         |
-
