@@ -1,8 +1,24 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
+  ext {
+    cucumberQueryVersion = "14.7.0"
+    cucumberMessagesVersion = "30.1.0"
+  }
+
+  configurations.classpath {
+    resolutionStrategy {
+      force "io.cucumber:query:${cucumberQueryVersion}"
+      force "io.cucumber:messages:${cucumberMessagesVersion}"
+    }
+  }
+
   dependencies {
     classpath("org.flywaydb:flyway-database-postgresql:12.5.0")
+    // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
+    // Maven metadata range lookups on CI when Maven Central is rate limiting.
+    classpath("io.cucumber:query:${cucumberQueryVersion}")
+    classpath("io.cucumber:messages:${cucumberMessagesVersion}")
   }
 }
 
