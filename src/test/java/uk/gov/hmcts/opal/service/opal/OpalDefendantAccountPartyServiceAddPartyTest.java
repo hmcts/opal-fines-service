@@ -74,6 +74,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
     @Test
     void addDefendantAccountParty_happyPath_createsPartyAssociationAndAudits() {
+        // Arrange
         Long accountId = 777L;
         String bu = "10";
         String ifMatch = "\"1\"";
@@ -151,9 +152,11 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             vs.when(() -> VersionUtils.verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), eq(
                 "addDefendantAccountParty"))).thenAnswer(i -> null);
 
+            // Act
             GetDefendantAccountPartyResponse resp =
                 service.addDefendantAccountParty(accountId, bu, "bu-user-1", "tester", ifMatch, req);
 
+            // Assert
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
             assertEquals("123", resp.getDefendantAccountParty().getPartyDetails().getPartyId());
@@ -180,8 +183,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                     && "AB12CDE".equals(v.getVehicleRegistration())),
                 argThat(e -> "Widgets Ltd".equals(e.getEmployerName())),
                 argThat(l -> l.getDocumentLanguagePreference() != null
-                    && l.getHearingLanguagePreference() != null),
-                eq(true)
+                    && l.getHearingLanguagePreference() != null)
             );
             verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
