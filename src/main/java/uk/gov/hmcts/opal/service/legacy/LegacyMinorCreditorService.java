@@ -109,7 +109,9 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         checkResponseForError(response, "getMinorCreditorAtAGlance");
 
-        return atAGlanceResponseMapper.toDto(response.responseEntity);
+        GetMinorCreditorAccountAtAGlanceResponse mapped = atAGlanceResponseMapper.toDto(response.responseEntity);
+        mapped.setVersion(response.responseEntity.getCreditorAccountVersion());
+        return mapped;
     }
 
     private LegacyMinorCreditorSearchResultsRequest createRequest(MinorCreditorSearch request) {
