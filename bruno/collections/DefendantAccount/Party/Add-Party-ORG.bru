@@ -1,5 +1,5 @@
 meta {
-  name: Add-DAP
+  name: Add-Party-ORG
   type: http
   seq: 1
 }
@@ -7,16 +7,12 @@ meta {
 post {
   url: {{baseURL}}/defendant-accounts/{{defendantAccountId}}/defendant-account-parties
   body: json
-  auth: bearer
+  auth: inherit
 }
 
 headers {
-  Business-Unit-Id: 78
-  If-Match: 1
-}
-
-auth:bearer {
-  token: {{BEARER_TOKEN}}
+  Business-Unit-Id: 77
+  If-Match: 2
 }
 
 body:json {
@@ -25,7 +21,6 @@ body:json {
       "defendant_account_party_type": "Defendant",
       "is_debtor": true,
       "party_details": {
-        "party_id": "PARTY-12345",
         "organisation_flag": true,
         "organisation_details": {
           "organisation_name": "Acme Legal Services Ltd",
