@@ -149,13 +149,24 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         defendantAccountParty = defendantAccountPartiesRepository.save(defendantAccountParty);
 
         if (Boolean.TRUE.equals(requestParty.getIsDebtor())) {
-            debtorDetailRepositoryService.addDebtorDetail(
-                party.getPartyId(),
-                requestParty.getVehicleDetails(),
-                requestParty.getEmployerDetails(),
-                requestParty.getLanguagePreferences(),
-                true
-            );
+            // Check if a DebtorDetail record exists for this party
+            Optional<DebtorDetailEntity> existingDebtor =
+                debtorDetailRepositoryService.findById(party.getPartyId());
+            if (existingDebtor.isPresent()) {
+                debtorDetailRepositoryService.updateDebtorDetail(
+                    existingDebtor.get(),
+                    requestParty.getVehicleDetails(),
+                    requestParty.getEmployerDetails(),
+                    requestParty.getLanguagePreferences()
+                );
+            } else {
+                debtorDetailRepositoryService.addDebtorDetail(
+                    party.getPartyId(),
+                    requestParty.getVehicleDetails(),
+                    requestParty.getEmployerDetails(),
+                    requestParty.getLanguagePreferences()
+                );
+            }
         }
 
         replaceAliasesForParty(party.getPartyId(), partyDetails);
@@ -554,10 +565,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         DebtorDetailEntity debtor = debtorDetailRepositoryService.findById(partyId)
             .orElseThrow(() -> new EntityNotFoundException("debtor_detail not found with id: " + partyId));
 
-        if (debtor == null) {
-            debtor = new DebtorDetailEntity();
-            debtor.setPartyId(partyId);
-        }
 
         log.debug("replaceDebtorDetail:  pre-change debtor: {}", debtor);
 

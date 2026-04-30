@@ -36,20 +36,40 @@ public class DebtorDetailRepositoryService {
         return debtorDetailRepository.save(debtorDetailEntity);
     }
 
+    @Transactional
     public void addDebtorDetail(Long partyId,
         VehicleDetails vehicle,
         EmployerDetails employer,
-        LanguagePreferences language,
-        boolean isDebtor) {
+        LanguagePreferences language) {
 
-        log.debug("addDebtorDetail: partyId: {}, isDebtor: {}", partyId, isDebtor);
+        log.debug("addDebtorDetail: partyId: {}", partyId);
 
-        if (partyId == null || !isDebtor) {
+        if (partyId == null) {
             return;
         }
 
         DebtorDetailEntity debtor = new DebtorDetailEntity();
         debtor.setPartyId(partyId);
+        applyDebtorFields(debtor, vehicle, employer, language);
+        debtorDetailRepository.save(debtor);
+    }
+
+    @Transactional
+    public void updateDebtorDetail(DebtorDetailEntity debtor,
+        VehicleDetails vehicle,
+        EmployerDetails employer,
+        LanguagePreferences language) {
+
+        log.debug("updateDebtorDetail: partyId: {}", debtor.getPartyId());
+
+        applyDebtorFields(debtor, vehicle, employer, language);
+        debtorDetailRepository.save(debtor);
+    }
+
+    private void applyDebtorFields(DebtorDetailEntity debtor,
+        VehicleDetails vehicle,
+        EmployerDetails employer,
+        LanguagePreferences language) {
 
         debtor.setVehicleMake(vehicle != null ? vehicle.getVehicleMakeAndModel() : null);
         debtor.setVehicleRegistration(vehicle != null ? vehicle.getVehicleRegistration() : null);
@@ -79,7 +99,5 @@ public class DebtorDetailRepositoryService {
             debtor.setDocumentLanguageDate(LocalDate.now());
             debtor.setHearingLanguageDate(LocalDate.now());
         }
-
-        debtorDetailRepository.save(debtor);
     }
 }

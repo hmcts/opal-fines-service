@@ -1,17 +1,15 @@
 package uk.gov.hmcts.opal.entity.debtordetail;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,8 +28,8 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DebtorDetailEntity {
 
+    // partyId is an assigned FK to PartyEntity.partyId, not a generated PK
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "party_id")
     private Long partyId;
 
