@@ -18,23 +18,25 @@ import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
+import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.user.authentication.exception.CustomAuthenticationExceptions;
 import uk.gov.hmcts.opal.common.user.authentication.exception.CustomOauth2AuthenticationEntryPoint;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+
 
 @Configuration
 @EnableWebSecurity
-//@EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
 @Profile("!integration")
 public class SecurityConfig {
 
-    private final InternalAuthConfigurationProperties internalAuthConfigurationProperties;
-    private final InternalAuthProviderConfigurationProperties internalAuthProviderConfigurationProperties;
     private final CustomAuthenticationExceptions customAuthenticationExceptions;
     private final CustomOauth2AuthenticationEntryPoint customOauth2AuthenticationEntryPoint;
 
@@ -56,7 +58,8 @@ public class SecurityConfig {
 
     @Bean
     @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "squid:S4502"})
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+        JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver) {
         applyCommonConfig(http)
             .authorizeHttpRequests(authorize ->
                 authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
@@ -71,41 +74,64 @@ public class SecurityConfig {
                     .accessDeniedHandler(customAuthenticationExceptions)
             )
             .oauth2ResourceServer(oauth2 -> {
-                oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver());
+                oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver);
                 oauth2.authenticationEntryPoint(customOauth2AuthenticationEntryPoint);
             });
         return http.build();
     }
 
-    private HttpSecurity applyCommonConfig(HttpSecurity http) throws Exception {
+    @Bean
+    JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver(
+        InternalAuthConfigurationProperties authProps,
+        OpalJwtAuthenticationProvider finesJwtAuthenticationProvider) {
+
+        AuthenticationManager manager = finesJwtAuthenticationProvider::authenticate;
+        Map<String, AuthenticationManager> managers = Map.of(authProps.getIssuerUri(), manager);
+        return new JwtIssuerAuthenticationManagerResolver(managers::get);
+    }
+
+    @Bean
+    OpalJwtAuthenticationProvider finesJwtAuthenticationProvider(
+        NimbusJwtDecoder internalJwtDecoder,
+        UserStateClientService userStateClientService,
+        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter,
+        OpalCommonConfiguration commonConfiguration) {
+
+        Domain domain = Domain.findByDisplayName(commonConfiguration.getDomain());
+
+        return new OpalJwtAuthenticationProvider(
+            internalJwtDecoder,
+            userStateClientService,
+            jwtGrantedAuthoritiesConverter,
+            domain
+        );
+    }
+
+    @Bean
+    NimbusJwtDecoder internalJwtDecoder(
+        InternalAuthProviderConfigurationProperties providerProps,
+        InternalAuthConfigurationProperties authProps) {
+
+        var jwtDecoder = NimbusJwtDecoder.withJwkSetUri(providerProps.getJwkSetUri())
+            .jwsAlgorithm(SignatureAlgorithm.RS256)
+            .build();
+
+        OAuth2TokenValidator<Jwt> jwtValidator =
+            JwtValidators.createDefaultWithIssuer(authProps.getIssuerUri());
+        jwtDecoder.setJwtValidator(jwtValidator);
+        return jwtDecoder;
+    }
+
+    @Bean
+    JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter() {
+        return new JwtGrantedAuthoritiesConverter();
+    }
+
+    private HttpSecurity applyCommonConfig(HttpSecurity http) {
         return http
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
             .formLogin(FormLoginConfigurer::disable)
             .logout(LogoutConfigurer::disable);
-    }
-
-    private JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver() {
-        Map<String, AuthenticationManager> authenticationManagers = Map.ofEntries(
-            createAuthenticationEntry(
-                internalAuthConfigurationProperties.getIssuerUri(),
-                internalAuthProviderConfigurationProperties.getJwkSetUri()
-            )
-        );
-        return new JwtIssuerAuthenticationManagerResolver(authenticationManagers::get);
-    }
-
-    private Map.Entry<String, AuthenticationManager> createAuthenticationEntry(String issuer,
-                                                                               String jwkSetUri) {
-        var jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
-            .jwsAlgorithm(SignatureAlgorithm.RS256)
-            .build();
-
-        OAuth2TokenValidator<Jwt> jwtValidator = JwtValidators.createDefaultWithIssuer(issuer);
-        jwtDecoder.setJwtValidator(jwtValidator);
-
-        var authenticationProvider = new JwtAuthenticationProvider(jwtDecoder);
-
-        return Map.entry(issuer, authenticationProvider::authenticate);
     }
 }

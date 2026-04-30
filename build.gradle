@@ -463,7 +463,7 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.4'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.5'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.12'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.12'
@@ -486,7 +486,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-quartz"
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
-
+  implementation "org.springframework.boot:spring-boot-starter-security"
   implementation 'org.springframework.boot:spring-boot-starter-integration'
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
@@ -557,6 +557,7 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
   testImplementation 'org.testcontainers:testcontainers-postgresql'
+  testImplementation 'com.redis:testcontainers-redis'
   testImplementation 'io.rest-assured:rest-assured:6.0.0'
   testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.0.3'))

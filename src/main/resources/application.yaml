@@ -89,8 +89,7 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-      host: ${OPAL_REDIS_HOST:localhost}
-      port: ${OPAL_REDIS_PORT:6379}
+        url: ${REDIS_CONNECTION_STRING:redis://localhost:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
