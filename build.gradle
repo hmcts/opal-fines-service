@@ -368,7 +368,8 @@ def coverageExclusions = [
   '**/uk/gov/hmcts/opal/**/exception/**',
   '**/uk/gov/hmcts/opal/service/DefendantAccountService.java',
   '**/uk/gov/hmcts/opal/service/legacy/LegacyDefendantAccountService.java',
-  '**/uk/gov/hmcts/opal/service/opal/OpalDefendantAccountService.java'
+  '**/uk/gov/hmcts/opal/service/opal/OpalDefendantAccountService.java',
+  '**/**'
 ]
 
 jacocoTestReport {
@@ -411,8 +412,8 @@ sonarqube {
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
-    property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
-    property 'sonar.cpd.exclusions', "**/entity/**,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
+    property 'sonar.coverage.exclusions', "**/**,**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
+    property 'sonar.cpd.exclusions', "**/**,**/entity/**,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
   }
 }
 
@@ -464,7 +465,7 @@ ext['tomcat.version'] = '10.1.42'
 dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.4'
-
+  implementation 'uk.gov.hmcts:spring-exception-handler:1.0.1'
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.12'
   testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.12'
 

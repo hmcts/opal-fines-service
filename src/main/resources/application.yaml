@@ -137,6 +137,9 @@ quartzProperties:
       threadCount: 8
 
 opal:
+  docmosis:
+    endpoint: ${OPAL_DOCMOSIS_BASE_URL:http://localhost:5544}
+    token: ${OPAL_DOCMOSIS_TOKEN:}
   redis:
     enabled: ${OPAL_REDIS_ENABLED:false}
     ttl-hours: ${OPAL_REDIS_TTL_HOURS:8}

@@ -50,6 +50,10 @@ java:
           alias: AZURE_STORAGE_CONNECTION_STRING
         - name: reports-storage-container-name
           alias: REPORTS_AZURE_STORAGE_CONTAINER
+        - name: docmosis-api-key
+          alias: OPAL_DOCMOSIS_TOKEN
+        - name: docmosis-endpoint
+          alias: OPAL_DOCMOSIS_BASE_URL
   environment:
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "opal-fines-db"
