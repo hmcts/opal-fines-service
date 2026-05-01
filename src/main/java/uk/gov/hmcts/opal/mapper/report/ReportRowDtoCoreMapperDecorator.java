@@ -20,9 +20,9 @@ public class ReportRowDtoCoreMapperDecorator implements ReportRowDtoMapper {
 
     @Autowired
     private ReportRowDtoCoreMapper delegate;
-    @Autowired
+    @Autowired(required = false)
     private DebtorDetailRepositoryService debtorService;
-    @Autowired
+    @Autowired(required = false)
     private EnforcementRepositoryService enforcementService;
 
     public void setDelegate(ReportRowDtoCoreMapper delegate) {
