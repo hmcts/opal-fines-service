@@ -59,7 +59,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"3\"")) // FIXME
+            .andExpect(header().string("ETag", "\"2\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
@@ -137,7 +137,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"3\"")) // FIXME
+            .andExpect(header().string("ETag", "\"2\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
@@ -491,7 +491,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"3\"")) // FIXME
+            .andExpect(header().string("ETag", "\"2\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
