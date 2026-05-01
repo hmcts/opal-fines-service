@@ -21,6 +21,7 @@ public interface ReportRowDtoCoreMapper {
     @Mapping(target = "accountNo", source = "entity.accountNumber")
     @Mapping(target = "imposingCourt", source = "entity.enforcingCourt.name")
     @Mapping(target = "collectionOrder", source = "entity.collectionOrder", qualifiedByName = "booleanToYesNo")
+    @Mapping(target = "balance", source = "entity.accountBalance")
     @Mapping(target = "parentOrGuardian", ignore = true)
     @Mapping(target = "lastEnforcementDate", ignore = true)
     EnforcementReportRowDto map(DefendantAccountEntity entity, ReportMetadataContext context);
