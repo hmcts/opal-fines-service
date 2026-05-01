@@ -252,7 +252,7 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestBody AddDefendantAccountEnforcementRequest request
 
     ) throws JsonProcessingException {

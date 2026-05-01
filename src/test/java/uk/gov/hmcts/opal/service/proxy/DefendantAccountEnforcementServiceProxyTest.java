@@ -90,7 +90,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
-        Long ifMatch = 3L;
+        String ifMatch = "3";
         String auth = "Bearer abc";
         AddDefendantAccountEnforcementRequest req =
             mock(AddDefendantAccountEnforcementRequest.class);
@@ -125,7 +125,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
-        Long ifMatch = 3L;
+        String ifMatch = "3";
         String auth = "Bearer abc";
         AddDefendantAccountEnforcementRequest req =
             mock(AddDefendantAccountEnforcementRequest.class);

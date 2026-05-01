@@ -59,7 +59,7 @@ class DefendantAccountEnforcementServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
-        Long ifMatch = 3L;
+        String ifMatch = "3";
         String authHeader = "Bearer abc";
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
@@ -114,7 +114,7 @@ class DefendantAccountEnforcementServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountEnforcementService
-                .addEnforcement(defendantAccountId, businessUnitId, 3L, authHeader, null)
+                .addEnforcement(defendantAccountId, businessUnitId, "3", authHeader, null)
         );
 
         assertTrue(
@@ -154,7 +154,7 @@ class DefendantAccountEnforcementServiceTest {
             eq(defendantAccountId),
             eq(businessUnitId),
             isNull(),                   // IMPORTANT: businessUnitUserId expected to be null
-            eq(3L),
+            eq("3"),
             eq(authHeader),
             eq(req)
         )).thenReturn(proxyResult);
@@ -162,7 +162,7 @@ class DefendantAccountEnforcementServiceTest {
         // act
         AddEnforcementResponse out =
             defendantAccountEnforcementService
-                .addEnforcement(defendantAccountId, businessUnitId, 3L, authHeader, req);
+                .addEnforcement(defendantAccountId, businessUnitId, "3", authHeader, req);
 
         // assert
         assertNotNull(out);
@@ -170,7 +170,7 @@ class DefendantAccountEnforcementServiceTest {
             eq(defendantAccountId),
             eq(businessUnitId),
             isNull(),                   // verifies null is passed
-            eq(3L),
+            eq("3"),
             eq(authHeader),
             eq(req)
         );

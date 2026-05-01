@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterfa
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +63,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
     public AddEnforcementResponse addEnforcement(Long defendantAccountId,
                                                  Short businessUnitId,
                                                  String businessUnitUserId,
-                                                 Long ifMatch,
+                                                 String ifMatch,
                                                  String authHeader,
                                                  AddDefendantAccountEnforcementRequest request) {
 
@@ -72,7 +73,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(String.valueOf(businessUnitId))
                 .businessUnitUserId(businessUnitUserId)
-                .version(Math.toIntExact(ifMatch))
+                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))

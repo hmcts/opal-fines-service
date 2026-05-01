@@ -37,7 +37,7 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
     public AddEnforcementResponse addEnforcement(Long defendantAccountId,
                                                  Short businessUnitId,
                                                  String businessUnitUserId,
-                                                 Long ifMatch,
+                                                 String ifMatch,
                                                  String authHeader,
                                                  AddDefendantAccountEnforcementRequest request)
         throws JsonProcessingException {

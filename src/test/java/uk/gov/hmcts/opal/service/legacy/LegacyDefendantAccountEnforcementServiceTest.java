@@ -17,6 +17,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,7 +90,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
     private GatewayService gatewayService;
 
     @InjectMocks
-    private  LegacyDefendantAccountEnforcementService legacyDefendantAccountEnforcementService;
+    private LegacyDefendantAccountEnforcementService legacyDefendantAccountEnforcementService;
 
     @Mock
     private LegacyRemoveDefendantEnforcementHoldMapper removeEnforcementHoldMapper;
@@ -129,12 +131,14 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         AddEnforcementResponse out =
-            legacyDefendantAccountEnforcementService.addEnforcement(123L,
-                                                                    (short) 1,
-                                                                    "user-1",
-                                                                    1L,
-                                                                    "auth",
-                                                                    null);
+            legacyDefendantAccountEnforcementService.addEnforcement(
+                123L,
+                (short) 1,
+                "user-1",
+                "1",
+                "auth",
+                null
+            );
 
         assertNotNull(out);
         assertEquals("ENF-1", out.getEnforcementId());
@@ -151,8 +155,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         when(legacyResp.getVersion()).thenReturn(5);
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
-            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE,
-                legacyResp, "<legacy-failure/>", null);
+            new GatewayService.Response<>(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                legacyResp, "<legacy-failure/>", null
+            );
 
         doReturn(resp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
@@ -163,8 +169,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
         // Act
         AddEnforcementResponse out =
-            legacyDefendantAccountEnforcementService.addEnforcement(500L,
-                                                                    (short) 500, "user-500", 5L, "auth", null);
+            legacyDefendantAccountEnforcementService.addEnforcement(
+                500L,
+                (short) 500, "user-500", "5", "auth", null
+            );
 
         // Assert
         assertNotNull(out);
@@ -216,8 +224,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         // Act
         AddEnforcementResponse out =
             legacyDefendantAccountEnforcementService
-                .addEnforcement(999L, (short) 101, "user-test",
-                                11L, "auth", request);
+                .addEnforcement(
+                    999L, (short) 101, "user-test",
+                    "11", "auth", request
+                );
 
         // Assert - public DTO returned correctly
         assertNotNull(out);
@@ -263,8 +273,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         when(legacyResp.getVersion()).thenReturn(5);
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
-            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>",
-                null);
+            new GatewayService.Response<>(
+                HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>",
+                null
+            );
 
         doReturn(resp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
@@ -275,8 +287,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
         // Act
         AddEnforcementResponse out =
-            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
-                                                                    "user-500", 5L, "auth", null);
+            legacyDefendantAccountEnforcementService.addEnforcement(
+                500L, (short) 500,
+                "user-500", "5", "auth", null
+            );
 
         // Assert
         assertNotNull(out);
@@ -299,9 +313,16 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act & Assert: calling the public method should throw a NullPointerException inside production code
-        assertThrows(NullPointerException.class, () ->
-            legacyDefendantAccountEnforcementService.addEnforcement(1L, (short) 1,
-                                                                    "U", 1L, "auth", null)
+        assertThrows(
+            NullPointerException.class, () ->
+                legacyDefendantAccountEnforcementService.addEnforcement(
+                    1L,
+                    (short) 1,
+                    "U",
+                    "1",
+                    "auth",
+                    null
+                )
         );
     }
 
@@ -313,10 +334,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             createLegacyEnforcementStatusResponse(true);
 
         when(restClient.responseSpec
-            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+                 .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
@@ -367,8 +388,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertEquals(6, overview.getDaysInDefault());
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.of(2024, 3, 4),
-            overview.getCollectionOrder().getCollectionOrderDate());
+        assertEquals(
+            LocalDate.of(2024, 3, 4),
+            overview.getCollectionOrder().getCollectionOrderDate()
+        );
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals(123, overview.getEnforcementCourt().getCourtCode());
@@ -392,7 +415,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
 
         // Act
         EnforcementStatus response = legacyDefendantAccountEnforcementService
@@ -413,8 +436,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertEquals(6, overview.getDaysInDefault());
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder()
-            .getCollectionOrderDate());
+        assertEquals(
+            LocalDate.of(2024, 3, 4), overview.getCollectionOrder()
+                .getCollectionOrderDate()
+        );
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
@@ -432,8 +457,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             .postToGateway(any(), any(), any(), any());
 
         // Act + Assert
-        assertThrows(RuntimeException.class, () -> legacyDefendantAccountEnforcementService
-            .getEnforcementStatus(1L));
+        assertThrows(
+            RuntimeException.class, () -> legacyDefendantAccountEnforcementService
+                .getEnforcementStatus(1L)
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -465,7 +492,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
 
         EnforcementStatus response = legacyDefendantAccountEnforcementService
             .getEnforcementStatus(66L);
@@ -491,8 +518,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
         when(courtService.getCourtById(anyLong())).thenThrow(new EntityNotFoundException("Court not found"));
 
-        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
-            () -> legacyDefendantAccountEnforcementService.getEnforcementStatus(66L));
+        EntityNotFoundException error = assertThrows(
+            EntityNotFoundException.class,
+            () -> legacyDefendantAccountEnforcementService.getEnforcementStatus(66L)
+        );
 
         assertNotNull(error);
         assertEquals("Court not found", error.getMessage());
@@ -507,27 +536,28 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                     .build())
             .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
                 .lja(LjaReference.builder()
-                    .ljaId((short) 1).ljaName("England").build())
+                         .ljaId((short) 1).ljaName("England").build())
                 .enforcer(EnforcerReference.builder()
-                    .enforcerId(2L).enforcerName("Arthur").build())
+                              .enforcerId(2L).enforcerName("Arthur").build())
                 .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
-                    .enforcementOverrideResultId("AAB").enforcementOverrideResultName("AaAaBb").build())
+                                               .enforcementOverrideResultId("AAB").enforcementOverrideResultName(
+                        "AaAaBb").build())
                 .build() : null)
             .enforcementOverview(EnforcementOverview.builder()
-                .enforcementCourt(CourtReference.builder()
-                    .courtId(3L).courtName("Bath").build())
-                .collectionOrder(CollectionOrder.builder()
-                    .collectionOrderCode("XX").collectionOrderFlag(true)
-                    .collectionOrderDate(LocalDate.of(2024, 3,4)).build())
-                .daysInDefault(6)
-                .build())
+                                     .enforcementCourt(CourtReference.builder()
+                                                           .courtId(3L).courtName("Bath").build())
+                                     .collectionOrder(CollectionOrder.builder()
+                                                          .collectionOrderCode("XX").collectionOrderFlag(true)
+                                                          .collectionOrderDate(LocalDate.of(2024, 3, 4)).build())
+                                     .daysInDefault(6)
+                                     .build())
             .lastEnforcementAction(full ? EnforcementAction.builder() // Optional
                 .enforcer(EnforcerReference.builder()
-                    .enforcerId(4L).enforcerName("Merlin").build())
+                              .enforcerId(4L).enforcerName("Merlin").build())
                 .resultReference(ResultReference.builder()
-                    .resultId("FEE").resultTitle("Result Ref").build())
+                                     .resultId("FEE").resultTitle("Result Ref").build())
                 .resultResponses(ResultResponses.builder()
-                    .parameterName("Param Name").response("A response").build())
+                                     .parameterName("Param Name").response("A response").build())
                 .dateAdded("2024-01-01T10:00:00")
                 .reason("late")
                 .warrantNumber("123")
@@ -605,7 +635,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             createLegacyEnforcementStatusResponse(false); // or build one with all override ids null
 
         when(restClient.responseSpec
-            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+                 .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
         when(courtService.getCourtById(anyLong()))
@@ -658,15 +688,16 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             Mockito.nullable(String.class)
         );
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountEnforcementService.removeEnforcementHold(
-                1L,
-                (short) 10,
-                "user-1",
-                "\"1\"",
-                "auth",
-                request
-            )
+        RuntimeException ex = assertThrows(
+            RuntimeException.class, () ->
+                legacyDefendantAccountEnforcementService.removeEnforcementHold(
+                    1L,
+                    (short) 10,
+                    "user-1",
+                    "\"1\"",
+                    "auth",
+                    request
+                )
         );
 
         assertEquals("Legacy exception during removeEnforcementHold", ex.getMessage());
@@ -713,15 +744,16 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             Mockito.nullable(String.class)
         );
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountEnforcementService.removeEnforcementHold(
-                500L,
-                (short) 10,
-                "user-1",
-                "\"5\"",
-                "auth",
-                request
-            )
+        RuntimeException ex = assertThrows(
+            RuntimeException.class, () ->
+                legacyDefendantAccountEnforcementService.removeEnforcementHold(
+                    500L,
+                    (short) 10,
+                    "user-1",
+                    "\"5\"",
+                    "auth",
+                    request
+                )
         );
 
         assertEquals("Legacy failure during removeEnforcementHold", ex.getMessage());
@@ -761,15 +793,16 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             Mockito.nullable(String.class)
         );
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountEnforcementService.removeEnforcementHold(
-                2L,
-                (short) 10,
-                "user-2",
-                "\"2\"",
-                "auth",
-                request
-            )
+        RuntimeException ex = assertThrows(
+            RuntimeException.class, () ->
+                legacyDefendantAccountEnforcementService.removeEnforcementHold(
+                    2L,
+                    (short) 10,
+                    "user-2",
+                    "\"2\"",
+                    "auth",
+                    request
+                )
         );
 
         assertEquals("Unknown error during removeEnforcementHold", ex.getMessage());
@@ -792,8 +825,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         when(rr.getParameterName()).thenReturn("p");
         when(rr.getResponse()).thenReturn("r");
 
-        List<?> mapped = (List<?>) m.invoke(legacyDefendantAccountEnforcementService,
-            Arrays.asList(null, rr));
+        List<?> mapped = (List<?>) m.invoke(
+            legacyDefendantAccountEnforcementService,
+            Arrays.asList(null, rr)
+        );
         assertNotNull(mapped);
         assertEquals(1, mapped.size());
 
@@ -827,7 +862,8 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertEquals(
             LocalDateTime.of(2024, 6, 1, 10, 11, 12),
             lpdClass.getMethod("getPostedDate")
-            .invoke(lpd));
+                .invoke(lpd)
+        );
         assertEquals("u123", lpdClass.getMethod("getPostedBy").invoke(lpd));
         assertEquals("User Name", lpdClass.getMethod("getPostedByName").invoke(lpd));
     }
@@ -859,8 +895,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertEquals("I", ((Enum<?>) mixedI).name());
 
         // Invalid code -> IllegalArgumentException should be thrown as cause of InvocationTargetException
-        InvocationTargetException ite = assertThrows(InvocationTargetException.class, () ->
-            m.invoke(legacyDefendantAccountEnforcementService, "Z"));
+        InvocationTargetException ite = assertThrows(
+            InvocationTargetException.class, () ->
+                m.invoke(legacyDefendantAccountEnforcementService, "Z")
+        );
         assertNotNull(ite.getCause());
         assertTrue(ite.getCause() instanceof IllegalArgumentException);
         assertTrue(ite.getCause().getMessage().contains("Unknown PaymentTermsType code: Z"));
@@ -883,8 +921,10 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertEquals("F", ((Enum<?>) mixedF).name());
 
         // Invalid code -> IllegalArgumentException wrapped in InvocationTargetException
-        InvocationTargetException ite = assertThrows(InvocationTargetException.class, () ->
-            m.invoke(legacyDefendantAccountEnforcementService, "X"));
+        InvocationTargetException ite = assertThrows(
+            InvocationTargetException.class, () ->
+                m.invoke(legacyDefendantAccountEnforcementService, "X")
+        );
         assertNotNull(ite.getCause());
         assertTrue(ite.getCause() instanceof IllegalArgumentException);
         assertTrue(ite.getCause().getMessage().contains("Unknown InstalmentPeriod code: X"));

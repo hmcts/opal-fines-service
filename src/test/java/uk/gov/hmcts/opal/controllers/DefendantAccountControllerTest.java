@@ -107,7 +107,7 @@ class DefendantAccountControllerTest {
         // Arrange
         Long defendantAccountId = 1L;
         Short businessUnitId = 10;
-        Long ifMatch = 1L;
+        String ifMatch = "1";
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder().build();
         AddEnforcementResponse mockResponse = AddEnforcementResponse.builder().build();
 

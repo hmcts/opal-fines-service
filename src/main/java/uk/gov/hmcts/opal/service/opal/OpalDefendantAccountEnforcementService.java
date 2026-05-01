@@ -80,7 +80,7 @@ public class OpalDefendantAccountEnforcementService
         Long defendantAccountId,
         Short businessUnitId,
         String businessUnitUserId,
-        Long ifMatch,
+        String ifMatch,
         String authHeader,
         AddDefendantAccountEnforcementRequest request) throws JsonProcessingException {
 
@@ -122,7 +122,7 @@ public class OpalDefendantAccountEnforcementService
             enforcerId,
             resultResponses,
             earliestReleaseDate,
-            ifMatch
+            VersionUtils.extractBigInteger(ifMatch).longValue()
         );
 
         if (request.getPaymentTerms() != null) {
@@ -142,7 +142,7 @@ public class OpalDefendantAccountEnforcementService
 
         return AddEnforcementResponse.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .version(Math.toIntExact(ifMatch))
+            .version(VersionUtils.extractBigInteger(ifMatch).intValue())
             .enforcementId(String.valueOf(enforcementId))
             .build();
     }

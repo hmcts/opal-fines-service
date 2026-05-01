@@ -68,7 +68,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private static final Long DEFENDANT_ACCOUNT_ID = 1001L;
     private static final Short BUSINESS_UNIT_ID = 2002;
     private static final String BUSINESS_UNIT_USER_ID = "bu-user-123";
-    private static final Long IF_MATCH = 7L;
+    private static final String IF_MATCH = "7";
     private static final String AUTH_HEADER = "Bearer token";
     private static final String USER_NAME = "test.user";
     private static final String PROSECUTOR_CASE_REFERENCE = "PCR-12345";
@@ -110,29 +110,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     @Test
     public void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JsonProcessingException {
-        UserState userState = mock(UserState.class);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
-
-        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
-        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
-        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
-
-        when(enforcementRepositoryService.addDefendantAccountEnforcement(
-            anyString(),
-            anyLong(),
-            anyShort(),
-            anyString(),
-            anyString(),
-            nullable(Integer.class),
-            anyString(),
-            anyString(),
-            nullable(String.class),
-            nullable(Long.class),
-            anyString(),
-            nullable(LocalDateTime.class),
-            anyLong()
-        )).thenReturn(ENFORCEMENT_ID);
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
 
         List<ResultResponse> responses = List.of(
             ResultResponse.builder().parameterName("reason").response("test reason").build(),
@@ -171,13 +151,14 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(55L),
             eq(responsesJson),
             eq(LocalDateTime.of(2026,5,1,0,0,0)),
-            eq(IF_MATCH));
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenGivenReason_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -236,14 +217,14 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(null),
             eq(responsesJson),
             eq(null),
-            eq(IF_MATCH)
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenGivenJailDays_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -302,14 +283,14 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(null),
             eq(responsesJson),
             eq(null),
-            eq(IF_MATCH)
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenGivenEnforcer_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -368,14 +349,14 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(55L),
             eq(responsesJson),
             eq(null),
-            eq(IF_MATCH)
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenGivenReleaseDate_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -434,7 +415,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(null),
             eq(responsesJson),
             eq(LocalDateTime.of(2026,5,1,0,0,0)),
-            eq(IF_MATCH)
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
 
         assertCommonResponse(response);
@@ -466,7 +447,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
 
-        when(defendant.getVersion()).thenReturn(BigInteger.valueOf(IF_MATCH));
+        when(defendant.getVersion()).thenReturn(VersionUtils.extractBigInteger(IF_MATCH));
 
         PaymentTerms paymentTerms = PaymentTerms.builder()
             .daysInDefault(7)
@@ -511,7 +492,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(null),
             eq("[]"),
             eq(null),
-            eq(IF_MATCH)
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
 
         assertCommonResponse(response);
@@ -520,7 +501,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(DEFENDANT_ACCOUNT_ID),
             eq(BUSINESS_UNIT_ID.toString()),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(BigInteger.valueOf(IF_MATCH).toString()),
+            eq(IF_MATCH),
             eq(AUTH_HEADER),
             org.mockito.ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
         );
@@ -792,7 +773,38 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     private void assertCommonResponse(AddEnforcementResponse response) {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
-        assertEquals(Math.toIntExact(IF_MATCH), response.getVersion());
+        assertEquals(VersionUtils.extractBigInteger(IF_MATCH).intValue(), response.getVersion());
         assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
     }
+
+    private void mockAuthorisedUser() {
+        UserState userState = mock(UserState.class);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+    }
+
+    private void mockDefendantAccount() {
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+    }
+
+    private void mockCreatedEnforcement() {
+        when(enforcementRepositoryService.addDefendantAccountEnforcement(
+            anyString(),
+            anyLong(),
+            anyShort(),
+            anyString(),
+            anyString(),
+            nullable(Integer.class),
+            anyString(),
+            anyString(),
+            nullable(String.class),
+            nullable(Long.class),
+            anyString(),
+            nullable(LocalDateTime.class),
+            anyLong()
+        )).thenReturn(ENFORCEMENT_ID);
+    }
+
 }

@@ -39,7 +39,7 @@ public class DefendantAccountEnforcementService {
 
     public AddEnforcementResponse addEnforcement(Long defendantAccountId,
         Short businessUnitId,
-        Long ifMatch,
+        String ifMatch,
         String authHeaderValue,
         AddDefendantAccountEnforcementRequest request) throws JsonProcessingException {
 

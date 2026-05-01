@@ -6,12 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.postgresql.util.PGobject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
+import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 
 import javax.sql.DataSource;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
@@ -57,47 +60,60 @@ public class EnforcementRepositoryService {
             cs.setString(1, resultId);
             cs.setLong(2, defendantAccountId);
             cs.setShort(3, businessUnitId);
-            cs.setString(4, "defendant_accounts");
+            cs.setString(4, RecordType.DEFENDANT_ACCOUNTS.toString());
             cs.setString(5, caseReference);
             cs.setString(6, functionCode);
-
-            if (jailDays != null) {
-                cs.setInt(7, jailDays);
-            } else {
-                cs.setNull(7, Types.INTEGER);
-            }
-
+            setNullableInteger(cs, 7, jailDays);
             cs.setString(8, postedBy);
             cs.setString(9, postedByName);
             cs.setString(10, reason);
-
-            if (enforcerId != null) {
-                cs.setLong(11, enforcerId);
-            } else {
-                cs.setNull(11, Types.BIGINT);
-            }
-
-            PGobject json = new PGobject();
-            json.setType("json");
-            json.setValue(resultResponses);
-            cs.setObject(12, json, Types.OTHER);
-
-            if (earliestReleaseDate != null) {
-                cs.setTimestamp(13, Timestamp.valueOf(earliestReleaseDate));
-            } else {
-                cs.setNull(13, Types.TIMESTAMP);
-            }
-
+            setNullableLong(cs, 11, enforcerId);
+            cs.setObject(12, toJsonObject(resultResponses), Types.OTHER);
+            setNullableTimestamp(cs, 13, earliestReleaseDate);
             cs.setLong(14, versionNumber);
             cs.registerOutParameter(15, Types.BIGINT);
-
-            System.out.println(cs);
 
             cs.execute();
 
             return cs.getLong(15);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to call p_add_defendant_account_enforcement", e);
+            throw new InternalServerErrorException("Failed to call stored procedure",
+                                                   "p_add_defendant_account_enforcement", e);
         }
+    }
+
+    private void setNullableInteger(CallableStatement cs, int parameterIndex, Integer value) throws SQLException {
+        if (value == null) {
+            cs.setNull(parameterIndex, Types.INTEGER);
+        } else {
+            cs.setInt(parameterIndex, value);
+        }
+    }
+
+    private void setNullableLong(CallableStatement cs, int parameterIndex, Long value) throws SQLException {
+        if (value == null) {
+            cs.setNull(parameterIndex, Types.BIGINT);
+        } else {
+            cs.setLong(parameterIndex, value);
+        }
+    }
+
+    private void setNullableTimestamp(
+        CallableStatement cs,
+        int parameterIndex,
+        LocalDateTime value
+    ) throws SQLException {
+        if (value == null) {
+            cs.setNull(parameterIndex, Types.TIMESTAMP);
+        } else {
+            cs.setTimestamp(parameterIndex, Timestamp.valueOf(value));
+        }
+    }
+
+    private PGobject toJsonObject(String value) throws SQLException {
+        PGobject json = new PGobject();
+        json.setType("json");
+        json.setValue(value);
+        return json;
     }
 }
