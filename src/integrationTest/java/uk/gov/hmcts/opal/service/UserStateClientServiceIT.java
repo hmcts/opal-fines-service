@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal;
+package uk.gov.hmcts.opal.service;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.time.Instant;
@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 

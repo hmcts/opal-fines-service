@@ -19,6 +19,7 @@ public class ContainerConfiguration {
     private static final int DB_EXPOSED_PORT = 5432;
     private static final PortBinding DB_PORT_BINDING =
         new PortBinding(Ports.Binding.bindPort(DB_HOST_PORT), new ExposedPort(DB_EXPOSED_PORT));
+    private static final int REDIS_PORT = 6379;
 
     @Bean
     @ServiceConnection
@@ -38,17 +39,15 @@ public class ContainerConfiguration {
     @ServiceConnection
     @RestartScope
     RedisContainer redisContainer() {
-        RedisContainer redisContainer = new RedisContainer(DockerImageName.parse("redis:6.2.6"))
+        return new RedisContainer(DockerImageName.parse("redis:6.2.6"))
             .withExposedPorts(6379)
             .withCreateContainerCmdModifier(cmd -> {
                 cmd.withName("testcontainers-redis");
                 cmd.withHostConfig(
                     new HostConfig().withPortBindings(
-                        new PortBinding(Ports.Binding.bindPort(6379), new ExposedPort(6379))
+                        new PortBinding(Ports.Binding.bindPort(REDIS_PORT), new ExposedPort(REDIS_PORT))
                     )
                 );
             });
-        redisContainer.start();
-        return redisContainer;
     }
 }
