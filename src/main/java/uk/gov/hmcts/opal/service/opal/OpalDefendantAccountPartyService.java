@@ -133,12 +133,14 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "addDefendantAccountParty");
         amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
+        // Save the party record
         PartyEntity party = new PartyEntity();
         OpalDefendantAccountBuilders.applyPartyCoreReplace(party, partyDetails);
         OpalDefendantAccountBuilders.applyPartyAddressReplace(party, requestParty.getAddress());
         OpalDefendantAccountBuilders.applyPartyContactReplace(party, requestParty.getContactDetails());
         party = partyRepositoryService.save(party);
 
+        // Save the association
         DefendantAccountPartiesEntity defendantAccountParty = DefendantAccountPartiesEntity.builder()
             .party(party)
             .associationType(AssociationType.getByLabel(requestParty.getDefendantAccountPartyType()))
@@ -147,6 +149,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         account.addPartyAssociation(defendantAccountParty);
 
+        // Add Debtor Details if this party is a debtor
         if (Boolean.TRUE.equals(requestParty.getIsDebtor())) {
             // Check if a DebtorDetail record exists for this party
             Optional<DebtorDetailEntity> existingDebtor =
