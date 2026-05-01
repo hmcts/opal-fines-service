@@ -140,13 +140,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         party = partyRepositoryService.save(party);
 
         DefendantAccountPartiesEntity defendantAccountParty = DefendantAccountPartiesEntity.builder()
-            .defendantAccount(account)
             .party(party)
             .associationType(AssociationType.getByLabel(requestParty.getDefendantAccountPartyType()))
             .debtor(requestParty.getIsDebtor())
             .build();
 
-        defendantAccountParty = defendantAccountPartiesRepository.save(defendantAccountParty);
+        account.addPartyAssociation(defendantAccountParty);
 
         if (Boolean.TRUE.equals(requestParty.getIsDebtor())) {
             // Check if a DebtorDetail record exists for this party

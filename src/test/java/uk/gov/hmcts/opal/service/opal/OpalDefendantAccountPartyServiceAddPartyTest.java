@@ -38,7 +38,6 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -88,6 +87,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .versionNumber(1L)
             .build();
 
+        account.setParties(new java.util.ArrayList<>());
+
         PartyEntity savedParty = PartyEntity.builder()
             .partyId(123L)
             .organisation(false)
@@ -96,18 +97,9 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .surname("Smith")
             .build();
 
-        DefendantAccountPartiesEntity savedDap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(456L)
-            .defendantAccount(account)
-            .party(savedParty)
-            .associationType(AssociationType.DEFENDANT)
-            .debtor(Boolean.TRUE)
-            .build();
-
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         when(partyRepositoryService.save(any(PartyEntity.class))).thenReturn(savedParty);
-        when(partyRepositoryService.findById(123L)).thenReturn(savedParty);
-        when(defendantAccountPartiesRepository.save(any(DefendantAccountPartiesEntity.class))).thenReturn(savedDap);
+        when(debtorRepoService.findById(123L)).thenReturn(Optional.empty());
         when(aliasRepoService.findByPartyId(123L)).thenReturn(emptyList());
         when(debtorRepoService.findByPartyId(123L)).thenReturn(Optional.of(DebtorDetailEntity.builder()
             .partyId(123L)
@@ -171,12 +163,11 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                     && "1 Main Street".equals(party.getAddressLine1())
                     && "john@example.com".equals(party.getPrimaryEmailAddress())
             ));
-            verify(defendantAccountPartiesRepository).save(argThat(dap ->
-                dap.getDefendantAccount() == account
-                    && dap.getParty() == savedParty
-                    && dap.getAssociationType() == AssociationType.DEFENDANT
-                    && Boolean.TRUE.equals(dap.getDebtor())
-            ));
+            assertEquals(1, account.getParties().size());
+            assertEquals(savedParty, account.getParties().getFirst().getParty());
+            assertEquals(AssociationType.DEFENDANT, account.getParties().getFirst().getAssociationType());
+            assertEquals(Boolean.TRUE, account.getParties().getFirst().getDebtor());
+            verify(defendantAccountPartiesRepository, never()).save(any());
             verify(debtorRepoService).addDebtorDetail(
                 eq(123L),
                 argThat(v -> "Ford Focus".equals(v.getVehicleMakeAndModel())
