@@ -61,6 +61,25 @@ VALUES ( 0077, 'N', 'Sainsco'
        , '111111', 'email@one.com', 'email@two.com'
        , null);
 
+INSERT INTO courts
+(
+  court_id, business_unit_id, court_code, parent_court_id, name, name_cy
+, address_line_1, address_line_2, address_line_3
+, address_line_1_cy, address_line_2_cy, address_line_3_cy, postcode
+, local_justice_area_id, national_court_code, gob_enforcing_court_code
+, lja, court_type, division, session
+, start_time, max_load, record_session_times, max_court_duration, group_code
+)
+VALUES
+    (
+      1, 99, 007, 730000000103, 'AAA Test Court', NULL
+    , 'TestVille', 'TestShire', NULL
+    , NULL, NULL, NULL, NULL
+    , 1013, NULL, NULL
+    , 1013, 'MC', '01', NULL
+    , NULL, NULL, NULL, NULL, NULL
+    );
+
 
 -- Ensure Defendant Account Id 77 exists for joins
 INSERT INTO defendant_accounts
@@ -105,26 +124,6 @@ VALUES (1,
         0077,
         'Defendant',
         'Y');
-
-INSERT INTO courts
-(
-  court_id, business_unit_id, court_code, parent_court_id, name, name_cy
-, address_line_1, address_line_2, address_line_3
-, address_line_1_cy, address_line_2_cy, address_line_3_cy, postcode
-, local_justice_area_id, national_court_code, gob_enforcing_court_code
-, lja, court_type, division, session
-, start_time, max_load, record_session_times, max_court_duration, group_code
-)
-VALUES
-    (
-      1, 99, 007, 730000000103, 'AAA Test Court', NULL
-    , 'TestVille', 'TestShire', NULL
-    , NULL, NULL, NULL, NULL
-    , 1013, NULL, NULL
-    , 1013, 'MC', '01', NULL
-    , NULL, NULL, NULL, NULL, NULL
-    );
-
 
 INSERT INTO enforcements(enforcement_id, defendant_account_id, posted_date, posted_by,
                          result_id, reason, enforcer_id, jail_days, result_responses,
