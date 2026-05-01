@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.repository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
-import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -27,4 +26,7 @@ public interface EnforcementRepository extends JpaRepository<EnforcementEntity, 
     Optional<EnforcementEntity> findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(
         Long defendantAccountId
     );
+
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    List<EnforcementEntity> findByDefendantAccountIdAndResultId(Long accountId, String regf);
 }

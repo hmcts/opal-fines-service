@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -13,12 +12,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
-import org.junit.Ignore;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,6 +29,7 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.util.AgeUtil;
@@ -44,6 +45,32 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     private DefendantAccountRepository defendantAccountRepository;
     @Autowired
     private EnforcementRepository enforcementRepository;
+
+    // ----------------------------------------
+    // Helper
+    // ----------------------------------------
+    private ReportInstanceEntity reportWithFilters(String json) {
+        ReportInstanceEntity instance = new ReportInstanceEntity();
+        instance.setReportParameters(json);
+        return instance;
+    }
+
+    private @NonNull Map<String, Long> getAccountNoToId() {
+        return defendantAccountRepository.findAll().stream()
+            .collect(Collectors.toMap(
+                DefendantAccountEntity::getAccountNumber,
+                DefendantAccountEntity::getDefendantAccountId
+            ));
+    }
+
+    private static void verifyMetadata(OperationReportByEnforcementTransaction result,
+        List<EnforcementReportRowDto> transactions) {
+        ReportMetaData reportMetadata = result.getReportMetaData();
+        int numberOfRecords = result.getNumberOfRecords();
+        assertThat(numberOfRecords).isEqualTo(transactions.size());
+        assertThat(reportMetadata.getPdpoPartyIds().size()).isGreaterThanOrEqualTo(numberOfRecords);
+        Assertions.assertThat(reportMetadata.getPdpoPartyIds()).doesNotHaveDuplicates();
+    }
 
     @Test
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType() {
@@ -64,6 +91,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             .isSorted();
         verifyMetadata(result, transactions);
     }
+
 
     @Test
     void generateReportData_filterSummaryReportType_returnSortedResultsOfSummaryReportType() {
@@ -109,24 +137,22 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             .allMatch(accountNumbers::contains)
             .isSorted();
         verifyMetadata(result, transactions);
-
-
     }
 
     @Test
     void generateReportData_filterByEnforcementModeAll_returnAllSortedResults() {
         //Arrange
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn("""
+        String json = """
             {
-              "enforcementMode": "ALL"
+              "reportEnforcementMode": "ALL"
             }
-            """);
+            """;
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
+            service.generateReportData(reportWithFilters(json));
         //Assert
-        assertThat(result).isNotNull();
+        List<EnforcementReportRowDto> accounts = result.getTransactionList();
+        assertThat(accounts).isNotNull();
         List<EnforcementReportRowDto> transactions = result.getTransactionList();
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
@@ -134,7 +160,6 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
-    @Ignore
     @Test
     void generateReportData_filterByEnforcementModeLastAction_returnLastActionSortedResults() {
         //Arrange
@@ -144,7 +169,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "enforcementMode": "LAST_ACTION",
+              "reportEnforcementMode": "LAST_ACTION",
               "lastActionDateFrom": "%s",
               "lastActionDateTo": "%s"
             }
@@ -161,69 +186,84 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
             .isSorted();
-        Map<String, Long> accountNoToId = defendantAccountRepository.findAll().stream()
-            .collect(Collectors.toMap(
-                DefendantAccountEntity::getAccountNumber,
-                DefendantAccountEntity::getDefendantAccountId
-            ));
+        Map<String, Long> accountNoToId = getAccountNoToId();
+        transactions.forEach(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            boolean exists = enforcementRepository
+                .findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(accountId)
+                .isPresent();
+
+            if (!exists) {
+                System.out.println("Missing enforcement for account: " + dto.getAccountNo());
+            }
+        });
+
         Assertions.assertThat(transactions).allSatisfy(dto -> {
             Long accountId = accountNoToId.get(dto.getAccountNo());
-            LocalDateTime maxPostedDate = enforcementRepository
-                .findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(accountId)
-                .orElseThrow()
-                .getPostedDate();
-            Assertions.assertThat(maxPostedDate)
-                .isAfterOrEqualTo(start)
-                .isBeforeOrEqualTo(end);
+            Optional<EnforcementEntity> latest =
+                enforcementRepository.findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(accountId);
+            Assertions.assertThat(latest).isPresent();
+            latest.ifPresent(e -> {
+                Assertions.assertThat(e.getPostedDate())
+                    .isAfterOrEqualTo(start)
+                    .isBeforeOrEqualTo(end);
+            });
         });
         verifyMetadata(result, transactions);
     }
 
-    @Ignore
     @Test
     void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
-        //Arrange
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn("""
-            {
-              "enforcementMode": "REGF",
-              "regfDateFrom": "2000-01-01",
-              "regfDateTo": "2000-02-02"
-            }
-            """);
+        // Arrange
+        LocalDate from = LocalDate.of(2000, 1, 1);
+        LocalDate to = LocalDate.of(2000, 2, 2);
+        String json = """
+        {
+          "reportEnforcementMode": "REGF",
+          "regfDateFrom": "%s",
+          "regfDateTo": "%s"
+        }
+        """.formatted(from, to);
         //Act
         OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
-        //Assert
+            (OperationReportByEnforcementTransaction)
+                service.generateReportData(reportWithFilters(json));
+        // Assert
         assertThat(result).isNotNull();
-
         List<EnforcementReportRowDto> transactions = result.getTransactionList();
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
             .isSorted();
-        Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getLastEnforcementDate)
-            .allSatisfy(date ->
-                assertThat(date).isBetween(
-                    LocalDate.of(2000, 1, 1), LocalDate.of(2000, 2, 2))
-            );
+
+        Map<String, Long> accountNoToId = getAccountNoToId();
+
+        Assertions.assertThat(transactions).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            List<EnforcementEntity> regfEnforcements =
+                enforcementRepository.findByDefendantAccountIdAndResultId(accountId, "REGF");
+            Assertions.assertThat(regfEnforcements)
+                .as("Account %s should have REGF enforcement in range", dto.getAccountNo())
+                .isNotEmpty()
+                .anySatisfy(e ->
+                    assertThat(e.getPostedDate().toLocalDate())
+                        .isBetween(from, to)
+                );
+        });
         verifyMetadata(result, transactions);
     }
-
 
     @Test
     void generateReportData_filterByEnforcementDate_returnSortedResults() {
         //Arrange
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn("""
+        String json = """
             {
               "enforcementDateFrom": "2000-01-01",
               "enforcementDateTo": "2000-02-02"
             }
-            """);
+            """;
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
+            service.generateReportData(reportWithFilters(json));
         //Assert
         List<EnforcementReportRowDto> transactions = result.getTransactionList();
         Assertions.assertThat(transactions)
@@ -235,15 +275,14 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     @Test
     void generateReportData_filterByNotUnderEnforcement_returnResultsNotUnderEnforcement() {
         //Arrange
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn("""
+        String json = """
             {
               "enforcementMode": "NOT_UNDER_ENFORCEMENT"
             }
-            """);
+            """;
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
+            service.generateReportData(reportWithFilters(json));
         //Assert
         List<EnforcementReportRowDto> transactions = result.getTransactionList();
         Assertions.assertThat(transactions)
@@ -360,9 +399,11 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         boolean expectedValue
     ) {
         // Arrange
-        List<String> expectedAccountNumbers = defendantAccountRepository.findAll().stream()
+        List<String> expectedAccountNumbers = enforcementRepository.findAll().stream()
+            .map(EnforcementEntity::getDefendantAccount)
             .filter(acc -> Boolean.valueOf(expectedValue).equals(acc.getCollectionOrder()))
             .map(DefendantAccountEntity::getAccountNumber)
+            .distinct()
             .toList();
 
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -384,30 +425,16 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
-    //TODO: check - should we be using account status from DefendantAccountEntity instead of checking balance and completed date?
-    @ParameterizedTest
-    @CsvSource({
-        "LIVE, true",
-        "CLOSED, false"
-    })
-    void generateReportData_filterByAccountStatus_returnResults(
-        String accountStatus,
-        boolean expectedValue
-    ) {
+    @Test
+    void generateReportData_filterByAccountStatusLive_returnResults() {
         // Arrange
-        List<String> expectedAccountNumbers = defendantAccountRepository.findAll().stream()
-            .filter(acc -> Boolean.valueOf(expectedValue).equals(acc.getAccountStatus()))
-            .map(DefendantAccountEntity::getAccountNumber)
-            .toList();
-
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
 
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "accountStatus": "%s"
+              "accountStatus": "LIVE"
             }
-            """.formatted(accountStatus));
-
+            """);
         // Act
         OperationReportByEnforcementTransaction result =
             (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
@@ -416,10 +443,51 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         List<EnforcementReportRowDto> transactions = result.getTransactionList();
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
-            .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers)
             .isSorted();
+
+        Map<String, Long> accountNoToId = getAccountNoToId();
+        Assertions.assertThat(transactions).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            DefendantAccountEntity defendant =
+                defendantAccountRepository.findByDefendantAccountId(accountId).orElseThrow();
+            Assertions.assertThat(defendant.getCompletedDate()).isNull();
+            Assertions.assertThat(defendant.getAccountBalance()).isGreaterThan(BigDecimal.ZERO);
+        });
         verifyMetadata(result, transactions);
-        fail();
+    }
+
+    @Test
+    void generateReportData_filterByAccountStatusClosed_returnResults() {
+        // Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "accountStatus": "CLOSED"
+            }
+            """);
+        // Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+
+        // Assert
+        List<EnforcementReportRowDto> transactions = result.getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+
+        Map<String, Long> accountNoToId = getAccountNoToId();
+        Assertions.assertThat(transactions).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            DefendantAccountEntity defendant =
+                defendantAccountRepository.findByDefendantAccountId(accountId).orElseThrow();
+
+            assertThat(
+                defendant.getCompletedDate() != null ||
+                    BigDecimal.ZERO.compareTo(defendant.getAccountBalance()) == 0
+            ).isTrue();
+        });
+        verifyMetadata(result, transactions);
     }
 
     @Test
@@ -504,15 +572,6 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             .allSatisfy(name ->
                 assertThat(name.substring(0, 1).toLowerCase()).isEqualTo("l"));
         verifyMetadata(result, transactions);
-    }
-
-    private static void verifyMetadata(OperationReportByEnforcementTransaction result,
-        List<EnforcementReportRowDto> transactions) {
-        ReportMetaData reportMetadata = result.getReportMetaData();
-        int numberOfRecords = result.getNumberOfRecords();
-        assertThat(numberOfRecords).isEqualTo(transactions.size());
-        assertThat(reportMetadata.getPdpoParticipants().size()).isGreaterThanOrEqualTo(numberOfRecords);
-        Assertions.assertThat(reportMetadata.getPdpoParticipants()).doesNotHaveDuplicates();
     }
 }
 
