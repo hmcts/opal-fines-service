@@ -28,6 +28,14 @@ ON CONFLICT (business_unit_id) DO UPDATE
         business_unit_type = EXCLUDED.business_unit_type,
         welsh_language     = EXCLUDED.welsh_language;
 
+--  Enforcer referenced by enf_override_enforcer_id = 780000000021
+INSERT INTO enforcers (enforcer_id, business_unit_id, enforcer_code, name, warrant_reference_sequence, warrant_register_sequence)
+VALUES (780000000021, 78, 21, 'North East Enforcement', NULL, NULL)
+ON CONFLICT (enforcer_id) DO UPDATE
+    SET business_unit_id = EXCLUDED.business_unit_id,
+        enforcer_code    = EXCLUDED.enforcer_code,
+        name             = EXCLUDED.name;
+
 -- Local Justice Area referenced by enf_override_tfo_lja_id = 240
 INSERT INTO local_justice_areas
 (local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date)
