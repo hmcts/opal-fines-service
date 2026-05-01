@@ -3,10 +3,12 @@ package uk.gov.hmcts.opal.service.report;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.mapper.report.ReportRowDtoCoreMapper;
 
 class ReportRowDtoCoreMapperTest {
 

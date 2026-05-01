@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.mapper.report;
 
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -9,6 +9,8 @@ import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
+import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ReportRowDtoCoreMapper {
