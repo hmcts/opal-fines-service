@@ -465,8 +465,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.4'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:0.0.12'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:0.0.12'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.0.0'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:1.0.0'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.41"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.49"
@@ -654,7 +654,7 @@ tasks.named("compileJava") {
 var zephyrBaseArgs = [
         //Jira Config
         "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
-        "jira-project-id=33305",
+        "jira-project-id=28500",
         "jira-default-user=OPAL.Zephyr.automation",
         "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
         "jira-epic-link-custom-field-id=customfield_10008",
