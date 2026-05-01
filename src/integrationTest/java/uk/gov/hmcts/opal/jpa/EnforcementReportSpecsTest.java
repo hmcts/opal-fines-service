@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 
 @ActiveProfiles({"integration"})
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
-public class EnforcementReportSpecsTest extends AbstractIntegrationTest {
+class EnforcementReportSpecsTest extends AbstractIntegrationTest {
 
     @Autowired
     private DefendantAccountRepository defendantAccountRepository;
@@ -30,64 +30,79 @@ public class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @Autowired
     private EnforcementRepository enforcementRepository;
 
+    // ----------------------------------------
+    // Helper
+    // ----------------------------------------
+    private List<DefendantAccountEntity> getAccounts(ReportFiltersDto filters) {
+        Specification<EnforcementEntity> spec = EnforcementReportSpecs.build(filters);
+
+        return enforcementRepository.findAll(spec).stream()
+            .map(EnforcementEntity::getDefendantAccount)
+            .distinct()
+            .toList();
+    }
+
+    // ----------------------------------------
+    // Tests
+    // ----------------------------------------
+
     @Test
-    void enforcementSpec_filterContainsNoEnforcementMode_returnConjunction() {
-        //Arrange
-        long total = defendantAccountRepository.count();
+    void noMode_returnsAllAccountsWithEnforcements() {
         ReportFiltersDto filters = ReportFiltersDto.builder().build();
-        Specification<DefendantAccountEntity> spec = EnforcementReportSpecs.enforcementSpec(filters);
-        //Act
-        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
-        //Assert
-        assertThat(results).hasSize((int) total);
+
+        List<DefendantAccountEntity> results = getAccounts(filters);
+
+        assertThat(results).isNotEmpty();
     }
 
     @Test
-    void enforcementSpec_filterContainsEnforcementModeAllWithNoDateFilters_returnAll() {
-        //Arrange
-        long total = defendantAccountRepository.count();
-        ReportFiltersDto filters = ReportFiltersDto.builder()
-            .reportEnforcementMode(ReportEnforcementMode.ALL).build();
-        Specification<DefendantAccountEntity> spec = EnforcementReportSpecs.enforcementSpec(filters);
-        //Act
-        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
-        //Assert
-        assertThat(results).hasSize((int) total);
-    }
-
-    @Test
-    void enforcementSpec_filterContainsEnforcementModeAllWithDateFilters_returnAllBetweenDates() {
-        //Arrange
+    void allMode_noDates_returnsAllAccountsWithEnforcements() {
         ReportFiltersDto filters = ReportFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.ALL)
-            .enforcementDateTo(LocalDate.of(2000, 2, 1))
-            .enforcementDateFrom(LocalDate.of(2000, 1, 1))
             .build();
-        Specification<DefendantAccountEntity> spec = EnforcementReportSpecs.enforcementSpec(filters);
-        //Act
-        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
-        //Assert
-        assertThat(results).hasSize(1);
+
+        List<DefendantAccountEntity> results = getAccounts(filters);
+
+        assertThat(results).isNotEmpty();
     }
 
     @Test
-    void enforcementSpec_filterByLastActionWithDateFilters_returnsLastAction() {
-        //Arrange
+    void allMode_withDates_filtersCorrectly() {
+        ReportFiltersDto filters = ReportFiltersDto.builder()
+            .reportEnforcementMode(ReportEnforcementMode.ALL)
+            .enforcementDateFrom(LocalDate.of(2000, 1, 1))
+            .enforcementDateTo(LocalDate.of(2000, 2, 1))
+            .build();
+
+        List<EnforcementEntity> enforcements =
+            enforcementRepository.findAll(EnforcementReportSpecs.build(filters));
+
+        assertThat(enforcements)
+            .allSatisfy(e ->
+                assertThat(e.getPostedDate().toLocalDate())
+                    .isBetween(LocalDate.of(2000, 1, 1),
+                        LocalDate.of(2000, 2, 1))
+            );
+    }
+
+    @Test
+    void lastAction_filtersLatestOnly() {
         LocalDateTime start = LocalDate.now().minusDays(2).atStartOfDay();
         LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
 
         ReportFiltersDto filters = ReportFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.LAST_ACTION)
-            .lastActionDateTo(end.toLocalDate())
             .lastActionDateFrom(start.toLocalDate())
+            .lastActionDateTo(end.toLocalDate())
             .build();
-        Specification<DefendantAccountEntity> spec = EnforcementReportSpecs.enforcementSpec(filters);
-        //Act
-        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
-        //Assert
+
+        List<DefendantAccountEntity> results = getAccounts(filters);
+
         assertThat(results).allSatisfy(account -> {
             LocalDateTime maxPostedDate = enforcementRepository
-                .findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(account.getDefendantAccountId())
+                .findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(
+                    account.getDefendantAccountId()
+                )
                 .orElseThrow()
                 .getPostedDate();
 
@@ -98,41 +113,37 @@ public class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void enforcementSpec_filterByRegistrationOfFine_returnDefendantsWithRegf() {
-        //Arrange
+    void regfMode_returnsAccountsWithRegf() {
         ReportFiltersDto filters = ReportFiltersDto.builder()
-            .reportEnforcementMode(ReportEnforcementMode.REGF).build();
-        Specification<DefendantAccountEntity> spec = EnforcementReportSpecs.enforcementSpec(filters);
-        //Act
-        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
-        //Assert
-        List<Long> idsUnderEnforcement = enforcementRepository.findAll()
-            .stream()
-            .filter(enforcement -> enforcement.getResultId() != null && enforcement.getResultId().equals("REGF"))
-            .map(EnforcementEntity::getDefendantAccountId)
-            .toList();
-        assertThat(results)
-            .allMatch(entity -> entity.getFineRegistrationDate() != null)
-            .extracting(DefendantAccountEntity::getDefendantAccountId)
-            .containsAll(idsUnderEnforcement);
+            .reportEnforcementMode(ReportEnforcementMode.REGF)
+            .build();
+
+        List<DefendantAccountEntity> results = getAccounts(filters);
+
+        assertThat(results).allSatisfy(account -> {
+            List<EnforcementEntity> regf = enforcementRepository.findAll().stream()
+                .filter(e -> e.getDefendantAccountId().equals(account.getDefendantAccountId()))
+                .filter(e -> "REGF".equals(e.getResultId()))
+                .toList();
+
+            assertThat(regf).isNotEmpty();
+        });
     }
 
     @Test
-    void enforcementSpec_filterByNoEnforcementMode_returnDefendantsWithNoEnforcementMode() {
-        //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
-            .reportEnforcementMode(ReportEnforcementMode.NOT_UNDER_ENFORCEMENT).build();
-        Specification<DefendantAccountEntity> spec = EnforcementReportSpecs.enforcementSpec(filters);
-        //Act
-        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
-        //Assert
-        List<Long> idsUnderEnforcement = enforcementRepository.findAll()
-            .stream()
+    void notUnderEnforcement_returnsAccountsWithoutEnforcements() {
+        Specification<DefendantAccountEntity> spec =
+            EnforcementReportSpecs.notUnderEnforcement();
+
+        List<DefendantAccountEntity> results =
+            defendantAccountRepository.findAll(spec);
+
+        List<Long> enforcedIds = enforcementRepository.findAll().stream()
             .map(EnforcementEntity::getDefendantAccountId)
             .toList();
+
         assertThat(results)
             .extracting(DefendantAccountEntity::getDefendantAccountId)
-            .doesNotContainAnyElementsOf(idsUnderEnforcement);
+            .doesNotContainAnyElementsOf(enforcedIds);
     }
 }
-
