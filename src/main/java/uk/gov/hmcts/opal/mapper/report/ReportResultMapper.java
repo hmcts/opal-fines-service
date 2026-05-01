@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.mapper.report;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -7,6 +7,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportDto;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportTotalsRowDto;
+import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementTransaction;
+import uk.gov.hmcts.opal.service.report.ReportMetaData;
+import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 
 @Mapper(componentModel = "spring", uses = {

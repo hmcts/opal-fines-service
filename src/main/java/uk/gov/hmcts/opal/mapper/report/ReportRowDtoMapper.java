@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.mapper.report;
 
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;

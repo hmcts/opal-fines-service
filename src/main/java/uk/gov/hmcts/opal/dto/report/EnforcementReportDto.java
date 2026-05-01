@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.dto.report;
 
 import java.util.List;
 import lombok.Builder;
