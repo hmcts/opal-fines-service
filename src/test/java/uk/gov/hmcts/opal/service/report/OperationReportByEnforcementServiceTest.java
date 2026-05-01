@@ -16,7 +16,6 @@ import static uk.gov.hmcts.opal.service.report.ReportId.OP_ENFORCEMENT;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
