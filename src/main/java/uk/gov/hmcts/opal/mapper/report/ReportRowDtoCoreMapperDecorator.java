@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.mapper.report;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +13,8 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
+import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 public class ReportRowDtoCoreMapperDecorator implements ReportRowDtoMapper {
 
