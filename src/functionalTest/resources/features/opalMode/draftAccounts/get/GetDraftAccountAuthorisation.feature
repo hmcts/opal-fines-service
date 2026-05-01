@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Get Draft Account Authorisation
 
-  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6069
+  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Get Draft Account - No Permission
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -20,7 +20,6 @@ Feature: Get Draft Account Authorisation
   @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData
     ### This test is currently ignored as the permissions are not quite right for this test to pass.
 
-  @JIRA-KEY:POT-6071
   Scenario: Get Draft Account - No Permission in same BU
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -35,7 +34,7 @@ Feature: Get Draft Account Authorisation
     When the "opal-test-10@dev.platform.hmcts.net" user attempts to view the created draft account
     Then access to the created draft account is denied
 
-  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6074
+  @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Get Draft Account - Permission in different BU
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details

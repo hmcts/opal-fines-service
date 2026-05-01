@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Update Draft Account Authorisation
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6159
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Patch draft account - no auth
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -25,7 +25,7 @@ Feature: Update Draft Account Authorisation
     Then the request is rejected as unauthorized
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6160
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -56,7 +56,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6162
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -87,7 +87,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6164
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -117,7 +117,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | Hertfordshire |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6166
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Update draft account - user with permissions in same business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -147,7 +147,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London  |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-KEY:POT-6168
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
   Scenario: Update draft account - user with permissions in same business unit - updating business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
