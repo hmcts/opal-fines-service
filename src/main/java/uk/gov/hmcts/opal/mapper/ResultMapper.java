@@ -11,9 +11,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ResultMapper {
 
-    ResultReferenceData toRefData(ResultEntity.Lite entity);
+    ResultReferenceData toRefData(ResultEntity entity);
 
-    default ResultReferenceDataResponse toReferenceDataResponse(List<ResultEntity.Lite> entities) {
+    default ResultReferenceDataResponse toReferenceDataResponse(List<ResultEntity> entities) {
         List<ResultReferenceData> dtoList = entities.stream()
             .map(this::toRefData)
             .toList();
@@ -23,6 +23,5 @@ public interface ResultMapper {
             .build();
     }
 
-    // NEW — used by GET /results/{resultId}
-    ResultDto toDto(ResultEntity.Lite entity);
+    ResultDto toDto(ResultEntity entity);
 }
