@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.mapper.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,8 +21,8 @@ import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.dto.report.EnforcementReportTotalsRowDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
-import uk.gov.hmcts.opal.mapper.report.ReportResultMapper;
-import uk.gov.hmcts.opal.mapper.report.ReportRowDtoMapper;
+import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementTransaction;
+import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 class ReportResultMapperTest {
 
