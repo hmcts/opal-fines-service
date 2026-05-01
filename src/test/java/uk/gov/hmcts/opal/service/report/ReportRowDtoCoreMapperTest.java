@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.mapper.report.ReportRowDtoCoreMapper;
+import uk.gov.hmcts.opal.mapper.report.ReportRowDtoCoreMapperImpl;
 
 class ReportRowDtoCoreMapperTest {
 
