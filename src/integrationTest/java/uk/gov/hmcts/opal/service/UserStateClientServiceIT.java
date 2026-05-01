@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -29,10 +30,13 @@ class UserStateClientServiceIT extends AbstractIntegrationTest {
     @Autowired
     UserStateClientService userStateClientService;
 
+    @BeforeEach
+    void setUp() {
+        redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
+    }
+
     @Test
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
-
-        redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
 
         WireMock.configureFor("localhost", 4553);
         stubFor(get("/opal/v2/users/0/state")
