@@ -15,9 +15,6 @@ spring:
         provider:
           internal-azure-ad-provider:
             jwk-set-uri: http://localhost:4553/opal/oauth2/jwks.json
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
 logging:
   level:
     org:
