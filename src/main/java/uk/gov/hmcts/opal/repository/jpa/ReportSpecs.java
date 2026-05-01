@@ -148,7 +148,9 @@ public final class ReportSpecs {
         ReportFiltersDto filters,
         List<Predicate> preds
     ) {
-        if (filters.getCollectionOrderChoice() == null) return;
+        if (filters.getCollectionOrderChoice() == null) {
+            return;
+        }
 
         if (filters.getCollectionOrderChoice().equals(WITH)) {
             preds.add(cb.isTrue(root.get(COLLECTION_ORDER)));
@@ -163,7 +165,9 @@ public final class ReportSpecs {
         ReportFiltersDto filters,
         List<Predicate> preds
     ) {
-        if (filters.getAccountStatus() == null) return;
+        if (filters.getAccountStatus() == null) {
+            return;
+        }
 
         if (filters.getAccountStatus().equals(LIVE)) {
             preds.add(cb.and(
@@ -198,7 +202,9 @@ public final class ReportSpecs {
         ReportFiltersDto filters,
         List<Predicate> preds
     ) {
-        if (filters.getLowerNameRange() == null && filters.getUpperNameRange() == null) return;
+        if (filters.getLowerNameRange() == null && filters.getUpperNameRange() == null) {
+            return;
+        }
 
         Join<?, ?> link = root.join(PARTIES, JoinType.LEFT);
         Join<?, ?> party = link.join(PARTY, JoinType.LEFT);
@@ -226,15 +232,21 @@ public final class ReportSpecs {
             if (rt != Long.class && rt != long.class) {
                 try {
                     root.fetch(PARTIES, JoinType.LEFT).fetch(PARTY, JoinType.LEFT);
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                    ignored.getMessage();
+                }
 
                 try {
                     root.fetch(ENFORCING_COURT, JoinType.LEFT);
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                    ignored.getMessage();
+                }
 
                 try {
                     root.fetch(LAST_HEARING_COURT, JoinType.LEFT);
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                    ignored.getMessage();
+                }
 
                 query.distinct(true);
             }
