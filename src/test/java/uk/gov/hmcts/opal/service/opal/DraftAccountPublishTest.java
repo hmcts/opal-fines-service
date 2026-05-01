@@ -20,6 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.jpa.JpaSystemException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
@@ -98,29 +100,35 @@ class DraftAccountPublishTest {
     @SuppressWarnings("unchecked")
     @Test
     void testPublishDefendantAccount_procFailure() {
-        DraftAccountEntity existingFromDB = createPendingDraft();
-        when(draftRepository.findById(any())).thenReturn(Optional.of(existingFromDB));
-        when(draftRepository.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
 
-        when(draftRepository.createDefendantAccount(anyLong(), anyShort(), any(), any()))
-            .thenThrow(new JpaSystemException(new RuntimeException("SQL Stored Procedure Error.")));
+        String operationId = "1234";
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(operationId);
 
-        BusinessUnitUser buu = createBUU();
-        DraftAccountEntity pending = cloneAndModify(existingFromDB, null);
-        DraftAccountEntity published = draftAccountPublish.publishDefendantAccount(pending, buu);
+            DraftAccountEntity existingFromDB = createPendingDraft();
+            when(draftRepository.findById(any())).thenReturn(Optional.of(existingFromDB));
+            when(draftRepository.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
 
-        assertNull(published.getAccountId());
-        assertNull(published.getAccountNumber());
-        assertEquals(DraftAccountStatus.PUBLISHING_FAILED, published.getAccountStatus());
-        assertEquals(LogUtil.ERRMSG_STORED_PROC_FAILURE, published.getStatusMessage());
+            when(draftRepository.createDefendantAccount(anyLong(), anyShort(), any(), any()))
+                .thenThrow(new JpaSystemException(new RuntimeException("SQL Stored Procedure Error.")));
 
-        TimelineData timelineData = new TimelineData();
-        timelineData.insertEntry("Dave", DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-            LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE);
-        assertEquals(timelineData.toJson(), published.getTimelineData());
+            BusinessUnitUser buu = createBUU();
+            DraftAccountEntity pending = cloneAndModify(existingFromDB, null);
+            DraftAccountEntity published = draftAccountPublish.publishDefendantAccount(pending, buu);
 
-        DraftAccountEntity expected = cloneAndModify(existingFromDB, DraftAccountStatus.PUBLISHING_FAILED);
-        assertEquals(expected, published);
+            assertNull(published.getAccountId());
+            assertNull(published.getAccountNumber());
+            assertEquals(DraftAccountStatus.PUBLISHING_FAILED, published.getAccountStatus());
+            assertEquals(LogUtil.ERRMSG_STORED_PROC_FAILURE, published.getStatusMessage());
+
+            TimelineData timelineData = new TimelineData();
+            timelineData.insertEntry("Dave", DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
+                LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE + " Error code: [" + operationId + "]");
+            assertEquals(timelineData.toJson(), published.getTimelineData());
+
+            DraftAccountEntity expected = cloneAndModify(existingFromDB, DraftAccountStatus.PUBLISHING_FAILED);
+            assertEquals(expected, published);
+        }
     }
 
     private String emptyTimelineData() {

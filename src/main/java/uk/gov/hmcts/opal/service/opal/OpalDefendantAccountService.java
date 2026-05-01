@@ -1131,7 +1131,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         EnforcementEntity mostRecentEnforcement = fetchEnforcementMostRecent(defAccount);
 
         if (mostRecentEnforcement != null) {
-            ResultEntity.Lite resultEntityLite = resultService.getResultById(mostRecentEnforcement.getResultId());
+            ResultEntity resultEntityLite = resultService.getResultById(mostRecentEnforcement.getResultId());
 
             // If resultEntity exists and extend_ttp_preserve_last_enf is not TRUE, clear last_enforcement
             if (!resultEntityLite.isExtendTtpPreserveLastEnf()) {
@@ -1160,7 +1160,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return dto.getAccountBalance() != null && dto.getAccountBalance().compareTo(BigDecimal.ZERO) != 0;
     }
 
-    private ResultEntity.Lite fetchResultEntity(String resultId) {
+    private ResultEntity fetchResultEntity(String resultId) {
         return Optional.ofNullable(resultId).flatMap(resultRepository::findById).orElse(null);
     }
 

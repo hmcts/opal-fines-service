@@ -86,7 +86,7 @@ public class EnforcementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "result_id", insertable = false, updatable = false)
-    private ResultEntity.Lite result;
+    private ResultEntity result;
 
     @Column(name = "reason", length = 50)
     private String reason;
