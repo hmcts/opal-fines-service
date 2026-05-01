@@ -61,14 +61,17 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldApplyPartyMapping() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
-        PartyEntity party = new PartyEntity();
-        party.setPartyId(1L);
-        DefendantAccountPartiesEntity link = new DefendantAccountPartiesEntity();
-        link.setAssociationType(AssociationType.DEFENDANT);
-        link.setParty(party);
-        entity.setParties(List.of(link));
+        PartyEntity party = PartyEntity.builder()
+            .partyId(1L)
+            .build();
+        DefendantAccountPartiesEntity partiesEntity = DefendantAccountPartiesEntity.builder()
+            .associationType(AssociationType.DEFENDANT)
+            .party(party)
+            .build();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .parties(List.of(partiesEntity))
+            .build();
         when(delegate.map(entity, context)).thenReturn(dto);
 
         decorator.map(entity, context);
@@ -78,16 +81,19 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldApplyDebtorMappingWhenFound() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
+        PartyEntity party = PartyEntity.builder()
+            .partyId(10L)
+            .build();
+        DefendantAccountPartiesEntity partiesEntity = DefendantAccountPartiesEntity.builder()
+            .associationType(AssociationType.DEFENDANT)
+            .party(party)
+            .build();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .parties(List.of(partiesEntity))
+            .build();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
-        PartyEntity party = new PartyEntity();
-        party.setPartyId(10L);
-        DefendantAccountPartiesEntity link = new DefendantAccountPartiesEntity();
-        link.setAssociationType(AssociationType.DEFENDANT);
-        link.setParty(party);
-        entity.setParties(List.of(link));
-        DebtorDetailEntity debtor = new DebtorDetailEntity();
         when(delegate.map(entity, context)).thenReturn(dto);
+        DebtorDetailEntity debtor = new DebtorDetailEntity();
         when(debtorService.findByPartyId(10L)).thenReturn(Optional.of(debtor));
 
         decorator.map(entity, context);
@@ -97,12 +103,13 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldApplyLatestEnforcement() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        entity.setDefendantAccountId(100L);
-        EnforcementReportRowDto dto = new EnforcementReportRowDto();
-        EnforcementEntity latest = mock(EnforcementEntity.class);
         LocalDateTime posted = LocalDateTime.of(2024, 1, 1, 10, 0);
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(100L)
+            .build();
+        EnforcementReportRowDto dto = new EnforcementReportRowDto();
         when(delegate.map(entity, context)).thenReturn(dto);
+        EnforcementEntity latest = mock(EnforcementEntity.class);
         when(enforcementService.getEnforcementMostRecent(100L))
             .thenReturn(Optional.of(latest));
         when(latest.getPostedDate()).thenReturn(posted);
@@ -122,15 +129,16 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldSetEarliestReleaseDateWhenPrisonResult() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        entity.setDefendantAccountId(1L);
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .build();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
-        EnforcementEntity latest = mock(EnforcementEntity.class);
-        LocalDateTime hearingDate = LocalDateTime.of(2024, 2, 1, 9, 0);
         when(delegate.map(entity, context)).thenReturn(dto);
+        EnforcementEntity latest = mock(EnforcementEntity.class);
         when(enforcementService.getEnforcementMostRecent(1L))
             .thenReturn(Optional.of(latest));
         when(latest.getResultId()).thenReturn("PRIS");
+        LocalDateTime hearingDate = LocalDateTime.of(2024, 2, 1, 9, 0);
         when(latest.getHearingDate()).thenReturn(hearingDate);
 
         decorator.map(entity, context);
@@ -140,11 +148,12 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldApplyParentGuardianFlag() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        EnforcementReportRowDto dto = new EnforcementReportRowDto();
         DefendantAccountPartiesEntity partiesEntity = new DefendantAccountPartiesEntity();
         partiesEntity.setAssociationType(AssociationType.PARENT_GUARDIAN);
-        entity.setParties(List.of(partiesEntity));
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .parties(List.of(partiesEntity))
+            .build();
+        EnforcementReportRowDto dto = new EnforcementReportRowDto();
         when(delegate.map(entity, context)).thenReturn(dto);
 
         decorator.map(entity, context);
@@ -154,38 +163,37 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldApplyFallbacks() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        entity.setProsecutorCaseReference("PCR123");
-        entity.setJailDays(5);
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .prosecutorCaseReference("PCR123")
+            .jailDays(5)
+            .build();
+
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
         when(delegate.map(entity, context)).thenReturn(dto);
-
         decorator.map(entity, context);
-
         assertThat(dto.getParentOrGuardian()).isEqualTo("PCR123");
         assertThat(dto.getJailDays()).isEqualTo(5);
     }
 
     @Test
     void shouldHandleNoPartiesGracefully() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        entity.setParties(null);
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .parties(null)
+            .build();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
         when(delegate.map(entity, context)).thenReturn(dto);
-
         decorator.map(entity, context);
-
         assertThat(dto.getParentOrGuardian()).isNull();
     }
 
     @Test
     void shouldAddDefendantAccountParticipant() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        entity.setDefendantAccountId(100L);
-        ReportMetadataContext context = new ReportMetadataContext();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(100L)
+            .build();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
+        ReportMetadataContext context = new ReportMetadataContext();
         when(delegate.map(entity, context)).thenReturn(dto);
-
         decorator.map(entity, context);
 
         assertThat(context.getParticipants())
@@ -195,16 +203,20 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldAddDebtorParticipant_whenDebtorExists() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        entity.setDefendantAccountId(1L);
-        PartyEntity party = new PartyEntity();
-        party.setPartyId(10L);
-        DefendantAccountPartiesEntity link = new DefendantAccountPartiesEntity();
-        link.setAssociationType(AssociationType.DEFENDANT);
-        link.setParty(party);
-        entity.setParties(List.of(link));
-        DebtorDetailEntity debtor = new DebtorDetailEntity();
-        debtor.setPartyId(10L);
+        PartyEntity party = PartyEntity.builder()
+            .partyId(10L)
+            .build();
+        DefendantAccountPartiesEntity partiesEntity = DefendantAccountPartiesEntity.builder()
+            .associationType(AssociationType.DEFENDANT)
+            .party(party)
+            .build();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .parties(List.of(partiesEntity))
+            .build();
+        DebtorDetailEntity debtor = DebtorDetailEntity.builder()
+            .partyId(10L)
+            .build();
         when(debtorService.findByPartyId(10L)).thenReturn(Optional.of(debtor));
         ReportMetadataContext context = new ReportMetadataContext();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
@@ -219,14 +231,17 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldAddParentGuardianParticipants() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        DefendantAccountPartiesEntity pg1 = new DefendantAccountPartiesEntity();
-        pg1.setAssociationType(AssociationType.PARENT_GUARDIAN);
-        pg1.setDefendantAccountPartyId(200L);
-        DefendantAccountPartiesEntity pg2 = new DefendantAccountPartiesEntity();
-        pg2.setAssociationType(AssociationType.PARENT_GUARDIAN);
-        pg2.setDefendantAccountPartyId(300L);
-        entity.setParties(List.of(pg1, pg2));
+        DefendantAccountPartiesEntity pg1 = DefendantAccountPartiesEntity.builder()
+            .associationType(AssociationType.PARENT_GUARDIAN)
+            .defendantAccountPartyId(200L)
+            .build();
+        DefendantAccountPartiesEntity pg2 = DefendantAccountPartiesEntity.builder()
+            .associationType(AssociationType.PARENT_GUARDIAN)
+            .defendantAccountPartyId(300L)
+            .build();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .parties(List.of(pg1, pg2))
+            .build();
         ReportMetadataContext context = new ReportMetadataContext();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
         when(delegate.map(entity, context)).thenReturn(dto);
@@ -241,13 +256,16 @@ class ReportRowDtoCoreMapperDecoratorTest {
 
     @Test
     void shouldNotAddDebtorParticipant_whenNoDebtorFound() {
-        DefendantAccountEntity entity = new DefendantAccountEntity();
-        PartyEntity party = new PartyEntity();
-        party.setPartyId(10L);
-        DefendantAccountPartiesEntity link = new DefendantAccountPartiesEntity();
-        link.setAssociationType(AssociationType.DEFENDANT);
-        link.setParty(party);
-        entity.setParties(List.of(link));
+        PartyEntity party = PartyEntity.builder()
+            .partyId(10L)
+            .build();
+        DefendantAccountPartiesEntity partiesEntity = DefendantAccountPartiesEntity.builder()
+            .associationType(AssociationType.DEFENDANT)
+            .party(party)
+            .build();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .parties(List.of(partiesEntity))
+            .build();
         when(debtorService.findByPartyId(10L)).thenReturn(Optional.empty());
         ReportMetadataContext context = new ReportMetadataContext();
         EnforcementReportRowDto dto = new EnforcementReportRowDto();
