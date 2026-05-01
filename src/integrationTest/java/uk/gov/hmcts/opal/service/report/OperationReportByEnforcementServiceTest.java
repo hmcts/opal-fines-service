@@ -218,12 +218,12 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         LocalDate from = LocalDate.of(2000, 1, 1);
         LocalDate to = LocalDate.of(2000, 2, 2);
         String json = """
-        {
-          "reportEnforcementMode": "REGF",
-          "regfDateFrom": "%s",
-          "regfDateTo": "%s"
-        }
-        """.formatted(from, to);
+            {
+              "reportEnforcementMode": "REGF",
+              "regfDateFrom": "%s",
+              "regfDateTo": "%s"
+            }
+            """.formatted(from, to);
         //Act
         OperationReportByEnforcementTransaction result =
             (OperationReportByEnforcementTransaction)
@@ -481,11 +481,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             Long accountId = accountNoToId.get(dto.getAccountNo());
             DefendantAccountEntity defendant =
                 defendantAccountRepository.findByDefendantAccountId(accountId).orElseThrow();
-
-            assertThat(
-                defendant.getCompletedDate() != null ||
-                    BigDecimal.ZERO.compareTo(defendant.getAccountBalance()) == 0
-            ).isTrue();
+            assertThat(defendant.getCompletedDate() != null
+                || BigDecimal.ZERO.compareTo(defendant.getAccountBalance()) == 0).isTrue();
         });
         verifyMetadata(result, transactions);
     }
