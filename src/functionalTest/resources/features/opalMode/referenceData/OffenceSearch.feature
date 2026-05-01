@@ -4,7 +4,6 @@ Feature: Offence Search
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-KEY:POT-6210
   Scenario: Offences can be searched by CJS code
     When I make a request to the offence search api filtering by
       | cjs_code    | TH68002 |
@@ -20,7 +19,6 @@ Feature: Offence Search
       | offence_title | in dwelling |
 
 
-  @JIRA-KEY:POT-6212
   Scenario: Offences can be searched by title
     When I make a request to the offence search api filtering by
       | cjs_code    |                   |
@@ -34,7 +32,6 @@ Feature: Offence Search
       | offence_title | in dwelling other |
 
 
-  @JIRA-KEY:POT-6214
   Scenario: Offences can be searched by act and section
     When I make a request to the offence search api filtering by
       | cjs_code        |                                                                                  |
@@ -48,7 +45,6 @@ Feature: Offence Search
       | offence_oas | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
 
-  @JIRA-KEY:POT-6217
   Scenario: Offences can be searched using multiple filters
     When I make a request to the offence search api filtering by
       | cjs_code        | AV9                                                                              |
@@ -64,7 +60,6 @@ Feature: Offence Search
       | offence_oas   | Contrary to section 1(1) and (5) of the Aviation and Maritime Security Act 1990. |
 
 
-  @JIRA-KEY:POT-6218
   Scenario: Max results limits the number of returned offences
     When I make a request to the offence search api filtering by
       | cjs_code        |   |
@@ -87,7 +82,6 @@ Feature: Offence Search
     And there are 20 offences in the response
 
 
-  @JIRA-KEY:POT-6220
   Scenario: Active date filters offences by date used
     When I make a request to the offence search api filtering by
       | cjs_code        | PA1101               |
@@ -100,7 +94,6 @@ Feature: Offence Search
     And the offences in the response are before "1920-03-12T00:00:00Z" only
 
 
-  @JIRA-KEY:POT-6222
   Scenario: Inactive offences are returned when no active date is supplied
     When I make a request to the offence search api filtering by
       | cjs_code        | PA1101 |
@@ -112,7 +105,6 @@ Feature: Offence Search
     And there are 3 offences in the response
 
 
-  @JIRA-KEY:POT-6224
   Scenario: Inactive offences are excluded when an active date is supplied
     When I make a request to the offence search api filtering by
       | cjs_code        | PA1101               |
@@ -124,7 +116,6 @@ Feature: Offence Search
     And there are 0 offences in the response
 
 
-  @JIRA-KEY:POT-6226
   Scenario: No offences are returned when the filters do not match
     When I make a request to the offence search api filtering by
       | cjs_code        | AB12345          |

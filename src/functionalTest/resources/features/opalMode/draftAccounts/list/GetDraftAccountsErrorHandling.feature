@@ -4,12 +4,12 @@ Feature: Get Draft Accounts Error Handling
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6106
+  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Listing draft accounts without a valid access token is rejected
     When I attempt to get draft accounts with an invalid token
     Then the request is rejected as unauthorized
 
-  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6108
+  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Listing draft accounts with an unsupported response content type is rejected
     Given the following draft accounts exist
       | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
@@ -18,7 +18,7 @@ Feature: Get Draft Accounts Error Handling
     When I attempt to get draft accounts with an unsupported content type
     Then the request is rejected as not acceptable
 
-  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6109
+  @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Listing draft accounts with an invalid request is rejected
     When I get the draft accounts trying to provoke an internal server error
     Then the request is rejected as bad request
