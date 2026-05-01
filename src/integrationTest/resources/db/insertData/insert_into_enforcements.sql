@@ -81,9 +81,9 @@ INSERT INTO defendant_accounts
 , account_comments, account_note_1, account_note_2, account_note_3
 , jail_days)
 VALUES ( 0077, 0, 078, '177A'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
+       , '2023-11-03 16:05:10', 1, 700.58
        , 200.00, 500.58, 'L', NULL
-       , 780000000185, 780000000185, '2024-01-04 18:06:11'
+       , 1, 1, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', '10'
        , 'Kingston-upon-Thames Mags Court', NULL, NULL
        , 'N', 'N', 14, 21
