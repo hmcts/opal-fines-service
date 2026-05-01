@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.mapper.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -8,8 +8,7 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.mapper.report.ReportRowDtoCoreMapper;
-import uk.gov.hmcts.opal.mapper.report.ReportRowDtoCoreMapperImpl;
+import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 class ReportRowDtoCoreMapperTest {
 

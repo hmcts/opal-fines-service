@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.mapper.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -22,10 +22,9 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
-import uk.gov.hmcts.opal.mapper.report.ReportRowDtoCoreMapper;
-import uk.gov.hmcts.opal.mapper.report.ReportRowDtoCoreMapperDecorator;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
 class ReportRowDtoCoreMapperDecoratorTest {
