@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.report;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +28,33 @@ public abstract class ReportResultMapper {
             .map(acc -> rowMapper.map(acc, context))
             .toList();
 
+        BigDecimal totalBalance = rows.stream()
+            .map(EnforcementReportRowDto::getBalance)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalPaid = rows.stream()
+            .map(EnforcementReportRowDto::getAmountPaid)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalImposed = rows.stream()
+            .map(EnforcementReportRowDto::getAmountImposed)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        EnforcementReportTotalsRowDto totals = EnforcementReportTotalsRowDto.builder()
+            .accountsReported(rows.size())
+            .totalPaid(totalPaid)
+            .totalImposed(totalImposed)
+            .totalBalance(totalBalance)
+            .build();
+
         OperationReportByEnforcementTransaction report = new OperationReportByEnforcementTransaction();
-        report.setTransactionList(rows);
+        report.setEnforcementReport(EnforcementReportDto.builder()
+                .transactionList(rows)
+                .totals(totals)
+            .build());
         ReportMetaData meta = new ReportMetaData();
         meta.setPdpoPartyIds(context.getParticipants());
         report.setReportMetaData(meta);

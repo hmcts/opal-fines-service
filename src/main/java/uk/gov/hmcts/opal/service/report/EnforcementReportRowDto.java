@@ -55,11 +55,6 @@ public class EnforcementReportRowDto {
     private String warrantRef;              // enforcements.warrant_reference
     private Integer jailDays;               // payment_terms.jail_days
     private String parentOrGuardian;        // Parent or Guardian is to Pay 'Y'/'N' (PG)
-    private String prosecutorCaseReference;       // defendant_accounts.prosecutor_case_reference
+    private String prosecutorCaseReference; // defendant_accounts.prosecutor_case_reference
 
-    // SUMMARY totals (single row at end of report)
-    private Integer accountsReported;  // count
-    private BigDecimal totalImposed;    // sum of amount_imposed
-    private BigDecimal totalPaid;       // sum of amount_paid
-    private BigDecimal totalBalance;    // sum of account_balance
 }
