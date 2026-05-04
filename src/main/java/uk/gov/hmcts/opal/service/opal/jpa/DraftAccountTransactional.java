@@ -32,7 +32,6 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
-import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -194,7 +193,6 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 userState, dto.getBusinessUnitId());
         }
 
-        // Set the timeline data as received from the front end
         existingAccount.setTimelineData(dto.getTimelineData());
 
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
@@ -295,7 +293,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .build();
     }
 
-    DraftAccountEntity toEntity(DraftAccountRequestDto dto, LocalDateTime created,
+    DraftAccountEntity toEntity(AddDraftAccountRequestDto dto, LocalDateTime created,
                                 BusinessUnitEntity businessUnit, String snapshot) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)
@@ -305,8 +303,9 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .account(dto.getAccount())
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())
-            .accountStatus(DraftAccountStatus.SUBMITTED)
-            .accountStatusDate(LocalDateTime.now())
+            .accountStatus(Optional.ofNullable(dto.getAccountStatus()).orElse(DraftAccountStatus.SUBMITTED))
+            .accountStatusDate(created)
+            .statusMessage(dto.getStatusMessage())
             .timelineData(dto.getTimelineData())
             .draftAccountId(null)
             .build();

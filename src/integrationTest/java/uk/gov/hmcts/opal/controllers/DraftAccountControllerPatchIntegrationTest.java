@@ -18,6 +18,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,11 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.validated_by").value("USER01"))
             .andExpect(jsonPath("$.validated_by_name").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+            .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
+            .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Publishing Pending"))
+            .andExpect(jsonPath("$.timeline_data[0].status_date").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Reason A"));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
     }
@@ -115,7 +120,11 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(header().string("ETag", "\"1\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Rejected"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+            .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
+            .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Rejected"))
+            .andExpect(jsonPath("$.timeline_data[0].status_date").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Reason A"));
     }
 
     @Test
@@ -140,7 +149,11 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(header().string("ETag", "\"2\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+            .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
+            .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Publishing Pending"))
+            .andExpect(jsonPath("$.timeline_data[0].status_date").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Reason D"));
 
         verify(securityEventLoggingService).logEvent(
             eq("Business Function - Approval of Draft Account"),
@@ -495,7 +508,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+            .andExpect(jsonPath("$.timeline_data[0].username").value("Developer_User"))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Publishing Pending"))
+            .andExpect(jsonPath("$.timeline_data[0].status_date").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Reason B"));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
 

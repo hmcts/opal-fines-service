@@ -25,6 +25,21 @@ class TimelineDataTest {
         assertTrue(data.toJson().endsWith(getEndsWith()));
     }
 
+    @Test
+    void addEntryWithUserId() {
+        TimelineData data = new TimelineData();
+        data.insertEntry("normal@users.com", "USER01", "Submitted", LocalDate.of(2026, 5, 1), "Created");
+
+        assertEquals("""
+[ {
+  "username" : "normal@users.com",
+  "user_id" : "USER01",
+  "status" : "Submitted",
+  "status_date" : "2026-05-01",
+  "reason_text" : "Created"
+} ]""", data.toJson());
+    }
+
     private String getEndsWith() {
         return """
   "reason_text" : "Violation of terms of service."

@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -163,6 +164,7 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
+            .statusMessage("Created from backend")
             .timelineData(createTimelineDataString())
             .build();
         // Act
@@ -176,6 +178,8 @@ class DraftAccountServiceTest {
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
         assertEquals(null, captor.getValue().getValidatedBy());
+        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.SUBMITTED,
+                                "Created from backend");
         verify(pdplLoggingService).pdplForDraftAccount(draftAccountEntity, Action.SUBMIT, userState);
     }
 
@@ -310,6 +314,7 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional).replaceDraftAccount(any(), captor.capture(), any(), any());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
+        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.RESUBMITTED, null);
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.REPLACE, userState);
@@ -402,6 +407,7 @@ class DraftAccountServiceTest {
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("SpoofedUser")
             .validatedByName("Spoofed Name")
+            .reasonText("Approved for publishing")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
@@ -429,6 +435,8 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any(), any());
         assertEquals("USER01", captor.getValue().getValidatedBy());
         assertEquals("normal@users.com", captor.getValue().getValidatedByName());
+        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.PUBLISHING_PENDING,
+                                "Approved for publishing");
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(securityEventLoggingService, times(1)).logEvent(
@@ -513,6 +521,21 @@ class DraftAccountServiceTest {
                          "reason_text": "Violation of terms of service."
                      }]
             """;
+    }
+
+    private void assertGeneratedTimeline(String timelineData, DraftAccountStatus status, String reasonText) {
+        assertThat(timelineData)
+            .contains("\"username\" : \"normal@users.com\"")
+            .contains("\"user_id\" : \"USER01\"")
+            .contains("\"status\" : \"" + status.getLabel() + "\"")
+            .contains("\"status_date\" : \"" + LocalDate.now() + "\"")
+            .doesNotContain("johndoe123");
+
+        if (reasonText == null) {
+            assertThat(timelineData).doesNotContain("\"reason_text\"");
+        } else {
+            assertThat(timelineData).contains("\"reason_text\" : \"" + reasonText + "\"");
+        }
     }
 
     private String createAccountString() {

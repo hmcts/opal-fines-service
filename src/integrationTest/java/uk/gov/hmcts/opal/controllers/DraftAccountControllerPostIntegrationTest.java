@@ -15,6 +15,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -42,6 +44,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .submittedByName("John")
             .account(validAccountJsonString())
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .statusMessage("Created from backend")
             .timelineData(validTimelineDataString())
             .build();
 
@@ -171,6 +175,12 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(jsonPath("$.account.defendant.surname")
                 .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
+            .andExpect(jsonPath("$.status_message").value("Created from backend"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
+            .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[0].status_date").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Created from backend"))
         ;
     }
 
