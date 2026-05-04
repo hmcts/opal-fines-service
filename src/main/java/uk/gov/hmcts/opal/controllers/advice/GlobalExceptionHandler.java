@@ -44,6 +44,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
@@ -256,6 +257,22 @@ public class GlobalExceptionHandler {
         );
 
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
+    }
+
+    @ExceptionHandler(FeatureDisabledException.class)
+    public ResponseEntity<ProblemDetail> handleFeatureDisabledException(FeatureDisabledException ex) {
+        log.error("Feature disabled: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.METHOD_NOT_ALLOWED,
+            "Method Not Allowed",
+            "This feature is currently disabled",
+            "feature-disabled",
+            false,
+            ex
+        );
+
+        return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
     }
 
     @ExceptionHandler(OpalApiException.class)
