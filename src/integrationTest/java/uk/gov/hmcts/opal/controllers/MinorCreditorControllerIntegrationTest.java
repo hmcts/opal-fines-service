@@ -423,6 +423,113 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
+    void patchMinorCreditor_notFound_returns404() throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        // Act & Assert
+        mockMvc.perform(patch(URL_BASE + "/999999")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", AUTH_HEADER)
+                            .header("If-Match", "\"1\"")
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_staleVersion_returns409() throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        // Act & Assert
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", AUTH_HEADER)
+                            .header("If-Match", "\"" + (currentVersion + 1) + "\"")
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+            .andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("If-Match", "\"1\"")
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    void patchMinorCreditor_timeout_returns408(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(REQUEST_TIMEOUT, "Timeout"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", AUTH_HEADER)
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(patchMinorCreditorPayoutHoldRequestJson()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_timeout_returns408: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isRequestTimeout());
+    }
+
+    void patchMinorCreditor_serviceUnavailable_returns503(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "Gateway down"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", AUTH_HEADER)
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(patchMinorCreditorPayoutHoldRequestJson()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_serviceUnavailable_returns503: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isServiceUnavailable());
+    }
+
+    void patchMinorCreditor_serverError_returns500(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", AUTH_HEADER)
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(patchMinorCreditorPayoutHoldRequestJson()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_serverError_returns500: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isInternalServerError());
+    }
+
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
