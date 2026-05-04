@@ -327,9 +327,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
-    @JiraTestKey("PO-6197")
-    void patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403() throws Exception {
-        super.patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403();
+    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200() throws Exception {
+        super.patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200(log);
     }
 
     @Test

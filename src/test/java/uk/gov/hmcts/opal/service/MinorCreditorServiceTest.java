@@ -31,12 +31,15 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +50,9 @@ class MinorCreditorServiceTest {
 
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
+
+    @Mock
+    CreditorAccountRepository creditorAccountRepository;
 
     @InjectMocks
     private MinorCreditorService minorCreditorService;
@@ -335,9 +341,9 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
         // Arrange
         UserState userState = mock(UserState.class);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
-            .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
             .thenReturn(true);
         when(userState.getUserName()).thenReturn("test.user@hmcts.net");
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
@@ -348,6 +354,8 @@ class MinorCreditorServiceTest {
         ));
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(1L, (short) 10))
+            .thenReturn(Optional.of(minorCreditorAccount(false)));
         when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any(),
             anyShort()))
             .thenReturn(new MinorCreditorAccountResponse());
@@ -365,26 +373,54 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_throwsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_holdPaymentUnchanged_withoutHoldPermission_succeeds() {
         // Arrange
         UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
+        MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(1L, (short) 10))
+            .thenReturn(Optional.of(minorCreditorAccount(true)));
+        when(minorCreditorSearchProxy.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+            "USER01", (short) 10)).thenReturn(response);
+
+        // Act
+        MinorCreditorAccountResponse result = minorCreditorService.updateMinorCreditorAccount(
+            1L,
+            request,
+            BigInteger.ONE,
+            "authHeaderValue",
+            "10"
+        );
+
+        // Assert
+        assertEquals(response, result);
+        verify(minorCreditorSearchProxy).updateMinorCreditorAccount(
+            1L,
+            request,
+            BigInteger.ONE,
+            "USER01",
+            (short) 10
+        );
+    }
+
+    @Test
+    void updateMinorCreditorAccount_holdPaymentChanged_withoutHoldPermission_throwsPermissionNotAllowed() {
+        // Arrange
+        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        PatchMinorCreditorAccountRequest request = validPatchRequest();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(1L, (short) 10))
+            .thenReturn(Optional.of(minorCreditorAccount(false)));
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(
-                1L,
-                request,
-                BigInteger.ONE,
-                "authHeaderValue",
-                "10"
-            )
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                "authHeaderValue", "10")
         );
-
-        // Assert
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
     }
@@ -427,6 +463,15 @@ class MinorCreditorServiceTest {
             .payByBacs(true)
             .holdPayment(false));
         return response;
+    }
+
+    private CreditorAccountEntity minorCreditorAccount(boolean holdPayout) {
+        return CreditorAccountEntity.builder()
+            .creditorAccountId(1L)
+            .businessUnitId((short) 10)
+            .creditorAccountType(CreditorAccountType.MN)
+            .holdPayout(holdPayout)
+            .build();
     }
 
     @Test
