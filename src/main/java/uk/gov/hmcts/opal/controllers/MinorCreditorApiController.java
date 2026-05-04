@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.generated.http.api.MinorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
@@ -29,6 +30,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     }
 
     @Override
+    @FeatureToggle(feature = "release-1b", defaultValue = false)
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
         String businessUnitId,
