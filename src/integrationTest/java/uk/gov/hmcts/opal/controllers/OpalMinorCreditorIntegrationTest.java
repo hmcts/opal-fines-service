@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,8 +37,8 @@ import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = "release-1b.enabled=true")
-@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_CLASS)
+@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
@@ -202,6 +202,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     void patchMinorCreditor_payoutHold_success() throws Exception {
         super.patchMinorCreditor_payoutHold_success(log);
+    }
+
+    @Test
+    void patchMinorCreditor_success_createsAmendments() throws Exception {
+        super.patchMinorCreditor_success_createsAmendments(log);
     }
 
     @Test

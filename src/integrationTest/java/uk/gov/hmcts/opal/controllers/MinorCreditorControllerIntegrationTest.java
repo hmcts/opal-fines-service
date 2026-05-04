@@ -340,6 +340,37 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         assertEquals(initialHoldPayout ? currentVersion : currentVersion + 1, updatedVersion);
     }
 
+    void patchMinorCreditor_success_createsAmendments(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+        int amendmentsBefore = getCurrentAmendmentCountForCreditorAccount();
+
+        // Act
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", AUTH_HEADER)
+                .header("If-Match", "\"" + currentVersion + "\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(patchMinorCreditorPayoutHoldRequestJson()));
+
+        String body = a.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
+
+        // Assert
+        a.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
+        assertEquals(true, amendmentsAfter > amendmentsBefore);
+        assertEquals("ACCOUNT_ENQUIRY", getLatestAmendmentFunctionCodeForCreditorAccount());
+    }
+
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
@@ -612,6 +643,35 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             PATCH_MINOR_CREDITOR_ACCOUNT_ID
         );
         return Boolean.TRUE.equals(holdPayout);
+    }
+
+    private int getCurrentAmendmentCountForCreditorAccount() {
+        Integer amendmentCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM amendments
+                WHERE associated_record_type = 'creditor_accounts'
+                  AND associated_record_id = ?
+                """,
+            Integer.class,
+            String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+        );
+        return amendmentCount != null ? amendmentCount : 0;
+    }
+
+    private String getLatestAmendmentFunctionCodeForCreditorAccount() {
+        return jdbcTemplate.queryForObject(
+            """
+                SELECT function_code
+                FROM amendments
+                WHERE associated_record_type = 'creditor_accounts'
+                  AND associated_record_id = ?
+                ORDER BY amendment_id DESC
+                LIMIT 1
+                """,
+            String.class,
+            String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+        );
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
