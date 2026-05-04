@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
@@ -52,6 +54,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private final EntityManager em;
 
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
@@ -145,7 +148,10 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         creditorAccount.setHoldPayout(request.getPayment().getHoldPayment());
 
         partyRepository.save(party);
-        creditorAccountRepository.saveAndFlush(creditorAccount);
+        creditorAccountRepository.save(creditorAccount);
+
+        em.lock(creditorAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        em.flush();
 
         amendmentService.auditFinaliseStoredProc(
             minorCreditorAccountId,
