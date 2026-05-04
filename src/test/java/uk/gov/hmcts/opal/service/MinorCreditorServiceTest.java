@@ -249,9 +249,9 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
         // Arrange
         UserState userState = mock(UserState.class);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
-            .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
+            .thenReturn(true);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
         when(userState.getUserName()).thenReturn("test.user@hmcts.net");
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
