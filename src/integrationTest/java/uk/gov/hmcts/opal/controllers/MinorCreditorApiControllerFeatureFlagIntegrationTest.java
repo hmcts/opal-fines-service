@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -64,7 +67,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
     void patchMinorCreditorAccount_whenFeatureEnabled_returns200() throws Exception {
         // Arrange
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
-        when(featureToggleApi.isFeatureEnabled(RELEASE_1B, false)).thenReturn(true);
+        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(true);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.ACCOUNT_MAINTENANCE,
@@ -96,14 +99,14 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertTrue(creditorAccount.isHoldPayout());
         assertEquals(2L, creditorAccount.getVersionNumber());
-        verify(featureToggleApi).isFeatureEnabled(RELEASE_1B, false);
+        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(RELEASE_1B), anyBoolean());
     }
 
     @Test
     void patchMinorCreditorAccount_whenFeatureDisabled_returns405() throws Exception {
         // Arrange
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
-        when(featureToggleApi.isFeatureEnabled(RELEASE_1B, false)).thenReturn(false);
+        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(false);
 
         // Act
         ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
@@ -126,7 +129,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertFalse(creditorAccount.isHoldPayout());
         assertEquals(1L, creditorAccount.getVersionNumber());
-        verify(featureToggleApi).isFeatureEnabled(RELEASE_1B, false);
+        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(RELEASE_1B), anyBoolean());
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {

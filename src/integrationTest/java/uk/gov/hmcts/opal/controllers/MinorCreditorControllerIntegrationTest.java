@@ -14,6 +14,11 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClien
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -22,6 +27,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -311,7 +317,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         Integer currentVersion = getCurrentCreditorAccountVersion();
         String currentEtag = "\"" + currentVersion + "\"";
 
-        String requestJson = patchMinorCreditorPayoutHoldRequestJson();
+        String requestJson = objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest());
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
@@ -357,7 +363,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("Authorization", AUTH_HEADER)
                 .header("If-Match", "\"" + currentVersion + "\"")
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                .content(patchMinorCreditorPayoutHoldRequestJson()));
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
@@ -367,7 +373,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
-        assertEquals(true, amendmentsAfter > amendmentsBefore);
+        assertTrue(amendmentsAfter > amendmentsBefore);
         assertEquals("ACCOUNT_ENQUIRY", getLatestAmendmentFunctionCodeForCreditorAccount());
     }
 
@@ -385,7 +391,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Authorization", "Bearer some_value")
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", "10")
-                            .content(patchMinorCreditorWithoutPermissionRequestJson()))
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorWithoutPermissionRequest())))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -401,7 +407,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Authorization", AUTH_HEADER)
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -420,7 +426,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Authorization", AUTH_HEADER)
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(patchMinorCreditorRequestJson(currentHoldPayout)));
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorRequest(currentHoldPayout))));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200 body:\n{}",
@@ -449,7 +455,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Authorization", AUTH_HEADER)
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -467,7 +473,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Authorization", AUTH_HEADER)
                             .header("If-Match", "\"1\"")
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -487,7 +493,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Authorization", AUTH_HEADER)
                             .header("If-Match", "\"" + (currentVersion + 1) + "\"")
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
             .andExpect(status().isConflict())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -500,7 +506,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("If-Match", "\"1\"")
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
             .andExpect(status().isUnauthorized())
             .andExpect(content().string(""));
     }
@@ -515,7 +521,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("Authorization", AUTH_HEADER)
                 .header("If-Match", "\"1\"")
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                .content(patchMinorCreditorPayoutHoldRequestJson()));
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditor_timeout_returns408: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -533,7 +539,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("Authorization", AUTH_HEADER)
                 .header("If-Match", "\"1\"")
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                .content(patchMinorCreditorPayoutHoldRequestJson()));
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditor_serviceUnavailable_returns503: Response body:\n{}",
@@ -552,7 +558,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("Authorization", AUTH_HEADER)
                 .header("If-Match", "\"1\"")
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                .content(patchMinorCreditorPayoutHoldRequestJson()));
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditor_serverError_returns500: Response body:\n{}",
@@ -579,53 +585,39 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().string(org.hamcrest.Matchers.anything()));
     }
 
-    private String patchMinorCreditorPayoutHoldRequestJson() {
-        return patchMinorCreditorRequestJson(true);
+    private PatchMinorCreditorAccountRequest patchMinorCreditorPayoutHoldRequest() {
+        return patchMinorCreditorRequest(true);
     }
 
-    private String patchMinorCreditorRequestJson(boolean holdPayment) {
-        return """
-            {
-              "party_details": {
-                "party_id": "99008",
-                "organisation_flag": false,
-                "individual_details": {
-                  "surname": "Updated",
-                  "forenames": "Creditor"
-                }
-              },
-              "address": {
-                "address_line_1": "99 Updated Road",
-                "postcode": "NW1 1AA"
-              },
-              "payment": {
-                "pay_by_bacs": true,
-                "hold_payment": %s
-              }
-            }
-            """.formatted(holdPayment);
+    private PatchMinorCreditorAccountRequest patchMinorCreditorRequest(boolean holdPayment) {
+        return new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon()
+                              .partyId("99008")
+                              .organisationFlag(false)
+                              .individualDetails(new IndividualDetailsCommon()
+                                                     .surname("Updated")
+                                                     .forenames("Creditor")))
+            .address(new AddressDetailsCommon()
+                         .addressLine1("99 Updated Road")
+                         .postcode("NW1 1AA"))
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                         .payByBacs(true)
+                         .holdPayment(holdPayment));
     }
 
-    private String patchMinorCreditorWithoutPermissionRequestJson() {
-        return """
-            {
-              "party_details": {
-                "party_id": "99007",
-                "organisation_flag": false,
-                "individual_details": {
-                  "surname": "Deleted"
-                }
-              },
-              "address": {
-                "address_line_1": "33 Delete St.",
-                "postcode": "DE1 2DE"
-              },
-              "payment": {
-                "pay_by_bacs": true,
-                "hold_payment": false
-              }
-            }
-            """;
+    private PatchMinorCreditorAccountRequest patchMinorCreditorWithoutPermissionRequest() {
+        return new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon()
+                              .partyId("99007")
+                              .organisationFlag(false)
+                              .individualDetails(new IndividualDetailsCommon()
+                                                     .surname("Deleted")))
+            .address(new AddressDetailsCommon()
+                         .addressLine1("33 Delete St.")
+                         .postcode("DE1 2DE"))
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                         .payByBacs(true)
+                         .holdPayment(false));
     }
 
     private Integer getCurrentCreditorAccountVersion() {

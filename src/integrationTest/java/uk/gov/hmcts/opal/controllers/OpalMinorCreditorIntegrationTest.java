@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -64,7 +66,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
     @BeforeEach
     void setUpFeatureFlag() {
-        when(featureToggleApi.isFeatureEnabled(RELEASE_1B, false)).thenReturn(true);
+        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(true);
     }
 
     @Test
