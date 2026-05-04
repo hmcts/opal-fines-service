@@ -375,6 +375,37 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
+    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
+
+        boolean currentHoldPayout = getCurrentCreditorAccountHoldPayout();
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        // Act
+        ResultActions a = mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", AUTH_HEADER)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorRequestJson(currentHoldPayout)));
+
+        String body = a.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200 body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        a.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayout));
+
+        assertEquals(currentHoldPayout, getCurrentCreditorAccountHoldPayout());
+        assertEquals(currentVersion + 1, getCurrentCreditorAccountVersion());
+    }
+
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
@@ -411,6 +442,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     private String patchMinorCreditorPayoutHoldRequestJson() {
+        return patchMinorCreditorRequestJson(true);
+    }
+
+    private String patchMinorCreditorRequestJson(boolean holdPayment) {
         return """
             {
               "party_details": {
@@ -427,10 +462,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
               },
               "payment": {
                 "pay_by_bacs": true,
-                "hold_payment": true
+                "hold_payment": %s
               }
             }
-            """;
+            """.formatted(holdPayment);
     }
 
     private String patchMinorCreditorWithoutPermissionRequestJson() {

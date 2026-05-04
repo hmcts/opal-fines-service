@@ -213,6 +213,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200() throws Exception {
+        super.patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200(log);
+    }
+
+    @Test
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutAccountMaintenancePermission_returns403();
     }
