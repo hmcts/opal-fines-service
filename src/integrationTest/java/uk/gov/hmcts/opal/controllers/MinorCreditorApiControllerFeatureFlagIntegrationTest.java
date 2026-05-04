@@ -39,8 +39,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=true",
-    "release-1b.enabled=false"
+    "launchdarkly.enabled=true"
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)

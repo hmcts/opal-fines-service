@@ -32,7 +32,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     }
 
     @Override
-    @FeatureToggle(feature = RELEASE_1B, defaultProperty = "release-1b.enabled", defaultValue = false)
+    @FeatureToggle(feature = RELEASE_1B, defaultValue = false)
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
         String businessUnitId,

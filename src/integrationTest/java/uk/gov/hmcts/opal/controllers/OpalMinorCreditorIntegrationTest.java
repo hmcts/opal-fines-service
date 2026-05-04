@@ -15,14 +15,17 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -36,11 +39,16 @@ import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = "release-1b.enabled=true")
+@TestPropertySource(properties = "launchdarkly.enabled=true")
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
+
+    private static final String RELEASE_1B = "release-1b";
+
+    @MockitoBean
+    private FeatureToggleApi featureToggleApi;
 
     @Autowired
     private ImpositionRepository impositionRepository;
@@ -53,6 +61,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;
+
+    @BeforeEach
+    void setUpFeatureFlag() {
+        when(featureToggleApi.isFeatureEnabled(RELEASE_1B, false)).thenReturn(true);
+    }
 
     @Test
     void testPostSearchMinorCreditor_Success() throws Exception {
