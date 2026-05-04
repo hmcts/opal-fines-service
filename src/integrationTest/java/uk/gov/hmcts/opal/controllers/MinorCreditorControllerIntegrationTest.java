@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import feign.FeignException;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -499,8 +501,11 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
+        FeignException.Unauthorized unauthorized = mock(FeignException.Unauthorized.class);
+        when(unauthorized.status()).thenReturn(UNAUTHORIZED.value());
+        when(unauthorized.getMessage()).thenReturn("Unauthorized");
+
+        doThrow(unauthorized).when(userStateService).checkForAuthorisedUser(any());
 
         mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -508,7 +513,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                             .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.title").value("Not Authorised for Connection"))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"));
     }
 
     void patchMinorCreditor_timeout_returns408(Logger log) throws Exception {
