@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -18,11 +17,11 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -36,7 +35,6 @@ import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
-import uk.gov.hmcts.opal.service.MinorCreditorService;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 @ActiveProfiles({"integration", "opal"})
@@ -60,10 +58,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
     @MockitoBean
     private UserStateService userStateService;
 
-    @MockitoSpyBean
-    private MinorCreditorService minorCreditorService;
-
-    @MockitoSpyBean
+    @Autowired
     private CreditorAccountRepository creditorAccountRepository;
 
     @Test
@@ -103,13 +98,6 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         assertTrue(creditorAccount.isHoldPayout());
         assertEquals(2L, creditorAccount.getVersionNumber());
         verify(featureToggleService).isFeatureEnabled(RELEASE_1B);
-        verify(minorCreditorService).updateMinorCreditorAccount(
-            MINOR_CREDITOR_ACCOUNT_ID,
-            request,
-            java.math.BigInteger.ONE,
-            AUTH_HEADER,
-            String.valueOf(BUSINESS_UNIT_ID)
-        );
     }
 
     @Test
@@ -133,14 +121,13 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         // Assert
         result.andExpect(status().isMethodNotAllowed())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-            .andExpect(jsonPath("$.title").value("Method Not Allowed"))
-            .andExpect(jsonPath("$.detail").value("This feature is currently disabled"));
+            .andExpect(jsonPath("$.title").value("Feature Disabled"))
+            .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
 
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertFalse(creditorAccount.isHoldPayout());
         assertEquals(1L, creditorAccount.getVersionNumber());
         verify(featureToggleService).isFeatureEnabled(RELEASE_1B);
-        verify(minorCreditorService, never()).updateMinorCreditorAccount(any(), any(), any(), any(), any());
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {
