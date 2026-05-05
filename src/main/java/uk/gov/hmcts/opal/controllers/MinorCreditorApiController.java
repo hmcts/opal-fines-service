@@ -32,7 +32,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     }
 
     @Override
-    @FeatureToggle(feature = RELEASE_1B, defaultValue = false)
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = "launchdarkly.default-flag-values.release-1b")
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
         String businessUnitId,
