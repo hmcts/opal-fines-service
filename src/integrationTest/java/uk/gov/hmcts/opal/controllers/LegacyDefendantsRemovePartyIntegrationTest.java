@@ -74,4 +74,71 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
 
         jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
-}
+
+    @Test
+    @DisplayName("LEGACY: Remove Defendant Account Party - 500 Error [@PO-1973]")
+    void testRemoveDefendantAccountParty_500Error() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions actions = mockMvc.perform(
+            get(URL_BASE + "/500/defendant-account-parties/500").header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":legacy_removeDefendantAccountParty_500Error body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(header().doesNotExist("ETag"));
+    }
+
+    @Test
+    @DisplayName("LEGACY: Remove Defendant Account Party - Organisation Only [@PO-1973]")
+    void testRemoveDefendantAccountParty_Organisation() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions actions = mockMvc.perform(
+            get(URL_BASE + "/555/defendant-account-parties/555").header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        String etag = actions.andReturn().getResponse().getHeader("ETag");
+
+        log.info(":legacy_removeDefendantAccountParty_Organisation body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":legacy_removeDefendantAccountParty_Organisation ETag: {}", etag);
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
+                           .value("TechCorp Solutions Ltd"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
+            .andExpect(header().string("ETag", "\"1\""));
+        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
+    }
+
+    @Test
+    @DisplayName("LEGACY: Remove Defendant Account Party - Individual Only [@PO-1973]")
+    void testRemoveDefendantAccountParty_Individual() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions actions = mockMvc.perform(
+            get(URL_BASE + "/555/defendant-account-parties/555").header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        String etag = actions.andReturn().getResponse().getHeader("ETag");
+
+        log.info(":legacy_removeDefendantAccountParty_Individual body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":legacy_removeDefendantAccountParty_Individual ETag: {}", etag);
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.party_details._individual_flag").value(true))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.individual_name")
+                           .value("TechCorp Solutions Ltd"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
+            .andExpect(header().string("ETag", "\"1\""));
+        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
+    }
+
+
+
+    }
