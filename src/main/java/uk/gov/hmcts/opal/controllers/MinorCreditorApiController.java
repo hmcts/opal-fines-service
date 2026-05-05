@@ -15,13 +15,12 @@ import uk.gov.hmcts.opal.generated.http.api.MinorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @Slf4j(topic = "opal.MinorCreditorApiController")
 @RequiredArgsConstructor
 public class MinorCreditorApiController implements MinorCreditorApi {
-
-    private static final String RELEASE_1B = "release-1b";
 
     private final MinorCreditorService minorCreditorService;
     private final NativeWebRequest request;
@@ -32,7 +31,10 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     }
 
     @Override
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = "launchdarkly.default-flag-values.release-1b")
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY
+    )
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
         String businessUnitId,

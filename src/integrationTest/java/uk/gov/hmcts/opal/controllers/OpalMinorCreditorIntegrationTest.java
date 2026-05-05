@@ -39,6 +39,7 @@ import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = "launchdarkly.enabled=true")
@@ -46,8 +47,6 @@ import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
-
-    private static final String RELEASE_1B = "release-1b";
 
     @MockitoBean
     private FeatureToggleApi featureToggleApi;
@@ -66,7 +65,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
     @BeforeEach
     void setUpFeatureFlag() {
-        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(true);
+        when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1B), anyBoolean())).thenReturn(true);
     }
 
     @Test

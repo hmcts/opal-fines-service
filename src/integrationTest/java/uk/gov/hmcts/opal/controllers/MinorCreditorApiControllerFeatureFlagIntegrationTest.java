@@ -39,6 +39,7 @@ import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -49,7 +50,6 @@ import uk.gov.hmcts.opal.service.UserStateService;
 @Slf4j(topic = "opal.MinorCreditorApiControllerFeatureFlagIntegrationTest")
 class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String RELEASE_1B = "release-1b";
     private static final String AUTH_HEADER = "Bearer some_value";
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short BUSINESS_UNIT_ID = 10;
@@ -67,7 +67,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
     void patchMinorCreditorAccount_whenFeatureEnabled_returns201() throws Exception {
         // Arrange
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
-        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(true);
+        when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1B), anyBoolean())).thenReturn(true);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.ACCOUNT_MAINTENANCE,
@@ -99,14 +99,14 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertTrue(creditorAccount.isHoldPayout());
         assertEquals(2L, creditorAccount.getVersionNumber());
-        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(RELEASE_1B), anyBoolean());
+        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(FeatureFlags.RELEASE_1B), anyBoolean());
     }
 
     @Test
     void patchMinorCreditorAccount_whenFeatureDisabled_returns405() throws Exception {
         // Arrange
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
-        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(false);
+        when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1B), anyBoolean())).thenReturn(false);
 
         // Act
         ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
@@ -129,7 +129,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertFalse(creditorAccount.isHoldPayout());
         assertEquals(1L, creditorAccount.getVersionNumber());
-        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(RELEASE_1B), anyBoolean());
+        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(FeatureFlags.RELEASE_1B), anyBoolean());
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {
