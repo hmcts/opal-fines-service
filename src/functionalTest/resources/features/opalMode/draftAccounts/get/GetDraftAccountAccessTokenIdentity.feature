@@ -42,4 +42,6 @@ Feature: Draft Account Access Token Identity
       | account_snapshot.submitted_by       | L073JG              |
       | account_snapshot.business_unit_name | West London         |
       | timeline_data[0].status             | Deleted             |
+      | timeline_data[0].username           | opal-test@dev.platform.hmcts.net |
+      | timeline_data[0].user_id            | L073JG              |
       | timeline_data[0].reason_text        | Reason for deletion |
