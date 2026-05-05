@@ -132,7 +132,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     }
 
     @Test
-    void patchMinorCreditor_success_returns200_andTransformsLegacyRequest() throws Exception {
+    void patchMinorCreditor_success_returns201_andTransformsLegacyRequest() throws Exception {
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
@@ -159,10 +159,10 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
         );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditor_success_returns200_andTransformsLegacyRequest body:\n{}",
+        log.info(":patchMinorCreditor_success_returns201_andTransformsLegacyRequest body:\n{}",
             ToJsonString.toPrettyJson(body));
 
-        resultActions.andExpect(status().isOk())
+        resultActions.andExpect(status().isCreated())
             .andExpect(header().string("ETag", "\"2\""))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))

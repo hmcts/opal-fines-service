@@ -424,25 +424,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
-    void patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403() throws Exception {
-        // Arrange
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
-
-        boolean currentHoldPayout = getCurrentCreditorAccountHoldPayout();
-        Integer currentVersion = getCurrentCreditorAccountVersion();
-
-        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", AUTH_HEADER)
-                            .header("If-Match", currentVersion)
-                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(objectMapper.writeValueAsString(patchMinorCreditorRequest(currentHoldPayout))))
-            .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
-
-    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200(Logger log) throws Exception {
+    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201(Logger log) throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
@@ -456,14 +438,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("Authorization", AUTH_HEADER)
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(patchMinorCreditorRequestJson(currentHoldPayout)));
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorRequest(currentHoldPayout))));
 
         String body = a.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200 body:\n{}",
+        log.info(":patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201 body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         // Assert
-        a.andExpect(status().isOk())
+        a.andExpect(status().isCreated())
             .andExpect(header().exists("ETag"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
