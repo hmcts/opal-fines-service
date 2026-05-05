@@ -406,18 +406,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpServerErrorException.class)
     public ResponseEntity<ProblemDetail> handleHttpServerErrorException(HttpServerErrorException e) {
         int upstream = e.getStatusCode().value();
+        HttpStatus responseStatus = upstream == HttpStatus.SERVICE_UNAVAILABLE.value()
+            ? HttpStatus.SERVICE_UNAVAILABLE
+            : HttpStatus.INTERNAL_SERVER_ERROR;
         boolean retriable = RETRIABLE_HTTP.contains(upstream);
 
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Downstream Server Error",
-            e.getMessage(),
+            responseStatus,
+            responseStatus == HttpStatus.SERVICE_UNAVAILABLE ? "Service Unavailable" : "Downstream Server Error",
+            Optional.ofNullable(e.getStatusText()).filter(text -> !text.isBlank()).orElse(e.getMessage()),
             "http-server-error",
             retriable,
             e
         );
 
-        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail); // response status = 500
+        return responseWithProblemDetail(responseStatus, problemDetail);
     }
 
     @ExceptionHandler(HttpClientErrorException.class)
