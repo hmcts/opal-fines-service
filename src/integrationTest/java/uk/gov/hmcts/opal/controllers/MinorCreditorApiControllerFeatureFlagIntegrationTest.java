@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -17,13 +21,13 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -40,7 +44,6 @@ import uk.gov.hmcts.opal.service.UserStateService;
 @TestPropertySource(properties = {
     "launchdarkly.enabled=true"
 })
-@Import(FeatureToggleApiTestConfig.class)
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Slf4j(topic = "opal.MinorCreditorApiControllerFeatureFlagIntegrationTest")
@@ -52,19 +55,19 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
     private static final short BUSINESS_UNIT_ID = 10;
 
     @MockitoBean
+    private FeatureToggleApi featureToggleApi;
+
+    @MockitoBean
     private UserStateService userStateService;
 
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;
 
-    @Autowired
-    private FeatureToggleApiTestConfig.FeatureToggleState featureToggleState;
-
     @Test
     void patchMinorCreditorAccount_whenFeatureEnabled_returns200() throws Exception {
         // Arrange
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
-        featureToggleState.reset(true);
+        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(true);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.ACCOUNT_MAINTENANCE,
@@ -96,14 +99,14 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertTrue(creditorAccount.isHoldPayout());
         assertEquals(2L, creditorAccount.getVersionNumber());
-        assertEquals(1, featureToggleState.getRelease1bInvocationCount().get());
+        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(RELEASE_1B), anyBoolean());
     }
 
     @Test
     void patchMinorCreditorAccount_whenFeatureDisabled_returns405() throws Exception {
         // Arrange
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
-        featureToggleState.reset(false);
+        when(featureToggleApi.isFeatureEnabled(eq(RELEASE_1B), anyBoolean())).thenReturn(false);
 
         // Act
         ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
@@ -126,7 +129,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertFalse(creditorAccount.isHoldPayout());
         assertEquals(1L, creditorAccount.getVersionNumber());
-        assertEquals(1, featureToggleState.getRelease1bInvocationCount().get());
+        verify(featureToggleApi, times(1)).isFeatureEnabled(eq(RELEASE_1B), anyBoolean());
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {
