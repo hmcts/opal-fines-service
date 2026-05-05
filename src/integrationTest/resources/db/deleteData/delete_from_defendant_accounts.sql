@@ -70,6 +70,10 @@ WHERE defendant_account_id IN (
 DELETE FROM payment_card_requests
 WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444);
 
+-- Remove dynamically created aliases/debtor/parties linked to account-scoped DAP rows
+DELETE FROM defendant_account_parties
+WHERE defendant_account_id IN (20010, 22004);
+
 -- Remove main defendant accounts
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
