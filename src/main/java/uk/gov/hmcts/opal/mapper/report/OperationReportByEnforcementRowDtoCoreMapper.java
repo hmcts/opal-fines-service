@@ -1,15 +1,14 @@
 package uk.gov.hmcts.opal.mapper.report;
 
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -28,7 +27,6 @@ public interface OperationReportByEnforcementRowDtoCoreMapper {
     @Mapping(target = "lastEnforcementDate", ignore = true)
     EnforcementReportRowDto map(DefendantAccountEntity entity, ReportMetadataContext context);
 
-    @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "company", expression = "java(party.isOrganisation() ? YES : NO)")
     @Mapping(target = "defendantName", expression = "java(truncate34(buildDefendantName(party)))")
     @Mapping(target = "dateOfBirth", source = "birthDate")
@@ -44,7 +42,6 @@ public interface OperationReportByEnforcementRowDtoCoreMapper {
     @Mapping(target = "email2", source = "secondaryEmailAddress")
     void mapParty(PartyEntity party, @MappingTarget EnforcementReportRowDto dto);
 
-    @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "vehicleReg", source = "vehicleRegistration")
     @Mapping(target = "vehicleMake", source = "vehicleMake")
     @Mapping(target = "employeeRef", source = "employeeReference")
