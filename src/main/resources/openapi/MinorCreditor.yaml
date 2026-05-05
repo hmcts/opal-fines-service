@@ -115,8 +115,8 @@ paths:
                 payment:
                   $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
       responses:
-        '200':
-          description: OK
+        '201':
+          description: CREATED
           headers:
             ETag:
               description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
@@ -140,24 +140,6 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         403:
           description: Forbidden
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
-        404:
-          description: Not found
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
-        408:
-          description: Request timeout
-          content:
-            application/json+problem:
-              schema:
-                $ref: './common.yaml#/components/schemas/ProblemDetail'
-        409:
-          description: Conflict
           content:
             application/json+problem:
               schema:
