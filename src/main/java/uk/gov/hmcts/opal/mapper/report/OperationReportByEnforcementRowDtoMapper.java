@@ -8,7 +8,7 @@ import org.mapstruct.ReportingPolicy;
     componentModel = "spring",
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
-@DecoratedWith(ReportRowDtoCoreMapperDecorator.class)
-public interface ReportRowDtoMapper extends ReportRowDtoCoreMapper {
+@DecoratedWith(OperationReportByEnforcementRowDtoCoreMapperDecorator.class)
+public interface OperationReportByEnforcementRowDtoMapper extends OperationReportByEnforcementRowDtoCoreMapper {
 
 }

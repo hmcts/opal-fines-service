@@ -1,12 +1,13 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import static uk.gov.hmcts.opal.util.DateTimeUtils.endOf;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.startOf;
+
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
@@ -98,7 +99,7 @@ public class EnforcementReportSpecs {
 
             Subquery<Long> sq = query.subquery(Long.class);
             Root<EnforcementEntity> enforcement = sq.from(EnforcementEntity.class);
-            sq.select(cb.literal(1L)); //Ensure at least one exists
+            sq.select(cb.literal(1L)); //Create subquery 'SELECT 1' for Exists query
             sq.where(
                 cb.equal(
                     enforcement.get("defendantAccount").get("defendantAccountId"),
@@ -107,13 +108,5 @@ public class EnforcementReportSpecs {
             );
             return cb.not(cb.exists(sq));
         };
-    }
-
-    private static LocalDateTime startOf(LocalDate d) {
-        return d.atStartOfDay();
-    }
-
-    private static LocalDateTime endOf(LocalDate d) {
-        return d.atTime(LocalTime.MAX);
     }
 }

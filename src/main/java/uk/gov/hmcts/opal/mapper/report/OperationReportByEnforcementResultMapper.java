@@ -9,21 +9,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.dto.report.EnforcementReportDto;
 import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
-import uk.gov.hmcts.opal.dto.report.EnforcementReportTotalsRowDto;
+import uk.gov.hmcts.opal.dto.report.OperationReportByEnforcementTotalsRowDto;
 import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementTransaction;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 
 @Mapper(componentModel = "spring", uses = {
-    ReportRowDtoCoreMapper.class
+    OperationReportByEnforcementRowDtoCoreMapper.class
 }, unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public abstract class ReportResultMapper {
+public abstract class OperationReportByEnforcementResultMapper {
 
-    protected ReportRowDtoCoreMapper rowMapper;
+    protected OperationReportByEnforcementRowDtoCoreMapper rowMapper;
 
     @Autowired
-    public void setRowMapper(ReportRowDtoCoreMapper rowMapper) {
+    public void setRowMapper(OperationReportByEnforcementRowDtoCoreMapper rowMapper) {
         this.rowMapper = rowMapper;
     }
 
@@ -49,7 +49,7 @@ public abstract class ReportResultMapper {
             .filter(Objects::nonNull)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        EnforcementReportTotalsRowDto totals = EnforcementReportTotalsRowDto.builder()
+        OperationReportByEnforcementTotalsRowDto totals = OperationReportByEnforcementTotalsRowDto.builder()
             .accountsReported(rows.size())
             .totalPaid(totalPaid)
             .totalImposed(totalImposed)

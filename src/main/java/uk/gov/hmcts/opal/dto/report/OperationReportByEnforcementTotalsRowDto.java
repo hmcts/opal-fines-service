@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EnforcementReportTotalsRowDto {
+public class OperationReportByEnforcementTotalsRowDto {
 
     private Integer accountsReported;  // count
     private BigDecimal totalImposed;    // sum of amount_imposed

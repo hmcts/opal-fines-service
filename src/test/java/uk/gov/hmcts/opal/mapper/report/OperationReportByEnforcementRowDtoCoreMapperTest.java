@@ -10,9 +10,10 @@ import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
-class ReportRowDtoCoreMapperTest {
+class OperationReportByEnforcementRowDtoCoreMapperTest {
 
-    private final ReportRowDtoCoreMapper mapper = new ReportRowDtoCoreMapperImpl();
+    private final OperationReportByEnforcementRowDtoCoreMapper
+        mapper = new OperationReportByEnforcementRowDtoCoreMapperImpl();
     private final ReportMetadataContext context = new ReportMetadataContext();
 
 
