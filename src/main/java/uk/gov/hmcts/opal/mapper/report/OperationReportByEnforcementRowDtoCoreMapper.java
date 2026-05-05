@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface ReportRowDtoCoreMapper {
+public interface OperationReportByEnforcementRowDtoCoreMapper {
 
     String YES = "Y";
     String NO = "N";

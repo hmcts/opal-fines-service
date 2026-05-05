@@ -10,5 +10,5 @@ public class EnforcementReportDto {
 
     List<EnforcementReportRowDto> transactionList;
 
-    EnforcementReportTotalsRowDto totals;
+    OperationReportByEnforcementTotalsRowDto totals;
 }

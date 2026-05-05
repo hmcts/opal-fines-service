@@ -12,7 +12,7 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.mapper.report.ReportResultMapper;
+import uk.gov.hmcts.opal.mapper.report.OperationReportByEnforcementResultMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
@@ -24,7 +24,7 @@ public class OperationReportByEnforcementService implements ReportInterface {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final EnforcementRepository enforcementRepository;
-    private final ReportResultMapper resultMapper;
+    private final OperationReportByEnforcementResultMapper resultMapper;
     private final ObjectMapper objectMapper;
 
     @Override

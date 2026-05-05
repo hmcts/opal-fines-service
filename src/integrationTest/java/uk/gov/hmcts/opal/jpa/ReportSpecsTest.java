@@ -12,11 +12,8 @@ import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_G
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -238,15 +235,25 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("next7DaysCases")
-    void next7DaysSpec_true_returnsAccountsWhereRelevantDateIsInNext7Days(
-        Consumer<DefendantAccountEntity> mutation) {
+    @Test
+    void next7DaysSpec_true_returnsAccountsWhereRelevantDateIsInNext7Days() {
         //Arrange
         DefendantAccountEntity entity =
             defendantAccountRepository.findByDefendantAccountId(77L).orElseThrow();
-        mutation.accept(entity);
+        LocalDate inPast = LocalDate.now().minusDays(7);
+        entity.setImposedHearingDate(inPast);
+        entity.setCollectionOrderEffectiveDate(inPast);
+        entity.setPaymentCardRequestedDate(inPast);
         defendantAccountRepository.saveAndFlush(entity);
+
+        DefendantAccountEntity entity2 =
+            defendantAccountRepository.findByDefendantAccountId(78L).orElseThrow();
+        LocalDate in7 = LocalDate.now().plusDays(7);
+        entity2.setImposedHearingDate(in7);
+        entity2.setCollectionOrderEffectiveDate(in7);
+        entity2.setPaymentCardRequestedDate(in7);
+        defendantAccountRepository.saveAndFlush(entity2);
+
         ReportFiltersDto filters = ReportFiltersDto.builder()
             .firstPaymentOrPayByInNext7Days(true)
             .build();
@@ -256,17 +263,8 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         //Assert
         assertThat(results)
             .extracting(DefendantAccountEntity::getDefendantAccountId)
-            .contains(77L);
-    }
-
-    private static Stream<Consumer<DefendantAccountEntity>> next7DaysCases() {
-        LocalDate targetDate = LocalDate.now().plusDays(7);
-
-        return Stream.of(
-            entity -> entity.setImposedHearingDate(targetDate),
-            entity -> entity.setCollectionOrderEffectiveDate(targetDate),
-            entity -> entity.setPaymentCardRequestedDate(targetDate)
-        );
+            .contains(78L)
+            .doesNotContain(77L);
     }
 
     private static String displayName(PartyEntity party) {

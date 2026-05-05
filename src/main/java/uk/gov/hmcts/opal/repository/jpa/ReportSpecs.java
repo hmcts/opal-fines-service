@@ -8,11 +8,14 @@ import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_G
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.ACCOUNT_BALANCE;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.BUSINESS_UNIT;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.COLLECTION_ORDER;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.COLLECTION_ORDER_EFFECTIVE_DATE;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.COMPLETED_DATE;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.ENFORCING_COURT;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.IMPOSED_HEARING_DATE;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.LAST_HEARING_COURT;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.PARTIES;
+import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.PAYMENT_CARD_REQUESTED_DATE;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_.ASSOCIATION_TYPE;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_.DEFENDANT_ACCOUNT;
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_.PARTY;
@@ -22,6 +25,8 @@ import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryV
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity_.SURNAME;
 import static uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_.BUSINESS_UNIT_ID;
 import static uk.gov.hmcts.opal.util.AgeUtil.ADULT_AGE;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.todayPlusDaysUk;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.todayUk;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -32,6 +37,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -68,6 +74,7 @@ public final class ReportSpecs {
         addAccountStatusFilter(root, cb, filters, preds);
         addBalanceFilter(root, cb, filters, preds);
         addNameRangeFilter(root, cb, filters, preds);
+        addNext7DaysFilter(root, cb, filters, preds);
 
         return preds.isEmpty()
             ? cb.conjunction()
@@ -223,6 +230,48 @@ public final class ReportSpecs {
             preds.add(cb.lessThanOrEqualTo(firstLetter, filters.getUpperNameRange().toLowerCase()));
         }
     }
+
+
+    private static void addNext7DaysFilter(
+        From<?, DefendantAccountEntity> root,
+        CriteriaBuilder cb,
+        ReportFiltersDto filters,
+        List<Predicate> preds
+    ) {
+        if (!Boolean.TRUE.equals(filters.getFirstPaymentOrPayByInNext7Days())) {
+            return;
+        }
+        LocalDate today = todayUk();
+        LocalDate in7Days = todayPlusDaysUk(7);
+        List<Predicate> datePreds = new ArrayList<>();
+
+        List<String> fields = List.of(
+            IMPOSED_HEARING_DATE,
+            COLLECTION_ORDER_EFFECTIVE_DATE,
+            PAYMENT_CARD_REQUESTED_DATE
+        );
+        fields.forEach(f -> addBetweenTwoDatesConditionIfFieldPresent(root, cb, datePreds, f, today, in7Days));
+        if (!datePreds.isEmpty()) {
+            preds.add(cb.or(datePreds.toArray(new Predicate[0])));
+        }
+    }
+
+    private static void addBetweenTwoDatesConditionIfFieldPresent(
+        From<?, ?> root,
+        CriteriaBuilder cb,
+        List<Predicate> preds,
+        String field,
+        LocalDate from,
+        LocalDate to
+    ) {
+        try {
+            Expression<LocalDate> expr = root.get(field).as(LocalDate.class);
+            preds.add(cb.between(expr, from, to));
+        } catch (IllegalArgumentException ignored) {
+            // field doesn't exist — skip
+        }
+    }
+
 
     private static Specification<DefendantAccountEntity> fetchJoins() {
         return (root, query, cb) -> {

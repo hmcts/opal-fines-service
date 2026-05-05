@@ -27,10 +27,10 @@ import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
-class ReportRowDtoCoreMapperDecoratorTest {
+class OperationReportByEnforcementRowDtoCoreMapperDecoratorTest {
 
     @Mock
-    private ReportRowDtoCoreMapper delegate;
+    private OperationReportByEnforcementRowDtoCoreMapper delegate;
 
     @Mock
     private DebtorDetailRepositoryService debtorService;
@@ -42,7 +42,7 @@ class ReportRowDtoCoreMapperDecoratorTest {
     private ReportMetadataContext context;
 
     @InjectMocks
-    private ReportRowDtoCoreMapperDecorator decorator;
+    private OperationReportByEnforcementRowDtoCoreMapperDecorator decorator;
 
     @BeforeEach
     void setUp() {
