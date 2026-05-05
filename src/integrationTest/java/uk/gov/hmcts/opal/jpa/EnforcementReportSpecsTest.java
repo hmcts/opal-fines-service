@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.jpa;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
 
 @ActiveProfiles({"integration"})
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
 class EnforcementReportSpecsTest extends AbstractIntegrationTest {
 
     @Autowired
