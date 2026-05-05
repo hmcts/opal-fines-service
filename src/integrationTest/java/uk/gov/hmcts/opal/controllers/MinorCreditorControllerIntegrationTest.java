@@ -333,7 +333,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         log.info(":patchMinorCreditor_payoutHold_success body:\n{}", ToJsonString.toPrettyJson(body));
 
-        a.andExpect(status().isOk())
+        a.andExpect(status().isCreated())
             .andExpect(header().exists("ETag"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
@@ -371,7 +371,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
 
         // Assert
-        a.andExpect(status().isOk())
+        a.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
@@ -414,7 +414,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
-    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200(Logger log) throws Exception {
+    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201(Logger log) throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
@@ -431,11 +431,11 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .content(objectMapper.writeValueAsString(patchMinorCreditorRequest(currentHoldPayout))));
 
         String body = a.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns200 body:\n{}",
+        log.info(":patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201 body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         // Assert
-        a.andExpect(status().isOk())
+        a.andExpect(status().isCreated())
             .andExpect(header().exists("ETag"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
