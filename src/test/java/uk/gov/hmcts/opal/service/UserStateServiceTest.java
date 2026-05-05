@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
@@ -43,7 +44,7 @@ class UserStateServiceTest {
         UserState expectedUserState = mock(UserState.class);
         setAuthentication(authToken);
         when(authToken.getUserState()).thenReturn(userStateV2);
-        when(userStateMapper.toUserState(userStateV2)).thenReturn(expectedUserState);
+        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
 
         // Act
         UserState userState = userStateService.checkForAuthorisedUser("");

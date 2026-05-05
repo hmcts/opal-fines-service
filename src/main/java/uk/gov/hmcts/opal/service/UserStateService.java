@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
@@ -33,7 +34,7 @@ public class UserStateService {
         if (userStateV2 == null) {
             throw new AccessDeniedException("User state not found in token");
         }
-        return userStateMapper.toUserState(userStateV2);
+        return userStateMapper.toUserState(userStateV2, Domain.FINES);
     }
 
     public String getPreferredUsername(String authorization) {

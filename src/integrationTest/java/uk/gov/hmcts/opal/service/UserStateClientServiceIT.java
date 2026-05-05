@@ -36,6 +36,7 @@ class UserStateClientServiceIT extends AbstractIntegrationTest {
     @BeforeEach
     void setUp() {
         redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
+        WireMock.reset(); // Clears everything before each test
     }
 
     @Test
