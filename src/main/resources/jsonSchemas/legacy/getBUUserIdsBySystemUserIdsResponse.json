@@ -3,9 +3,12 @@
   "$id": "https://opal-fines-service/LibraUserIds.json",
   "type": "object",
   "required": [
-    "business_unit_user_ids"
+    "count"
   ],
   "properties": {
+    "count": {
+      "type": "integer"
+    },
     "business_unit_user_ids": {
       "type": "array",
       "items": {

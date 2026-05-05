@@ -1,10 +1,9 @@
-@Opal @JIRA-LABEL:manual-account-creation @JIRA-STORY:PO-2117 @JIRA-EPIC:PO-2744 @JIRA-LABEL:test-support-endpoint-test
+@Opal @JIRA-LABEL:manual-account-creation @JIRA-STORY:PO-2117 @JIRA-EPIC:PO-2141 @JIRA-LABEL:test-support-endpoint-test
 Feature: Delete Draft Account
 
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-KEY:POT-6052
   Scenario: A draft account can be deleted using optimistic locking
     Given a draft account exists with the following details
       | business_unit_id  | 73                                          |
@@ -17,7 +16,7 @@ Feature: Delete Draft Account
     When I delete the created draft account using optimistic locking
     Then the created draft account is deleted
 
-  @cleanUpData @JIRA-KEY:POT-6055
+  @cleanUpData
   Scenario: Cleanup ignores a draft account that has already been deleted
     Given a draft account exists with the following details
       | business_unit_id  | 73                                          |

@@ -18,7 +18,7 @@ Feature: List Draft Accounts
     And the returned draft accounts exclude business units "<excluded_units>"
     And the response body must not include the "version" field anywhere
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6087
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
     Examples:
       | business_unit | business_unit_name   | excluded_units |
       | 73            | West London          | 77, 65         |
@@ -53,7 +53,7 @@ Feature: List Draft Accounts
     Then only draft accounts with status "<expected_status>" are returned
     And the returned draft accounts exclude status "<excluded_status>"
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6090
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
     Examples:
       | status_filter | expected_status | excluded_status |
       | SUBMITTED     | Submitted       | Resubmitted     |
@@ -75,7 +75,7 @@ Feature: List Draft Accounts
     Then only draft accounts submitted by "<expected_submitted_by>" are returned
     And the returned draft accounts exclude accounts submitted by "<excluded_submitted_by>"
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6092
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
     Examples:
       | submitted_by_filter | expected_submitted_by | excluded_submitted_by |
       | BUUID              | BUUID                 | BUUID_TWO             |
@@ -98,7 +98,7 @@ Feature: List Draft Accounts
     And the returned draft accounts exclude status "Resubmitted"
     And the returned draft accounts exclude accounts submitted by "<excluded_submitted_by>"
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-KEY:POT-6094
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
     Examples:
       | status_filter | submitted_by_filter | expected_status | expected_submitted_by | excluded_submitted_by |
       | SUBMITTED     | BUUID              | Submitted       | BUUID                 | BUUID_TWO             |
@@ -108,7 +108,7 @@ Feature: List Draft Accounts
       | status_filter | submitted_by_filter | expected_status | expected_submitted_by | excluded_submitted_by |
       | SUBMITTED     | BUUID_TWO           | Submitted       | BUUID_TWO             | BUUID                 |
 
-  @PO-2361 @cleanUpData @JIRA-KEY:POT-6097
+  @PO-2361 @cleanUpData
   Scenario: Retrieving all draft accounts produces defendant PDPO logs
 
     And the following draft accounts exist
@@ -127,7 +127,7 @@ Feature: List Draft Accounts
 
     # Cleanup
 
-  @PO-2361 @cleanUpData @JIRA-KEY:POT-6098
+  @PO-2361 @cleanUpData
   Scenario: Retrieving all draft accounts with parent or guardian data produces two PDPO log categories
 
     And the following draft accounts exist
@@ -147,7 +147,7 @@ Feature: List Draft Accounts
 
     # Cleanup
 
-  @PO-2361 @cleanUpData @JIRA-KEY:POT-6100
+  @PO-2361 @cleanUpData
   Scenario: Invalid token is blocked and no PDPO logs emitted
     Given a draft account exists with the following details
       | business_unit_id  | 73                                                     |

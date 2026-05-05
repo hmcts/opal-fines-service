@@ -4,7 +4,7 @@ Feature: Create Draft Accounts
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6019
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Create an adult fine draft account
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
@@ -31,7 +31,7 @@ Feature: Create Draft Accounts
     #      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
     #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6022
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Create a parent or guardian draft account
     When I create a draft account with the following details
       | business_unit_id  | 77                                                     |
@@ -57,7 +57,7 @@ Feature: Create Draft Accounts
     #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
     #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6025
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Create a minor creditor draft account
     When I create a draft account with the following details
       | business_unit_id  | 77                                                  |
@@ -82,7 +82,7 @@ Feature: Create Draft Accounts
     #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
     #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6028
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Reject draft-account creation with an invalid token
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"
     #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"

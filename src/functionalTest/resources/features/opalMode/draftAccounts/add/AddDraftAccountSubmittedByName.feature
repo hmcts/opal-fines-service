@@ -4,7 +4,7 @@ Feature: Draft Account Snapshot Identity
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-KEY:POT-6050
+  @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Submitted-by snapshot values come from the access token identity
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
