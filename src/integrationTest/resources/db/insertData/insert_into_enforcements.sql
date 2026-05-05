@@ -58,7 +58,7 @@ INSERT INTO local_justice_areas (
     end_date
 )
 VALUES (
-           240, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', NULL, NULL, NULL
+           230, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', NULL, NULL, NULL
        )
 ON CONFLICT (local_justice_area_id) DO UPDATE
     SET lja_code = EXCLUDED.lja_code,
@@ -80,8 +80,8 @@ VALUES (
            1, 78, 7, 730000000103, 'AAA Test Court', NULL,
            'TestVille', 'TestShire', NULL,
            NULL, NULL, NULL, NULL,
-           240, NULL, NULL,
-           240, 'MC', '01', NULL,
+           230, NULL, NULL,
+           230, 'MC', '01', NULL,
            NULL, NULL, NULL, NULL, NULL
        )
 ON CONFLICT (court_id) DO UPDATE
@@ -313,7 +313,7 @@ VALUES (
            21,
            'FWEC',
            780000000021,
-           240,
+           230,
            'GB pound sterling',
            700.00,
            'Y',
