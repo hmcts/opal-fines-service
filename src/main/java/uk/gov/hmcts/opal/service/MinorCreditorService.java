@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -126,7 +127,7 @@ public class MinorCreditorService {
                                          PatchMinorCreditorAccountRequest request) {
         return creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(minorCreditorId, businessUnitId)
             .map(CreditorAccountEntity::isHoldPayout)
-            .map(currentHoldPayout -> currentHoldPayout != request.getPayment().getHoldPayment())
+            .map(currentHoldPayout -> !Objects.equals(currentHoldPayout, request.getPayment().getHoldPayment()))
             .orElse(true);
     }
 
