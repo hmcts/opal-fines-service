@@ -18,19 +18,19 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
-import uk.gov.hmcts.opal.dto.report.EnforcementReportTotalsRowDto;
+import uk.gov.hmcts.opal.dto.report.OperationReportByEnforcementTotalsRowDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementTransaction;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
-class ReportResultMapperTest {
+class OperationReportByEnforcementResultMapperTest {
 
     @Mock
-    private ReportRowDtoMapper rowMapper;
+    private OperationReportByEnforcementRowDtoMapper rowMapper;
 
     @InjectMocks
-    private ReportResultMapper mapper = new ReportResultMapper() {
+    private OperationReportByEnforcementResultMapper mapper = new OperationReportByEnforcementResultMapper() {
     };
 
     @BeforeEach
@@ -114,7 +114,7 @@ class ReportResultMapperTest {
         // Act
         OperationReportByEnforcementTransaction result = mapper.map(accounts);
         // Assert
-        EnforcementReportTotalsRowDto totals =
+        OperationReportByEnforcementTotalsRowDto totals =
             result.getEnforcementReport().getTotals();
         assertThat(totals.getAccountsReported()).isEqualTo(2);
         assertThat(totals.getTotalImposed())
@@ -138,7 +138,7 @@ class ReportResultMapperTest {
         OperationReportByEnforcementTransaction result =
             mapper.map(List.of(acc1, acc2));
         // Assert
-        EnforcementReportTotalsRowDto totals =
+        OperationReportByEnforcementTotalsRowDto totals =
             result.getEnforcementReport().getTotals();
         assertThat(totals.getTotalImposed())
             .isEqualByComparingTo("200.00");
@@ -154,7 +154,7 @@ class ReportResultMapperTest {
         OperationReportByEnforcementTransaction result =
             mapper.map(List.of());
         // Assert
-        EnforcementReportTotalsRowDto totals =
+        OperationReportByEnforcementTotalsRowDto totals =
             result.getEnforcementReport().getTotals();
         assertThat(totals.getAccountsReported()).isEqualTo(0);
         assertThat(totals.getTotalImposed()).isEqualByComparingTo("0");

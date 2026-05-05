@@ -26,7 +26,7 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.mapper.report.ReportResultMapper;
+import uk.gov.hmcts.opal.mapper.report.OperationReportByEnforcementResultMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 
@@ -40,7 +40,7 @@ class OperationReportByEnforcementServiceTest {
     private EnforcementRepository enforcementRepository;
 
     @Mock
-    private ReportResultMapper resultMapper;
+    private OperationReportByEnforcementResultMapper resultMapper;
 
     @Mock
     private ObjectMapper objectMapper;

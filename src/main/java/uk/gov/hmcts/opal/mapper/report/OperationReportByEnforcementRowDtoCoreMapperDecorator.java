@@ -16,16 +16,16 @@ import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
-public class ReportRowDtoCoreMapperDecorator implements ReportRowDtoMapper {
+public class OperationReportByEnforcementRowDtoCoreMapperDecorator implements OperationReportByEnforcementRowDtoMapper {
 
     @Autowired
-    private ReportRowDtoCoreMapper delegate;
+    private OperationReportByEnforcementRowDtoCoreMapper delegate;
     @Autowired(required = false)
     private DebtorDetailRepositoryService debtorService;
     @Autowired(required = false)
     private EnforcementRepositoryService enforcementService;
 
-    public void setDelegate(ReportRowDtoCoreMapper delegate) {
+    public void setDelegate(OperationReportByEnforcementRowDtoCoreMapper delegate) {
         this.delegate = delegate;
     }
 
