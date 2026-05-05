@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.jpa;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.CLOSED;
 import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.LIVE;
