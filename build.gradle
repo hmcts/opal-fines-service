@@ -1,4 +1,5 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import java.util.concurrent.TimeUnit
 
 buildscript {
   ext {
@@ -69,7 +70,7 @@ def runLegacyStubCommand = { List<String> command ->
     .redirectErrorStream(true)
     .start()
 
-  def finished = process.waitFor(2, java.util.concurrent.TimeUnit.MINUTES)
+  def finished = process.waitFor(2, TimeUnit.MINUTES)
   if (!finished) {
     process.destroyForcibly()
     return [exitValue: 124, output: "Timed out running ${command.join(' ')}"]
@@ -204,6 +205,9 @@ openApiGenerate {
   outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
   apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
+  importMappings = [
+    Nullable: "org.jspecify.annotations.Nullable"
+  ]
   // Point to your customized mustache templates
   templateDir = "$rootDir/openapi/templates".toString()
   generateApiTests = false
@@ -284,6 +288,34 @@ tasks.register('functionalOpal', Test) {
   include '**/OpalTestRunner.class'
 
   finalizedBy 'copyOpalCucumberJson'
+}
+
+tasks.register('functionalOpalTags', Test) {
+  description = "Runs tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
+  testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
+  environment("DEFAULT_APP_MODE", "opal")
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    def propertyTags = project.findProperty('tags')
+    def envTags = System.getenv('TAGS')
+    def cucumberTags = propertyTags ?: envTags
+
+    if (cucumberTags == null || cucumberTags.toString().trim().isEmpty()) {
+      throw new GradleException(
+        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@UAT-Technical and @R1BOff'"
+      )
+    }
+
+    systemProperty 'cucumber.filter.tags', cucumberTags.toString()
+  }
 }
 
 tasks.register('functionalLegacy', Test) {
@@ -443,8 +475,11 @@ dependencyManagement {
 
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
-  nvd {
-    apiKey = 'ffb77792-47ae-41ff-a95f-e5bd172663b4'
+  def nvdApiKey = providers.gradleProperty('nvdApiKey')
+    .orElse(providers.environmentVariable('NVD_API_KEY'))
+    .orNull
+  if (nvdApiKey) {
+    nvd.apiKey = nvdApiKey
   }
 }
 
@@ -547,6 +582,11 @@ dependencies {
   implementation 'net.sf.saxon:Saxon-HE:12.9'
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
+  constraints {
+    testImplementation('org.mozilla:rhino:1.7.15.1') {
+      because '1.7.7.2 is vulnerable to CVE-2025-66453'
+    }
+  }
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
@@ -645,6 +685,17 @@ tasks.register('runAllStyleChecks') {
 }
 tasks.named("openApiGenerate") {
   dependsOn 'bundleOpenApi'
+  doLast {
+    def generatedJavaDir = layout.buildDirectory.dir("generated/openapi/src/main/java").get().asFile
+    fileTree(generatedJavaDir).matching {
+      include '**/*.java'
+    }.each { generatedFile ->
+      generatedFile.text = generatedFile.text.replace(
+        'import org.springframework.lang.Nullable;',
+        'import org.jspecify.annotations.Nullable;'
+      )
+    }
+  }
 }
 tasks.named("compileJava") {
   dependsOn 'openApiGenerate'

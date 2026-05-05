@@ -13,7 +13,10 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features/opalMode")
-@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@Opal and not @Smoke and not @Ignore")
+@ConfigurationParameter(
+    key = FILTER_TAGS_PROPERTY_NAME,
+    value = "@Opal and not @Smoke and not @Ignore and not @UAT-Technical"
+)
 public class OpalTestRunner {
 
     static Logger log = LoggerFactory.getLogger(OpalTestRunner.class.getName());
