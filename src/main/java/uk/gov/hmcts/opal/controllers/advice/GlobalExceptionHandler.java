@@ -40,6 +40,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -417,6 +418,22 @@ public class GlobalExceptionHandler {
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail); // response status = 500
+    }
+
+    @ExceptionHandler(HttpClientErrorException.class)
+    public ResponseEntity<ProblemDetail> handleHttpClientErrorException(HttpClientErrorException e) {
+        HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
+
+        ProblemDetail problemDetail = createProblemDetail(
+            status,
+            status.getReasonPhrase(),
+            Optional.ofNullable(e.getStatusText()).filter(text -> !text.isBlank()).orElse(e.getMessage()),
+            "http-client-error",
+            false,
+            e
+        );
+
+        return responseWithProblemDetail(status, problemDetail);
     }
 
     @ExceptionHandler(JsonSchemaValidationException.class)
