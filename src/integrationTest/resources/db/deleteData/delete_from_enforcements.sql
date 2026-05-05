@@ -16,10 +16,10 @@
 SET search_path TO public;
 
 DELETE FROM enforcements
-WHERE enforcement_id = 1;
+WHERE defendant_account_id = 77;
 
 DELETE FROM defendant_account_parties
-WHERE defendant_account_party_id = 1;
+WHERE defendant_account_id = 77;
 
 DELETE FROM debtor_detail
 WHERE party_id = 77;
