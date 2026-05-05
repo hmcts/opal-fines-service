@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -16,7 +15,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 
 @Entity
 @Table(name = "reports")
@@ -40,25 +39,25 @@ public class ReportEntity {
 
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "supported_file_types", columnDefinition = "r_supported_file_type_enum[]")
-    private List<String> supportedFileTypes;
+    private List<SupportedFileType> supportedFileTypes;
 
     @Column(name = "audited_report", nullable = false)
-    private Boolean auditedReport;
+    private boolean auditedReport;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "report_parameters", columnDefinition = "json")
     private String reportParameters;
 
     @Column(name = "supports_multi_bu", nullable = false)
-    private Boolean supportsMultiBu;
+    private boolean supportsMultiBu;
 
     @Column(name = "is_bespoke_journey", nullable = false)
-    private Boolean isBespokeJourney;
+    private boolean isBespokeJourney;
 
     @Column(name = "shown_as_worklist", nullable = false)
-    private Boolean shownAsWorklist;
+    private boolean shownAsWorklist;
 
-    @Convert(converter = DurationToStringConverter.class)
+    //    @Convert(converter = DurationToStringConverter.class)
     @Column(name = "retention_period", length = 30)
     private Duration retentionPeriod;
 
@@ -66,6 +65,6 @@ public class ReportEntity {
     private String permission;
 
     @Column(name = "can_manually_create", nullable = false)
-    private Boolean canManuallyCreate;
+    private boolean canManuallyCreate;
 
 }

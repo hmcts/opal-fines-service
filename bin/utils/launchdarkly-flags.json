@@ -1,6 +1,18 @@
 {
   "segments": {},
   "flags": {
+    "release-1c-enforcement-operational-reporting": {
+      "key": "release-1c-enforcement-operational-reporting",
+      "on": true,
+      "fallthrough": {
+        "variation": 0
+      },
+      "offVariation": 1,
+      "variations": [
+        true,
+        false
+      ]
+    },
     "legacy-app-mode-enabled": {
       "key": "legacy-app-mode-enabled",
       "on": false,

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.DEFAULT_REPORT_ID;
@@ -22,6 +22,8 @@ import uk.gov.hmcts.opal.service.ReportService;
 @DisplayName("ReportsApiController Tests")
 class ReportsApiControllerTest {
 
+    private static final String AUTH_HEADER = "Bearer test-token";
+
     @Mock
     private ReportService reportService;
 
@@ -32,12 +34,14 @@ class ReportsApiControllerTest {
     @DisplayName("Should return 200 with the report DTO returned by the service")
     void getReport_returnsServiceResult() {
         ReportReports expected = createDefaultReportDto();
-        when(reportService.getReport(DEFAULT_REPORT_ID)).thenReturn(expected);
+        when(reportService.getReport(DEFAULT_REPORT_ID, AUTH_HEADER)).thenReturn(expected);
 
-        ResponseEntity<ReportReports> actual = cut.getReport(DEFAULT_REPORT_ID);
+        ResponseEntity<ReportReports> actual = cut.getReport(DEFAULT_REPORT_ID, AUTH_HEADER);
 
-        assertEquals(HttpStatus.OK, actual.getStatusCode());
-        assertEquals(expected, actual.getBody());
-        verify(reportService, times(1)).getReport(DEFAULT_REPORT_ID);
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, actual.getStatusCode()),
+            () -> assertEquals(expected, actual.getBody()),
+            () -> verify(reportService).getReport(DEFAULT_REPORT_ID, AUTH_HEADER)
+        );
     }
 }

@@ -1,122 +1,89 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.ReportReports;
+import uk.gov.hmcts.opal.service.UserStateService;
 
-@Slf4j(topic = "opal.ReportsApiControllerIntegrationTest")
-@Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("ReportsApiController Integration Test")
 class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/reports";
+    private static final String AUTHORIZATION_HEADER = "authorization";
+    private static final String BEARER_TOKEN = "Bearer some_value";
 
-    // JSONPath constants
-    private static final String JSON_REPORT_ID = "$.report_id";
-    private static final String JSON_REPORT_TITLE = "$.report_title";
-    private static final String JSON_REPORT_GROUP = "$.report_group";
-    private static final String JSON_SUPPORTED_FILE_TYPES = "$.supported_file_types";
-    private static final String JSON_AUDITED_REPORT = "$.audited_report";
-    private static final String JSON_REPORT_PARAMETERS = "$.report_parameters";
-    private static final String JSON_SUPPORTS_MULTI_BU = "$.supports_multiple_business_units";
-    private static final String JSON_IS_BESPOKE_JOURNEY = "$.is_bespoke_journey";
-    private static final String JSON_SHOWN_AS_WORKLIST = "$.shown_as_worklist";
-    private static final String JSON_RETENTION_PERIOD = "$.retention_period";
-    private static final String JSON_PERMISSION = "$.permission";
-    private static final String JSON_CAN_MANUALLY_CREATE = "$.can_manually_create";
+    @MockitoBean
+    UserStateService userStateService;
 
     @Nested
     @DisplayName("GET /reports/{id} - Success Cases")
     class GetReportByIdSuccessCases {
 
         @Test
-        @DisplayName("Get report by ID - operational_report_enforcement [@PO-2250]")
-        void getReportByIdOperationalEnforcement() throws Exception {
-            ResultActions actions = mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"));
+        @DisplayName("Get report asserts all fields for operational_report_enforcement [@PO-2250]")
+        void getReportByIdAssertAllFieldsEnforcement() throws Exception {
+            when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-            logResponseBody(actions, "getReportByIdOperationalEnforcement");
+            String body = mockMvc.perform(
+                    get(URL_BASE + "/operational_report_enforcement").header(AUTHORIZATION_HEADER, BEARER_TOKEN))
+                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+                .getResponse().getContentAsString();
 
-            actions.andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath(JSON_REPORT_ID).value("operational_report_enforcement"))
-                .andExpect(jsonPath(JSON_REPORT_TITLE).value("Operational report (by enforcement)"))
-                .andExpectAll(commonOperationalReportAssertions())
-                .andExpect(jsonPath(JSON_RETENTION_PERIOD).value("P14D"))
-                .andExpect(jsonPath(JSON_PERMISSION).value(nullValue()))
-                .andExpect(jsonPath(JSON_CAN_MANUALLY_CREATE).value(true));
+            ReportReports report = objectMapper.readValue(body, ReportReports.class);
+
+            assertAll(() -> assertThat(report.getReportId()).isEqualTo("operational_report_enforcement"),
+                () -> assertThat(report.getReportTitle()).isEqualTo("Operational report (by enforcement)"),
+                () -> assertThat(report.getReportGroup()).isEqualTo("Operational Reports"),
+                () -> assertThat(report.getSupportedFileTypes()).containsExactlyInAnyOrder(
+                    ReportReports.SupportedFileTypesEnum.CSV, ReportReports.SupportedFileTypesEnum.PDF),
+                () -> assertThat(report.getAuditedReport()).isFalse(),
+                () -> assertThat(report.getReportParameters()).isNull(),
+                () -> assertThat(report.getSupportsMultipleBusinessUnits()).isFalse(),
+                () -> assertThat(report.getIsBespokeJourney()).isFalse(),
+                () -> assertThat(report.getShownAsWorklist()).isFalse(),
+                () -> assertThat(report.getRetentionPeriod()).isEqualTo("PT0.000000014S"),
+                () -> assertThat(report.getPermission()).isNull(),
+                () -> assertThat(report.getCanManuallyCreate()).isTrue());
         }
 
         @Test
-        @DisplayName("Get report by ID - operational_report_payment [@PO-2250]")
-        void getReportByIdOperationalPayment() throws Exception {
-            ResultActions actions = mockMvc.perform(get(URL_BASE + "/operational_report_payment"));
+        @DisplayName("Get report asserts all fields for operational_report_payment [@PO-2250]")
+        void getReportByIdAssertAllFieldsPayment() throws Exception {
+            when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-            logResponseBody(actions, "getReportByIdOperationalPayment");
+            String body = mockMvc.perform(
+                    get(URL_BASE + "/operational_report_payment").header(AUTHORIZATION_HEADER, BEARER_TOKEN))
+                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+                .getResponse().getContentAsString();
 
-            actions.andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath(JSON_REPORT_ID).value("operational_report_payment"))
-                .andExpect(jsonPath(JSON_REPORT_TITLE).value("Operational report (by payment)"))
-                .andExpectAll(commonOperationalReportAssertions())
-                .andExpect(jsonPath(JSON_RETENTION_PERIOD).value("P14D"))
-                .andExpect(jsonPath(JSON_CAN_MANUALLY_CREATE).value(true));
-        }
+            ReportReports report = objectMapper.readValue(body, ReportReports.class);
 
-        @Test
-        @DisplayName("Get report validates correct data types for all fields [@PO-2250]")
-        void getReportByIdValidatesDataTypes() throws Exception {
-            ResultActions actions = mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"));
-
-            actions.andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                // Validate string fields
-                .andExpect(jsonPath(JSON_REPORT_ID).isString())
-                .andExpect(jsonPath(JSON_REPORT_TITLE).isString())
-                .andExpect(jsonPath(JSON_REPORT_GROUP).isString())
-                // Validate array field
-                .andExpect(jsonPath(JSON_SUPPORTED_FILE_TYPES).isArray())
-                // Validate boolean fields
-                .andExpect(jsonPath(JSON_AUDITED_REPORT).isBoolean())
-                .andExpect(jsonPath(JSON_SUPPORTS_MULTI_BU).isBoolean())
-                .andExpect(jsonPath(JSON_IS_BESPOKE_JOURNEY).isBoolean())
-                .andExpect(jsonPath(JSON_SHOWN_AS_WORKLIST).isBoolean())
-                .andExpect(jsonPath(JSON_CAN_MANUALLY_CREATE).isBoolean())
-                // Validate string retention period
-                .andExpect(jsonPath(JSON_RETENTION_PERIOD).isString());
-        }
-
-        // Helper methods
-
-        private void logResponseBody(ResultActions actions, String testName) throws Exception {
-            String body = actions.andReturn().getResponse().getContentAsString();
-            log.info(":{}}: Response body:\n{}", testName, ToJsonString.toPrettyJson(body));
-        }
-
-        private ResultMatcher[] commonOperationalReportAssertions() {
-            return new ResultMatcher[] {
-                jsonPath(JSON_REPORT_GROUP).value("Operational Reports"),
-                jsonPath(JSON_SUPPORTED_FILE_TYPES, hasSize(2)),
-                jsonPath(JSON_AUDITED_REPORT).value(false),
-                jsonPath(JSON_REPORT_PARAMETERS).value(nullValue()),
-                jsonPath(JSON_SUPPORTS_MULTI_BU).value(false),
-                jsonPath(JSON_IS_BESPOKE_JOURNEY).value(false),
-                jsonPath(JSON_SHOWN_AS_WORKLIST).value(false)
-            };
+            assertAll(() -> assertThat(report.getReportId()).isEqualTo("operational_report_payment"),
+                () -> assertThat(report.getReportTitle()).isEqualTo("Operational report (by payment)"),
+                () -> assertThat(report.getReportGroup()).isEqualTo("Operational Reports"),
+                () -> assertThat(report.getSupportedFileTypes()).containsExactlyInAnyOrder(
+                    ReportReports.SupportedFileTypesEnum.CSV, ReportReports.SupportedFileTypesEnum.PDF),
+                () -> assertThat(report.getAuditedReport()).isFalse(),
+                () -> assertThat(report.getReportParameters()).isNull(),
+                () -> assertThat(report.getSupportsMultipleBusinessUnits()).isFalse(),
+                () -> assertThat(report.getIsBespokeJourney()).isFalse(),
+                () -> assertThat(report.getShownAsWorklist()).isFalse(),
+                () -> assertThat(report.getRetentionPeriod()).isEqualTo("PT0.000000014S"),
+                () -> assertThat(report.getPermission()).isNull(),
+                () -> assertThat(report.getCanManuallyCreate()).isTrue());
         }
     }
 
@@ -127,9 +94,10 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("No report returned when report does not exist [@PO-2250]")
         void getReportByIdWhenReportDoesNotExist() throws Exception {
-            mockMvc.perform(get(URL_BASE + "/non_existent_report"))
+            when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+            mockMvc.perform(get(URL_BASE + "/non_existent_report").header(AUTHORIZATION_HEADER, BEARER_TOKEN))
                 .andExpect(status().isNotFound());
         }
     }
 }
-

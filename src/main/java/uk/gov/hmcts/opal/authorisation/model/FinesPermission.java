@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 
 /**
- * Fines-service specific permission catalogue. Each entry mirrors the ids maintained by
- * the user service so that {@link uk.gov.hmcts.opal.common.user.authorisation.model.UserState}
- * can be queried using the shared {@link PermissionDescriptor} contract.
+ * Fines-service specific permission catalogue. Each entry mirrors the ids maintained by the user service so that
+ * {@link uk.gov.hmcts.opal.common.user.authorisation.model.UserState} can be queried using the shared
+ * {@link PermissionDescriptor} contract.
  */
 @Getter
 @RequiredArgsConstructor
@@ -22,11 +22,11 @@ public enum FinesPermission implements PermissionDescriptor {
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
     ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
     CONSOLIDATE(13L, "Consolidate"),
-    ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold");
+    ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold"),
+    REPORTS_VIEW(15L, "Reports View");
 
     /**
-     * Convenience aggregate used by parts of the service that require both draft account
-     * permissions.
+     * Convenience aggregate used by parts of the service that require both draft account permissions.
      */
     public static final FinesPermission[] DRAFT_ACCOUNT_PERMISSIONS = {
         CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS

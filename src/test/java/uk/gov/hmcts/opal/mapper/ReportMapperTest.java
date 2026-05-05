@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.opal.entity.report.SupportedFileType.CSV;
+import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
+import static uk.gov.hmcts.opal.entity.report.SupportedFileType.XML;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createFullReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createMinimalReportEntity;
@@ -24,11 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
-import uk.gov.hmcts.opal.mapper.helper.DurationMapperHelper;
 import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 
-@SpringJUnitConfig(classes = {ReportMapperImpl.class, ObjectMapper.class, JsonMapperHelper.class,
-    DurationMapperHelper.class})
+@SpringJUnitConfig(classes = {ReportMapperImpl.class, ObjectMapper.class, JsonMapperHelper.class})
 @DisplayName("ReportMapper Tests")
 class ReportMapperTest {
 
@@ -72,11 +73,11 @@ class ReportMapperTest {
             );
 
             assertAll("Verify boolean flags",
-                () -> assertEquals(entity.getAuditedReport(), actual.getAuditedReport()),
-                () -> assertEquals(entity.getSupportsMultiBu(), actual.getSupportsMultipleBusinessUnits()),
-                () -> assertEquals(entity.getIsBespokeJourney(), actual.getIsBespokeJourney()),
-                () -> assertEquals(entity.getShownAsWorklist(), actual.getShownAsWorklist()),
-                () -> assertEquals(entity.getCanManuallyCreate(), actual.getCanManuallyCreate())
+                () -> assertEquals(entity.isAuditedReport(), actual.getAuditedReport()),
+                () -> assertEquals(entity.isSupportsMultiBu(), actual.getSupportsMultipleBusinessUnits()),
+                () -> assertEquals(entity.isBespokeJourney(), actual.getIsBespokeJourney()),
+                () -> assertEquals(entity.isShownAsWorklist(), actual.getShownAsWorklist()),
+                () -> assertEquals(entity.isCanManuallyCreate(), actual.getCanManuallyCreate())
             );
 
             assertAll("Verify additional fields",
@@ -184,21 +185,23 @@ class ReportMapperTest {
         }
 
         @Test
-        @DisplayName("Should filter out invalid file type enums")
-        void toDto_withInvalidFileType_shouldFilterOutInvalidTypes() {
+        @DisplayName("Should map all three supported file type enums correctly")
+        void toDto_withAllFileTypes_shouldMapAllTypes() {
             ReportEntity entity = defaultReportEntityBuilder()
-                .supportedFileTypes(Arrays.asList("CSV", "INVALID_TYPE", "PDF"))
+                .supportedFileTypes(Arrays.asList(CSV, PDF, XML))
                 .build();
 
             ReportReports actual = cut.toDto(entity);
 
-            assertAll("Verify invalid file type filtering",
+            assertAll("Verify all file types are mapped",
                 () -> assertNotNull(actual, "Result should not be null"),
-                () -> assertEquals(2, actual.getSupportedFileTypes().size(), "Should have 2 valid file types"),
+                () -> assertEquals(3, actual.getSupportedFileTypes().size(), "Should have 3 file types"),
                 () -> assertEquals(ReportReports.SupportedFileTypesEnum.CSV, actual.getSupportedFileTypes().getFirst(),
                     "First file type should be CSV"),
                 () -> assertEquals(ReportReports.SupportedFileTypesEnum.PDF, actual.getSupportedFileTypes().get(1),
-                    "Second file type should be PDF")
+                    "Second file type should be PDF"),
+                () -> assertEquals(ReportReports.SupportedFileTypesEnum.XML, actual.getSupportedFileTypes().get(2),
+                    "Third file type should be XML")
             );
         }
     }

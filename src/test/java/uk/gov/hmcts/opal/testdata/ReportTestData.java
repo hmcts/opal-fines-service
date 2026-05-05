@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import uk.gov.hmcts.opal.entity.ReportEntity;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
 
 /**
@@ -41,7 +42,7 @@ public class ReportTestData {
             .reportId("test_report_full")
             .reportTitle("Full Test Report")
             .reportGroup("Test Reports")
-            .supportedFileTypes(Arrays.asList("CSV", "PDF", "XML"))
+            .supportedFileTypes(Arrays.asList(SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.XML))
             .auditedReport(true)
             .reportParameters("{\"fromDate\":\"2026-01-01\",\"toDate\":\"2026-04-24\"}")
             .supportsMultiBu(true)
@@ -162,7 +163,7 @@ public class ReportTestData {
             .reportId(DEFAULT_REPORT_ID)
             .reportTitle("Operational report (by enforcement)")
             .reportGroup("Operational Reports")
-            .supportedFileTypes(Arrays.asList("CSV", "PDF"))
+            .supportedFileTypes(Arrays.asList(SupportedFileType.CSV, SupportedFileType.PDF))
             .auditedReport(false)
             .supportsMultiBu(false)
             .isBespokeJourney(false)
