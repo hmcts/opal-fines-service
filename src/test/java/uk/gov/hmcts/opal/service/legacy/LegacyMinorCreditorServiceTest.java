@@ -41,6 +41,10 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
@@ -464,12 +468,38 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void updateMinorCreditorAccount_shouldMapRequestCallGatewayAndReturnMappedResponse() {
-        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest();
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon()
+                .partyId("99008")
+                .organisationFlag(true)
+                .organisationDetails(new OrganisationDetailsCommon().organisationName("Updated Ltd")))
+            .address(new AddressDetailsCommon()
+                .addressLine1("99 Updated Road")
+                .addressLine2("Updated Area")
+                .addressLine3("Updated Town")
+                .postcode("NW1 1AA"))
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                .accountName("Updated Account")
+                .sortCode("112233")
+                .accountNumber("12345678")
+                .accountReference("Ref-01")
+                .payByBacs(true)
+                .holdPayment(true));
         LegacyUpdateMinorCreditorAccountRequest legacyRequest = LegacyUpdateMinorCreditorAccountRequest.builder()
             .creditorAccountId("1")
             .businessUnitId("77")
             .businessUnitUserId("test.user")
             .accountVersion(1)
+            .partyDetails(LegacyPartyDetails.builder().partyId("99008").build())
+            .address(uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy.builder().addressLine1("99 Updated Road").build())
+            .payment(LegacyCreditorAccountPaymentDetails.builder()
+                .accountName("Updated Account")
+                .sortCode("112233")
+                .accountNumber("12345678")
+                .accountReference("Ref-01")
+                .payByBacs(true)
+                .holdPayment(true)
+                .build())
             .build();
         LegacyUpdateMinorCreditorAccountResponse legacyResponse = LegacyUpdateMinorCreditorAccountResponse.builder()
             .accountVersion(2)
@@ -507,5 +537,19 @@ class LegacyMinorCreditorServiceTest {
         );
 
         assertSame(mappedResponse, result);
+        verify(updateMinorCreditorAccountRequestMapper).toLegacyUpdateMinorCreditorAccountRequest(
+            1L,
+            (short) 77,
+            "test.user",
+            BigInteger.ONE,
+            request
+        );
+        verify(gatewayService).postToGateway(
+            "LIBRA.of_update_minor_creditor_account",
+            LegacyUpdateMinorCreditorAccountResponse.class,
+            legacyRequest,
+            null
+        );
+        verify(updateMinorCreditorAccountResponseMapper).toMinorCreditorAccountResponse(legacyResponse);
     }
 }
