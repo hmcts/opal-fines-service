@@ -15,10 +15,8 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @Service
@@ -31,8 +29,6 @@ public class MinorCreditorService {
     private final MinorCreditorSearchProxy minorCreditorSearchProxy;
 
     private final UserStateService userStateService;
-
-    private final CreditorAccountRepository creditorAccountRepository;
 
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
                                                                         String authHeaderValue) {
@@ -125,8 +121,7 @@ public class MinorCreditorService {
                 businessUnitIdShort,
                 FinesPermission.ACCOUNT_MAINTENANCE);
         }
-        if (isUpdatingPayoutHold(minorCreditorId, businessUnitIdShort, request)
-            && !userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
+        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
             FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
             throw new PermissionNotAllowedException(
                 businessUnitIdShort,
@@ -162,14 +157,5 @@ public class MinorCreditorService {
             response.getPayment().setAccountNumber(null);
             response.getPayment().setAccountReference(null);
         }
-    }
-
-    private boolean isUpdatingPayoutHold(Long minorCreditorId,
-                                         Short businessUnitId,
-                                         PatchMinorCreditorAccountRequest request) {
-        return creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(minorCreditorId, businessUnitId)
-            .map(CreditorAccountEntity::isHoldPayout)
-            .map(currentHoldPayout -> currentHoldPayout != request.getPayment().getHoldPayment())
-            .orElse(true);
     }
 }
