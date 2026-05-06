@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,12 +16,16 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -57,6 +62,9 @@ import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
 
+    private static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);
+    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC);
+
     @Mock
     private BusinessUnitRepository businessUnitRepository;
 
@@ -81,8 +89,17 @@ class DraftAccountServiceTest {
     @Mock
     SecurityEventLoggingService securityEventLoggingService;
 
+    @Mock
+    private Clock clock;
+
     @InjectMocks
     private DraftAccountService draftAccountService;
+
+    @BeforeEach
+    void setupClock() {
+        lenient().when(clock.instant()).thenReturn(FIXED_CLOCK.instant());
+        lenient().when(clock.getZone()).thenReturn(FIXED_CLOCK.getZone());
+    }
 
     @Test
     void testGetDraftAccount() {
@@ -528,7 +545,7 @@ class DraftAccountServiceTest {
             .contains("\"username\" : \"normal@users.com\"")
             .contains("\"user_id\" : \"USER01\"")
             .contains("\"status\" : \"" + status.getLabel() + "\"")
-            .contains("\"status_date\" : \"" + LocalDate.now() + "\"")
+            .contains("\"status_date\" : \"" + TIMELINE_STATUS_DATE + "\"")
             .doesNotContain("johndoe123");
 
         if (reasonText == null) {

@@ -5,10 +5,11 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,7 @@ public class DraftAccountService {
 
     private final DraftAccountPdplLoggingService loggingService;
     private final SecurityEventLoggingService securityEventLoggingService;
+    private final Clock clock;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
@@ -313,7 +315,7 @@ public class DraftAccountService {
                                       String reasonText) {
         TimelineData timelineData = new TimelineData();
         timelineData.insertEntry(userState.getUserName(), unitUser.getBusinessUnitUserId(),
-                                 status == null ? null : status.getLabel(), LocalDate.now(), reasonText);
+                                 status == null ? null : status.getLabel(), LocalDate.now(clock), reasonText);
         return timelineData.toJson();
     }
 }

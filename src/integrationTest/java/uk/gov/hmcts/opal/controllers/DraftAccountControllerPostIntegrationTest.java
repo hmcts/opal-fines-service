@@ -15,7 +15,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -179,7 +178,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
             .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
             .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
-            .andExpect(jsonPath("$.timeline_data[0].status_date").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Created from backend"))
         ;
     }
