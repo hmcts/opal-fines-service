@@ -13,6 +13,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EnforcementReportRowDto {
 
+    /**
+     * See <a
+     * href="https://centralgovernmentcgi.atlassian.net/wiki/spaces/LGR/pages/4606787585/F133+-+List+Fines+Summary+CSV">specification
+     * page</a>
+     */
+
     private String header1;                 // fixed literal "DETAIL"
     private String company;                 // parties.organisation -> "Y"/"N"
     private String defendantName;           // formatted surname, forenames or organisation_name (truncated 34)

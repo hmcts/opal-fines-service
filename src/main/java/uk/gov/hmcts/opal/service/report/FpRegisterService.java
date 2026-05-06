@@ -28,7 +28,7 @@ public class FpRegisterService implements ReportInterface {
     public static class FpRegisterData implements ReportDataInterface {
 
         @Override
-        public int getNumberOfRecords() {
+        public long getNumberOfRecords() {
             return 0;
         }
 

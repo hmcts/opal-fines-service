@@ -13,6 +13,7 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -72,8 +73,18 @@ class OperationReportByEnforcementResultMapperTest {
         Assertions.assertThat(result.getReportMetaData().getPdpoPartyIds())
             .extracting(ParticipantIdentifier::getIdentifier)
             .containsExactlyInAnyOrder("A1", "A2");
-        verify(rowMapper).map(eq(acc1), any());
-        verify(rowMapper).map(eq(acc2), any());
+
+        ArgumentCaptor<ReportMetadataContext> contextCaptor =
+            ArgumentCaptor.forClass(ReportMetadataContext.class);
+        verify(rowMapper).map(eq(acc1), contextCaptor.capture());
+        verify(rowMapper).map(eq(acc2), contextCaptor.capture());
+        Assertions.assertThat(contextCaptor.getAllValues())
+            .allSatisfy(ctx ->
+                Assertions.assertThat(ctx.getParticipants())
+                    .contains(
+                        new ParticipantIdentifier("A1", PdplIdentifierType.DEFENDANT_ACCOUNT),
+                        new ParticipantIdentifier("A2", PdplIdentifierType.DEFENDANT_ACCOUNT)
+                    ));
     }
 
     @Test

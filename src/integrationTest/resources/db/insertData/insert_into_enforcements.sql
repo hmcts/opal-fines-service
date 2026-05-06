@@ -34,55 +34,41 @@ INSERT INTO enforcers (
     enforcer_id,
     business_unit_id,
     enforcer_code,
-    name,
-    warrant_reference_sequence,
-    warrant_register_sequence
+    name
 )
 VALUES (
-           780000000021, 78, 21, 'North East Enforcement', NULL, NULL
+           780000000021, 78, 21, 'North East Enforcement'
        )
 ON CONFLICT (enforcer_id) DO UPDATE
     SET business_unit_id = EXCLUDED.business_unit_id,
         enforcer_code = EXCLUDED.enforcer_code,
-        name = EXCLUDED.name,
-        warrant_reference_sequence = EXCLUDED.warrant_reference_sequence,
-        warrant_register_sequence = EXCLUDED.warrant_register_sequence;
+        name = EXCLUDED.name;
 
 INSERT INTO local_justice_areas (
     local_justice_area_id,
     lja_code,
     name,
-    address_line_1,
-    address_line_4,
-    address_line_5,
-    end_date
+    address_line_1
 )
 VALUES (
-           230, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', NULL, NULL, NULL
+           230, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1'
        )
 ON CONFLICT (local_justice_area_id) DO UPDATE
     SET lja_code = EXCLUDED.lja_code,
         name = EXCLUDED.name,
-        address_line_1 = EXCLUDED.address_line_1,
-        address_line_4 = EXCLUDED.address_line_4,
-        address_line_5 = EXCLUDED.address_line_5,
-        end_date = EXCLUDED.end_date;
+        address_line_1 = EXCLUDED.address_line_1;
 
 INSERT INTO courts (
-    court_id, business_unit_id, court_code, parent_court_id, name, name_cy,
-    address_line_1, address_line_2, address_line_3,
-    address_line_1_cy, address_line_2_cy, address_line_3_cy, postcode,
-    local_justice_area_id, national_court_code, gob_enforcing_court_code,
-    lja, court_type, division, session,
-    start_time, max_load, record_session_times, max_court_duration, group_code
+    court_id, business_unit_id, court_code, parent_court_id, name,
+    address_line_1, address_line_2,
+    local_justice_area_id,
+    lja, court_type, division
 )
 VALUES (
-           1, 78, 7, 730000000103, 'AAA Test Court', NULL,
-           'TestVille', 'TestShire', NULL,
-           NULL, NULL, NULL, NULL,
-           230, NULL, NULL,
-           230, 'MC', '01', NULL,
-           NULL, NULL, NULL, NULL, NULL
+           1, 78, 7, 730000000103, 'AAA Test Court',
+           'TestVille', 'TestShire',
+           230,
+           230, 'MC', '01'
        )
 ON CONFLICT (court_id) DO UPDATE
     SET business_unit_id = EXCLUDED.business_unit_id,
@@ -92,23 +78,10 @@ ON CONFLICT (court_id) DO UPDATE
         name_cy = EXCLUDED.name_cy,
         address_line_1 = EXCLUDED.address_line_1,
         address_line_2 = EXCLUDED.address_line_2,
-        address_line_3 = EXCLUDED.address_line_3,
-        address_line_1_cy = EXCLUDED.address_line_1_cy,
-        address_line_2_cy = EXCLUDED.address_line_2_cy,
-        address_line_3_cy = EXCLUDED.address_line_3_cy,
-        postcode = EXCLUDED.postcode,
         local_justice_area_id = EXCLUDED.local_justice_area_id,
-        national_court_code = EXCLUDED.national_court_code,
-        gob_enforcing_court_code = EXCLUDED.gob_enforcing_court_code,
         lja = EXCLUDED.lja,
         court_type = EXCLUDED.court_type,
-        division = EXCLUDED.division,
-        session = EXCLUDED.session,
-        start_time = EXCLUDED.start_time,
-        max_load = EXCLUDED.max_load,
-        record_session_times = EXCLUDED.record_session_times,
-        max_court_duration = EXCLUDED.max_court_duration,
-        group_code = EXCLUDED.group_code;
+        division = EXCLUDED.division;
 
 INSERT INTO parties (
     party_id,
@@ -120,8 +93,6 @@ INSERT INTO parties (
     address_line_1,
     address_line_2,
     address_line_3,
-    address_line_4,
-    address_line_5,
     postcode,
     account_type,
     birth_date,
@@ -131,8 +102,7 @@ INSERT INTO parties (
     telephone_business,
     telephone_mobile,
     email_1,
-    email_2,
-    last_changed_date
+    email_2
 )
 VALUES (
            77,
@@ -144,8 +114,6 @@ VALUES (
            'Lumber House',
            '77 Gordon Road',
            'Maidstone, Kent',
-           NULL,
-           NULL,
            'MA4 1AL',
            'Defendant',
            '1980-02-03 00:00:00',
@@ -155,8 +123,7 @@ VALUES (
            '67890',
            '111111',
            'email@one.com',
-           'email@two.com',
-           NULL
+           'email@two.com'
        )
 ON CONFLICT (party_id) DO UPDATE
     SET organisation = EXCLUDED.organisation,
@@ -167,8 +134,6 @@ ON CONFLICT (party_id) DO UPDATE
         address_line_1 = EXCLUDED.address_line_1,
         address_line_2 = EXCLUDED.address_line_2,
         address_line_3 = EXCLUDED.address_line_3,
-        address_line_4 = EXCLUDED.address_line_4,
-        address_line_5 = EXCLUDED.address_line_5,
         postcode = EXCLUDED.postcode,
         account_type = EXCLUDED.account_type,
         birth_date = EXCLUDED.birth_date,
@@ -178,8 +143,7 @@ ON CONFLICT (party_id) DO UPDATE
         telephone_business = EXCLUDED.telephone_business,
         telephone_mobile = EXCLUDED.telephone_mobile,
         email_1 = EXCLUDED.email_1,
-        email_2 = EXCLUDED.email_2,
-        last_changed_date = EXCLUDED.last_changed_date;
+        email_2 = EXCLUDED.email_2;
 
 INSERT INTO debtor_detail (
     party_id,
@@ -196,9 +160,7 @@ INSERT INTO debtor_detail (
     employer_telephone,
     employer_email,
     document_language,
-    document_language_date,
-    hearing_language,
-    hearing_language_date
+    hearing_language
 )
 VALUES (
            77,
@@ -215,9 +177,7 @@ VALUES (
            '02079997777',
            'employer77@company.com',
            'EN',
-           NULL,
-           'EN',
-           NULL
+           'EN'
        )
 ON CONFLICT (party_id) DO UPDATE
     SET vehicle_make = EXCLUDED.vehicle_make,
@@ -233,9 +193,7 @@ ON CONFLICT (party_id) DO UPDATE
         employer_telephone = EXCLUDED.employer_telephone,
         employer_email = EXCLUDED.employer_email,
         document_language = EXCLUDED.document_language,
-        document_language_date = EXCLUDED.document_language_date,
-        hearing_language = EXCLUDED.hearing_language,
-        hearing_language_date = EXCLUDED.hearing_language_date;
+        hearing_language = EXCLUDED.hearing_language;
 
 INSERT INTO defendant_accounts (
     defendant_account_id,
@@ -248,7 +206,6 @@ INSERT INTO defendant_accounts (
     amount_paid,
     account_balance,
     account_status,
-    completed_date,
     enforcing_court_id,
     last_hearing_court_id,
     last_hearing_date,
@@ -256,8 +213,6 @@ INSERT INTO defendant_accounts (
     last_changed_date,
     last_enforcement,
     originator_name,
-    originator_id,
-    originator_type,
     allow_writeoffs,
     allow_cheques,
     cheque_clearance_period,
@@ -270,15 +225,11 @@ INSERT INTO defendant_accounts (
     collection_order,
     collection_order_date,
     further_steps_notice_date,
-    confiscation_order_date,
-    fine_registration_date,
-    suspended_committal_date,
     consolidated_account_type,
     payment_card_requested,
     payment_card_requested_date,
     payment_card_requested_by,
     prosecutor_case_reference,
-    enforcement_case_status,
     account_type,
     account_comments,
     account_note_1,
@@ -297,7 +248,6 @@ VALUES (
            200.00,
            500.58,
            'L',
-           NULL,
            1,
            1,
            '2024-01-04 18:06:11',
@@ -305,8 +255,6 @@ VALUES (
            '2024-01-03 12:00:12',
            '10',
            'Kingston-upon-Thames Mags Court',
-           NULL,
-           NULL,
            'N',
            'N',
            14,
@@ -319,15 +267,11 @@ VALUES (
            'Y',
            '2023-12-18 00:00:00',
            '2023-12-19 00:00:00',
-           NULL,
-           NULL,
-           NULL,
            'M',
            'Y',
            '2024-01-01 00:00:00',
            '11111111A',
            '090A',
-           NULL,
            'Fine',
            'Text - Account Comment',
            'free_text_note_1',
@@ -345,7 +289,6 @@ ON CONFLICT (defendant_account_id) DO UPDATE
         amount_paid = EXCLUDED.amount_paid,
         account_balance = EXCLUDED.account_balance,
         account_status = EXCLUDED.account_status,
-        completed_date = EXCLUDED.completed_date,
         enforcing_court_id = EXCLUDED.enforcing_court_id,
         last_hearing_court_id = EXCLUDED.last_hearing_court_id,
         last_hearing_date = EXCLUDED.last_hearing_date,
@@ -353,8 +296,6 @@ ON CONFLICT (defendant_account_id) DO UPDATE
         last_changed_date = EXCLUDED.last_changed_date,
         last_enforcement = EXCLUDED.last_enforcement,
         originator_name = EXCLUDED.originator_name,
-        originator_id = EXCLUDED.originator_id,
-        originator_type = EXCLUDED.originator_type,
         allow_writeoffs = EXCLUDED.allow_writeoffs,
         allow_cheques = EXCLUDED.allow_cheques,
         cheque_clearance_period = EXCLUDED.cheque_clearance_period,
@@ -367,15 +308,11 @@ ON CONFLICT (defendant_account_id) DO UPDATE
         collection_order = EXCLUDED.collection_order,
         collection_order_date = EXCLUDED.collection_order_date,
         further_steps_notice_date = EXCLUDED.further_steps_notice_date,
-        confiscation_order_date = EXCLUDED.confiscation_order_date,
-        fine_registration_date = EXCLUDED.fine_registration_date,
-        suspended_committal_date = EXCLUDED.suspended_committal_date,
         consolidated_account_type = EXCLUDED.consolidated_account_type,
         payment_card_requested = EXCLUDED.payment_card_requested,
         payment_card_requested_date = EXCLUDED.payment_card_requested_date,
         payment_card_requested_by = EXCLUDED.payment_card_requested_by,
         prosecutor_case_reference = EXCLUDED.prosecutor_case_reference,
-        enforcement_case_status = EXCLUDED.enforcement_case_status,
         account_type = EXCLUDED.account_type,
         account_comments = EXCLUDED.account_comments,
         account_note_1 = EXCLUDED.account_note_1,
@@ -411,16 +348,9 @@ INSERT INTO enforcements (
     posted_by,
     result_id,
     reason,
-    enforcer_id,
-    jail_days,
-    result_responses,
     warrant_reference,
-    case_reference,
-    hearing_date,
     hearing_court_id,
-    posted_by_name,
-    earliest_release_date,
-    enforcement_account_type
+    posted_by_name
 )
 VALUES (
            1,
@@ -429,16 +359,9 @@ VALUES (
            'L080JG',
            'REGF',
            'Test enforcement',
-           NULL,
-           NULL,
-           NULL,
            '001/25/00001',
-           NULL,
-           NULL,
            1,
-           'opal-test',
-           NULL,
-           NULL
+           'opal-test'
        )
 ON CONFLICT (enforcement_id) DO UPDATE
     SET defendant_account_id = EXCLUDED.defendant_account_id,
@@ -446,13 +369,6 @@ ON CONFLICT (enforcement_id) DO UPDATE
         posted_by = EXCLUDED.posted_by,
         result_id = EXCLUDED.result_id,
         reason = EXCLUDED.reason,
-        enforcer_id = EXCLUDED.enforcer_id,
-        jail_days = EXCLUDED.jail_days,
-        result_responses = EXCLUDED.result_responses,
         warrant_reference = EXCLUDED.warrant_reference,
-        case_reference = EXCLUDED.case_reference,
-        hearing_date = EXCLUDED.hearing_date,
         hearing_court_id = EXCLUDED.hearing_court_id,
-        posted_by_name = EXCLUDED.posted_by_name,
-        earliest_release_date = EXCLUDED.earliest_release_date,
-        enforcement_account_type = EXCLUDED.enforcement_account_type;
+        posted_by_name = EXCLUDED.posted_by_name;

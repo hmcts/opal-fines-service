@@ -14,10 +14,6 @@ public enum ReportEnforcementMode {
         if (value == null) {
             return ALL;
         }
-        try {
-            return ReportEnforcementMode.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            return ALL;
-        }
+        return ReportEnforcementMode.valueOf(value);
     }
 }
