@@ -71,6 +71,82 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends MinorCreditorControlle
             .andExpect(jsonPath("$.payment.hold_payment").value(true));
     }
 
+    @Test
+    void patchMinorCreditor_notFound_returns404_viaRealLegacyStub() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        mockMvc.perform(
+                patch(URL_BASE + "/404")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTH_HEADER)
+                    .header("If-Match", "\"1\"")
+                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
+            )
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    @Test
+    void patchMinorCreditor_staleVersion_returns409_viaRealLegacyStub() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        mockMvc.perform(
+                patch(URL_BASE + "/409")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTH_HEADER)
+                    .header("If-Match", "\"2\"")
+                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
+            )
+            .andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    @Test
+    void patchMinorCreditor_serviceUnavailable_returns503_viaRealLegacyStub() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        mockMvc.perform(
+                patch(URL_BASE + "/503")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTH_HEADER)
+                    .header("If-Match", "\"1\"")
+                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
+            )
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    @Test
+    void patchMinorCreditor_serverError_returns500_viaRealLegacyStub() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        mockMvc.perform(
+                patch(URL_BASE + "/500")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTH_HEADER)
+                    .header("If-Match", "\"1\"")
+                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
+            )
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
     private PatchMinorCreditorAccountRequest patchMinorCreditorLegacyRequest() {
         return new PatchMinorCreditorAccountRequest()
             .partyDetails(new PartyDetailsCommon()

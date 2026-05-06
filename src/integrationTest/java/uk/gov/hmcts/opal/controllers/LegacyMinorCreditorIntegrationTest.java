@@ -129,44 +129,6 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     }
 
     @Test
-    void patchMinorCreditor_notFound_returns404() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
-
-        mockMvc.perform(
-                patch(URL_BASE + "/404")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", AUTH_HEADER)
-                    .header("If-Match", "\"1\"")
-                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
-            )
-            .andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
-
-    @Test
-    void patchMinorCreditor_staleVersion_returns409() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
-
-        mockMvc.perform(
-                patch(URL_BASE + "/409")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", AUTH_HEADER)
-                    .header("If-Match", "\"2\"")
-                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
-            )
-            .andExpect(status().isConflict())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
-
-    @Test
     void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutHoldPermission_returns403();
     }
@@ -184,44 +146,6 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @Test
     void patchMinorCreditor_timeout_returns408() throws Exception {
         super.patchMinorCreditor_timeout_returns408(log);
-    }
-
-    @Test
-    void patchMinorCreditor_serviceUnavailable_returns503() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
-
-        mockMvc.perform(
-                patch(URL_BASE + "/503")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", AUTH_HEADER)
-                    .header("If-Match", "\"1\"")
-                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
-            )
-            .andExpect(status().isServiceUnavailable())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
-
-    @Test
-    void patchMinorCreditor_serverError_returns500() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
-
-        mockMvc.perform(
-                patch(URL_BASE + "/500")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", AUTH_HEADER)
-                    .header("If-Match", "\"1\"")
-                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
-            )
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     @Test
