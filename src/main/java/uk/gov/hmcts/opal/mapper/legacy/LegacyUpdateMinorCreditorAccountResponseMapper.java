@@ -22,7 +22,9 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 @Component
 public class LegacyUpdateMinorCreditorAccountResponseMapper {
 
-    public MinorCreditorAccountResponse toMinorCreditorAccountResponse(LegacyUpdateMinorCreditorAccountResponse legacy) {
+    public MinorCreditorAccountResponse toMinorCreditorAccountResponse(
+        LegacyUpdateMinorCreditorAccountResponse legacy
+    ) {
         MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
         response.setVersion(BigInteger.valueOf(legacy.getAccountVersion().longValue()));
         response.setCreditorAccountId(legacy.getCreditorAccountId());

@@ -365,7 +365,8 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_evenWhenHoldUnchanged_throwsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_evenWhenHoldUnchanged_throwsPermissionNotAllowed(
+    ) {
         // Arrange
         UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
