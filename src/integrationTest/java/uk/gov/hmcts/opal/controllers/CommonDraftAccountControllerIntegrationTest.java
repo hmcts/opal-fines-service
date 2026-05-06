@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,8 +40,9 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     static final String GET_DRAFT_ACCOUNT_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountResponse.json";
     static final String GET_DRAFT_ACCOUNTS_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountsResponse.json";
     static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);
+    static final OffsetDateTime FIXED_DATE_TIME = TIMELINE_STATUS_DATE.atStartOfDay().atOffset(ZoneOffset.UTC);
     private static final Clock FIXED_CLOCK = Clock.fixed(
-        TIMELINE_STATUS_DATE.atStartOfDay(ZoneOffset.UTC).toInstant(),
+        FIXED_DATE_TIME.toInstant(),
         ZoneOffset.UTC
     );
 
