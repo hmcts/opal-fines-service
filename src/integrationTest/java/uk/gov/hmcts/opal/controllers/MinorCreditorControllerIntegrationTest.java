@@ -340,10 +340,19 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Updated"))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Creditor"))
             .andExpect(jsonPath("$.address.postcode").value("NW1 1AA"))
+            .andExpect(jsonPath("$.payment.account_name").value("Creditor Updated"))
+            .andExpect(jsonPath("$.payment.sort_code").value("112233"))
+            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
+            .andExpect(jsonPath("$.payment.account_reference").value("MC-REF-01"))
             .andExpect(jsonPath("$.payment.hold_payment").value(true))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
 
         assertEquals(true, getCurrentCreditorAccountHoldPayout());
+        assertEquals("Creditor Updated", getCurrentCreditorAccountBankAccountName());
+        assertEquals("112233", getCurrentCreditorAccountBankSortCode());
+        assertEquals("12345678", getCurrentCreditorAccountBankAccountNumber());
+        assertEquals("MC-REF-01", getCurrentCreditorAccountBankAccountReference());
+        assertEquals(true, getCurrentCreditorAccountPayByBacs());
         Integer updatedVersion = getCurrentCreditorAccountVersion();
         assertEquals(initialHoldPayout ? currentVersion : currentVersion + 1, updatedVersion);
     }
@@ -414,7 +423,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
-    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201(Logger log) throws Exception {
+    void patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403() throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
@@ -422,27 +431,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         boolean currentHoldPayout = getCurrentCreditorAccountHoldPayout();
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
-        // Act
-        ResultActions a = mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", AUTH_HEADER)
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(objectMapper.writeValueAsString(patchMinorCreditorRequest(currentHoldPayout))));
-
-        String body = a.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201 body:\n{}",
-            ToJsonString.toPrettyJson(body));
-
-        // Assert
-        a.andExpect(status().isCreated())
-            .andExpect(header().exists("ETag"))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
-            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayout));
-
-        assertEquals(currentHoldPayout, getCurrentCreditorAccountHoldPayout());
-        assertEquals(currentVersion + 1, getCurrentCreditorAccountVersion());
+                            .content(objectMapper.writeValueAsString(patchMinorCreditorRequest(currentHoldPayout))))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
@@ -608,6 +604,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                          .addressLine1("99 Updated Road")
                          .postcode("NW1 1AA"))
             .payment(new CreditorAccountPaymentDetailsCommon()
+                         .accountName("Creditor Updated")
+                         .sortCode("112233")
+                         .accountNumber("12345678")
+                         .accountReference("MC-REF-01")
                          .payByBacs(true)
                          .holdPayment(holdPayment));
     }
@@ -623,6 +623,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                          .addressLine1("33 Delete St.")
                          .postcode("DE1 2DE"))
             .payment(new CreditorAccountPaymentDetailsCommon()
+                         .accountName("Delete Account")
+                         .sortCode("445566")
+                         .accountNumber("87654321")
+                         .accountReference("DEL-REF-01")
                          .payByBacs(true)
                          .holdPayment(false));
     }
@@ -642,6 +646,47 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             PATCH_MINOR_CREDITOR_ACCOUNT_ID
         );
         return Boolean.TRUE.equals(holdPayout);
+    }
+
+    private boolean getCurrentCreditorAccountPayByBacs() {
+        Boolean payByBacs = jdbcTemplate.queryForObject(
+            "SELECT pay_by_bacs FROM creditor_accounts WHERE creditor_account_id = ?",
+            Boolean.class,
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+        );
+        return Boolean.TRUE.equals(payByBacs);
+    }
+
+    private String getCurrentCreditorAccountBankAccountName() {
+        return jdbcTemplate.queryForObject(
+            "SELECT bank_account_name FROM creditor_accounts WHERE creditor_account_id = ?",
+            String.class,
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+        );
+    }
+
+    private String getCurrentCreditorAccountBankSortCode() {
+        return jdbcTemplate.queryForObject(
+            "SELECT bank_sort_code FROM creditor_accounts WHERE creditor_account_id = ?",
+            String.class,
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+        );
+    }
+
+    private String getCurrentCreditorAccountBankAccountNumber() {
+        return jdbcTemplate.queryForObject(
+            "SELECT bank_account_number FROM creditor_accounts WHERE creditor_account_id = ?",
+            String.class,
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+        );
+    }
+
+    private String getCurrentCreditorAccountBankAccountReference() {
+        return jdbcTemplate.queryForObject(
+            "SELECT bank_account_reference FROM creditor_accounts WHERE creditor_account_id = ?",
+            String.class,
+            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+        );
     }
 
     private int getCurrentAmendmentCountForCreditorAccount() {

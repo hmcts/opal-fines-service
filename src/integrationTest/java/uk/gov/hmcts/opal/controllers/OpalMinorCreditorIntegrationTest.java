@@ -223,8 +223,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
-    void patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201() throws Exception {
-        super.patchMinorCreditor_withoutHoldPermission_holdUnchanged_returns201(log);
+    void patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403() throws Exception {
+        super.patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403();
     }
 
     @Test

@@ -142,6 +142,11 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         updateMapper.updateParty(request.getPartyDetails(), request.getAddress(), party);
 
+        creditorAccount.setBankAccountName(request.getPayment().getAccountName());
+        creditorAccount.setBankSortCode(request.getPayment().getSortCode());
+        creditorAccount.setBankAccountNumber(request.getPayment().getAccountNumber());
+        creditorAccount.setBankAccountReference(request.getPayment().getAccountReference());
+        creditorAccount.setPayByBacs(request.getPayment().getPayByBacs());
         creditorAccount.setHoldPayout(request.getPayment().getHoldPayment());
         creditorAccount.setLastChangedDate(LocalDateTime.now());
 
