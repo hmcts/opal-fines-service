@@ -120,6 +120,9 @@ launchdarkly:
   offline-mode: ${LAUNCH_DARKLY_OFFLINE_MODE:false}
   env: ${LAUNCH_DARKLY_ENV:default}
   enabled: ${LAUNCH_DARKLY_ENABLED:true}
+  file:
+    - bin/utils/launchdarkly-flags.json
+
   feature:
     release-1a.enabled: ${FEATURE_RELEASE_1A_ENABLED:false}
     release-1b.enabled: ${FEATURE_RELEASE_1B_ENABLED:false}
