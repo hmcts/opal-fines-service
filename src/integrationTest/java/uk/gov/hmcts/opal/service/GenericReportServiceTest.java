@@ -91,7 +91,7 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         //Arrange
         String location = String.valueOf(UUID.randomUUID());
         ReportEntity report = reportRepository.save(buildReportEntity("fp_register"));
-        ReportInstanceEntity instance = reportInstanceRepository.save(buildReportInstanceEntity(report.getReportId()));
+        ReportInstanceEntity instance = reportInstanceRepository.save(buildReportInstanceEntity(report));
         when(blobStore.storeReport(any(String.class))).thenReturn(location);
 
         //Act
@@ -116,7 +116,7 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     void generateReportInstanceContent_persistsReadyInstance_errorCase() {
         //Arrange
         ReportEntity report = reportRepository.save(buildReportEntity("fp_register"));
-        ReportInstanceEntity instance = reportInstanceRepository.save(buildReportInstanceEntity(report.getReportId()));
+        ReportInstanceEntity instance = reportInstanceRepository.save(buildReportInstanceEntity(report));
         when(blobStore.storeReport(any(String.class))).thenThrow(new RuntimeException());
 
         //Act
@@ -136,9 +136,9 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         return report;
     }
 
-    private ReportInstanceEntity buildReportInstanceEntity(String reportId) {
+    private ReportInstanceEntity buildReportInstanceEntity(ReportEntity report) {
         ReportInstanceEntity instance = new ReportInstanceEntity();
-        instance.setReportId(reportId);
+        instance.setReport(report);
         instance.setErrors(new ReportError("Error", "Existing error"));
         instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
         return instance;
