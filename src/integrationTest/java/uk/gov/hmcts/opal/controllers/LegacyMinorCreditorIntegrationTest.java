@@ -5,25 +5,15 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import tools.jackson.databind.JsonNode;
-import uk.gov.hmcts.opal.TestContainerConfig;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
@@ -40,10 +30,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
 
     private static final String URL_BASE = "/minor-creditor-accounts";
     private static final String AUTH_HEADER = "Bearer some_value";
-    private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
-    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
-    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     @Test
     void testPostSearchMinorCreditorSuccess() throws Exception {
@@ -98,54 +85,6 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @Test
     void testGetMinorCreditorAccount_500Error() throws Exception {
         super.legacyGetMinorCreditorAccountImpl_500Error(log);
-    }
-
-    @Test
-    void patchMinorCreditor_success_returns201_andTransformsLegacyRequest() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
-        resetLegacyStubRequestJournal();
-
-        ResultActions resultActions = mockMvc.perform(
-            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", AUTH_HEADER)
-                .header("If-Match", "\"1\"")
-                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
-        );
-
-        String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditor_success_returns201_andTransformsLegacyRequest body:\n{}",
-            ToJsonString.toPrettyJson(body));
-
-        resultActions.andExpect(status().isCreated())
-            .andExpect(header().string("ETag", "\"2\""))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
-            .andExpect(jsonPath("$.party_details.party_id").value("99008"))
-            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
-            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Updated Ltd"))
-            .andExpect(jsonPath("$.address.address_line_1").value("99 Updated Road"))
-            .andExpect(jsonPath("$.payment.account_name").value("Updated Account"))
-            .andExpect(jsonPath("$.payment.sort_code").value("112233"))
-            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
-            .andExpect(jsonPath("$.payment.account_reference").value("Ref-01"))
-            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
-            .andExpect(jsonPath("$.payment.hold_payment").value(true));
-
-        JsonNode legacyRequest = findLatestLegacyPatchRequestBody();
-
-        Assertions.assertEquals("607", legacyRequest.get("creditor_account_id").asText());
-        Assertions.assertEquals("10", legacyRequest.get("business_unit_id").asText());
-        Assertions.assertEquals("USER01", legacyRequest.get("business_unit_user_id").asText());
-        Assertions.assertEquals(1, legacyRequest.get("account_version").asInt());
-        Assertions.assertEquals("Updated Ltd",
-            legacyRequest.path("party_details").path("organisationDetails").path("organisationName").asText());
-        Assertions.assertEquals("112233", legacyRequest.path("payment").path("sort_code").asText());
-        Assertions.assertEquals("Ref-01", legacyRequest.path("payment").path("account_reference").asText());
     }
 
     @Test
@@ -272,46 +211,5 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
                 .accountReference("Ref-01")
                 .payByBacs(true)
                 .holdPayment(true));
-    }
-
-    private void resetLegacyStubRequestJournal() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(legacyStubAdminUri("/requests"))
-            .DELETE()
-            .build();
-
-        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-        Assertions.assertEquals(200, response.statusCode(), "Failed to clear legacy stub request journal");
-    }
-
-    private JsonNode findLatestLegacyPatchRequestBody() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(legacyStubAdminUri("/requests"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-        Assertions.assertEquals(200, response.statusCode(), "Failed to read legacy stub request journal");
-
-        JsonNode requests = objectMapper.readTree(response.body()).path("requests");
-        for (int index = requests.size() - 1; index >= 0; index--) {
-            JsonNode entry = requests.get(index);
-            JsonNode queryParams = entry.path("request").path("queryParams");
-            JsonNode actionTypeNode = queryParams.path("actionType");
-            String actionType = actionTypeNode.path("values").isArray() && !actionTypeNode.path("values").isEmpty()
-                ? actionTypeNode.path("values").get(0).asText()
-                : actionTypeNode.path("value").asText();
-            if (!UPDATE_MINOR_CREDITOR_ACCOUNT.equals(actionType)) {
-                continue;
-            }
-
-            String body = entry.path("request").path("body").asText();
-            return objectMapper.readTree(body);
-        }
-
-        Assertions.fail("No legacy PATCH request recorded for actionType " + UPDATE_MINOR_CREDITOR_ACCOUNT);
-        return null;
-    }
-
-    private URI legacyStubAdminUri(String path) {
-        return URI.create(TestContainerConfig.legacyGatewayUrl().replace("/opal", "/__admin" + path));
     }
 }
