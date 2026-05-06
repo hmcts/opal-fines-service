@@ -162,6 +162,13 @@ opal:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
       protocol: ${SERVICEBUS_REPORT_PROTOCOL:amqp}
       idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
+    publisher:
+      enabled: ${REPORT_PUBLISHER_ENABLED:true}
+      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
+      queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
+      protocol: ${SERVICEBUS_REPORT_PROTOCOL:amqp}
+      idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
+      send-timeout-ms: ${SERVICEBUS_REPORT_SEND_TIMEOUT_MS:10000}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
