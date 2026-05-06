@@ -140,9 +140,11 @@ public class OpalDefendantAccountEnforcementService
             );
         }
 
+        DefendantAccountEntity latestDefendant = defendantAccountRepositoryService.findById(defendantAccountId);
+
         return AddEnforcementResponse.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .version(VersionUtils.extractBigInteger(ifMatch).intValue())
+            .version(Math.toIntExact(latestDefendant.getVersionNumber()))
             .enforcementId(String.valueOf(enforcementId))
             .build();
     }
