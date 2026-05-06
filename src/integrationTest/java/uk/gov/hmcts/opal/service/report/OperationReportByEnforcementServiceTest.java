@@ -71,9 +71,9 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     private static void verifyMetadata(OperationReportByEnforcementTransaction result,
         List<EnforcementReportRowDto> transactions) {
         ReportMetaData reportMetadata = result.getReportMetaData();
-        int numberOfRecords = result.getNumberOfRecords();
+        long numberOfRecords = result.getNumberOfRecords();
         assertThat(numberOfRecords).isEqualTo(transactions.size());
-        assertThat(reportMetadata.getPdpoPartyIds().size()).isGreaterThanOrEqualTo(numberOfRecords);
+        assertThat((long) reportMetadata.getPdpoPartyIds().size()).isGreaterThanOrEqualTo(numberOfRecords);
         Assertions.assertThat(reportMetadata.getPdpoPartyIds()).doesNotHaveDuplicates();
     }
 
@@ -226,16 +226,14 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"UNKNOWN"})
-    void generateReportData_filterByEnforcementModeNullOrUnknown_returnAllSortedResults(String enforcementMode) {
+    @Test
+    void generateReportData_filterByEnforcementModeNull_returnAllSortedResults() {
         //Arrange
         String json = """
             {
-              "reportEnforcementMode": "%s"
+              "reportEnforcementMode": null
             }
-            """.formatted(enforcementMode);
+            """;
         //Act
         OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
             service.generateReportData(reportWithFilters(json));
@@ -275,17 +273,6 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             .extracting(EnforcementReportRowDto::getAccountNo)
             .isSorted();
         Map<String, Long> accountNoToId = getAccountNoToId();
-        transactions.forEach(dto -> {
-            Long accountId = accountNoToId.get(dto.getAccountNo());
-            boolean exists = enforcementRepository
-                .findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(accountId)
-                .isPresent();
-
-            if (!exists) {
-                System.out.println("Missing enforcement for account: " + dto.getAccountNo());
-            }
-        });
-
         Assertions.assertThat(transactions).allSatisfy(dto -> {
             Long accountId = accountNoToId.get(dto.getAccountNo());
             Optional<EnforcementEntity> latest =

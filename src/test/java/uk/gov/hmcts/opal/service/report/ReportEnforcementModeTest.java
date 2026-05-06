@@ -1,19 +1,17 @@
 package uk.gov.hmcts.opal.service.report;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class ReportEnforcementModeTest {
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"UNKNOWN", "ALL"})
-    void from_returnsAllWhenValueIsUnknown(String value) {
-        assertEquals(ReportEnforcementMode.ALL, ReportEnforcementMode.from(value));
+    @Test
+    void from_returnsAllWhenValueIsNull() {
+        assertEquals(ReportEnforcementMode.ALL, ReportEnforcementMode.from(null));
     }
 
     @Test
@@ -23,5 +21,11 @@ class ReportEnforcementModeTest {
         assertEquals(ReportEnforcementMode.REGF, ReportEnforcementMode.from("REGF"));
         assertEquals(ReportEnforcementMode.NOT_UNDER_ENFORCEMENT, ReportEnforcementMode
             .from("NOT_UNDER_ENFORCEMENT"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "UNKNOWN"})
+    void from_returnsAllWhenValueIsNull(String value) {
+        assertThrows(IllegalArgumentException.class, () -> ReportEnforcementMode.from(value));
     }
 }

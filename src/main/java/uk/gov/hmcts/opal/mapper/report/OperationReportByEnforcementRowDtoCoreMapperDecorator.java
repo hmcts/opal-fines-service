@@ -3,9 +3,11 @@ package uk.gov.hmcts.opal.mapper.report;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
@@ -13,29 +15,20 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
-import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
+@Setter
 public class OperationReportByEnforcementRowDtoCoreMapperDecorator implements OperationReportByEnforcementRowDtoMapper {
 
+    // Use @Autowired fields here because MapStruct-generated decorators
+    // cannot use custom constructor injection.
     @Autowired
+    @Qualifier("delegate")
     private OperationReportByEnforcementRowDtoCoreMapper delegate;
-    @Autowired(required = false)
+    @Autowired
     private DebtorDetailRepositoryService debtorService;
-    @Autowired(required = false)
+    @Autowired
     private EnforcementRepositoryService enforcementService;
-
-    public void setDelegate(OperationReportByEnforcementRowDtoCoreMapper delegate) {
-        this.delegate = delegate;
-    }
-
-    public void setDebtorService(DebtorDetailRepositoryService debtorService) {
-        this.debtorService = debtorService;
-    }
-
-    public void setEnforcementService(EnforcementRepositoryService enforcementService) {
-        this.enforcementService = enforcementService;
-    }
 
     @Override
     public EnforcementReportRowDto map(DefendantAccountEntity entity, ReportMetadataContext context) {

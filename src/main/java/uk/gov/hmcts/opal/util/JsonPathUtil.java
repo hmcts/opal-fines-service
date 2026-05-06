@@ -6,6 +6,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j(topic = "opal.JsonPathUtil")
@@ -15,9 +16,10 @@ public class JsonPathUtil {
         Configuration config = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
         try {
             return new DocContext(JsonPath.parse(document, config), document);
-        } catch (IllegalArgumentException iae) {
+        } catch (IllegalArgumentException exception) {
             throw new IllegalArgumentException(
-                "Cannot create a JSON Document Context from an empty or null String. See " + errorSource, iae);
+                "Cannot create a JSON Document Context from an empty or null String. See " + errorSource,
+                exception);
         }
     }
 
@@ -33,79 +35,79 @@ public class JsonPathUtil {
         public <T> T read(String path) {
             try {
                 return documentContext.read(path);
-            } catch (PathNotFoundException pnfe) {
+            } catch (PathNotFoundException exception) {
                 // All this is required because the PathNotFoundException suppresses the Stack Trace.
-                throw new RuntimeException(pnfe.getMessage());
+                throw new RuntimeException(exception.getMessage());
             }
         }
 
         public <T> T readOrNull(String path) {
             try {
                 return documentContext.read(path);
-            } catch (PathNotFoundException pnfe) {
+            } catch (PathNotFoundException pathNotFoundException) {
                 return null;
             }
         }
     }
 
-    public static String safeReadString(DocContext ctx, String path, String def) {
+    public static String safeReadString(DocContext docContext, String path, String defaultValue) {
         try {
-            Object v = ctx.read(path);
-            if (v == null) {
-                return def;
+            Object value = docContext.read(path);
+            if (value == null) {
+                return defaultValue;
             }
-            return String.valueOf(v);
+            return String.valueOf(value);
         } catch (Exception e) {
-            return def;
+            return defaultValue;
         }
     }
 
-    public static java.time.LocalDate safeReadLocalDate(DocContext ctx, String path) {
+    public static LocalDate safeReadLocalDate(DocContext docContext, String path) {
         try {
-            String s = safeReadString(ctx, path, null);
-            if (s == null || s.isBlank()) {
+            String stringValue = safeReadString(docContext, path, null);
+            if (stringValue == null || stringValue.isBlank()) {
                 return null;
             }
-            return java.time.LocalDate.parse(s);
+            return LocalDate.parse(stringValue);
         } catch (Exception e) {
             return null;
         }
     }
 
-    public static Boolean safeReadBoolean(DocContext ctx, String path, Boolean def) {
+    public static Boolean safeReadBoolean(DocContext docContext, String path, Boolean defaultValue) {
         try {
-            Object v = ctx.read(path);
-            if (v == null) {
-                return def;
+            Object value = docContext.read(path);
+            if (value == null) {
+                return defaultValue;
             }
-            if (v instanceof Boolean) {
-                return (Boolean) v;
+            if (value instanceof Boolean) {
+                return (Boolean) value;
             }
-            String s = String.valueOf(v).trim();
-            if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("y")
-                || s.equalsIgnoreCase("yes")) {
+            String stringValue = String.valueOf(value).trim();
+            if (stringValue.equalsIgnoreCase("true") || stringValue.equalsIgnoreCase("y")
+                || stringValue.equalsIgnoreCase("yes")) {
                 return Boolean.TRUE;
             }
-            if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("n")
-                || s.equalsIgnoreCase("no")) {
+            if (stringValue.equalsIgnoreCase("false") || stringValue.equalsIgnoreCase("n")
+                || stringValue.equalsIgnoreCase("no")) {
                 return Boolean.FALSE;
             }
-            return def;
+            return defaultValue;
         } catch (Exception e) {
-            return def;
+            return defaultValue;
         }
     }
 
-    public static java.math.BigDecimal safeReadBigDecimal(DocContext ctx, String path) {
+    public static BigDecimal safeReadBigDecimal(DocContext docContext, String path) {
         try {
-            Object v = ctx.read(path);
-            if (v == null) {
+            Object value = docContext.read(path);
+            if (value == null) {
                 return null;
             }
-            if (v instanceof Number) {
-                return new BigDecimal(String.valueOf(v));
+            if (value instanceof Number) {
+                return new BigDecimal(String.valueOf(value));
             }
-            return new BigDecimal(String.valueOf(v));
+            return new BigDecimal(String.valueOf(value));
         } catch (Exception e) {
             return null;
         }

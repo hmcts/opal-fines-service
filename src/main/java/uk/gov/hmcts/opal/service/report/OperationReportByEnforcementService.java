@@ -78,7 +78,7 @@ public class OperationReportByEnforcementService implements ReportInterface {
     @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, ReportDataInterface reportData,
         FileType fileType) {
-        return new byte[0];
+        throw new UnsupportedOperationException();
     }
 
 }
