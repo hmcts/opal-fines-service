@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.DEFAULT_REPORT_ID;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportDto;
 
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,29 +18,25 @@ import uk.gov.hmcts.opal.generated.model.ReportReports;
 import uk.gov.hmcts.opal.service.ReportService;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("ReportsApiController Tests")
 class ReportsApiControllerTest {
-
-    private static final String AUTH_HEADER = "Bearer test-token";
 
     @Mock
     private ReportService reportService;
 
     @InjectMocks
-    private ReportsApiController cut;
+    private ReportsApiController reportsApiController;
 
     @Test
-    @DisplayName("Should return 200 with the report DTO returned by the service")
     void getReport_returnsServiceResult() {
         ReportReports expected = createDefaultReportDto();
-        when(reportService.getReport(DEFAULT_REPORT_ID, AUTH_HEADER)).thenReturn(expected);
+        when(reportService.getReport(DEFAULT_REPORT_ID)).thenReturn(expected);
 
-        ResponseEntity<ReportReports> actual = cut.getReport(DEFAULT_REPORT_ID, AUTH_HEADER);
+        ResponseEntity<ReportReports> actual = reportsApiController.getReport(DEFAULT_REPORT_ID);
 
         assertAll(
             () -> assertEquals(HttpStatus.OK, actual.getStatusCode()),
             () -> assertEquals(expected, actual.getBody()),
-            () -> verify(reportService).getReport(DEFAULT_REPORT_ID, AUTH_HEADER)
+            () -> verify(reportService).getReport(DEFAULT_REPORT_ID)
         );
     }
 }

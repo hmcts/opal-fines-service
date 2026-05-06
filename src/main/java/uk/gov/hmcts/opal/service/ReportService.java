@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.common.service.AbstractPermissionService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
-import uk.gov.hmcts.opal.mapper.ReportMapper;
+import uk.gov.hmcts.opal.mapper.ReportEntityMapper;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 
 @Service
@@ -19,18 +19,16 @@ import uk.gov.hmcts.opal.repository.ReportRepository;
 public class ReportService extends AbstractPermissionService {
 
     private final ReportRepository reportRepository;
-    private final ReportMapper reportMapper;
+    private final ReportEntityMapper reportMapper;
     private final UserStateService userStateService;
 
     @Transactional(readOnly = true)
-    public ReportReports getReport(String reportId, String authHeaderValue) {
+    public ReportReports getReport(String reportId) {
         log.debug(":getReport: reportId={}", reportId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-
+        UserState userState = userStateService.checkForAuthorisedUser();
         ReportEntity entity = reportRepository.findById(reportId)
             .orElseThrow(() -> new EntityNotFoundException("Report not found with id: " + reportId));
-
         checkPermission(userState, entity.getPermission() != null
             ? FinesPermission.valueOf(entity.getPermission()) : null);
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -15,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 
 @Entity
@@ -57,11 +59,11 @@ public class ReportEntity {
     @Column(name = "shown_as_worklist", nullable = false)
     private boolean shownAsWorklist;
 
-    //    @Convert(converter = DurationToStringConverter.class)
+    @Convert(converter = DurationToStringConverter.class)
     @Column(name = "retention_period", length = 30)
     private Duration retentionPeriod;
 
-    @Column(name = "permission", length = 100)
+    @Column(name = "permission", length = 30)
     private String permission;
 
     @Column(name = "can_manually_create", nullable = false)

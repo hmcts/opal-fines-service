@@ -16,11 +16,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: Authorization
-          in: header
-          required: false
-          schema:
-            type: string
       responses:
         "200":
           description: Report details

@@ -1,26 +1,26 @@
 package uk.gov.hmcts.opal.service;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.access.AccessDeniedException;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-
-import java.util.Optional;
-
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.UserStateService.DEVELOPER_PERMISSIONS;
+
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 
 @ExtendWith(MockitoExtension.class)
 class UserStateServiceTest {
@@ -38,9 +38,22 @@ class UserStateServiceTest {
     private UserStateService userStateService;
 
     @Test
+    void testCheckForAuthorisedUser_noArg_delegatesToNullAuthorization() {
+        UserState state = UserStateUtil.permissionUser((short) 77, FinesPermission.ACCOUNT_ENQUIRY);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(state));
+
+        UserState userState = userStateService.checkForAuthorisedUser();
+
+        assertAll(
+            () -> assertNotNull(userState),
+            () -> assertEquals(state, userState)
+        );
+    }
+
+    @Test
     void testCheckForAuthorisedUser_success() {
         // Arrange
-        UserState state = UserStateUtil.permissionUser((short)77, FinesPermission.ACCOUNT_ENQUIRY);
+        UserState state = UserStateUtil.permissionUser((short) 77, FinesPermission.ACCOUNT_ENQUIRY);
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(state));
 
         // Act
@@ -60,7 +73,7 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser(""));
+            () -> userStateService.checkForAuthorisedUser(""));
 
         // Assert
         assertNotNull(ade);

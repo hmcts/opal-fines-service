@@ -36,7 +36,7 @@ INSERT INTO reports (
     FALSE,
     FALSE,
     FALSE,
-    '14',
+    'P14D',
     NULL,
     ARRAY['CSV', 'PDF']::r_supported_file_type_enum[],
     TRUE
@@ -50,7 +50,7 @@ INSERT INTO reports (
     FALSE,
     FALSE,
     FALSE,
-    '14',
+    'P14D',
     NULL,
     ARRAY['CSV', 'PDF']::r_supported_file_type_enum[],
     TRUE

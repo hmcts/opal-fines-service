@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -17,19 +18,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Unit tests for JsonMapperHelper.
- *
- * @author Krishna Sapkota
- */
 @DisplayName("JsonMapperHelper Tests [@PO-2250]")
 class JsonMapperHelperTest {
 
-    private JsonMapperHelper cut;
+    private JsonMapperHelper jsonMapperHelper;
 
     @BeforeEach
     void setUp() {
-        cut = new JsonMapperHelper(new ObjectMapper());
+        jsonMapperHelper = new JsonMapperHelper(new ObjectMapper());
     }
 
     @Nested
@@ -39,9 +35,14 @@ class JsonMapperHelperTest {
         @Test
         @DisplayName("Should parse valid JSON with multiple fields")
         void parseJsonToMap_withValidJson_shouldReturnMap() {
-            String json = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":123}";
+            String json = """
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": 123
+                }""";
 
-            Map<String, Object> actual = cut.parseJsonToMap(json);
+            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
 
             assertAll("Verify valid JSON parsing",
                 () -> assertNotNull(actual),
@@ -55,9 +56,13 @@ class JsonMapperHelperTest {
         @Test
         @DisplayName("Should parse JSON with nested objects")
         void parseJsonToMap_withNestedJson_shouldReturnMap() {
-            String json = "{\"outer\":{\"inner\":\"value\"},\"top\":\"level\"}";
+            String json = """
+                {
+                    "outer": {"inner": "value"},
+                    "top": "level"
+                }""";
 
-            Map<String, Object> actual = cut.parseJsonToMap(json);
+            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
 
             assertAll("Verify nested JSON parsing",
                 () -> assertNotNull(actual),
@@ -70,9 +75,13 @@ class JsonMapperHelperTest {
         @Test
         @DisplayName("Should parse JSON with array values")
         void parseJsonToMap_withArrayValues_shouldReturnMap() {
-            String json = "{\"items\":[\"item1\",\"item2\"],\"count\":2}";
+            String json = """
+                {
+                    "items": ["item1", "item2"],
+                    "count": 2
+                }""";
 
-            Map<String, Object> actual = cut.parseJsonToMap(json);
+            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
 
             assertAll("Verify JSON with arrays parsing",
                 () -> assertNotNull(actual),
@@ -92,7 +101,7 @@ class JsonMapperHelperTest {
         @ValueSource(strings = {"", "{}"})
         @DisplayName("Should return null for null, empty string, or empty object")
         void parseJsonToMap_withNullOrEmptyJson_shouldReturnNull(String json) {
-            Map<String, Object> actual = cut.parseJsonToMap(json);
+            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
 
             assertNull(actual, "Expected null for null/empty/empty-object JSON input");
         }
@@ -102,17 +111,18 @@ class JsonMapperHelperTest {
     @DisplayName("parseJsonToMap() - Error Cases")
     class ParseJsonToMapErrorCases {
 
-        @ParameterizedTest(name = "Should return null for invalid JSON: {0}")
+        @ParameterizedTest(name = "Should throw IllegalArgumentException for invalid JSON: {0}")
         @ValueSource(strings = {
             "{invalid json}",
             "{\"key\":\"value\"",
             "{\"key\":{\"nested\":\"value\""
         })
-        @DisplayName("Should return null when JSON is invalid or malformed")
-        void parseJsonToMap_withInvalidJson_shouldReturnNull(String invalidJson) {
-            Map<String, Object> actual = cut.parseJsonToMap(invalidJson);
-
-            assertNull(actual, "Expected null for invalid/malformed JSON input");
+        @DisplayName("Should throw IllegalArgumentException when JSON is invalid or malformed")
+        void parseJsonToMap_withInvalidJson_shouldThrowIllegalArgumentException(String invalidJson) {
+            assertThrows(IllegalArgumentException.class,
+                () -> jsonMapperHelper.parseJsonToMap(invalidJson),
+                "Expected IllegalArgumentException for invalid/malformed JSON input"
+            );
         }
     }
 }

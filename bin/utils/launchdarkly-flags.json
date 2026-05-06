@@ -4,29 +4,29 @@
     "release-1c-enforcement-operational-reporting": {
       "key": "release-1c-enforcement-operational-reporting",
       "on": true,
-      "fallthrough": {
-        "variation": 0
-      },
-      "offVariation": 1,
       "variations": [
         true,
         false
-      ]
+      ],
+      "fallthrough": {
+        "variation": 1
+      },
+      "offVariation": 1
     },
     "legacy-app-mode-enabled": {
       "key": "legacy-app-mode-enabled",
       "on": false,
-      "prerequisites": [],
-      "targets": [],
+      "variations": [
+        true,
+        false
+      ],
       "rules": [],
       "fallthrough": {
         "variation": 0
       },
       "offVariation": 1,
-      "variations": [
-        true,
-        false
-      ],
+      "prerequisites": [],
+      "targets": [],
       "clientSideAvailability": {
         "usingMobileKey": true,
         "usingEnvironmentId": false

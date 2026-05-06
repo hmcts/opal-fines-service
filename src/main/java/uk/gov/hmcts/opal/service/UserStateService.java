@@ -1,15 +1,15 @@
 package uk.gov.hmcts.opal.service;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +24,9 @@ public class UserStateService {
 
     private final BeDeveloperConfiguration developerConfiguration;
 
+    public UserState checkForAuthorisedUser() {
+        return checkForAuthorisedUser(null);
+    }
 
     public UserState checkForAuthorisedUser(String authorization) {
 

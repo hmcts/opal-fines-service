@@ -19,11 +19,11 @@ public class ReportsApiController implements ReportsApi {
 
     private final ReportService reportService;
 
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING)
     @Override
-    @FeatureToggle(feature = FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING, value = true)
-    public ResponseEntity<ReportReports> getReport(String id, String authHeaderValue) {
+    public ResponseEntity<ReportReports> getReport(String id) {
         log.debug(":GET:getReport: for report id={}", id);
 
-        return buildResponse(reportService.getReport(id, authHeaderValue));
+        return buildResponse(reportService.getReport(id));
     }
 }
