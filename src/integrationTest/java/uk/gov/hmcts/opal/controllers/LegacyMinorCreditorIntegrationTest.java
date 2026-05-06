@@ -1,9 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -14,48 +10,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.invocation.InvocationOnMock;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import tools.jackson.databind.JsonNode;
+import uk.gov.hmcts.opal.TestContainerConfig;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
-import uk.gov.hmcts.opal.dto.legacy.Defendant;
-import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
-import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -71,14 +46,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
     private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
-
-    @MockitoBean
-    private GatewayService gatewayService;
-
-    @org.junit.jupiter.api.BeforeEach
-    void setUpGatewayDefaults() {
-        doAnswer(this::defaultGatewayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
-    }
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     @Test
     @JiraStory("PO-1902")
@@ -174,17 +142,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
                 FinesPermission.ACCOUNT_MAINTENANCE));
-        when(gatewayService.postToGateway(
-            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyUpdateMinorCreditorAccountResponse.class),
-            any(),
-            eq(null)
-        )).thenReturn(new GatewayService.Response<>(
-            HttpStatus.OK,
-            legacyPatchResponse(),
-            null,
-            null
-        ));
+        resetLegacyStubRequestJournal();
 
         ResultActions resultActions = mockMvc.perform(
             patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
@@ -214,25 +172,16 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(true));
 
-        ArgumentCaptor<Object> requestCaptor = ArgumentCaptor.forClass(Object.class);
-        verify(gatewayService).postToGateway(
-            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyUpdateMinorCreditorAccountResponse.class),
-            requestCaptor.capture(),
-            eq(null)
-        );
+        JsonNode legacyRequest = findLatestLegacyPatchRequestBody();
 
-        uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest legacyRequest =
-            (uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest) requestCaptor.getValue();
-
-        org.junit.jupiter.api.Assertions.assertEquals("607", legacyRequest.getCreditorAccountId());
-        org.junit.jupiter.api.Assertions.assertEquals("10", legacyRequest.getBusinessUnitId());
-        org.junit.jupiter.api.Assertions.assertEquals("USER01", legacyRequest.getBusinessUnitUserId());
-        org.junit.jupiter.api.Assertions.assertEquals(1, legacyRequest.getAccountVersion());
-        org.junit.jupiter.api.Assertions.assertEquals("Updated Ltd",
-            legacyRequest.getPartyDetails().getOrganisationDetails().getOrganisationName());
-        org.junit.jupiter.api.Assertions.assertEquals("112233", legacyRequest.getPayment().getSortCode());
-        org.junit.jupiter.api.Assertions.assertEquals("Ref-01", legacyRequest.getPayment().getAccountReference());
+        Assertions.assertEquals("607", legacyRequest.get("creditor_account_id").asText());
+        Assertions.assertEquals("10", legacyRequest.get("business_unit_id").asText());
+        Assertions.assertEquals("USER01", legacyRequest.get("business_unit_user_id").asText());
+        Assertions.assertEquals(1, legacyRequest.get("account_version").asInt());
+        Assertions.assertEquals("Updated Ltd",
+            legacyRequest.path("party_details").path("organisationDetails").path("organisationName").asText());
+        Assertions.assertEquals("112233", legacyRequest.path("payment").path("sort_code").asText());
+        Assertions.assertEquals("Ref-01", legacyRequest.path("payment").path("account_reference").asText());
     }
 
     @Test
@@ -246,15 +195,9 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
                 FinesPermission.ACCOUNT_MAINTENANCE));
-        when(gatewayService.postToGateway(
-            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyUpdateMinorCreditorAccountResponse.class),
-            any(),
-            eq(null)
-        )).thenThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "Not Found", null, null, null));
 
         mockMvc.perform(
-                patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                patch(URL_BASE + "/404")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTH_HEADER)
                     .header("If-Match", "\"1\"")
@@ -271,15 +214,9 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
                 FinesPermission.ACCOUNT_MAINTENANCE));
-        when(gatewayService.postToGateway(
-            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyUpdateMinorCreditorAccountResponse.class),
-            any(),
-            eq(null)
-        )).thenThrow(HttpClientErrorException.create(HttpStatus.CONFLICT, "Conflict", null, null, null));
 
         mockMvc.perform(
-                patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                patch(URL_BASE + "/409")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTH_HEADER)
                     .header("If-Match", "\"2\"")
@@ -307,26 +244,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
 
     @Test
     void patchMinorCreditor_timeout_returns408() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
-        when(gatewayService.postToGateway(
-            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyUpdateMinorCreditorAccountResponse.class),
-            any(),
-            eq(null)
-        )).thenThrow(new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, "Timeout"));
-
-        mockMvc.perform(
-                patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", AUTH_HEADER)
-                    .header("If-Match", "\"1\"")
-                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
-            )
-            .andExpect(status().isRequestTimeout());
+        super.patchMinorCreditor_timeout_returns408(log);
     }
 
     @Test
@@ -335,16 +253,9 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
                 FinesPermission.ACCOUNT_MAINTENANCE));
-        when(gatewayService.postToGateway(
-            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyUpdateMinorCreditorAccountResponse.class),
-            any(),
-            eq(null)
-        )).thenThrow(HttpServerErrorException.create(HttpStatus.SERVICE_UNAVAILABLE, "Gateway down", null, null,
-            null));
 
         mockMvc.perform(
-                patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                patch(URL_BASE + "/503")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTH_HEADER)
                     .header("If-Match", "\"1\"")
@@ -361,15 +272,9 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
                 FinesPermission.ACCOUNT_MAINTENANCE));
-        when(gatewayService.postToGateway(
-            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyUpdateMinorCreditorAccountResponse.class),
-            any(),
-            eq(null)
-        )).thenThrow(HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "Boom", null, null, null));
 
         mockMvc.perform(
-                patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                patch(URL_BASE + "/500")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTH_HEADER)
                     .header("If-Match", "\"1\"")
@@ -405,201 +310,44 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
                 .holdPayment(true));
     }
 
-    private LegacyUpdateMinorCreditorAccountResponse legacyPatchResponse() {
-        return LegacyUpdateMinorCreditorAccountResponse.builder()
-            .accountVersion(2)
-            .creditorAccountId(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-            .partyDetails(LegacyPartyDetails.builder()
-                .partyId("99008")
-                .organisationFlag(true)
-                .organisationDetails(OrganisationDetails.builder().organisationName("Updated Ltd").build())
-                .build())
-            .address(AddressDetailsLegacy.builder()
-                .addressLine1("99 Updated Road")
-                .addressLine2("Updated Area")
-                .addressLine3("Updated Town")
-                .postcode("NW1 1AA")
-                .build())
-            .payment(LegacyCreditorAccountPaymentDetails.builder()
-                .accountName("Updated Account")
-                .sortCode("112233")
-                .accountNumber("12345678")
-                .accountReference("Ref-01")
-                .payByBacs(true)
-                .holdPayment(true)
-                .build())
+    private void resetLegacyStubRequestJournal() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(legacyStubAdminUri("/requests"))
+            .DELETE()
             .build();
+
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        Assertions.assertEquals(200, response.statusCode(), "Failed to clear legacy stub request journal");
     }
 
-    private Object defaultGatewayResponse(InvocationOnMock invocation) {
-        String actionType = invocation.getArgument(0);
-        Object request = invocation.getArgument(2);
+    private JsonNode findLatestLegacyPatchRequestBody() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(legacyStubAdminUri("/requests"))
+            .GET()
+            .build();
 
-        if ("LIBRA.search_minor_creditors".equals(actionType)) {
-            LegacyMinorCreditorSearchResultsRequest legacyRequest = (LegacyMinorCreditorSearchResultsRequest) request;
-            if ("FAIL".equals(legacyRequest.getAccountNumber())) {
-                throw HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "Boom", null, null, null);
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        Assertions.assertEquals(200, response.statusCode(), "Failed to read legacy stub request journal");
+
+        JsonNode requests = objectMapper.readTree(response.body()).path("requests");
+        for (int index = requests.size() - 1; index >= 0; index--) {
+            JsonNode entry = requests.get(index);
+            JsonNode queryParams = entry.path("request").path("queryParams");
+            JsonNode actionTypeNode = queryParams.path("actionType");
+            String actionType = actionTypeNode.path("values").isArray() && !actionTypeNode.path("values").isEmpty()
+                ? actionTypeNode.path("values").get(0).asText()
+                : actionTypeNode.path("value").asText();
+            if (!UPDATE_MINOR_CREDITOR_ACCOUNT.equals(actionType)) {
+                continue;
             }
 
-            return new GatewayService.Response<>(
-                HttpStatus.OK,
-                LegacyMinorCreditorSearchResultsResponse.builder()
-                    .count(2)
-                    .creditorAccounts(java.util.List.of(
-                        CreditorAccount.builder()
-                            .creditorAccountId("104")
-                            .accountNumber("12345678A")
-                            .organisation(false)
-                            .organisationName("Acme Supplies Ltd")
-                            .addressLine1("Acme House")
-                            .postcode("MA4 1AL")
-                            .businessUnitName("Derbyshire")
-                            .businessUnitId("10")
-                            .accountBalance(150.0)
-                            .defendant(Defendant.builder().organisation(false).build())
-                            .build(),
-                        CreditorAccount.builder()
-                            .creditorAccountId("105")
-                            .accountNumber("12345678")
-                            .organisation(false)
-                            .organisationName("Acme Supplies Ltd")
-                            .addressLine1("Acme House")
-                            .postcode("MA4 1AL")
-                            .businessUnitName("Derbyshire")
-                            .businessUnitId("10")
-                            .accountBalance(0.0)
-                            .defendant(Defendant.builder().organisation(false).build())
-                            .build()
-                    ))
-                    .build(),
-                null,
-                null
-            );
+            String body = entry.path("request").path("body").asText();
+            return objectMapper.readTree(body);
         }
 
-        if ("LIBRA.get_minor_creditors_account_at_a_glance".equals(actionType)) {
-            LegacyGetMinorCreditorAccountAtAGlanceRequest legacyRequest =
-                (LegacyGetMinorCreditorAccountAtAGlanceRequest) request;
-            if ("500".equals(legacyRequest.getCreditorAccountId())) {
-                throw HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "Boom", null, null, null);
-            }
-
-            return new GatewayService.Response<>(
-                HttpStatus.OK,
-                LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
-                    .party(LegacyPartyDetails.builder()
-                        .partyId("99000000000901")
-                        .organisationFlag(true)
-                        .organisationDetails(OrganisationDetails.builder()
-                            .organisationName("Speed Camera Services Ltd")
-                            .build())
-                        .build())
-                    .address(AddressDetailsLegacy.builder()
-                        .addressLine1("10 Technology Way")
-                        .addressLine2("Reading")
-                        .postcode("RG6 1PT")
-                        .build())
-                    .creditorAccountId(99000000000801L)
-                    .creditorAccountVersion(BigInteger.ONE)
-                    .defendant(LegacyGetMinorCreditorAccountAtAGlanceResponse.AtAGlanceDefendant.builder()
-                        .accountNumber("12345678")
-                        .accountId(99000000000001L)
-                        .title("Mr")
-                        .forenames("Michael James")
-                        .surname("Johnson")
-                        .build())
-                    .payment(uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment.builder()
-                        .isBacs(true)
-                        .holdPayment(false)
-                        .build())
-                    .build(),
-                null,
-                null
-            );
-        }
-
-        if ("LIBRA.get_minor_creditors_account_header_summary".equals(actionType)) {
-            String creditorAccountId = ((GetMinorCreditorAccountHeaderSummaryLegacyRequest) request)
-                .getCreditorAccountId();
-            if ("500".equals(creditorAccountId)) {
-                throw HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "Boom", null, null, null);
-            }
-
-            return new GatewayService.Response<>(
-                HttpStatus.OK,
-                GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
-                    .partyDetails(PartyDetailsLegacy.builder()
-                        .partyId("99000000000900")
-                        .organisationFlag(true)
-                        .organisationDetails(OrganisationDetailsLegacy.builder()
-                            .organisationName("Minor Creditor Test Ltd")
-                            .build())
-                        .build())
-                    .businessUnit(BusinessUnitSummary.builder()
-                        .businessUnitId("77")
-                        .businessUnitName("Camberwell Green")
-                        .welshSpeaking("N")
-                        .build())
-                    .creditor(GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy.builder()
-                        .accountVersion(1)
-                        .accountId(creditorAccountId)
-                        .accountNumber("87654321")
-                        .accountType(CreditorAccountTypeReference.builder().accountType("MN").build())
-                        .hasAssociatedDefendant(false)
-                        .build())
-                    .financials(GetMinorCreditorAccountHeaderSummaryLegacyResponse.FinancialsLegacy.builder()
-                        .awarded(BigDecimal.ZERO)
-                        .paidOut(BigDecimal.ZERO)
-                        .awaitingPayout(BigDecimal.ZERO)
-                        .outstanding(BigDecimal.ZERO)
-                        .build())
-                    .build(),
-                null,
-                null
-            );
-        }
-
-        if ("GET_MINOR_CREDITOR_ACCOUNT_PARTY".equals(actionType)) {
-            String accountId = ((LegacyGetMinorCreditorAccountRequest) request).getAccountId();
-            if ("500".equals(accountId)) {
-                throw HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "Boom", null, null, null);
-            }
-
-            return new GatewayService.Response<>(
-                HttpStatus.OK,
-                LegacyGetMinorCreditorAccountResponse.builder()
-                    .accountVersion(1L)
-                    .creditorAccountId(Long.valueOf(accountId))
-                    .partyDetails(LegacyPartyDetails.builder()
-                        .partyId("99000000000901")
-                        .organisationFlag(true)
-                        .organisationDetails(OrganisationDetails.builder()
-                            .organisationName("Speed Camera Services Ltd")
-                            .build())
-                        .build())
-                    .address(AddressDetailsLegacy.builder()
-                        .addressLine1("10 Technology Way")
-                        .addressLine2("Reading")
-                        .postcode("RG6 1PT")
-                        .build())
-                    .payment(LegacyCreditorAccountPaymentDetails.builder()
-                        .accountName("Speed Camera Services")
-                        .sortCode("123456")
-                        .accountNumber("12345678")
-                        .accountReference("SCREF001")
-                        .payByBacs(true)
-                        .holdPayment(false)
-                        .build())
-                    .build(),
-                null,
-                null
-            );
-        }
-
-        if (UPDATE_MINOR_CREDITOR_ACCOUNT.equals(actionType)) {
-            return new GatewayService.Response<>(HttpStatus.OK, legacyPatchResponse(), null, null);
-        }
-
+        Assertions.fail("No legacy PATCH request recorded for actionType " + UPDATE_MINOR_CREDITOR_ACCOUNT);
         return null;
+    }
+
+    private URI legacyStubAdminUri(String path) {
+        return URI.create(TestContainerConfig.legacyGatewayUrl().replace("/opal", "/__admin" + path));
     }
 }
