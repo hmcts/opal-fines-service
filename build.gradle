@@ -627,7 +627,6 @@ dependencies {
   }
   testImplementation 'org.junit.platform:junit-platform-suite:6.1.0'
   testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
-  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.4'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
