@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.service.report;
 
 public interface ReportDataInterface {
 
-    int getNumberOfRecords();
+    long getNumberOfRecords();
 
     ReportMetaData getReportMetaData();
 }

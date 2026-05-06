@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -26,7 +27,7 @@ import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
-@ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
+@ExtendWith(MockitoExtension.class)
 class OperationReportByEnforcementRowDtoCoreMapperDecoratorTest {
 
     @Mock

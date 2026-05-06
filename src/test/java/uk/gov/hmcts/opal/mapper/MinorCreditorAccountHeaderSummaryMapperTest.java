@@ -25,6 +25,8 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 
 @SpringJUnitConfig(classes = MinorCreditorAccountHeaderSummaryMapperTest.TestConfig.class)
 @Isolated
@@ -47,6 +49,12 @@ class MinorCreditorAccountHeaderSummaryMapperTest {
 
     @MockitoBean
     private CreditorAccountTypeMapper creditorAccountTypeMapper;
+
+    @MockitoBean
+    private EnforcementRepositoryService enforcementService;
+
+    @MockitoBean
+    private DebtorDetailRepositoryService debtorService;
 
 
     @Test

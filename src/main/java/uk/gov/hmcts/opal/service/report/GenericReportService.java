@@ -50,7 +50,7 @@ public class GenericReportService implements GenericReportServiceInterface {
             instance.setLocation(location);
             instance.setGenerationStatus(READY);
             instance.setCreatedTimestamp(currentTimestamp);
-            instance.setNoOfRecords((short) data.getNumberOfRecords());
+            instance.setNoOfRecords(data.getNumberOfRecords());
             ReportEntity reportEntity = reportRepository.findById(templateId).orElseThrow(EntityNotFoundException::new);
             var retentionPeriod = reportEntity.getRetentionPeriod();
             if (retentionPeriod != null) {
