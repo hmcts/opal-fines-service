@@ -18,6 +18,7 @@ spring:
       - org.springframework.boot.security.autoconfigure.actuate.web.servlet.ManagementWebSecurityAutoConfiguration
       - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
 
+
 launchdarkly:
   enabled: true
 logging:
