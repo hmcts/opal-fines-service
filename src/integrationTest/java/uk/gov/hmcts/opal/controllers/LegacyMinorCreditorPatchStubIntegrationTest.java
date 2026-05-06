@@ -91,6 +91,25 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends MinorCreditorControlle
     }
 
     @Test
+    void patchMinorCreditor_timeout_returns408_viaRealLegacyStub() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        mockMvc.perform(
+                patch(URL_BASE + "/408")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTH_HEADER)
+                    .header("If-Match", "\"1\"")
+                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
+            )
+            .andExpect(status().isRequestTimeout())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    @Test
     void patchMinorCreditor_staleVersion_returns409_viaRealLegacyStub() throws Exception {
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
