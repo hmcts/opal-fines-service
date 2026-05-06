@@ -26,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -266,6 +267,56 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @Test
     void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
         super.patchMinorCreditor_missingAuthHeader_returns401();
+    }
+
+    @Test
+    void patchMinorCreditor_timeout_returns408() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+        when(gatewayService.postToGateway(
+            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
+            eq(LegacyUpdateMinorCreditorAccountResponse.class),
+            any(),
+            eq(null)
+        )).thenThrow(new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, "Timeout"));
+
+        mockMvc.perform(
+                patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTH_HEADER)
+                    .header("If-Match", "\"1\"")
+                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
+            )
+            .andExpect(status().isRequestTimeout());
+    }
+
+    @Test
+    void patchMinorCreditor_serviceUnavailable_returns503() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+        when(gatewayService.postToGateway(
+            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
+            eq(LegacyUpdateMinorCreditorAccountResponse.class),
+            any(),
+            eq(null)
+        )).thenThrow(HttpServerErrorException.create(HttpStatus.SERVICE_UNAVAILABLE, "Gateway down", null, null,
+            null));
+
+        mockMvc.perform(
+                patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTH_HEADER)
+                    .header("If-Match", "\"1\"")
+                    .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                    .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))
+            )
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     @Test
