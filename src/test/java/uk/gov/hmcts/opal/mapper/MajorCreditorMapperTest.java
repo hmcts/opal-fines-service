@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.mapper;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.time.LocalDateTime;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
@@ -16,7 +18,8 @@ class MajorCreditorMapperTest {
     private final MajorCreditorMapper mapper = Mappers.getMapper(MajorCreditorMapper.class);
 
     @Test
-    void givenMajorCreditorWithCreditorAccount_whenToRefData_thenMapsExpectedFields() {
+    @DisplayName("toRefData maps major creditor and creditor account fields")
+    void toRefData_mapsMajorCreditorFields() {
         LocalDateTime lastChangedDate = LocalDateTime.of(2026, 4, 23, 9, 30);
         MajorCreditorEntity entity = MajorCreditorEntity.builder()
             .majorCreditorId(101L)
@@ -38,19 +41,21 @@ class MajorCreditorMapperTest {
 
         MajorCreditorReferenceData mapped = mapper.toRefData(entity);
 
-        assertNotNull(mapped);
-        assertEquals(101L, mapped.getMajorCreditorId());
-        assertEquals((short) 78, mapped.getBusinessUnitId());
-        assertEquals("MC01", mapped.getMajorCreditorCode());
-        assertEquals("Graph Major Creditor", mapped.getName());
-        assertEquals("MC1 1AA", mapped.getPostcode());
-        assertEquals(202L, mapped.getCreditorAccountId());
-        assertEquals("AC123456", mapped.getAccountNumber());
-        assertEquals("MJ", mapped.getCreditorAccountType());
-        assertEquals(Boolean.TRUE, mapped.getProsecutionService());
-        assertEquals(303L, mapped.getMinorCreditorPartyId());
-        assertEquals(Boolean.FALSE, mapped.getFromSuspense());
-        assertEquals(Boolean.TRUE, mapped.getHoldPayout());
-        assertEquals(lastChangedDate, mapped.getLastChangedDate());
+        assertAll(
+            () -> assertNotNull(mapped),
+            () -> assertEquals(101L, mapped.getMajorCreditorId()),
+            () -> assertEquals((short) 78, mapped.getBusinessUnitId()),
+            () -> assertEquals("MC01", mapped.getMajorCreditorCode()),
+            () -> assertEquals("Graph Major Creditor", mapped.getName()),
+            () -> assertEquals("MC1 1AA", mapped.getPostcode()),
+            () -> assertEquals(202L, mapped.getCreditorAccountId()),
+            () -> assertEquals("AC123456", mapped.getAccountNumber()),
+            () -> assertEquals("MJ", mapped.getCreditorAccountType()),
+            () -> assertEquals(Boolean.TRUE, mapped.getProsecutionService()),
+            () -> assertEquals(303L, mapped.getMinorCreditorPartyId()),
+            () -> assertEquals(Boolean.FALSE, mapped.getFromSuspense()),
+            () -> assertEquals(Boolean.TRUE, mapped.getHoldPayout()),
+            () -> assertEquals(lastChangedDate, mapped.getLastChangedDate())
+        );
     }
 }
