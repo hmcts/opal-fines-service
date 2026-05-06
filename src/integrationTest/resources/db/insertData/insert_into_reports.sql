@@ -1,3 +1,17 @@
+/**
+ * CGI OPAL Program
+ *
+ * MODULE      : insert_into_reports.sql
+ *
+ * DESCRIPTION : Insert test data into the REPORTS table for use by integration tests
+ *
+ * VERSION HISTORY:
+ *
+ * Date          Author      Version     Nature of Change
+ * ----------    -------     --------    ------------------------------------------------------------------------------------------------
+ * 01/06/2026    A REEVES    2.0         Insert test data into the REPORTS table for use by integration tests
+ **/
+
 INSERT INTO public.reports (
     report_id,
     report_title,
@@ -53,4 +67,45 @@ INSERT INTO public.reports (
     'SEARCH_AND_VIEW_ACCOUNTS',
     '{XML,CSV,PDF}',
     true
+),(
+    'IT-report-1',
+    'Single BU report',
+    'group-1',
+    false,
+    null,
+    false,
+    false,
+    false,
+    '14',
+    null,
+    '{CSV,PDF}',
+    true
+),
+(
+    'IT-report-2',
+    'Multi BU report',
+    'group-2',
+    false,
+    null,
+    true,
+    false,
+    false,
+    '14',
+    null,
+    '{CSV,PDF}',
+    true
+),
+(
+    'IT-report-3',
+    'No manual creation report',
+    'group-3',
+    false,
+    null,
+    true,
+    false,
+    false,
+    '14',
+    null,
+    '{CSV,PDF}',
+    false
 );
