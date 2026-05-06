@@ -17,7 +17,6 @@ spring:
       - org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
       - org.springframework.boot.security.autoconfigure.actuate.web.servlet.ManagementWebSecurityAutoConfiguration
       - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
-      - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
 
 launchdarkly:
   enabled: true
