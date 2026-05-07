@@ -323,7 +323,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
-    // ---------- HttpServerErrorException (always respond 500) ----------
+    // ---------- HttpServerErrorException ----------
 
     @Test
     void handleHttpServerError_forced500_retriableFalse() {
@@ -335,7 +335,7 @@ class GlobalExceptionHandlerTest {
         ProblemDetail pd = r.getBody();
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), pd.getStatus());
         assertEquals("Downstream Server Error", pd.getTitle());
-        assertEquals("404 Not Found!", pd.getDetail());
+        assertEquals("Not Found!", pd.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/http-server-error"), pd.getType());
         assertEquals(false, pd.getProperties().get("retriable"));
         assertNotNull(pd.getInstance());
@@ -348,7 +348,7 @@ class GlobalExceptionHandlerTest {
             HttpStatusCode.valueOf(503), "Service Unavailable", HttpHeaders.EMPTY, null, null);
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleHttpServerErrorException(ex);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, r.getStatusCode());
         assertEquals(true, r.getBody().getProperties().get("retriable")); // 503 -> true
     }
 
