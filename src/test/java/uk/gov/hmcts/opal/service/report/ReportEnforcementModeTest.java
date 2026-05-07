@@ -25,7 +25,7 @@ class ReportEnforcementModeTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "UNKNOWN"})
-    void from_returnsAllWhenValueIsNull(String value) {
+    void from_throwsExceptionWhenValueIsUnknown(String value) {
         assertThrows(IllegalArgumentException.class, () -> ReportEnforcementMode.from(value));
     }
 }
