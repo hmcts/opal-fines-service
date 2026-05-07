@@ -123,24 +123,6 @@ launchdarkly:
   file:
     - bin/utils/launchdarkly-flags.json
 
-  feature:
-    release-1a.enabled: ${FEATURE_RELEASE_1A_ENABLED:false}
-    release-1b.enabled: ${FEATURE_RELEASE_1B_ENABLED:false}
-    release-1c-write-off.enabled: ${FEATURE_RELEASE_1C_WRITE_OFF_ENABLED:false}
-    release-1c-auto-enforcement.enabled: ${FEATURE_RELEASE_1C_AUTO_ENFORCEMENT_ENABLED:false}
-    release-1c-enforcement-operational-reporting.enabled: ${FEATURE_RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:false}
-    release-1c-printing.enabled: ${FEATURE_RELEASE_1C_PRINTING_ENABLED:false}
-    release-1c-cpp.enabled: ${FEATURE_RELEASE_1C_CPP_ENABLED:false}
-    release-1c-cpp-enforcement.enabled: ${FEATURE_RELEASE_1C_CPP_ENFORCEMENT_ENABLED:false}
-    release-1c-banking-interfaces.enabled: ${FEATURE_RELEASE_1C_BANKING_INTERFACES_ENABLED:false}
-    release-1c-reference-data.enabled: ${FEATURE_RELEASE_1C_REFERENCE_DATA_ENABLED:false}
-    release-1c-r1a-tidy-up.enabled: ${FEATURE_RELEASE_1C_R1A_TIDY_UP_ENABLED:false}
-    release-1c-payment.enabled: ${FEATURE_RELEASE_1C_PAYMENT_ENABLED:false}
-    release-1c-suspense.enabled: ${FEATURE_RELEASE_1C_SUSPENSE_ENABLED:false}
-    release-1c-checks.enabled: ${FEATURE_RELEASE_1C_CHECKS_ENABLED:false}
-    release-1c-financial-movements.enabled: ${FEATURE_RELEASE_1C_FINANCIAL_MOVEMENTS_ENABLED:false}
-    release-1d-auto-enforcement-config.enabled: ${FEATURE_RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED:false}
-    release-1d-data-retention.enabled: ${FEATURE_RELEASE_1D_DATA_RETENTION_ENABLED:false}
 
 opal:
   redis:

@@ -18,11 +18,15 @@ spring:
       - org.springframework.boot.security.autoconfigure.actuate.web.servlet.ManagementWebSecurityAutoConfiguration
       - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
 
-
 launchdarkly:
   enabled: true
+  file:
+    - bin/utils/launchdarkly-flags.json
+
 logging:
   level:
+    com:
+      launchdarkly: DEBUG
     org:
       hibernate:
         SQL: INFO
