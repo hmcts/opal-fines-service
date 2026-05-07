@@ -24,6 +24,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -147,6 +148,7 @@ class DraftAccountTransactionalTest {
             .submittedByName("Test User")
             .account(minimalAccountJson)
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.REJECTED)
             .timelineData("[]")
             .build();
 
@@ -160,6 +162,9 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
         assertEquals(saved.getAccount(), result.getAccount());
+        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(captor.capture());
+        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
 
     }
 

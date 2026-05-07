@@ -304,7 +304,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .account(dto.getAccount())
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())
-            .accountStatus(Optional.ofNullable(dto.getAccountStatus()).orElse(DraftAccountStatus.SUBMITTED))
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountStatusDate(created)
             .statusMessage(dto.getStatusMessage())
             .timelineData(dto.getTimelineData())

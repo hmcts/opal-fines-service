@@ -181,6 +181,7 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.REJECTED)
             .statusMessage("Created from backend")
             .timelineData(createTimelineDataString())
             .build();
@@ -195,6 +196,7 @@ class DraftAccountServiceTest {
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
         assertEquals(null, captor.getValue().getValidatedBy());
+        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
         assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.SUBMITTED,
                                 "Created from backend");
         verify(pdplLoggingService).pdplForDraftAccount(draftAccountEntity, Action.SUBMIT, userState);
@@ -309,6 +311,7 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
@@ -331,6 +334,7 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional).replaceDraftAccount(any(), captor.capture(), any(), any());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
+        assertEquals(DraftAccountStatus.RESUBMITTED, captor.getValue().getAccountStatus());
         assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.RESUBMITTED, null);
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());

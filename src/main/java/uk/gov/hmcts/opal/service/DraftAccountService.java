@@ -297,14 +297,14 @@ public class DraftAccountService {
     }
 
     private void applyTimelineData(AddDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
-        DraftAccountStatus status = Optional.ofNullable(dto.getAccountStatus()).orElse(DraftAccountStatus.SUBMITTED);
-        dto.setAccountStatus(status);
-        dto.setTimelineData(createTimelineData(userState, unitUser, status, dto.getStatusMessage()));
+        dto.setAccountStatus(DraftAccountStatus.SUBMITTED);
+        dto.setTimelineData(createTimelineData(userState, unitUser, DraftAccountStatus.SUBMITTED,
+                                               dto.getStatusMessage()));
     }
 
     private void applyTimelineData(ReplaceDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
-        DraftAccountStatus status = Optional.ofNullable(dto.getAccountStatus()).orElse(DraftAccountStatus.RESUBMITTED);
-        dto.setTimelineData(createTimelineData(userState, unitUser, status, null));
+        dto.setAccountStatus(DraftAccountStatus.RESUBMITTED);
+        dto.setTimelineData(createTimelineData(userState, unitUser, DraftAccountStatus.RESUBMITTED, null));
     }
 
     private void applyTimelineData(UpdateDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
