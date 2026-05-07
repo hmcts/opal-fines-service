@@ -22,7 +22,14 @@ public final class TimelineData {
     }
 
     public TimelineData(String json) {
-        entries = new ArrayList<>(Arrays.asList(fromJson(json)));
+        entries = new ArrayList<>();
+        appendEntries(json);
+    }
+
+    public void appendEntries(String json) {
+        if (json != null && !json.isBlank()) {
+            entries.addAll(Arrays.asList(fromJson(json)));
+        }
     }
 
     public void insertEntry(String username, String status, LocalDate timestamp, String reason) {

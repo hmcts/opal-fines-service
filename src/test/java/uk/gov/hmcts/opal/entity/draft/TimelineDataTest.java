@@ -40,6 +40,39 @@ class TimelineDataTest {
 } ]""", data.toJson());
     }
 
+    @Test
+    void appendEntries() {
+        TimelineData data = new TimelineData(getTimelineJson());
+
+        data.appendEntries("""
+            [ {
+              "username" : "normal@users.com",
+              "user_id" : "USER01",
+              "status" : "Rejected",
+              "status_date" : "2026-05-01",
+              "reason_text" : "Rejected by checker"
+            } ]""");
+
+        assertTrue(data.toJson().endsWith("""
+  "reason_text" : "Violation of terms of service."
+}, {
+  "username" : "normal@users.com",
+  "user_id" : "USER01",
+  "status" : "Rejected",
+  "status_date" : "2026-05-01",
+  "reason_text" : "Rejected by checker"
+} ]"""));
+    }
+
+    @Test
+    void ignoresBlankEntriesWhenAppending() {
+        TimelineData data = new TimelineData(null);
+
+        data.appendEntries(" ");
+
+        assertEquals("[ ]", data.toJson());
+    }
+
     private String getEndsWith() {
         return """
   "reason_text" : "Violation of terms of service."

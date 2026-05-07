@@ -40,6 +40,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -143,7 +144,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setAccountType(dto.getAccountType());
         existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
         existingAccount.setAccountStatusDate(LocalDateTime.now());
-        existingAccount.setTimelineData(dto.getTimelineData());
+        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
 
         log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
                   draftAccountId, newSnapshot);
@@ -193,7 +194,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 userState, dto.getBusinessUnitId());
         }
 
-        existingAccount.setTimelineData(dto.getTimelineData());
+        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
 
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
                   draftAccountId, existingAccount.getAccountStatus());
@@ -335,5 +336,11 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         return MapUtils.ofNullable("UserIdentifier", approverId,
             "DraftAccountIdentifier", accountId,
             "DraftAccountSubmittedByUserIdentifier", submittedBy);
+    }
+
+    private String appendTimelineData(String existingTimelineData, String generatedTimelineData) {
+        TimelineData timelineData = new TimelineData(existingTimelineData);
+        timelineData.appendEntries(generatedTimelineData);
+        return timelineData.toJson();
     }
 }
