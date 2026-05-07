@@ -26,13 +26,6 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     private static final String URI_DEFENDANT_ACCOUNT_PARTIES
         = URL_BASE + "/" + ACCOUNT_ID + "/defendant-account-parties";
 
-//    private static @NonNull HttpHeaders buildHttpHeaders(String number, String currentVersion) {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setBearerAuth("good_token");
-//        headers.add("Business-Unit-Id", number);
-//        headers.add(HttpHeaders.IF_MATCH, currentVersion);
-//        return headers;
-//    }
 
     private String validCommonFields() {
         return """
