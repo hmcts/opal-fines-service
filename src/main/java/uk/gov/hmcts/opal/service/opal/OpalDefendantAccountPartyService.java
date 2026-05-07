@@ -106,17 +106,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         Long accountId, String businessUnitId,
         String businessUserId, String postedBy, String ifMatch, AddDefendantAccountPartyRequest request) {
 
-        // Validation - basic validation of the request
-        if (request == null || request.getDefendantAccountParty() == null) {
-            throw new IllegalArgumentException("Request body is required");
-        }
-
         DefendantAccountParty requestParty = request.getDefendantAccountParty();
         PartyDetails partyDetails = requestParty.getPartyDetails();
-
-        if (partyDetails == null || partyDetails.getOrganisationFlag() == null) {
-            throw new IllegalArgumentException("party_details.organisation_flag is required");
-        }
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
 
@@ -124,11 +115,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             accountId, businessUnitId, postedBy, businessUserId);
 
         // Verify the defendant account exists in the business unit.
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
-        }
+        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, businessUnitId);
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "addDefendantAccountParty");
         amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
