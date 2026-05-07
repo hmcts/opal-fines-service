@@ -14,6 +14,8 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
@@ -38,6 +40,9 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
     private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE =
         "LIBRA.get_minor_creditors_account_at_a_glance";
+
+    private static final String GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY =
+        "LIBRA.get_minor_creditors_account_header_summary";
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
@@ -124,8 +129,17 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
     @Override
     public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
-        log.debug(":getHeaderSummary: Legacy mode not implemented. minorCreditorAccountId={}",
-            minorCreditorAccountId);
+
+        Response<LegacyGetMinorCreditorAccountHeaderSummaryResponse> response =
+            gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY,
+                LegacyGetMinorCreditorAccountHeaderSummaryResponse.class,
+                LegacyGetMinorCreditorAccountHeaderSummaryRequest.builder()
+                    .creditorAccountId(String.valueOf(minorCreditorAccountId)).build(),
+                null
+            );
+
+        checkResponseForError(response, "getHeaderSummary");
+
 
         throw new UnsupportedOperationException(
             "Legacy mode not implemented for GET /minor-creditor-accounts/{id}/header-summary");

@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntit
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
@@ -49,7 +49,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final CreditorAccountRepository creditorAccountRepository;
     private final PartyRepository partyRepository;
     private final AmendmentService amendmentService;
-    private final MinorCreditorAccountHeaderSummaryMapper headerSummaryMapper;
+    private final MinorCreditorAccountHeaderEntityMapper headerSummaryMapper;
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;

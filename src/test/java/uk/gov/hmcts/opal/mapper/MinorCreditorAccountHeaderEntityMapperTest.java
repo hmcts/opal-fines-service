@@ -26,18 +26,11 @@ import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 
-@SpringJUnitConfig(classes = MinorCreditorAccountHeaderSummaryMapperTest.TestConfig.class)
 @Isolated
-class MinorCreditorAccountHeaderSummaryMapperTest {
-
-    @Configuration
-    @ComponentScan(basePackageClasses = MinorCreditorAccountHeaderSummaryMapper.class)
-    static class TestConfig {
-
-    }
+class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
 
     @Autowired
-    private MinorCreditorAccountHeaderSummaryMapper mapper;
+    private MinorCreditorAccountHeaderEntityMapper mapper;
 
     @MockitoBean
     private PartyMapper partyMapper;
