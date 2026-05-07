@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,16 +38,16 @@ public class DefendantAccountEnforcementService {
     }
 
     public AddEnforcementResponse addEnforcement(Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String ifMatch,
         String authHeaderValue,
-        AddDefendantAccountEnforcementRequest request) {
+        AddDefendantAccountEnforcementRequest request) throws JsonProcessingException {
 
         log.debug(":addEnforcement:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(null);

@@ -1,13 +1,60 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.PaymentTerms;
+import uk.gov.hmcts.opal.dto.ResultId;
+import uk.gov.hmcts.opal.dto.ResultResponse;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
+import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.dto.Note;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.proxy.NotesProxy;
+import uk.gov.hmcts.opal.util.VersionUtils;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -15,40 +62,18 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-import java.math.BigInteger;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
-import uk.gov.hmcts.opal.service.proxy.NotesProxy;
-import uk.gov.hmcts.opal.util.VersionUtils;
-
 @ExtendWith(MockitoExtension.class)
-class OpalDefendantAccountEnforcementServiceTest {
+public class OpalDefendantAccountEnforcementServiceTest {
 
-    @Mock
-    private DefendantAccountRepositoryService defendantAccountRepositoryService;
+    private static final Long DEFENDANT_ACCOUNT_ID = 1001L;
+    private static final Short BUSINESS_UNIT_ID = 2002;
+    private static final String BUSINESS_UNIT_USER_ID = "bu-user-123";
+    private static final String IF_MATCH = "7";
+    private static final String AUTH_HEADER = "Bearer token";
+    private static final String USER_NAME = "test.user";
+    private static final String PROSECUTOR_CASE_REFERENCE = "PCR-12345";
+    private static final Long ENFORCEMENT_ID = 9876L;
+    private static final String RESULT_ID_AS_STRING = "ABDC";
 
     @Mock
     private AmendmentService amendmentService;
@@ -57,42 +82,428 @@ class OpalDefendantAccountEnforcementServiceTest {
     private ReportEntryService reportEntryService;
 
     @Mock
+    private EnforcementRepositoryService enforcementRepositoryService;
+
+    @Mock
     private NotesProxy notesProxy;
 
     @Mock
     private UserStateService userStateService;
 
     @Mock
-    private LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private EnforcerRepositoryService enforcerRepositoryService;
+    private OpalDefendantAccountService opalDefendantAccountService;
 
-    @Mock
-    private EnforcementRepositoryService enforcementRepositoryService;
+    @Spy
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Mock
-    private DebtorDetailRepositoryService debtorDetailRepositoryService;
+    @Spy
+    private Clock clock = Clock.fixed(
+        Instant.parse("2026-04-22T00:00:00Z"),
+        ZoneOffset.UTC
+    );
 
-    @Mock
-    private ResultRepositoryService resultRepositoryService;
+    @InjectMocks
+    private OpalDefendantAccountEnforcementService service;
 
-    private OpalDefendantAccountEnforcementService opalDefendantAccountEnforcementService;
+    @Test
+    public void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JsonProcessingException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
 
-    @BeforeEach
-    void setUp() {
-        opalDefendantAccountEnforcementService = new OpalDefendantAccountEnforcementService(
-            defendantAccountRepositoryService,
-            localJusticeAreaRepositoryService,
-            enforcerRepositoryService,
-            enforcementRepositoryService,
-            debtorDetailRepositoryService,
-            resultRepositoryService,
-            notesProxy,
-            userStateService,
-            amendmentService,
-            reportEntryService,
-            Clock.fixed(java.time.Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC)
+        List<ResultResponse> responses = List.of(
+            ResultResponse.builder().parameterName("reason").response("test reason").build(),
+            ResultResponse.builder().parameterName("jail_days").response("14").build(),
+            ResultResponse.builder().parameterName("enforcer_id").response("55").build(),
+            ResultResponse.builder().parameterName("earliest_release_date").response("2026-05-01T00:00:00").build()
+        );
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(responses)
+            .paymentTerms(null)
+            .build();
+
+        AddEnforcementResponse response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AUTH_HEADER,
+            request
+        );
+
+        String responsesJson = objectMapper.writeValueAsString(responses);
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            eq(RESULT_ID_AS_STRING),
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID),
+            eq(PROSECUTOR_CASE_REFERENCE),
+            eq("ACCOUNT_ENQUIRY"),
+            eq((Integer) 14),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_NAME),
+            eq("test reason"),
+            eq(55L),
+            eq(responsesJson),
+            eq(LocalDateTime.of(2026,5,1,0,0,0)),
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JsonProcessingException {
+        UserState userState = mock(UserState.class);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+
+        when(enforcementRepositoryService.addDefendantAccountEnforcement(
+            anyString(),
+            anyLong(),
+            anyShort(),
+            anyString(),
+            anyString(),
+            nullable(Integer.class),
+            anyString(),
+            anyString(),
+            nullable(String.class),
+            nullable(Long.class),
+            anyString(),
+            nullable(LocalDateTime.class),
+            anyLong()
+        )).thenReturn(ENFORCEMENT_ID);
+
+        List<ResultResponse> responses = List.of(
+            ResultResponse.builder().parameterName("reason").response("test reason").build()
+        );
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(responses)
+            .paymentTerms(null)
+            .build();
+
+        AddEnforcementResponse response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AUTH_HEADER,
+            request
+        );
+
+        String responsesJson = objectMapper.writeValueAsString(responses);
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            eq(RESULT_ID_AS_STRING),
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID),
+            eq(PROSECUTOR_CASE_REFERENCE),
+            eq("ACCOUNT_ENQUIRY"),
+            eq(null),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_NAME),
+            eq("test reason"),
+            eq(null),
+            eq(responsesJson),
+            eq(null),
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JsonProcessingException {
+        UserState userState = mock(UserState.class);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+
+        when(enforcementRepositoryService.addDefendantAccountEnforcement(
+            anyString(),
+            anyLong(),
+            anyShort(),
+            anyString(),
+            anyString(),
+            nullable(Integer.class),
+            anyString(),
+            anyString(),
+            nullable(String.class),
+            nullable(Long.class),
+            anyString(),
+            nullable(LocalDateTime.class),
+            anyLong()
+        )).thenReturn(ENFORCEMENT_ID);
+
+        List<ResultResponse> responses = List.of(
+            ResultResponse.builder().parameterName("jail_days").response("14").build()
+        );
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(responses)
+            .paymentTerms(null)
+            .build();
+
+        AddEnforcementResponse response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AUTH_HEADER,
+            request
+        );
+
+        String responsesJson = objectMapper.writeValueAsString(responses);
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            eq(RESULT_ID_AS_STRING),
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID),
+            eq(PROSECUTOR_CASE_REFERENCE),
+            eq("ACCOUNT_ENQUIRY"),
+            eq((Integer) 14),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_NAME),
+            eq(null),
+            eq(null),
+            eq(responsesJson),
+            eq(null),
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JsonProcessingException {
+        UserState userState = mock(UserState.class);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+
+        when(enforcementRepositoryService.addDefendantAccountEnforcement(
+            anyString(),
+            anyLong(),
+            anyShort(),
+            anyString(),
+            anyString(),
+            nullable(Integer.class),
+            anyString(),
+            anyString(),
+            nullable(String.class),
+            nullable(Long.class),
+            anyString(),
+            nullable(LocalDateTime.class),
+            anyLong()
+        )).thenReturn(ENFORCEMENT_ID);
+
+        List<ResultResponse> responses = List.of(
+            ResultResponse.builder().parameterName("enforcer_id").response("55").build()
+        );
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(responses)
+            .paymentTerms(null)
+            .build();
+
+        AddEnforcementResponse response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AUTH_HEADER,
+            request
+        );
+
+        String responsesJson = objectMapper.writeValueAsString(responses);
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            eq(RESULT_ID_AS_STRING),
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID),
+            eq(PROSECUTOR_CASE_REFERENCE),
+            eq("ACCOUNT_ENQUIRY"),
+            eq(null),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_NAME),
+            eq(null),
+            eq(55L),
+            eq(responsesJson),
+            eq(null),
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JsonProcessingException {
+        UserState userState = mock(UserState.class);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+
+        when(enforcementRepositoryService.addDefendantAccountEnforcement(
+            anyString(),
+            anyLong(),
+            anyShort(),
+            anyString(),
+            anyString(),
+            nullable(Integer.class),
+            anyString(),
+            anyString(),
+            nullable(String.class),
+            nullable(Long.class),
+            anyString(),
+            nullable(LocalDateTime.class),
+            anyLong()
+        )).thenReturn(ENFORCEMENT_ID);
+
+        List<ResultResponse> responses = List.of(
+            ResultResponse.builder().parameterName("earliest_release_date").response("2026-05-01T00:00:00").build()
+        );
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(responses)
+            .paymentTerms(null)
+            .build();
+
+        AddEnforcementResponse response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AUTH_HEADER,
+            request
+        );
+
+        String responsesJson = objectMapper.writeValueAsString(responses);
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            eq(RESULT_ID_AS_STRING),
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID),
+            eq(PROSECUTOR_CASE_REFERENCE),
+            eq("ACCOUNT_ENQUIRY"),
+            eq(null),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_NAME),
+            eq(null),
+            eq(null),
+            eq(responsesJson),
+            eq(LocalDateTime.of(2026,5,1,0,0,0)),
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    public void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JsonProcessingException {
+        UserState userState = mock(UserState.class);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+
+        when(enforcementRepositoryService.addDefendantAccountEnforcement(
+            anyString(),
+            anyLong(),
+            anyShort(),
+            anyString(),
+            anyString(),
+            nullable(Integer.class),
+            anyString(),
+            anyString(),
+            nullable(String.class),
+            nullable(Long.class),
+            anyString(),
+            nullable(LocalDateTime.class),
+            anyLong()
+        )).thenReturn(ENFORCEMENT_ID);
+
+        when(defendant.getVersion()).thenReturn(VersionUtils.extractBigInteger(IF_MATCH));
+
+        PaymentTerms paymentTerms = PaymentTerms.builder()
+            .daysInDefault(7)
+            .dateDaysInDefaultImposed(LocalDate.of(2026, 4, 12))
+            .extension(true)
+            .reasonForExtension("test reason")
+            .paymentTermsType(PaymentTermsType.fromCode("B"))
+            .effectiveDate(LocalDate.of(2026, 5, 28))
+            .instalmentPeriod(uk.gov.hmcts.opal.dto.common.InstalmentPeriod.builder()
+                                  .instalmentPeriodCode(InstalmentPeriod.InstalmentPeriodCode.W)
+                                  .build())
+            .lumpSumAmount(BigDecimal.valueOf(100000))
+            .instalmentAmount(BigDecimal.valueOf(0.50))
+            .postedDetails(null)
+            .build();
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(Collections.emptyList())
+            .paymentTerms(paymentTerms)
+            .build();
+
+        AddEnforcementResponse response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AUTH_HEADER,
+            request
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            eq(RESULT_ID_AS_STRING),
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID),
+            eq(PROSECUTOR_CASE_REFERENCE),
+            eq("ACCOUNT_ENQUIRY"),
+            eq(null),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_NAME),
+            eq(null),
+            eq(null),
+            eq("[]"),
+            eq(null),
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
+
+        assertCommonResponse(response);
+
+        verify(opalDefendantAccountService).addPaymentTerms(
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID.toString()),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(IF_MATCH),
+            eq(AUTH_HEADER),
+            org.mockito.ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
         );
     }
 
@@ -136,7 +547,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
             // act
             RemoveDefendantAccountEnforcementHoldResponse result =
-                opalDefendantAccountEnforcementService.removeEnforcementHold(
+                service.removeEnforcementHold(
                     defendantAccountId,
                     businessUnitId,
                     businessUnitUserId,
@@ -211,7 +622,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
         ResourceConflictException ex = assertThrows(
             ResourceConflictException.class,
-            () -> opalDefendantAccountEnforcementService.removeEnforcementHold(
+            () -> service.removeEnforcementHold(
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
@@ -267,7 +678,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
             ResourceConflictException ex = assertThrows(
                 ResourceConflictException.class,
-                () -> opalDefendantAccountEnforcementService.removeEnforcementHold(
+                () -> service.removeEnforcementHold(
                     defendantAccountId,
                     businessUnitId,
                     businessUnitUserId,
@@ -327,7 +738,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
             ObjectOptimisticLockingFailureException ex = assertThrows(
                 ObjectOptimisticLockingFailureException.class,
-                () -> opalDefendantAccountEnforcementService.removeEnforcementHold(
+                () -> service.removeEnforcementHold(
                     defendantAccountId,
                     businessUnitId,
                     businessUnitUserId,
@@ -359,4 +770,41 @@ class OpalDefendantAccountEnforcementServiceTest {
             verifyNoInteractions(reportEntryService, notesProxy);
         }
     }
+
+    private void assertCommonResponse(AddEnforcementResponse response) {
+        assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
+        assertEquals(0, response.getVersion());
+        assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
+    }
+
+    private void mockAuthorisedUser() {
+        UserState userState = mock(UserState.class);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+    }
+
+    private void mockDefendantAccount() {
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+    }
+
+    private void mockCreatedEnforcement() {
+        when(enforcementRepositoryService.addDefendantAccountEnforcement(
+            anyString(),
+            anyLong(),
+            anyShort(),
+            anyString(),
+            anyString(),
+            nullable(Integer.class),
+            anyString(),
+            anyString(),
+            nullable(String.class),
+            nullable(Long.class),
+            anyString(),
+            nullable(LocalDateTime.class),
+            anyLong()
+        )).thenReturn(ENFORCEMENT_ID);
+    }
+
 }

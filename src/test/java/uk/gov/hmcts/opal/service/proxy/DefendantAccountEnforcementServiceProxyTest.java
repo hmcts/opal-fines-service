@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,14 +83,14 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
     }
 
     @Test
-    void shouldDelegateAddEnforcementToLegacyServiceWhenInLegacyMode() {
+    void shouldDelegateAddEnforcementToLegacyServiceWhenInLegacyMode() throws JsonProcessingException {
         // arrange
         setMode(LEGACY);
 
         long defendantAccountId = 77L;
-        String businessUnitId = "10";
+        Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
-        String ifMatch = "\"3\"";
+        String ifMatch = "3";
         String auth = "Bearer abc";
         AddDefendantAccountEnforcementRequest req =
             mock(AddDefendantAccountEnforcementRequest.class);
@@ -117,14 +118,14 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
     }
 
     @Test
-    void shouldDelegateAddEnforcementToOpalServiceWhenInOpalMode() {
+    void shouldDelegateAddEnforcementToOpalServiceWhenInOpalMode() throws JsonProcessingException {
         // arrange
         setMode(OPAL);
 
         long defendantAccountId = 77L;
-        String businessUnitId = "10";
+        Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
-        String ifMatch = "\"3\"";
+        String ifMatch = "3";
         String auth = "Bearer abc";
         AddDefendantAccountEnforcementRequest req =
             mock(AddDefendantAccountEnforcementRequest.class);
