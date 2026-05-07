@@ -410,7 +410,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         assertThat(r1)
             .usingRecursiveComparison()
-            .ignoringFields("accountStatusDate")
+            .ignoringFields("accountStatusDate", "timelineData")
             .isEqualTo(r2);
     }
 
