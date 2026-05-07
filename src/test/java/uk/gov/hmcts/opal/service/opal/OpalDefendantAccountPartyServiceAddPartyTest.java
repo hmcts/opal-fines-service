@@ -7,9 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -20,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
@@ -187,6 +190,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
     @Test
     void addDefendantAccountParty_wrongBusinessUnit_throws() {
         Long accountId = 100L;
+        String businessUnitId = "10";
 
         BusinessUnitEntity buWrong = BusinessUnitEntity.builder()
             .businessUnitId((short) 77).build();
@@ -195,8 +199,113 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
+        doThrow(new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId))
+            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
 
-        AddDefendantAccountPartyRequest req = AddDefendantAccountPartyRequest.builder()
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"1\"",
+                                             validOrganisationRequest()));
+
+        assertEquals("Defendant Account not found in business unit " + businessUnitId, exception.getMessage());
+        verify(defendantAccountRepositoryService).findById(accountId);
+        verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
+        verifyNoAddSideEffects();
+    }
+
+    @Test
+    void addDefendantAccountParty_nullRequest_throws() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", null));
+
+        assertEquals("Request body is required", exception.getMessage());
+        verifyNoInteractions(defendantAccountRepositoryService);
+        verifyNoAddSideEffects();
+    }
+
+    @Test
+    void addDefendantAccountParty_missingDefendantAccountParty_throws() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder().build();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", request));
+
+        assertEquals("Request body is required", exception.getMessage());
+        verifyNoInteractions(defendantAccountRepositoryService);
+        verifyNoAddSideEffects();
+    }
+
+    @Test
+    void addDefendantAccountParty_missingPartyDetails_throws() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType("Defendant")
+                .isDebtor(Boolean.FALSE)
+                .build())
+            .build();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", request));
+
+        assertEquals("party_details.organisation_flag is required", exception.getMessage());
+        verifyNoInteractions(defendantAccountRepositoryService);
+        verifyNoAddSideEffects();
+    }
+
+    @Test
+    void addDefendantAccountParty_missingOrganisationFlag_throws() {
+        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType("Defendant")
+                .isDebtor(Boolean.FALSE)
+                .partyDetails(PartyDetails.builder().build())
+                .build())
+            .build();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", request));
+
+        assertEquals("party_details.organisation_flag is required", exception.getMessage());
+        verifyNoInteractions(defendantAccountRepositoryService);
+        verifyNoAddSideEffects();
+    }
+
+    @Test
+    void addDefendantAccountParty_accountNotFound_throws() {
+        Long accountId = 100L;
+        EntityNotFoundException notFound =
+            new EntityNotFoundException("Defendant Account not found with id: " + accountId);
+
+        when(defendantAccountRepositoryService.findById(accountId)).thenThrow(notFound);
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+            service.addDefendantAccountParty(accountId, "10", "bu-user-1", "tester", "\"1\"",
+                                             validOrganisationRequest()));
+
+        assertEquals("Defendant Account not found with id: " + accountId, exception.getMessage());
+        verify(defendantAccountRepositoryService).findById(accountId);
+        verify(defendantAccountRepositoryService, never()).validateAccountExistsInBusinessUnit(any(), any());
+        verifyNoAddSideEffects();
+    }
+
+    @Test
+    void addDefendantAccountParty_staleIfMatch_throws() {
+        Long accountId = 100L;
+        String businessUnitId = "10";
+        DefendantAccountEntity account = defendantAccount(accountId, Short.parseShort(businessUnitId), 5L);
+
+        when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
+
+        assertThrows(ObjectOptimisticLockingFailureException.class, () ->
+            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"4\"",
+                                             validOrganisationRequest()));
+
+        verify(defendantAccountRepositoryService).findById(accountId);
+        verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
+        verifyNoAddSideEffects();
+    }
+
+    private static AddDefendantAccountPartyRequest validOrganisationRequest() {
+        return AddDefendantAccountPartyRequest.builder()
             .defendantAccountParty(DefendantAccountParty.builder()
                 .defendantAccountPartyType("Defendant")
                 .isDebtor(Boolean.FALSE)
@@ -206,11 +315,23 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                     .build())
                 .build())
             .build();
+    }
 
-        assertThrows(EntityNotFoundException.class, () ->
-            service.addDefendantAccountParty(accountId, "10", "bu-user-1", "tester", "\"1\"", req));
+    private static DefendantAccountEntity defendantAccount(Long accountId, short businessUnitId, long version) {
+        return DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnitId).build())
+            .versionNumber(version)
+            .build();
+    }
 
-        verify(defendantAccountPartiesRepository, never()).save(any());
-        verify(partyRepositoryService, never()).save(any());
+    private void verifyNoAddSideEffects() {
+        verifyNoInteractions(
+            amendmentRepositoryService,
+            aliasRepoService,
+            debtorRepoService,
+            defendantAccountPartiesRepository,
+            partyRepositoryService
+        );
     }
 }

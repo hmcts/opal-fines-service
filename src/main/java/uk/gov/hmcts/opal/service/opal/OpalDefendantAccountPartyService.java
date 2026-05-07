@@ -106,8 +106,16 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         Long accountId, String businessUnitId,
         String businessUserId, String postedBy, String ifMatch, AddDefendantAccountPartyRequest request) {
 
+        if (request == null || request.getDefendantAccountParty() == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+
         DefendantAccountParty requestParty = request.getDefendantAccountParty();
         PartyDetails partyDetails = requestParty.getPartyDetails();
+
+        if (partyDetails == null || partyDetails.getOrganisationFlag() == null) {
+            throw new IllegalArgumentException("party_details.organisation_flag is required");
+        }
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
 
