@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -22,8 +21,18 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @Slf4j(topic = "opal.OpalDefendantsPostPartyIntegrationTest")
 class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
-    private static final long ACCOUNT_ID = 20010L;
+    private static final long ACCOUNT_ID = 24010L;
     private static final String BU_ID = "78";
+    private static final String URI_DEFENDANT_ACCOUNT_PARTIES
+        = URL_BASE + "/" + ACCOUNT_ID + "/defendant-account-parties";
+
+//    private static @NonNull HttpHeaders buildHttpHeaders(String number, String currentVersion) {
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setBearerAuth("good_token");
+//        headers.add("Business-Unit-Id", number);
+//        headers.add(HttpHeaders.IF_MATCH, currentVersion);
+//        return headers;
+//    }
 
     private String validCommonFields() {
         return """
@@ -66,10 +75,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
         Integer currentVersion = versionFor(ACCOUNT_ID);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", "99");
-        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+        HttpHeaders headers = buildHttpHeaders("99", "\"" + currentVersion + "\"");
 
         String body = """
             {
@@ -86,7 +92,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             """.formatted(validCommonFields());
 
         ResultActions res = mockMvc.perform(
-            post("/defendant-accounts/" + ACCOUNT_ID + "/defendant-account-parties")
+            post(URI_DEFENDANT_ACCOUNT_PARTIES)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -107,10 +113,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", BU_ID);
-        headers.add(HttpHeaders.IF_MATCH, etag);
+        HttpHeaders headers = buildHttpHeaders(BU_ID, etag);
 
         String body = """
             {
@@ -127,7 +130,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             """.formatted(validCommonFields());
 
         ResultActions call = mockMvc.perform(
-            post("/defendant-accounts/" + ACCOUNT_ID + "/defendant-account-parties")
+            post(URI_DEFENDANT_ACCOUNT_PARTIES)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -158,10 +161,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", BU_ID);
-        headers.add(HttpHeaders.IF_MATCH, etag);
+        HttpHeaders headers = buildHttpHeaders(BU_ID, etag);
 
         String body = """
             {
@@ -211,7 +211,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             """.formatted(validIndividualDetails("PostTest"));
 
         ResultActions call = mockMvc.perform(
-            post("/defendant-accounts/" + ACCOUNT_ID + "/defendant-account-parties")
+            post(URI_DEFENDANT_ACCOUNT_PARTIES)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -255,10 +255,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     void post_conflict_whenIfMatchIsStale() throws Exception {
         authoriseAllPermissions();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", BU_ID);
-        headers.add(HttpHeaders.IF_MATCH, "\"9999999\"");
+        HttpHeaders headers = buildHttpHeaders(BU_ID, "\"9999999\"");
 
         String body = """
             {
@@ -275,7 +272,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             """.formatted(validCommonFields());
 
         ResultActions res = mockMvc.perform(
-            post("/defendant-accounts/" + ACCOUNT_ID + "/defendant-account-parties")
+            post(URI_DEFENDANT_ACCOUNT_PARTIES)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -298,10 +295,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             Integer currentVersion = versionFor(ACCOUNT_ID);
             String etag = "\"" + currentVersion + "\"";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
-            headers.add("Business-Unit-Id", BU_ID);
-            headers.add(HttpHeaders.IF_MATCH, etag);
+            HttpHeaders headers = buildHttpHeaders(BU_ID, etag);
 
             String body = """
                 {
@@ -318,7 +312,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
                 """.formatted(i, validCommonFields());
 
             ResultActions call = mockMvc.perform(
-                post("/defendant-accounts/" + ACCOUNT_ID + "/defendant-account-parties")
+                post(URI_DEFENDANT_ACCOUNT_PARTIES)
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body)
@@ -331,10 +325,13 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
         assertEquals(versionBefore + 2, versionAfter);
 
         Integer partyCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties WHERE defendant_account_id = ?",
+            "SELECT COUNT(*) FROM defendant_account_parties dap "
+                + "JOIN parties p ON p.party_id = dap.party_id "
+                + "WHERE dap.defendant_account_id = ? "
+                + "AND p.organisation_name IN ('SeqPostCo 1', 'SeqPostCo 2')",
             Integer.class, ACCOUNT_ID);
         assertNotNull(partyCount);
-        assertTrue(partyCount >= 2);
+        assertEquals(2, partyCount);
     }
 
     @Test
@@ -345,10 +342,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", BU_ID);
-        headers.add(HttpHeaders.IF_MATCH, etag);
+        HttpHeaders headers = buildHttpHeaders(BU_ID, etag);
 
         String body = """
             {
@@ -362,7 +356,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             """.formatted(validIndividualDetails("Minimal"), validCommonFields());
 
         ResultActions call = mockMvc.perform(
-            post("/defendant-accounts/" + ACCOUNT_ID + "/defendant-account-parties")
+            post(URI_DEFENDANT_ACCOUNT_PARTIES)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -400,10 +394,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", BU_ID);
-        headers.add(HttpHeaders.IF_MATCH, etag);
+        HttpHeaders headers = buildHttpHeaders(BU_ID, etag);
 
         String body = """
             {
@@ -453,7 +444,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             """.formatted(validIndividualDetails("Schema"));
 
         ResultActions call = mockMvc.perform(
-            post("/defendant-accounts/" + ACCOUNT_ID + "/defendant-account-parties")
+            post(URI_DEFENDANT_ACCOUNT_PARTIES)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -467,4 +458,3 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
         jsonSchemaValidationService.validateOrError(resp, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 }
-

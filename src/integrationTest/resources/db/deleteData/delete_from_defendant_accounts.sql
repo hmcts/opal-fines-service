@@ -178,3 +178,51 @@ WHERE document_id IN ('TTPLET');
 -- Remove test document templates used by ITs
 DELETE FROM documents
 WHERE document_id IN ('TTPLET');
+
+-- ✅ TEST DATA: PO-1896 - Seed data for add DAP Tests
+
+WITH linked_parties AS (
+    SELECT party_id
+    FROM defendant_account_parties
+    WHERE defendant_account_id = 24010
+),
+     deleted_aliases AS (
+         DELETE FROM aliases
+             WHERE party_id IN (SELECT party_id FROM linked_parties)
+             RETURNING party_id
+     ),
+     deleted_debtor_detail AS (
+         DELETE FROM debtor_detail
+             WHERE party_id IN (SELECT party_id FROM linked_parties)
+             RETURNING party_id
+     ),
+     deleted_defendant_account_parties AS (
+         DELETE FROM defendant_account_parties
+             WHERE defendant_account_id = 24010
+             RETURNING party_id
+     )
+DELETE FROM parties
+WHERE party_id IN (SELECT party_id FROM linked_parties);
+
+DELETE FROM amendments
+WHERE associated_record_id = '24010';
+
+DELETE FROM notes
+WHERE associated_record_id = '24010';
+
+DELETE FROM payment_card_requests
+WHERE defendant_account_id = 24010;
+
+DELETE FROM payment_terms
+WHERE defendant_account_id = 24010;
+
+DELETE FROM fixed_penalty_offences
+WHERE defendant_account_id = 24010;
+
+DELETE FROM enforcements
+WHERE defendant_account_id = 24010;
+
+DELETE FROM defendant_accounts
+WHERE defendant_account_id = 24010;
+
+-- END TEST DATA: PO-1896 - Seed data for add DAP Tests
