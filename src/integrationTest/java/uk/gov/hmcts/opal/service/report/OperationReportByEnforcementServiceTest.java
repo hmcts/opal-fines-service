@@ -76,12 +76,12 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     }
 
     @Test
-    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType() {
+    void generateReportData_filterSummaryReportType_returnSortedResultsOfSummaryReportType() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "reportType": "DETAILED"
+              "reportType": "SUMMARY"
             }
             """);
         //Act
@@ -159,12 +159,12 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
 
 
     @Test
-    void generateReportData_filterSummaryReportType_returnSortedResultsOfSummaryReportType() {
+    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "reportType": "SUMMARY"
+              "reportType": "DETAILED"
             }
             """);
         //Act
@@ -172,7 +172,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
         //Assert
         List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
-        //Currently there is no Summary option so this will be the same as Detailed
+        //Currently there is no Detailed option so this will be the same as Summary
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
             .isSorted();
