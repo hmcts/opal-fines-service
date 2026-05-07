@@ -159,7 +159,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2120 / HttpServerErrorException upstream 503 -> 500 with retriable=true")
+    @DisplayName("PO-2120 / HttpServerErrorException upstream 503 -> 503 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5899")
@@ -170,7 +170,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("HTTP 503 body:\n{}", ToJsonString.toPrettyJson(body));
 
-        a.andExpect(status().isInternalServerError())
+        a.andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
