@@ -1,13 +1,20 @@
 package uk.gov.hmcts.opal.service.print;
 
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,12 +27,6 @@ import uk.gov.hmcts.opal.entity.print.PrintStatus;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 import uk.gov.hmcts.opal.sftp.SftpOutboundService;
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -53,16 +54,18 @@ class PrintServiceTest {
     @Mock
     private SftpOutboundService sftpOutboundService;
 
-    @InjectMocks
     private PrintService printService;
 
     private PrintJob printJob1;
     private PrintJob printJob2;
     private PrintJob printJob;
     private PrintDefinition printDefinition;
+    private final Clock fixedClock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
     @BeforeEach
     void setUp() {
+        printService = new PrintService(printDefinitionRepository, printJobRepository, sftpOutboundService, fixedClock);
+
         // Setup for savePrintJobs test
         printJob1 = new PrintJob();
         printJob1.setXmlData("<xml>Data1</xml>");
@@ -117,6 +120,10 @@ class PrintServiceTest {
         assertEquals(printJob2.getBatchId(), batchId);
         assertEquals(PrintStatus.PENDING, printJob1.getStatus());
         assertEquals(PrintStatus.PENDING, printJob2.getStatus());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob1.getCreatedAt());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob1.getUpdatedAt());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob2.getCreatedAt());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob2.getUpdatedAt());
 
         verify(printJobRepository, times(2)).save(any(PrintJob.class));
     }

@@ -10,12 +10,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -41,8 +45,17 @@ class DocumentServiceTest {
     @Captor
     private ArgumentCaptor<DocumentInstanceEntity> instanceCaptor;
 
-    @InjectMocks
     private DocumentService documentService;
+
+    @BeforeEach
+    void setUp() {
+        documentService = new DocumentService(
+            documentInstanceRepository,
+            documentRepository,
+            businessUnitService,
+            Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC)
+        );
+    }
 
     @Test
     void createDocumentInstance_success_savesDocumentInstanceWithExpectedValues() {
@@ -63,6 +76,7 @@ class DocumentServiceTest {
         assertEquals(DocumentEntityStatus.NEW, saved.getStatus());
         assertEquals(defAccountId, saved.getAssociatedRecordId());
         assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, saved.getAssociatedRecordType());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), saved.getGeneratedDate());
     }
 
     @Test

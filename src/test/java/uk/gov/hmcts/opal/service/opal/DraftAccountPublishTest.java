@@ -11,7 +11,10 @@ import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 
 import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +61,7 @@ class DraftAccountPublishTest {
     @BeforeEach
     void openMocks() throws Exception {
         draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository,
-            securityEventLoggingService));
+            securityEventLoggingService, Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC)));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 

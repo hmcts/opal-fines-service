@@ -1,9 +1,16 @@
 package uk.gov.hmcts.opal.disco.opal;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,12 +27,10 @@ import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.LogActionRepository;
 import uk.gov.hmcts.opal.repository.LogAuditDetailRepository;
 
-import java.util.List;
-import java.util.function.Function;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,8 +45,19 @@ class LogAuditDetailServiceTest {
     @Mock
     private BusinessUnitRepository businessUnitRepository;
 
-    @InjectMocks
     private LogAuditDetailService logAuditDetailService;
+
+    private final Clock fixedClock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+
+    @BeforeEach
+    void setUp() {
+        logAuditDetailService = new LogAuditDetailService(
+            logAuditDetailRepository,
+            logActionRepository,
+            businessUnitRepository,
+            fixedClock
+        );
+    }
 
     @Test
     void testGetLogAuditDetail() {
@@ -90,6 +106,10 @@ class LogAuditDetailServiceTest {
 
         // Act
         Assertions.assertDoesNotThrow(() -> logAuditDetailService.writeLogAuditDetail(dto));
+
+        ArgumentCaptor<LogAuditDetailEntity> captor = ArgumentCaptor.forClass(LogAuditDetailEntity.class);
+        verify(logAuditDetailRepository).save(captor.capture());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), captor.getValue().getLogTimestamp());
     }
 
 
