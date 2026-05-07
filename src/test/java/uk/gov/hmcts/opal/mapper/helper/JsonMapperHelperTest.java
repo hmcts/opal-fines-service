@@ -4,21 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-@DisplayName("JsonMapperHelper Tests [@PO-2250]")
 class JsonMapperHelperTest {
 
     private JsonMapperHelper jsonMapperHelper;
@@ -29,11 +27,9 @@ class JsonMapperHelperTest {
     }
 
     @Nested
-    @DisplayName("parseJsonToMap() - Success Cases")
     class ParseJsonToMapSuccessCases {
 
         @Test
-        @DisplayName("Should parse valid JSON with multiple fields")
         void parseJsonToMap_withValidJson_shouldReturnMap() {
             String json = """
                 {
@@ -54,7 +50,6 @@ class JsonMapperHelperTest {
         }
 
         @Test
-        @DisplayName("Should parse JSON with nested objects")
         void parseJsonToMap_withNestedJson_shouldReturnMap() {
             String json = """
                 {
@@ -73,7 +68,6 @@ class JsonMapperHelperTest {
         }
 
         @Test
-        @DisplayName("Should parse JSON with array values")
         void parseJsonToMap_withArrayValues_shouldReturnMap() {
             String json = """
                 {
@@ -93,22 +87,22 @@ class JsonMapperHelperTest {
     }
 
     @Nested
-    @DisplayName("parseJsonToMap() - Empty/Null Cases")
     class ParseJsonToMapEmptyNullCases {
 
-        @ParameterizedTest(name = "Should return null when JSON is {0}")
+        @ParameterizedTest(name = "Should return empty map when JSON is {0}")
         @NullSource
         @ValueSource(strings = {"", "{}"})
-        @DisplayName("Should return null for null, empty string, or empty object")
-        void parseJsonToMap_withNullOrEmptyJson_shouldReturnNull(String json) {
+        void parseJsonToMap_withNullOrEmptyJson_shouldReturnEmptyMap(String json) {
             Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
 
-            assertNull(actual, "Expected null for null/empty/empty-object JSON input");
+            assertAll(
+                () -> assertNotNull(actual),
+                () -> assertTrue(actual.isEmpty())
+            );
         }
     }
 
     @Nested
-    @DisplayName("parseJsonToMap() - Error Cases")
     class ParseJsonToMapErrorCases {
 
         @ParameterizedTest(name = "Should throw IllegalArgumentException for invalid JSON: {0}")
@@ -117,7 +111,6 @@ class JsonMapperHelperTest {
             "{\"key\":\"value\"",
             "{\"key\":{\"nested\":\"value\""
         })
-        @DisplayName("Should throw IllegalArgumentException when JSON is invalid or malformed")
         void parseJsonToMap_withInvalidJson_shouldThrowIllegalArgumentException(String invalidJson) {
             assertThrows(IllegalArgumentException.class,
                 () -> jsonMapperHelper.parseJsonToMap(invalidJson),

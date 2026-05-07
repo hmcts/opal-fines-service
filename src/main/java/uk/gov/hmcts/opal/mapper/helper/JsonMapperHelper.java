@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.helper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
@@ -17,7 +18,7 @@ public class JsonMapperHelper {
     @Named("parseJsonToMap")
     public Map<String, Object> parseJsonToMap(String json) {
         if (json == null || json.isEmpty() || "{}".equals(json)) {
-            return null;
+            return Collections.emptyMap();
         }
         try {
             return objectMapper.readValue(json, new TypeReference<>() {
