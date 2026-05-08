@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.mapper.legacy;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 
 @Mapper(
     componentModel = "spring",
@@ -11,5 +11,5 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 )
 public interface LegacyPartyDetailsMapper {
 
-    PartyDetails toOpal(LegacyPartyDetails legacy);
+    PartyDetails toOpal(PartyDetailsLegacy legacy);
 }

@@ -6,7 +6,6 @@ import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse.FinancialsLegacy;
 
 @Mapper(
     componentModel = "spring",
@@ -15,7 +14,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryRe
         LegacyPartyDetailsMapper.class,
         LegacyBusinessUnitSummaryMapper.class,
         CreditorHeaderLegacyMapper.class,
-        FinancialsLegacy.class
+        FinancialsLegacyMapper.class
     }
 )
 public interface LegacyGetMinorCreditorAccountHeaderSummaryResponseMapper {

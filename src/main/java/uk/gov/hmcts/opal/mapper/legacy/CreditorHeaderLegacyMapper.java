@@ -7,7 +7,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryRe
 
 @Mapper(
     componentModel = "spring",
-    unmappedTargetPolicy = ReportingPolicy.IGNORE
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    uses = CreditorAccountTypeReferenceMapper.class
 )
 public interface CreditorHeaderLegacyMapper {
 
