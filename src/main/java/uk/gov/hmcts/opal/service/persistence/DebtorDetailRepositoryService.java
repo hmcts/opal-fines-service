@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
+import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -66,38 +67,61 @@ public class DebtorDetailRepositoryService {
         debtorDetailRepository.save(debtor);
     }
 
-    private void applyDebtorFields(DebtorDetailEntity debtor,
+    private static void applyDebtorFields(DebtorDetailEntity debtor,
         VehicleDetails vehicle,
         EmployerDetails employer,
         LanguagePreferences language) {
 
+        applyVehicleDetails(debtor, vehicle);
+        applyEmployerDetails(debtor, employer);
+        applyLanguagePreferences(debtor, language);
+    }
+
+    private static void applyVehicleDetails(DebtorDetailEntity debtor, VehicleDetails vehicle) {
         debtor.setVehicleMake(vehicle != null ? vehicle.getVehicleMakeAndModel() : null);
         debtor.setVehicleRegistration(vehicle != null ? vehicle.getVehicleRegistration() : null);
+    }
 
-        if (employer != null) {
-            debtor.setEmployerName(employer.getEmployerName());
-            debtor.setEmployeeReference(employer.getEmployerReference());
-            debtor.setEmployerEmail(employer.getEmployerEmailAddress());
-            debtor.setEmployerTelephone(employer.getEmployerTelephoneNumber());
-
-            AddressDetails ea = employer.getEmployerAddress();
-            if (ea != null) {
-                debtor.setEmployerAddressLine1(ea.getAddressLine1());
-                debtor.setEmployerAddressLine2(ea.getAddressLine2());
-                debtor.setEmployerAddressLine3(ea.getAddressLine3());
-                debtor.setEmployerAddressLine4(ea.getAddressLine4());
-                debtor.setEmployerAddressLine5(ea.getAddressLine5());
-                debtor.setEmployerPostcode(ea.getPostcode());
-            }
+    private static void applyEmployerDetails(DebtorDetailEntity debtor, EmployerDetails employer) {
+        if (employer == null) {
+            return;
         }
 
-        if (language != null) {
-            debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
-                ? Language.fromCode(language.getDocumentLanguagePreference().getLanguageCode()) : null);
-            debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
-                ? Language.fromCode(language.getHearingLanguagePreference().getLanguageCode()) : null);
-            debtor.setDocumentLanguageDate(LocalDate.now());
-            debtor.setHearingLanguageDate(LocalDate.now());
+        debtor.setEmployerName(employer.getEmployerName());
+        debtor.setEmployeeReference(employer.getEmployerReference());
+        debtor.setEmployerEmail(employer.getEmployerEmailAddress());
+        debtor.setEmployerTelephone(employer.getEmployerTelephoneNumber());
+
+        applyEmployerAddress(debtor, employer.getEmployerAddress());
+    }
+
+    private static void applyEmployerAddress(DebtorDetailEntity debtor, AddressDetails address) {
+        if (address == null) {
+            return;
         }
+
+        debtor.setEmployerAddressLine1(address.getAddressLine1());
+        debtor.setEmployerAddressLine2(address.getAddressLine2());
+        debtor.setEmployerAddressLine3(address.getAddressLine3());
+        debtor.setEmployerAddressLine4(address.getAddressLine4());
+        debtor.setEmployerAddressLine5(address.getAddressLine5());
+        debtor.setEmployerPostcode(address.getPostcode());
+    }
+
+    private static void applyLanguagePreferences(DebtorDetailEntity debtor, LanguagePreferences language) {
+        if (language == null) {
+            return;
+        }
+
+        debtor.setDocumentLanguage(toLanguage(language.getDocumentLanguagePreference()));
+        debtor.setHearingLanguage(toLanguage(language.getHearingLanguagePreference()));
+
+        LocalDate now = LocalDate.now();
+        debtor.setDocumentLanguageDate(now);
+        debtor.setHearingLanguageDate(now);
+    }
+
+    private static Language toLanguage(LanguagePreference preference) {
+        return preference != null ? Language.fromCode(preference.getLanguageCode()) : null;
     }
 }

@@ -58,6 +58,8 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalDefendantAccountPartyService implements DefendantAccountPartyServiceInterface {
 
+    public static final String FUNCTION_CODE_ACCOUNT_ENQUIRY = "ACCOUNT_ENQUIRY";
+
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     private final AmendmentRepositoryService amendmentRepositoryService;
@@ -174,7 +176,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             Short.parseShort(businessUnitId),
             postedBy,
             account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
 
         List<AliasEntity> aliasEntity = aliasRepositoryService.findByPartyId(party.getPartyId());
@@ -316,7 +318,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             Short.parseShort(businessUnitId),
             postedBy,
             account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
 
         List<AliasEntity> aliasEntity = party.getPartyId() == null
@@ -381,7 +383,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             businessUnitId,
             postedBy,
             account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
 
         // Flush the managed entity to the DB to ensure the updated version is returned.

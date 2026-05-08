@@ -201,10 +201,10 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         doThrow(new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId))
             .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
+        AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"1\"",
-                                             validOrganisationRequest()));
+            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"1\"", request));
 
         assertEquals("Defendant Account not found in business unit " + businessUnitId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
@@ -276,10 +276,10 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             new EntityNotFoundException("Defendant Account not found with id: " + accountId);
 
         when(defendantAccountRepositoryService.findById(accountId)).thenThrow(notFound);
+        AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.addDefendantAccountParty(accountId, "10", "bu-user-1", "tester", "\"1\"",
-                                             validOrganisationRequest()));
+            service.addDefendantAccountParty(accountId, "10", "bu-user-1", "tester", "\"1\"", request));
 
         assertEquals("Defendant Account not found with id: " + accountId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
@@ -294,10 +294,10 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         DefendantAccountEntity account = defendantAccount(accountId, Short.parseShort(businessUnitId), 5L);
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
+        AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"4\"",
-                                             validOrganisationRequest()));
+            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"4\"", request));
 
         verify(defendantAccountRepositoryService).findById(accountId);
         verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
