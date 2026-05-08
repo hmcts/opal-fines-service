@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigInteger;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualAliasCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 
@@ -37,10 +41,25 @@ class UpdateMinorCreditorAccountRequestMapperTest {
             .partyDetails(new PartyDetailsCommon()
                 .partyId("99008")
                 .organisationFlag(false)
+                .organisationDetails(new OrganisationDetailsCommon()
+                    .organisationName("Updated Ltd")
+                    .organisationAliases(List.of(
+                        new OrganisationAliasCommon()
+                            .aliasId("ORG-1")
+                            .sequenceNumber(7)
+                            .organisationName("Updated Alias")
+                    )))
                 .individualDetails(new IndividualDetailsCommon()
                     .title("Ms")
                     .forenames("Creditor")
-                    .surname("Updated")))
+                    .surname("Updated")
+                    .individualAliases(List.of(
+                        new IndividualAliasCommon()
+                            .aliasId("IND-1")
+                            .sequenceNumber(9)
+                            .surname("AliasSurname")
+                            .forenames("AliasForenames")
+                    ))))
             .address(new AddressDetailsCommon()
                 .addressLine1("99 Updated Road")
                 .addressLine2("Updated Area")
@@ -71,10 +90,22 @@ class UpdateMinorCreditorAccountRequestMapperTest {
         assertNotNull(mapped.getPartyDetails());
         assertEquals("99008", mapped.getPartyDetails().getPartyId());
         assertEquals(false, mapped.getPartyDetails().getOrganisationFlag());
+        assertNotNull(mapped.getPartyDetails().getOrganisationDetails());
+        assertEquals("Updated Ltd", mapped.getPartyDetails().getOrganisationDetails().getOrganisationName());
+        assertNotNull(mapped.getPartyDetails().getOrganisationDetails().getOrganisationAliases());
+        assertEquals(1, mapped.getPartyDetails().getOrganisationDetails().getOrganisationAliases().length);
+        assertEquals("ORG-1", mapped.getPartyDetails().getOrganisationDetails().getOrganisationAliases()[0].getAliasId());
+        assertEquals((short) 7,
+            mapped.getPartyDetails().getOrganisationDetails().getOrganisationAliases()[0].getSequenceNumber());
         assertNotNull(mapped.getPartyDetails().getIndividualDetails());
         assertEquals("Ms", mapped.getPartyDetails().getIndividualDetails().getTitle());
         assertEquals("Creditor", mapped.getPartyDetails().getIndividualDetails().getFirstNames());
         assertEquals("Updated", mapped.getPartyDetails().getIndividualDetails().getSurname());
+        assertNotNull(mapped.getPartyDetails().getIndividualDetails().getIndividualAliases());
+        assertEquals(1, mapped.getPartyDetails().getIndividualDetails().getIndividualAliases().length);
+        assertEquals("IND-1", mapped.getPartyDetails().getIndividualDetails().getIndividualAliases()[0].getAliasId());
+        assertEquals((short) 9,
+            mapped.getPartyDetails().getIndividualDetails().getIndividualAliases()[0].getSequenceNumber());
 
         assertNotNull(mapped.getAddress());
         assertEquals("99 Updated Road", mapped.getAddress().getAddressLine1());
@@ -121,5 +152,17 @@ class UpdateMinorCreditorAccountRequestMapperTest {
         assertNull(mapped.getPayment().getAccountReference());
         assertEquals(false, mapped.getPayment().getPayByBacs());
         assertEquals(false, mapped.getPayment().getHoldPayment());
+    }
+
+    @Test
+    void mapperConverters_handleNullAndNonNullValues() {
+        assertEquals("10", mapper.numberToString(10));
+        assertNull(mapper.numberToString(null));
+
+        assertEquals(2, mapper.bigIntegerToInteger(BigInteger.TWO));
+        assertNull(mapper.bigIntegerToInteger(null));
+
+        assertEquals((short) 3, mapper.integerToShort(3));
+        assertNull(mapper.integerToShort(null));
     }
 }
