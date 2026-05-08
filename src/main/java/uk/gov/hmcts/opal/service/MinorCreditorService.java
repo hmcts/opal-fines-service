@@ -111,7 +111,7 @@ public class MinorCreditorService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
-                null,
+                (Short) null,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
         Short businessUnitIdShort = Short.valueOf(businessUnitId);
