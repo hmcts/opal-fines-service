@@ -16,7 +16,7 @@ public class EnforcementReportRowDto {
     /**
      * See <a
      * href="https://centralgovernmentcgi.atlassian.net/wiki/spaces/LGR/pages/4606787585/F133+-+List+Fines+Summary+CSV">specification
-     * page.</a>
+     * page</a>.
      */
 
     private String header1;                 // fixed literal "DETAIL"
