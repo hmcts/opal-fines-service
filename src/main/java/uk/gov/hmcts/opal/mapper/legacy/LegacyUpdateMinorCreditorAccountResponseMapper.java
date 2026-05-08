@@ -1,9 +1,13 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import org.springframework.stereotype.Component;
+import java.time.LocalDate;
+import org.mapstruct.Builder;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
@@ -19,106 +23,54 @@ import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 
-@Component
-public class LegacyUpdateMinorCreditorAccountResponseMapper {
+@Mapper(
+    componentModel = "spring",
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    builder = @Builder(disableBuilder = true)
+)
+public interface LegacyUpdateMinorCreditorAccountResponseMapper {
 
-    public MinorCreditorAccountResponse toMinorCreditorAccountResponse(
+    @Mappings({
+        @Mapping(target = "version", source = "accountVersion", qualifiedByName = "integerToBigInteger"),
+        @Mapping(target = "creditorAccountId", source = "creditorAccountId"),
+        @Mapping(target = "partyDetails", source = "partyDetails"),
+        @Mapping(target = "address", source = "address"),
+        @Mapping(target = "payment", source = "payment")
+    })
+    MinorCreditorAccountResponse toMinorCreditorAccountResponse(
         LegacyUpdateMinorCreditorAccountResponse legacy
-    ) {
-        MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
-        response.setVersion(BigInteger.valueOf(legacy.getAccountVersion().longValue()));
-        response.setCreditorAccountId(legacy.getCreditorAccountId());
-        response.setPartyDetails(toPartyDetailsCommon(legacy.getPartyDetails()));
-        response.setAddress(toAddressDetailsCommon(legacy.getAddress()));
-        response.setPayment(toPaymentCommon(legacy.getPayment()));
-        return response;
+    );
+
+    PartyDetailsCommon map(LegacyPartyDetails source);
+
+    OrganisationDetailsCommon map(OrganisationDetails source);
+
+    @Mapping(target = "sequenceNumber", source = "sequenceNumber", qualifiedByName = "shortToInteger")
+    OrganisationAliasCommon map(OrganisationDetails.OrganisationAlias source);
+
+    @Mapping(target = "forenames", source = "firstNames")
+    @Mapping(target = "dateOfBirth", source = "dateOfBirth", qualifiedByName = "localDateToString")
+    IndividualDetailsCommon map(IndividualDetails source);
+
+    @Mapping(target = "sequenceNumber", source = "sequenceNumber", qualifiedByName = "shortToInteger")
+    IndividualAliasCommon map(IndividualDetails.IndividualAlias source);
+
+    AddressDetailsCommon map(AddressDetailsLegacy source);
+
+    MinorCreditorAccountResponseMinorCreditorPayment map(LegacyCreditorAccountPaymentDetails source);
+
+    @Named("integerToBigInteger")
+    default BigInteger integerToBigInteger(Integer value) {
+        return value == null ? null : BigInteger.valueOf(value.longValue());
     }
 
-    private PartyDetailsCommon toPartyDetailsCommon(LegacyPartyDetails source) {
-        if (source == null) {
-            return null;
-        }
-
-        return new PartyDetailsCommon()
-            .partyId(source.getPartyId())
-            .organisationFlag(source.getOrganisationFlag())
-            .organisationDetails(toOrganisationDetailsCommon(source.getOrganisationDetails()))
-            .individualDetails(toIndividualDetailsCommon(source.getIndividualDetails()));
+    @Named("shortToInteger")
+    default Integer shortToInteger(Short value) {
+        return value == null ? null : Integer.valueOf(value);
     }
 
-    private OrganisationDetailsCommon toOrganisationDetailsCommon(OrganisationDetails source) {
-        if (source == null) {
-            return null;
-        }
-
-        OrganisationDetailsCommon target = new OrganisationDetailsCommon()
-            .organisationName(source.getOrganisationName());
-
-        if (source.getOrganisationAliases() != null) {
-            target.setOrganisationAliases(Arrays.stream(source.getOrganisationAliases())
-                .map(alias -> new OrganisationAliasCommon()
-                    .aliasId(alias.getAliasId())
-                    .sequenceNumber(alias.getSequenceNumber() == null ? null : alias.getSequenceNumber().intValue())
-                    .organisationName(alias.getOrganisationName()))
-                .collect(Collectors.toList()));
-        }
-
-        return target;
-    }
-
-    private IndividualDetailsCommon toIndividualDetailsCommon(IndividualDetails source) {
-        if (source == null) {
-            return null;
-        }
-
-        IndividualDetailsCommon target = new IndividualDetailsCommon()
-            .title(source.getTitle())
-            .forenames(source.getFirstNames())
-            .surname(source.getSurname())
-            .dateOfBirth(source.getDateOfBirth() == null ? null : source.getDateOfBirth().toString())
-            .age(source.getAge())
-            .nationalInsuranceNumber(source.getNationalInsuranceNumber());
-
-        if (source.getIndividualAliases() != null) {
-            target.setIndividualAliases(Arrays.stream(source.getIndividualAliases())
-                .map(alias -> new IndividualAliasCommon()
-                    .aliasId(alias.getAliasId())
-                    .sequenceNumber(alias.getSequenceNumber() == null ? null : alias.getSequenceNumber().intValue())
-                    .surname(alias.getSurname())
-                    .forenames(alias.getForenames()))
-                .collect(Collectors.toList()));
-        }
-
-        return target;
-    }
-
-    private AddressDetailsCommon toAddressDetailsCommon(AddressDetailsLegacy source) {
-        if (source == null) {
-            return null;
-        }
-
-        return new AddressDetailsCommon()
-            .addressLine1(source.getAddressLine1())
-            .addressLine2(source.getAddressLine2())
-            .addressLine3(source.getAddressLine3())
-            .addressLine4(source.getAddressLine4())
-            .addressLine5(source.getAddressLine5())
-            .postcode(source.getPostcode());
-    }
-
-    private MinorCreditorAccountResponseMinorCreditorPayment toPaymentCommon(
-        LegacyCreditorAccountPaymentDetails source
-    ) {
-        if (source == null) {
-            return null;
-        }
-
-        return new MinorCreditorAccountResponseMinorCreditorPayment()
-            .accountName(source.getAccountName())
-            .sortCode(source.getSortCode())
-            .accountNumber(source.getAccountNumber())
-            .accountReference(source.getAccountReference())
-            .payByBacs(source.getPayByBacs())
-            .holdPayment(source.getHoldPayment());
+    @Named("localDateToString")
+    default String localDateToString(LocalDate value) {
+        return value == null ? null : value.toString();
     }
 }

@@ -6,19 +6,34 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = UpdateMinorCreditorAccountRequestMapperTest.MapperTestConfig.class)
 class UpdateMinorCreditorAccountRequestMapperTest {
 
-    private final UpdateMinorCreditorAccountRequestMapper mapper = new UpdateMinorCreditorAccountRequestMapper();
+    @Autowired
+    private UpdateMinorCreditorAccountRequestMapper mapper;
+
+    @Configuration
+    @ComponentScan(basePackages = "uk.gov.hmcts.opal.mapper")
+    static class MapperTestConfig {
+    }
 
     @Test
     void toLegacyUpdateMinorCreditorAccountRequest_mapsCoreFieldsAndPaymentDetails() {
-        var request = new uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest()
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
             .partyDetails(new PartyDetailsCommon()
                 .partyId("99008")
                 .organisationFlag(false)
@@ -78,7 +93,7 @@ class UpdateMinorCreditorAccountRequestMapperTest {
 
     @Test
     void toLegacyUpdateMinorCreditorAccountRequest_preservesNullOptionalNestedValues() {
-        var request = new uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest()
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
             .partyDetails(new PartyDetailsCommon()
                 .partyId("99008")
                 .organisationFlag(true))

@@ -1,8 +1,12 @@
 package uk.gov.hmcts.opal.mapper.request;
 
 import java.math.BigInteger;
-import java.util.List;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Builder;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
@@ -18,110 +22,59 @@ import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 
-@Component
-public class UpdateMinorCreditorAccountRequestMapper {
+@Mapper(
+    componentModel = "spring",
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    builder = @Builder(disableBuilder = true)
+)
+public interface UpdateMinorCreditorAccountRequestMapper {
 
-    public LegacyUpdateMinorCreditorAccountRequest toLegacyUpdateMinorCreditorAccountRequest(
+    @Mappings({
+        @Mapping(target = "creditorAccountId", source = "creditorAccountId", qualifiedByName = "numberToString"),
+        @Mapping(target = "businessUnitId", source = "businessUnitId", qualifiedByName = "numberToString"),
+        @Mapping(target = "businessUnitUserId", source = "businessUnitUserId"),
+        @Mapping(target = "accountVersion", source = "accountVersion", qualifiedByName = "bigIntegerToInteger"),
+        @Mapping(target = "partyDetails", source = "request.partyDetails"),
+        @Mapping(target = "address", source = "request.address"),
+        @Mapping(target = "payment", source = "request.payment")
+    })
+    LegacyUpdateMinorCreditorAccountRequest toLegacyUpdateMinorCreditorAccountRequest(
         Long creditorAccountId,
         Short businessUnitId,
         String businessUnitUserId,
         BigInteger accountVersion,
         PatchMinorCreditorAccountRequest request
-    ) {
-        return LegacyUpdateMinorCreditorAccountRequest.builder()
-            .creditorAccountId(String.valueOf(creditorAccountId))
-            .businessUnitId(String.valueOf(businessUnitId))
-            .businessUnitUserId(businessUnitUserId)
-            .accountVersion(accountVersion.intValueExact())
-            .partyDetails(toLegacyPartyDetails(request.getPartyDetails()))
-            .address(toLegacyAddress(request.getAddress()))
-            .payment(toLegacyPayment(request.getPayment()))
-            .build();
+    );
+
+    LegacyPartyDetails map(PartyDetailsCommon source);
+
+    OrganisationDetails map(OrganisationDetailsCommon source);
+
+    @Mapping(target = "sequenceNumber", source = "sequenceNumber", qualifiedByName = "integerToShort")
+    OrganisationDetails.OrganisationAlias map(OrganisationAliasCommon source);
+
+    @Mapping(target = "firstNames", source = "forenames")
+    IndividualDetails map(IndividualDetailsCommon source);
+
+    @Mapping(target = "sequenceNumber", source = "sequenceNumber", qualifiedByName = "integerToShort")
+    IndividualDetails.IndividualAlias map(IndividualAliasCommon source);
+
+    AddressDetailsLegacy map(AddressDetailsCommon source);
+
+    LegacyCreditorAccountPaymentDetails map(CreditorAccountPaymentDetailsCommon source);
+
+    @Named("numberToString")
+    default String numberToString(Number value) {
+        return value == null ? null : String.valueOf(value.longValue());
     }
 
-    private LegacyPartyDetails toLegacyPartyDetails(PartyDetailsCommon source) {
-        return LegacyPartyDetails.builder()
-            .partyId(source.getPartyId())
-            .organisationFlag(source.getOrganisationFlag())
-            .organisationDetails(toLegacyOrganisationDetails(source.getOrganisationDetails()))
-            .individualDetails(toLegacyIndividualDetails(source.getIndividualDetails()))
-            .build();
+    @Named("bigIntegerToInteger")
+    default Integer bigIntegerToInteger(BigInteger value) {
+        return value == null ? null : value.intValueExact();
     }
 
-    private OrganisationDetails toLegacyOrganisationDetails(OrganisationDetailsCommon source) {
-        if (source == null) {
-            return null;
-        }
-
-        return OrganisationDetails.builder()
-            .organisationName(source.getOrganisationName())
-            .organisationAliases(toLegacyOrganisationAliases(source.getOrganisationAliases()))
-            .build();
-    }
-
-    private OrganisationDetails.OrganisationAlias[] toLegacyOrganisationAliases(List<OrganisationAliasCommon> source) {
-        if (source == null || source.isEmpty()) {
-            return null;
-        }
-
-        return source.stream()
-            .map(alias -> OrganisationDetails.OrganisationAlias.builder()
-                .aliasId(alias.getAliasId())
-                .sequenceNumber(alias.getSequenceNumber() == null ? null : alias.getSequenceNumber().shortValue())
-                .organisationName(alias.getOrganisationName())
-                .build())
-            .toArray(OrganisationDetails.OrganisationAlias[]::new);
-    }
-
-    private IndividualDetails toLegacyIndividualDetails(IndividualDetailsCommon source) {
-        if (source == null) {
-            return null;
-        }
-
-        return IndividualDetails.builder()
-            .title(source.getTitle())
-            .firstNames(source.getForenames())
-            .surname(source.getSurname())
-            .age(source.getAge())
-            .nationalInsuranceNumber(source.getNationalInsuranceNumber())
-            .individualAliases(toLegacyIndividualAliases(source.getIndividualAliases()))
-            .build();
-    }
-
-    private IndividualDetails.IndividualAlias[] toLegacyIndividualAliases(List<IndividualAliasCommon> source) {
-        if (source == null || source.isEmpty()) {
-            return null;
-        }
-
-        return source.stream()
-            .map(alias -> IndividualDetails.IndividualAlias.builder()
-                .aliasId(alias.getAliasId())
-                .sequenceNumber(alias.getSequenceNumber() == null ? null : alias.getSequenceNumber().shortValue())
-                .surname(alias.getSurname())
-                .forenames(alias.getForenames())
-                .build())
-            .toArray(IndividualDetails.IndividualAlias[]::new);
-    }
-
-    private AddressDetailsLegacy toLegacyAddress(AddressDetailsCommon source) {
-        return AddressDetailsLegacy.builder()
-            .addressLine1(source.getAddressLine1())
-            .addressLine2(source.getAddressLine2())
-            .addressLine3(source.getAddressLine3())
-            .addressLine4(source.getAddressLine4())
-            .addressLine5(source.getAddressLine5())
-            .postcode(source.getPostcode())
-            .build();
-    }
-
-    private LegacyCreditorAccountPaymentDetails toLegacyPayment(CreditorAccountPaymentDetailsCommon source) {
-        return LegacyCreditorAccountPaymentDetails.builder()
-            .accountName(source.getAccountName())
-            .sortCode(source.getSortCode())
-            .accountNumber(source.getAccountNumber())
-            .accountReference(source.getAccountReference())
-            .payByBacs(source.getPayByBacs())
-            .holdPayment(source.getHoldPayment())
-            .build();
+    @Named("integerToShort")
+    default Short integerToShort(Integer value) {
+        return value == null ? null : value.shortValue();
     }
 }
