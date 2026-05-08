@@ -20,8 +20,8 @@ spring:
 
 launchdarkly:
   enabled: true
-  file:
-    - bin/utils/launchdarkly-flags.json
+  default-flag-values:
+    release-1c-enforcement-operational-reporting: true
 
 logging:
   level:

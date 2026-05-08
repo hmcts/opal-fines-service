@@ -120,8 +120,8 @@ launchdarkly:
   offline-mode: ${LAUNCH_DARKLY_OFFLINE_MODE:false}
   env: ${LAUNCH_DARKLY_ENV:default}
   enabled: ${LAUNCH_DARKLY_ENABLED:true}
-  file:
-    - bin/utils/launchdarkly-flags.json
+  default-flag-values:
+    release-1c-enforcement-operational-reporting: ${LAUNCH_DARKLY_FLAG_1C_ENFORCEMENT_OPERATIONAL_REPORTING:false}
 
 
 opal:
