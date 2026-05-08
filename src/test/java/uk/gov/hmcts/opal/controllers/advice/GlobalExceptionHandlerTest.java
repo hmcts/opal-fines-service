@@ -352,6 +352,18 @@ class GlobalExceptionHandlerTest {
         assertEquals(true, r.getBody().getProperties().get("retriable")); // 503 -> true
     }
 
+    @Test
+    void handleHttpServerError_blankStatusText_fallsBackToMessage() {
+        HttpServerErrorException ex = HttpServerErrorException.create(
+            HttpStatusCode.valueOf(500), " ", HttpHeaders.EMPTY, null, null);
+
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleHttpServerErrorException(ex);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(ex.getMessage(), r.getBody().getDetail());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
+
     // ---------- JSON schema & IllegalArgument ----------
 
     @Test
