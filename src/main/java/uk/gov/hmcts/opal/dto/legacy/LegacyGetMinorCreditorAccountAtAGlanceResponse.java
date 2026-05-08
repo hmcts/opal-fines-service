@@ -10,6 +10,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 
 import java.math.BigInteger;
@@ -31,7 +33,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class  LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlString {
+public class  LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "party_details", required = true)
     private LegacyPartyDetails party;

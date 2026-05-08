@@ -28,7 +28,9 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
@@ -1250,7 +1252,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         var legacy = uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse.builder()
             .version(1L).defendantAccountParty(party).build();
 
-        var resp = new uk.gov.hmcts.opal.service.legacy.GatewayService.Response<>(
+        var resp = new uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response<>(
             org.springframework.http.HttpStatus.OK, legacy, null, null);
 
         Class<uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse> respType =
