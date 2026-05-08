@@ -77,7 +77,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                 () -> assertThat(report.getSupportsMultipleBusinessUnits()).isFalse(),
                 () -> assertThat(report.getIsBespokeJourney()).isFalse(),
                 () -> assertThat(report.getShownAsWorklist()).isFalse(),
-                () -> assertThat(report.getRetentionPeriod()).isEqualTo("P14D"),
+                () -> assertThat(report.getRetentionPeriod()).isEqualTo("PT336H"),
                 () -> assertThat(report.getPermission()).isNull(),
                 () -> assertThat(report.getCanManuallyCreate()).isTrue()
             );

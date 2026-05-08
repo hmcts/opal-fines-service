@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.mapper;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.entity.report.SupportedFileType.CSV;
 import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
@@ -12,15 +11,17 @@ import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportEntit
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createFullReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createMinimalReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createReportEntityWithComplexParameters;
-import static uk.gov.hmcts.opal.testdata.ReportTestData.createReportEntityWithNullRetentionPeriod;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.defaultReportEntityBuilder;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.opal.config.JacksonCompatibilityConfiguration;
@@ -32,7 +33,6 @@ import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
     JsonMapperHelper.class})
 @DisplayName("ReportEntityMapper Tests")
 class ReportEntityMapperTest {
-
 
     @Autowired
     private ReportEntityMapper reportEntityMapper;
@@ -64,7 +64,7 @@ class ReportEntityMapperTest {
                 () -> assertEquals(entity.isBespokeJourney(), actual.getIsBespokeJourney()),
                 () -> assertEquals(entity.isShownAsWorklist(), actual.getShownAsWorklist()),
                 () -> assertEquals(entity.isCanManuallyCreate(), actual.getCanManuallyCreate()),
-                () -> assertEquals("P30D", actual.getRetentionPeriod()),
+                () -> assertEquals("PT720H", actual.getRetentionPeriod()),
                 () -> assertEquals(entity.getPermission(), actual.getPermission())
             );
         }
@@ -163,13 +163,26 @@ class ReportEntityMapperTest {
     @DisplayName("toDto() - Retention Period Handling")
     class RetentionPeriodHandling {
 
-        @Test
-        @DisplayName("Should return null when retention period is null")
-        void toDto_withNullRetentionPeriod_shouldReturnNull() {
-            ReportReports actual = reportEntityMapper.toDto(createReportEntityWithNullRetentionPeriod());
+        @ParameterizedTest(name = "{0} -> {1}")
+        @DisplayName("Should map ISO 8601 duration retention period correctly")
+        @CsvSource(nullValues = "NULL", value = {
+            "NULL,        NULL",         // null retention period
+            "PT0S,        PT0S",         // zero / empty duration
+            "P3DT4H5M6S, PT76H5M6S",   // days + hours + minutes + seconds
+            "PT4H5M6S,   PT4H5M6S",    // hours + minutes + seconds only
+            "P3DT0H0M0S, PT72H",        // days only (no time components)
+            "PT0H5M6S,   PT5M6S",       // minutes + seconds only
+            "PT0H0M6S,   PT6S",         // seconds only
+            "PT4H0M0S,   PT4H",         // hours only
+            "P1DT1H1M1S, PT25H1M1S"    // 1 day + 1 hour + 1 min + 1 sec
+        })
+        void toDto_withVariousDurationCombinations_shouldMapCorrectly(String input, String expected) {
+            Duration duration = input != null ? Duration.parse(input) : null;
+            ReportEntity entity = defaultReportEntityBuilder().retentionPeriod(duration).build();
 
-            assertNull(actual.getRetentionPeriod());
+            assertEquals(expected, reportEntityMapper.toDto(entity).getRetentionPeriod());
         }
+
     }
 }
 
