@@ -9,6 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
@@ -16,10 +22,17 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = LegacyUpdateMinorCreditorAccountResponseMapperTest.MapperTestConfig.class)
 class LegacyUpdateMinorCreditorAccountResponseMapperTest {
 
-    private final LegacyUpdateMinorCreditorAccountResponseMapper mapper =
-        new LegacyUpdateMinorCreditorAccountResponseMapper();
+    @Autowired
+    private LegacyUpdateMinorCreditorAccountResponseMapper mapper;
+
+    @Configuration
+    @ComponentScan(basePackages = "uk.gov.hmcts.opal.mapper")
+    static class MapperTestConfig {
+    }
 
     @Test
     void toMinorCreditorAccountResponse_mapsAllCoreFields() {
