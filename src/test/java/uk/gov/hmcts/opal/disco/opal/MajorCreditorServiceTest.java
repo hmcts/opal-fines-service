@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
@@ -46,11 +46,11 @@ class MajorCreditorServiceTest {
     void testGetMajorCreditor() {
         // Arrange
 
-        MajorCreditorFullEntity majorCreditorEntity = MajorCreditorFullEntity.builder().build();
+        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
         when(majorCreditorRepository.findById(any())).thenReturn(Optional.of(majorCreditorEntity));
 
         // Act
-        MajorCreditorFullEntity result = majorCreditorService.getMajorCreditorById(1);
+        MajorCreditorEntity result = majorCreditorService.getMajorCreditorById(1);
 
         // Assert
         assertNotNull(result);
@@ -64,16 +64,15 @@ class MajorCreditorServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        MajorCreditorFullEntity majorCreditorEntity = MajorCreditorFullEntity.builder().build();
-        Page<MajorCreditorFullEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity),
-                                                            Pageable.unpaged(), 999L);
+        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
+        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         // Act
-        List<MajorCreditorFullEntity> result = majorCreditorService.searchMajorCreditors(
+        List<MajorCreditorEntity> result = majorCreditorService.searchMajorCreditors(
             MajorCreditorSearchDto.builder().build());
 
         // Assert
@@ -88,7 +87,7 @@ class MajorCreditorServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        MajorCreditorFullEntity majorCreditorEntity = MajorCreditorFullEntity.builder()
+        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
             .businessUnitId((short) 7)
             .creditorAccountEntity(
                 CreditorAccountEntity.builder()
@@ -119,7 +118,7 @@ class MajorCreditorServiceTest {
             .lastChangedDate(majorCreditorEntity.getCreditorAccountEntity().getLastChangedDate())
             .build();
 
-        Page<MajorCreditorFullEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
+        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;

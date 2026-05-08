@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
@@ -33,10 +35,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
-import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.util.VersionUtils;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -60,14 +61,18 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
     }
 
     @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
+    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
+                                                 Short businessUnitId,
+                                                 String businessUnitUserId,
+                                                 String ifMatch,
+                                                 String authHeader,
+                                                 AddDefendantAccountEnforcementRequest request) {
 
         // build legacy request object
         AddDefendantAccountEnforcementLegacyRequest legacyRequest =
             AddDefendantAccountEnforcementLegacyRequest.builder()
                 .defendantAccountId(String.valueOf(defendantAccountId))
-                .businessUnitId(businessUnitId)
+                .businessUnitId(String.valueOf(businessUnitId))
                 .businessUnitUserId(businessUnitUserId)
                 .version(VersionUtils.extractBigInteger(ifMatch).intValue())
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)

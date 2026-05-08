@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -102,10 +103,10 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    void testAddEnforcement_Success() {
+    void testAddEnforcement_Success() throws JsonProcessingException {
         // Arrange
         Long defendantAccountId = 1L;
-        String businessUnitId = "10";
+        Short businessUnitId = 10;
         String ifMatch = "1";
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder().build();
         AddEnforcementResponse mockResponse = AddEnforcementResponse.builder().build();

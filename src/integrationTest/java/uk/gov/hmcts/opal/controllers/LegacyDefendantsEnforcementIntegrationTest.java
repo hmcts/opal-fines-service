@@ -75,13 +75,13 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         """;
 
     private static final String BUSINESS_UNIT_ID = "78";
-    private static final String IF_MATCH_VERSION = "\"1\"";
+    private static final String IF_MATCH_VERSION = "1";
 
     private HttpHeaders enforcementHeaders(String bearerToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(bearerToken);
         headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, "\"1\"");
+        headers.add(HttpHeaders.IF_MATCH, "1");
         return headers;
     }
 
