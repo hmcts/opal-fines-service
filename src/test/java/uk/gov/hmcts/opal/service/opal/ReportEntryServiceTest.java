@@ -12,12 +12,13 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.ReportEntryEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -32,18 +33,14 @@ class ReportEntryServiceTest {
     @Mock
     private BusinessUnitService businessUnitService;
 
+    @InjectMocks
     private ReportEntryService reportEntryService;
 
     @Captor
     private ArgumentCaptor<ReportEntryEntity> reportEntryCaptor;
 
-    private Clock fixedClock;
-
-    @BeforeEach
-    void setUp() {
-        fixedClock = Clock.fixed(Instant.parse("2026-04-22T09:15:00Z"), ZoneOffset.UTC);
-        reportEntryService = new ReportEntryService(reportEntryRepository, businessUnitService, fixedClock);
-    }
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-04-22T09:15:00Z"), ZoneOffset.UTC);
 
     @Test
     void createRemoveEnforcementHoldReportEntry_savesExpectedReportEntry() {

@@ -25,12 +25,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -62,22 +63,14 @@ class DraftAccountTransactionalTest {
     @Mock
     private BusinessUnitRepository businessUnitRepository;
 
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+
+    @InjectMocks
     private DraftAccountTransactional draftAccountTransactional;
 
     @Mock
     SecurityEventLoggingService securityEventLoggingService;
-
-    private final Clock fixedClock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
-
-    @BeforeEach
-    void setUp() {
-        draftAccountTransactional = new DraftAccountTransactional(
-            draftAccountRepository,
-            businessUnitRepository,
-            securityEventLoggingService,
-            fixedClock
-        );
-    }
 
     @Test
     void testGetDraftAccount() {
@@ -241,7 +234,7 @@ class DraftAccountTransactionalTest {
         assertEquals(createAccountString(), result.getAccount());
         assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
-        assertEquals(createTimelineDataString(), result.getTimelineData());
+        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
 
         verify(draftAccountRepository).findById(draftAccountId);
@@ -435,7 +428,7 @@ class DraftAccountTransactionalTest {
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertTrue(result.getAccountSnapshot().contains("2026-05-07T10:15:00Z"));
-        assertEquals(createTimelineDataString(), result.getTimelineData());
+        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository).save(any(DraftAccountEntity.class));

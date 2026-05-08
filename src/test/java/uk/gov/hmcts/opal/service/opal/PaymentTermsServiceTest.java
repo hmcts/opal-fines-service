@@ -10,27 +10,26 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 
+@ExtendWith(MockitoExtension.class)
 class PaymentTermsServiceTest {
 
     @Mock
     private DefendantAccountPaymentTermsRepository paymentTermsRepository;
 
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+
+    @InjectMocks
     private PaymentTermsService paymentTermsService;
-
-    private final Clock fixedClock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        paymentTermsService = new PaymentTermsService(paymentTermsRepository, fixedClock);
-    }
 
     @Test
     void addPaymentTerm_shouldSetActiveAndPostedDateAndSave() {

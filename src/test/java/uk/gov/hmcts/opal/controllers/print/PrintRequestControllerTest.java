@@ -7,10 +7,11 @@ import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,16 +36,11 @@ public class PrintRequestControllerTest {
     @Mock
     private AsyncPrintJobProcessor asyncPrintJobProcessor;
 
-    private PrintRequestController printRequestController;
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
-    @BeforeEach
-    void setUp() {
-        printRequestController = new PrintRequestController(
-            printService,
-            asyncPrintJobProcessor,
-            Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC)
-        );
-    }
+    @InjectMocks
+    private PrintRequestController printRequestController;
 
     @Test
     void testEnqueuePrintJobs() {

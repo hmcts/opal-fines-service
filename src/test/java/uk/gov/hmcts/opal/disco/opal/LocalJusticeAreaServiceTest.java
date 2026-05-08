@@ -6,11 +6,12 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -34,15 +35,11 @@ class LocalJusticeAreaServiceTest {
     @Mock
     private LocalJusticeAreaRepository localJusticeAreaRepository;
 
-    private LocalJusticeAreaService localJusticeAreaService;
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
-    @BeforeEach
-    void setUp() {
-        localJusticeAreaService = new LocalJusticeAreaService(
-            localJusticeAreaRepository,
-            Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC)
-        );
-    }
+    @InjectMocks
+    private LocalJusticeAreaService localJusticeAreaService;
 
     @Test
     void testGetLocalJusticeArea() {

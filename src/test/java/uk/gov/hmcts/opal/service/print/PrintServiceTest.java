@@ -15,8 +15,10 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -54,18 +56,19 @@ class PrintServiceTest {
     @Mock
     private SftpOutboundService sftpOutboundService;
 
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+
+    @InjectMocks
     private PrintService printService;
 
     private PrintJob printJob1;
     private PrintJob printJob2;
     private PrintJob printJob;
     private PrintDefinition printDefinition;
-    private final Clock fixedClock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
     @BeforeEach
     void setUp() {
-        printService = new PrintService(printDefinitionRepository, printJobRepository, sftpOutboundService, fixedClock);
-
         // Setup for savePrintJobs test
         printJob1 = new PrintJob();
         printJob1.setXmlData("<xml>Data1</xml>");

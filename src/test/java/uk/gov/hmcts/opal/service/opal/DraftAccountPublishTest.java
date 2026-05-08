@@ -25,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.jpa.JpaSystemException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
@@ -53,6 +54,9 @@ class DraftAccountPublishTest {
     @Mock
     SecurityEventLoggingService securityEventLoggingService;
 
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+
     private DraftAccountTransactional draftAccountTransactional;
 
     @InjectMocks
@@ -61,7 +65,7 @@ class DraftAccountPublishTest {
     @BeforeEach
     void openMocks() throws Exception {
         draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository,
-            securityEventLoggingService, Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC)));
+            securityEventLoggingService, clock));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 

@@ -21,7 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -46,9 +48,11 @@ class NotesServiceTest {
     @Mock private EntityManager em;
     @Mock private UserState user;
 
+    @InjectMocks
     private OpalNotesService service;
 
-    private final Clock fixedClock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
     // common test data objects (no stubbing here to keep STRICT_STUBS happy)
     private AddNoteRequest request;
@@ -57,8 +61,6 @@ class NotesServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new OpalNotesService(repository, em, fixedClock);
-
         // Build request payload
         Note n = new Note();
         n.setRecordId("77");
