@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": ["object", "null"],
-  "additionalProperties": false,
   "properties": {
     "business_unit_id": {
       "type": "integer",
@@ -40,5 +39,8 @@
     "business_unit_id",
     "account",
     "account_type"
-  ]
+  ],
+  "not": {
+    "required": ["timeline_data"]
+  }
 }

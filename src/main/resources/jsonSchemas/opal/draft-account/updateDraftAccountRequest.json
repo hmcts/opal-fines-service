@@ -2,7 +2,6 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/updateDraftAccountRequest.json",
   "type": ["object", "null"],
-  "additionalProperties": false,
   "properties": {
     "validated_by": {
       "type": ["string", "null"],
@@ -29,5 +28,8 @@
   "required": [
     "business_unit_id",
     "account_status"
-  ]
+  ],
+  "not": {
+    "required": ["timeline_data"]
+  }
 }
