@@ -32,7 +32,7 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -95,7 +95,7 @@ public class CreditorAccountEntity implements Versioned {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "major_creditor_id", insertable = false, updatable = false)
-    private MajorCreditorFullEntity majorCreditor;
+    private MajorCreditorEntity majorCreditor;
 
     @Column(name = "minor_creditor_party_id")
     private Long minorCreditorPartyId;

@@ -4,7 +4,7 @@ import jakarta.xml.bind.JAXBException;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
-import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.util.XmlUtil;
 
 import static org.mockito.ArgumentMatchers.any;
