@@ -44,6 +44,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
+import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -158,11 +159,16 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(saved);
 
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
         assertEquals(saved.getAccount(), result.getAccount());
-        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
-        verify(draftAccountRepository).save(captor.capture());
-        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestUser",
+            DraftAccountStatus.SUBMITTED.getLabel(),
+            null
+        );
 
     }
 
@@ -209,6 +215,7 @@ class DraftAccountTransactionalTest {
             .draftAccountId(draftAccountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .createdDate(LocalDateTime.now())
+            .timelineData(createTimelineDataString())
             .versionNumber(0L)
             .build();
 
@@ -234,6 +241,7 @@ class DraftAccountTransactionalTest {
         // Act
         DraftAccountEntity result = draftAccountTransactional
             .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
         // Assert
         assertNotNull(result);
@@ -246,7 +254,13 @@ class DraftAccountTransactionalTest {
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(businessUnitRepository).findById((short) 2);
-        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestUser",
+            DraftAccountStatus.RESUBMITTED.getLabel(),
+            null
+        );
     }
 
     @Test
@@ -431,6 +445,7 @@ class DraftAccountTransactionalTest {
         // Act
         DraftAccountEntity result = draftAccountTransactional
             .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
         // Assert
         assertNotNull(result);
@@ -443,7 +458,13 @@ class DraftAccountTransactionalTest {
         assertEquals(createTimelineDataString(), result.getTimelineData());
 
         verify(draftAccountRepository).findById(draftAccountId);
-        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestValidator",
+            DraftAccountStatus.PUBLISHING_PENDING.getLabel(),
+            null
+        );
     }
 
     @Test
@@ -664,6 +685,16 @@ class DraftAccountTransactionalTest {
                          "reason_text": "Violation of terms of service."
                      }]
             """;
+    }
+
+    private void assertTimelineLastEntry(String timelineJson, String username, String status, String reasonText) {
+        TimelineData.Entry[] entries = TimelineData.fromJson(timelineJson);
+        assertTrue(entries.length > 0);
+
+        TimelineData.Entry lastEntry = entries[entries.length - 1];
+        assertEquals(username, lastEntry.getUsername());
+        assertEquals(status, lastEntry.getStatus());
+        assertEquals(reasonText, lastEntry.getReasonText());
     }
 
     private String createAccountString() {

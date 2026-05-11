@@ -308,8 +308,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         return "{\n"
             + "    \"account_status\": \"Publishing Pending\",\n"
             + "    \"validated_by\": \"BUUID1\",\n"
-            + "    \"business_unit_id\": 5,\n"
-            + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
+            + "    \"business_unit_id\": 5\n"
             + "}";
     }
 
