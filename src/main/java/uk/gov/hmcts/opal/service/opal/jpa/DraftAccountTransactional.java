@@ -145,7 +145,12 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
         existingAccount.setAccountStatusDate(LocalDateTime.now());
         existingAccount.setTimelineData(
-            appendTimelineEntry(existingAccount.getTimelineData(), dto.getSubmittedBy(), DraftAccountStatus.RESUBMITTED, null)
+            appendTimelineEntry(
+                existingAccount.getTimelineData(),
+                dto.getSubmittedBy(),
+                DraftAccountStatus.RESUBMITTED,
+                null
+            )
         );
 
         log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",

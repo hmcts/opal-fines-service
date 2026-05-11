@@ -248,7 +248,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         String request = validCreateRequestBody()
             .replace(
                 "\"submitted_by\": \"BUUID1\",",
-                "\"timeline_data\": " + validTimelineDataString().trim() + ",\n              \"submitted_by\": \"BUUID1\","
+                "\"timeline_data\": "
+                    + validTimelineDataString().trim()
+                    + ",\n              \"submitted_by\": \"BUUID1\","
             );
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
