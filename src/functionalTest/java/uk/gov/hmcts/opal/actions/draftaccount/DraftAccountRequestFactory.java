@@ -24,7 +24,6 @@ public class DraftAccountRequestFactory {
 
     private static final String MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT =
         "features/opalMode/manualAccountCreation/";
-    private static final String DEFAULT_TIMELINE_PATH = "draftAccounts/timelineJson/default.json";
 
     /**
      * Defines how the `business_unit_id` field should be written into replace payloads.
@@ -49,7 +48,6 @@ public class DraftAccountRequestFactory {
         addAllToJsonObject(postBody, dataToPost, "submitted_by", "submitted_by_name", "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
         postBody.put("account", loadAccountFixture(dataToPost.get("account")));
-        postBody.put("timeline_data", loadDefaultTimelineFixture());
         return postBody;
     }
 
@@ -99,7 +97,6 @@ public class DraftAccountRequestFactory {
         addToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
         postBody.put("account", loadAccountFixture(dataToPost.get("account")));
-        postBody.put("timeline_data", loadDefaultTimelineFixture());
         return postBody;
     }
 
@@ -133,17 +130,6 @@ public class DraftAccountRequestFactory {
         }
 
         return accountObject;
-    }
-
-    /**
-     * Loads the default draft-account timeline fixture.
-     *
-     * @return parsed default timeline JSON array.
-     * @throws IOException if the timeline fixture cannot be read.
-     * @throws JSONException if the fixture does not contain valid JSON.
-     */
-    public JSONArray loadDefaultTimelineFixture() throws IOException, JSONException {
-        return new JSONArray(readResource(MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT + DEFAULT_TIMELINE_PATH));
     }
 
     /**

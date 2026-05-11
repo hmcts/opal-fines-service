@@ -110,7 +110,6 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         JSONObject patchBody = new JSONObject();
         patchBody.put("account_status", "Publishing Pending");
         patchBody.put("validated_by", "invalidToken");
-        patchBody.put("timeline_data", new JSONArray());
 
         String id = lastCreatedIdOrFail();
         jsonRequestWithToken("invalidToken")
