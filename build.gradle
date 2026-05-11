@@ -474,7 +474,7 @@ dependencies {
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
-  implementation 'com.azure:azure-storage-blob:12.33.3'
+  implementation 'com.azure:azure-storage-blob:12.33.4'
   implementation 'org.springframework.boot:spring-boot-flyway'
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -575,7 +575,7 @@ dependencies {
 
   testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
-  testImplementation 'com.azure:azure-messaging-servicebus:7.17.17'
+  testImplementation 'com.azure:azure-messaging-servicebus:7.17.18'
 
   implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5'
 
