@@ -12,7 +12,7 @@
 * 02/06/2025  R DODD   1.0      PO-1047 Inserts rows of data into the DEFENDANT_ACCOUNTS table for the Integration Tests.
 * 18/03/2026  TMc      2.0      PO-2850 Amended insert statement for DOCUMENTS. Updated value (0) for PRIORITY column, now an ENUM, to '0'
 * 02/04/2026  Shan     3.0      PO-1897 Added additional seed data for PO-1897.
-*
+* 07/05/2026  Shan     3.1      PO-1896 Seed a dedicated defendant account for OpalDefendantsPostPartyIntegrationTest.
 **/
 
 -- Make sure we’re operating in the expected schema
@@ -1233,3 +1233,39 @@ INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_acc
                                        association_type, debtor)
 VALUES ( 991198, 991198, 991198,
          'Defendant', 'Y');
+
+-- ✅ TEST DATA: PO-1896 - Seed data for add DAP
+
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number,
+  amount_paid, account_balance, amount_imposed, account_status,
+  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+  collection_order, payment_card_requested )
+VALUES (24010, 0, 78, '24010A',
+        0.00, 0.00, 0.00, 'L',
+        '24010PCR', 'N', 'N', 'Fine',
+        'N', 'N');
+
+INSERT INTO parties
+( party_id, organisation, organisation_name,
+  surname, forenames, title,
+  address_line_1, postcode, birth_date, national_insurance_number, last_changed_date )
+VALUES (24010, 'N', NULL,
+        'PostSeedSurname', 'PostSeedForenames', 'Mr',
+        'Post Seed Address', 'PS1 1ED', '1980-01-01 00:00:00', 'POSTNI10', NULL);
+
+INSERT INTO defendant_account_parties
+( defendant_account_party_id, defendant_account_id, party_id, association_type, debtor )
+VALUES (24010, 24010, 24010, 'Defendant', 'Y');
+
+INSERT INTO debtor_detail
+( party_id, vehicle_make, vehicle_registration,
+  employer_name, employer_address_line_1, employer_postcode,
+  employee_reference, employer_telephone, employer_email,
+  document_language, document_language_date, hearing_language, hearing_language_date )
+VALUES (24010, NULL, NULL,
+        NULL, NULL, NULL,
+        NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL);
+
+-- END TEST DATA: PO-1896 - Seed data for add DAP

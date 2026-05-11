@@ -24,6 +24,7 @@ import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -31,8 +32,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import org.hibernate.annotations.OptimisticLock;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.converter.ConsolidatedAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
@@ -201,6 +202,17 @@ public class DefendantAccountEntity implements Versioned {
     @OneToMany(mappedBy = "defendantAccount", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OptimisticLock(excluded = false)
     private List<DefendantAccountPartiesEntity> parties;
+
+    public void addPartyAssociation(DefendantAccountPartiesEntity partyAssociation) {
+        if (partyAssociation == null) {
+            return;
+        }
+        if (parties == null) {
+            parties = new ArrayList<>();
+        }
+        parties.add(partyAssociation);
+        partyAssociation.setDefendantAccount(this);
+    }
 
     @Column(name = "account_type", length = 30, nullable = false)
     @ColumnTransformer(read = "account_type::text", write = "?::t_da_account_type_enum")
