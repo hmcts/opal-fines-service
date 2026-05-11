@@ -64,16 +64,16 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
                                                                            Long defendantAccountPartyId,
                                                                            Short businessUnitId,
                                                                            String businessUserId,
-                                                                           String ifMatch,
                                                                            String postedBy,
+                                                                           String ifMatch,
                                                                            RemoveDefendantAccountPartyRequest request) {
 
         return getCurrentModeService().removeDefendantAccountParty(defendantAccountId,
                                                                    defendantAccountPartyId,
                                                                    businessUnitId,
                                                                    businessUserId,
-                                                                   ifMatch,
                                                                    postedBy,
+                                                                   ifMatch,
                                                                    request);
     }
 }

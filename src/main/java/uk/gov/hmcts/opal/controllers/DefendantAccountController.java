@@ -244,7 +244,11 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, businessUnitId, ifMatch, authHeaderValue, request));
+                                                                     defendantAccountPartyId,
+                                                                     businessUnitId,
+                                                                     ifMatch,
+                                                                     authHeaderValue,
+                                                                     request));
     }
 
     @PostMapping("/{defendantAccountId}/enforcements")
