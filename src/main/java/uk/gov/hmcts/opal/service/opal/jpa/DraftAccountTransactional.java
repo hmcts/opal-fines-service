@@ -144,7 +144,9 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setAccountType(dto.getAccountType());
         existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
         existingAccount.setAccountStatusDate(LocalDateTime.now());
-        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
+        existingAccount.setTimelineData(
+            appendTimelineEntry(existingAccount.getTimelineData(), dto.getSubmittedBy(), DraftAccountStatus.RESUBMITTED, null)
+        );
 
         log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
                   draftAccountId, newSnapshot);
@@ -194,7 +196,9 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 userState, dto.getBusinessUnitId());
         }
 
-        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
+        existingAccount.setTimelineData(
+            appendTimelineEntry(existingAccount.getTimelineData(), dto.getValidatedBy(), newStatus, dto.getReasonText())
+        );
 
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
                   draftAccountId, existingAccount.getAccountStatus());
@@ -294,7 +298,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .build();
     }
 
-    DraftAccountEntity toEntity(AddDraftAccountRequestDto dto, LocalDateTime created,
+    DraftAccountEntity toEntity(DraftAccountRequestDto dto, LocalDateTime created,
                                 BusinessUnitEntity businessUnit, String snapshot) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)
@@ -305,11 +309,23 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .accountStatusDate(created)
-            .statusMessage(dto.getStatusMessage())
-            .timelineData(dto.getTimelineData())
+            .accountStatusDate(LocalDateTime.now())
+            .timelineData(createTimelineData(dto.getSubmittedBy(), DraftAccountStatus.SUBMITTED, null))
             .draftAccountId(null)
             .build();
+    }
+
+    private String createTimelineData(String username, DraftAccountStatus status, String reasonText) {
+        return appendTimelineEntry(null, username, status, reasonText);
+    }
+
+    private String appendTimelineEntry(String existingTimelineData, String username, DraftAccountStatus status,
+                                       String reasonText) {
+        TimelineData timelineData = existingTimelineData == null || existingTimelineData.isBlank()
+            ? new TimelineData()
+            : new TimelineData(existingTimelineData);
+        timelineData.insertEntry(username, status.getLabel(), LocalDate.now(), reasonText);
+        return timelineData.toJson();
     }
 
     private void checkValidatorIsNotSubmitter(String submitterUsername, String updaterUserName, Long draftAccountId,
@@ -338,9 +354,4 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             "DraftAccountSubmittedByUserIdentifier", submittedBy);
     }
 
-    private String appendTimelineData(String existingTimelineData, String generatedTimelineData) {
-        TimelineData timelineData = new TimelineData(existingTimelineData);
-        timelineData.appendEntries(generatedTimelineData);
-        return timelineData.toJson();
-    }
 }

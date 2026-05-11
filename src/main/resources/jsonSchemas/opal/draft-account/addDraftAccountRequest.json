@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": ["object", "null"],
+  "additionalProperties": false,
   "properties": {
     "business_unit_id": {
       "type": "integer",
@@ -33,9 +34,6 @@
       "type": ["string", "null"],
       "minLength": 1,
       "description": "System message related to the account_status"
-    },
-    "timeline_data": {
-      "description": "Legacy inbound timeline data. Accepted for backwards compatibility and ignored by the backend."
     }
   },
   "required": [
