@@ -241,7 +241,6 @@ class DraftAccountTransactionalTest {
         // Act
         DraftAccountEntity result = draftAccountTransactional
             .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
-        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
         // Assert
         assertNotNull(result);
@@ -254,6 +253,7 @@ class DraftAccountTransactionalTest {
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(businessUnitRepository).findById((short) 2);
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
         verify(draftAccountRepository).save(savedCaptor.capture());
         assertTimelineLastEntry(
             savedCaptor.getValue().getTimelineData(),
@@ -445,7 +445,6 @@ class DraftAccountTransactionalTest {
         // Act
         DraftAccountEntity result = draftAccountTransactional
             .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
-        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
         // Assert
         assertNotNull(result);
@@ -458,6 +457,7 @@ class DraftAccountTransactionalTest {
         assertEquals(createTimelineDataString(), result.getTimelineData());
 
         verify(draftAccountRepository).findById(draftAccountId);
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
         verify(draftAccountRepository).save(savedCaptor.capture());
         assertTimelineLastEntry(
             savedCaptor.getValue().getTimelineData(),
