@@ -1,0 +1,30 @@
+meta {
+  name: Update Draft Account
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseURL}}/draft-accounts/100000
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  If-Match: 1
+}
+
+body:json {
+  {
+    "account_status": "REJECTED",
+    "account_status_date": "2026-01-01",
+    "timeline_data": null
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

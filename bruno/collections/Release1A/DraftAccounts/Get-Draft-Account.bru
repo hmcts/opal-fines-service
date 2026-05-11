@@ -1,0 +1,21 @@
+meta {
+  name: Get Draft Account
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/draft-accounts/100000
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

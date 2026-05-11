@@ -1,0 +1,21 @@
+meta {
+  name: Get Major Creditors
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/major-creditors
+  body: none
+  auth: inherit
+}
+
+params:query {
+  q:
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

@@ -1,0 +1,21 @@
+meta {
+  name: Get Prosecutors
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/prosecutors
+  body: none
+  auth: inherit
+}
+
+params:query {
+  q:
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

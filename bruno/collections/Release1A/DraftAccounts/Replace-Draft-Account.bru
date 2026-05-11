@@ -1,0 +1,35 @@
+meta {
+  name: Replace Draft Account
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseURL}}/draft-accounts/100000
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  If-Match: 1
+}
+
+body:json {
+  {
+    "business_unit_id": 1,
+    "submitted_by": "user1",
+    "account_type": "Fine",
+    "account_status": "DRAFT",
+    "account": {
+      "defendant_type": "adultOrYouthOnly"
+    },
+    "timeline_data": null
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
