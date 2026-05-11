@@ -11,7 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
@@ -21,11 +21,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest.V2_USER_STATE;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.UserStateClientServiceIT")
-class UserStateClientServiceIT extends AbstractIntegrationTest {
+class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
 
     @Autowired
     StringRedisTemplate redisTemplate;
