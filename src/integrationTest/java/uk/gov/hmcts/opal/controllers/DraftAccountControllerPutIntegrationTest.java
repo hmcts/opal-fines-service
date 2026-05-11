@@ -138,6 +138,25 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("Replace draft account - Should return 400 when timeline_data is supplied")
+    void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
+        String request = validReplaceRequestBody(0L)
+            .replace(
+                "\"version\": 0",
+                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+            );
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Replace draft account - Should create and call PDPLLoggingService [@PO-2359]")
     @JiraStory("PO-2359")
     @JiraEpic("PO-2355")

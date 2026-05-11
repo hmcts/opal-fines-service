@@ -105,6 +105,25 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     }
 
     @Test
+    @DisplayName("Update draft account - Should return 400 when timeline_data is supplied")
+    void testUpdateDraftAccount_timelineDataIsSupplied() throws Exception {
+        String request = validUpdateRequestBody("65", "Publishing Pending", "A")
+            .replace(
+                "\"version\": 0",
+                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+            );
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(patch(URL_BASE + "/" + 8)
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
     @JiraStory("PO-1820")
     @JiraEpic("PO-2220")
