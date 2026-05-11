@@ -312,27 +312,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
               },
               "account_type": "Fine",
               "account_status": "Submitted",
-              "version": 0,
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2023-11-01",
-                  "reason_text": "Account successfully activated after review."
-                },
-                {
-                  "username": "janedoe456",
-                  "status": "Pending",
-                  "status_date": "2023-12-05",
-                  "reason_text": "Awaiting additional documentation for verification."
-                },
-                {
-                  "username": "mikebrown789",
-                  "status": "Suspended",
-                  "status_date": "2023-10-15",
-                  "reason_text": "Violation of terms of service."
-                }
-              ]
+              "version": 0
             }""";
     }
 
