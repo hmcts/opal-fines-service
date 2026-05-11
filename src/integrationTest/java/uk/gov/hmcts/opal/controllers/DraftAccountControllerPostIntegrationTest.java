@@ -43,9 +43,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .submittedByName("John")
             .account(validAccountJsonString())
             .accountType(DraftAccountType.FINE)
-            .accountStatus(DraftAccountStatus.SUBMITTED)
-            .statusMessage("Created from backend")
-            .timelineData(validTimelineDataString())
             .build();
 
         try {
@@ -63,7 +60,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .account(validAccountJsonStringWithDebtorLanguages()
                 .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
             .accountType(DraftAccountType.FINE)
-            .timelineData(validTimelineDataString())
             .build();
 
         try {
