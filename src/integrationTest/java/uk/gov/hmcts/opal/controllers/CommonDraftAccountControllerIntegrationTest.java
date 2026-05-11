@@ -78,10 +78,9 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
               "validated_by_name": "%3$s",
               "business_unit_id": %1$s,
               "reason_text": "Reason %3$s",
-              "version": 0,
-              "timeline_data": %4$s
+              "version": 0
             }
-            """.formatted(businessUnit, status, delta, validTimelineDataJson());
+            """.formatted(businessUnit, status, delta);
     }
 
     protected static String validTimelineDataJson() {
