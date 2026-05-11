@@ -125,15 +125,15 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validReplaceRequestBody(0L)
             .replace(
-                "\"version\": 0",
-                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+                "\"version\":0",
+                "\"version\":0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(put(URL_BASE + "/" + 5)
                 .header("authorization", "Bearer some_value")
-                .header("If-Match", "0")
+                .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
