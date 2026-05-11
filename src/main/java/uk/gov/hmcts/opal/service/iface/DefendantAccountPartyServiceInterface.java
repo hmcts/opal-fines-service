@@ -29,7 +29,7 @@ public interface DefendantAccountPartyServiceInterface {
                                                                     Long defendantAccountPartyId,
                                                                     Short businessUnitId,
                                                                     String businessUserId,
-                                                                    String ifMatch,
                                                                     String postedBy,
+                                                                    String ifMatch,
                                                                     RemoveDefendantAccountPartyRequest request);
 }

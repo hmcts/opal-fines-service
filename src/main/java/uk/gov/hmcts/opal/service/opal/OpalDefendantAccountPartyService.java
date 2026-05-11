@@ -338,8 +338,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
                                                                            Long defendantAccountPartyId,
                                                                            Short businessUnitId,
                                                                            String businessUserId,
-                                                                           String ifMatch,
                                                                            String postedBy,
+                                                                           String ifMatch,
                                                                            RemoveDefendantAccountPartyRequest request) {
 
         DefendantAccountEntity account = defendantAccountRepositoryService
