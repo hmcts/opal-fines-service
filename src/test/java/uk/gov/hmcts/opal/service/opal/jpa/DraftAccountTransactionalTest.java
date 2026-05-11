@@ -145,8 +145,6 @@ class DraftAccountTransactionalTest {
             .submittedByName("Test User")
             .account(minimalAccountJson)
             .accountType(DraftAccountType.FINE)
-            .accountStatus(DraftAccountStatus.REJECTED)
-            .timelineData("[]")
             .build();
 
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
@@ -203,7 +201,6 @@ class DraftAccountTransactionalTest {
             .submittedByName("Test User")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -293,7 +290,6 @@ class DraftAccountTransactionalTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -316,7 +312,6 @@ class DraftAccountTransactionalTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -352,7 +347,6 @@ class DraftAccountTransactionalTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -372,7 +366,6 @@ class DraftAccountTransactionalTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .timelineData(createTimelineDataString())
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
@@ -397,7 +390,6 @@ class DraftAccountTransactionalTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("TestValidator")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
 
@@ -476,7 +468,6 @@ class DraftAccountTransactionalTest {
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("BUUID1")
             .validatedByName("User One")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
 
@@ -524,7 +515,6 @@ class DraftAccountTransactionalTest {
             .accountStatus(DraftAccountStatus.DELETED)
             .validatedBy("BUUID1")
             .validatedByName("User One")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
 
@@ -570,7 +560,6 @@ class DraftAccountTransactionalTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .businessUnitId((short) 2)
-            .timelineData(createTimelineDataString())
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()

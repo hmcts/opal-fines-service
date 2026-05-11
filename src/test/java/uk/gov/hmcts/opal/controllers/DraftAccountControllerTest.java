@@ -136,7 +136,6 @@ class DraftAccountControllerTest {
             .businessUnitId((short)1)
             .submittedBy("USER_ID")
             .submittedByName("USER_NAME")
-            .timelineData(getTimelineJson())
             .build();
 
         when(draftAccountService.submitDraftAccount(any(), any())).thenReturn(toGetDto(entity));

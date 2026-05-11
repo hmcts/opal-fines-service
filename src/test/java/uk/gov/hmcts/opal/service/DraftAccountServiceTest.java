@@ -181,9 +181,6 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .accountStatus(DraftAccountStatus.REJECTED)
-            .statusMessage("Created from backend")
-            .timelineData(createTimelineDataString())
             .build();
         // Act
         DraftAccountResponseDto result = draftAccountService
@@ -212,7 +209,6 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .build();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
 
@@ -234,7 +230,6 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString().replace("\"hearing_language\": \"EN\"", "\"hearing_language\": \"English\""))
             .accountType(DraftAccountType.FINE)
-            .timelineData(createTimelineDataString())
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
@@ -311,8 +306,6 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .accountStatus(DraftAccountStatus.SUBMITTED)
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
         // Act
@@ -351,7 +344,6 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .submittedBy("SpoofedUser")
             .submittedByName("Spoofed Name")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
@@ -380,7 +372,6 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .submittedBy("SpoofedUser")
             .submittedByName("Spoofed Name")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
@@ -401,7 +392,6 @@ class DraftAccountServiceTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .timelineData(createTimelineDataString())
             .build();
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
@@ -428,8 +418,6 @@ class DraftAccountServiceTest {
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("SpoofedUser")
             .validatedByName("Spoofed Name")
-            .reasonText("Approved for publishing")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
         final DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
