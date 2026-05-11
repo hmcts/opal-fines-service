@@ -205,14 +205,15 @@ To build the project execute the following command:
 
 ### Functional test tasks
 
-Use the standard Opal functional suite for normal backend functional coverage:
+Use the standard functional suite for normal backend functional coverage:
 
 ```bash / zsh
-  ./gradlew functionalOpal
+  ./gradlew functional
 ```
 
-This runs the default Opal runner and excludes environment-specific scenarios tagged
-`@UAT-Technical`.
+This runs the default Opal and Legacy functional suites, and the Opal portion excludes
+environment-specific scenarios tagged `@UAT-Technical`, including the `@R1AOff`,
+`@R1BOff`, and `@R1COff` feature-flag suites.
 
 Use the tagged Opal functional suite when you need to run only scenarios for a specific
 environment or feature-flag configuration:
