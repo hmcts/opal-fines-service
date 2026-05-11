@@ -243,6 +243,24 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Should return 400 when timeline_data is supplied")
+    void shouldReturn400WhenTimelineDataIsSupplied() throws Exception {
+        String request = validCreateRequestBody()
+            .replace(
+                "\"submitted_by\": \"BUUID1\",",
+                "\"timeline_data\": " + validTimelineDataString().trim() + ",\n              \"submitted_by\": \"BUUID1\","
+            );
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Should return 400 when originator_type is blank")
     void shouldReturn400WhenOriginatorTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
