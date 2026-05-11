@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
@@ -31,7 +30,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
 
     private static final String DELETE_PARTY_REQUEST = """
         {
-            "defendant_account_party_id": "200101",
+            "defendant_account_party_id": "77",
             "version": 1
         }
         """;
@@ -63,15 +62,9 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            /*.andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"))
-            .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(true))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
-            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"))*/
-            .andExpect(jsonPath("$.defendant_account_party_id").value("77"))
-            .andExpect(header().string("ETag", matchesPattern("\"\\d+\"")));
+            .andExpect(jsonPath("$.defendant_account_party_id").value("77"));
 
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
+        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -80,7 +73,10 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions actions = mockMvc.perform(
-            delete(URL_BASE + "/500/defendant-account-parties/500").header("authorization", "Bearer some_value"));
+            delete(URL_BASE + "/500/defendant-account-parties/500")
+                .headers(partyHeaders())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(DELETE_PARTY_REQUEST));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":legacy_removeDefendantAccountParty_500Error body:\n{}", ToJsonString.toPrettyJson(body));
@@ -96,7 +92,10 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions actions = mockMvc.perform(
-            delete(URL_BASE + "/555/defendant-account-parties/555").header("authorization", "Bearer some_value"));
+            delete(URL_BASE + "/555/defendant-account-parties/555")
+                .headers(partyHeaders())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(DELETE_PARTY_REQUEST));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
@@ -106,12 +105,9 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
-                           .value("TechCorp Solutions Ltd"))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
-            .andExpect(header().string("ETag", "\"1\""));
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
+            .andExpect(jsonPath("$.defendant_account_party_id").value("555"));
+
+        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -120,7 +116,10 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions actions = mockMvc.perform(
-            delete(URL_BASE + "/555/defendant-account-parties/555").header("authorization", "Bearer some_value"));
+            delete(URL_BASE + "/666/defendant-account-parties/666")
+                .headers(partyHeaders())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(DELETE_PARTY_REQUEST));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
@@ -130,11 +129,8 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_party.party_details._individual_flag").value(true))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.individual_name")
-                           .value("TechCorp Solutions Ltd"))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
-            .andExpect(header().string("ETag", "\"1\""));
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
+            .andExpect(jsonPath("$.defendant_account_party_id").value("666"));
+
+        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 }

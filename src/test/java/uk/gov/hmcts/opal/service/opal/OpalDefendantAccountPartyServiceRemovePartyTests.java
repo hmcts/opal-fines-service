@@ -85,8 +85,8 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             5L,
             (short) 10,
             "businessUser",
-            "1",
             "posted",
+            "1",
             request);
 
         assertEquals("5", response.getDefendantAccountPartyId());
@@ -115,7 +115,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(1L, 5L, (short) 10,
-                                                "businessUser", "1", "posted", request));
+                                                "businessUser", "posted", "1", request));
     }
 
     @Test
@@ -123,7 +123,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.removeDefendantAccountParty(1L, 5L, (short) 11, "businessUser", "1", "posted", null));
+            service.removeDefendantAccountParty(1L, 5L, (short) 11, "businessUser", "posted", "1", null));
 
         assertEquals("Defendant Account not found in business unit. Defendant Account: 1 Business Unit: 11",
             exception.getMessage());
@@ -137,7 +137,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.removeDefendantAccountParty(1L, 999L, (short) 10, "businessUser", "1", "posted", null));
+            service.removeDefendantAccountParty(1L, 999L, (short) 10, "businessUser", "posted", "1", null));
 
         assertEquals("Defendant Account Party not found for accountId=1, partyId=999", exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);

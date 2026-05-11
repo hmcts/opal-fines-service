@@ -383,8 +383,8 @@ class DefendantAccountPartyServiceTest {
             defendantAccountPartyId,
             businessUnitId,
             "bu-user-id",
-            ifMatch,
             "bu-user-id",
+            ifMatch,
             request
         )).thenReturn(expectedResponse);
 
@@ -404,8 +404,8 @@ class DefendantAccountPartyServiceTest {
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             buUserIdCaptor.capture(),
-            eq(ifMatch),
             postedByCaptor.capture(),
+            eq(ifMatch),
             eq(request)
         );
 
@@ -437,8 +437,8 @@ class DefendantAccountPartyServiceTest {
             defendantAccountPartyId,
             businessUnitId,
             "",
-            ifMatch,
             "fallback-user",
+            ifMatch,
             request
         )).thenReturn(expectedResponse);
 
@@ -457,8 +457,8 @@ class DefendantAccountPartyServiceTest {
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             buUserIdCaptor.capture(),
-            eq(ifMatch),
             postedByCaptor.capture(),
+            eq(ifMatch),
             eq(request)
         );
 
