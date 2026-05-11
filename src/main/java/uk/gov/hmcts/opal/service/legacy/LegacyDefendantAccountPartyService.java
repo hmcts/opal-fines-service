@@ -297,7 +297,10 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
                                                                          Long defendantAccountPartyId,
-                                                                         DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+                                                                         DefendantAccountParty defendantAccountParty,
+                                                                         String ifMatch,
+                                                                         String businessUnitId,
+                                                                         String postedBy,
                                                                          String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()

@@ -51,7 +51,41 @@ import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
-import uk.gov.hmcts.opal.dto.legacy.*;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
+import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
+import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
@@ -914,7 +948,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
                                                                          Long defendantAccountPartyId,
-                                                                         DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+                                                                         DefendantAccountParty defendantAccountParty,
+                                                                         String ifMatch,
+                                                                         String businessUnitId,
+                                                                         String postedBy,
                                                                          String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
