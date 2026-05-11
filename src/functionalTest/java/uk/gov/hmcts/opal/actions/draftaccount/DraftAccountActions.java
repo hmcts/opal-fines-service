@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.MatcherAssert;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
