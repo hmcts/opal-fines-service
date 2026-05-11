@@ -236,7 +236,14 @@ class DraftAccountTransactionalTest {
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(businessUnitRepository).findById((short) 2);
-        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestUser",
+            DraftAccountStatus.RESUBMITTED.getLabel(),
+            null
+        );
     }
 
     @Test
@@ -423,7 +430,14 @@ class DraftAccountTransactionalTest {
         assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
 
         verify(draftAccountRepository).findById(draftAccountId);
-        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestValidator",
+            DraftAccountStatus.PUBLISHING_PENDING.getLabel(),
+            null
+        );
     }
 
     @Test
