@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +66,7 @@ class UserStateServiceTest {
 
         // Assert
         assertEquals("Unexpected token type", ade.getMessage());
+        verifyNoInteractions(tokenService);
     }
 
     @Test
