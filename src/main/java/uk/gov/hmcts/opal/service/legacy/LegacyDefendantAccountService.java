@@ -1181,9 +1181,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
 
     }
-
-
-
+    
     private List<ResultResponsesLegacy> mapResultResponses(List<ResultResponse> responses) {
         if (responses == null || responses.isEmpty()) {
             return Collections.emptyList();

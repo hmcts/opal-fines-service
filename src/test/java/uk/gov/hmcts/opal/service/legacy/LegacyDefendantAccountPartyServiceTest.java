@@ -1277,6 +1277,25 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     @Test
+    void replaceDefendantAccountParty_nullLegacyResponse_returnsNull() {
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, null, null, null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyReplaceDefendantAccountPartyResponse.class),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+            77L, 20010L, null, "1", "78", "poster", "dev_user"
+        );
+
+        assertNull(out);
+    }
+
+    @Test
     void replaceDefendantAccountParty_mapsNullNestedObjects_toNulls() {
         // Build a legacy response body where nested objects are null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
