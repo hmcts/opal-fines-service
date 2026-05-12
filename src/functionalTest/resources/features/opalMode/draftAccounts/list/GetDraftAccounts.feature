@@ -7,10 +7,10 @@ Feature: List Draft Accounts
   @cleanUpData
   Scenario Outline: Draft accounts can be filtered by business unit <business_unit>
     And the following draft accounts exist
-      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
-      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
+      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
 
     When I request draft accounts for business unit "<business_unit>"
     Then only draft accounts for business unit "<business_unit>" are returned
@@ -42,12 +42,10 @@ Feature: List Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     And the following draft accounts exist
-      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
-      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
 
     When I request draft accounts for status "<status_filter>"
     Then only draft accounts with status "<expected_status>" are returned
@@ -66,10 +64,10 @@ Feature: List Draft Accounts
   @cleanUpData
   Scenario Outline: Draft accounts can be filtered by submitted_by <submitted_by_filter>
     And the following draft accounts exist
-      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
-      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
+      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk
 
     When I request draft accounts submitted by "<submitted_by_filter>"
     Then only draft accounts submitted by "<expected_submitted_by>" are returned
@@ -88,10 +86,10 @@ Feature: List Draft Accounts
   @cleanUpData
   Scenario Outline: Draft accounts can be filtered by status <status_filter> and submitted_by <submitted_by_filter>
     And the following draft accounts exist
-      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
-      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
+      | 73               | draftAccounts/accountJson/account.json      | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID_TWO    | Laura Clerk
 
     When I request draft accounts for status "<status_filter>" and submitted by "<submitted_by_filter>"
     Then only draft accounts with status "<expected_status>" submitted by "<expected_submitted_by>" are returned
@@ -112,10 +110,10 @@ Feature: List Draft Accounts
   Scenario: Retrieving all draft accounts produces defendant PDPO logs
 
     And the following draft accounts exist
-      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
-      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
+      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 77               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
 
     When I request all draft accounts
     Then the request succeeds
@@ -131,10 +129,10 @@ Feature: List Draft Accounts
   Scenario: Retrieving all draft accounts with parent or guardian data produces two PDPO log categories
 
     And the following draft accounts exist
-      | business_unit_id | account                                                | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
-      | 73               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 77               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 65               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | business_unit_id | account                                                | account_type | account_status | submitted_by | submitted_by_name
+      | 73               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 77               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | 65               | draftAccounts/accountJson/parentOrGuardianAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
 
     When I request all draft accounts
     Then the request succeeds
@@ -156,8 +154,6 @@ Feature: List Draft Accounts
       | account_status    | Submitted                                              |
       | submitted_by      | BUUID                                                  |
       | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-
     When I attempt to get draft accounts with an invalid token
     Then the request is rejected as unauthorized
 

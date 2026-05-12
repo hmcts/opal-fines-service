@@ -13,8 +13,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | PATCH001                                    |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -32,8 +30,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | PATCH002                                    |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
@@ -64,8 +60,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                  |
       | account_status   | Deleted             |
@@ -95,8 +89,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                              |
       | submitted_by      | PATCH003                                               |
       | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -114,8 +106,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                           |
       | submitted_by      | PATCH004                                            |
       | submitted_by_name | Laura Clerk                                         |
-      | timeline_data     | draftAccounts/timelineJson/default.json             |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -133,8 +123,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                           |
       | submitted_by      | PATCH005                                            |
       | submitted_by_name | Laura Clerk                                         |
-      | timeline_data     | draftAccounts/timelineJson/default.json             |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -152,8 +140,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | PATCH006                                    |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I attempt to update the draft account with an invalid token
     Then the request is rejected as unauthorized
 
