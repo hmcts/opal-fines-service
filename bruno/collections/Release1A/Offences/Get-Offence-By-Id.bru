@@ -5,13 +5,16 @@ meta {
 }
 
 get {
-  url: {{baseURL}}/offences/290434
+  url: {{baseURL}}/offences/35781
   body: none
   auth: inherit
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
 }
 
 settings {
   encodeUrl: true
   timeout: 0
 }
-

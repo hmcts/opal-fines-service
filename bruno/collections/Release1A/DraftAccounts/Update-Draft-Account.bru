@@ -5,7 +5,7 @@ meta {
 }
 
 patch {
-  url: {{baseURL}}/draft-accounts/100000
+  url: {{baseURL}}/draft-accounts/1
   body: json
   auth: inherit
 }
@@ -17,14 +17,25 @@ headers {
 
 body:json {
   {
-    "account_status": "REJECTED",
-    "account_status_date": "2026-01-01",
-    "timeline_data": null
+    "account_status": "Rejected",
+    "validated_by": "L077JG",
+     "business_unit_id": 77,
+    "timeline_data": [
+      {
+        "username": "L077JG",
+        "status": "Rejected",
+        "status_date": "2026-05-12",
+        "reason_text": "Account rejected due to missing information"
+      }
+    ]
   }
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
 }
 
 settings {
   encodeUrl: true
   timeout: 0
 }
-
