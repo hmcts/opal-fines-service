@@ -61,19 +61,11 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
 
     @Override
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-                                                                           Long defendantAccountPartyId,
-                                                                           Short businessUnitId,
-                                                                           String businessUserId,
-                                                                           String postedBy,
-                                                                           String ifMatch,
-                                                                           RemoveDefendantAccountPartyRequest request) {
+        Long defendantAccountPartyId, Short businessUnitId, String businessUserId,
+        String postedBy, String ifMatch, RemoveDefendantAccountPartyRequest request) {
 
         return getCurrentModeService().removeDefendantAccountParty(defendantAccountId,
-                                                                   defendantAccountPartyId,
-                                                                   businessUnitId,
-                                                                   businessUserId,
-                                                                   postedBy,
-                                                                   ifMatch,
-                                                                   request);
+            defendantAccountPartyId, businessUnitId, businessUserId,
+            postedBy, ifMatch, request);
     }
 }

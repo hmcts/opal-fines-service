@@ -26,10 +26,6 @@ public interface DefendantAccountPartyServiceInterface {
                                            String businessUserId);
 
     RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-                                                                    Long defendantAccountPartyId,
-                                                                    Short businessUnitId,
-                                                                    String businessUserId,
-                                                                    String postedBy,
-                                                                    String ifMatch,
-                                                                    RemoveDefendantAccountPartyRequest request);
+        Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
+        String ifMatch, RemoveDefendantAccountPartyRequest request);
 }

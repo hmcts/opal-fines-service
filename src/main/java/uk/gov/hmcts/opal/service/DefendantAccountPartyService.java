@@ -97,11 +97,8 @@ public class DefendantAccountPartyService {
     }
 
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-                                                                           Long defendantAccountPartyId,
-                                                                           Short businessUnitId,
-                                                                           String ifMatch,
-                                                                           String authHeaderValue,
-                                                                           RemoveDefendantAccountPartyRequest request) {
+        Long defendantAccountPartyId, Short businessUnitId, String ifMatch, String authHeaderValue,
+        RemoveDefendantAccountPartyRequest request) {
 
         log.debug(":removeDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
 
@@ -115,12 +112,8 @@ public class DefendantAccountPartyService {
         if (userState.hasBusinessUnitUserWithPermission(businessUnitId,
             FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
-                                                    defendantAccountPartyId,
-                                                    businessUnitId,
-                                                    getBusinessUnitUserIdForBusinessUnit(userState, businessUnitId),
-                                                    postedBy,
-                                                    ifMatch,
-                                                    request);
+                defendantAccountPartyId, businessUnitId,
+                getBusinessUnitUserIdForBusinessUnit(userState, businessUnitId), postedBy, ifMatch, request);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }

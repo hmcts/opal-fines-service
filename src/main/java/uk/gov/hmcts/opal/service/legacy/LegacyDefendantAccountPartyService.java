@@ -61,10 +61,8 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
                                                                      Long defendantAccountPartyId) {
-        log.debug(
-            ":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
-            defendantAccountId, defendantAccountPartyId
-        );
+        log.debug(":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
+            defendantAccountId, defendantAccountPartyId);
 
         GetDefendantAccountPartyLegacyRequest req = GetDefendantAccountPartyLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
@@ -109,10 +107,8 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         OrganisationDetails opalOrg = null;
         if (isOrg) {
             opalOrg = OrganisationDetails.builder()
-                .organisationName(mapSafe(
-                    pd != null ? pd.getOrganisationDetails() : null,
-                    OrganisationDetailsLegacy::getOrganisationName
-                ))
+                .organisationName(mapSafe(pd != null ? pd.getOrganisationDetails() : null,
+                    OrganisationDetailsLegacy::getOrganisationName))
                 // arrays must not be null (schema expects an array)
                 .organisationAliases(Collections.emptyList())
                 .build();
@@ -122,23 +118,15 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         if (!isOrg) {
             opalInd = IndividualDetails.builder()
                 .title(mapSafe(pd != null ? pd.getIndividualDetails() : null, IndividualDetailsLegacy::getTitle))
-                .forenames(mapSafe(
-                    pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getForenames
-                ))
-                .surname(mapSafe(
-                    pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getSurname
-                ))
-                .dateOfBirth(mapSafe(
-                    pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getDateOfBirth
-                ))
+                .forenames(mapSafe(pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getForenames))
+                .surname(mapSafe(pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getSurname))
+                .dateOfBirth(mapSafe(pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getDateOfBirth))
                 .age(mapSafe(pd != null ? pd.getIndividualDetails() : null, IndividualDetailsLegacy::getAge))
-                .nationalInsuranceNumber(mapSafe(
-                    pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getNationalInsuranceNumber
-                ))
+                .nationalInsuranceNumber(mapSafe(pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getNationalInsuranceNumber))
                 // arrays must not be null (schema expects an array)
                 .individualAliases(Collections.emptyList())
                 .build();
@@ -156,25 +144,25 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         final AddressDetails apiAddress =
             (a == null) ? null
                 : AddressDetails.builder()
-                .addressLine1(mapSafe(a, AddressDetailsLegacy::getAddressLine1))
-                .addressLine2(mapSafe(a, AddressDetailsLegacy::getAddressLine2))
-                .addressLine3(mapSafe(a, AddressDetailsLegacy::getAddressLine3))
-                .addressLine4(mapSafe(a, AddressDetailsLegacy::getAddressLine4))
-                .addressLine5(mapSafe(a, AddressDetailsLegacy::getAddressLine5))
-                .postcode(mapSafe(a, AddressDetailsLegacy::getPostcode))
-                .build();
+                    .addressLine1(mapSafe(a, AddressDetailsLegacy::getAddressLine1))
+                    .addressLine2(mapSafe(a, AddressDetailsLegacy::getAddressLine2))
+                    .addressLine3(mapSafe(a, AddressDetailsLegacy::getAddressLine3))
+                    .addressLine4(mapSafe(a, AddressDetailsLegacy::getAddressLine4))
+                    .addressLine5(mapSafe(a, AddressDetailsLegacy::getAddressLine5))
+                    .postcode(mapSafe(a, AddressDetailsLegacy::getPostcode))
+                    .build();
 
         // ----- Contact -----
         ContactDetailsLegacy c = src.getContactDetails();
         ContactDetails apiContact =
             (c == null) ? null
                 : ContactDetails.builder()
-                .primaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getPrimaryEmailAddress))
-                .secondaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getSecondaryEmailAddress))
-                .mobileTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getMobileTelephoneNumber))
-                .homeTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getHomeTelephoneNumber))
-                .workTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getWorkTelephoneNumber))
-                .build();
+                    .primaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getPrimaryEmailAddress))
+                    .secondaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getSecondaryEmailAddress))
+                    .mobileTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getMobileTelephoneNumber))
+                    .homeTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getHomeTelephoneNumber))
+                    .workTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getWorkTelephoneNumber))
+                    .build();
         // Drop empty {} contact_details
         if (apiContact != null
             && apiContact.getPrimaryEmailAddress() == null
@@ -190,9 +178,9 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         VehicleDetails apiVehicle =
             (v == null) ? null
                 : VehicleDetails.builder()
-                .vehicleMakeAndModel(mapSafe(v, VehicleDetailsLegacy::getVehicleMakeAndModel))
-                .vehicleRegistration(mapSafe(v, VehicleDetailsLegacy::getVehicleRegistration))
-                .build();
+                    .vehicleMakeAndModel(mapSafe(v, VehicleDetailsLegacy::getVehicleMakeAndModel))
+                    .vehicleRegistration(mapSafe(v, VehicleDetailsLegacy::getVehicleRegistration))
+                    .build();
         // Drop empty {} vehicle_details
         if (apiVehicle != null
             && apiVehicle.getVehicleMakeAndModel() == null
@@ -296,12 +284,9 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-                                                                         Long defendantAccountPartyId,
-                                                                         DefendantAccountParty defendantAccountParty,
-                                                                         String ifMatch,
-                                                                         String businessUnitId,
-                                                                         String postedBy,
-                                                                         String businessUnitUserId) {
+        Long defendantAccountPartyId,
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+        String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch).longValue())

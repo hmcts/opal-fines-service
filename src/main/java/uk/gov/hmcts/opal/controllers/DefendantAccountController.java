@@ -10,8 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +27,8 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
@@ -36,8 +38,6 @@ import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
@@ -244,11 +244,7 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
-                                                                     defendantAccountPartyId,
-                                                                     businessUnitId,
-                                                                     ifMatch,
-                                                                     authHeaderValue,
-                                                                     request));
+                defendantAccountPartyId, businessUnitId, ifMatch, authHeaderValue, request));
     }
 
     @PostMapping("/{defendantAccountId}/enforcements")
