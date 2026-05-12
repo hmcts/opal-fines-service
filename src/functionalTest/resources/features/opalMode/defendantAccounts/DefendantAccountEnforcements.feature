@@ -11,8 +11,6 @@ Feature: Defendant Account Enforcement Overrides
       | account_status    | Submitted                                   |
       | submitted_by      | DEFENF001                                   |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I apply the following enforcement override to the created defendant account
       | business_unit_id               | 77           |
       | enforcement_override_result_id | FWEC         |

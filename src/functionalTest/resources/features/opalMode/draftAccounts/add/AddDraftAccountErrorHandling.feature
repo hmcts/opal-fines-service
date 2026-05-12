@@ -13,8 +13,6 @@ Feature: Add Draft Account Error Handling
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the request is rejected as bad request
 
   @JIRA-STORY:PO-691 @JIRA-EPIC:PO-2219 @cleanUpData
@@ -46,6 +44,4 @@ Feature: Add Draft Account Error Handling
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the request is rejected as bad request

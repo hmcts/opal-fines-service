@@ -13,8 +13,6 @@ Feature: Draft Account Access Token Identity
       | account_status    |                                             |
       | submitted_by      | L071JG                                      |
       | submitted_by_name | opal-test                                   |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the retrieved draft account contains the following data
       | business_unit_id                    | 73           |
       | account_type                        | Fine         |

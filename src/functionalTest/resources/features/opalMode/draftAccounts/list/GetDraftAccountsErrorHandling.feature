@@ -12,9 +12,9 @@ Feature: Get Draft Accounts Error Handling
   @JIRA-STORY:PO-647 @JIRA-EPIC:PO-2219 @cleanUpData
   Scenario: Listing draft accounts with an unsupported response content type is rejected
     Given the following draft accounts exist
-      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name | timeline_data                         |
-      | 73               | draftAccounts/accountJson/account.json      | Fine         |                | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
-      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         |                | BUUID        | Laura Clerk      | draftAccounts/timelineJson/default.json |
+      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
+      | 73               | draftAccounts/accountJson/account.json      | Fine         |                | BUUID        | Laura Clerk
+      | 65               | draftAccounts/accountJson/adultAccount.json | Fine         |                | BUUID        | Laura Clerk
     When I attempt to get draft accounts with an unsupported content type
     Then the request is rejected as not acceptable
 

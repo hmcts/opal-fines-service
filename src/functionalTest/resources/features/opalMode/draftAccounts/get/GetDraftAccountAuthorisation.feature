@@ -11,8 +11,6 @@ Feature: Get Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to view the created draft account
     Then access to the created draft account is denied
 
@@ -29,8 +27,6 @@ Feature: Get Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When the "opal-test-10@dev.platform.hmcts.net" user attempts to view the created draft account
     Then access to the created draft account is denied
 
@@ -44,7 +40,5 @@ Feature: Get Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When the "opal-test-8@dev.platform.hmcts.net" user attempts to view the created draft account
     Then access to the created draft account is denied
