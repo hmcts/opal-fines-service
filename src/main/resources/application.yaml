@@ -95,7 +95,7 @@ spring:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
-    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/allEnvs, classpath:db/migration/devOnly, classpath:db/migration/stgOnly}
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
 

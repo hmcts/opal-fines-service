@@ -58,13 +58,13 @@ java:
     LAUNCH_DARKLY_ENABLED: true
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub-{{ .Values.global.environment }}.platform.hmcts.net/opal
     OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
-    FLYWAY_LOCATIONS: classpath:db/migration/allEnvs
+    FLYWAY_LOCATIONS: classpath:db/migration/ddl,classpath:db/migration/data/allEnvs
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_REPORT_PROTOCOL: amqps
   postgresql:
     enabled: false
     image:
-      tag: '17.5.0'
+      tag: '17.9.0'
 opal-frontend:
   enabled: false
 opal-user-service:
