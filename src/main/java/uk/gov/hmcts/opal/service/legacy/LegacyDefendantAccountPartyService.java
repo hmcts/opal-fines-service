@@ -491,12 +491,8 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     @Override
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-                                                                           Long defendantAccountPartyId,
-                                                                           Short businessUnitId,
-                                                                           String businessUnitUserId,
-                                                                           String postedBy,
-                                                                           String ifMatch,
-                                                                           RemoveDefendantAccountPartyRequest request) {
+        Long defendantAccountPartyId, Short businessUnitId, String businessUnitUserId, String postedBy,
+        String ifMatch, RemoveDefendantAccountPartyRequest request) {
         RemoveDefendantAccountPartyLegacyRequest req = RemoveDefendantAccountPartyLegacyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch))
             .defendantAccountId(defendantAccountId)
