@@ -28,15 +28,18 @@ class MinorCreditorApiControllerTest {
 
     @Test
     void given_validRequest_when_getMinorCreditorAccount_then_returnsOkResponse() {
+        // Arrange
         MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
         response.setCreditorAccountId(101L);
         response.setVersion(BigInteger.valueOf(7));
 
         when(minorCreditorService.getMinorCreditorAccount(101L)).thenReturn(response);
 
+        // Act
         ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
             minorCreditorApiController.getMinorCreditorAccount(101L);
 
+        // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("\"7\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());

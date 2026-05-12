@@ -107,15 +107,18 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccountAtAGlance() {
+        // Arrange
         Long id = 123L;
         GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
 
+        // Act
         GetMinorCreditorAccountAtAGlanceResponse result =
             minorCreditorService.getMinorCreditorAtAGlance(id, "authHeaderValue");
 
+        // Assert
         assertNotNull(result);
         assertEquals(response, result);
         verify(minorCreditorSearchProxy).getMinorCreditorAtAGlance(eq(id));
@@ -139,14 +142,17 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccount() {
+        // Arrange
         Long id = 123L;
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
         when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
+        // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
+        // Assert
         assertNotNull(result);
         assertEquals(response, result);
         verify(minorCreditorSearchProxy).getMinorCreditorAccount(eq(id));
@@ -154,11 +160,13 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccount_permissionNotAllowed() {
+        // Arrange
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
         when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
 
+        // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
             () -> minorCreditorService.getMinorCreditorAccount(123L)
@@ -169,6 +177,7 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccount_filtersBacsDetailsWithoutPermission() {
+        // Arrange
         Long id = 123L;
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
@@ -177,8 +186,10 @@ class MinorCreditorServiceTest {
             UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)
         );
 
+        // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
+        // Assert
         assertNotNull(result.getPayment());
         assertEquals(null, result.getPayment().getAccountName());
         assertEquals(null, result.getPayment().getSortCode());
@@ -190,6 +201,7 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccount_keepsBacsDetailsWithPermission() {
+        // Arrange
         Long id = 123L;
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
@@ -204,8 +216,10 @@ class MinorCreditorServiceTest {
             UserStateUtil.permissionUser((short) 10, searchPermission, bacsPermission)
         );
 
+        // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
+        // Assert
         assertNotNull(result.getPayment());
         assertEquals("Test Name", result.getPayment().getAccountName());
         assertEquals("123456", result.getPayment().getSortCode());

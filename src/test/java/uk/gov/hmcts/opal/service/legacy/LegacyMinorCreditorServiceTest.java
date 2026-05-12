@@ -69,6 +69,7 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldMapLegacyResponseToDto() {
+        // Arrange
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(1))
             .accountNumber("ACC-1")
@@ -109,8 +110,10 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(response);
 
+        // Act
         PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
 
+        // Assert
         assertEquals(1, result.getCount());
         assertEquals(1, result.getCreditorAccounts().size());
         assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
@@ -119,6 +122,7 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldMapNullDefendantToNull() {
+        // Arrange
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(1))
             .accountNumber("ACC-2")
@@ -155,14 +159,17 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(response);
 
+        // Act
         PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
 
+        // Assert
         assertEquals(1, result.getCount());
         assertNull(result.getCreditorAccounts().getFirst().getDefendant());
     }
 
     @Test
     void searchMinorCreditors_shouldHandleGatewayException() {
+        // Arrange
         MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
 
         GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> responseWithException =
@@ -172,13 +179,17 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(responseWithException);
 
+        // Act
         PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
+
+        // Assert
         assertEquals(0, result.getCount());
         assertEquals(0, result.getCreditorAccounts().size());
     }
 
     @Test
     void searchMinorCreditors_shouldHandleLegacyFailure() {
+        // Arrange
         MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
         LegacyMinorCreditorSearchResultsResponse legacyResponse = LegacyMinorCreditorSearchResultsResponse.builder()
             .creditorAccounts(List.of())
@@ -190,15 +201,17 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(response);
 
+        // Act
         PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
 
+        // Assert
         assertEquals(0, result.getCount());
         assertEquals(0, result.getCreditorAccounts().size());
     }
 
     @Test
     void searchMinorCreditors_shouldLogLegacyFailureEntity() {
-
+        // Arrange
         MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
         LegacyMinorCreditorSearchResultsResponse legacyResponse = LegacyMinorCreditorSearchResultsResponse.builder()
             .count(0)
@@ -215,6 +228,7 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(response);
 
+        // Act
         legacyMinorCreditorService.searchMinorCreditors(search);
     }
 
