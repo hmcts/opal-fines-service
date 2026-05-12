@@ -1009,8 +1009,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         RemoveDefendantAccountPartyResponse response = new RemoveDefendantAccountPartyResponse();
-        response.setDefendantAccountPartyId(legacy.getDefendantAccountParty().getPartyDetails().getPartyId());
-
+        response.setDefendantAccountPartyId(legacy.getDefendantAccountPartyId());
         response.setVersion(legacy.getVersion());
 
         return response;

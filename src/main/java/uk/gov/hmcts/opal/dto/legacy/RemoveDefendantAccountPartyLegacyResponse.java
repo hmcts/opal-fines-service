@@ -1,16 +1,16 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigInteger;
 
 @Data
 @Builder
@@ -18,12 +18,14 @@ import java.math.BigInteger;
 @AllArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "response")
-@XmlType(propOrder = {"version", "defendantAccountParty"})
+@XmlType(propOrder = {"version", "defendantAccountPartyId"})
 public class RemoveDefendantAccountPartyLegacyResponse {
 
+    @NotNull
     @XmlElement(name = "version")
     private BigInteger version;
 
-    @XmlElement(name = "defendant_account_party")
-    private DefendantAccountPartyLegacy defendantAccountParty;
+    @NotNull
+    @XmlElement(name = "defendant_account_party_id")
+    private String defendantAccountPartyId;
 }

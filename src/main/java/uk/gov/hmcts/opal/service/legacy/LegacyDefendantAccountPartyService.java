@@ -39,6 +39,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -57,6 +58,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
     /* ---- Mappers ---- */
     private final DefendantAccountPartyLegacyResponseMapper defendantAccountPartyLegacyResponseMapper;
+    private final RemoveDefendantAccountPartyLegacyResponseMapper removeDAPLegacyResponseMapper;
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
@@ -518,8 +520,8 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         } else if (response.isSuccessful()) {
             log.info(":removeDefendantAccountParty: Legacy success.");
         }
-        RemoveDefendantAccountPartyResponse result = new RemoveDefendantAccountPartyResponse();
-        result.setDefendantAccountPartyId(String.valueOf(defendantAccountPartyId));
-        return result;
+        return removeDAPLegacyResponseMapper.toRemoveDefendantAccountPartyResponse(
+            response.responseEntity
+        );
     }
 }

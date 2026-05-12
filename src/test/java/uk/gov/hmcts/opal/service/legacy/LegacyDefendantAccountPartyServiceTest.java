@@ -49,9 +49,13 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,11 +78,15 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     private final DefendantAccountPartyLegacyResponseMapper mapper =
         Mappers.getMapper(DefendantAccountPartyLegacyResponseMapper.class);
 
+    private final RemoveDefendantAccountPartyLegacyResponseMapper removeDAPLegacyResponseMapper =
+        Mappers.getMapper(RemoveDefendantAccountPartyLegacyResponseMapper.class);
+
     @BeforeEach
     void openMocks() throws Exception {
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDefendantAccountPartyService, gatewayService);
         injectMapper(legacyDefendantAccountPartyService, mapper);
+        injectRemoveMapper(legacyDefendantAccountPartyService, removeDAPLegacyResponseMapper);
     }
 
     private void injectGatewayService(
@@ -96,6 +104,15 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         throws NoSuchFieldException, IllegalAccessException {
         Field field = LegacyDefendantAccountPartyService.class
             .getDeclaredField("defendantAccountPartyLegacyResponseMapper");
+        field.setAccessible(true);
+        field.set(service, mapper);
+    }
+
+    private void injectRemoveMapper(LegacyDefendantAccountPartyService service,
+        RemoveDefendantAccountPartyLegacyResponseMapper mapper)
+        throws NoSuchFieldException, IllegalAccessException {
+        Field field = LegacyDefendantAccountPartyService.class
+            .getDeclaredField("removeDefendantAccountPartyLegacyResponseMapper");
         field.setAccessible(true);
         field.set(service, mapper);
     }
@@ -1818,6 +1835,96 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             "Language preferences should be null when legacy languagePreferences is null");
     }
 
+    @Test
+    void removeDefendantAccountParty_success_buildsRequestAndReturnsRemovedPartyId() {
+        // Arrange
+        GatewayService.Response<RemoveDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK,
+                removeDefendantAccountPartyLegacyResponse(BigInteger.valueOf(4), "20010"), null, null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REMOVE_DEFENDANT_ACCOUNT_PARTY),
+            eq(RemoveDefendantAccountPartyLegacyResponse.class),
+            any(RemoveDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        RemoveDefendantAccountPartyResponse response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
+            77L, 20010L, (short) 78, "dev_user", "poster", "\"3\"", null
+        );
+
+        // Assert - response contains expected values from legacy response
+        assertEquals("20010", response.getDefendantAccountPartyId());
+        assertEquals(BigInteger.valueOf(4), response.getVersion());
+
+        // Assert - gateway service was invoked
+        ArgumentCaptor<RemoveDefendantAccountPartyLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(RemoveDefendantAccountPartyLegacyRequest.class);
+        verify(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REMOVE_DEFENDANT_ACCOUNT_PARTY),
+            eq(RemoveDefendantAccountPartyLegacyResponse.class),
+            requestCaptor.capture(),
+            Mockito.nullable(String.class)
+        );
+    }
+
+    /**
+     * The current assumption is that when there is a legacy failure Gateway Service shall return the following.
+     * - HttpStatus.SERVICE_UNAVAILABLE
+     * - response entity as null
+     * - body as "<legacy-failure/>"
+     *
+     * The Gateway Service contract is expected to be updated to include error codes/messages.
+     */
+    @Test
+    void removeDefendantAccountParty_legacyFailure5xx_returnsEmptyResponse() {
+        GatewayService.Response<RemoveDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, null, "<legacy-failure/>", null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REMOVE_DEFENDANT_ACCOUNT_PARTY),
+            eq(RemoveDefendantAccountPartyLegacyResponse.class),
+            any(RemoveDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        RemoveDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.removeDefendantAccountParty(
+            77L, 20010L, (short) 78, "dev_user", "poster", "\"3\"", null
+        );
+
+        assertNull(result.getDefendantAccountPartyId());
+        assertNull(result.getVersion());
+    }
+
+    /**
+     * The current assumption is that when the Gateway Service returns an exception, it'll return the following.
+     * - HttpStatus.BAD_GATEWAY
+     * - exception
+     * - body as null
+     *
+     * The Gateway Service contract is expected to be updated to include error codes/messages.
+     */
+    @Test
+    void removeDefendantAccountParty_exception_ReturnsEmptyResponse() {
+        GatewayService.Response<RemoveDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("boom"), null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REMOVE_DEFENDANT_ACCOUNT_PARTY),
+            eq(RemoveDefendantAccountPartyLegacyResponse.class),
+            any(RemoveDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        RemoveDefendantAccountPartyResponse response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
+            77L, 20010L, (short) 78, "dev_user", "poster", "\"3\"", null
+        );
+
+        assertNull(response.getDefendantAccountPartyId());
+        assertNull(response.getVersion());
+    }
+
     private GetDefendantAccountPartyLegacyResponse legacyPartyIndividual() {
         IndividualDetailsLegacy ind = IndividualDetailsLegacy.builder()
             .title("Ms").forenames("Sam").surname("Graham").build();
@@ -1866,6 +1973,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         return GetDefendantAccountPartyLegacyResponse.builder()
             .version(2L)
             .defendantAccountParty(party)
+            .build();
+    }
+
+    private RemoveDefendantAccountPartyLegacyResponse removeDefendantAccountPartyLegacyResponse(
+        BigInteger version, String defendantAccountPartyId) {
+        return RemoveDefendantAccountPartyLegacyResponse.builder()
+            .version(version)
+            .defendantAccountPartyId(defendantAccountPartyId)
             .build();
     }
 }
