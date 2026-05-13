@@ -41,6 +41,14 @@ public class LegacyGetMinorCreditorAccountHeaderSummaryResponseMapperTest extend
         CreditorHeaderLegacy creditorHeader = CreditorHeaderLegacy.builder().build();
         FinancialsLegacy financials = FinancialsLegacy.builder().build();
 
+
+
+        when(partyDetailsMapper.toOpal(partyDetails)).thenReturn(PartyDetails.builder().build());
+        when(businessUnitSummaryMapper.toOpal(businessUnitSummary)).thenReturn(
+            uk.gov.hmcts.opal.dto.common.BusinessUnitSummary.builder().build());
+        when(creditorHeaderMapper.toOpal(creditorHeader)).thenReturn(CreditorHeader.builder().build());
+        when(financialsMapper.toOpal(financials)).thenReturn(Financials.builder().build());
+
         LegacyGetMinorCreditorAccountHeaderSummaryResponse legacy = LegacyGetMinorCreditorAccountHeaderSummaryResponse
             .builder()
             .partyDetails(partyDetails)
@@ -48,12 +56,6 @@ public class LegacyGetMinorCreditorAccountHeaderSummaryResponseMapperTest extend
             .creditor(creditorHeader)
             .financials(financials)
             .build();
-
-        when(partyDetailsMapper.toOpal(partyDetails)).thenReturn(PartyDetails.builder().build());
-        when(businessUnitSummaryMapper.toOpal(businessUnitSummary)).thenReturn(
-            uk.gov.hmcts.opal.dto.common.BusinessUnitSummary.builder().build());
-        when(creditorHeaderMapper.toOpal(creditorHeader)).thenReturn(CreditorHeader.builder().build());
-        when(financialsMapper.toOpal(financials)).thenReturn(Financials.builder().build());
 
         // Act
         mapper.toOpal(legacy);

@@ -1,56 +1,62 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.ToJsonString;
+import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
 
 import java.math.BigDecimal;
 
+@XmlRootElement(name = "response")
+@XmlAccessorType(XmlAccessType.FIELD)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class LegacyGetMinorCreditorAccountHeaderSummaryResponse implements ToJsonString {
+public class LegacyGetMinorCreditorAccountHeaderSummaryResponse implements ToXmlString {
 
-    @JsonProperty("party_details")
+    @XmlElement(name = "party_details")
     private PartyDetailsLegacy partyDetails;
 
-    @JsonProperty("business_unit")
+    @XmlElement(name = "business_unit")
     private BusinessUnitSummary businessUnit;
 
-    @JsonProperty("creditor")
+    @XmlElement(name = "creditor")
     private CreditorHeaderLegacy creditor;
 
-    @JsonProperty("financials")
+    @XmlElement(name = "financials")
     private FinancialsLegacy financials;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Jacksonized
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static class CreditorHeaderLegacy {
 
-        @JsonProperty("account_version")
+        @XmlElement(name = "account_version")
         private Integer accountVersion;
 
-        @JsonProperty("account_id")
+        @XmlElement(name = "account_id")
         private String accountId;
 
-        @JsonProperty("account_number")
+        @XmlElement(name = "account_number")
         private String accountNumber;
 
-        @JsonProperty("account_type")
+        @XmlElement(name = "account_type")
         private CreditorAccountTypeReference accountType;
 
-        @JsonProperty("has_associated_defendant")
+        @XmlElement(name = "has_associated_defendant")
         private Boolean hasAssociatedDefendant;
     }
 
@@ -58,19 +64,21 @@ public class LegacyGetMinorCreditorAccountHeaderSummaryResponse implements ToJso
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Jacksonized
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static class FinancialsLegacy {
 
-        @JsonProperty("awarded")
+        @XmlElement(name = "awarded")
         private BigDecimal awarded;
 
-        @JsonProperty("paid_out")
+        @XmlElement(name = "paid_out")
         private BigDecimal paidOut;
 
-        @JsonProperty("awaiting_payout")
+        @XmlElement(name = "awaiting_payout")
         private BigDecimal awaitingPayout;
 
-        @JsonProperty("outstanding")
+        @XmlElement(name = "outstanding")
         private BigDecimal outstanding;
     }
 }
