@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -36,25 +36,21 @@ import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
-@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
-@Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
+@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @Autowired
+    @MockitoSpyBean
     private ImpositionRepository impositionRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private CreditorTransactionRepository creditorTransactionRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private PartyRepository partyRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private CreditorAccountRepository creditorAccountRepository;
 
     @Test
@@ -260,6 +256,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     void patchMinorCreditor_serverError_returns500() throws Exception {
         super.patchMinorCreditor_serverError_returns500(log);
+    }
+
+    @Test
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
     }
 
     @Test
