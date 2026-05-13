@@ -1875,7 +1875,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
      * - response entity as null
      * - body as "<legacy-failure/>"
      *
-     * The Gateway Service contract is expected to be updated to include error codes/messages.
+     * <p>The Gateway Service contract is expected to be updated to include error codes/messages.</p>
      */
     @Test
     void removeDefendantAccountParty_legacyFailure5xx_returnsEmptyResponse() {
@@ -1903,7 +1903,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
      * - exception
      * - body as null
      *
-     * The Gateway Service contract is expected to be updated to include error codes/messages.
+     * <p>The Gateway Service contract is expected to be updated to include error codes/messages.</p>
      */
     @Test
     void removeDefendantAccountParty_exception_ReturnsEmptyResponse() {

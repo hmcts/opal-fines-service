@@ -507,8 +507,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             REMOVE_DEFENDANT_ACCOUNT_PARTY,
             RemoveDefendantAccountPartyLegacyResponse.class,
             req,
-            null
-        );
+            null);
 
         if (response.isError()) {
             log.error(":removeDefendantAccountParty: Legacy error HTTP {}", response.code);
@@ -520,8 +519,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         } else if (response.isSuccessful()) {
             log.info(":removeDefendantAccountParty: Legacy success.");
         }
-        return removeDAPLegacyResponseMapper.toRemoveDefendantAccountPartyResponse(
-            response.responseEntity
-        );
+
+        return removeDAPLegacyResponseMapper.toRemoveDefendantAccountPartyResponse(response.responseEntity);
     }
 }

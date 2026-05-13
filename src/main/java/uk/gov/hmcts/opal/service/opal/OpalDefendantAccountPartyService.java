@@ -335,15 +335,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Override
     @Transactional
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-                                                                           Long defendantAccountPartyId,
-                                                                           Short businessUnitId,
-                                                                           String businessUserId,
-                                                                           String postedBy,
-                                                                           String ifMatch,
-                                                                           RemoveDefendantAccountPartyRequest request) {
+        Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
+        String ifMatch, RemoveDefendantAccountPartyRequest request) {
 
-        DefendantAccountEntity account = defendantAccountRepositoryService
-            .findById(defendantAccountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
         log.debug(":removeDefendantAccountParty: accountId={}, dapId={}, buId={}, postedBy={}",
             defendantAccountId, defendantAccountPartyId, businessUnitId, postedBy);
