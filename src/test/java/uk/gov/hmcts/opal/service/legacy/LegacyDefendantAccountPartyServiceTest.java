@@ -15,14 +15,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -56,7 +54,6 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
-import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
@@ -67,13 +64,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     @Mock
     private LegacyGatewayProperties gatewayProperties;
 
-    @Mock
-    private CourtService courtService;
-
     private GatewayService gatewayService;
 
-    @InjectMocks
-    private  LegacyDefendantAccountPartyService legacyDefendantAccountPartyService;
+    private LegacyDefendantAccountPartyService legacyDefendantAccountPartyService;
 
     private final DefendantAccountPartyLegacyResponseMapper mapper =
         Mappers.getMapper(DefendantAccountPartyLegacyResponseMapper.class);
@@ -82,39 +75,13 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Mappers.getMapper(RemoveDefendantAccountPartyLegacyResponseMapper.class);
 
     @BeforeEach
-    void openMocks() throws Exception {
+    void openMocks() {
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
-        injectGatewayService(legacyDefendantAccountPartyService, gatewayService);
-        injectMapper(legacyDefendantAccountPartyService, mapper);
-        injectRemoveMapper(legacyDefendantAccountPartyService, removeDAPLegacyResponseMapper);
-    }
-
-    private void injectGatewayService(
-        LegacyDefendantAccountPartyService legacyDefendantAccountService, GatewayService gatewayService)
-        throws NoSuchFieldException, IllegalAccessException {
-
-        Field field = LegacyDefendantAccountPartyService.class.getDeclaredField("gatewayService");
-        field.setAccessible(true);
-        field.set(legacyDefendantAccountService, gatewayService);
-
-    }
-
-    private void injectMapper(LegacyDefendantAccountPartyService service,
-        DefendantAccountPartyLegacyResponseMapper mapper)
-        throws NoSuchFieldException, IllegalAccessException {
-        Field field = LegacyDefendantAccountPartyService.class
-            .getDeclaredField("defendantAccountPartyLegacyResponseMapper");
-        field.setAccessible(true);
-        field.set(service, mapper);
-    }
-
-    private void injectRemoveMapper(LegacyDefendantAccountPartyService service,
-        RemoveDefendantAccountPartyLegacyResponseMapper mapper)
-        throws NoSuchFieldException, IllegalAccessException {
-        Field field = LegacyDefendantAccountPartyService.class
-            .getDeclaredField("removeDefendantAccountPartyLegacyResponseMapper");
-        field.setAccessible(true);
-        field.set(service, mapper);
+        legacyDefendantAccountPartyService = new LegacyDefendantAccountPartyService(
+            gatewayService,
+            mapper,
+            removeDAPLegacyResponseMapper
+        );
     }
 
     @Test
