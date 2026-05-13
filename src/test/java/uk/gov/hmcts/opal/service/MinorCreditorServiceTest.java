@@ -140,6 +140,24 @@ class MinorCreditorServiceTest {
     }
 
     @Test
+    void testGetMinorCreditorAccountAtAGlance_viewCreditorBacsPermissionNotAllowed() {
+        // Arrange
+        UserState noBacsPermissionUser = mock(UserState.class);
+        when(noBacsPermissionUser.anyBusinessUnitUserHasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(noBacsPermissionUser.anyBusinessUnitUserHasPermission(
+            FinesPermission.VIEW_CREDITOR_BACS)).thenReturn(false);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noBacsPermissionUser);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.getMinorCreditorAtAGlance(123L, "authHeaderValue")
+        );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.VIEW_CREDITOR_BACS);
+    }
+
+    @Test
     void testPermissionNotAllowedException() {
         // Arrange
         UserState noPermissionUser = mock(UserState.class);
@@ -251,6 +269,8 @@ class MinorCreditorServiceTest {
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
+            .thenReturn(true);
         when(userState.getUserName()).thenReturn("test.user@hmcts.net");
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
             BusinessUnitUser.builder()
@@ -274,6 +294,29 @@ class MinorCreditorServiceTest {
         verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE),
             postedByCaptor.capture(), eq(Short.valueOf("10")));
         assertEquals("test.user@hmcts.net", postedByCaptor.getValue());
+    }
+
+    @Test
+    void updateMinorCreditorAccount_viewCreditorBacsPermissionNotAllowed() {
+        // Arrange
+        UserState userState = mock(UserState.class);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
+            .thenReturn(true);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
+            .thenReturn(false);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        PatchMinorCreditorAccountRequest request = validPatchRequest();
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10")
+        );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.VIEW_CREDITOR_BACS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
     }
 
     private PatchMinorCreditorAccountRequest validPatchRequest() {
