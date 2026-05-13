@@ -218,6 +218,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
+    }
+
+    @Test
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         super.patchMinorCreditor_missingPayload_returns400();
     }
