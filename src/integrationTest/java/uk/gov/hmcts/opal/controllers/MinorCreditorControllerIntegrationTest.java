@@ -1453,6 +1453,19 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions.andExpect(status().isNotFound());
     }
 
+    void getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
+            (short) 10,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+        ));
+
+        mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("authorization", "Bearer some_value"))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
     void getMinorCreditorAtAGlanceImpl_serverError_throws500(Logger log) throws Exception {
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
             .when(userStateService).checkForAuthorisedUser(any());
