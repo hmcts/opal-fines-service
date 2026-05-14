@@ -5,23 +5,23 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
 
 @Mapper(
     componentModel = "spring",
     unmappedTargetPolicy = ReportingPolicy.IGNORE,
     uses = {
         LegacyPartyDetailsMapper.class,
-        LegacyBusinessUnitSummaryMapper.class,
+        BusinessUnitSummaryLegacyMapper.class,
         CreditorHeaderLegacyMapper.class,
         FinancialsLegacyMapper.class
     }
 )
-public interface LegacyGetMinorCreditorAccountHeaderSummaryResponseMapper {
+public interface GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper {
 
     @Mappings({
         @Mapping(source = "partyDetails", target = "party")
     })
-    GetMinorCreditorAccountHeaderSummaryResponse toOpal(LegacyGetMinorCreditorAccountHeaderSummaryResponse legacy);
+    GetMinorCreditorAccountHeaderSummaryResponse toOpal(GetMinorCreditorAccountHeaderSummaryLegacyResponse legacy);
 
 }

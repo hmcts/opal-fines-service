@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class  LegacyGetMinorCreditorAccountHeaderSummaryRequest {
+public class GetMinorCreditorAccountHeaderSummaryLegacyRequest {
 
     @XmlElement(name = "creditor_account_id", required = true)
     private String creditorAccountId;

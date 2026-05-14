@@ -9,10 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
-class LegacyBusinessUnitSummaryMapperTest extends AbstractMapperTest {
+class BusinessUnitSummaryLegacyMapperTest extends AbstractMapperTest {
 
     @Autowired
-    private LegacyBusinessUnitSummaryMapper mapper;
+    private BusinessUnitSummaryLegacyMapper mapper;
 
     @Test
     void givenLegacyBusinessUnitSummary_whenToOpal_thenMapsExpectedFields() {

@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LegacyGetMinorCreditorAccountHeaderSummaryResponse implements ToXmlString {
+public class GetMinorCreditorAccountHeaderSummaryLegacyResponse implements ToXmlString {
 
     @XmlElement(name = "party_details")
     private PartyDetailsLegacy partyDetails;

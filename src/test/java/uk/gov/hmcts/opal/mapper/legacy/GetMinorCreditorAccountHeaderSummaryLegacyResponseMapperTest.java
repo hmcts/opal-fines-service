@@ -9,17 +9,17 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse.CreditorHeaderLegacy;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse.FinancialsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.FinancialsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
-public class LegacyGetMinorCreditorAccountHeaderSummaryResponseMapperTest extends AbstractMapperTest {
+public class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest extends AbstractMapperTest {
 
     @Autowired
-    LegacyGetMinorCreditorAccountHeaderSummaryResponseMapper mapper;
+    GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper mapper;
 
     @MockitoBean
     LegacyPartyDetailsMapper partyDetailsMapper;
@@ -28,7 +28,7 @@ public class LegacyGetMinorCreditorAccountHeaderSummaryResponseMapperTest extend
     FinancialsLegacyMapper financialsMapper;
 
     @MockitoBean
-    LegacyBusinessUnitSummaryMapper businessUnitSummaryMapper;
+    BusinessUnitSummaryLegacyMapper businessUnitSummaryMapper;
 
     @MockitoBean
     CreditorHeaderLegacyMapper creditorHeaderMapper;
@@ -49,7 +49,7 @@ public class LegacyGetMinorCreditorAccountHeaderSummaryResponseMapperTest extend
         when(creditorHeaderMapper.toOpal(creditorHeader)).thenReturn(CreditorHeader.builder().build());
         when(financialsMapper.toOpal(financials)).thenReturn(Financials.builder().build());
 
-        LegacyGetMinorCreditorAccountHeaderSummaryResponse legacy = LegacyGetMinorCreditorAccountHeaderSummaryResponse
+        GetMinorCreditorAccountHeaderSummaryLegacyResponse legacy = GetMinorCreditorAccountHeaderSummaryLegacyResponse
             .builder()
             .partyDetails(partyDetails)
             .businessUnit(businessUnitSummary)

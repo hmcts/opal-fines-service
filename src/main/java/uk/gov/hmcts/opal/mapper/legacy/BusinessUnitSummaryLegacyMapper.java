@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
     componentModel = "spring",
     unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
-public interface LegacyBusinessUnitSummaryMapper {
+public interface BusinessUnitSummaryLegacyMapper {
 
     BusinessUnitSummary toOpal(uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary businessUnitSummary);
 }

@@ -12,14 +12,14 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse.CreditorHeaderLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
-import uk.gov.hmcts.opal.mapper.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -38,7 +38,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
-    private final LegacyGetMinorCreditorAccountHeaderSummaryResponseMapper headerSummaryResponseMapper;
+    private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
 
     private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
 
@@ -83,10 +83,10 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     @Override
     public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
 
-        Response<LegacyGetMinorCreditorAccountHeaderSummaryResponse> response =
+        Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY,
-                LegacyGetMinorCreditorAccountHeaderSummaryResponse.class,
-                LegacyGetMinorCreditorAccountHeaderSummaryRequest.builder()
+                GetMinorCreditorAccountHeaderSummaryLegacyResponse.class,
+                GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder()
                     .creditorAccountId(String.valueOf(minorCreditorAccountId)).build(),
                 null
             );

@@ -27,14 +27,14 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.Defendant;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponse.CreditorHeaderLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.mapper.legacy.LegacyGetMinorCreditorAccountHeaderSummaryResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +47,7 @@ class LegacyMinorCreditorServiceTest {
     private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @Mock
-    private LegacyGetMinorCreditorAccountHeaderSummaryResponseMapper headerSummaryResponseMapper;
+    private GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
 
     @InjectMocks
     private LegacyMinorCreditorService legacyMinorCreditorService;
@@ -319,18 +319,18 @@ class LegacyMinorCreditorServiceTest {
     @Test
     void getHeaderSummary_shouldCallResponseMapper() {
         // Arrange
-        LegacyGetMinorCreditorAccountHeaderSummaryResponse legacyResponse =
-            LegacyGetMinorCreditorAccountHeaderSummaryResponse.builder()
+        GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
+            GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
                 .creditor(CreditorHeaderLegacy.builder().accountVersion(1).build())
                 .build();
 
-        GatewayService.Response<LegacyGetMinorCreditorAccountHeaderSummaryResponse> gatewayResponse =
+        GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
 
         when(gatewayService.postToGateway(
             any(),
-            eq(LegacyGetMinorCreditorAccountHeaderSummaryResponse.class),
-            eq(LegacyGetMinorCreditorAccountHeaderSummaryRequest.builder().creditorAccountId("101").build()),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder().creditorAccountId("101").build()),
             any())
         ).thenReturn(gatewayResponse);
 
@@ -355,16 +355,16 @@ class LegacyMinorCreditorServiceTest {
     @Test
     void getHeaderSummary_shouldHandleGatewayException() {
         // Arrange
-        LegacyGetMinorCreditorAccountHeaderSummaryResponse legacyResponse =
-            LegacyGetMinorCreditorAccountHeaderSummaryResponse.builder()
+        GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
+            GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
                 .creditor(CreditorHeaderLegacy.builder().accountVersion(1).build())
                 .build();
 
-        GatewayService.Response<LegacyGetMinorCreditorAccountHeaderSummaryResponse> responseWithException =
+        GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> responseWithException =
             new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
                 legacyResponse, null, new RuntimeException("Gateway error"));
 
-        when(gatewayService.postToGateway(any(), eq(LegacyGetMinorCreditorAccountHeaderSummaryResponse.class),
+        when(gatewayService.postToGateway(any(), eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(), any())).thenReturn(responseWithException);
 
         GetMinorCreditorAccountHeaderSummaryResponse mapperResponse =
@@ -382,7 +382,7 @@ class LegacyMinorCreditorServiceTest {
         // Verify interactions
         verify(gatewayService, times(1)).postToGateway(
             any(),
-            eq(LegacyGetMinorCreditorAccountHeaderSummaryResponse.class),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(),
             any()
         );
@@ -393,16 +393,16 @@ class LegacyMinorCreditorServiceTest {
     @Test
     void getHeaderSummary_shouldHandleLegacyFailure() {
         // Arrange
-        LegacyGetMinorCreditorAccountHeaderSummaryResponse legacyResponse =
-            LegacyGetMinorCreditorAccountHeaderSummaryResponse.builder()
+        GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
+            GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
                 .creditor(CreditorHeaderLegacy.builder().accountVersion(1).build())
                 .build();
 
-        GatewayService.Response<LegacyGetMinorCreditorAccountHeaderSummaryResponse> responseWithFailure =
+        GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> responseWithFailure =
             new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
                 legacyResponse, null, null);
 
-        when(gatewayService.postToGateway(any(), eq(LegacyGetMinorCreditorAccountHeaderSummaryResponse.class),
+        when(gatewayService.postToGateway(any(), eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(), any())).thenReturn(responseWithFailure);
 
         GetMinorCreditorAccountHeaderSummaryResponse mapperResponse =
@@ -420,7 +420,7 @@ class LegacyMinorCreditorServiceTest {
         // Verify interactions
         verify(gatewayService, times(1)).postToGateway(
             any(),
-            eq(LegacyGetMinorCreditorAccountHeaderSummaryResponse.class),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(),
             any()
         );
