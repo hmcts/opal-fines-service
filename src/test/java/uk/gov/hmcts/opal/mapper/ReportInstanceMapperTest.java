@@ -169,8 +169,8 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .requestedAt(REQUESTED_AT)
                 .createdTimestamp(GENERATED_AT)
                 .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(List.of(
-                    ReportSupportedFileType.JSON, ReportSupportedFileType.CSV)).build())
-                .reportName(null) //todo additional test for this not null
+                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV, ReportSupportedFileType.PDF)).build()) //todo add JSON
+                .reportName(null)
                 .businessUnit(List.of(1L,2L))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
@@ -222,7 +222,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
 
             assertEquals(REPORT_ID, response.getReport().getId());
             MatcherAssert.assertThat(response.getReport().getSupportedFileTypes(), Matchers.containsInAnyOrder(
-                SupportedFileTypesEnum.JSON, SupportedFileTypesEnum.CSV));
+                SupportedFileTypesEnum.XML, SupportedFileTypesEnum.CSV, SupportedFileTypesEnum.PDF));
         }
 
         @Test
@@ -232,7 +232,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .requestedAt(REQUESTED_AT)
                 .createdTimestamp(GENERATED_AT)
                 .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(List.of(
-                    ReportSupportedFileType.JSON, ReportSupportedFileType.CSV)).build())
+                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV)).build())
                 .reportName("Custom Name")
                 .businessUnit(List.of(1L,2L))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
@@ -260,7 +260,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .requestedAt(REQUESTED_AT)
                 .createdTimestamp(GENERATED_AT)
                 .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(List.of(
-                    ReportSupportedFileType.JSON, ReportSupportedFileType.CSV)).build())
+                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV)).build())
                 .reportName(null)
                 .businessUnit(List.of(1L,2L))
                 .generationStatus(ReportInstanceGenerationStatus.ERROR)
