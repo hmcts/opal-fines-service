@@ -11,8 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Defines Cucumber steps and token helpers for authenticated functional-test calls.
  */
@@ -22,29 +20,30 @@ public class BearerTokenStepDef extends BaseStepDef {
     public static final String DEFAULT_USER = "opal-test@dev.platform.hmcts.net";
     private static final ThreadLocal<String> TOKEN = new ThreadLocal<>();
     private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
-    private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();
 
     /**
-     * Clears any scenario-specific alternate bearer token.
+     * Clears any scenario-specific bearer-token state so each scenario starts with a fresh auth
+     * context.
      */
     @Before
     public void resetAltToken() {
         clearTokenOverride();
+        TOKEN.remove();
         scenarioContext().setCurrentUser(DEFAULT_USER);
     }
 
     /**
-     * Returns a cached access token for the supplied user, fetching one when needed.
+     * Fetches a fresh access token for the supplied user.
      *
      * @param user user alias or email used to resolve the bearer token.
      * @return access token for the supplied user.
      */
     public static String getAccessTokenForUser(String user) {
-        return tokenCache.computeIfAbsent(user, BearerTokenStepDef::fetchAccessToken);
+        return fetchAccessToken(user);
     }
 
     /**
-     * Fetches and caches an access token for the supplied user.
+     * Fetches an access token for the supplied user.
      *
      * @param user user alias or email used to resolve the bearer token.
      * @return access token for the supplied user.
@@ -87,7 +86,7 @@ public class BearerTokenStepDef extends BaseStepDef {
         }
 
         if (TOKEN.get() == null) {
-            TOKEN.set(tokenCache.computeIfAbsent(DEFAULT_USER, BearerTokenStepDef::fetchAccessToken));
+            TOKEN.set(fetchAccessToken(DEFAULT_USER));
         }
 
         return TOKEN.get();

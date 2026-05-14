@@ -202,6 +202,56 @@ To build the project execute the following command:
 ```bash / zsh
   ./gradlew build
 ```
+
+### Functional test tasks
+
+Use the standard functional suite for normal backend functional coverage:
+
+```bash / zsh
+  ./gradlew functional
+```
+
+This runs the default Opal and Legacy functional suites, and the Opal portion excludes
+environment-specific scenarios tagged `@UAT-Technical`, including the `@R1AOff`,
+`@R1BOff`, and `@R1COff` feature-flag suites.
+
+Use the tagged Opal functional suite when you need to run only scenarios for a specific
+environment or feature-flag configuration:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalOpalTags
+```
+
+You can also pass the tags as a Gradle property instead of an environment variable:
+
+```bash / zsh
+  ./gradlew functionalOpalTags -Ptags='@UAT-Technical and @R1B and @R1C'
+```
+
+Use the combined tagged wrapper when you want the default Opal suite and the tagged Opal
+scenarios in one run, with the same Serenity report and merged JUnit summary flow used by
+the standard `functional` task:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalWithTags
+```
+
+Use the Zephyr variant when you want the same combined tagged run and the tagged Opal
+execution recorded through the existing cucumber-report Zephyr flow:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalWithTagsWithZephyrExecution
+```
+
+Common examples:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1B and @R1COff' ./gradlew functionalOpalTags
+  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalOpalTags
+  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalWithTags
+  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalWithTagsWithZephyrExecution
+```
+
 ## Manual api testing (Postman)
 
 Within the project's postman directory is an importable script to set up api tests in the Postman app.
