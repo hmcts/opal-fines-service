@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -22,6 +23,10 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.service.report.ReportParameterData;
+import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.report.ReportSupportedFileType;
 
 @Entity
 @Table(name = "reports")
