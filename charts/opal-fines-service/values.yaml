@@ -64,7 +64,7 @@ java:
   postgresql:
     enabled: false
     image:
-      tag: '17.9.0'
+      tag: '17.5.0'
 opal-frontend:
   enabled: false
 opal-user-service:
