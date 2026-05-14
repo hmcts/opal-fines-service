@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.generated.http.api.ReportInstancesApi;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -46,5 +47,11 @@ public class ReportInstancesApiController implements ReportInstancesApi {
     public ResponseEntity<CreateReportInstanceResponseReports> createReportInstance(
         CreateReportInstanceRequestReports createReportInstanceRequestReports) {
         return buildCreatedResponse(genericReportService.addReportInstance(createReportInstanceRequestReports, true));
+    }
+
+
+    @Override
+    public ResponseEntity<ReportInstanceReports> getReportInstance(Integer id) {
+        return buildResponse(genericReportService.getReportInstance(id));
     }
 }
