@@ -263,6 +263,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void getAtAGlance_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403();
+    }
+
+    @Test
     void getAtAGlance_serverError_returns500() throws Exception {
         super.getMinorCreditorAtAGlanceImpl_serverError_throws500(log);
     }
