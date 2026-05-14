@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.Period;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
@@ -63,6 +64,14 @@ abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegration
     void setupUserState() {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
+    }
+
+    protected static @NonNull HttpHeaders buildHttpHeaders(String number, String currentVersion) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", number);
+        headers.add(HttpHeaders.IF_MATCH, currentVersion);
+        return headers;
     }
 
     protected static String commentAndNotesPayload(String accountComment) {
