@@ -398,7 +398,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.requested_by.name").value("Report Person"))
             .andExpect(jsonPath("$.name").value("Operational report: single BU"))
 
-            .andExpect(jsonPath("$.business_units").value())
+            .andExpect(jsonPath("$.business_units[0].business_unit_id").value("1"))
+            .andExpect(jsonPath("$.business_units[0].business_unit_name").value("BU no1"))
+            .andExpect(jsonPath("$.business_units[0].welsh_speaking").value("N"))
 
             .andExpect(jsonPath("$.status.code").value(CodeEnum.READY.name()))
             .andExpect(jsonPath("$.status.display_name").value(CodeEnum.READY.getValue()))
@@ -406,7 +408,8 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.is_downloadable").value(true))
             .andExpect(jsonPath("$.errors").value(IsNull.nullValue()))
 
-            //.andExpect(jsonPath("$.report_parameters").value())
+            .andExpect(jsonPath("$.report_parameters.param1").value("A string parameter value"))
+            .andExpect(jsonPath("$.report_parameters.param2").value(987))
 
             .andExpect(jsonPath("$.retain_until").value("2026-05-25T17:30:00"))
             .andExpect(jsonPath("$.report.id").value("full_report_single_bu"))
