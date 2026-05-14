@@ -24,7 +24,10 @@ import uk.gov.hmcts.opal.controllers.util.DraftAccountTestData;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.Release1AFeatureToggleIntegrationTest")
 @DisplayName("Release 1A - returns 405 when release-1a flag is disabled")
-@TestPropertySource(properties = "launchdarkly.default-flag-values.release-1a=false")
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1a=false"
+})
 class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {
 
     private static final String DRAFT_ACCOUNT_ID = "/draft-accounts/100000";
