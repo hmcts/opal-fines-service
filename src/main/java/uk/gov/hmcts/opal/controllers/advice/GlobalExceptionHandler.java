@@ -47,6 +47,7 @@ import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -94,6 +95,19 @@ public class GlobalExceptionHandler {
             ex
         );
 
+        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
+    }
+
+    @ExceptionHandler(PermissionNotAllowedException.class)
+    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Permission Not Allowed",
+            "You do not have the required permission to perform this action",
+            "permission-not-allowed",
+            false,
+            ex
+        );
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
@@ -600,8 +614,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Exception type used for the specific PCR-already-exists conflict so we can return a
-     * tailored 409 Problem JSON (detail contains message, retriable=true).
+     * Exception type used for the specific PCR-already-exists conflict so we can return a tailored 409 Problem JSON
+     * (detail contains message, retriable=true).
      *
      * <p>Kept as a nested class to avoid creating a new top-level file.
      */

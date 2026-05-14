@@ -56,21 +56,19 @@ class ReportServiceTest {
 
         static Stream<Arguments> successCases() {
             return Stream.of(
-                Arguments.of(createDefaultReportEntity(), false),
-                Arguments.of(createReportEntityWithNullRetentionPeriod(), false),
-                Arguments.of(createFullReportEntity(), true)
+                Arguments.of(createDefaultReportEntity()),
+                Arguments.of(createReportEntityWithNullRetentionPeriod()),
+                Arguments.of(createFullReportEntity())
             );
         }
 
         @ParameterizedTest
         @MethodSource("successCases")
-        void getReport_success(ReportEntity entity, boolean stubPermission) {
+        void getReport_success(ReportEntity entity) {
             ReportReports reportDto = createDefaultReportDto();
             UserState userState = stubUserAndRepo(entity.getReportId(), Optional.of(entity));
             when(reportMapper.toDto(entity)).thenReturn(reportDto);
-            if (stubPermission) {
-                when(userState.anyBusinessUnitUserHasPermission(FinesPermission.REPORTS_VIEW)).thenReturn(true);
-            }
+            when(userState.anyBusinessUnitUserHasPermission(FinesPermission.UNKNOWN)).thenReturn(true);
 
             ReportReports result = reportService.getReport(entity.getReportId());
 

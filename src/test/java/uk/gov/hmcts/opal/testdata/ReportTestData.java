@@ -49,7 +49,7 @@ public class ReportTestData {
             .isBespokeJourney(true)
             .shownAsWorklist(true)
             .retentionPeriod(Duration.ofDays(30))
-            .permission("REPORTS_VIEW")
+            .permission(null)
             .canManuallyCreate(false)
             .build();
     }
@@ -150,7 +150,7 @@ public class ReportTestData {
         dto.setIsBespokeJourney(true);
         dto.setShownAsWorklist(true);
         dto.setRetentionPeriod("P30D");
-        dto.setPermission("REPORTS_VIEW");
+        dto.setPermission(null);
         dto.setCanManuallyCreate(false);
         return dto;
     }

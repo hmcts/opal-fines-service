@@ -29,8 +29,7 @@ public class ReportService extends AbstractPermissionService {
         UserState userState = userStateService.checkForAuthorisedUser();
         ReportEntity entity = reportRepository.findById(reportId)
             .orElseThrow(() -> new EntityNotFoundException("Report not found with id: " + reportId));
-        checkPermission(userState, entity.getPermission() != null
-            ? FinesPermission.valueOf(entity.getPermission()) : null);
+        checkPermission(userState, FinesPermission.fromString(entity.getPermission()));
 
         return reportMapper.toDto(entity);
     }

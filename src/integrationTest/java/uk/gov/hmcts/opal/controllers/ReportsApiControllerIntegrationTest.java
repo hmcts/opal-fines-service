@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -31,10 +30,9 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     UserStateService userStateService;
 
-
     @BeforeEach
     void setUp() {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
     }
 
     @Test
