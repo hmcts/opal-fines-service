@@ -138,6 +138,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
     @Nested
     @DisplayName("toReportInstanceReportsDto()")
     class ToReportInstanceReportsDto {
+
         private static final long REPORT_INSTANCE_ID = 123L;
         private static final String REPORT_ID = "REPORT-ID-1";
         private static final String REPORT_TITLE = "Report 1 Title";
