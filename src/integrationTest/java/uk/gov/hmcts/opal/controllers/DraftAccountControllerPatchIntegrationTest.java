@@ -143,7 +143,14 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(header().string("ETag", "\"1\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Rejected"))
-            .andExpect(jsonPath("$.timeline_data").isArray());
+            .andExpect(jsonPath("$.timeline_data").isArray())
+            .andExpect(jsonPath("$.timeline_data.length()").value(2))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("opal-test"))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
+            .andExpect(jsonPath("$.timeline_data[1].status").value("Rejected"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
     }
 
     @Test

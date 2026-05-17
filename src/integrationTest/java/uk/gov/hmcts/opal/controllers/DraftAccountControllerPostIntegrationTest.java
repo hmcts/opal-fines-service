@@ -175,12 +175,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(jsonPath("$.account.defendant.surname")
                 .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
-            .andExpect(jsonPath("$.status_message").value("Created from backend"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data.length()").value(1))
             .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
-            .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
-            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Created from backend"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
         ;
     }
 
