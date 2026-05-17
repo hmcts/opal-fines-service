@@ -46,7 +46,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
             .header("authorization", "Bearer some_value")
-            .header("If-Match", "3")
+            .header("If-Match", getIfMatchForDraftAccount(5L))
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
 
