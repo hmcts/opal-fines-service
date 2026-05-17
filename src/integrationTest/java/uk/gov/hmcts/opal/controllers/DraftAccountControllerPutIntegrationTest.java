@@ -62,10 +62,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray())
-            .andExpect(jsonPath("$.timeline_data[1].username").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data.length()").value(2))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("opal-test"))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
             .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
-            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("USER01"))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
