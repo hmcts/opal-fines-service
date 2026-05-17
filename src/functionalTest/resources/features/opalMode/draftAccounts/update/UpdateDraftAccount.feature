@@ -46,9 +46,10 @@ Feature: Update Draft Accounts
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
+      | timeline_data[0].status             | Submitted            |
+      | timeline_data[0].username           | L073JG               |
       | timeline_data[1].status             | Rejected             |
-      | timeline_data[1].username           | opal-test@dev.platform.hmcts.net |
-      | timeline_data[1].user_id            | L073JG               |
+      | timeline_data[1].username           | PATCH002_REVIEWER    |
       | timeline_data[1].reason_text        | Reason for rejection |
 
   @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220
@@ -75,9 +76,10 @@ Feature: Update Draft Accounts
       | account_snapshot.account_type       | Fine                |
       | account_snapshot.submitted_by       | L073JG              |
       | account_snapshot.business_unit_name | West London         |
+      | timeline_data[0].status             | Submitted           |
+      | timeline_data[0].username           | L073JG              |
       | timeline_data[1].status             | Deleted             |
-      | timeline_data[1].username           | opal-test@dev.platform.hmcts.net |
-      | timeline_data[1].user_id            | L073JG              |
+      | timeline_data[1].username           | BUUID_REVIEWER      |
       | timeline_data[1].reason_text        | Reason for deletion |
 
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
