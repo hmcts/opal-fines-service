@@ -5,13 +5,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountRequestFactory;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -178,17 +176,9 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
      * @return patch request body for the draft-account API.
      */
     private JSONObject buildDraftAccountUpdateRequest() throws JSONException {
-        JSONObject timelineEntry = new JSONObject()
-            .put("username", DEFAULT_SUBMITTED_BY)
-            .put("status", "Publishing Pending")
-            .put("reason_text", JSONObject.NULL)
-            .put("status_date", LocalDate.now().toString());
-
         return new JSONObject()
             .put("account_status", "Publishing Pending")
-            .put("business_unit_id", 77)
-            .put("validated_by", DEFAULT_SUBMITTED_BY)
-            .put("timeline_data", new JSONArray().put(timelineEntry));
+            .put("validated_by", DEFAULT_SUBMITTED_BY);
     }
 
 
