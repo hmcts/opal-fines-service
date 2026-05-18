@@ -283,6 +283,12 @@ paths:
             type: integer
             format: int64
           required: true
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: OK
@@ -292,7 +298,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './common.yaml#/components/schemas/impositionSummary'
+                $ref: './common.yaml#/components/schemas/defendantAccountImpositionsResponse'
 
         400:
           description: Bad request
@@ -308,6 +314,18 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         403:
           description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        408:
+          description: Request timeout
           content:
             application/json+problem:
               schema:
