@@ -106,6 +106,40 @@ class MinorCreditorServiceTest {
     }
 
     @Test
+    void testGetMinorCreditorAccount() {
+        // Arrange
+        Long id = 123L;
+        MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
+
+        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
+
+        // Act
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(response, result);
+        verify(minorCreditorSearchProxy).getMinorCreditorAccount(eq(id));
+    }
+
+    @Test
+    void testGetMinorCreditorAccount_permissionNotAllowed() {
+        // Arrange
+        UserState noPermissionUser = mock(UserState.class);
+        when(noPermissionUser.anyBusinessUnitUserHasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionUser);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.getMinorCreditorAccount(123L, "authHeaderValue")
+        );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+    }
+
+    @Test
     void testGetMinorCreditorAccountAtAGlance() {
         // Arrange
         Long id = 123L;

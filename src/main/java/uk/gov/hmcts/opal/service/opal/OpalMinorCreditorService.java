@@ -72,6 +72,30 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     @Override
     @Transactional(readOnly = true)
+    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
+        log.debug(":getMinorCreditorAccount (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
+
+        CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Minor creditor account not found: " + minorCreditorAccountId
+            ));
+
+        if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
+            .isMinorCreditor()) {
+            throw new EntityNotFoundException("Account is not a minor creditor account: " + minorCreditorAccountId);
+        }
+
+        PartyEntity party = partyRepository.findById(creditorAccount.getMinorCreditorPartyId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Party not found for minor creditor account: " + creditorAccount.getCreditorAccountId()));
+
+        MinorCreditorAccountResponse response = responseMapper.toMinorCreditorAccountResponse(creditorAccount, party);
+        response.setVersion(creditorAccount.getVersion());
+        return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
         log.debug(":getMinorCreditorAtAGlance (Opal): minorCreditorId={}", minorCreditorId);
 
