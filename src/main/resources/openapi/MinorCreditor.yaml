@@ -19,7 +19,7 @@ paths:
       security:
         - permissions:
             - Search and View Accounts (in at least one business unit)
-            - View Creditor BACS (in at least one business unit)
+            - View Creditor BACS (in the business unit that the Minor Creditor Account belongs to)
       parameters:
         - in: path
           name: id
