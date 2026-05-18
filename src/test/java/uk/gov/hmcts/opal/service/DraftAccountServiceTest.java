@@ -465,6 +465,56 @@ class DraftAccountServiceTest {
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
     }
 
+    @Test
+    void testUpdateDraftAccount_rejected_preservesValidatedBy() {
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.REJECTED)
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .businessUnitId((short) 2)
+            .build();
+        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.REJECTED)
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .timelineData(createTimelineDataString())
+            .versionNumber(1L)
+            .build();
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+            .thenReturn(updatedAccount);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.REJECTED)
+                .validatedBy("PATCH002_REVIEWER")
+                .validatedByName("Laura Reviewer")
+                .timelineData(updatedAccount.getTimelineData())
+                .build()
+        );
+
+        DraftAccountResponseDto result = draftAccountService
+            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0");
+
+        assertNotNull(result);
+        assertEquals("PATCH002_REVIEWER", result.getValidatedBy());
+        assertEquals("Laura Reviewer", result.getValidatedByName());
+
+        ArgumentCaptor<UpdateDraftAccountRequestDto> captor =
+            ArgumentCaptor.forClass(UpdateDraftAccountRequestDto.class);
+        verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any(), any());
+        assertEquals("PATCH002_REVIEWER", captor.getValue().getValidatedBy());
+        assertEquals("Laura Reviewer", captor.getValue().getValidatedByName());
+
+        verify(draftAccountPublishProxy, never()).publishDefendantAccount(any(), any());
+        verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
+        verify(jsonSchemaValidationService).validateOrError(any(), any());
+    }
+
     private void publishPending_success(DraftAccountEntity updatedAccount, Long draftAccountId,
         UpdateDraftAccountRequestDto updateDto, UserState userState) {
 
