@@ -65,7 +65,8 @@ class ReportEntityMapperTest {
                 () -> assertEquals(entity.isShownAsWorklist(), actual.getShownAsWorklist()),
                 () -> assertEquals(entity.isCanManuallyCreate(), actual.getCanManuallyCreate()),
                 () -> assertEquals("PT720H", actual.getRetentionPeriod()),
-                () -> assertEquals(entity.getPermission(), actual.getPermission())
+                () -> assertEquals(entity.getPermission() != null ? entity.getPermission().name() : null,
+                    actual.getPermission())
             );
         }
     }

@@ -18,5 +18,6 @@ public abstract class ReportEntityMapper {
     @Mapping(target = "supportsMultipleBusinessUnits", source = "supportsMultiBu")
     @Mapping(target = "retentionPeriod", source = "retentionPeriod")
     @Mapping(target = "isBespokeJourney", source = "bespokeJourney")
+    @Mapping(target = "permission", source = "permission")
     public abstract ReportReports toDto(ReportEntity entity);
 }

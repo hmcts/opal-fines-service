@@ -19,8 +19,7 @@ services:
       - OPAL_USER_SERVICE_API_URL=http://host.docker.internal:4555/
       - TESTING_SUPPORT_ENDPOINTS_ENABLED=true
       - OPAL_REDIS_ENABLED=false
-      - LAUNCH_DARKLY_ENABLED=true
-      - LAUNCH_DARKLY_FLAG_1C_ENFORCEMENT_OPERATIONAL_REPORTING=true
+
 
     ports:
       - "4550:4550"
