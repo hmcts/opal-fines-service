@@ -303,6 +303,21 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void getMinorCreditorAccount_timeout_returns408() throws Exception {
+        super.getMinorCreditorAccount_timeout_returns408(log);
+    }
+
+    @Test
+    void getMinorCreditorAccount_serviceUnavailable_returns503() throws Exception {
+        super.getMinorCreditorAccount_serviceUnavailable_returns503(log);
+    }
+
+    @Test
+    void getMinorCreditorAccount_serverError_returns500() throws Exception {
+        super.getMinorCreditorAccount_serverError_returns500(log);
+    }
+
+    @Test
     void getHeaderSummary_timeout_returns408() throws Exception {
         super.getHeaderSummary_timeout_returns408(log);
     }

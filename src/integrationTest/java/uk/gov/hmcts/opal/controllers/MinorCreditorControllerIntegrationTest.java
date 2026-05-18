@@ -515,6 +515,64 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions.andExpect(status().isNotFound());
     }
 
+    void getMinorCreditorAccount_timeout_returns408(Logger log) throws Exception {
+        // Arrange
+        doThrow(new ResponseStatusException(REQUEST_TIMEOUT, "Timeout"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_timeout_returns408 body:\n{}", ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions.andExpect(status().isRequestTimeout());
+    }
+
+    void getMinorCreditorAccount_serviceUnavailable_returns503(Logger log) throws Exception {
+        // Arrange
+        doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "Gateway down"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_serviceUnavailable_returns503 body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions.andExpect(status().isServiceUnavailable());
+    }
+
+    void getMinorCreditorAccount_serverError_returns500(Logger log) throws Exception {
+        // Arrange
+        doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_serverError_returns500 body:\n{}", ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions.andExpect(status().isInternalServerError());
+    }
+
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
