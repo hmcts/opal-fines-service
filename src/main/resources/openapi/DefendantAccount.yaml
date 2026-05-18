@@ -294,7 +294,10 @@ paths:
           description: OK
           headers:
             ETag:
-              $ref: './common.yaml#/components/headers/ETag'
+              description: Version of the defendant account. DB Mapping - defendant_accounts.version_number.
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+              required: true
           content:
             application/json:
               schema:

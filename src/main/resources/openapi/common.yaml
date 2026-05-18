@@ -746,14 +746,14 @@ components:
           type: array
           description: List of impositions for the requested defendant account.
           items:
-            $ref: '#/components/schemas/impositionSummary'
-    impositionSummary:
-      title: Imposition Summary
+            $ref: '#/components/schemas/defendantAccountImposition'
+    defendantAccountImposition:
+      title: Defendant Account Imposition
       type: object
       additionalProperties: false
       required:
-        - posted_details
-        - result
+        - date_added
+        - imposition
         - creditor
         - imposed_amount
         - paid_amount
@@ -762,23 +762,24 @@ components:
         - offence
         - imposition_id
       properties:
-        posted_details:
-          description: Date added and posting details. DB Mapping - impositions.posted_date, impositions.posted_by, impositions.posted_by_username.
-          $ref: '#/components/schemas/postedDetails'
-        result:
+        date_added:
+          type: string
+          format: date
+          description: Date the imposition was added. DB Mapping - impositions.posted_date.
+        imposition:
           description: DB Mapping - impositions.result_id
           $ref: '#/components/schemas/resultReference'
         creditor:
           description: DB Mapping - impositions.creditor_account_id joined to creditor_accounts, major_creditors or parties.
           $ref: '#/components/schemas/impositionCreditorReference'
         imposed_amount:
-          description: DB Mapping - impositions.imposed_amount
+          description: Imposed amount. DB Mapping - impositions.imposed_amount.
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
         paid_amount:
-          description: DB Mapping - impositions.paid_amount
+          description: Paid or written-off amount. DB Mapping - impositions.paid_amount.
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
         balance:
-          description: Derived from impositions.imposed_amount minus impositions.paid_amount.
+          description: Current imposition balance, derived from impositions.imposed_amount minus impositions.paid_amount.
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
         date_imposed:
           type: string
@@ -787,8 +788,8 @@ components:
         offence:
           description: Offence title from impositions.offence_title when set, otherwise from offences.offence_title using impositions.offence_id.
           $ref: '#/components/schemas/offenceReference'
-        imposing_court:
-          description: DB Mapping - impositions.imposing_court_id
+        imposed_by:
+          description: Sentencing court. DB Mapping - impositions.imposing_court_id. Only populated for Fines accounts created externally.
           $ref: '#/components/schemas/courtReference'
         imposition_id:
           description: DB Mapping - impositions.imposition_id
