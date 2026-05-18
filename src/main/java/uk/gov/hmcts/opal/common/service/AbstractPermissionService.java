@@ -8,8 +8,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 public abstract class AbstractPermissionService {
 
     protected void checkPermission(UserState userState, PermissionDescriptor permission) {
-        if (!userState.anyBusinessUnitUserHasPermission(permission)) {
-            throw new PermissionNotAllowedException(userState.getUserId().shortValue(), permission);
+        if (permission == null || !userState.anyBusinessUnitUserHasPermission(permission)) {
+            throw new PermissionNotAllowedException(permission);
         }
     }
 }

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.testdata;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
@@ -49,7 +50,6 @@ public class ReportTestData {
             .isBespokeJourney(true)
             .shownAsWorklist(true)
             .retentionPeriod(Duration.ofDays(30))
-            .permission(null)
             .canManuallyCreate(false)
             .build();
     }
@@ -150,7 +150,6 @@ public class ReportTestData {
         dto.setIsBespokeJourney(true);
         dto.setShownAsWorklist(true);
         dto.setRetentionPeriod("P30D");
-        dto.setPermission(null);
         dto.setCanManuallyCreate(false);
         return dto;
     }
@@ -169,6 +168,7 @@ public class ReportTestData {
             .isBespokeJourney(false)
             .shownAsWorklist(false)
             .retentionPeriod(Duration.ofDays(14))
+            .permission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)
             .canManuallyCreate(true);
     }
 }

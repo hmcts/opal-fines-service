@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -9,6 +10,7 @@ import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportDto;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createFullReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createReportEntityWithNullRetentionPeriod;
+import static uk.gov.hmcts.opal.testdata.ReportTestData.defaultReportEntityBuilder;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
@@ -21,6 +23,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -68,6 +71,7 @@ class ReportServiceTest {
             UserState userState = stubUserAndRepo(entity.getReportId(), entity);
             when(reportMapper.toDto(entity)).thenReturn(reportDto);
             when(userState.anyBusinessUnitUserHasPermission(null)).thenReturn(true);
+            when(userState.anyBusinessUnitUserHasPermission(any(FinesPermission.class))).thenReturn(true);
 
             ReportReports result = reportService.getReport(entity.getReportId());
 
@@ -91,6 +95,14 @@ class ReportServiceTest {
                 Arguments.of(
                     createFullReportEntity().getReportId(),
                     createFullReportEntity(),
+                    PermissionNotAllowedException.class,
+                    null
+                ),
+                Arguments.of(
+                    createFullReportEntity().getReportId(),
+                    defaultReportEntityBuilder()
+                        .permission(null)
+                        .build(),
                     PermissionNotAllowedException.class,
                     null
                 )
