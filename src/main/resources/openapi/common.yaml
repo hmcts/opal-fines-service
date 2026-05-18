@@ -636,7 +636,7 @@ components:
       type: object
       additionalProperties: false
       required:
-        - creditor_account_type
+        - account_type
       properties:
         account_type:
           type: string
@@ -657,6 +657,50 @@ components:
             - Minor Creditor
             - Major Creditor
             - Central Fund
+    impositionCreditorReference:
+      title: Imposition Creditor Reference
+      type: object
+      additionalProperties: false
+      required:
+        - creditor_account_id
+        - account_type
+        - display_name
+        - name
+      properties:
+        creditor_account_id:
+          description: DB Mapping - creditor_accounts.creditor_account_id. Used by the UI to navigate to the linked minor or major creditor account.
+          $ref: './types.yaml#/components/schemas/BigInt'
+        account_type:
+          type: string
+          description: DB Mapping - creditor_accounts.creditor_account_type
+          enum:
+            - MN
+            - MJ
+            - CF
+        display_name:
+          type: string
+          description: |
+            Converts the short hand code of creditor_accounts.creditor_account_type into a display name.
+            Mapping:
+              'MN' becomes 'Minor Creditor'
+              'MJ' becomes 'Major Creditor'
+              'CF' becomes 'Central Fund'
+          enum:
+            - Minor Creditor
+            - Major Creditor
+            - Central Fund
+        major_creditor_id:
+          description: DB Mapping - creditor_accounts.major_creditor_id when creditor_accounts.creditor_account_type is 'MJ'.
+          $ref: './types.yaml#/components/schemas/BigInt'
+        minor_creditor_party_id:
+          description: DB Mapping - creditor_accounts.minor_creditor_party_id when creditor_accounts.creditor_account_type is 'MN'.
+          $ref: './types.yaml#/components/schemas/BigInt'
+        name:
+          type: string
+          description: |
+            Major creditor name from major_creditors.name when creditor_accounts.creditor_account_type is 'MJ'.
+            Minor creditor name from parties.organisation_name or the derived individual party name when creditor_accounts.creditor_account_type is 'MN'.
+            Central Fund name from the configured central fund account when creditor_accounts.creditor_account_type is 'CF'.
     majorCreditorAddressDetails:
       title: Major Creditor Address Details
       type: object
@@ -691,9 +735,22 @@ components:
           type: string
           maxLength: 120
           description: DB mapping - offences.offence_title
+    defendantAccountImpositionsResponse:
+      title: Defendant Account Impositions Response
+      type: object
+      additionalProperties: false
+      required:
+        - impositions
+      properties:
+        impositions:
+          type: array
+          description: List of impositions for the requested defendant account.
+          items:
+            $ref: '#/components/schemas/impositionSummary'
     impositionSummary:
       title: Imposition Summary
       type: object
+      additionalProperties: false
       required:
         - posted_details
         - result
@@ -706,23 +763,29 @@ components:
         - imposition_id
       properties:
         posted_details:
+          description: Date added and posting details. DB Mapping - impositions.posted_date, impositions.posted_by, impositions.posted_by_username.
           $ref: '#/components/schemas/postedDetails'
         result:
           description: DB Mapping - impositions.result_id
           $ref: '#/components/schemas/resultReference'
         creditor:
-          description: DB Mapping - impositions.creditor_account_id
-          $ref: '#/components/schemas/creditorAccountTypeReference'
+          description: DB Mapping - impositions.creditor_account_id joined to creditor_accounts, major_creditors or parties.
+          $ref: '#/components/schemas/impositionCreditorReference'
         imposed_amount:
+          description: DB Mapping - impositions.imposed_amount
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
         paid_amount:
+          description: DB Mapping - impositions.paid_amount
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
         balance:
+          description: Derived from impositions.imposed_amount minus impositions.paid_amount.
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
         date_imposed:
           type: string
           format: date
+          description: DB Mapping - impositions.imposed_date
         offence:
+          description: Offence title from impositions.offence_title when set, otherwise from offences.offence_title using impositions.offence_id.
           $ref: '#/components/schemas/offenceReference'
         imposing_court:
           description: DB Mapping - impositions.imposing_court_id
