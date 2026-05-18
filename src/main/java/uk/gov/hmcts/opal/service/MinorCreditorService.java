@@ -72,6 +72,18 @@ public class MinorCreditorService {
         }
     }
 
+    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId, String authHeaderValue) {
+        log.debug(":getMinorCreditorAccount: id={}", minorCreditorAccountId);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
+
     public GetMinorCreditorAccountHeaderSummaryResponse getMinorCreditorAccountHeaderSummary(
         Long minorCreditorId,
         String authHeaderValue) {
