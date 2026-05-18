@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import feign.FeignException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -394,6 +395,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(Logger log) throws Exception {
         // Arrange
+        Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
+        Map<String, Object> currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
+
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(
                 GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
@@ -416,27 +421,32 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
             .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
-            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Ms"))
-            .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Hold"))
-            .andExpect(jsonPath("$.party_details.individual_details.title").value("Tester"))
-            .andExpect(jsonPath("$.address.address_line_1").value("44 Hold St."))
-            .andExpect(jsonPath("$.address.address_line_2").value("Holdton"))
-            .andExpect(jsonPath("$.address.address_line_3").value("Held"))
-            .andExpect(jsonPath("$.address.postcode").value("HE1 2LD"))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.get("surname")))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames")
+                .value(currentPartyDetails.get("forenames")))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.get("title")))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.get("address_line_1")))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.sort_code").value("123456"))
             .andExpect(jsonPath("$.payment.account_number").value("12345678"))
             .andExpect(jsonPath("$.payment.account_name").value("Hold Test"))
             .andExpect(jsonPath("$.payment.account_reference").value("HOLDREF"))
-            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayment));
     }
 
     void getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields(Logger log) throws Exception {
         // Arrange
+        Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
+        Map<String, Object> currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
+
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(
                 GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
@@ -458,15 +468,23 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
             .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.get("surname")))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames")
+                .value(currentPartyDetails.get("forenames")))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.get("title")))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.get("address_line_1")))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(nullValue()))
             .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_name").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_reference").value(nullValue()))
-            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayment));
     }
 
     void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
@@ -817,20 +835,39 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     private Integer getCurrentCreditorAccountVersion() {
+        return getCurrentCreditorAccountVersion(PATCH_MINOR_CREDITOR_ACCOUNT_ID);
+    }
+
+    private Integer getCurrentCreditorAccountVersion(Long creditorAccountId) {
         return jdbcTemplate.queryForObject(
             "SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
             Integer.class,
-            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+            creditorAccountId
         );
     }
 
     private boolean getCurrentCreditorAccountHoldPayout() {
+        return getCurrentCreditorAccountHoldPayout(PATCH_MINOR_CREDITOR_ACCOUNT_ID);
+    }
+
+    private boolean getCurrentCreditorAccountHoldPayout(Long creditorAccountId) {
         Boolean holdPayout = jdbcTemplate.queryForObject(
             "SELECT hold_payout FROM creditor_accounts WHERE creditor_account_id = ?",
             Boolean.class,
-            PATCH_MINOR_CREDITOR_ACCOUNT_ID
+            creditorAccountId
         );
         return Boolean.TRUE.equals(holdPayout);
+    }
+
+    private Map<String, Object> getCurrentMinorCreditorPartyDetails(Long partyId) {
+        return jdbcTemplate.queryForMap(
+            """
+                SELECT surname, forenames, title, address_line_1, address_line_2, address_line_3, postcode
+                FROM parties
+                WHERE party_id = ?
+                """,
+            partyId
+        );
     }
 
     private boolean getCurrentCreditorAccountPayByBacs() {
