@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal;
 
 import static uk.gov.hmcts.opal.TestContainerConfig.POSTGRES_CONTAINER;
+import static uk.gov.hmcts.opal.TestContainerConfig.REDIS_CONTAINER;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
         registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
+        registry.add("spring.data.redis.url", REDIS_CONTAINER::getRedisURI);
         registry.add("legacy-gateway.url", TestContainerConfig::legacyGatewayUrl);
     }
 }

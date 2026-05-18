@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal;
 
+import com.redis.testcontainers.RedisContainer;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.List;
@@ -19,9 +20,10 @@ public class TestContainerConfig {
     private static final String LEGACY_STUB_IMAGE =
         System.getenv().getOrDefault("OPAL_LEGACY_STUB_IMAGE", DEFAULT_LEGACY_STUB_IMAGE);
     public static final PostgreSQLContainer POSTGRES_CONTAINER;
+    public static final RedisContainer REDIS_CONTAINER;
 
     static {
-        POSTGRES_CONTAINER = new PostgreSQLContainer(DockerImageName.parse("postgres:17.5"))
+        POSTGRES_CONTAINER = new PostgreSQLContainer(DockerImageName.parse("postgres:17"))
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
@@ -31,6 +33,10 @@ public class TestContainerConfig {
         //POSTGRES_CONTAINER.setPortBindings(List.of("55432:5432"));
 
         POSTGRES_CONTAINER.start();
+
+        REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:6.2.6"))
+            .withExposedPorts(6379);
+        REDIS_CONTAINER.start();
 
         //Check if the port is available before starting the legacy stub container.
         //This allows a local version of the legacy stub to be used for testing.

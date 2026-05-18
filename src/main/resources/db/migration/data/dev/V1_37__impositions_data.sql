@@ -1,0 +1,16 @@
+
+INSERT INTO public.impositions (imposition_id, defendant_account_id, posted_date, posted_by, posted_by_name, original_posted_date, result_id, imposing_court_id, imposed_date, imposed_amount, paid_amount, offence_id, offence_title, offence_code, creditor_account_id, unit_fine_adjusted, unit_fine_units, completed, original_imposition_id) VALUES
+	(99000000003001, 99000000000001, '2026-05-11 11:37:55.196682', 'L080JG', 'opal-test', NULL, 'ABDC', NULL, NULL, 100.00, 10.00, NULL, 'Obstruct person executing search warrant for TV receiver', 'CA03013', 99000000000801, NULL, NULL, NULL, NULL),
+	(99000000003002, 99000000000002, '2026-05-10 11:37:55.196682', 'L080JG', 'opal-test-2', NULL, 'ABDC', NULL, NULL, 200.00, 20.00, NULL, 'Obstruct person executing search warrant for TV receiver', 'CA03013', 99000000000802, NULL, NULL, NULL, NULL),
+	(99000000003003, 99000000000003, '2026-05-09 11:37:55.196682', 'L026SH', 'opal-test-3', NULL, 'ABDC', NULL, NULL, 300.00, 30.00, NULL, 'Obstruct person executing search warrant for TV receiver', 'CA03013', 99000000000803, NULL, NULL, NULL, NULL),
+	(99000000003004, 99000000000004, '2026-05-08 11:37:55.196682', 'L047SA', 'opal-test-4', NULL, 'ABDC', NULL, NULL, 400.00, 40.00, NULL, 'Obstruct person executing search warrant for TV receiver', 'CA03013', 99000000000804, NULL, NULL, NULL, NULL),
+	(99000000003005, 99000000000005, '2026-05-07 11:37:55.196682', 'L060FO', 'opal-test-5', NULL, 'ABDC', NULL, NULL, 500.00, 50.00, NULL, 'Obstruct person executing search warrant for TV receiver', 'CA03013', 99000000000805, NULL, NULL, NULL, NULL),
+	(99000000003006, 99000000000006, '2026-05-06 11:37:55.196682', 'L106CO', 'opal-test-6', NULL, 'ABDC', NULL, NULL, 600.00, 60.00, NULL, 'Test Offence 6', 'OFF0006', 99000000000806, NULL, NULL, NULL, NULL),
+	(99000000003007, 99000000000007, '2026-05-05 11:37:55.196682', 'L089BO', 'opal-test-7', NULL, 'ABDC', NULL, NULL, 700.00, 70.00, NULL, 'Test Offence 7', 'OFF0007', 99000000000807, NULL, NULL, NULL, NULL),
+	(99000000003008, 99000000000008, '2026-05-04 11:37:55.196682', 'L036DO', 'opal-test-8', NULL, 'ABDC', NULL, NULL, 800.00, 80.00, NULL, 'Test Offence 8', 'OFF0008', 99000000000808, NULL, NULL, NULL, NULL),
+	(99000000003009, 99000000000009, '2026-05-03 11:37:55.196682', 'L045EO', 'opal-test-9', NULL, 'ABDC', NULL, NULL, 900.00, 90.00, NULL, 'Test Offence 9', 'OFF0009', 99000000000809, NULL, NULL, NULL, NULL),
+	(99000000003010, 99000000000010, '2026-05-02 11:37:55.196682', 'L065AO', 'opal-test-10', NULL, 'ABDC', NULL, NULL, 1000.00, 100.00, NULL, 'Test Offence 10', 'OFF0010', 99000000000810, NULL, NULL, NULL, NULL),
+	(99000000003013, 99000000000013, '2026-04-30 11:37:55.196682', 'L080JG', 'opal-test-13', NULL, 'ABDC', NULL, NULL, 350.00, 0.00, NULL, 'Environmental Protection Violation', 'ENV001', 99000000000813, NULL, NULL, NULL, NULL),
+	(99000000003014, 99000000000014, '2026-04-24 11:37:55.196682', 'L047SA', 'opal-test-14', NULL, 'AEO', NULL, NULL, 850.00, 100.00, NULL, 'Health and Safety at Work Violation', 'HSW002', 99000000000814, NULL, NULL, NULL, NULL),
+	(99000000003015, 99000000000015, '2026-03-13 11:37:55.196682', 'L026SH', 'opal-test-15', NULL, 'AEOC', NULL, NULL, 1250.00, 1250.00, NULL, 'Trading Standards Violation', 'TRD003', 99000000000815, NULL, NULL, NULL, NULL);
+

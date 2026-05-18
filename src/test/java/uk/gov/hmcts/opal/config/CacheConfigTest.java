@@ -30,8 +30,7 @@ class CacheConfigTest {
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.redis.host", () -> "localhost");
-        registry.add("spring.data.redis.port", () -> "6379");
+        registry.add("spring.data.redis.url", () -> "localhost:6379");
         registry.add("opal.redis.ttl.hours", () -> "8");
         registry.add("opal.redis.enabled", () -> "false");
     }

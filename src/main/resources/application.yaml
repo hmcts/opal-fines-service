@@ -89,13 +89,12 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-      host: ${OPAL_REDIS_HOST:localhost}
-      port: ${OPAL_REDIS_PORT:6379}
+        url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
-    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/allEnvs, classpath:db/migration/devOnly, classpath:db/migration/stgOnly}
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
 

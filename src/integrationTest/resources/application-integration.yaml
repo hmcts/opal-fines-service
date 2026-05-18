@@ -1,7 +1,7 @@
 spring:
   # Flyway
   flyway:
-    locations: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
+    locations: classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
   main:
@@ -56,4 +56,4 @@ opal:
       enabled: false
 user:
   service:
-    url: ${OPAL_USER_SERVICE_API_URL:https://opal-user-service.staging.platform.hmcts.net}
+    url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4553/opal}
