@@ -156,7 +156,7 @@ INSERT INTO report_instances (
          '2026-05-25 17:30:00',
          null,
          0,
-         null
+         '{"operationId":"ERROR-ID","error":"Generation failed"}'
     ), (
          567,
          'no_supported_filetypes',
@@ -167,7 +167,7 @@ INSERT INTO report_instances (
          'Report Person',
          null,
          '2026-05-10 17:30:00',
-         'REQUESTED',
+         'READY',
          '2026-05-25 17:30:00',
          null,
          0,
