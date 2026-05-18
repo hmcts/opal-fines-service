@@ -3,7 +3,7 @@ appVersion: "1.0"
 description: A Helm chart for opal-fines-service app
 name: opal-fines-service
 home: https://github.com/hmcts/opal-fines-service
-version: 0.0.92
+version: 0.0.93
 maintainers:
   - name: HMCTS Opal Team
 dependencies:
@@ -22,7 +22,7 @@ dependencies:
     version: 1.2.2
     repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: servicebus.enabled
-  - name: redis
-    version: 25.5.3
-    repository: 'oci://registry-1.docker.io/bitnamicharts'
-    condition: redis.enabled
+  - name: hmcts-redis
+    version: 0.8.0
+    repository: "oci://hmctsprod.azurecr.io/helm"
+    condition: hmcts-redis.enabled

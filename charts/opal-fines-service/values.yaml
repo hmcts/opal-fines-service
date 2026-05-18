@@ -51,6 +51,8 @@ java:
           alias: AZURE_STORAGE_CONNECTION_STRING
         - name: reports-storage-container-name
           alias: REPORTS_AZURE_STORAGE_CONTAINER
+        - name: redis-connection-string
+          alias: REDIS_CONNECTION_STRING
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.apps.hmcts.net
