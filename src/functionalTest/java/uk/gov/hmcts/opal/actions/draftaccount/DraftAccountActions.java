@@ -366,6 +366,12 @@ public class DraftAccountActions extends BaseStepDef {
                 : reasonText);
         }
 
+        if (data.containsKey("reason_text")) {
+            String reasonText = data.get("reason_text");
+            patch.put("reason_text", (reasonText == null || reasonText.isBlank()) ? JSONObject.NULL
+                : reasonText);
+        }
+
         return patch;
     }
 }

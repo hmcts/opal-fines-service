@@ -132,7 +132,15 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("78","Rejected","A")));
+            .content("""
+                {
+                  "account_status": "Rejected",
+                  "validated_by": "BUUID1A",
+                  "reason_text": "Reason for rejection",
+                  "business_unit_id": 78,
+                  "version": 0
+                }
+                """));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPatchDraftAccount_withCheckValidatePermission_shouldSucceed: Response body:\n"
@@ -150,7 +158,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
             .andExpect(jsonPath("$.timeline_data[1].status").value("Rejected"))
             .andExpect(jsonPath("$.timeline_data[1].username").value("BUUID1A"))
-            .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
+            .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason for rejection"));
     }
 
     @Test
@@ -548,14 +556,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
-<<<<<<< HEAD
             .andExpect(jsonPath("$.timeline_data[1].username").value("Developer_User"))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Publishing Pending"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason B"));
-=======
-            .andExpect(jsonPath("$.timeline_data").isArray());
->>>>>>> fe23f1cf4 (Remove timeline_data assertions from draft account integration tests and update validation checks)
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
 
