@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
-import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
@@ -106,13 +104,18 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void testGetMinorCreditorAccount() {
+    void testGetMinorCreditorAccount_withBacsPermission() {
         // Arrange
         Long id = 123L;
-        MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
+        MinorCreditorAccountResponse response = responseWithBacsDetails();
+        UserState userState = UserStateUtil.permissionUser(
+            (short) 10,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS
+        );
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
@@ -120,6 +123,8 @@ class MinorCreditorServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(response, result);
+        assertEquals(true, result.getPayment().getPayByBacs());
+        assertEquals("123456", result.getPayment().getSortCode());
         verify(minorCreditorSearchProxy).getMinorCreditorAccount(eq(id));
     }
 
@@ -137,6 +142,58 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.getMinorCreditorAccount(123L, "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+    }
+
+    @Test
+    void testGetMinorCreditorAccount_withoutBacsPermission_redactsBacsFields() {
+        // Arrange
+        Long id = 123L;
+        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        MinorCreditorAccountResponse response = responseWithBacsDetails();
+
+        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        // Act
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getPayment());
+        assertEquals(null, result.getPayment().getPayByBacs());
+        assertEquals(null, result.getPayment().getSortCode());
+        assertEquals(null, result.getPayment().getAccountNumber());
+        assertEquals(null, result.getPayment().getAccountName());
+        assertEquals(null, result.getPayment().getAccountReference());
+        assertEquals(false, result.getPayment().getHoldPayment());
+    }
+
+    @Test
+    void testGetMinorCreditorAccount_withBacsPermission_preservesBacsFields() {
+        // Arrange
+        Long id = 123L;
+        UserState userState = UserStateUtil.permissionUser(
+            (short) 10,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS
+        );
+        MinorCreditorAccountResponse response = responseWithBacsDetails();
+
+        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        // Act
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getPayment());
+        assertEquals(true, result.getPayment().getPayByBacs());
+        assertEquals("123456", result.getPayment().getSortCode());
+        assertEquals("12345678", result.getPayment().getAccountNumber());
+        assertEquals("Test Name", result.getPayment().getAccountName());
+        assertEquals("REF123", result.getPayment().getAccountReference());
+        assertEquals(false, result.getPayment().getHoldPayment());
     }
 
     @Test
@@ -172,93 +229,6 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.getMinorCreditorAtAGlance(123L, "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-    }
-
-    @Test
-    void testGetMinorCreditorAccount() {
-        // Arrange
-        Long id = 123L;
-        MinorCreditorAccountResponse response = responseWithBacsDetails();
-
-        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
-
-        // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(response, result);
-        verify(minorCreditorSearchProxy).getMinorCreditorAccount(eq(id));
-    }
-
-    @Test
-    void testGetMinorCreditorAccount_permissionNotAllowed() {
-        // Arrange
-        UserState noPermissionUser = mock(UserState.class);
-        when(noPermissionUser.anyBusinessUnitUserHasPermission(
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
-
-        // Act & Assert
-        PermissionNotAllowedException ex = Assertions.assertThrows(
-            PermissionNotAllowedException.class,
-            () -> minorCreditorService.getMinorCreditorAccount(123L)
-        );
-
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-    }
-
-    @Test
-    void testGetMinorCreditorAccount_filtersBacsDetailsWithoutPermission() {
-        // Arrange
-        Long id = 123L;
-        MinorCreditorAccountResponse response = responseWithBacsDetails();
-
-        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(
-            UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)
-        );
-
-        // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
-
-        // Assert
-        assertNotNull(result.getPayment());
-        assertEquals(null, result.getPayment().getAccountName());
-        assertEquals(null, result.getPayment().getSortCode());
-        assertEquals(null, result.getPayment().getAccountNumber());
-        assertEquals(null, result.getPayment().getAccountReference());
-        assertEquals(true, result.getPayment().getPayByBacs());
-        assertEquals(false, result.getPayment().getHoldPayment());
-    }
-
-    @Test
-    void testGetMinorCreditorAccount_keepsBacsDetailsWithPermission() {
-        // Arrange
-        Long id = 123L;
-        MinorCreditorAccountResponse response = responseWithBacsDetails();
-
-        Permission searchPermission = UserStateUtil.permissionFor(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        Permission bacsPermission = Permission.builder()
-            .permissionId(999L)
-            .permissionName("View Creditor BACS")
-            .build();
-
-        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(
-            UserStateUtil.permissionUser((short) 10, searchPermission, bacsPermission)
-        );
-
-        // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
-
-        // Assert
-        assertNotNull(result.getPayment());
-        assertEquals("Test Name", result.getPayment().getAccountName());
-        assertEquals("123456", result.getPayment().getSortCode());
-        assertEquals("12345678", result.getPayment().getAccountNumber());
-        assertEquals("REF123", result.getPayment().getAccountReference());
     }
 
     @Test
