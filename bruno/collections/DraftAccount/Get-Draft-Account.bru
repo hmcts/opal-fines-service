@@ -1,0 +1,21 @@
+meta {
+  name: Get-Draft-Account
+  type: http
+  seq: 1
+}
+
+get {
+  url: /draft_accounts/999L
+  body: none
+  auth: inherit
+}
+
+headers {
+  If-Match: 1
+  Business-Unit-Id: 77
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
