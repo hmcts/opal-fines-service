@@ -392,6 +392,27 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_timeout_returns408() throws Exception {
+        super.getMinorCreditorAccount_timeout_returns408(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_serviceUnavailable_returns503() throws Exception {
+        super.getMinorCreditorAccount_serviceUnavailable_returns503(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_serverError_returns500() throws Exception {
+        super.getMinorCreditorAccount_serverError_returns500(log);
+    }
+
+    @Test
     @JiraStory("PO-1911")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6194")
