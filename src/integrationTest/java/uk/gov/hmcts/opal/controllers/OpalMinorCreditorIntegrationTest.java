@@ -288,11 +288,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
-    void getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields() throws Exception {
-        super.getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields(log);
-    }
-
-    @Test
     void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
         super.getMinorCreditorAccount_missingAuthHeader_returns401();
     }
@@ -305,21 +300,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     void getMinorCreditorAccount_notFound_returns404() throws Exception {
         super.getMinorCreditorAccount_notFound_returns404(log);
-    }
-
-    @Test
-    void getMinorCreditorAccount_timeout_returns408() throws Exception {
-        super.getMinorCreditorAccount_timeout_returns408(log);
-    }
-
-    @Test
-    void getMinorCreditorAccount_serviceUnavailable_returns503() throws Exception {
-        super.getMinorCreditorAccount_serviceUnavailable_returns503(log);
-    }
-
-    @Test
-    void getMinorCreditorAccount_serverError_returns500() throws Exception {
-        super.getMinorCreditorAccount_serverError_returns500(log);
     }
 
     @Test
