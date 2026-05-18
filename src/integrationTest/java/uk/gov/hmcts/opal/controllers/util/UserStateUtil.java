@@ -1,6 +1,17 @@
 package uk.gov.hmcts.opal.controllers.util;
 
+import static java.util.Collections.emptySet;
+import static uk.gov.hmcts.opal.common.user.authorisation.model.Domain.FINES;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.security.oauth2.jwt.Jwt;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -10,6 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 public class UserStateUtil {
 
@@ -17,7 +29,7 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(999L)
             .userName("no-permissions@users.com")
-            .businessUnitUser(Collections.emptySet())
+            .businessUnitUser(emptySet())
             .build();
     }
 
@@ -94,4 +106,55 @@ public class UserStateUtil {
             .build();
     }
 
+    public static OpalJwtAuthenticationToken allFinesPermissionsToken() {
+
+        Map<Domain, DomainBusinessUnitUsers> domainsMap = new HashMap<>();
+        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+            .businessUnitId((short)78)
+            .businessUnitUserId("s")
+            .permissions(permissionsFor(FinesPermission.values()))
+            .build();
+        DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUser)).build();
+        domainsMap.put(FINES, domainBusinessUnitUsers);
+
+        UserStateV2 userState = getUserStateV2(domainsMap);
+
+        return new OpalJwtAuthenticationToken(userState, FINES, getJwt(), emptySet(), null);
+    }
+
+    public static OpalJwtAuthenticationToken noFinesPermissionsToken() {
+
+        Map<Domain, DomainBusinessUnitUsers> domainsMap = new HashMap<>();
+
+        DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(Collections.emptyList()).build();
+        domainsMap.put(FINES, domainBusinessUnitUsers);
+
+        UserStateV2 userState = getUserStateV2(domainsMap);
+
+        return new OpalJwtAuthenticationToken(userState, FINES, getJwt(), emptySet(), null);
+    }
+
+    private static Jwt getJwt() {
+        Instant now = Instant.now();
+        return Jwt.withTokenValue("dummy-token")
+            .header("alg", "none")
+            .header("typ", "JWT")
+            .claim("sub", "opal-test@hmcts.net")
+            .claim("iss", "https://issuer.example")
+            .claim("scope", "read write")
+            .issuedAt(now)
+            .expiresAt(now.plusSeconds(3600))
+            .build();
+    }
+
+    private static UserStateV2 getUserStateV2(Map<Domain, DomainBusinessUnitUsers> domainsMap) {
+        return UserStateV2.builder()
+            .username("username111")
+            .userId(123L)
+            .name("name2222")
+            .domains(domainsMap)
+            .build();
+    }
 }

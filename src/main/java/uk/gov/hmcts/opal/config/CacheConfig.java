@@ -37,11 +37,8 @@ public class CacheConfig {
     @Value("${opal.redis.enabled}")
     private boolean redisEnabled;
 
-    @Value("${spring.data.redis.host}")
-    private String redisHost;
-
-    @Value("${spring.data.redis.port}")
-    private int redisPort;
+    @Value("${spring.data.redis.url}")
+    private String redisUrl;
 
     @Value("${opal.redis.ttl-hours}")
     private long redisTtlHours;
@@ -51,7 +48,7 @@ public class CacheConfig {
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public RedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisUrl);
         return new LettuceConnectionFactory(config);
     }
 
@@ -99,8 +96,7 @@ public class CacheConfig {
         log.info("------------------------------");
         log.info("Cache Configuration Details:");
         log.info("Redis Enabled: {}", redisEnabled);
-        log.info("Redis Host: {}", redisHost);
-        log.info("Redis Port: {}", redisPort);
+        log.info("Redis Url: {}", redisUrl);
         log.info("Redis TTL (hours): {}", redisTtlHours);
         if (cacheManager != null) {
             log.info("Cache Manager: {}", cacheManager.getClass().getName());

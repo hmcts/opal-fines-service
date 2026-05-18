@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static java.lang.reflect.Array.get;
 import static uk.gov.hmcts.opal.TestContainerConfig.POSTGRES_CONTAINER;
+import static uk.gov.hmcts.opal.TestContainerConfig.REDIS_CONTAINER;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.util.Arrays;
@@ -64,6 +65,7 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
         registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
+        registry.add("spring.data.redis.url", REDIS_CONTAINER::getRedisURI);
         registry.add("legacy-gateway.url", TestContainerConfig::legacyGatewayUrl);
     }
     public void clearWireMock(){

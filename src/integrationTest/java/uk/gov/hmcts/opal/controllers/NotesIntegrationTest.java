@@ -13,6 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,7 +22,10 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionsToken;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionsToken;
+
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -39,13 +44,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private UserState userState;
-
-    @BeforeEach
-    void setupUserState() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
-
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-    }
 
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     void postNotesImpl(Logger log) throws Exception {
@@ -75,6 +73,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(payload)
                     .header("authorization", "Bearer some_value")
                     .header(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"")
+                    .with(authentication(allFinesPermissionsToken()))
             );
 
         // Assert
@@ -104,7 +103,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", "Bearer some_value")
-                    .header("If-Match", "1")); // Add this line
+                    .header("If-Match", "1")
+                    .with(authentication(allFinesPermissionsToken()))
+            );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -115,14 +116,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     @DisplayName("post notes - user without permission [PO-1566]")
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
-        // Create user with no permissions
-        UserState restrictedUser = UserState.builder()
-            .userId(99L)
-            .userName("restricted-user")
-            .businessUnitUser(Set.of())
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(restrictedUser);
 
         UserState userState = UserState.builder().userId(123L).build();
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
@@ -141,7 +134,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .header("authorization", "Bearer some_value")
-                .header("If-Match", "1"));
+                .header("If-Match", "1")
+                .with(authentication(noFinesPermissionsToken()))
+        );
 
         resultActions.andExpect(status().isForbidden());
     }
@@ -167,7 +162,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", "Bearer some_value")
-                    .header("If-Match", "1"));
+                    .header("If-Match", "1")
+                    .with(authentication(allFinesPermissionsToken()))
+            );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -197,7 +194,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", "Bearer some_value")
-                    .header("If-Match", "5"));
+                    .header("If-Match", "5")
+                    .with(authentication(allFinesPermissionsToken()))
+            );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 

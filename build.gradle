@@ -515,7 +515,7 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.8'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.9'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
@@ -537,7 +537,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
-
+  implementation "org.springframework.boot:spring-boot-starter-security"
   implementation 'org.springframework.boot:spring-boot-starter-integration'
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
@@ -610,11 +610,13 @@ dependencies {
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
+  testImplementation 'org.springframework.security:spring-security-test'
   testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
   testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
   testImplementation 'org.testcontainers:testcontainers-postgresql'
+  testImplementation 'com.redis:testcontainers-redis'
   testImplementation 'io.rest-assured:rest-assured:6.0.0'
   testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.0.3'))
@@ -678,6 +680,7 @@ flyway {
   url = System.getenv('FLYWAY_URL')
   user = System.getenv('FLYWAY_USER')
   password = System.getenv('FLYWAY_PASSWORD')
+  locations = System.getenv('FLYWAY_LOCATIONS')
   baselineOnMigrate = true
   baselineVersion = '000'
 
