@@ -22,8 +22,7 @@ public enum FinesPermission implements PermissionDescriptor {
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
     ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
     CONSOLIDATE(13L, "Consolidate"),
-    ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold"),
-    UNKNOWN(-1L, null);
+    ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
@@ -34,18 +33,15 @@ public enum FinesPermission implements PermissionDescriptor {
     private final long id;
     private final String description;
 
-    /**
-     * Safely resolves a permission string from the database. Returns {@code UNKNOWN} if the value is null, blank, or
-     * does not match any known permission.
-     */
+
     public static FinesPermission fromString(String value) {
         if (value == null || value.isBlank()) {
-            return UNKNOWN;
+            return null;
         }
         try {
             return FinesPermission.valueOf(value);
         } catch (IllegalArgumentException e) {
-            return UNKNOWN;
+            return null;
         }
     }
 }

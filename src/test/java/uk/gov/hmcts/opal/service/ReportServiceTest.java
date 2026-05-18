@@ -21,7 +21,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -44,10 +43,10 @@ class ReportServiceTest {
     @InjectMocks
     private ReportService reportService;
 
-    private UserState stubUserAndRepo(String reportId, Optional<ReportEntity> repoResult) {
+    private UserState stubUserAndRepo(String reportId, ReportEntity repoResult) {
         UserState userState = mock(UserState.class);
         when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
-        when(reportRepository.findById(reportId)).thenReturn(repoResult);
+        when(reportRepository.findById(reportId)).thenReturn(Optional.ofNullable(repoResult));
         return userState;
     }
 
@@ -66,9 +65,9 @@ class ReportServiceTest {
         @MethodSource("successCases")
         void getReport_success(ReportEntity entity) {
             ReportReports reportDto = createDefaultReportDto();
-            UserState userState = stubUserAndRepo(entity.getReportId(), Optional.of(entity));
+            UserState userState = stubUserAndRepo(entity.getReportId(), entity);
             when(reportMapper.toDto(entity)).thenReturn(reportDto);
-            when(userState.anyBusinessUnitUserHasPermission(FinesPermission.UNKNOWN)).thenReturn(true);
+            when(userState.anyBusinessUnitUserHasPermission(null)).thenReturn(true);
 
             ReportReports result = reportService.getReport(entity.getReportId());
 
@@ -85,13 +84,13 @@ class ReportServiceTest {
             return Stream.of(
                 Arguments.of(
                     "non_existent_report",
-                    Optional.empty(),
+                    null,
                     EntityNotFoundException.class,
                     "Report not found with id: non_existent_report"
                 ),
                 Arguments.of(
                     createFullReportEntity().getReportId(),
-                    Optional.of(createFullReportEntity()),
+                    createFullReportEntity(),
                     PermissionNotAllowedException.class,
                     null
                 )
@@ -102,12 +101,11 @@ class ReportServiceTest {
         @MethodSource("errorCases")
         void getReport_throwsExpectedException(
             String reportId,
-            Optional<ReportEntity> repoResult,
+            ReportEntity entity,
             Class<? extends Exception> expectedException,
             String expectedMessage
         ) {
-            stubUserAndRepo(reportId, repoResult);
-
+            stubUserAndRepo(reportId, entity);
             Exception exception = assertThrows(expectedException, () -> reportService.getReport(reportId));
 
             if (expectedMessage != null) {

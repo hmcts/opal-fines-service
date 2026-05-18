@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Duration;
@@ -16,6 +18,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 
@@ -63,8 +66,9 @@ public class ReportEntity {
     @Column(name = "retention_period", length = 30)
     private Duration retentionPeriod;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "permission", length = 30)
-    private String permission;
+    private FinesPermission permission;
 
     @Column(name = "can_manually_create", nullable = false)
     private boolean canManuallyCreate;

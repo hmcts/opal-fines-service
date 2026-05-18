@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.service.AbstractPermissionService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -29,7 +28,7 @@ public class ReportService extends AbstractPermissionService {
         UserState userState = userStateService.checkForAuthorisedUser();
         ReportEntity entity = reportRepository.findById(reportId)
             .orElseThrow(() -> new EntityNotFoundException("Report not found with id: " + reportId));
-        checkPermission(userState, FinesPermission.fromString(entity.getPermission()));
+        checkPermission(userState, entity.getPermission());
 
         return reportMapper.toDto(entity);
     }
