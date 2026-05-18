@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 
 /**
  * Built-in feature which saves service's swagger specs in temporary directory.
@@ -20,8 +21,11 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @ActiveProfiles("integration")
 @AutoConfigureMockMvc
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-class OpenAPIPublisherTest {
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = "OPAL_ENABLE_LEGACY_STUB=false"
+)
+class OpenAPIPublisherTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mvc;
