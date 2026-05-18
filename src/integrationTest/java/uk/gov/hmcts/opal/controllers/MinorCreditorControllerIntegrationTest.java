@@ -57,6 +57,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     protected static final String URL_BASE = "/minor-creditor-accounts";
     private static final String AUTH_HEADER = "Bearer some_value";
+    private static final Long GET_MINOR_CREDITOR_ACCOUNT_ID = 607L;
+    private static final Long GET_MINOR_CREDITOR_PARTY_ID = 99008L;
+    private static final short GET_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
     private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
 
@@ -387,6 +390,129 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
         assertTrue(amendmentsAfter > amendmentsBefore);
         assertEquals("ACCOUNT_ENQUIRY", getLatestAmendmentFunctionCodeForCreditorAccount());
+    }
+
+    void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(
+                GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+                FinesPermission.VIEW_CREDITOR_BACS
+            ));
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Ms"))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Hold"))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value("Tester"))
+            .andExpect(jsonPath("$.address.address_line_1").value("44 Hold St."))
+            .andExpect(jsonPath("$.address.address_line_2").value("Holdton"))
+            .andExpect(jsonPath("$.address.address_line_3").value("Held"))
+            .andExpect(jsonPath("$.address.postcode").value("HE1 2LD"))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
+            .andExpect(jsonPath("$.payment.sort_code").value("123456"))
+            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
+            .andExpect(jsonPath("$.payment.account_name").value("Hold Test"))
+            .andExpect(jsonPath("$.payment.account_reference").value("HOLDREF"))
+            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+    }
+
+    void getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(
+                GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+            ));
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(nullValue()))
+            .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_name").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_reference").value(nullValue()))
+            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+    }
+
+    void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
+        // Arrange
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        // Act & Assert
+        mockMvc.perform(get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(noPermissionsUser());
+
+        // Act & Assert
+        mockMvc.perform(get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void getMinorCreditorAccount_notFound_returns404(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(permissionUser(
+            GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS
+        ));
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", 999999L)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_notFound_returns404 body:\n{}", ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions.andExpect(status().isNotFound());
     }
 
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
