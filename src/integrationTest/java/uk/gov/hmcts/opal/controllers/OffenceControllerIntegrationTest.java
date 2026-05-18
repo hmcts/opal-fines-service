@@ -229,7 +229,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostOffencesPartialActSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"act_and_section\":\"Football Spectators Act 1989\"}"));
+                                                     .content("{\"act_and_section\":\"ootball Spectators Act 1989\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostOffencesPartialActSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
