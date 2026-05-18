@@ -267,7 +267,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         // Arrange
         final Long creditorAccountId = 606L;
         final Long partyId = 99007L;
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Specification<ImpositionEntity> impositionSpec = ImpositionSpecs
             .equalsCreditorAccountId(creditorAccountId);

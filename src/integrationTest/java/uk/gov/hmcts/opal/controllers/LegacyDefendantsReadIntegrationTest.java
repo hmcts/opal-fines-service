@@ -30,7 +30,7 @@ class LegacyDefendantsReadIntegrationTest extends AbstractLegacyDefendantsIntegr
     @Test
     @DisplayName("LEGACY: Get header summary for non-existent ID returns 500")
     void getHeaderSummary_Legacy_500() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/500/header-summary").header("authorization", "Bearer some_value"));
@@ -43,7 +43,7 @@ class LegacyDefendantsReadIntegrationTest extends AbstractLegacyDefendantsIntegr
     }
 
     void testGetPaymentTerms() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/payment-terms/latest").header("authorization", "Bearer some_value"));
@@ -71,7 +71,7 @@ class LegacyDefendantsReadIntegrationTest extends AbstractLegacyDefendantsIntegr
     }
 
     void testGetDefendantAtAGlance() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));

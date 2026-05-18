@@ -52,7 +52,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
     void testGetDefendantAccountParty_Happy() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions actions = mockMvc.perform(
             get(URL_BASE + "/77/defendant-account-parties/77").header("authorization", "Bearer some_value"));
@@ -78,7 +78,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Organisation Only [@PO-1973]")
     void testGetDefendantAccountParty_Organisation() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions actions = mockMvc.perform(
             get(URL_BASE + "/555/defendant-account-parties/555").header("authorization", "Bearer some_value"));
@@ -103,7 +103,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - 500 Error [@PO-1973]")
     void testGetDefendantAccountParty_500Error() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions actions = mockMvc.perform(
             get(URL_BASE + "/500/defendant-account-parties/500").header("authorization", "Bearer some_value"));
@@ -119,7 +119,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
     void testPutReplaceDefAccParty_Success() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         var res = mockMvc.perform(
             put("/defendant-accounts/77/defendant-account-parties/77")
@@ -140,7 +140,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
     void testPutReplaceDefAccParty_500Error() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         var res = mockMvc.perform(
             put("/defendant-accounts/500/defendant-account-parties/500")

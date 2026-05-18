@@ -88,7 +88,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - success")
     void testPostAddEnforcement_Success() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         var res = mockMvc.perform(
             post("/defendant-accounts/72/enforcements")
@@ -107,7 +107,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - backend 500")
     void testPostAddEnforcement_500Error() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         var res = mockMvc.perform(
             post("/defendant-accounts/500/enforcements")
@@ -175,7 +175,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - success")
     void testPatchRemoveEnforcementHold_Success() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -229,7 +229,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - missing If-Match rejected")
     void testPatchRemoveEnforcementHold_missingIfMatch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
@@ -249,7 +249,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - invalid If-Match rejected")
     void testPatchRemoveEnforcementHold_invalidIfMatch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");

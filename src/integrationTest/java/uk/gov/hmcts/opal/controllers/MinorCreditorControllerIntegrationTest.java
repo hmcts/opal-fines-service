@@ -68,7 +68,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -135,7 +135,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void legacyPostSearchMinorCreditorImpl_500Error(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(101))
@@ -157,7 +157,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_checkLetter_returnsBoth(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -174,7 +174,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_noCheckLetter_returnsBoth(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -191,7 +191,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_noResultsForUnknownBusinessUnit_returnsEmpty(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(999))
@@ -210,7 +210,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_orgNamePrefix_normalizedMatches(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         // "Acme Supplies Ltd" normalized; mixed case + spaces + punctuation
         MinorCreditorSearch search = MinorCreditorSearch.builder()
@@ -231,7 +231,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_accountNumber_withWildcardChars_treatedLiterally(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         // Your helper escapes user input then appends %; verify no matches for literal wildcards
         MinorCreditorSearch search = MinorCreditorSearch.builder()
@@ -474,7 +474,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
     void testAC1b_ActiveAccountsOnlyTrue(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -493,7 +493,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void testAC1b_ActiveAccountsOnlyFalse(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -513,7 +513,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1a: Test multiple search parameters - creditor personal details + business unit
     void testAC1a_MultiParam_ForenamesAndSurname(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -539,7 +539,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1a: Test multiple search parameters - postcode + business unit + account number
     void testAC1a_MultiParam_PostcodeAndAccountNumber(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -563,7 +563,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1a: Test multiple search parameters - organisation details + business unit + address
     void testAC1a_MultiParam_OrganisationAndAddress(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -585,7 +585,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1ai: Test that accounts from different business units are not returned
     void testAC1ai_BusinessUnitFiltering(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10, 11)) // Multiple business units
@@ -608,7 +608,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2a: Test exact match surname functionality - exact match enabled
     void testAC2a_ExactMatchSurnameEnabled(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -632,7 +632,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2ai: Test exact match surname functionality - exact match disabled (starts with)
     void testAC2ai_ExactMatchSurnameDisabled(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -654,7 +654,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2b: Test exact match forenames functionality - exact match enabled
     void testAC2b_ExactMatchForenamesEnabled(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -678,7 +678,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2bi: Test exact match forenames functionality - exact match disabled (starts with)
     void testAC2bi_ExactMatchForenamesDisabled(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -700,7 +700,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2c: Test "starts with" behavior for Address Line 1
     void testAC2c_AddressLine1StartsWith(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -721,7 +721,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2c: Test "starts with" behavior for Postcode
     void testAC2c_PostcodeStartsWith(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -742,7 +742,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3a: Test exact match for Company name
     void testAC3a_CompanyNameExactMatch(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -766,7 +766,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
     void testAC3ai_CompanyNameStartsWith(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -790,7 +790,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3ai: Test "starts with" behavior with partial Company name
     void testAC3ai_CompanyNameStartsWithPartial(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -814,7 +814,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3b: Test "starts with" behavior for Company Address Line 1
     void testAC3b_CompanyAddressLine1StartsWith(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -836,7 +836,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3b: Test "starts with" behavior for Company Postcode
     void testAC3b_CompanyPostcodeStartsWith(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -858,7 +858,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3b: Test combined Address Line 1 and Postcode search for companies
     void testAC3b_CompanyAddressAndPostcodeCombined(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -883,7 +883,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getHeaderSummaryImpl_Success(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Long minorCreditorId = 99000000000800L;
 
@@ -929,7 +929,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getHeaderSummary_notFound_returns404(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Long missingId = 999999L;
 
@@ -1005,7 +1005,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1048,7 +1048,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAtAGlanceImpl_failure_creditorNotFound(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Long missingId = 999999L;
 
@@ -1078,7 +1078,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void legacyGetMinorCreditorAtAGlanceImpl_500Error(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "500")

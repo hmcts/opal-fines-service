@@ -34,7 +34,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @Test
     @DisplayName("Remove enforcement hold returns 200 and updates the defendant account")
     void int01_removeEnforcementHold_returnsOkAndUpdatesDatabase() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
 
         ResultActions resultActions = mockMvc.perform(
@@ -114,7 +114,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @Test
     @DisplayName("Remove enforcement hold returns 404 when defendant account is not found")
     void int04_removeEnforcementHold_returnsNotFound_whenAccountDoesNotExist() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
 
         long missingAccountId = 999999999L;
@@ -145,7 +145,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @Test
     @DisplayName("Remove enforcement hold returns 409 when If-Match does not match")
     void int05_removeEnforcementHold_returnsConflict_whenIfMatchDoesNotMatch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
         int invalidVersion = versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + 1;
 
         ResultActions resultActions = mockMvc.perform(

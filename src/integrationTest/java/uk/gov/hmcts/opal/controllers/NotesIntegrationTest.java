@@ -49,7 +49,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     void postNotesImpl(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         // Arrange
         Note note = new Note();
@@ -86,7 +86,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
     void postNotes_IDNotFoundError(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Note note = new Note();
         note.setNoteText("test");
@@ -149,7 +149,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account in legacy [PO-1975]")
     void legacyTestAddNoteSuccess(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Note note = new Note();
         note.setNoteText("test");
@@ -179,7 +179,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account ID that does not exist in legacy [PO-1975]")
     void legacyTestAddNote500Error(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Note note = new Note();
         note.setNoteText("FAIL");

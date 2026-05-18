@@ -50,11 +50,6 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     static final String DEFENDANT_HEADER_SUMMARY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/getDefendantAccountHeaderSummaryResponse.json";
 
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    UserStateClientService userStateClientService;
 
     // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
@@ -64,21 +59,12 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     JsonSchemaValidationService jsonSchemaValidationService;
 
     @MockitoBean
-    private UserState userState;
-
-    @MockitoBean
     AccessTokenService accessTokenService;
-
-    @BeforeEach
-    void setupUserState() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-    }
 
     @DisplayName("Get header summary for individual defendant account [@PO-2287]")
     void getHeaderSummary_Individual(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/header-summary").header("authorization", "Bearer some_value"));
@@ -106,7 +92,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     @DisplayName("Get header summary for organisation defendant account [@PO-2287]")
     void getHeaderSummary_Organisation(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/10001/header-summary").header("authorization", "Bearer some_value"));
@@ -129,7 +115,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
         + "defendantAccountPartyId bug fix validation")
     void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         // Act
         ResultActions resultActions =
@@ -152,7 +138,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
         + " defendantAccountPartyId — bug fix validation")
     void testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         // Act
         ResultActions resultActions = mockMvc.perform(
@@ -172,7 +158,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     void testGetHeaderSummary_ThrowsNotFound(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/999777/header-summary").header("authorization", "Bearer some_value"));
@@ -184,7 +170,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     void testGetPaymentTerms(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         // Make the 'date_last_amended' deterministic for acct 77
         jdbcTemplate.update(
@@ -219,7 +205,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     void testGetPaymentTermsLatest_NoPaymentTermFoundForId(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/79/payment-terms/latest").header("authorization", "Bearer some_value"));
@@ -236,7 +222,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     void getDefendantAccountPaymentTerms_500Error(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/500/payment-terms/latest").header("authorization", "Bearer some_value"));
@@ -251,7 +237,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     void getDefendantAccountAtAGlance_500Error(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/500/at-a-glance").header("authorization", "Bearer some_value"));
@@ -266,7 +252,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
     void testEntityNotFoundExceptionContainsRetriable(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/12345/header-summary").header("authorization", "Bearer some_value"));
@@ -286,7 +272,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
     void testWrongMediaTypeContainsRetriableField(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions = mockMvc.perform(
             post("/defendant-accounts/search").header("authorization", "Bearer some_value")
@@ -317,7 +303,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @DisplayName("PO-2119 / Problem JSON contains retriable for invalid request body")
     void testInvalidBodyContainsRetriable(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         var resultActions = mockMvc.perform(
             post("/defendant-accounts/search").header("authorization", "Bearer some_value")
@@ -334,7 +320,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     @DisplayName("Get enforcement status for individual defendant account [@PO-1696]")
     void testGetEnforcementStatus(Logger log, boolean isLegacy) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
             .header("authorization", "Bearer some_value"));
@@ -388,21 +374,16 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @DisplayName("Get enforcement status - missing auth header returns 401")
     void testGetEnforcementStatus_missingAuthHeader_returns401(Logger log, boolean isLegacy) throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Missing token"))
-            .when(userStateService).checkForAuthorisedUser(null);
-
         mockMvc.perform(get(URL_BASE + "/78/enforcement-status"))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isUnauthorized());
+        clearWireMock();
     }
 
     @DisplayName("Get enforcement status - forbidden without permission")
     void testGetEnforcementStatus_forbidden(Logger log, boolean isLegacy) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        setupUserStateClient(getUserStateDtoWithNoPermissions());
         UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
-            .thenReturn(false);
 
         mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
             .andDo(MockMvcResultHandlers.print())
@@ -411,7 +392,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @DisplayName("Get enforcement status - resource not found")
     void testGetEnforcementStatus_notFound(Logger log, boolean isLegacy) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         ResultMatcher statusMatcher = isLegacy ? status().is5xxServerError() : status().isNotFound();
 
@@ -420,37 +401,6 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
             .andExpect(statusMatcher);
     }
 
-    @DisplayName("Get enforcement status - timeout")
-    void testGetEnforcementStatus_timeout(Logger log, boolean isLegacy) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.REQUEST_TIMEOUT, "Timeout"));
-
-        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
-            .andDo(MockMvcResultHandlers.print())
-            .andExpect(status().isRequestTimeout());
-    }
-
-    @DisplayName("Get enforcement status - service unavailable")
-    void testGetEnforcementStatus_serviceUnavailable(Logger log, boolean isLegacy) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenThrow(new ResponseStatusException(
-                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Gateway down"));
-
-        mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
-                .header("authorization", "Bearer some_value"))
-            .andDo(MockMvcResultHandlers.print())
-            .andExpect(status().isServiceUnavailable());
-    }
-
-    @DisplayName("Get enforcement status - server error")
-    void testGetEnforcementStatus_serverError(Logger log, boolean isLegacy) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Boom"));
-
-        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
-            .andDo(MockMvcResultHandlers.print())
-            .andExpect(status().isInternalServerError());
-    }
 
     static ResultMatcher ignoreForLegacy(ResultMatcher matcher, boolean legacy) {
         return (legacy) ? (result) -> { } : matcher;

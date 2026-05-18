@@ -34,7 +34,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
     void testUpdateDefAcc_CommentNotes_Success() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         Integer currentVersion = versionFor(77L);
 
@@ -78,7 +78,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 400 Error [@PO-1908]")
     void testUpdateDefAcc_CommentNotes_400ErrorForMissingRequiredHeader() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         String requestJson = commentAndNotesPayload(
             "patch DefAcc comment legacy test",
@@ -155,7 +155,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 400 Bad Request Invalid Payload [@PO-1908, CEP1]")
     void testUpdateDefAcc_CommentNotes_400BadRequest() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        setupUserStateClient(getUserStateDtoWithAllPermissions());
 
         String invalidJson = """
             {
