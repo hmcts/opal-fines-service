@@ -26,8 +26,6 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
-    private final CreditorAccountRepository creditorAccountRepository;
-
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
                                                                         String authHeaderValue) {
         log.debug(":searchMinorCreditor:");
