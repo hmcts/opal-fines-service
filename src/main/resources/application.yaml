@@ -153,6 +153,15 @@ opal:
     password: ${OPAL_TEST_USER_PASSWORD}
   common:
     domain: fines
+    content-digest:
+      request:
+        enforce: ${OPAL_COMMON_CONTENT_DIGEST_REQUEST_ENFORCE:false}
+        auto-generate: ${OPAL_COMMON_CONTENT_DIGEST_REQUEST_AUTO_GENERATE:false}
+      response:
+        enforce: ${OPAL_COMMON_CONTENT_DIGEST_RESPONSE_ENFORCE:false}
+        algorithm: ${OPAL_COMMON_CONTENT_DIGEST_RESPONSE_ALGORITHM:SHA-512}
+      supported-algorithms:
+        sha-512: SHA-512
 
   report:
     storage:
