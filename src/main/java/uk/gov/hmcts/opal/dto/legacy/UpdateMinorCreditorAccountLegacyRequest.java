@@ -1,11 +1,7 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -22,7 +18,7 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @XmlRootElement(name = "request")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyUpdateMinorCreditorAccountRequest {
+public class UpdateMinorCreditorAccountLegacyRequest {
 
     @JsonProperty("creditor_account_id")
     @XmlElement(name = "creditor_account_id")
