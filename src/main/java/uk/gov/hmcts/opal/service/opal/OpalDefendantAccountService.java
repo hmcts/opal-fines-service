@@ -50,6 +50,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryD
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -71,30 +72,31 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.AliasEntity;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
-import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
-import uk.gov.hmcts.opal.entity.debtordetail.Language;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.DefendantAccountHeaderSummaryMapper;
+import uk.gov.hmcts.opal.mapper.DefendantAccountImpositionMapper;
 import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
@@ -107,6 +109,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
@@ -154,6 +157,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
 
+    private final ImpositionRepository impositionRepository;
+
     private final EnforcementRepository enforcementRepository;
 
     private final DebtorDetailRepository debtorDetailRepository;
@@ -179,6 +184,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     // Mappers
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
+    private final DefendantAccountImpositionMapper defendantAccountImpositionMapper;
     private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
     private final PaymentTermsMapper paymentTermsMapper;
 
@@ -334,6 +340,24 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 "Fixed Penalty Offence not found for account: " + defendantAccountId));
 
         return OpalDefendantAccountBuilders.toFixedPenaltyResponse(account, offence);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetDefendantAccountImpositionsResponse getDefendantAccountImpositions(Long defendantAccountId) {
+        log.debug(":getDefendantAccountImpositions (Opal): id={}", defendantAccountId);
+
+        var versionData = defendantAccountRepository.findVersionDataByDefendantAccountId(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+
+        var impositions = impositionRepository.findDefendantAccountImpositionsByDefendantAccountId(
+            defendantAccountId);
+
+        return GetDefendantAccountImpositionsResponse.builder()
+            .payload(defendantAccountImpositionMapper.toResponse(impositions))
+            .version(BigInteger.valueOf(versionData.versionNumber()))
+            .build();
     }
 
     //Deprecated - use OpalDefendantAccountPartyService
