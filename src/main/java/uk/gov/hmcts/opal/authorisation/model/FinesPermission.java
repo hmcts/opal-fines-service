@@ -36,12 +36,12 @@ public enum FinesPermission implements PermissionDescriptor {
 
     public static FinesPermission fromString(String value) {
         if (value == null || value.isBlank()) {
-            return null;
+            throw new IllegalArgumentException("Permission value cannot be null or blank");
         }
         try {
             return FinesPermission.valueOf(value);
         } catch (IllegalArgumentException e) {
-            return null;
+            throw new IllegalArgumentException("Unknown FinesPermission: " + value, e);
         }
     }
 }
