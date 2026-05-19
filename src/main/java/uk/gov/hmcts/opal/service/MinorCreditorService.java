@@ -153,6 +153,7 @@ public class MinorCreditorService {
             return response;
         }
 
+        // Fail closed: if the account business unit cannot be confirmed here, redact BACS details.
         Short businessUnitId = response.getBusinessUnitId();
         boolean canViewBacs = businessUnitId != null
             && userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.VIEW_CREDITOR_BACS);

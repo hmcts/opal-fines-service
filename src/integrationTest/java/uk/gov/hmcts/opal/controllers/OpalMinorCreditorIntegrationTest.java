@@ -288,6 +288,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields(log);
+    }
+
+    @Test
     void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
         super.getMinorCreditorAccount_missingAuthHeader_returns401();
     }

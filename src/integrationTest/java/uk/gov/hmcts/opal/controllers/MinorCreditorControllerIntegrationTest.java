@@ -487,6 +487,54 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayment));
     }
 
+    void getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields(Logger log)
+        throws Exception {
+        // Arrange
+        Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
+        Map<String, Object> currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
+
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(
+                (short) 20,
+                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+                FinesPermission.VIEW_CREDITOR_BACS
+            ));
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", AUTH_HEADER)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
+            .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.get("surname")))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames")
+                .value(currentPartyDetails.get("forenames")))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.get("title")))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.get("address_line_1")))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(nullValue()))
+            .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_name").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_reference").value(nullValue()))
+            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayment));
+    }
+
     void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
         // Arrange
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
