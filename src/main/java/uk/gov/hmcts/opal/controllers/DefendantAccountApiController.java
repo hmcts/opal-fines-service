@@ -6,8 +6,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
@@ -20,6 +23,18 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 public class DefendantAccountApiController implements DefendantAccountApi {
 
     private final DefendantAccountService defendantAccountService;
+
+    @Override
+    @FeatureToggle(feature = "release-1b", defaultValueProperty = "launchdarkly.default-flag-values.release-1b")
+    public ResponseEntity<DefendantAccountImpositionsResponseCommon> getDefendantAccountImpositions(
+        Long id, String authHeaderValue) {
+        log.debug(":GET:getDefendantAccountImpositions: for defendant account id: {}", id);
+
+        GetDefendantAccountImpositionsResponse response =
+            defendantAccountService.getDefendantAccountImpositions(id, authHeaderValue);
+
+        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+    }
 
     @Override
     public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id, String authHeaderValue) {
