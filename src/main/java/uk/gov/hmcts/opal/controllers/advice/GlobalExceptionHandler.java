@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
@@ -103,7 +104,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.FORBIDDEN,
             "Permission Not Allowed",
-            "You do not have the required permission to perform this action",
+            "User must have permission %s to access this resource".formatted(Arrays.toString(ex.getPermission())),
             "permission-not-allowed",
             false,
             ex
