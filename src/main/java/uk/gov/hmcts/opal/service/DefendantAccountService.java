@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -149,6 +150,21 @@ public class DefendantAccountService {
         }
 
         return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
+    }
+
+    public GetDefendantAccountImpositionsResponse getDefendantAccountImpositions(
+        Long defendantAccountId,
+        String authHeaderValue) {
+
+        log.debug(":getDefendantAccountImpositions:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return defendantAccountServiceProxy.getDefendantAccountImpositions(defendantAccountId);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
     }
 
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
