@@ -373,6 +373,13 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
+    void getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
     void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
         super.getMinorCreditorAccount_missingAuthHeader_returns401();
     }
