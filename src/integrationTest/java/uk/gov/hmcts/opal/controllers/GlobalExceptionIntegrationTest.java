@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -219,6 +220,21 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
+    @Test
+    @DisplayName("FeatureDisabledException -> 405 with feature-disabled problem detail")
+    void featureDisabled_ReturnsExistingProblemShape() throws Exception {
+        var action = mockMvc.perform(get("/__exc/feature-disabled").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
+
+        action.andExpect(status().isMethodNotAllowed())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"))
+            .andExpect(jsonPath("$.title").value("Feature Disabled"))
+            .andExpect(jsonPath("$.status").value(405))
+            .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
     /**
      * Test-only controller to trigger specific exception paths in GlobalExceptionHandler.
      */
@@ -288,6 +304,11 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
         void psqlOther() throws PSQLException {
             // Cause is neither ConnectException nor UnknownHostException -> non-retriable
             throw new PSQLException("unexpected", PSQLState.UNEXPECTED_ERROR, new Throwable("other cause"));
+        }
+
+        @GetMapping("/__exc/feature-disabled")
+        void featureDisabled() {
+            throw new FeatureDisabledException("Feature release-1b is not enabled");
         }
     }
 }

@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @RestController
@@ -25,7 +26,8 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountService defendantAccountService;
 
     @Override
-    @FeatureToggle(feature = "release-1b", defaultValueProperty = "launchdarkly.default-flag-values.release-1b")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY)
     public ResponseEntity<DefendantAccountImpositionsResponseCommon> getDefendantAccountImpositions(
         Long id, String authHeaderValue) {
         log.debug(":GET:getDefendantAccountImpositions: for defendant account id: {}", id);
