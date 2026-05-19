@@ -41,11 +41,11 @@ testcontainers:
   reuse:
     enable: true
 legacy-gateway:
-  url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
+  url: http://localhost:4553/opal
 opal:
   report:
     consumer:
       enabled: false
 user:
   service:
-    url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4553/opal}
+    url: http://localhost:4553/opal
