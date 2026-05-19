@@ -55,6 +55,8 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
 
             // LocalJusticeAreaController
             args("GET /local-justice-areas/{id}", withAuth(get("/local-justice-areas/1"))),
+            args("GET /local-justice-areas", withAuth(get("/local-justice-areas")
+                .param("q", "1").param("lja_type", "LJA,SJCRT"))),
 
             // MajorCreditorController
             args("GET /major-creditors/{id}", withAuth(get("/major-creditors/1"))),

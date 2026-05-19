@@ -63,6 +63,8 @@ public class LocalJusticeAreaController {
 
     @GetMapping
     @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<LjaReferenceDataResults> getLocalJusticeAreaRefData(
         @RequestParam("q") Optional<String> filter, @RequestParam("lja_type") Optional<List<String>> ljaType) {
         log.debug(":GET:getLocalJusticeAreaRefData: filter: {}  ljaType: {}", filter, ljaType);
