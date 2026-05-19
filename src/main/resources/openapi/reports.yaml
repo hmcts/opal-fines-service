@@ -308,6 +308,7 @@ components:
       properties:
         report_instance_id:
           type: integer
+          format: int64
 
     report:
       type: object
@@ -364,6 +365,7 @@ components:
       properties:
         instance_id:
           type: integer
+          format: int64
         requested_at:
           type: string
           format: date-time
@@ -416,6 +418,7 @@ components:
         properties:
           instance_id:
             type: integer
+            format: int64
           report_id:
             type: string
           requested_at:
