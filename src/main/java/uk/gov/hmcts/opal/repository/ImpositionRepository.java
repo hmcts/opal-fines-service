@@ -76,4 +76,50 @@ public interface ImpositionRepository extends JpaRepository<ImpositionEntity, Lo
     List<DefendantAccountImpositionData> findDefendantAccountImpositionsByDefendantAccountId(
         @Param("defendantAccountId") Long defendantAccountId
     );
+
+    @Query("""
+        SELECT new uk.gov.hmcts.opal.entity.projection.DefendantAccountImpositionData(
+            defendantAccount.defendantAccountId,
+            defendantAccount.versionNumber,
+            defendantAccount.accountType,
+            imposition.impositionId,
+            imposition.postedDate,
+            result.resultId,
+            result.resultTitle,
+            creditorAccount.creditorAccountId,
+            creditorAccount.creditorAccountType,
+            creditorAccount.majorCreditorId,
+            majorCreditor.name,
+            creditorAccount.minorCreditorPartyId,
+            minorCreditor.organisation,
+            minorCreditor.organisationName,
+            minorCreditor.title,
+            minorCreditor.forenames,
+            minorCreditor.surname,
+            imposition.imposedDate,
+            imposition.imposedAmount,
+            imposition.paidAmount,
+            imposition.offenceId,
+            imposition.offenceCode,
+            imposition.offenceTitle,
+            offence.cjsCode,
+            offence.offenceTitle,
+            imposingCourt.courtId,
+            imposingCourt.courtCode,
+            imposingCourt.name
+        )
+        FROM ImpositionEntity imposition
+        JOIN imposition.defendantAccount defendantAccount
+        JOIN imposition.creditorAccount creditorAccount
+        JOIN ResultEntity result ON result.resultId = imposition.resultId
+        LEFT JOIN creditorAccount.majorCreditor majorCreditor
+        LEFT JOIN PartyEntity minorCreditor ON minorCreditor.partyId = creditorAccount.minorCreditorPartyId
+        LEFT JOIN OffenceEntity offence ON offence.offenceId = imposition.offenceId
+        LEFT JOIN imposition.imposingCourt imposingCourt
+        WHERE imposition.defendantAccountId = :defendantAccountId
+        ORDER BY imposition.postedDate, imposition.impositionId
+        """)
+    List<DefendantAccountImpositionData> findDefendantAccountImpositionsByDefendantAccountId(
+        @Param("defendantAccountId") Long defendantAccountId
+    );
 }
