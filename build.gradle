@@ -518,7 +518,6 @@ dependencies {
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
-  testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.2'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.41"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.49"
