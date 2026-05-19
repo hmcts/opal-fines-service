@@ -31,6 +31,7 @@ Feature: Fines Service Release 1b Feature Toggles
       | Add Defendant Account Payment Terms        |
       | Add Defendant Account Payment Card Request |
       | Get Defendant Account Fixed Penalty        |
+      | Get Defendant Account Impositions          |
       | Get Minor Creditor Account Header Summary  |
       | Get Minor Creditor Account At A Glance     |
       | Get Minor Creditor Account                 |
