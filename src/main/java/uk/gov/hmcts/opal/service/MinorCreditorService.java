@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class MinorCreditorService {
 
         MinorCreditorAccountResponse response =
             minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
-        return redactBacsDetailsWhenNotPermitted(response, userState);
+        return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
     }
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
@@ -74,7 +75,7 @@ public class MinorCreditorService {
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             MinorCreditorAccountResponse response = minorCreditorSearchProxy.getMinorCreditorAccount(
                 minorCreditorAccountId);
-            return redactBacsDetailsWhenNotPermitted(response, userState);
+            return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
@@ -145,6 +146,7 @@ public class MinorCreditorService {
     }
 
     private MinorCreditorAccountResponse redactBacsDetailsWhenNotPermitted(
+        Long minorCreditorAccountId,
         MinorCreditorAccountResponse response,
         UserState userState
     ) {
@@ -156,6 +158,9 @@ public class MinorCreditorService {
         Short businessUnitId = response.getBusinessUnitId();
         boolean canViewBacs = businessUnitId != null
             && userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.VIEW_CREDITOR_BACS);
+
+        log.debug(":redactBacsDetailsWhenNotPermitted: id={}, businessUnitId={}, canViewBacs={}",
+            minorCreditorAccountId, businessUnitId, canViewBacs);
 
         if (canViewBacs) {
             return response;
