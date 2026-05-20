@@ -515,11 +515,8 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-<<<<<<< PO-2119-migrate-exception-handling
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.11'
-=======
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.9'
->>>>>>> master
+
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
