@@ -3,8 +3,13 @@ package uk.gov.hmcts.opal.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @ActiveProfiles({"integration", "legacy"})
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=true"
+})
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
@@ -26,6 +31,16 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @Test
     void testGetMinorCreditorAtAGlance_500Error() throws Exception {
         super.legacyGetMinorCreditorAtAGlanceImpl_500Error(log);
+    }
+
+    @Test
+    void testUpdateMinorCreditor_Success() throws Exception {
+        super.legacyPatchMinorCreditor_payoutHold_success(log);
+    }
+
+    @Test
+    void testUpdateMinorCreditor_500Error() throws Exception {
+        super.legacyPatchMinorCreditor_500Error(log);
     }
 
     @Test
