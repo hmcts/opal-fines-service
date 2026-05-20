@@ -1,14 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.Set;
 import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserDto;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionDto;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateDto;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -22,8 +22,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import uk.gov.hmcts.opal.service.UserStateService;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -37,9 +38,11 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
     protected static final String AUTH_HEADER = "Bearer test-token";
     protected static final Long BUSINESS_UNIT_ID = 77L;
-    protected static final Long IF_MATCH = 1L;
     protected static final Long DEFENDANT_ACCOUNT_ID = 99000000000006L;
     protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
+
+    @MockitoBean
+    UserStateService userStateService;
 
     protected static final List<ResultResponse> fullResponses = List.of(
         ResultResponse.builder().parameterName("reason").response("test reason").build(),
@@ -65,21 +68,22 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
                            .build())
         .build();
 
-    @MockitoBean
-    UserClient userClient;
-
     void postEnforcementImpl_fullRequest_Success(Logger log) throws Exception {
 
-        UserStateDto userStateDto = UserStateDto.builder()
+        UserState userState = UserState.builder()
             .userId(1L)
-            .username("testUser")
-            .businessUnitUsers(List.of(
-                new BusinessUnitUserDto("testUserId", (short) 77,
-                                        List.of(new PermissionDto(10L, "Enter Enforcement")))
-                )
-            ).build();
+            .userName("testUser")
+            .businessUnitUser(Set.of(BusinessUnitUser.builder()
+                    .businessUnitUserId("testUserId")
+                .businessUnitId((short)77)
+                .permissions(Set.of(Permission.builder()
+                    .permissionId(10L)
+                    .permissionName("Enter Enforcement")
+                    .build()))
+                .build()))
+            .build();
 
-        when(userClient.getUserStateById(anyLong())).thenReturn(userStateDto);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)
@@ -109,16 +113,21 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     void postEnforcementImpl_minimumRequest_Success(Logger log) throws Exception {
-        UserStateDto userStateDto = UserStateDto.builder()
-            .userId(1L)
-            .username("testUser")
-            .businessUnitUsers(List.of(
-                                   new BusinessUnitUserDto("testUserId", (short) 77,
-                                                           List.of(new PermissionDto(10L, "Enter Enforcement")))
-                               )
-            ).build();
 
-        when(userClient.getUserStateById(anyLong())).thenReturn(userStateDto);
+        UserState userState = UserState.builder()
+            .userId(1L)
+            .userName("testUser")
+            .businessUnitUser(Set.of(BusinessUnitUser.builder()
+                .businessUnitUserId("testUserId")
+                .businessUnitId((short)77)
+                .permissions(Set.of(Permission.builder()
+                    .permissionId(10L)
+                    .permissionName("Enter Enforcement")
+                    .build()))
+                .build()))
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)
@@ -148,16 +157,20 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     void postEnforcementImpl_invalidDefendant_Failure(Logger log) throws Exception {
-        UserStateDto userStateDto = UserStateDto.builder()
-            .userId(1L)
-            .username("testUser")
-            .businessUnitUsers(List.of(
-                                   new BusinessUnitUserDto("testUserId", (short) 77,
-                                                           List.of(new PermissionDto(10L, "Enter Enforcement")))
-                               )
-            ).build();
 
-        when(userClient.getUserStateById(anyLong())).thenReturn(userStateDto);
+        UserState userState = UserState.builder()
+            .userId(1L)
+            .userName("testUser")
+            .businessUnitUser(Set.of(BusinessUnitUser.builder()
+                .businessUnitId((short)77)
+                    .permissions(Set.of(Permission.builder()
+                        .permissionId(10L)
+                        .permissionName("Enter Enforcement")
+                        .build()))
+                .build()))
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)

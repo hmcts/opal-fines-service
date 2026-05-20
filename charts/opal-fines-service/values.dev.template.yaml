@@ -51,6 +51,7 @@ java:
         - name: reports-storage-container-name
           alias: REPORTS_AZURE_STORAGE_CONTAINER
   environment:
+    REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-hmcts-redis-master:6379
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "opal-fines-db"
     OPAL_FINES_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
@@ -62,7 +63,7 @@ java:
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub-staging.platform.hmcts.net/opal
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: false
-    FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
+    FLYWAY_LOCATIONS: classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev
     APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}"
     DEFAULT_APP_MODE: ${APP_MODE}
     SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
@@ -185,11 +186,20 @@ servicebus:
   setup:
     queues:
       - name: "logging-pdpl"
-redis:
+hmcts-redis:
   enabled: true
-  architecture: standalone
   master:
     persistence:
       enabled: false
   auth:
     enabled: false
+    sentinel: false
+  image:
+    registry: hmctsprod.azurecr.io
+    repository: imported/redis
+    tag: 8.2.1
+  sentinel:
+    enabled: false
+  metrics:
+    enabled: false
+

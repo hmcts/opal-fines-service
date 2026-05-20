@@ -1,0 +1,86 @@
+meta {
+  name: Add-Party-IND
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/defendant-accounts/99000000000010/defendant-account-parties
+  body: json
+  auth: inherit
+}
+
+headers {
+  Business-Unit-Id: 77
+  If-Match: 1
+}
+
+body:json {
+  {
+    "defendant_account_party": {
+      "defendant_account_party_type": "Defendant",
+      "is_debtor": true,
+      "party_details": {
+        "organisation_flag": false,
+        "individual_details": {
+          "title": "Mr",
+          "forenames": "John",
+          "surname": "Smith",
+          "date_of_birth": "1985-06-15",
+          "age": "39",
+          "national_insurance_number": "AB123456C",
+          "individual_aliases": null
+        }
+      },
+      "address": {
+        "address_line_1": "42 Elm Street",
+        "address_line_2": "Apartment 5B",
+        "address_line_3": "London",
+        "address_line_4": null,
+        "address_line_5": null,
+        "postcode": "N1 2AB"
+      },
+      "contact_details": {
+        "primary_email_address": "john.smith@email.com",
+        "secondary_email_address": null,
+        "mobile_telephone_number": "07911123456",
+        "home_telephone_number": "02071234567",
+        "work_telephone_number": null
+      },
+      "vehicle_details": {
+        "vehicle_make_and_model": "Ford Fiesta",
+        "vehicle_registration": "AB16XYZ"
+      },
+      "employer_details": {
+        "employer_name": "Tech Solutions Inc",
+        "employer_reference": "EMP-2024-001",
+        "employer_email_address": "hr@techsolutions.com",
+        "employer_telephone_number": "02087654321",
+        "employer_address": {
+          "address_line_1": "100 Business Park",
+          "address_line_2": null,
+          "address_line_3": null,
+          "address_line_4": null,
+          "address_line_5": null,
+          "postcode": "SW1A 2AA"
+        }
+      },
+      "language_preferences": {
+        "document_language_preference": {
+          "language_code": "EN",
+          "language_display_name": "English only"
+        },
+        "hearing_language_preference": {
+          "language_code": "EN",
+          "language_display_name": "English only"
+        }
+      }
+    }
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

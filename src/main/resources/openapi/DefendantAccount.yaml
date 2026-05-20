@@ -77,7 +77,7 @@ paths:
                       - The defendant account has a last name
                       - The defendant account does not have zero balance
                       - The defendant account type is not one of the following
-                      -- Company 
+                      -- Company
                       -- Youth
                       -- Parent / guardian to pay
                 required:

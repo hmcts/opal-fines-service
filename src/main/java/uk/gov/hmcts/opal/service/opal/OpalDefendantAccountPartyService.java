@@ -1,5 +1,13 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildContactDetails;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEmployerDetails;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildLanguagePreferences;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyAddressDetails;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyDetails;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
+
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -11,13 +19,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
@@ -41,12 +46,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildContactDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEmployerDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildLanguagePreferences;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyAddressDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -58,6 +57,8 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @Slf4j(topic = "opal.OpalDefendantAccountPartyService")
 @RequiredArgsConstructor
 public class OpalDefendantAccountPartyService implements DefendantAccountPartyServiceInterface {
+
+    public static final String FUNCTION_CODE_ACCOUNT_ENQUIRY = "ACCOUNT_ENQUIRY";
 
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
@@ -105,10 +106,88 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Transactional
     public GetDefendantAccountPartyResponse addDefendantAccountParty(
         Long accountId, String businessUnitId,
-        String postedBy, String businessUserId, String ifMatch, AddDefendantAccountPartyRequest request) {
+        String businessUserId, String postedBy, String ifMatch, AddDefendantAccountPartyRequest request) {
 
-        // not implemented.
-        throw new UnsupportedOperationException("Adding a party to an account is not yet supported in Opal");
+        if (request == null || request.getDefendantAccountParty() == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+
+        DefendantAccountParty requestParty = request.getDefendantAccountParty();
+        PartyDetails partyDetails = requestParty.getPartyDetails();
+
+        if (partyDetails == null || partyDetails.getOrganisationFlag() == null) {
+            throw new IllegalArgumentException("party_details.organisation_flag is required");
+        }
+
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
+
+        log.debug(":addDefendantAccountParty: Opal mode: accountId={}, buId={}, postedBy={}, businessUserId={}",
+            accountId, businessUnitId, postedBy, businessUserId);
+
+        // Verify the defendant account exists in the business unit.
+        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, businessUnitId);
+
+        VersionUtils.verifyIfMatch(account, ifMatch, accountId, "addDefendantAccountParty");
+        amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        // Save the party record
+        PartyEntity party = new PartyEntity();
+        OpalDefendantAccountBuilders.applyPartyCoreReplace(party, partyDetails);
+        OpalDefendantAccountBuilders.applyPartyAddressReplace(party, requestParty.getAddress());
+        OpalDefendantAccountBuilders.applyPartyContactReplace(party, requestParty.getContactDetails());
+        party = partyRepositoryService.save(party);
+
+        // Save the association
+        DefendantAccountPartiesEntity defendantAccountParty = DefendantAccountPartiesEntity.builder()
+            .party(party)
+            .associationType(AssociationType.getByLabel(requestParty.getDefendantAccountPartyType()))
+            .debtor(requestParty.getIsDebtor())
+            .build();
+
+        account.addPartyAssociation(defendantAccountParty);
+
+        // Add Debtor Details if this party is a debtor
+        if (Boolean.TRUE.equals(requestParty.getIsDebtor())) {
+            // Check if a DebtorDetail record exists for this party
+            Optional<DebtorDetailEntity> existingDebtor =
+                debtorDetailRepositoryService.findById(party.getPartyId());
+            if (existingDebtor.isPresent()) {
+                debtorDetailRepositoryService.updateDebtorDetail(
+                    existingDebtor.get(),
+                    requestParty.getVehicleDetails(),
+                    requestParty.getEmployerDetails(),
+                    requestParty.getLanguagePreferences()
+                );
+            } else {
+                debtorDetailRepositoryService.addDebtorDetail(
+                    party.getPartyId(),
+                    requestParty.getVehicleDetails(),
+                    requestParty.getEmployerDetails(),
+                    requestParty.getLanguagePreferences()
+                );
+            }
+        }
+
+        replaceAliasesForParty(party.getPartyId(), partyDetails);
+
+        amendmentRepositoryService.auditFinaliseStoredProc(
+            account.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            postedBy,
+            account.getProsecutorCaseReference(),
+            FUNCTION_CODE_ACCOUNT_ENQUIRY
+        );
+
+        List<AliasEntity> aliasEntity = aliasRepositoryService.findByPartyId(party.getPartyId());
+
+        // Flush the managed entity to the DB to ensure the updated version is returned.
+        BigInteger newVersion = defendantAccountRepositoryService.saveAndFlush(account).getVersion();
+
+        return GetDefendantAccountPartyResponse.builder()
+            .defendantAccountParty(mapDefendantAccountParty(defendantAccountParty, aliasEntity))
+            .version(newVersion)
+            .build();
     }
 
     private DefendantAccountParty mapDefendantAccountParty(
@@ -239,7 +318,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             Short.parseShort(businessUnitId),
             postedBy,
             account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
 
         List<AliasEntity> aliasEntity = party.getPartyId() == null
@@ -304,7 +383,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             businessUnitId,
             postedBy,
             account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
 
         // Flush the managed entity to the DB to ensure the updated version is returned.
@@ -485,10 +564,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         DebtorDetailEntity debtor = debtorDetailRepositoryService.findById(partyId)
             .orElseThrow(() -> new EntityNotFoundException("debtor_detail not found with id: " + partyId));
 
-        if (debtor == null) {
-            debtor = new DebtorDetailEntity();
-            debtor.setPartyId(partyId);
-        }
 
         log.debug("replaceDebtorDetail:  pre-change debtor: {}", debtor);
 
