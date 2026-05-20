@@ -656,7 +656,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("Authorization", AUTH_HEADER)
                 .header("If-Match", "\"" + currentVersion + "\"")
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                .content(patchMinorCreditorPayoutHoldRequestJson()));
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
