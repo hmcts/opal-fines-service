@@ -491,6 +491,16 @@ class LegacyMinorCreditorServiceTest {
     }
 
     @Test
+    void getMinorCreditorAccount_shouldThrowUnsupportedOperationException() {
+        UnsupportedOperationException exception = assertThrows(
+            UnsupportedOperationException.class,
+            () -> legacyMinorCreditorService.getMinorCreditorAccount(1L)
+        );
+
+        assertEquals("Legacy mode not implemented for GET /minor-creditor-accounts/{id}", exception.getMessage());
+    }
+
+    @Test
     void updateMinorCreditorAccount_shouldThrowUnsupportedOperationException() {
         UnsupportedOperationException exception = assertThrows(
             UnsupportedOperationException.class,
