@@ -27,4 +27,14 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     void testGetMinorCreditorAtAGlance_500Error() throws Exception {
         super.legacyGetMinorCreditorAtAGlanceImpl_500Error(log);
     }
+
+    @Test
+    void testGetMinorCreditorHeaderSummarySuccess() throws Exception {
+        super.getHeaderSummaryImpl_Success(log);
+    }
+
+    @Test
+    void testGetMinorCreditorHeaderSummary_500Error() throws Exception {
+        super.legacyGetMinorCreditorHeaderSummaryImpl_500Error(log);
+    }
 }
