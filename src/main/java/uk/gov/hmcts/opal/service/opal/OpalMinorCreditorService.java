@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,6 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
-
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
     @Override
@@ -142,7 +142,13 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         updateMapper.updateParty(request.getPartyDetails(), request.getAddress(), party);
 
+        creditorAccount.setBankAccountName(request.getPayment().getAccountName());
+        creditorAccount.setBankSortCode(request.getPayment().getSortCode());
+        creditorAccount.setBankAccountNumber(request.getPayment().getAccountNumber());
+        creditorAccount.setBankAccountReference(request.getPayment().getAccountReference());
+        creditorAccount.setPayByBacs(request.getPayment().getPayByBacs());
         creditorAccount.setHoldPayout(request.getPayment().getHoldPayment());
+        creditorAccount.setLastChangedDate(LocalDateTime.now());
 
         partyRepository.save(party);
         creditorAccountRepository.saveAndFlush(creditorAccount);

@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractOptionalBigInteger;
 
 import java.util.Optional;
@@ -9,11 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.generated.http.api.MinorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @Slf4j(topic = "opal.MinorCreditorApiController")
@@ -29,6 +31,10 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     }
 
     @Override
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY
+    )
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
         String businessUnitId,
@@ -43,6 +49,6 @@ public class MinorCreditorApiController implements MinorCreditorApi {
                 extractOptionalBigInteger(ifMatch).orElse(null),
                 authHeaderValue, businessUnitId);
 
-        return buildResponse(result);
+        return buildCreatedResponse(result);
     }
 }
