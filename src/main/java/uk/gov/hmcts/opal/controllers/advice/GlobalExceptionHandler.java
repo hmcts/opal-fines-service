@@ -99,19 +99,6 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
-    @ExceptionHandler(PermissionNotAllowedException.class)
-    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.FORBIDDEN,
-            "Permission Not Allowed",
-            "User must have permission %s to access this resource".formatted(Arrays.toString(ex.getPermission())),
-            "permission-not-allowed",
-            false,
-            ex
-        );
-        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
-    }
-
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotAcceptableException(
         HttpMediaTypeNotAcceptableException ex) {
