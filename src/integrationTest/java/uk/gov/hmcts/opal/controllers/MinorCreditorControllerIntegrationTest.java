@@ -624,7 +624,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         int amendmentsBefore = getCurrentAmendmentCountForCreditorAccount();
 
         // Act
-        ResultActions resultActions = mockMvc.perform(
+        ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", AUTH_HEADER)
@@ -632,11 +632,11 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                 .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
 
-        String body = resultActions.andReturn().getResponse().getContentAsString();
+        String body = a.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
 
         // Assert
-        resultActions.andExpect(status().isOk())
+        a.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
@@ -837,7 +837,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             partyId
         );
     }
-
     private boolean getCurrentCreditorAccountPayByBacs() {
         Boolean payByBacs = jdbcTemplate.queryForObject(
             "SELECT pay_by_bacs FROM creditor_accounts WHERE creditor_account_id = ?",
@@ -878,6 +877,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             PATCH_MINOR_CREDITOR_ACCOUNT_ID
         );
     }
+
     private int getCurrentAmendmentCountForCreditorAccount() {
         Integer amendmentCount = jdbcTemplate.queryForObject(
             """
