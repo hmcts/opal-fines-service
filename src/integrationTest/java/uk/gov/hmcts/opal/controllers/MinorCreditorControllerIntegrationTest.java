@@ -305,7 +305,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
+                FinesPermission.ACCOUNT_MAINTENANCE,
+                FinesPermission.VIEW_CREDITOR_BACS));
 
         final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
         Integer currentVersion = getCurrentCreditorAccountVersion();
@@ -379,6 +380,24 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", AUTH_HEADER)
+                            .header("If-Match", currentVersion)
+                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                            .content(patchMinorCreditorPayoutHoldRequestJson()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
@@ -1061,6 +1080,19 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isNotFound());
+    }
+
+    void getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
+            (short) 10,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+        ));
+
+        mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("authorization", "Bearer some_value"))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     void getMinorCreditorAtAGlanceImpl_serverError_throws500(Logger log) throws Exception {

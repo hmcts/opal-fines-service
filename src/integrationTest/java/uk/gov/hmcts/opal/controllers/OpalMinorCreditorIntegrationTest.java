@@ -218,6 +218,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
+    }
+
+    @Test
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         super.patchMinorCreditor_missingPayload_returns400();
     }
@@ -255,6 +260,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     void getAtAGlance_creditorNotFound() throws Exception {
         super.getMinorCreditorAtAGlanceImpl_failure_creditorNotFound(log);
+    }
+
+    @Test
+    void getAtAGlance_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403();
     }
 
     @Test
