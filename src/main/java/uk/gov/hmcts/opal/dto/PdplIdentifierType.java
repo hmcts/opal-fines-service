@@ -4,6 +4,9 @@ import uk.gov.hmcts.opal.logging.integration.dto.IdentifierType;
 
 public enum PdplIdentifierType implements IdentifierType {
 
+    DEFENDANT_ACCOUNT,
+    DEBTOR_ACCOUNT,
+    PARENT_GUARDIAN,
     DRAFT_ACCOUNT,
     OPAL_USER_ID;
 

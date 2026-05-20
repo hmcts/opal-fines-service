@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -25,6 +26,8 @@ import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = GetMinorCreditorAccountAtAGlanceResponseMapperTest.MapperTestConfig.class)
@@ -33,6 +36,12 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
 
     @Autowired
     private GetMinorCreditorAccountAtAGlanceResponseMapper mapper;
+
+    @MockitoBean
+    private EnforcementRepositoryService enforcementService;
+
+    @MockitoBean
+    private DebtorDetailRepositoryService debtorService;
 
     @Configuration
     @ComponentScan(basePackages = "uk.gov.hmcts.opal.mapper")
