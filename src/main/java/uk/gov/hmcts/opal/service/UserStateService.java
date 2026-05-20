@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -22,10 +23,21 @@ public class UserStateService {
 
     private final AccessTokenService tokenService;
 
+    private final UserStateClientService userStateClientService;
+
     private final UserStateMapper userStateMapper;
 
-    // Stop gap solution until we have service layer checking permissions from auth token directly.
     public UserState checkForAuthorisedUser() {
+        return userStateClientService.getUserStateByAuthenticatedUser()
+            .orElseGet(this::getUserStateFromSecurityContext);
+    }
+
+    public UserState checkForAuthorisedUser(String authorization) {
+        return checkForAuthorisedUser();
+    }
+
+    // Stop gap solution until all permissions are resolved directly in service-layer auth checks.
+    private UserState getUserStateFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
             throw new AccessDeniedException("Unexpected token type");
@@ -35,10 +47,6 @@ public class UserStateService {
             throw new AccessDeniedException("User state not found in token");
         }
         return userStateMapper.toUserState(userStateV2, Domain.FINES);
-    }
-
-    public UserState checkForAuthorisedUser(String authorization) {
-        return checkForAuthorisedUser();
     }
 
     public String getPreferredUsername(String authorization) {
