@@ -19,6 +19,8 @@ public class TestContainerConfig {
     private static final String DEFAULT_LEGACY_STUB_IMAGE = "hmctsprod.azurecr.io/opal/legacy-db-stub:latest";
     private static final String LEGACY_STUB_IMAGE =
         System.getenv().getOrDefault("OPAL_LEGACY_STUB_IMAGE", DEFAULT_LEGACY_STUB_IMAGE);
+    private static final boolean ENABLE_LEGACY_STUB =
+        !"false".equalsIgnoreCase(System.getenv().getOrDefault("OPAL_ENABLE_LEGACY_STUB", "true"));
     public static final PostgreSQLContainer POSTGRES_CONTAINER;
     public static final RedisContainer REDIS_CONTAINER;
 
@@ -40,7 +42,7 @@ public class TestContainerConfig {
 
         //Check if the port is available before starting the legacy stub container.
         //This allows a local version of the legacy stub to be used for testing.
-        if (isPortAvailable(LEGACY_STUB_PORT)) {
+        if (ENABLE_LEGACY_STUB && isPortAvailable(LEGACY_STUB_PORT)) {
             final GenericContainer<?> legacyStubContainer =
                 new GenericContainer<>(DockerImageName.parse(LEGACY_STUB_IMAGE))
                     .withExposedPorts(LEGACY_STUB_PORT);
