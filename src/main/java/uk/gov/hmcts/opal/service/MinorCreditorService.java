@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
-import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,6 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @Service
@@ -159,11 +158,18 @@ public class MinorCreditorService {
 
         // Fail closed: if the account business unit cannot be confirmed here, redact BACS details.
         Short businessUnitId = response.getBusinessUnitId();
+        boolean hasBusinessUnitUser = businessUnitId != null
+            && userState.getBusinessUnitUserForBusinessUnit(businessUnitId).isPresent();
         boolean canViewBacs = businessUnitId != null
             && userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.VIEW_CREDITOR_BACS);
 
-        log.debug(":redactBacsDetailsWhenNotPermitted: id={}, businessUnitId={}, canViewBacs={}",
-            minorCreditorAccountId, businessUnitId, canViewBacs);
+        log.debug(":redactBacsDetailsWhenNotPermitted: id={}, businessUnitId={}, hasBusinessUnitUser={}, "
+                + "canViewBacs={}, availableBusinessUnits={}",
+            minorCreditorAccountId,
+            businessUnitId,
+            hasBusinessUnitUser,
+            canViewBacs,
+            summariseBusinessUnits(userState));
 
         if (canViewBacs) {
             return response;
@@ -175,5 +181,16 @@ public class MinorCreditorService {
         response.getPayment().setAccountName(null);
         response.getPayment().setAccountReference(null);
         return response;
+    }
+
+    private String summariseBusinessUnits(UserState userState) {
+        if (userState.getBusinessUnitUser() == null || userState.getBusinessUnitUser().isEmpty()) {
+            return "[]";
+        }
+
+        return userState.getBusinessUnitUser().stream()
+            .map(businessUnitUser -> String.valueOf(businessUnitUser.getBusinessUnitId()))
+            .sorted()
+            .collect(Collectors.joining(",", "[", "]"));
     }
 }
