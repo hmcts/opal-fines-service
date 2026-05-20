@@ -10,19 +10,14 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.response.ReportInstanceResponse;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
@@ -97,8 +92,6 @@ public class GenericReportService implements GenericReportServiceInterface {
             throw new UnprocessableException("This report cannot be manually created");
         }
 
-//        UserState userState = userStateClientService.getUserStateByAuthenticatedUser()
-//            .orElseThrow(()->new AccessDeniedException(""));
         UserState userState = userStateService.checkForAuthorisedUser("");
 
         if (!userState.getBusinessUnitUser().stream()
