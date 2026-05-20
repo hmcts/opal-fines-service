@@ -631,6 +631,7 @@ dependencies {
   testImplementation 'org.testcontainers:testcontainers-postgresql'
   testImplementation 'com.redis:testcontainers-redis'
   testImplementation 'io.rest-assured:rest-assured:6.0.0'
+  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.4'
   testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.1.0'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'

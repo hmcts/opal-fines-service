@@ -25,6 +25,7 @@ launchdarkly:
     - src/integrationTest/resources/launchdarkly-flags.json
   default-flag-values:
     release-1a: false
+    release-1b: true
 
 logging:
   level:
