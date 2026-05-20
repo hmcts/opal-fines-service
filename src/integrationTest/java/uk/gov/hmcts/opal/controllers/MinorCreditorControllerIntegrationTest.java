@@ -639,6 +639,37 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions.andExpect(status().isInternalServerError());
     }
 
+    void patchMinorCreditor_success_createsAmendments(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+        int amendmentsBefore = getCurrentAmendmentCountForCreditorAccount();
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", AUTH_HEADER)
+                .header("If-Match", "\"" + currentVersion + "\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(patchMinorCreditorPayoutHoldRequestJson()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
+        assertTrue(amendmentsAfter > amendmentsBefore);
+        assertEquals("ACCOUNT_ENQUIRY", getLatestAmendmentFunctionCodeForCreditorAccount());
+    }
+
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
@@ -958,7 +989,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             PATCH_MINOR_CREDITOR_ACCOUNT_ID
         );
     }
-
     private int getCurrentAmendmentCountForCreditorAccount() {
         Integer amendmentCount = jdbcTemplate.queryForObject(
             """
