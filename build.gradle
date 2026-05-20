@@ -574,7 +574,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.4.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.5.Final'
 
   implementation 'uk.gov.hmcts:spring-exception-handler:1.0.1'
 
