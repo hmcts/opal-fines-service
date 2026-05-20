@@ -5,10 +5,11 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
@@ -69,6 +71,7 @@ public class DraftAccountService {
 
     private final DraftAccountPdplLoggingService loggingService;
     private final SecurityEventLoggingService securityEventLoggingService;
+    private final Clock clock;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
@@ -174,6 +177,7 @@ public class DraftAccountService {
 
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
+            applyTimelineData(dto, userState, unitUser);
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
@@ -200,6 +204,7 @@ public class DraftAccountService {
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
+            applyTimelineData(dto, userState, unitUser);
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             DraftAccountEntity replacedEntity = draftAccountTransactional
@@ -225,7 +230,9 @@ public class DraftAccountService {
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
-            applyValidatedBy(dto, userState, unitUser.orElseThrow());
+            BusinessUnitUser businessUnitUser = unitUser.orElseThrow();
+            applyValidatedBy(dto, userState, businessUnitUser);
+            applyTimelineData(dto, userState, businessUnitUser);
             jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             BigInteger updateVersion = extractBigInteger(ifMatch);
@@ -287,5 +294,28 @@ public class DraftAccountService {
     private void applyValidatedBy(UpdateDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
         dto.setValidatedBy(unitUser.getBusinessUnitUserId());
         dto.setValidatedByName(userState.getUserName());
+    }
+
+    private void applyTimelineData(AddDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+        dto.setAccountStatus(DraftAccountStatus.SUBMITTED);
+        dto.setTimelineData(createTimelineData(userState, unitUser, DraftAccountStatus.SUBMITTED,
+                                               dto.getStatusMessage()));
+    }
+
+    private void applyTimelineData(ReplaceDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+        dto.setAccountStatus(DraftAccountStatus.RESUBMITTED);
+        dto.setTimelineData(createTimelineData(userState, unitUser, DraftAccountStatus.RESUBMITTED, null));
+    }
+
+    private void applyTimelineData(UpdateDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+        dto.setTimelineData(createTimelineData(userState, unitUser, dto.getAccountStatus(), dto.getReasonText()));
+    }
+
+    private String createTimelineData(UserState userState, BusinessUnitUser unitUser, DraftAccountStatus status,
+                                      String reasonText) {
+        TimelineData timelineData = new TimelineData();
+        timelineData.insertEntry(userState.getUserName(), unitUser.getBusinessUnitUserId(),
+                                 status == null ? null : status.getLabel(), LocalDate.now(clock), reasonText);
+        return timelineData.toJson();
     }
 }
