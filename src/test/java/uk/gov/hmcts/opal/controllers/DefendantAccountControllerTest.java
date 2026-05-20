@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
@@ -24,6 +27,7 @@ import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,6 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -49,6 +54,9 @@ class DefendantAccountControllerTest {
 
     @Mock
     private DefendantAccountPartyService defendantAccountPartyService;
+
+    @Mock
+    private FeatureToggleService featureToggleService;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
@@ -73,6 +81,48 @@ class DefendantAccountControllerTest {
 
         verify(defendantAccountService, times(1))
             .searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN));
+        verifyNoInteractions(featureToggleService);
+    }
+
+    @Test
+    void postDefendantAccountSearch_consolidatedSearchEnabled_callsService() {
+        // Arrange
+        AccountSearchDto requestEntity = AccountSearchDto.builder().consolidationSearch(true).build();
+        DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder()
+            .defendantAccounts(List.of())
+            .build();
+
+        when(featureToggleService.isFeatureEnabled(FeatureFlags.RELEASE_1C)).thenReturn(true);
+        when(defendantAccountService.searchDefendantAccounts(requestEntity, BEARER_TOKEN)).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
+            defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(featureToggleService).isFeatureEnabled(FeatureFlags.RELEASE_1C);
+        verify(defendantAccountService).searchDefendantAccounts(requestEntity, BEARER_TOKEN);
+    }
+
+    @Test
+    void postDefendantAccountSearch_consolidatedSearchDisabled_throwsFeatureDisabled() {
+        // Arrange
+        AccountSearchDto requestEntity = AccountSearchDto.builder().consolidationSearch(true).build();
+
+        when(featureToggleService.isFeatureEnabled(FeatureFlags.RELEASE_1C)).thenReturn(false);
+
+        // Act
+        FeatureDisabledException exception = assertThrows(
+            FeatureDisabledException.class,
+            () -> defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN));
+
+        // Assert
+        assertEquals("Feature release-1c is not enabled for defendant account consolidated search",
+            exception.getMessage());
+        verify(featureToggleService).isFeatureEnabled(FeatureFlags.RELEASE_1C);
+        verifyNoInteractions(defendantAccountService);
     }
 
     @Test
