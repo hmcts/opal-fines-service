@@ -917,6 +917,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             partyId
         );
     }
+
     private boolean getCurrentCreditorAccountPayByBacs() {
         Boolean payByBacs = jdbcTemplate.queryForObject(
             "SELECT pay_by_bacs FROM creditor_accounts WHERE creditor_account_id = ?",
