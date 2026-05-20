@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +45,9 @@ class MinorCreditorServiceTest {
 
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
+
+    @Mock
+    CreditorAccountRepository creditorAccountRepository;
 
     @InjectMocks
     private MinorCreditorService minorCreditorService;
