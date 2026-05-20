@@ -115,7 +115,13 @@ class OpalMinorCreditorServiceUpdateTest {
                          .addressLine1("100 New Road")
                          .addressLine2("Town")
                          .postcode("ZZ1 1ZZ"))
-            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                         .accountName("NEW ACCOUNT")
+                         .sortCode("654321")
+                         .accountNumber("87654321")
+                         .accountReference("NEW-REF")
+                         .payByBacs(false)
+                         .holdPayment(true));
 
         when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(accountId, businessUnitId))
             .thenReturn(Optional.of(account));
@@ -163,6 +169,11 @@ class OpalMinorCreditorServiceUpdateTest {
         assertEquals(businessUnitId, savedEntity.getBusinessUnitId());
         assertEquals(201L, savedEntity.getMinorCreditorPartyId());
         assertTrue(savedEntity.isHoldPayout());
+        assertEquals("NEW ACCOUNT", savedEntity.getBankAccountName());
+        assertEquals("654321", savedEntity.getBankSortCode());
+        assertEquals("87654321", savedEntity.getBankAccountNumber());
+        assertEquals("NEW-REF", savedEntity.getBankAccountReference());
+        assertEquals(false, savedEntity.isPayByBacs());
         assertEquals(BigInteger.valueOf(5L), savedEntity.getVersion());
         ArgumentCaptor<PartyEntity> partyCaptor = ArgumentCaptor.forClass(PartyEntity.class);
         verify(partyRepository).save(partyCaptor.capture());
