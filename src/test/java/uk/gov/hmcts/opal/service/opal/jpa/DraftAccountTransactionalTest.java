@@ -24,6 +24,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -147,6 +148,7 @@ class DraftAccountTransactionalTest {
             .submittedByName("Test User")
             .account(minimalAccountJson)
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.REJECTED)
             .timelineData("[]")
             .build();
 
@@ -160,6 +162,9 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
         assertEquals(saved.getAccount(), result.getAccount());
+        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(captor.capture());
+        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
 
     }
 
@@ -245,6 +250,47 @@ class DraftAccountTransactionalTest {
         verify(draftAccountRepository).findById(draftAccountId);
         verify(businessUnitRepository).findById((short) 2);
         verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testReplaceDraftAccount_appendsTimelineDataToExistingTimeline() {
+        Long draftAccountId = 1L;
+        String existingTimeline = singleTimelineDataString("original-user", "Submitted");
+        String generatedTimeline = singleTimelineDataString("normal@users.com", "Resubmitted");
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .submittedBy("TestUser")
+            .submittedByName("Test User")
+            .account(createAccountString())
+            .accountType(DraftAccountType.FINE)
+            .timelineData(generatedTimeline)
+            .version(BigInteger.valueOf(0L))
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .createdDate(LocalDateTime.now())
+            .timelineData(existingTimeline)
+            .versionNumber(0L)
+            .build();
+
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+            .businessUnitId(((short) 2))
+            .businessUnitName("New Bailey")
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(invocation -> invocation
+            .getArgument(0));
+
+        DraftAccountEntity result = draftAccountTransactional
+            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
+
+        assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
+        assertThat(result.getTimelineData().indexOf("original-user"))
+            .isLessThan(result.getTimelineData().indexOf("normal@users.com"));
     }
 
     @Test
@@ -406,6 +452,39 @@ class DraftAccountTransactionalTest {
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testUpdateDraftAccount_appendsTimelineDataToExistingTimeline() {
+        Long draftAccountId = 1L;
+        String existingTimeline = singleTimelineDataString("original-user", "Submitted");
+        String generatedTimeline = singleTimelineDataString("normal@users.com", "Rejected");
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.REJECTED)
+            .timelineData(generatedTimeline)
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .timelineData(existingTimeline)
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(invocation -> invocation
+            .getArgument(0));
+
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+
+        DraftAccountEntity result = draftAccountTransactional
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
+
+        assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
+        assertThat(result.getTimelineData().indexOf("original-user"))
+            .isLessThan(result.getTimelineData().indexOf("normal@users.com"));
     }
 
     @Test
@@ -670,6 +749,17 @@ class DraftAccountTransactionalTest {
                     ]
                }
             """;
+    }
+
+    private String singleTimelineDataString(String username, String status) {
+        return """
+            [{
+                         "username": "%s",
+                         "status": "%s",
+                         "status_date": "2026-04-22",
+                         "reason_text": "Timeline reason"
+                     }]
+            """.formatted(username, status);
     }
 
 }
