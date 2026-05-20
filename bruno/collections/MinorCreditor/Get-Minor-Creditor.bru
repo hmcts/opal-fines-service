@@ -5,9 +5,18 @@ meta {
 }
 
 get {
-  url: 
+  url: {{baseURL}}/minor-creditor-accounts/99000000000808
   body: none
-  auth: inherit
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+headers {
+  Business-Unit-Id: 77
+  If-Match: 1
 }
 
 settings {
