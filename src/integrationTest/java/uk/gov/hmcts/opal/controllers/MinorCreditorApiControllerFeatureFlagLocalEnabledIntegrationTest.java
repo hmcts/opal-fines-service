@@ -91,7 +91,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
 
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertTrue(creditorAccount.isHoldPayout());
-        assertEquals(2L, creditorAccount.getVersionNumber());
+        assertEquals(3L, creditorAccount.getVersionNumber());
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {

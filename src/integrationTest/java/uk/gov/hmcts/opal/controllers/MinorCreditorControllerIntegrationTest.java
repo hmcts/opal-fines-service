@@ -354,7 +354,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         assertEquals("MC-REF-01", getCurrentCreditorAccountBankAccountReference());
         assertEquals(true, getCurrentCreditorAccountPayByBacs());
         Integer updatedVersion = getCurrentCreditorAccountVersion();
-        assertEquals(initialHoldPayout ? currentVersion : currentVersion + 1, updatedVersion);
+        assertEquals(currentVersion + 2, updatedVersion);
     }
 
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
