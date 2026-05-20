@@ -3,7 +3,9 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.restassured.specification.RequestSpecification;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
@@ -22,10 +24,19 @@ public class GetResultsStepDef extends BaseStepDef {
      */
     @When("I request results for identifiers {string}")
     public void getResults(String resultIds) {
-        authorisedJsonRequest()
-            .param("result_ids", resultIds)
-            .when()
-            .get(getTestUrl() + RESULTS_URI);
+        performResultsRequest(resultIds, Map.of());
+    }
+
+    /**
+     * Requests the results endpoint for the supplied result identifiers with the provided
+     * feature-flagged filter parameters.
+     *
+     * @param resultIds comma-separated result identifiers to request.
+     * @param data Cucumber table containing query-parameter names and values to send.
+     */
+    @When("I request results for identifiers {string} with the following filters")
+    public void getResultsWithFilters(String resultIds, DataTable data) {
+        performResultsRequest(resultIds, new LinkedHashMap<>(data.asMap(String.class, String.class)));
     }
 
     /**
@@ -53,6 +64,27 @@ public class GetResultsStepDef extends BaseStepDef {
                                                                              + resultID + "' }." + key);
             assertEquals(expected.get(key), actual, "Values are not equal");
         }
+    }
+
+    /**
+     * Executes the shared GET /results request using the supplied identifiers and optional
+     * query parameters.
+     *
+     * @param resultIds comma-separated result identifiers to request.
+     * @param queryParams additional query parameters to include on the request.
+     */
+    private void performResultsRequest(String resultIds, Map<String, String> queryParams) {
+        RequestSpecification request = authorisedJsonRequest().param("result_ids", resultIds);
+
+        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            if (dataExists(entry.getValue())) {
+                request = request.param(entry.getKey(), entry.getValue());
+            }
+        }
+
+        request
+            .when()
+            .get(getTestUrl() + RESULTS_URI);
     }
 
 }

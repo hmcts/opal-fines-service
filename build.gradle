@@ -1,4 +1,5 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import java.util.concurrent.TimeUnit
 
 buildscript {
   ext {
@@ -69,7 +70,7 @@ def runLegacyStubCommand = { List<String> command ->
     .redirectErrorStream(true)
     .start()
 
-  def finished = process.waitFor(2, java.util.concurrent.TimeUnit.MINUTES)
+  def finished = process.waitFor(2, TimeUnit.MINUTES)
   if (!finished) {
     process.destroyForcibly()
     return [exitValue: 124, output: "Timed out running ${command.join(' ')}"]
@@ -204,6 +205,9 @@ openApiGenerate {
   outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
   apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
+  importMappings = [
+    Nullable: "org.jspecify.annotations.Nullable"
+  ]
   // Point to your customized mustache templates
   templateDir = "$rootDir/openapi/templates".toString()
   generateApiTests = false
@@ -286,6 +290,36 @@ tasks.register('functionalOpal', Test) {
   finalizedBy 'copyOpalCucumberJson'
 }
 
+tasks.register('functionalOpalTags', Test) {
+  description = "Runs tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
+  testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
+  environment("DEFAULT_APP_MODE", "opal")
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    def propertyTags = project.findProperty('tags')
+    def envTags = System.getenv('TAGS')
+    def cucumberTags = propertyTags ?: envTags
+
+    if (cucumberTags == null || cucumberTags.toString().trim().isEmpty()) {
+      throw new GradleException(
+        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@UAT-Technical and @R1BOff'"
+      )
+    }
+
+    systemProperty 'cucumber.filter.tags', cucumberTags.toString()
+  }
+
+  finalizedBy 'copyOpalTagsCucumberJson'
+}
+
 tasks.register('functionalLegacy', Test) {
   description = "Runs functional tests against Legacy mode"
   group = "Verification"
@@ -307,6 +341,7 @@ tasks.register('copyFunctionalReport', Copy) {
 }
 tasks.register('mergeFunctionalResults', Copy) {
   from layout.buildDirectory.dir("test-results/functional/opal")
+  from layout.buildDirectory.dir("test-results/functional/opal-tags")
   from layout.buildDirectory.dir("test-results/functional/legacy")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
@@ -327,6 +362,20 @@ tasks.register('functional') {
   tasks.functionalLegacy.mustRunAfter functionalOpal
   tasks.mergeFunctionalResults.mustRunAfter functionalLegacy
   tasks.aggregate.mustRunAfter functionalLegacy
+  tasks.copyFunctionalReport.mustRunAfter aggregate
+  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+}
+
+tasks.register('functionalWithTags') {
+  description = "Runs functional tests with the default Opal suite plus tagged Opal scenarios"
+  group = "Verification"
+  gradle.startParameter.continueOnFailure = true
+  dependsOn('clearReports', 'functionalOpal', 'functionalOpalTags', 'aggregate', 'copyFunctionalReport',
+    'mergeFunctionalResults', 'generateTestSummary')
+  tasks.functionalOpal.mustRunAfter clearReports
+  tasks.functionalOpalTags.mustRunAfter functionalOpal
+  tasks.mergeFunctionalResults.mustRunAfter functionalOpalTags
+  tasks.aggregate.mustRunAfter functionalOpalTags
   tasks.copyFunctionalReport.mustRunAfter aggregate
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 }
@@ -443,8 +492,11 @@ dependencyManagement {
 
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
-  nvd {
-    apiKey = 'ffb77792-47ae-41ff-a95f-e5bd172663b4'
+  def nvdApiKey = providers.gradleProperty('nvdApiKey')
+    .orElse(providers.environmentVariable('NVD_API_KEY'))
+    .orNull
+  if (nvdApiKey) {
+    nvd.apiKey = nvdApiKey
   }
 }
 
@@ -463,7 +515,11 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
+<<<<<<< PO-2119-migrate-exception-handling
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.11'
+=======
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.9'
+>>>>>>> master
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
@@ -485,7 +541,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
-
+  implementation "org.springframework.boot:spring-boot-starter-security"
   implementation 'org.springframework.boot:spring-boot-starter-integration'
   implementation 'org.springframework.integration:spring-integration-sftp'
   implementation 'org.springframework.integration:spring-integration-file'
@@ -522,7 +578,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.4.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.5.Final'
 
   implementation 'uk.gov.hmcts:spring-exception-handler:1.0.1'
 
@@ -547,17 +603,24 @@ dependencies {
   implementation 'net.sf.saxon:Saxon-HE:12.9'
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
+  constraints {
+    testImplementation('org.mozilla:rhino:1.7.15.1') {
+      because '1.7.7.2 is vulnerable to CVE-2025-66453'
+    }
+  }
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
+  testImplementation 'org.springframework.security:spring-security-test'
   testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
   testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
   testImplementation 'org.testcontainers:testcontainers-postgresql'
+  testImplementation 'com.redis:testcontainers-redis'
   testImplementation 'io.rest-assured:rest-assured:6.0.0'
   testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.0.3'))
@@ -621,6 +684,7 @@ flyway {
   url = System.getenv('FLYWAY_URL')
   user = System.getenv('FLYWAY_USER')
   password = System.getenv('FLYWAY_PASSWORD')
+  locations = System.getenv('FLYWAY_LOCATIONS')
   baselineOnMigrate = true
   baselineVersion = '000'
 
@@ -645,6 +709,17 @@ tasks.register('runAllStyleChecks') {
 }
 tasks.named("openApiGenerate") {
   dependsOn 'bundleOpenApi'
+  doLast {
+    def generatedJavaDir = layout.buildDirectory.dir("generated/openapi/src/main/java").get().asFile
+    fileTree(generatedJavaDir).matching {
+      include '**/*.java'
+    }.each { generatedFile ->
+      generatedFile.text = generatedFile.text.replace(
+        'import org.springframework.lang.Nullable;',
+        'import org.jspecify.annotations.Nullable;'
+      )
+    }
+  }
 }
 tasks.named("compileJava") {
   dependsOn 'openApiGenerate'
@@ -697,10 +772,41 @@ tasks.register('functionalWithZephyrExecution') {
   tasks.copyFunctionalReport.mustRunAfter aggregate
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 }
+
+tasks.register('functionalWithTagsWithZephyrExecution') {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Runs the default Opal suite plus tagged Opal scenarios and creates Zephyr executions"
+  gradle.startParameter.continueOnFailure = true
+
+  dependsOn('clearReports',
+          'functionalOpal', 'copyOpalCucumberJson', 'createJiraExecutionFromOpalCucumberReport',
+          'functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport',
+          'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
+
+  tasks.functionalOpal.mustRunAfter clearReports
+  tasks.copyOpalCucumberJson.mustRunAfter functionalOpal
+  tasks.createJiraExecutionFromOpalCucumberReport.mustRunAfter copyOpalCucumberJson
+
+  tasks.functionalOpalTags.mustRunAfter createJiraExecutionFromOpalCucumberReport
+  tasks.copyOpalTagsCucumberJson.mustRunAfter functionalOpalTags
+  tasks.createJiraExecutionFromOpalTagsCucumberReport.mustRunAfter copyOpalTagsCucumberJson
+  tasks.mergeFunctionalResults.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
+  tasks.aggregate.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
+  tasks.copyFunctionalReport.mustRunAfter aggregate
+  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+}
+
 tasks.register('copyOpalCucumberJson', Copy) {
   from("target/cucumber.json")
   into("target/zephyr")
   rename { "cucumber-opal.json" }
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyOpalTagsCucumberJson', Copy) {
+  from("target/cucumber.json")
+  into("target/zephyr")
+  rename { "cucumber-opal-tags.json" }
   outputs.upToDateWhen { false }
 }
 
@@ -808,6 +914,16 @@ tasks.register('createJiraExecutionFromOpalCucumberReport', JavaExec) {
   args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_EXECUTION", "functionalTest/resources", opalCucumberJson.absolutePath)
 }
 
+tasks.register('createJiraExecutionFromOpalTagsCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  def opalTagsCucumberJson = file("target/zephyr/cucumber-opal-tags.json")
+  inputs.file(opalTagsCucumberJson)
+
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_EXECUTION", "functionalTest/resources", opalTagsCucumberJson.absolutePath)
+}
+
 tasks.register('functionalOpalWithZephyrExecution') {
   group = "Zephyr Reporting - Cucumber"
   description = "Runs functionalOpal then creates the Zephyr execution from the cucumber report"
@@ -816,6 +932,16 @@ tasks.register('functionalOpalWithZephyrExecution') {
 
   tasks.copyOpalCucumberJson.mustRunAfter functionalOpal
   tasks.createJiraExecutionFromOpalCucumberReport.mustRunAfter copyOpalCucumberJson
+}
+
+tasks.register('functionalOpalTagsWithZephyrExecution') {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Runs functionalOpalTags then creates the Zephyr execution from the cucumber report"
+
+  dependsOn('functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport')
+
+  tasks.copyOpalTagsCucumberJson.mustRunAfter functionalOpalTags
+  tasks.createJiraExecutionFromOpalTagsCucumberReport.mustRunAfter copyOpalTagsCucumberJson
 }
 
 tasks.register('functionalLegacyWithZephyrExecution') {
