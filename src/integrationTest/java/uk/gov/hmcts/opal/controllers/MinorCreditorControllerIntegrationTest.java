@@ -1173,6 +1173,27 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         jsonSchemaValidationService.validate(body, MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE);
     }
 
+    void legacyGetMinorCreditorHeaderSummaryImpl_500Error(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        Long minorCreditorId = 500L;
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", minorCreditorId)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", "Bearer some_value")
+        );
+
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorGcreditorAtAGlance: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(
+            status().is5xxServerError()).andExpect(
+            content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
     void getHeaderSummary_notFound_returns404(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -1338,6 +1359,5 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             status().is5xxServerError()).andExpect(
             content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
-
 
 }

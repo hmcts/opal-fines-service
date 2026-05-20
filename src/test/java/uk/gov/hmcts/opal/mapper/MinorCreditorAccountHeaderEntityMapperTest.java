@@ -11,10 +11,7 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
@@ -26,18 +23,11 @@ import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 
-@SpringJUnitConfig(classes = MinorCreditorAccountHeaderSummaryMapperTest.TestConfig.class)
 @Isolated
-class MinorCreditorAccountHeaderSummaryMapperTest {
-
-    @Configuration
-    @ComponentScan(basePackageClasses = MinorCreditorAccountHeaderSummaryMapper.class)
-    static class TestConfig {
-
-    }
+class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
 
     @Autowired
-    private MinorCreditorAccountHeaderSummaryMapper mapper;
+    private MinorCreditorAccountHeaderEntityMapper mapper;
 
     @MockitoBean
     private PartyMapper partyMapper;
