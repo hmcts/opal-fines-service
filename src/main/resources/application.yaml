@@ -121,6 +121,7 @@ launchdarkly:
   enabled: ${LAUNCH_DARKLY_ENABLED:true}
   default-flag-values:
     release-1b: ${LAUNCH_DARKLY_RELEASE_1B:false}
+    release-1c: ${LAUNCH_DARKLY_RELEASE_1C:false}
 
 opal:
   redis:

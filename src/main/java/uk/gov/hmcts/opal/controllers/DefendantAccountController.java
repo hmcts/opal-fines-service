@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -41,6 +44,7 @@ import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @RequestMapping("/defendant-accounts")
@@ -53,17 +57,20 @@ public class DefendantAccountController {
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
     private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountPartyService defendantAccountPartyService;
+    private final FeatureToggleService featureToggleService;
 
     public DefendantAccountController(DefendantAccountService defendantAccountService,
         DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService,
         DefendantAccountPaymentTermsService defendantAccountPaymentTermsService,
         DefendantAccountEnforcementService defendantAccountEnforcementService,
-        DefendantAccountPartyService defendantAccountPartyService) {
+        DefendantAccountPartyService defendantAccountPartyService,
+        FeatureToggleService featureToggleService) {
         this.defendantAccountService = defendantAccountService;
         this.defendantAccountPaymentTermsService = defendantAccountPaymentTermsService;
         this.defendantAccountFixedPenaltyService = defendantAccountFixedPenaltyService;
         this.defendantAccountEnforcementService = defendantAccountEnforcementService;
         this.defendantAccountPartyService = defendantAccountPartyService;
+        this.featureToggleService = featureToggleService;
     }
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
@@ -97,6 +104,10 @@ public class DefendantAccountController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY
+    )
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
             @RequestBody
@@ -104,10 +115,20 @@ public class DefendantAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
+        rejectConsolidatedSearchWhenDisabled(accountSearchDto);
+
         DefendantAccountSearchResultsDto response =
             defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
 
         return buildResponse(response);
+    }
+
+    private void rejectConsolidatedSearchWhenDisabled(AccountSearchDto accountSearchDto) {
+        if (accountSearchDto.isConsolidationSearch()
+            && !featureToggleService.isFeatureEnabled(FeatureFlags.RELEASE_1C)) {
+            throw new FeatureDisabledException(
+                "Feature release-1c is not enabled for defendant account consolidated search");
+        }
     }
 
     @PostMapping(value = "/{defendantAccountId}/payment-terms")
