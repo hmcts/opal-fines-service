@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
@@ -76,6 +77,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get header summary for individual defendant account [@PO-2287]")
+    @JiraStory("PO-2287")
     void getHeaderSummary_Individual(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -104,6 +106,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get header summary for organisation defendant account [@PO-2287]")
+    @JiraStory("PO-2287")
     void getHeaderSummary_Organisation(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -127,6 +130,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @DisplayName("PO-2297: header-summary (individual) returns correct defendant_party_id from "
         + "defendantAccountPartyId bug fix validation")
+    @JiraStory("PO-2297")
     void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -150,6 +154,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @DisplayName("PO-2297: header-summary (organisation) returns correct defendant_party_id from"
         + " defendantAccountPartyId — bug fix validation")
+    @JiraStory("PO-2297")
     void testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -264,6 +269,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    @JiraStory("PO-2119")
     void testEntityNotFoundExceptionContainsRetriable(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -284,6 +290,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    @JiraStory("PO-2119")
     void testWrongMediaTypeContainsRetriableField(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -316,6 +323,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable for invalid request body")
+    @JiraStory("PO-2119")
     void testInvalidBodyContainsRetriable(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -332,6 +340,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get enforcement status for individual defendant account [@PO-1696]")
+    @JiraStory("PO-1696")
     void testGetEnforcementStatus(Logger log, boolean isLegacy) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());

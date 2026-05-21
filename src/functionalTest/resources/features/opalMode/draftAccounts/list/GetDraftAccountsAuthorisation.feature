@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Get Draft Accounts Authorisation
 
-  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5662
   Scenario: Get Draft Accounts - No Permission
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -17,7 +17,7 @@ Feature: Get Draft Accounts Authorisation
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to list draft accounts for business unit "78"
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-829 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5663
   Scenario: Get Draft Accounts - account created in BU requesting user doesn't have permission to
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And the following draft accounts exist

@@ -9,6 +9,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,6 +27,8 @@ class OpenAPIPublisherTest extends AbstractIntegrationTest {
     @DisplayName("Generate swagger documentation")
     @Test
     @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
+    @JiraStory("PO-150")
+    @JiraEpic("PO-2233")
     void generateDocs() throws Exception {
         byte[] specs = mvc.perform(get("/v3/api-docs"))
             .andExpect(status().isOk())

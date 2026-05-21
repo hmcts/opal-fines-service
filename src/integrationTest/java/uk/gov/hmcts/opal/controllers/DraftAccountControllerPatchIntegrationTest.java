@@ -36,6 +36,8 @@ import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.DraftAccountControllerPatchIntegrationTest")
 @DisplayName("DraftAccountControllerPatchIntegrationTest")
@@ -43,6 +45,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-745")
+    @JiraEpic("PO-2220")
     void testUpdateDraftAccount_success() throws Exception {
         Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
         when(userStateService.checkForAuthorisedUser(any()))
@@ -72,6 +77,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Update draft account - If-Match Conflict [@PO-2117]")
+    @JiraStory("PO-2117")
+    @JiraEpic("PO-2220")
     void testUpdateDraftAccount_conflict() throws Exception {
         Long draftAccountId = 6L;
         when(userStateService.checkForAuthorisedUser(any()))
@@ -95,6 +102,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
+    @JiraStory("PO-1820")
+    @JiraEpic("PO-2220")
     void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
         Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
         UserState user = permissionUser((short)78, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
@@ -120,6 +129,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Patch draft account - user with Publish Pending permission should succeed [@PO-991]")
+    @JiraStory("PO-991")
+    @JiraEpic("PO-2220")
     void testPatchDraftAccount_withPublishPending_shouldSucceed() throws Exception {
         Long draftAccountId = 9L; // not touched by any other PATCH/PUT test
         UserState user = permissionUser((short)65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
@@ -154,6 +165,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Patch draft account - submitter cannot validate their own submission")
+    @JiraStory("PO-2292")
+    @JiraEpic("PO-2808")
     void testPatchDraftAccount_submitterCannotValidate_returns403() throws Exception {
         Long draftAccountId = 7L; // submitted_by = user_003 in seed data
 
@@ -198,6 +211,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Patch draft account - submitter cannot delete their own submission")
+    @JiraStory("PO-2292")
+    @JiraEpic("PO-2808")
     void testPatchDraftAccount_submitterCannotDelete_returns403() throws Exception {
         Long draftAccountId = 7L; // submitted_by = user_003 in seed data
 
@@ -247,6 +262,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")
+    @JiraStory("PO-1820")
+    @JiraEpic("PO-2220")
     void testPatchDraftAccount_withCreateManagePermission_shouldFail403() throws Exception {
         Long draftAccountId = 6L;
         UserState user = permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -270,6 +287,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Update draft account - user with no permission [@PO-973, @PO-831]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-831")
+    @JiraEpic("PO-2220")
     void testUpdateDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
@@ -294,6 +314,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Re-submit - Defendant only -> Re-submit Draft Account - Defendant PDPL")
+    @JiraStory("PO-2358")
+    @JiraEpic("PO-2355")
     void testResubmitDraftAccount_pdpl_defendantOnly() throws Exception {
         final long draftIdAccount = 105L;
 
@@ -346,6 +368,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Re-submit - pgToPay -> Parent or Guardian then Defendant PDPLs (order)")
+    @JiraStory("PO-2358")
+    @JiraEpic("PO-2355")
     void testResubmitDraftAccount_pdpl_parentOrGuardianThenDefendant() throws Exception {
         final long draftIdAccount = 104L;
 
@@ -402,6 +426,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Re-submit - adultOrYouthOnly WITH minor -> Defendant + Minor Creditor PDPLs (order)")
+    @JiraStory("PO-2358")
+    @JiraEpic("PO-2355")
     void testResubmitDraftAccount_pdpl_defendantAndMinor() throws Exception {
         final long draftIdAccount = 8L; // previously used in your suite; confirm or replace if needed
 
@@ -475,6 +501,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Update draft account (id=103) - company -> no PDPL logging occurs")
+    @JiraStory("PO-2358")
+    @JiraEpic("PO-2355")
     void testUpdateDraftAccount_pdpl_id103_company_noPdpl() throws Exception {
         Long draftAccountId = 103L;
 

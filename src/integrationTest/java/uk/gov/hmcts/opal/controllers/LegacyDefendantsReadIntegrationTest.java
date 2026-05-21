@@ -17,6 +17,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -29,6 +31,8 @@ class LegacyDefendantsReadIntegrationTest extends AbstractLegacyDefendantsIntegr
 
     @Test
     @DisplayName("LEGACY: Get header summary for non-existent ID returns 500")
+    @JiraStory("PO-1907")
+    @JiraEpic("PO-812")
     void getHeaderSummary_Legacy_500() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 

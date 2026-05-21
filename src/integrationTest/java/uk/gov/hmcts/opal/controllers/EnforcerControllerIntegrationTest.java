@@ -13,6 +13,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,6 +37,9 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
     void testGetEnforcerById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
 
@@ -60,12 +65,18 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
     void testPostEnforcersSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -93,6 +104,9 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
     void testPostEnforcersSearch_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -102,6 +116,9 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get Enforcer Ref Data [@PO-304, @PO-316]")
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
     void testGetEnforcerRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
                                                     .header("authorization", "Bearer some_value"));

@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -39,6 +41,8 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     }
 
     @Test
+    @JiraStory("PO-2833")
+    @JiraEpic("PO-2233")
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
 
         WireMock.configureFor("localhost", 4553);

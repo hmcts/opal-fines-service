@@ -12,6 +12,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -39,6 +41,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get offence by ID [@PO-420, PO-272]")
+    @JiraStory("PO-420")
+    @JiraStory("PO-272")
+    @JiraEpic("PO-304")
     void testGetOffenceById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/30000"));
 
@@ -57,6 +62,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get offence reference data")
+    @JiraStory("PO-304")
+    @JiraStory("PO-311")
+    @JiraEpic("PO-304")
     void testGetOffenceReferenceData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE).param("cjs_code","CW96023"));
 
@@ -77,6 +85,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get no offences returned when offence does not exist [@PO-420, PO-272]")
+    @JiraStory("PO-420")
+    @JiraStory("PO-272")
+    @JiraEpic("PO-304")
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/999999"))
             .andExpect(status().isNotFound());
@@ -84,6 +95,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post search result for offence created by POST request [@PO-926, PO-304]")
+    @JiraStory("PO-926")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
     void testPostOffencesSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                               .contentType(MediaType.APPLICATION_JSON)
@@ -109,6 +123,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post no search result when offence does not exist [@PO-926, PO-304]")
+    @JiraStory("PO-926")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
     void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -123,7 +140,10 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @DisplayName("Get offence reference data by single cjs_code value [@PO-304, PO-1445]")
+    @JiraStory("PO-304")
+    @JiraStory("PO-1445")
     @Test
+    @JiraEpic("PO-304")
     void testGetOffencesWithCjsCode() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
@@ -143,6 +163,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get offences using comma-separated cjs_code values [@PO-304, PO-1445]")
+    @JiraStory("PO-304")
+    @JiraStory("PO-1445")
+    @JiraEpic("PO-304")
     void testGetOffencesWithMultipleCjsCodes() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
@@ -160,6 +183,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post offence search with valid active_date in Zulu format [PO-1904]")
+    @JiraStory("PO-1904")
+    @JiraEpic("PO-304")
     void testPostOffencesSearchWithActiveDate() throws Exception {
         ResultActions actions = mockMvc.perform(post("/offences/search")
             .contentType(MediaType.APPLICATION_JSON)
