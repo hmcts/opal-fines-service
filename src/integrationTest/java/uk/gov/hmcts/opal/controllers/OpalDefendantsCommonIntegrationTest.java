@@ -14,8 +14,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.OpalDefendantsIntegrationTest01")
-class OpalDefendantsIntegrationTest01 extends CommonDefendantsIntegrationTest01 {
+@Slf4j(topic = "opal.OpalDefendantsCommonIntegrationTest")
+class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegrationTest {
 
     @Test
     @JiraStory("PO-2287")
@@ -99,42 +99,42 @@ class OpalDefendantsIntegrationTest01 extends CommonDefendantsIntegrationTest01 
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
     void testGetEnforcementStatus_missingAuth_returns401() throws Exception {
-        super.testGetEnforcementStatus_missingAuthHeader_returns401(log, false);
+        super.testGetEnforcementStatus_missingAuthHeader_returns401();
     }
 
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
     void testGetEnforcementStatus_forbidden_returns403() throws Exception {
-        super.testGetEnforcementStatus_forbidden(log, false);
+        super.testGetEnforcementStatus_forbidden();
     }
 
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
     void testGetEnforcementStatus_notFound_returns404() throws Exception {
-        super.testGetEnforcementStatus_notFound(log, false);
+        super.testGetEnforcementStatus_notFound();
     }
 
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
     void testGetEnforcementStatus_timeout_returns408() throws Exception {
-        super.testGetEnforcementStatus_timeout(log, false);
+        super.testGetEnforcementStatus_timeout();
     }
 
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
     void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
-        super.testGetEnforcementStatus_serviceUnavailable(log, false);
+        super.testGetEnforcementStatus_serviceUnavailable();
     }
 
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
     void testGetEnforcementStatus_serverError_returns500() throws Exception {
-        super.testGetEnforcementStatus_serverError(log, false);
+        super.testGetEnforcementStatus_serverError();
     }
 
 }

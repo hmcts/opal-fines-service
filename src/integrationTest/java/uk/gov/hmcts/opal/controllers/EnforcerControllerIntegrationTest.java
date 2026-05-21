@@ -7,12 +7,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -30,11 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/enforcers";
-
-    private static final String GET_ENFORCERS_REF_DATA_RESPONSE = "getEnforcersRefDataResponse.json";
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     @JiraStory("PO-304")
@@ -134,8 +127,5 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
             )))
             .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].enforcer_code").value(hasItem(1)))
             .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].name").value(hasItem("AAA Enforcers")));
-
-        // Currently no Schema to validate against
-        // jsonSchemaValidationService.validateOrError(body, GET_ENFORCERS_REF_DATA_RESPONSE);
     }
 }

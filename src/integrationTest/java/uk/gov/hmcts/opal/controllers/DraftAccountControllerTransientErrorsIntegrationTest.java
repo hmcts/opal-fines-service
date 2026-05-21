@@ -15,14 +15,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.service.DraftAccountService;
 
 import java.net.ConnectException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -43,7 +39,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     private static final String URL_BASE = "/draft-accounts";
 
-    private static final Short BU_ID = (short)007;
+    private static final short BU_ID = 7;
 
     @MockitoBean
     DraftAccountService draftAccountService;
@@ -336,27 +332,6 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             }""";
     }
 
-    private static String invalidCreateRequestBody() {
-        return """
-{
-    "invalid_field": "This field shouldn't be here",
-    "account": {
-        "account_create_request": {
-            "defendant": {
-                "company_name": "Company ABC",
-                "surname": "LNAME",
-                "fornames": "FNAME",
-                "dob": "2000-01-01"
-            },
-            "account": {
-                "account_type": "Invalid"
-            }
-        }
-    },
-    "business_unit_id": 1
-}""";
-    }
-
     private static String validUpdateRequestBody() {
         return "{\n"
             + "    \"account_status\": \"Publishing Pending\",\n"
@@ -390,7 +365,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             ]""";
     }
 
-    private final String validAccountJson() {
+    private static String validAccountJson() {
         return """
             {
               "account_type": "Fine",
@@ -459,21 +434,5 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                 }
               ]
             }""";
-    }
-
-    private DraftAccountEntity createDraftAccountEntity(String submittedBy, short businessUnit) {
-        return DraftAccountEntity.builder()
-            .draftAccountId(1L)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnit).build())
-            .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
-            .submittedBy(submittedBy)
-            .accountType(DraftAccountType.FINE)
-            .accountStatus(SUBMITTED)
-            .statusMessage("Status is OK")
-            .accountStatusDate(LocalDateTime.of(2024, 11, 11, 11, 11))
-            .account(validAccountJson())
-            .accountSnapshot("{ \"data\": \"something snappy\"}")
-            .timelineData(validTimelineDataJson())
-            .build();
     }
 }

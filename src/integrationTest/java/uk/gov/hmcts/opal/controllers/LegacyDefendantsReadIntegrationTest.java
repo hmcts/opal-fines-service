@@ -46,6 +46,9 @@ class LegacyDefendantsReadIntegrationTest extends AbstractLegacyDefendantsIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
+    @Test
+    @JiraStory("PO-2086")
+    @JiraEpic("PO-977")
     void testGetPaymentTerms() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -74,6 +77,9 @@ class LegacyDefendantsReadIntegrationTest extends AbstractLegacyDefendantsIntegr
             .andExpect(jsonPath("$.last_enforcement").value("REM"));
     }
 
+    @Test
+    @JiraStory("PO-1909")
+    @JiraEpic("PO-812")
     void testGetDefendantAtAGlance() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 

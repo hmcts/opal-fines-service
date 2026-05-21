@@ -62,7 +62,8 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
             .build();
 
         // First Call - user service used
-        UserStateV2 userStateFromUserServiceStub = userStateClientService.getUserStateByAuthenticationToken(jwt).get();
+        UserStateV2 userStateFromUserServiceStub = userStateClientService.getUserStateByAuthenticationToken(jwt)
+            .orElseThrow();
         assertThat(userStateFromUserServiceStub.getName()).isEqualTo("Pablo");
         WireMock.verify(1, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
 
@@ -74,7 +75,8 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         redisTemplate.opsForValue().set("USER_STATE_GfsHbIMt49WjQ", fakeCachedUserStateJson);
 
         // Second Call - cache should be used
-        UserStateV2 userStateFromCache = userStateClientService.getUserStateByAuthenticationToken(jwt).get();
+        UserStateV2 userStateFromCache = userStateClientService.getUserStateByAuthenticationToken(jwt)
+            .orElseThrow();
         assertThat(userStateFromCache.getName()).isEqualTo("Pablo-CACHED");
         WireMock.verify(1, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
     }

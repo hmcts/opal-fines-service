@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
@@ -24,9 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -54,10 +51,6 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     UserStateService userStateService;
-
-    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
-    @Autowired
-    JdbcTemplate jdbcTemplate;
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
@@ -882,12 +875,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC1: Multi-parameter search tests - ALL search parameters must match
 
-    public void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
+    @DisplayName("OPAL: Search defendant accounts - business unit fallback when business unit row is missing")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(APPLICATION_JSON).content("""
+                .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
                       "business_unit_ids": [9999],
@@ -1890,7 +1888,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         // === AC1: organisation = true → only organisation defendants (e.g. 333A) ===
         ResultActions orgTrue = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(true)));
+                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(true, consolidation)));
 
         String bodyTrue = orgTrue.andReturn().getResponse().getContentAsString();
         log.info(":PO-2298 AC1 (organisation=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
@@ -1915,7 +1913,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         // === AC2: organisation = false → only individual defendants (e.g. 177A, 177B) ===
         ResultActions orgFalse = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(false)));
+                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(false, consolidation)));
 
         String bodyFalse = orgFalse.andReturn().getResponse().getContentAsString();
         log.info(":PO-2298 AC2 (organisation=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
@@ -1929,7 +1927,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(bodyFalse, DEFENDANTS_SEARCH_RESP_SCHEMA);
     }
 
-    private String searchCriteria(boolean orgFlag) {
+    private String searchCriteria(boolean orgFlag, boolean consolidation) {
         return """
             {
               "active_accounts_only": false,
@@ -1939,9 +1937,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 "prosecutor_case_reference": null,
                 "organisation": %s
               },
-              "defendant": null
+              "defendant": null,
+              "consolidation_search": %s
             }
-            """.formatted(orgFlag ? "333" : "177", orgFlag);
+            """.formatted(orgFlag ? "333" : "177", orgFlag, consolidation);
 
     }
 
@@ -1970,7 +1969,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    private String searchCriteria3(boolean consolidation) {
+    private String consolidatedSearchCriteriaWithoutWarnings() {
         return """
               {
               "active_accounts_only": true,
@@ -1990,12 +1989,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 "birth_date": null,
                 "national_insurance_number": null
               },
-              "consolidation_search": %s
-            }""".formatted(consolidation);
+              "consolidation_search": true
+            }""";
 
     }
 
-    private String searchCriteriaByAccountNumber(String accNo, boolean consolidation) {
+    private String consolidatedSearchCriteriaByAccountNumber(String accNo) {
         return """
               {
               "active_accounts_only": false,
@@ -2007,8 +2006,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 "organisation": false
               },
               "defendant": null,
-              "consolidation_search": %s
-            }""".formatted("\"" + accNo + "\"", consolidation);
+              "consolidation_search": true
+            }""".formatted("\"" + accNo + "\"");
 
     }
 
@@ -2049,7 +2048,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria3(true)));
+                .contentType(MediaType.APPLICATION_JSON).content(consolidatedSearchCriteriaWithoutWarnings()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -2078,7 +2077,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON).content(
-                    searchCriteriaByAccountNumber("1989", true)));
+                    consolidatedSearchCriteriaByAccountNumber("1989")));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -2107,7 +2106,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON).content(
-                    searchCriteriaByAccountNumber("1988", true)));
+                    consolidatedSearchCriteriaByAccountNumber("1988")));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));

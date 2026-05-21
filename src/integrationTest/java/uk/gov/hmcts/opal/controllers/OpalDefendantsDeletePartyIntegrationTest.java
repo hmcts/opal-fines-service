@@ -73,14 +73,13 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     }
 
     private @Nullable Integer getAssociationCountForDAP(Long defAccountId, Long dapId) {
-        Integer associationCount = jdbcTemplate.queryForObject(
+        return jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM defendant_account_parties "
                  + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
             Integer.class,
             defAccountId,
             dapId
         );
-        return associationCount;
     }
 
     @Test
