@@ -32,7 +32,6 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
-import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -41,6 +40,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -144,7 +144,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setAccountType(dto.getAccountType());
         existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
         existingAccount.setAccountStatusDate(LocalDateTime.now());
-        existingAccount.setTimelineData(dto.getTimelineData());
+        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
 
         log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
                   draftAccountId, newSnapshot);
@@ -194,8 +194,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 userState, dto.getBusinessUnitId());
         }
 
-        // Set the timeline data as received from the front end
-        existingAccount.setTimelineData(dto.getTimelineData());
+        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
 
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
                   draftAccountId, existingAccount.getAccountStatus());
@@ -295,7 +294,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .build();
     }
 
-    DraftAccountEntity toEntity(DraftAccountRequestDto dto, LocalDateTime created,
+    DraftAccountEntity toEntity(AddDraftAccountRequestDto dto, LocalDateTime created,
                                 BusinessUnitEntity businessUnit, String snapshot) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)
@@ -306,7 +305,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .accountStatusDate(LocalDateTime.now())
+            .accountStatusDate(created)
+            .statusMessage(dto.getStatusMessage())
             .timelineData(dto.getTimelineData())
             .draftAccountId(null)
             .build();
@@ -336,5 +336,11 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         return MapUtils.ofNullable("UserIdentifier", approverId,
             "DraftAccountIdentifier", accountId,
             "DraftAccountSubmittedByUserIdentifier", submittedBy);
+    }
+
+    private String appendTimelineData(String existingTimelineData, String generatedTimelineData) {
+        TimelineData timelineData = new TimelineData(existingTimelineData);
+        timelineData.appendEntries(generatedTimelineData);
+        return timelineData.toJson();
     }
 }
