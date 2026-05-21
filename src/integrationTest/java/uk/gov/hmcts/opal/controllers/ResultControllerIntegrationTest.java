@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -22,6 +23,11 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
+@TestPropertySource(properties = {
+    "launchdarkly.default-flag-values.release-1a=true",
+    "launchdarkly.default-flag-values.release-1b=true",
+    "launchdarkly.enabled=false"
+})
 @Slf4j(topic = "opal.ResultControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_results.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("ResultController Integration Test")

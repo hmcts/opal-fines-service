@@ -120,6 +120,7 @@ launchdarkly:
   env: ${LAUNCH_DARKLY_ENV:default}
   enabled: ${LAUNCH_DARKLY_ENABLED:true}
   default-flag-values:
+    release-1a: ${LAUNCH_DARKLY_RELEASE_1A:true}
     release-1b: ${LAUNCH_DARKLY_RELEASE_1B:false}
 
 opal:

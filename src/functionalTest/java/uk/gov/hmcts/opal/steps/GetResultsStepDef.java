@@ -40,6 +40,37 @@ public class GetResultsStepDef extends BaseStepDef {
     }
 
     /**
+     * Requests the results endpoint with one filtering parameter.
+     *
+     * @param filterName filtering query-parameter name.
+     * @param filterValue filtering query-parameter value.
+     */
+    @When("I request results using filter {string} with value {string}")
+    public void getResultsWithFilter(String filterName, String filterValue) {
+        authorisedJsonRequest()
+            .param(filterName, filterValue)
+            .when()
+            .get(getTestUrl() + RESULTS_URI);
+    }
+
+    /**
+     * Requests the results endpoint for the supplied result identifiers and one filtering
+     * parameter.
+     *
+     * @param resultIds comma-separated result identifiers to request.
+     * @param filterName filtering query-parameter name.
+     * @param filterValue filtering query-parameter value.
+     */
+    @When("I request results for identifiers {string} using filter {string} with value {string}")
+    public void getResultsWithIdentifiersAndFilter(String resultIds, String filterName, String filterValue) {
+        authorisedJsonRequest()
+            .param("result_ids", resultIds)
+            .param(filterName, filterValue)
+            .when()
+            .get(getTestUrl() + RESULTS_URI);
+    }
+
+    /**
      * Asserts that the results response contains the expected number of records.
      *
      * @param count expected number of matching records.
