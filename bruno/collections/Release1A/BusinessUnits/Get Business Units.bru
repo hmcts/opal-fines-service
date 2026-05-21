@@ -1,0 +1,20 @@
+meta {
+  name: Get Business Units
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/business-units
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

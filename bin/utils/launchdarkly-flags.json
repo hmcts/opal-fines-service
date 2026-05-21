@@ -1,6 +1,18 @@
 {
   "segments": {},
   "flags": {
+    "release-1a": {
+      "key": "release-1a",
+      "on": true,
+      "variations": [
+        true,
+        false
+      ],
+      "fallthrough": {
+        "variation": 1
+      },
+      "offVariation": 1
+    },
     "legacy-app-mode-enabled": {
       "key": "legacy-app-mode-enabled",
       "on": false,

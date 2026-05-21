@@ -24,7 +24,8 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
     }
 
     public Specification<LocalJusticeAreaEntity> referenceDataFilter(Optional<String> filter,
-        Optional<List<String>> ljaTypesFilter) {
+        Optional<List<String>> ljaTypesFilter,
+        LocalDateTime currentDateTime) {
 
         Optional<Specification<LocalJusticeAreaEntity>> ljaTypeSpec =
             ljaTypesFilter.filter(s -> !s.isEmpty()).map(this::containsLocalJusticeAreaTypes);
@@ -32,7 +33,7 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
             filter.filter(s -> !s.isBlank()).map(this::likeAnyLocalJusticeArea);
 
         return Specification.allOf(specificationList(
-            List.of(filterSpec, ljaTypeSpec), endDateGreaterThenEqualToDate(LocalDateTime.now())));
+            List.of(filterSpec, ljaTypeSpec), endDateGreaterThenEqualToDate(currentDateTime)));
     }
 
     public static Specification<LocalJusticeAreaEntity> equalsLocalJusticeAreaId(Short localJusticeAreaId) {

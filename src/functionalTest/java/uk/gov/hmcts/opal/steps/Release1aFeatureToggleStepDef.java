@@ -1,6 +1,10 @@
 package uk.gov.hmcts.opal.steps;
 
+import static net.serenitybdd.rest.SerenityRest.lastResponse;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import io.cucumber.java.en.When;
+import io.cucumber.java.en.Then;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -69,6 +73,18 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
             case "Update Draft Account" -> callDraftAccountPatch(buildDraftAccountUpdateRequest());
             default -> throw new IllegalArgumentException("Unknown release-1a gated endpoint: " + endpointName);
         }
+    }
+
+    @Then("the response reports that the feature is disabled")
+    public void theResponseReportsThatTheFeatureIsDisabled() {
+        lastResponse().then()
+            .statusCode(405)
+            .body("title", equalTo("Feature Disabled"))
+            .body("detail", equalTo("The requested feature is not currently available"))
+            .body("type", equalTo("https://hmcts.gov.uk/problems/feature-disabled"))
+            .body("retriable", equalTo(false))
+            .body("instance", notNullValue())
+            .body("operation_id", notNullValue());
     }
 
     /**
@@ -165,11 +181,15 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
         JSONObject timelineEntry = new JSONObject()
             .put("username", DEFAULT_SUBMITTED_BY)
             .put("status", "Publishing Pending")
+            .put("reason_text", JSONObject.NULL)
             .put("status_date", LocalDate.now().toString());
 
         return new JSONObject()
             .put("account_status", "Publishing Pending")
+            .put("business_unit_id", 77)
             .put("validated_by", DEFAULT_SUBMITTED_BY)
             .put("timeline_data", new JSONArray().put(timelineEntry));
     }
+
+
 }

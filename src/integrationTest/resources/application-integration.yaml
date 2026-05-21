@@ -20,7 +20,11 @@ spring:
 
 launchdarkly:
   enabled: true
+  sdk-key: integration-test-key
+  file:
+    - src/integrationTest/resources/launchdarkly-flags.json
   default-flag-values:
+    release-1a: false
     release-1c-enforcement-operational-reporting: true
 
 logging:
