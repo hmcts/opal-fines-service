@@ -1,0 +1,32 @@
+meta {
+  name: Search Offences
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}/offences/search
+  body: json
+  auth: inherit
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+body:json {
+  {
+    "offenceId": "",
+    "cjsCode": "",
+    "offenceTitle": "",
+    "offenceTitleCy": "",
+    "dateUsedFrom": "",
+    "dateUsedTo": ""
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

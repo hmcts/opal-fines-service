@@ -1,0 +1,20 @@
+meta {
+  name: Get Offence By Id
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/offences/35781
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
