@@ -46,7 +46,7 @@ class UserStateServiceTest {
     @Test
     void testCheckForAuthorisedUser_usesCurrentAuthenticatedUserStateWhenAvailable() {
         // Arrange
-        UserState expectedUserState = mock(UserState.class);
+        final UserState expectedUserState = mock(UserState.class);
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(expectedUserState));
 
         // Act
