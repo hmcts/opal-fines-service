@@ -141,7 +141,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2120 / HttpServerErrorException upstream 503 -> 500 with retriable=true")
+    @DisplayName("PO-2120 / HttpServerErrorException upstream 503 -> 503 with retriable=true")
     void retriable_HttpServer503_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/http-503").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -149,7 +149,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("HTTP 503 body:\n{}", ToJsonString.toPrettyJson(body));
 
-        a.andExpect(status().isInternalServerError())
+        a.andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
