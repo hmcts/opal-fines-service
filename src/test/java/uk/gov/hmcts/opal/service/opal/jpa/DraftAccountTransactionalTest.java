@@ -267,14 +267,12 @@ class DraftAccountTransactionalTest {
     void testReplaceDraftAccount_appendsTimelineDataToExistingTimeline() {
         Long draftAccountId = 1L;
         String existingTimeline = singleTimelineDataString("original-user", "Submitted");
-        String generatedTimeline = singleTimelineDataString("normal@users.com", "Resubmitted");
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .timelineData(generatedTimeline)
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -299,9 +297,9 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional
             .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
 
-        assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
+        assertThat(result.getTimelineData()).contains("original-user", "TestUser");
         assertThat(result.getTimelineData().indexOf("original-user"))
-            .isLessThan(result.getTimelineData().indexOf("normal@users.com"));
+            .isLessThan(result.getTimelineData().indexOf("TestUser"));
     }
 
     @Test
@@ -471,10 +469,9 @@ class DraftAccountTransactionalTest {
     void testUpdateDraftAccount_appendsTimelineDataToExistingTimeline() {
         Long draftAccountId = 1L;
         String existingTimeline = singleTimelineDataString("original-user", "Submitted");
-        String generatedTimeline = singleTimelineDataString("normal@users.com", "Rejected");
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.REJECTED)
-            .timelineData(generatedTimeline)
+            .validatedBy("normal@users.com")
             .businessUnitId((short) 2)
             .build();
 
