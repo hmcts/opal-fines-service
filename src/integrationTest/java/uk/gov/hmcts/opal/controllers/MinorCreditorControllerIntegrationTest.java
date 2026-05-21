@@ -13,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -1585,15 +1584,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAccountImpl_Success(Logger log) throws Exception {
-        Permission searchPermission = uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionFor(
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        Permission bacsPermission = Permission.builder()
-            .permissionId(999L)
-            .permissionName("View Creditor BACS")
-            .build();
-
         when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 77, searchPermission, bacsPermission));
+            .thenReturn(permissionUser((short) 77,
+                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+                FinesPermission.VIEW_CREDITOR_BACS));
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1619,10 +1613,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.address.address_line_2").value("Reading"))
             .andExpect(jsonPath("$.address.postcode").value("RG6 1PT"))
 
-            .andExpect(jsonPath("$.payment.account_name").value("Speed Camera Services"))
+            .andExpect(jsonPath("$.payment.account_name").value("Speed Camera"))
             .andExpect(jsonPath("$.payment.sort_code").value("123456"))
             .andExpect(jsonPath("$.payment.account_number").value("12345678"))
-            .andExpect(jsonPath("$.payment.account_reference").value("SCREF001"))
+            .andExpect(jsonPath("$.payment.account_reference").value("REF001"))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
 
@@ -1648,7 +1642,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.sort_code").doesNotExist())
             .andExpect(jsonPath("$.payment.account_number").doesNotExist())
             .andExpect(jsonPath("$.payment.account_reference").doesNotExist())
-            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(nullValue()))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
     }
 
