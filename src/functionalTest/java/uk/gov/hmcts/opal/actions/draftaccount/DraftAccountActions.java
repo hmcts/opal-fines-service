@@ -361,6 +361,11 @@ public class DraftAccountActions extends BaseStepDef {
             patch.put("validated_by", (validatedBy == null || validatedBy.isBlank()) ? JSONObject.NULL
                 : validatedBy);
         }
+        if (data.containsKey("reason_text")) {
+            String reasonText = data.get("reason_text");
+            patch.put("reason_text", (reasonText == null || reasonText.isBlank()) ? JSONObject.NULL
+                : reasonText);
+        }
 
         JSONObject timelineEntry = new JSONObject();
         String validatedBy = data.get("validated_by");

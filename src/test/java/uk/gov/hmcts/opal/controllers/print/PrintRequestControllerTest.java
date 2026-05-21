@@ -1,9 +1,17 @@
 package uk.gov.hmcts.opal.controllers.print;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +19,10 @@ import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
 import uk.gov.hmcts.opal.service.print.PrintService;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +35,9 @@ public class PrintRequestControllerTest {
 
     @Mock
     private AsyncPrintJobProcessor asyncPrintJobProcessor;
+
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
     @InjectMocks
     private PrintRequestController printRequestController;
@@ -78,6 +86,7 @@ public class PrintRequestControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("OK", response.getBody());
-        verify(asyncPrintJobProcessor, times(1)).processPendingJobsAsync(any());
+        verify(asyncPrintJobProcessor, times(1))
+            .processPendingJobsAsync(eq(LocalDateTime.of(2026, 5, 7, 10, 15)));
     }
 }

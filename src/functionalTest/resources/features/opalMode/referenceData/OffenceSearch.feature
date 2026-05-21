@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data @JIRA-STORY:PO-926 @JIRA-EPIC:PO-304
+@Opal @JIRA-LABEL:reference-data @JIRA-STORY:PO-926 @JIRA-STORY:PO-1070 @JIRA-EPIC:PO-304 @JIRA-EPIC:PO-2219
 Feature: Offence Search
 
   Background:
@@ -9,7 +9,7 @@ Feature: Offence Search
     When I make a request to the offence search api filtering by
       | cjs_code    | TH68002 |
       | title       |         |
-      | act_section |         |
+      | act_and_section |         |
       | active_date |         |
       | max_results |         |
 
@@ -25,7 +25,7 @@ Feature: Offence Search
     When I make a request to the offence search api filtering by
       | cjs_code    |                   |
       | title       | in dwelling other |
-      | act_section |                   |
+      | act_and_section |                   |
       | active_date |                   |
       | max_results |                   |
 
@@ -132,5 +132,54 @@ Feature: Offence Search
       | act_and_section |                  |
       | active_date     |                  |
       | max_results     | 10               |
+    Then the request succeeds
+    And there are 0 offences in the response
+
+
+  Scenario: Offences can be searched by CJS code starting with J
+    When I make a request to the offence search api filtering by
+      | cjs_code    | JP    |
+      | title       |       |
+      | act_and_section |   |
+      | active_date |       |
+      | max_results |       |
+
+    Then the request succeeds
+    And the response contains results with a cjs code starting with "J"
+    And the response contains the following cjs codes
+      | JP61002 |
+      | JP61001 |
+
+  Scenario: Offences can be searched by CJS code starting with J
+    When I make a request to the offence search api filtering by
+      | cjs_code    | 1     |
+      | title       |       |
+      | act_and_section |   |
+      | active_date |       |
+      | max_results |       |
+
+    Then the request succeeds
+    And there are 0 offences in the response
+
+  Scenario: Offences can be searched by title
+    When I make a request to the offence search api filtering by
+      | cjs_code    |                       |
+      | title       | in dwelling other zz  |
+      | act_and_section |                   |
+      | active_date |                       |
+      | max_results |                       |
+
+    Then the request succeeds
+    And there are 0 offences in the response
+
+
+  Scenario: Offences can be searched by act and section
+    When I make a request to the offence search api filtering by
+      | cjs_code        |                                                                                  |
+      | title           |                                                                                  |
+      | act_and_section | Contrary to abcdefg 1(1) and (5) of the zzzzzzzz and Maritime Security Act 1990. |
+      | active_date     |                                                                                  |
+      | max_results     |                                                                                  |
+
     Then the request succeeds
     And there are 0 offences in the response

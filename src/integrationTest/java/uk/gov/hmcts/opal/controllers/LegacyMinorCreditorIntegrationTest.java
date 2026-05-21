@@ -37,4 +37,39 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     void testGetMinorCreditorAtAGlance_500Error() throws Exception {
         super.legacyGetMinorCreditorAtAGlanceImpl_500Error(log);
     }
+
+    @Test
+    void testGetMinorCreditorHeaderSummarySuccess() throws Exception {
+        super.getHeaderSummaryImpl_Success(log);
+    }
+
+    @Test
+    void testGetMinorCreditorHeaderSummary_500Error() throws Exception {
+        super.legacyGetMinorCreditorHeaderSummaryImpl_500Error(log);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountSuccess() throws Exception {
+        super.getMinorCreditorAccountImpl_Success(log);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountFiltersBacsWithoutPermission() throws Exception {
+        super.getMinorCreditorAccountImpl_filtersBacsDetailsWithoutPermission(log);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountMissingAuthHeaderReturns401() throws Exception {
+        super.getMinorCreditorAccount_missingAuthHeader_returns401();
+    }
+
+    @Test
+    void testGetMinorCreditorAccountAuthenticatedWithoutPermissionReturns403() throws Exception {
+        super.getMinorCreditorAccount_authenticatedWithoutPermission_returns403();
+    }
+
+    @Test
+    void testGetMinorCreditorAccount_500Error() throws Exception {
+        super.legacyGetMinorCreditorAccountImpl_500Error(log);
+    }
 }

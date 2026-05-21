@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -22,6 +23,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @ActiveProfiles({"legacy"})
 @Slf4j(topic = "opal.LegacyDraftAccountIntegrationTest")
 @DisplayName("DraftAccountController Integration Tests (LEGACY)")
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=true",
+    "launchdarkly.default-flag-values.release-1a=true"
+})
 public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
     @Test

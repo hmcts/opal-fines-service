@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,7 +16,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -68,7 +66,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
-            .andExpect(jsonPath("$.timeline_data").isArray());
+            .andExpect(jsonPath("$.timeline_data").isArray())
+            .andExpect(jsonPath("$.timeline_data[1].username").value("normal@users.com"))
+            .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
+            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
+            .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
@@ -237,7 +240,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
@@ -245,7 +247,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
-        final OffsetDateTime after = OffsetDateTime.now();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
@@ -266,9 +267,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("1", pdpl.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
-        OffsetDateTime createdAt = pdpl.getCreatedAt();
-        assertNotNull(createdAt);
-        assertTrue(!createdAt.isBefore(before.minusSeconds(5)) && !createdAt.isAfter(after.plusSeconds(5)));
+        assertEquals(FIXED_DATE_TIME, pdpl.getCreatedAt());
     }
 
     @Test
@@ -282,7 +281,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
@@ -290,7 +288,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
-        final OffsetDateTime after = OffsetDateTime.now();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
@@ -352,7 +349,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
@@ -360,7 +356,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
-        final OffsetDateTime after = OffsetDateTime.now();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
@@ -444,7 +439,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         assertThat(r1)
             .usingRecursiveComparison()
-            .ignoringFields("accountStatusDate")
+            .ignoringFields("accountStatusDate", "timelineData")
             .isEqualTo(r2);
     }
 
