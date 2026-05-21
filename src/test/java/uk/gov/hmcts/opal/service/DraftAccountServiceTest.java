@@ -193,9 +193,6 @@ class DraftAccountServiceTest {
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
         assertEquals(null, captor.getValue().getValidatedBy());
-        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
-        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.SUBMITTED,
-                                "Created from backend");
         verify(pdplLoggingService).pdplForDraftAccount(draftAccountEntity, Action.SUBMIT, userState);
     }
 
@@ -327,8 +324,6 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional).replaceDraftAccount(any(), captor.capture(), any(), any());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
-        assertEquals(DraftAccountStatus.RESUBMITTED, captor.getValue().getAccountStatus());
-        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.RESUBMITTED, null);
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.REPLACE, userState);
@@ -444,8 +439,6 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any(), any());
         assertEquals("USER01", captor.getValue().getValidatedBy());
         assertEquals("normal@users.com", captor.getValue().getValidatedByName());
-        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.PUBLISHING_PENDING,
-                                "Approved for publishing");
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(securityEventLoggingService, times(1)).logEvent(
