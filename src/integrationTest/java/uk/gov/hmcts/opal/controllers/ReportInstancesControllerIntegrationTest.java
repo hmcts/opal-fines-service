@@ -58,6 +58,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @MockitoBean
     private ReportQueuePublisherImpl reportQueuePublisher;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private ReportInstanceRepository reportInstanceRepository;
 
