@@ -269,7 +269,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .accept(MediaType.APPLICATION_PROBLEM_JSON) // ok even if server doesn't set it
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void postSearch_invalidToken_returns401ProblemJson() throws Exception {
@@ -288,7 +290,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value")
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void postSearch_authenticatedWithoutPermission_returns403ProblemJson() throws Exception {
@@ -306,7 +310,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value")
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
@@ -1217,7 +1223,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void getHeaderSummary_authenticatedWithoutPermission_returns403() throws Exception {
@@ -1228,7 +1236,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("authorization", "Bearer some_value"))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void getHeaderSummary_timeout_returns408(Logger log) throws Exception {

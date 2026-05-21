@@ -161,7 +161,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
                     .content(ENFORCEMENT_REQUEST)
             )
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     private HttpHeaders removeEnforcementHeaders(String bearerToken) {
@@ -223,7 +225,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
                     .content(REMOVE_ENFORCEMENT_REQUEST)
             )
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test

@@ -371,7 +371,10 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .checkForAuthorisedUser(any());
 
         mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").accept(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(status().isUnauthorized()).andExpect(content().string(""));
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
@@ -381,7 +384,10 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             userStateService).checkForAuthorisedUser(any());
 
         mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").accept(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(status().isForbidden()).andExpect(content().string(""));
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test

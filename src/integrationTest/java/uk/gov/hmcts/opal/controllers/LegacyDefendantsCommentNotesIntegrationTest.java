@@ -124,7 +124,9 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
                     .content(requestJson)
             )
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
@@ -149,7 +151,9 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
                     .content(requestJson)
             )
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
