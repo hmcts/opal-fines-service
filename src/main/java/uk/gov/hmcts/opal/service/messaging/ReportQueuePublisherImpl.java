@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.JmsException;

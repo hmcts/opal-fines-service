@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -87,18 +88,19 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         log.info(":createReportInstance_singleBU response:\n{}", ToJsonString.toPrettyJson(body));
         resultActions.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-        //todo
+
+
         //verify data in db row saved correctly
         CreateReportInstanceResponseReports dto = objectMapper.readValue(body, CreateReportInstanceResponseReports.class);
         ReportInstanceEntity reportInstanceEntity = reportInstanceRepository
-            .findById(dto.getReportInstanceId().longValue()).orElseThrow();
+            .findById(dto.getReportInstanceId()).orElseThrow();
         assertEquals(REPORT_1BU_ID, reportInstanceEntity.getReport().getReportId());
         assertEquals(List.of(1), reportInstanceEntity.getBusinessUnit());
         assertEquals(USER_ID, reportInstanceEntity.getRequestedBy());
         assertEquals(USER_NAME, reportInstanceEntity.getRequestedByName());
         assertEquals(REQUESTED, reportInstanceEntity.getGenerationStatus());
 
-        //Mockito.verify(reportQueuePublisher).publish(dto.getReportInstanceId().longValue());
+        Mockito.verify(reportQueuePublisher).publish(dto.getReportInstanceId());
     }
 
     @Test
@@ -291,5 +293,42 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.detail").value(
                 "The request body could not be read. It may be missing or invalid JSON."))
             .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    public void createReportInstance_publishFail() throws Exception{
+        Mockito.doThrow(new IllegalArgumentException("Unable to publish report queue message"))
+            .when(reportQueuePublisher).publish(anyLong());
+
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
+        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
+        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
+        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+
+        CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+            .reportId(REPORT_1BU_ID)
+            .reportName(null)
+            .businessUnitIds(List.of(1))
+            .reportParameters(new HashMap<>())
+            .build();
+
+        String payload = objectMapper.writeValueAsString(request);
+        log.info(":createReportInstance_publishFail payload: {}", payload);
+
+        Long tableSizeBefore = reportInstanceRepository.count();
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+
+        Long tableSizeAfter = reportInstanceRepository.count();
+        log.info("Before: {}, After: {}", tableSizeBefore, tableSizeAfter);
+
+
+        // Assert
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_publishFail response:\n{}", ToJsonString.toPrettyJson(body));
+        resultActions.andExpect(status().isBadRequest());
     }
 }
