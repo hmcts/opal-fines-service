@@ -1592,7 +1592,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .permissionName("View Creditor BACS")
             .build();
 
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(permissionUser((short) 77, searchPermission, bacsPermission));
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
@@ -1629,7 +1629,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAccountImpl_filtersBacsDetailsWithoutPermission(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
@@ -1653,7 +1653,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "500")
             .contentType(MediaType.APPLICATION_JSON)

@@ -62,7 +62,7 @@ class UserStateServiceTest {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         UserStateV2 userStateV2 = mock(UserStateV2.class);
-        UserState expectedUserState = mock(UserState.class);
+        final UserState expectedUserState = mock(UserState.class);
         setAuthentication(authToken);
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
         when(authToken.getUserState()).thenReturn(userStateV2);
