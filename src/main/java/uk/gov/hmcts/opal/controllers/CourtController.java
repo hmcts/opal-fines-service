@@ -1,7 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,17 +17,15 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
+import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
-import java.util.List;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import uk.gov.hmcts.opal.service.opal.CourtService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 
 @RestController
@@ -43,6 +45,7 @@ public class CourtController {
 
     @GetMapping(value = "/{courtId}")
     @Operation(summary = "Returns the court for the given courtId.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<CourtEntity> getCourtById(
         @PathVariable Long courtId, @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
@@ -57,6 +60,7 @@ public class CourtController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches courts based upon criteria in request body")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<SearchDataResponse<CourtEntity>> postCourtsSearch(
         @RequestBody CourtSearchDto criteria,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
@@ -74,6 +78,7 @@ public class CourtController {
 
     @GetMapping
     @Operation(summary = "Returns courts as reference data with an optional filter applied")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<CourtReferenceDataResults> getCourtRefData(
         @RequestParam("q") Optional<String> filter, @RequestParam("business_unit") Optional<Short> businessUnit) {
         log.debug(":GET:getCourtRefData: business unit: {}, filter string: {}", businessUnit, filter);

@@ -24,8 +24,8 @@ public class UserStateService {
 
     private final UserStateMapper userStateMapper;
 
-    //Stop gap solution until we have service layer checking permissions from auth token directly
-    public UserState checkForAuthorisedUser(String authorization) {
+    // Stop gap solution until we have service layer checking permissions from auth token directly.
+    public UserState checkForAuthorisedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
             throw new AccessDeniedException("Unexpected token type");
@@ -35,6 +35,10 @@ public class UserStateService {
             throw new AccessDeniedException("User state not found in token");
         }
         return userStateMapper.toUserState(userStateV2, Domain.FINES);
+    }
+
+    public UserState checkForAuthorisedUser(String authorization) {
+        return checkForAuthorisedUser();
     }
 
     public String getPreferredUsername(String authorization) {

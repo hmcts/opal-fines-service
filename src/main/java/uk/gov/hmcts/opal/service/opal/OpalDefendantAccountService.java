@@ -20,7 +20,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -179,6 +181,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
     private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
     private final PaymentTermsMapper paymentTermsMapper;
+
+    private final Clock clock;
 
     //TODO - Remove once repository service is in use
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
@@ -702,7 +706,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         managed.setAccountNote2(notes.getFreeTextNote2());
         managed.setAccountNote3(notes.getFreeTextNote3());
 
-        noteRepository.save(OpalDefendantAccountBuilders.buildNoteEntity(managed, combined, postedBy));
+        noteRepository.save(
+            OpalDefendantAccountBuilders.buildNoteEntity(managed, combined, postedBy, LocalDateTime.now(clock)));
         log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
     }
 

@@ -17,6 +17,10 @@
                     "type": "string",
                     "description": "Username involved in the timeline event"
                 },
+                "user_id": {
+                    "type": ["string", "null"],
+                    "description": "Business Unit User ID involved in the timeline event"
+                },
                 "status": {
                     "type": "string",
                     "description": "Status of the timeline event"

@@ -33,14 +33,12 @@
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
     "timeline_data": {
-      "$ref": "resource:/jsonSchemas/opal/timeline/timelineData.json",
-      "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
+      "description": "Legacy inbound timeline data. Accepted for backwards compatibility and ignored by the backend."
     }
   },
   "required": [
       "business_unit_id",
       "account",
-      "account_type",
-      "timeline_data"
+      "account_type"
   ]
 }

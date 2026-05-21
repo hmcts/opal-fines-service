@@ -1,0 +1,28 @@
+meta {
+  name: Auth Token
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/testing-support/token/test-user
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4555
+}
+
+script:post-response {
+  const json = typeof res.body === "string" ? JSON.parse(res.body) : res.body;
+  
+  const token = json.access_token;
+  
+  bru.setVar("BEARER_TOKEN", token, { persist: true });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
