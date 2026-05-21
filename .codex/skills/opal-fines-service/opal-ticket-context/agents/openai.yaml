@@ -1,0 +1,4 @@
+interface:
+  display_name: "OPAL Ticket Context"
+  short_description: "Read TDIA markdown before tickets"
+  default_prompt: "Use $opal-ticket-context to read the related extracted TDIA markdown and prepare implementation context for this ticket."

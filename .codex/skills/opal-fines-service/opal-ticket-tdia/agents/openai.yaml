@@ -1,0 +1,4 @@
+interface:
+  display_name: "OPAL TDIA"
+  short_description: "Read TDIA HTML before ticket work"
+  default_prompt: "Use $opal-ticket-tdia to extract context from the TDIA HTML and use it to implement the ticket."
