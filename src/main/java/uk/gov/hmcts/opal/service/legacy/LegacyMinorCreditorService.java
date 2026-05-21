@@ -81,24 +81,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     @Override
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
-
-        Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
-            gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE,
-                LegacyGetMinorCreditorAccountAtAGlanceResponse.class,
-                LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId(
-                    String.valueOf(minorCreditorId)).build(),
-                null
-            );
-
-        checkResponseForError(response, "getMinorCreditorAtAGlance");
-
-        GetMinorCreditorAccountAtAGlanceResponse mapped = atAGlanceResponseMapper.toDto(response.responseEntity);
-        mapped.setVersion(response.responseEntity.getCreditorAccountVersion());
-        return mapped;
-    }
-
-    @Override
     public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
 
         Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response =
@@ -146,28 +128,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         }
 
         return mappedResponse;
-    }
-
-    @Override
-    public MinorCreditorAccountResponse updateMinorCreditorAccount(
-        Long minorCreditorAccountId,
-        PatchMinorCreditorAccountRequest request,
-        BigInteger etag,
-        String postedBy,
-        Short businessUnitId
-    ) {
-        log.debug(":updateMinorCreditorAccount: Legacy mode not implemented. minorCreditorAccountId={}",
-            minorCreditorAccountId);
-
-        throw new UnsupportedOperationException(
-            "Legacy mode not implemented for PATCH /minor-creditor-accounts/{id}");
-    }
-
-    private LegacyMinorCreditorSearchResultsRequest createRequest(MinorCreditorSearch request) {
-        return LegacyMinorCreditorSearchResultsRequest.builder()
-            .businessUnitIds(request.getBusinessUnitIds())
-            .creditor(request.getCreditor())
-            .accountNumber(request.getAccountNumber()).activeAccountsOnly(request.getActiveAccountsOnly()).build();
     }
 
     private PostMinorCreditorAccountsSearchResponse toMinorSearchDto(
@@ -237,15 +197,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .businessUnitIds(request.getBusinessUnitIds())
             .creditor(request.getCreditor())
             .accountNumber(request.getAccountNumber()).activeAccountsOnly(request.getActiveAccountsOnly()).build();
-    }
-
-    @Override
-    public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
-        log.debug(":getHeaderSummary: Legacy mode not implemented. minorCreditorAccountId={}",
-            minorCreditorAccountId);
-
-        throw new UnsupportedOperationException(
-            "Legacy mode not implemented for GET /minor-creditor-accounts/{id}/header-summary");
     }
 
     @Override

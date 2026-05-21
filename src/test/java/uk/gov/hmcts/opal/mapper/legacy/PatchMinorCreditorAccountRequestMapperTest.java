@@ -6,26 +6,16 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.opal.dto.legacy.UpdateMinorCreditorAccountLegacyRequest;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
-@SpringJUnitConfig
-@ContextConfiguration(classes = {
-    PatchMinorCreditorAccountRequestMapperImpl.class,
-    PartyDetailsCommonMapperImpl.class,
-    OrganisationDetailsCommonMapperImpl.class,
-    IndividualDetailsCommonMapperImpl.class,
-    AddressDetailsCommonMapperImpl.class,
-    CreditorAccountPaymentDetailsCommonMapperImpl.class
-})
 @Isolated
-class PatchMinorCreditorAccountRequestMapperTest {
+class PatchMinorCreditorAccountRequestMapperTest extends AbstractMapperTest {
 
     @Autowired
     private PatchMinorCreditorAccountRequestMapper mapper;

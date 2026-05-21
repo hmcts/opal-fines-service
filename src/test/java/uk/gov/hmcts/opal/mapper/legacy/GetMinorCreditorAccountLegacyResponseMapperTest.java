@@ -6,26 +6,16 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccountPaymentDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
-@SpringJUnitConfig
-@ContextConfiguration(classes = {
-    GetMinorCreditorAccountLegacyResponseMapperImpl.class,
-    PartyDetailsLegacyMapperImpl.class,
-    OrganisationDetailsLegacyMapperImpl.class,
-    IndividualDetailsLegacyMapperImpl.class,
-    AddressDetailsLegacyMapperImpl.class,
-    CreditorAccountPaymentDetailsLegacyMapperImpl.class
-})
 @Isolated
-class GetMinorCreditorAccountLegacyResponseMapperTest {
+class GetMinorCreditorAccountLegacyResponseMapperTest extends AbstractMapperTest {
 
     @Autowired
     private GetMinorCreditorAccountLegacyResponseMapper mapper;
