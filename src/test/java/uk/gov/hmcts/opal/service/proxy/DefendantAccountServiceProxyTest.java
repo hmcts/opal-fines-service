@@ -1,5 +1,11 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,17 +13,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
@@ -45,6 +46,7 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     void testMode(DefendantAccountServiceInterface targetService, DefendantAccountServiceInterface otherService) {
         testGetHeaderSummary(targetService, otherService);
         testSearchDefendantAccounts(targetService, otherService);
+        testGetDefendantAccountImpositions(targetService, otherService);
     }
 
     void testGetHeaderSummary(DefendantAccountServiceInterface targetService,
@@ -71,6 +73,19 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
 
         verify(targetService).searchDefendantAccounts(dto);
+        verifyNoInteractions(otherService);
+        assertEquals(expected, result);
+    }
+
+    void testGetDefendantAccountImpositions(DefendantAccountServiceInterface targetService,
+                                            DefendantAccountServiceInterface otherService) {
+        GetDefendantAccountImpositionsResponse expected = GetDefendantAccountImpositionsResponse.builder().build();
+
+        when(targetService.getDefendantAccountImpositions(anyLong())).thenReturn(expected);
+
+        GetDefendantAccountImpositionsResponse result = serviceProxy.getDefendantAccountImpositions(1L);
+
+        verify(targetService).getDefendantAccountImpositions(1L);
         verifyNoInteractions(otherService);
         assertEquals(expected, result);
     }

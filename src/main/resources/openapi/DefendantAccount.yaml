@@ -283,16 +283,25 @@ paths:
             type: integer
             format: int64
           required: true
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: OK
           headers:
             ETag:
-              $ref: './common.yaml#/components/headers/ETag'
+              description: Version of the defendant account. DB Mapping - defendant_accounts.version_number.
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+              required: true
           content:
             application/json:
               schema:
-                $ref: './common.yaml#/components/schemas/impositionSummary'
+                $ref: './common.yaml#/components/schemas/defendantAccountImpositionsResponse'
 
         400:
           description: Bad request
@@ -308,6 +317,18 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         403:
           description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        408:
+          description: Request timeout
           content:
             application/json+problem:
               schema:
