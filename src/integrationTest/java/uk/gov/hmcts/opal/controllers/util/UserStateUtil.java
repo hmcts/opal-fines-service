@@ -136,6 +136,22 @@ public class UserStateUtil {
         return new OpalJwtAuthenticationToken(userState, FINES, getJwt(), emptySet(), null);
     }
 
+    public static OpalJwtAuthenticationToken permissionsToken(Short buid, FinesPermission... permissions) {
+        Map<Domain, DomainBusinessUnitUsers> domainsMap = new HashMap<>();
+        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+            .businessUnitId(buid)
+            .businessUnitUserId("s")
+            .permissions(permissionsFor(permissions))
+            .build();
+        DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUser)).build();
+        domainsMap.put(FINES, domainBusinessUnitUsers);
+
+        UserStateV2 userState = getUserStateV2(domainsMap);
+
+        return new OpalJwtAuthenticationToken(userState, FINES, getJwt(), emptySet(), null);
+    }
+
     private static Jwt getJwt() {
         Instant now = Instant.now();
         return Jwt.withTokenValue("dummy-token")
