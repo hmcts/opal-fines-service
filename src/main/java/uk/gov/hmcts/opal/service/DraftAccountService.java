@@ -5,6 +5,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -66,6 +67,7 @@ public class DraftAccountService {
 
     private final DraftAccountPdplLoggingService loggingService;
     private final SecurityEventLoggingService securityEventLoggingService;
+    private final Clock clock;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
