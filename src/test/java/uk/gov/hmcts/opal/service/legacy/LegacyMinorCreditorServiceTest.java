@@ -467,13 +467,34 @@ class LegacyMinorCreditorServiceTest {
     }
 
     @Test
-    void getMinorCreditorAccount_shouldThrowUnsupportedOperationException() {
-        UnsupportedOperationException exception = assertThrows(
-            UnsupportedOperationException.class,
-            () -> legacyMinorCreditorService.getMinorCreditorAccount(1L)
-        );
+    void getMinorCreditorAccount_shouldReturnMappedResponseWhenBusinessUnitNotFound() {
+        LegacyGetMinorCreditorAccountResponse legacyResponse = LegacyGetMinorCreditorAccountResponse.builder()
+            .creditorAccountId(1L)
+            .accountVersion(1L)
+            .partyDetails(LegacyPartyDetails.builder().build())
+            .payment(LegacyCreditorAccountPaymentDetails.builder().payByBacs(true).holdPayment(false).build())
+            .build();
 
-        assertEquals("Legacy mode not implemented for GET /minor-creditor-accounts/{id}", exception.getMessage());
+        GatewayService.Response<LegacyGetMinorCreditorAccountResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
+        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
+        mappedResponse.setCreditorAccountId(1L);
+
+        when(gatewayService.postToGateway(
+            eq("GET_MINOR_CREDITOR_ACCOUNT_PARTY"),
+            eq(LegacyGetMinorCreditorAccountResponse.class),
+            eq(LegacyGetMinorCreditorAccountRequest.builder().accountId("1").build()),
+            any()
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse))
+            .thenReturn(mappedResponse);
+        when(creditorAccountRepository.findById(1L)).thenReturn(Optional.empty());
+
+        MinorCreditorAccountResponse result = legacyMinorCreditorService.getMinorCreditorAccount(1L);
+
+        assertEquals(1L, result.getCreditorAccountId());
+        assertNull(result.getBusinessUnitId());
     }
 
     @Test
