@@ -465,7 +465,7 @@ class DraftAccountServiceTest {
             eq("Success"),
             eq((short) 2),
             eq("Approval"),
-            any(LocalDateTime.class),
+            eq(LocalDateTime.of(2026, 4, 22, 0, 0)),
             eq(Map.of(
                 "UserIdentifier", 1L,
                 "DraftAccountIdentifier", draftAccountId,
