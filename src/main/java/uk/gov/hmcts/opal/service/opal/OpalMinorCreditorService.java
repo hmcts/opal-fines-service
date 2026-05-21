@@ -63,11 +63,6 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     }
 
     @Override
-    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
-        throw new UnsupportedOperationException("Getting a minor creditor account is not yet supported in Opal");
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
         log.debug(":getMinorCreditorAccount (Opal): minorCreditorAccountId={}", minorCreditorAccountId);

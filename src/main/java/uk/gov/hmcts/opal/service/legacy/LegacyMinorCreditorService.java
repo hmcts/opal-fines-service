@@ -71,15 +71,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     @Override
-    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
-        log.debug(":getMinorCreditorAccount: Legacy mode not implemented. minorCreditorAccountId={}",
-            minorCreditorAccountId);
-
-        throw new UnsupportedOperationException(
-            "Legacy mode not implemented for GET /minor-creditor-accounts/{id}");
-    }
-
-    @Override
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
 
         Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
