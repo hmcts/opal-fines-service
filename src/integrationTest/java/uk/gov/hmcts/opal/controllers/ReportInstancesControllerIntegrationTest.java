@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQUESTED;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,6 @@ import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisher;
 import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 
 @ActiveProfiles({"integration"})
@@ -87,12 +87,16 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         log.info(":createReportInstance_singleBU response:\n{}", ToJsonString.toPrettyJson(body));
         resultActions.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-
-        //verify data in db saved correctly
+        //todo
+        //verify data in db row saved correctly
         CreateReportInstanceResponseReports dto = objectMapper.readValue(body, CreateReportInstanceResponseReports.class);
-        List<ReportInstanceEntity> reportInstanceEntities = reportInstanceRepository.findAll(); //todo findById()
-
-        assertEquals(1, reportInstanceEntities.size());
+        ReportInstanceEntity reportInstanceEntity = reportInstanceRepository
+            .findById(dto.getReportInstanceId().longValue()).orElseThrow();
+        assertEquals(REPORT_1BU_ID, reportInstanceEntity.getReport().getReportId());
+        assertEquals(List.of(1), reportInstanceEntity.getBusinessUnit());
+        assertEquals(USER_ID, reportInstanceEntity.getRequestedBy());
+        assertEquals(USER_NAME, reportInstanceEntity.getRequestedByName());
+        assertEquals(REQUESTED, reportInstanceEntity.getGenerationStatus());
 
         //Mockito.verify(reportQueuePublisher).publish(dto.getReportInstanceId().longValue());
     }
@@ -202,7 +206,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_2BUs_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1,2))
+            .businessUnitIds(List.of(1, 2))
             .reportParameters(new HashMap<>())
             .build();
 
@@ -214,15 +218,78 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         resultActions.andExpect(status().isForbidden());
     }
 
-    public void createReportInstance_reportIDNotFound_404() {
+    @Test
+    public void createReportInstance_reportIDNotFound_404() throws Exception {
+        CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+            .reportId("unknown-report-id")
+            .reportName(null)
+            .businessUnitIds(List.of(1))
+            .reportParameters(new HashMap<>())
+            .build();
 
+        String payload = objectMapper.writeValueAsString(request);
+        log.info(":createReportInstance_reportIDNotFound_404 payload: {}", payload);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_reportIDNotFound_404 response:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
-    public void createReportInstance_missingBUs_400() {
+    @Test
+    public void createReportInstance_missingBUs_400() throws Exception {
+        String payload = """
+            {
+              "report_id": "%s",
+              "report_name": null,
+              "Business_unit_ids: null,
+              "report_parameters": {}
+            }
+            """.formatted(REPORT_1BU_ID);
 
+        log.info(":createReportInstance_missingBUs_400 payload: {}", payload);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+        resultActions.andExpect(status().isBadRequest());
     }
 
-    public void createReportInstance_malformedRequest() {
+    @Test
+    public void createReportInstance_malformedRequest_400() throws Exception {
+        String payload = """
+            {
+              "report_id": "%s",
+              "report_name": null,
+              "business_unit_ids": 1,
+              "report_parameters": {}
+            }
+            """.formatted(REPORT_1BU_ID);
 
+        log.info(":createReportInstance_malformedRequest payload: {}", payload);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_malformedRequest response:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/message-not-readable"))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.detail").value(
+                "The request body could not be read. It may be missing or invalid JSON."))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 }
