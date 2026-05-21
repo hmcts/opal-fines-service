@@ -44,6 +44,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
@@ -90,6 +91,20 @@ public class GlobalExceptionHandler {
             "Forbidden",
             "You do not have permission to access this resource",
             "forbidden",
+            false,
+            ex
+        );
+
+        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
+    }
+
+    @ExceptionHandler(FeatureDisabledException.class)
+    public ResponseEntity<ProblemDetail> handleFeatureDisabledException(FeatureDisabledException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Feature Disabled",
+            "This feature is currently disabled",
+            "feature-disabled",
             false,
             ex
         );
