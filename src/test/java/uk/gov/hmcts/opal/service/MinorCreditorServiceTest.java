@@ -447,6 +447,7 @@ class MinorCreditorServiceTest {
             .holdPayment(false));
         return response;
     }
+
     @Test
     void updateMinorCreditorAccount_missingPaymentGroup_throwsIllegalArgumentException() {
         // Arrange
