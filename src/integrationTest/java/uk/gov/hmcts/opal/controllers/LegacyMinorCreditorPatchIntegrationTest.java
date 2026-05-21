@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -14,6 +15,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -28,6 +30,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
@@ -88,6 +91,31 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
             .andExpect(jsonPath("$.payment.account_reference").value("Ref-01"))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(true));
+
+        ArgumentCaptor<LegacyUpdateMinorCreditorAccountRequest> requestCaptor =
+            ArgumentCaptor.forClass(LegacyUpdateMinorCreditorAccountRequest.class);
+
+        verify(gatewayService).postToGateway(
+            eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
+            eq(LegacyUpdateMinorCreditorAccountResponse.class),
+            requestCaptor.capture(),
+            eq(null)
+        );
+
+        LegacyUpdateMinorCreditorAccountRequest legacyRequest = requestCaptor.getValue();
+        org.junit.jupiter.api.Assertions.assertEquals("607", legacyRequest.getCreditorAccountId());
+        org.junit.jupiter.api.Assertions.assertEquals("10", legacyRequest.getBusinessUnitId());
+        org.junit.jupiter.api.Assertions.assertEquals("USER01", legacyRequest.getBusinessUnitUserId());
+        org.junit.jupiter.api.Assertions.assertEquals(1, legacyRequest.getAccountVersion());
+        org.junit.jupiter.api.Assertions.assertEquals("99008", legacyRequest.getPartyDetails().getPartyId());
+        org.junit.jupiter.api.Assertions.assertEquals("Updated Ltd",
+            legacyRequest.getPartyDetails().getOrganisationDetails().getOrganisationName());
+        org.junit.jupiter.api.Assertions.assertEquals("99 Updated Road", legacyRequest.getAddress().getAddressLine1());
+        org.junit.jupiter.api.Assertions.assertEquals("112233", legacyRequest.getPayment().getSortCode());
+        org.junit.jupiter.api.Assertions.assertEquals("12345678", legacyRequest.getPayment().getAccountNumber());
+        org.junit.jupiter.api.Assertions.assertEquals("Ref-01", legacyRequest.getPayment().getAccountReference());
+        org.junit.jupiter.api.Assertions.assertEquals(Boolean.TRUE, legacyRequest.getPayment().getPayByBacs());
+        org.junit.jupiter.api.Assertions.assertEquals(Boolean.TRUE, legacyRequest.getPayment().getHoldPayment());
     }
 
     @Test
