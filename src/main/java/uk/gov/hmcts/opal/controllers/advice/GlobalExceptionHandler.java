@@ -600,8 +600,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Exception type used for the specific PCR-already-exists conflict so we can return a
-     * tailored 409 Problem JSON (detail contains message, retriable=true).
+     * Exception type used for the specific PCR-already-exists conflict so we can return a tailored 409 Problem JSON
+     * (detail contains message, retriable=true).
      *
      * <p>Kept as a nested class to avoid creating a new top-level file.
      */
