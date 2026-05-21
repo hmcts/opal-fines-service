@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @RequestMapping("/results")
@@ -29,9 +30,6 @@ import uk.gov.hmcts.opal.service.opal.ResultService;
 @Tag(name = "Result Controller")
 public class ResultController {
 
-    private static final String RESULTS_ENDPOINT_FLAG = "release-1a";
-    private static final String RESULTS_ENDPOINT_FLAG_DEFAULT_PROPERTY = "launchdarkly.default-flag-values.release-1a";
-    private static final String RESULTS_FILTERING_FLAG = "release-1b";
     private static final Set<String> RELEASE_1B_FILTER_PARAMETERS = Set.of(
         "active",
         "manual_enforcement_only",
@@ -61,7 +59,10 @@ public class ResultController {
 
     @GetMapping
     @Operation(summary = "Returns all results or results for the given resultIds.")
-    @FeatureToggle(feature = RESULTS_ENDPOINT_FLAG, defaultValueProperty = RESULTS_ENDPOINT_FLAG_DEFAULT_PROPERTY)
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_DEFAULT_VALUE_PROPERTY
+    )
     public ResponseEntity<ResultReferenceDataResponse> getResults(
         @RequestParam MultiValueMap<String, String> requestParams,
         @RequestParam(name = "result_ids") Optional<List<String>> resultIds,
@@ -80,7 +81,7 @@ public class ResultController {
     }
 
     private void rejectFilteringWhenDisabled(MultiValueMap<String, String> requestParams) {
-        if (filteringRequested(requestParams) && !featureToggleService.isFeatureEnabled(RESULTS_FILTERING_FLAG)) {
+        if (filteringRequested(requestParams) && !featureToggleService.isFeatureEnabled(FeatureFlags.RELEASE_1B)) {
             throw new FeatureDisabledException("Feature release-1b is not enabled for results filtering");
         }
     }

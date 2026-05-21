@@ -3,11 +3,15 @@ package uk.gov.hmcts.opal.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
@@ -16,31 +20,28 @@ import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 @Slf4j(topic = "opal.UserStateService")
 public class UserStateService {
 
-    protected static final String DEVELOPER_PERMISSIONS = "Dev-Role-Permissions";
-
     private final AccessTokenService tokenService;
 
-    private final UserStateClientService userStateClientService;
+    private final UserStateMapper userStateMapper;
 
-    private final BeDeveloperConfiguration developerConfiguration;
-
+    // Stop gap solution until we have service layer checking permissions from auth token directly.
+    public UserState checkForAuthorisedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
+            throw new AccessDeniedException("Unexpected token type");
+        }
+        UserStateV2 userStateV2 = authToken.getUserState();
+        if (userStateV2 == null) {
+            throw new AccessDeniedException("User state not found in token");
+        }
+        return userStateMapper.toUserState(userStateV2, Domain.FINES);
+    }
 
     public UserState checkForAuthorisedUser(String authorization) {
-
-        return userStateClientService.getUserStateByAuthenticatedUser()
-            .orElseGet(() -> getDeveloperUserStateOrError((getPreferredUsername(authorization))));
+        return checkForAuthorisedUser();
     }
 
     public String getPreferredUsername(String authorization) {
         return extractPreferredUsername(authorization, tokenService);
     }
-
-    private UserState getDeveloperUserStateOrError(String username) {
-        if (DEVELOPER_PERMISSIONS.equals(developerConfiguration.getUserRolePermissions())) {
-            return new UserState.DeveloperUserState();
-        } else {
-            throw new AccessDeniedException("No authorised user with username '" + username + "' found");
-        }
-    }
-
 }

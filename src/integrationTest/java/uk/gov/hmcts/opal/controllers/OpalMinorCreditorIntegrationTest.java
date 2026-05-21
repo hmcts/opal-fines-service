@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,10 +16,11 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -35,21 +36,25 @@ import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 
 @ActiveProfiles({"integration", "opal"})
-@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_CLASS)
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=true"
+})
+@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @MockitoSpyBean
+    @Autowired
     private ImpositionRepository impositionRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private CreditorTransactionRepository creditorTransactionRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private PartyRepository partyRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private CreditorAccountRepository creditorAccountRepository;
 
     @Test
@@ -203,6 +208,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void patchMinorCreditor_success_createsAmendments() throws Exception {
+        super.patchMinorCreditor_success_createsAmendments(log);
+    }
+
+    @Test
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutPermission_returns403();
     }
@@ -213,8 +223,43 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403() throws Exception {
+        super.patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403();
+    }
+
+    @Test
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutAccountMaintenancePermission_returns403();
+    }
+
+    @Test
+    void patchMinorCreditor_notFound_returns404() throws Exception {
+        super.patchMinorCreditor_notFound_returns404();
+    }
+
+    @Test
+    void patchMinorCreditor_staleVersion_returns409() throws Exception {
+        super.patchMinorCreditor_staleVersion_returns409();
+    }
+
+    @Test
+    void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
+        super.patchMinorCreditor_missingAuthHeader_returns401();
+    }
+
+    @Test
+    void patchMinorCreditor_timeout_returns408() throws Exception {
+        super.patchMinorCreditor_timeout_returns408(log);
+    }
+
+    @Test
+    void patchMinorCreditor_serviceUnavailable_returns503() throws Exception {
+        super.patchMinorCreditor_serviceUnavailable_returns503(log);
+    }
+
+    @Test
+    void patchMinorCreditor_serverError_returns500() throws Exception {
+        super.patchMinorCreditor_serverError_returns500(log);
     }
 
     @Test
