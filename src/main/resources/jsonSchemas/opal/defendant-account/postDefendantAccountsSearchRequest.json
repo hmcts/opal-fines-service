@@ -105,21 +105,117 @@
         {
           "properties": {
             "organisation": { "const": true },
-            "organisation_name": { "type": "string" },
+            "organisation_name": { "type": ["string", "null"] },
             "surname": { "const": null },
             "exact_match_surname": { "const": null },
             "forenames": { "const": null },
             "exact_match_forenames": { "const": null },
             "birth_date": { "const": null },
             "national_insurance_number": { "const": null }
-          }
+          },
+          "anyOf": [
+            {
+              "required": ["organisation_name"],
+              "properties": {
+                "organisation_name": { "type": "string" }
+              }
+            },
+            {
+              "required": ["address_line_1"],
+              "properties": {
+                "address_line_1": { "type": "string" }
+              }
+            },
+            {
+              "required": ["postcode"],
+              "properties": {
+                "postcode": { "type": "string" }
+              }
+            }
+          ]
         },
         {
           "properties": {
             "organisation": { "const": false },
             "organisation_name": { "const": null },
             "exact_match_organisation_name": { "const": null },
-            "surname": { "type": "string" }
+            "national_insurance_number": { "type": ["string", "null"] }
+          },
+          "anyOf": [
+            {
+              "required": ["national_insurance_number"],
+              "properties": {
+                "national_insurance_number": { "type": "string" }
+              }
+            },
+            {
+              "required": ["surname"],
+              "properties": {
+                "surname": { "type": "string" }
+              }
+            },
+            {
+              "required": ["address_line_1"],
+              "properties": {
+                "address_line_1": { "type": "string" }
+              }
+            },
+            {
+              "required": ["postcode"],
+              "properties": {
+                "postcode": { "type": "string" }
+              }
+            }
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": ["national_insurance_number"],
+            "properties": {
+              "national_insurance_number": { "type": "string" }
+            }
+          },
+          "then": {
+            "properties": {
+              "organisation": { "const": false },
+              "address_line_1": { "const": null },
+              "postcode": { "const": null },
+              "organisation_name": { "const": null },
+              "exact_match_organisation_name": { "const": null },
+              "surname": { "const": null },
+              "exact_match_surname": { "const": null },
+              "forenames": { "const": null },
+              "exact_match_forenames": { "const": null },
+              "birth_date": { "const": null }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["forenames"],
+            "properties": {
+              "forenames": { "type": "string" }
+            }
+          },
+          "then": {
+            "properties": {
+              "surname": { "type": "string" }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["birth_date"],
+            "properties": {
+              "birth_date": { "type": "string" }
+            }
+          },
+          "then": {
+            "properties": {
+              "surname": { "type": "string" }
+            }
           }
         }
       ]
