@@ -1652,27 +1652,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
     }
 
-    void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser();
-
-        mockMvc.perform(get(URL_BASE + "/{id}", 104L)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
-    }
-
-    void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
-        doThrow(new ResponseStatusException(FORBIDDEN, "Forbidden"))
-            .when(userStateService).checkForAuthorisedUser();
-
-        mockMvc.perform(get(URL_BASE + "/{id}", 104L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", AUTH_HEADER))
-            .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
-    }
-
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
 
