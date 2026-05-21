@@ -57,7 +57,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -110,20 +109,6 @@ class GlobalExceptionHandlerTest {
         ProblemDetail pd = r.getBody();
         assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
         assertEquals("Forbidden", pd.getTitle());
-        assertEquals(false, pd.getProperties().get("retriable"));
-        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
-    }
-
-    @Test
-    void handleFeatureDisabled_false() {
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler
-            .handleFeatureDisabledException(new FeatureDisabledException("disabled"));
-
-        assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
-        ProblemDetail pd = r.getBody();
-        assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
-        assertEquals("Feature Disabled", pd.getTitle());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/feature-disabled"), pd.getType());
         assertEquals(false, pd.getProperties().get("retriable"));
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
     }
