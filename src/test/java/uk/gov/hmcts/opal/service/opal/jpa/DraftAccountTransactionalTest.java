@@ -155,11 +155,11 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
-        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
         assertEquals(minimalAccountJson, result.getAccount());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getCreatedDate());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
         verify(draftAccountRepository).save(savedCaptor.capture());
         assertTimelineLastEntry(
             savedCaptor.getValue().getTimelineData(),
