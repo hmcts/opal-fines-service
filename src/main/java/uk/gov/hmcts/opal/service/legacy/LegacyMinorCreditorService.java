@@ -13,15 +13,20 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
 import java.math.BigDecimal;
@@ -37,10 +42,13 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final GatewayService gatewayService;
 
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private final LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
+    private final CreditorAccountRepository creditorAccountRepository;
 
     private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
 
     private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT_PARTY = "GET_MINOR_CREDITOR_ACCOUNT_PARTY";
 
     private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE =
         "LIBRA.get_minor_creditors_account_at_a_glance";
@@ -100,6 +108,34 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         mapped.setVersion(BigInteger.valueOf(creditor.getAccountVersion()));
 
         return mapped;
+    }
+
+    @Override
+    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
+        Response<LegacyGetMinorCreditorAccountResponse> response =
+            gatewayService.postToGateway(
+                GET_MINOR_CREDITOR_ACCOUNT_PARTY,
+                LegacyGetMinorCreditorAccountResponse.class,
+                LegacyGetMinorCreditorAccountRequest.builder()
+                    .accountId(String.valueOf(minorCreditorAccountId))
+                    .build(),
+                null
+            );
+
+        checkResponseForError(response, "getMinorCreditorAccount");
+
+        MinorCreditorAccountResponse mappedResponse =
+            minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(response.responseEntity);
+
+        if (mappedResponse != null) {
+            mappedResponse.setBusinessUnitId(
+                creditorAccountRepository.findById(minorCreditorAccountId)
+                    .map(CreditorAccountEntity::getBusinessUnitId)
+                    .orElse(null)
+            );
+        }
+
+        return mappedResponse;
     }
 
     @Override
