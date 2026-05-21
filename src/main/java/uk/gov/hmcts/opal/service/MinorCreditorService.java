@@ -5,6 +5,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -128,13 +129,15 @@ public class MinorCreditorService {
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
 
-        String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
+            .orElseThrow(() -> new InternalServerErrorException(
+                "Business unit user ID missing for authorised user",
+                "Business unit user ID is missing or blank for business unit " + businessUnitIdShort));
 
-        return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, ifMatch, postedBy,
-            businessUnitIdShort);
+        return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, ifMatch,
+            businessUnitUserId, businessUnitIdShort);
     }
 
     private void filterBacsDetailsIfRequired(MinorCreditorAccountResponse response, UserState userState) {
