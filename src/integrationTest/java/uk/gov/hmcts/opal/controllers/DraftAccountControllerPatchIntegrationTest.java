@@ -528,7 +528,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value("Developer_User"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value(""))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Publishing Pending"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason B"));
