@@ -61,7 +61,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @JiraStory("PO-1992")
     @JiraEpic("PO-2234")
     @JiraTestKey("PO-5978")
-    void patchMinorCreditorAccount_whenLocalDefaultEnabled_returns201() throws Exception {
+    void patchMinorCreditorAccount_whenLocalDefaultEnabled_returns200() throws Exception {
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
@@ -77,10 +77,10 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
                             .content(objectMapper.writeValueAsString(request)));
 
         String body = result.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditorAccount_whenLocalDefaultEnabled_returns201 body:\n{}",
+        log.info(":patchMinorCreditorAccount_whenLocalDefaultEnabled_returns200 body:\n{}",
             ToJsonString.toPrettyJson(body));
 
-        result.andExpect(status().isCreated())
+        result.andExpect(status().isOk())
             .andExpect(header().string("ETag", "\"2\""))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(MINOR_CREDITOR_ACCOUNT_ID))

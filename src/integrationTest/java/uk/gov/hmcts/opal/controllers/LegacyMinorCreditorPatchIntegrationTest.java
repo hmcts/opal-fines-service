@@ -59,7 +59,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     private GatewayService gatewayService;
 
     @Test
-    void patchMinorCreditor_success_returns201() throws Exception {
+    void patchMinorCreditor_success_returns200() throws Exception {
         authorisePatchUser();
         when(gatewayService.postToGateway(
             eq(UPDATE_MINOR_CREDITOR_ACCOUNT),
@@ -71,10 +71,10 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
         ResultActions resultActions = performLegacyPatch(PATCH_MINOR_CREDITOR_ACCOUNT_ID, "\"1\"");
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditor_success_returns201 body:\n{}",
+        log.info(":patchMinorCreditor_success_returns200 body:\n{}",
             ToJsonString.toPrettyJson(body));
 
-        resultActions.andExpect(status().isCreated())
+        resultActions.andExpect(status().isOk())
             .andExpect(header().string("ETag", "\"2\""))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
