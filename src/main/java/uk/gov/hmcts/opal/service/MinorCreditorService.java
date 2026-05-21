@@ -56,20 +56,6 @@ public class MinorCreditorService {
         return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
     }
 
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
-        String authHeaderValue) {
-
-        log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
-
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return minorCreditorSearchProxy.getMinorCreditorAtAGlance(minorCreditorId);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-    }
-
     public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId, String authHeaderValue) {
         log.debug(":getMinorCreditorAccount: id={}", minorCreditorAccountId);
 
@@ -79,6 +65,20 @@ public class MinorCreditorService {
             MinorCreditorAccountResponse response = minorCreditorSearchProxy.getMinorCreditorAccount(
                 minorCreditorAccountId);
             return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
+
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
+        String authHeaderValue) {
+
+        log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return minorCreditorSearchProxy.getMinorCreditorAtAGlance(minorCreditorId);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
