@@ -1877,18 +1877,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @Test
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
     @JiraStory("PO-2298")
     @JiraEpic("PO-2294")
-    void testPostDefendantAccountsSearch_OrganisationFlagRespected1(boolean consolidation) throws Exception {
+    void testPostDefendantAccountsSearch_OrganisationFlagRespected1() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // === AC1: organisation = true → only organisation defendants (e.g. 333A) ===
         ResultActions orgTrue = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(true, consolidation)));
+                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(true)));
 
         String bodyTrue = orgTrue.andReturn().getResponse().getContentAsString();
         log.info(":PO-2298 AC1 (organisation=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
@@ -1902,18 +1901,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(bodyTrue, DEFENDANTS_SEARCH_RESP_SCHEMA);
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @Test
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
     @JiraStory("PO-2298")
     @JiraEpic("PO-2294")
-    void testPostDefendantAccountsSearch_OrganisationFlagRespected2(boolean consolidation) throws Exception {
+    void testPostDefendantAccountsSearch_OrganisationFlagRespected2() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // === AC2: organisation = false → only individual defendants (e.g. 177A, 177B) ===
         ResultActions orgFalse = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(false, consolidation)));
+                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(false)));
 
         String bodyFalse = orgFalse.andReturn().getResponse().getContentAsString();
         log.info(":PO-2298 AC2 (organisation=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
@@ -1927,7 +1925,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(bodyFalse, DEFENDANTS_SEARCH_RESP_SCHEMA);
     }
 
-    private String searchCriteria(boolean orgFlag, boolean consolidation) {
+    private String searchCriteria(boolean orgFlag) {
         return """
             {
               "active_accounts_only": false,
@@ -1937,10 +1935,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 "prosecutor_case_reference": null,
                 "organisation": %s
               },
-              "defendant": null,
-              "consolidation_search": %s
+              "defendant": null
             }
-            """.formatted(orgFlag ? "333" : "177", orgFlag, consolidation);
+            """.formatted(orgFlag ? "333" : "177", orgFlag);
 
     }
 
