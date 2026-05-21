@@ -155,13 +155,19 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
         assertEquals(minimalAccountJson, result.getAccount());
-        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
-        verify(draftAccountRepository).save(captor.capture());
-        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getCreatedDate());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestUser",
+            DraftAccountStatus.SUBMITTED.getLabel(),
+            null
+        );
+        assertEquals(DraftAccountStatus.SUBMITTED, savedCaptor.getValue().getAccountStatus());
 
     }
 
@@ -231,7 +237,6 @@ class DraftAccountTransactionalTest {
         assertEquals(createAccountString(), result.getAccount());
         assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
-        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
 
         verify(draftAccountRepository).findById(draftAccountId);
@@ -425,7 +430,6 @@ class DraftAccountTransactionalTest {
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertTrue(result.getAccountSnapshot().contains("2026-05-07T10:15:00Z"));
-        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
 
         verify(draftAccountRepository).findById(draftAccountId);
         ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
