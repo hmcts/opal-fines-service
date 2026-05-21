@@ -66,6 +66,7 @@ public class DraftAccountService {
 
     private final DraftAccountPdplLoggingService loggingService;
     private final SecurityEventLoggingService securityEventLoggingService;
+
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
