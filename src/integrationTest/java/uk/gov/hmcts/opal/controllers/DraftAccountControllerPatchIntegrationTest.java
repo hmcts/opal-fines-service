@@ -18,6 +18,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -65,11 +66,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.validated_by").value("USER01"))
             .andExpect(jsonPath("$.validated_by_name").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
-            .andExpect(jsonPath("$.timeline_data[1].status").value("Publishing Pending"))
-            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
-            .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason A"));
+            .andExpect(jsonPath("$.timeline_data").isArray());
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
     }
@@ -98,6 +95,25 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     }
 
     @Test
+    @DisplayName("Update draft account - Should return 400 when timeline_data is supplied")
+    void testUpdateDraftAccount_timelineDataIsSupplied() throws Exception {
+        String request = validUpdateRequestBody("65", "Publishing Pending", "A")
+            .replace(
+                "\"version\": 0",
+                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+            );
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(patch(URL_BASE + "/" + 8)
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
     void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
         Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
@@ -108,7 +124,15 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("78","Rejected","A")));
+            .content("""
+                {
+                  "account_status": "Rejected",
+                  "validated_by": "BUUID1A",
+                  "reason_text": "Reason for rejection",
+                  "business_unit_id": 78,
+                  "version": 0
+                }
+                """));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPatchDraftAccount_withCheckValidatePermission_shouldSucceed: Response body:\n"
@@ -119,11 +143,14 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(header().string("ETag", "\"1\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Rejected"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data").isArray())
+            .andExpect(jsonPath("$.timeline_data.length()").value(2))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("opal-test"))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
             .andExpect(jsonPath("$.timeline_data[1].status").value("Rejected"))
-            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
-            .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason A"));
+            .andExpect(jsonPath("$.timeline_data[1].username").value("BUUID1A"))
+            .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason for rejection"));
     }
 
     @Test
@@ -148,11 +175,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(header().string("ETag", "\"2\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
-            .andExpect(jsonPath("$.timeline_data[0].status").value("Publishing Pending"))
-            .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
-            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Reason D"));
+            .andExpect(jsonPath("$.timeline_data").isArray());
 
         verify(securityEventLoggingService).logEvent(
             eq("Business Function - Approval of Draft Account"),
@@ -287,10 +310,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         String requestBody = "            {\n"
             + "                \"account_status\": \"Publishing Pending\",\n"
             + "                \"validated_by\": \"BUUID1\",\n"
+            + "                \"validated_by_name\": \"No Permission\",\n"
             + "                \"business_unit_id\": 5,\n"
-            + "                \"timeline_data\": "
-            + validTimelineDataJson()
-            + "\n"
+            + "                \"version\": 0\n"
             + "            }";
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
@@ -507,9 +529,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value("Developer_User"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value(""))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Publishing Pending"))
-            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
+            .andExpect(jsonPath("$.timeline_data[1].status_date").value(LocalDate.now().toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason B"));
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);

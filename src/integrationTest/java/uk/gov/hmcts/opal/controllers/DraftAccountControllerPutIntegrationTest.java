@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -45,7 +46,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
             .header("authorization", "Bearer some_value")
-            .header("If-Match", "3")
+            .header("If-Match", getIfMatchForDraftAccount(5L))
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
 
@@ -62,11 +63,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray())
-            .andExpect(jsonPath("$.timeline_data[1].username").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
-            .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
-            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
-            .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("opal-test"))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
+            .andExpect(jsonPath("$.timeline_data[*].status", hasItem("Resubmitted")))
+            .andExpect(jsonPath("$.timeline_data[*].username", hasItem("USER01")));
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
@@ -115,6 +116,25 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
                 .header("authorization", "Bearer some_value")
                 .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when timeline_data is supplied")
+    void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
+        String request = validReplaceRequestBody(0L)
+            .replace(
+                "\"version\":0",
+                "\"version\":0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+            );
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .header("authorization", "Bearer some_value")
+                .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -508,27 +528,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               },
               "account_type": "Fine",
               "account_status": "Submitted",
-              "version": 0,
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2023-11-01",
-                  "reason_text": "Account successfully activated after review."
-                },
-                {
-                  "username": "janedoe456",
-                  "status": "Pending",
-                  "status_date": "2023-12-05",
-                  "reason_text": "Awaiting additional documentation for verification."
-                },
-                {
-                  "username": "mikebrown789",
-                  "status": "Suspended",
-                  "status_date": "2023-10-15",
-                  "reason_text": "Violation of terms of service."
-                }
-              ]
+              "version": 0
             }""";
     }
 
@@ -613,27 +613,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "version": """ + version
             +
             """
-            ,
-            "timeline_data": [
-              {
-                "username": "johndoe123",
-                "status": "Active",
-                "status_date": "2023-11-01",
-                "reason_text": "Account successfully activated after review."
-              },
-              {
-                "username": "janedoe456",
-                "status": "Pending",
-                "status_date": "2023-12-05",
-                "reason_text": "Awaiting additional documentation for verification."
-              },
-              {
-                "username": "mikebrown789",
-                "status": "Suspended",
-                "status_date": "2023-10-15",
-                "reason_text": "Violation of terms of service."
-              }
-            ]
+            
           }""";
     }
 
@@ -706,15 +686,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
-              ,
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2025-10-15",
-                  "reason_text": "Account created for testing"
-                }
-              ]
             }
             """;
     }
@@ -773,15 +744,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
-              ,
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2025-10-15",
-                  "reason_text": "Account created for testing"
-                }
-              ]
             }
             """;
     }
@@ -848,15 +810,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
-              ,
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2025-10-15",
-                  "reason_text": "Account created for testing"
-                }
-              ]
             }
             """;
     }
@@ -922,15 +875,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account_type": "Fine",
               "account_status": "Submitted",
               "version": """ + version + """
-              ,
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2025-10-15",
-                  "reason_text": "Account created for testing"
-                }
-              ]
             }
             """;
     }

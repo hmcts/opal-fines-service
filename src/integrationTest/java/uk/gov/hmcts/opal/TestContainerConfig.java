@@ -17,15 +17,18 @@ public class TestContainerConfig {
     private static final int LEGACY_STUB_PORT = 4553;
     private static final String LOCAL_LEGACY_GATEWAY_URL = "http://localhost:%d/opal".formatted(LEGACY_STUB_PORT);
     private static final String DEFAULT_LEGACY_STUB_IMAGE = "hmctsprod.azurecr.io/opal/legacy-db-stub:latest";
+    private static final String DEFAULT_POSTGRES_IMAGE = "postgres:17.5";
     private static final String LEGACY_STUB_IMAGE =
         System.getenv().getOrDefault("OPAL_LEGACY_STUB_IMAGE", DEFAULT_LEGACY_STUB_IMAGE);
     private static final boolean ENABLE_LEGACY_STUB =
         !"false".equalsIgnoreCase(System.getenv().getOrDefault("OPAL_ENABLE_LEGACY_STUB", "true"));
+    private static final String POSTGRES_IMAGE =
+        System.getenv().getOrDefault("OPAL_POSTGRES_IMAGE", DEFAULT_POSTGRES_IMAGE);
     public static final PostgreSQLContainer POSTGRES_CONTAINER;
     public static final RedisContainer REDIS_CONTAINER;
 
     static {
-        POSTGRES_CONTAINER = new PostgreSQLContainer(DockerImageName.parse("postgres:17"))
+        POSTGRES_CONTAINER = new PostgreSQLContainer(DockerImageName.parse(POSTGRES_IMAGE))
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")

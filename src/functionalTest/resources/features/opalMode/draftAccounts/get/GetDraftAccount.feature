@@ -13,8 +13,6 @@ Feature: Retrieve Draft Account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the retrieved draft account contains the following data
       | business_unit_id                    | 73           |
       | account_type                        | Fine         |
@@ -39,8 +37,6 @@ Feature: Retrieve Draft Account
       | account_status    |                                                        |
       | submitted_by      | BUUID                                                  |
       | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-
     Then the retrieved draft account contains the following data
       | business_unit_id                    | 73           |
       | account_type                        | Fine         |
@@ -66,8 +62,6 @@ Feature: Retrieve Draft Account
       | account_status    | Submitted                                              |
       | submitted_by      | BUUID                                                  |
       | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-
     When I attempt to retrieve the created draft account with an invalid token
     Then the request is rejected as unauthorized
 

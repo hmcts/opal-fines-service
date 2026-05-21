@@ -33,14 +33,14 @@
       "type": ["string", "null"],
       "minLength": 1,
       "description": "System message related to the account_status"
-    },
-    "timeline_data": {
-      "description": "Legacy inbound timeline data. Accepted for backwards compatibility and ignored by the backend."
     }
   },
   "required": [
     "business_unit_id",
     "account",
     "account_type"
-  ]
+  ],
+  "not": {
+    "required": ["timeline_data"]
+  }
 }

@@ -13,8 +13,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I attempt to put a draft account with an invalid request payload
       | business_unit_id  |                                         |
       | account           | draftAccounts/accountJson/account.json  |
@@ -22,8 +20,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     Then the request is rejected as bad request
 
   @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
@@ -35,8 +31,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I set an invalid token
     And I update the draft account that was just created with the following details
       | business_unit_id  | 73                                          |
@@ -45,7 +39,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
     Then the request is rejected as unauthorized
 
@@ -58,7 +51,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | If-Match          | 0                                       |
 
     Then the request is rejected as not found
@@ -72,7 +64,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
     When I attempt to put a draft account with unsupported content type for response
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
@@ -80,8 +71,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     Then the request is rejected as not acceptable
 
   @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData
@@ -93,7 +82,6 @@ Feature: Replace Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
     When I attempt to put a draft account with unsupported media type for request
 
     Then the request is rejected as not acceptable

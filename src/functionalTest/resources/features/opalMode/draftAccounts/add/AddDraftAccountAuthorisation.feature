@@ -11,8 +11,6 @@ Feature: Add Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the request is rejected as unauthorized
 
   @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData
@@ -24,8 +22,6 @@ Feature: Add Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the request is rejected as forbidden
 
   @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData
@@ -37,6 +33,4 @@ Feature: Add Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the request is rejected as forbidden

@@ -26,7 +26,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -43,9 +42,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .submittedByName("John")
             .account(validAccountJsonString())
             .accountType(DraftAccountType.FINE)
-            .accountStatus(DraftAccountStatus.SUBMITTED)
-            .statusMessage("Created from backend")
-            .timelineData(validTimelineDataString())
             .build();
 
         try {
@@ -63,7 +59,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .account(validAccountJsonStringWithDebtorLanguages()
                 .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
             .accountType(DraftAccountType.FINE)
-            .timelineData(validTimelineDataString())
             .build();
 
         try {
@@ -174,12 +169,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(jsonPath("$.account.defendant.surname")
                 .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
-            .andExpect(jsonPath("$.status_message").value("Created from backend"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("normal@users.com"))
-            .andExpect(jsonPath("$.timeline_data[0].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data.length()").value(1))
             .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
-            .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
-            .andExpect(jsonPath("$.timeline_data[0].reason_text").value("Created from backend"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
         ;
     }
 
@@ -236,6 +229,26 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void shouldReturn400WhenOriginatorTypeIsMissing() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\",", "");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when timeline_data is supplied")
+    void shouldReturn400WhenTimelineDataIsSupplied() throws Exception {
+        String request = validCreateRequestBody()
+            .replace(
+                "\"submitted_by\": \"BUUID1\",",
+                "\"timeline_data\": "
+                    + validTimelineDataString().trim()
+                    + ",\n              \"submitted_by\": \"BUUID1\","
+            );
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
@@ -549,27 +562,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               },
               "account_type": "Fine",
               "account_status": "Submitted",
-              "version": 0,
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2023-11-01",
-                  "reason_text": "Account successfully activated after review."
-                },
-                {
-                  "username": "janedoe456",
-                  "status": "Pending",
-                  "status_date": "2023-12-05",
-                  "reason_text": "Awaiting additional documentation for verification."
-                },
-                {
-                  "username": "mikebrown789",
-                  "status": "Suspended",
-                  "status_date": "2023-10-15",
-                  "reason_text": "Violation of terms of service."
-                }
-              ]
+              "version": 0
             }""";
     }
 
@@ -701,14 +694,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               },
               "account_snapshot": null,
               "account_type": "Fine",
-              "timeline_data": [
-                {
-                  "username": "johndoe123",
-                  "status": "Active",
-                  "status_date": "2025-10-15",
-                  "reason_text": "Account created for testing"
-                }
-              ],
               "submitted_by": "BUUID1",
               "submitted_by_name": "Business User 1"
             }
