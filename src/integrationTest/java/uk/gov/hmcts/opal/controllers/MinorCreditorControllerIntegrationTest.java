@@ -1616,7 +1616,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.account_name").value("Speed Camera Services"))
             .andExpect(jsonPath("$.payment.sort_code").value("123456"))
             .andExpect(jsonPath("$.payment.account_number").value("12345678"))
-            .andExpect(jsonPath("$.payment.account_reference").value("REF001"))
+            .andExpect(jsonPath("$.payment.account_reference").value("SCREF001"))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
 
