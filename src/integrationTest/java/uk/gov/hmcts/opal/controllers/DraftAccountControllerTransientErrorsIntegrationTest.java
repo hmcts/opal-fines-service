@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.entity.draft.DraftAccountStatus.SUBMITTED;
 
@@ -206,7 +207,9 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                 "detail": "The request did not receive a response from the database within the timeout period",
                 "status": 408,
                 "type": "https://hmcts.gov.uk/problems/query-timeout"
-            }"""));
+            }"""))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(true));
     }
 
 
@@ -223,10 +226,12 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             .andExpect(content().json("""
             {
                 "title": "Service Unavailable",
-                "detail": "Opal Fines Database is currently unavailable",
+                "detail": "Opal database is currently unavailable",
                 "status": 503,
                 "type": "https://hmcts.gov.uk/problems/database-unavailable"
-            }"""));
+            }"""))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(true));
     }
 
 

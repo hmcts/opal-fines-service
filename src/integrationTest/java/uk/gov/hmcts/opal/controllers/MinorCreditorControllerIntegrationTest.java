@@ -1400,7 +1400,16 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(get(URL_BASE + "/{id}", 104L)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(content().json("""
+            {
+                "title": "Unauthorized",
+                "detail": "Unauthorized",
+                "status": 401,
+                "type": "https://hmcts.gov.uk/problems/response-status"
+            }"""))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
@@ -1411,7 +1420,16 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("authorization", AUTH_HEADER))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(content().json("""
+            {
+                "title": "Forbidden",
+                "detail": "Forbidden",
+                "status": 403,
+                "type": "https://hmcts.gov.uk/problems/response-status"
+            }"""))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {
