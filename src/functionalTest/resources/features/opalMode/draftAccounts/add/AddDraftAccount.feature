@@ -13,8 +13,6 @@ Feature: Create Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | L106C2                                      |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the draft account is created successfully with the following data
       | business_unit_id                    | 73                               |
       | account_type                        | Fine                             |
@@ -40,8 +38,6 @@ Feature: Create Draft Accounts
       | account_status    | Submitted                                              |
       | submitted_by      | PG1234                                                 |
       | submitted_by_name | opal-test                                              |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-
     Then the draft account is created successfully with the following data
       | business_unit_id                   | 77                               |
       | account_type                       | Fine                             |
@@ -66,8 +62,6 @@ Feature: Create Draft Accounts
       | account_status    | Submitted                                           |
       | submitted_by      | MC1234                                              |
       | submitted_by_name | opal-test                                           |
-      | timeline_data     | draftAccounts/timelineJson/default.json             |
-
     Then the draft account is created successfully with the following data
       | business_unit_id                   | 77                               |
       | account_type                       | Fine                             |

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.MatcherAssert;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -367,26 +366,11 @@ public class DraftAccountActions extends BaseStepDef {
                 : reasonText);
         }
 
-        JSONObject timelineEntry = new JSONObject();
-        String validatedBy = data.get("validated_by");
-        String accountStatus = data.get("account_status");
-        timelineEntry.put("username", (validatedBy == null || validatedBy.isBlank()) ? JSONObject.NULL : validatedBy);
-        timelineEntry.put("status", (accountStatus == null || accountStatus.isBlank()) ? JSONObject.NULL
-            : accountStatus);
-        timelineEntry.put(
-            "status_date",
-            java.time.ZonedDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
-        );
-
         if (data.containsKey("reason_text")) {
             String reasonText = data.get("reason_text");
-            timelineEntry.put("reason_text", (reasonText == null || reasonText.isBlank()) ? JSONObject.NULL
+            patch.put("reason_text", (reasonText == null || reasonText.isBlank()) ? JSONObject.NULL
                 : reasonText);
         }
-
-        JSONArray timelineDataArray = new JSONArray();
-        timelineDataArray.put(timelineEntry);
-        patch.put("timeline_data", timelineDataArray);
 
         return patch;
     }
