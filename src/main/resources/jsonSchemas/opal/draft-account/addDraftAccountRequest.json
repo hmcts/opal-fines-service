@@ -29,6 +29,7 @@
       "minLength": 1,
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
+    "timeline_data": false,
     "status_message": {
       "type": ["string", "null"],
       "minLength": 1,
@@ -39,8 +40,5 @@
     "business_unit_id",
     "account",
     "account_type"
-  ],
-  "not": {
-    "required": ["timeline_data"]
-  }
+  ]
 }

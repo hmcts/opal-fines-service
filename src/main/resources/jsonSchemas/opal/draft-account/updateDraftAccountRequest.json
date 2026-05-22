@@ -23,13 +23,11 @@
     "reason_text": {
       "type": ["string", "null"],
       "description": "Required when status is Rejected or Deleted; optional otherwise"
-    }
+    },
+    "timeline_data": false
   },
   "required": [
     "business_unit_id",
     "account_status"
-  ],
-  "not": {
-    "required": ["timeline_data"]
-  }
+  ]
 }

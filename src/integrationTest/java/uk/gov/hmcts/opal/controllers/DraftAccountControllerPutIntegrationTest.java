@@ -67,7 +67,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray())
-            .andExpect(jsonPath("$.timeline_data[1].username").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value(""))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
@@ -186,7 +186,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l0 = logs.get(0);
         assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
-        assertEquals("1", l0.getCreatedBy().getIdentifier());
+        assertEquals("0", l0.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
         assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
@@ -198,7 +198,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l1 = logs.get(1);
         assertEquals("Get Draft Account - Minor Creditor", l1.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l1.getCategory());
-        assertEquals("1", l1.getCreatedBy().getIdentifier());
+        assertEquals("0", l1.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
         assertEquals("127.0.0.1", l1.getIpAddress());
         assertNull(l1.getRecipient());
@@ -210,7 +210,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l2 = logs.get(2);
         assertEquals("Update Draft Account - Parent or Guardian", l2.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
-        assertEquals("1", l2.getCreatedBy().getIdentifier());
+        assertEquals("0", l2.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
         assertEquals("192.168.1.100", l2.getIpAddress());
         assertNull(l2.getRecipient());
@@ -222,7 +222,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l3 = logs.get(3);
         assertEquals("Update Draft Account - Defendant", l3.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l3.getCategory());
-        assertEquals("1", l3.getCreatedBy().getIdentifier());
+        assertEquals("0", l3.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l3.getCreatedBy().getType());
         assertEquals("192.168.1.100", l3.getIpAddress());
         assertNull(l3.getRecipient());
@@ -234,7 +234,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l4 = logs.get(4);
         assertEquals("Update Draft Account - Minor Creditor", l4.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l4.getCategory());
-        assertEquals("1", l4.getCreatedBy().getIdentifier());
+        assertEquals("0", l4.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l4.getCreatedBy().getType());
         assertEquals("192.168.1.100", l4.getIpAddress());
         assertNull(l4.getRecipient());
@@ -279,7 +279,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
         assertNotNull(pdpl.getCreatedBy());
-        assertEquals("1", pdpl.getCreatedBy().getIdentifier());
+        assertEquals("0", pdpl.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
         assertEquals(FIXED_DATE_TIME, pdpl.getCreatedAt());
@@ -318,7 +318,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l0 = logs.get(0);
         assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
-        assertEquals("1", l0.getCreatedBy().getIdentifier());
+        assertEquals("0", l0.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
         assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
@@ -330,7 +330,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l1 = logs.get(1);
         assertEquals("Update Draft Account - Parent or Guardian", l1.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l1.getCategory());
-        assertEquals("1", l1.getCreatedBy().getIdentifier());
+        assertEquals("0", l1.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
         assertEquals("192.168.1.100", l1.getIpAddress());
         assertNull(l1.getRecipient());
@@ -342,7 +342,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l2 = logs.get(2);
         assertEquals("Update Draft Account - Defendant", l2.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
-        assertEquals("1", l2.getCreatedBy().getIdentifier());
+        assertEquals("0", l2.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
         assertEquals("192.168.1.100", l2.getIpAddress());
         assertNull(l2.getRecipient());
@@ -386,7 +386,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails first = logs.get(0);
         assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
-        assertEquals("1", first.getCreatedBy().getIdentifier());
+        assertEquals("0", first.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
         assertEquals("127.0.0.1", first.getIpAddress());
         assertNull(first.getRecipient());
@@ -398,7 +398,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails second = logs.get(1);
         assertEquals("Update Draft Account - Defendant", second.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
-        assertEquals("1", second.getCreatedBy().getIdentifier());
+        assertEquals("0", second.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
         assertEquals("192.168.1.100", second.getIpAddress());
         assertNull(second.getRecipient());
@@ -410,7 +410,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails third = logs.get(2);
         assertEquals("Update Draft Account - Minor Creditor", third.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, third.getCategory());
-        assertEquals("1", third.getCreatedBy().getIdentifier());
+        assertEquals("0", third.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, third.getCreatedBy().getType());
         assertEquals("192.168.1.100", third.getIpAddress());
         assertNull(third.getRecipient());

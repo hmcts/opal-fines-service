@@ -31,14 +31,12 @@
     "account_status": {
       "type": ["string", "null"],
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
-    }
+    },
+    "timeline_data": false
   },
   "required": [
       "business_unit_id",
       "account",
       "account_type"
-  ],
-  "not": {
-    "required": ["timeline_data"]
-  }
+  ]
 }
