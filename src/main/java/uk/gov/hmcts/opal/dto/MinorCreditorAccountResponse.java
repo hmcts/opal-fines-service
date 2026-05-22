@@ -22,4 +22,7 @@ public class MinorCreditorAccountResponse extends MinorCreditorAccountResponseMi
 
     @JsonIgnore
     private BigInteger version;
+
+    @JsonIgnore
+    private Short businessUnitId;
 }

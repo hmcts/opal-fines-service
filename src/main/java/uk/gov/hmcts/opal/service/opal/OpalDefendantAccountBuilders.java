@@ -938,14 +938,15 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
-    static NoteEntity buildNoteEntity(DefendantAccountEntity managed, String combined, String postedBy) {
+    static NoteEntity buildNoteEntity(DefendantAccountEntity managed, String combined, String postedBy,
+                                      LocalDateTime postedDate) {
         return NoteEntity.builder()
             .noteText(combined)
             .noteType(NoteType.AA)
             .associatedRecordId(String.valueOf(managed.getDefendantAccountId()))
             .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .businessUnitUserId(String.valueOf(managed.getBusinessUnit().getBusinessUnitId()))
-            .postedDate(LocalDateTime.now())
+            .postedDate(postedDate)
             .postedByUsername(postedBy)
             .build();
     }

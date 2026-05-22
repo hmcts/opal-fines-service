@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,11 +16,16 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -56,6 +62,9 @@ import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
 
+    private static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);
+    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC);
+
     @Mock
     private BusinessUnitRepository businessUnitRepository;
 
@@ -80,8 +89,17 @@ class DraftAccountServiceTest {
     @Mock
     SecurityEventLoggingService securityEventLoggingService;
 
+    @Mock
+    private Clock clock;
+
     @InjectMocks
     private DraftAccountService draftAccountService;
+
+    @BeforeEach
+    void setupClock() {
+        lenient().when(clock.instant()).thenReturn(FIXED_CLOCK.instant());
+        lenient().when(clock.getZone()).thenReturn(FIXED_CLOCK.getZone());
+    }
 
     @Test
     void testGetDraftAccount() {
@@ -163,6 +181,8 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.REJECTED)
+            .statusMessage("Created from backend")
             .timelineData(createTimelineDataString())
             .build();
         // Act
@@ -176,6 +196,9 @@ class DraftAccountServiceTest {
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
         assertEquals(null, captor.getValue().getValidatedBy());
+        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
+        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.SUBMITTED,
+                                "Created from backend");
         verify(pdplLoggingService).pdplForDraftAccount(draftAccountEntity, Action.SUBMIT, userState);
     }
 
@@ -288,6 +311,7 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
@@ -310,6 +334,8 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional).replaceDraftAccount(any(), captor.capture(), any(), any());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
         assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
+        assertEquals(DraftAccountStatus.RESUBMITTED, captor.getValue().getAccountStatus());
+        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.RESUBMITTED, null);
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.REPLACE, userState);
@@ -402,6 +428,7 @@ class DraftAccountServiceTest {
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("SpoofedUser")
             .validatedByName("Spoofed Name")
+            .reasonText("Approved for publishing")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
@@ -429,6 +456,8 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any(), any());
         assertEquals("USER01", captor.getValue().getValidatedBy());
         assertEquals("normal@users.com", captor.getValue().getValidatedByName());
+        assertGeneratedTimeline(captor.getValue().getTimelineData(), DraftAccountStatus.PUBLISHING_PENDING,
+                                "Approved for publishing");
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(securityEventLoggingService, times(1)).logEvent(
@@ -436,7 +465,7 @@ class DraftAccountServiceTest {
             eq("Success"),
             eq((short) 2),
             eq("Approval"),
-            any(LocalDateTime.class),
+            eq(LocalDateTime.of(2026, 4, 22, 0, 0)),
             eq(Map.of(
                 "UserIdentifier", 1L,
                 "DraftAccountIdentifier", draftAccountId,
@@ -513,6 +542,21 @@ class DraftAccountServiceTest {
                          "reason_text": "Violation of terms of service."
                      }]
             """;
+    }
+
+    private void assertGeneratedTimeline(String timelineData, DraftAccountStatus status, String reasonText) {
+        assertThat(timelineData)
+            .contains("\"username\" : \"normal@users.com\"")
+            .contains("\"user_id\" : \"USER01\"")
+            .contains("\"status\" : \"" + status.getLabel() + "\"")
+            .contains("\"status_date\" : \"" + TIMELINE_STATUS_DATE + "\"")
+            .doesNotContain("johndoe123");
+
+        if (reasonText == null) {
+            assertThat(timelineData).doesNotContain("\"reason_text\"");
+        } else {
+            assertThat(timelineData).contains("\"reason_text\" : \"" + reasonText + "\"");
+        }
     }
 
     private String createAccountString() {

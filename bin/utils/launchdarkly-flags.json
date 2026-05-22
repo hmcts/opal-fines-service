@@ -1,20 +1,32 @@
 {
   "segments": {},
   "flags": {
+    "release-1a": {
+      "key": "release-1a",
+      "on": true,
+      "variations": [
+        true,
+        false
+      ],
+      "fallthrough": {
+        "variation": 1
+      },
+      "offVariation": 1
+    },
     "legacy-app-mode-enabled": {
       "key": "legacy-app-mode-enabled",
       "on": false,
-      "prerequisites": [],
-      "targets": [],
+      "variations": [
+        true,
+        false
+      ],
       "rules": [],
       "fallthrough": {
         "variation": 0
       },
       "offVariation": 1,
-      "variations": [
-        true,
-        false
-      ],
+      "prerequisites": [],
+      "targets": [],
       "clientSideAvailability": {
         "usingMobileKey": true,
         "usingEnvironmentId": false
