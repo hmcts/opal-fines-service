@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.MajorCreditorControllerIntegrationTest")
@@ -42,6 +43,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-349")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5975")
     void testGetMajorCreditorById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
 
@@ -65,6 +67,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-349")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5973")
     void testGetMajorCreditorById_WhenMajorCreditorDoesNotExist() throws Exception {
 
         mockMvc.perform(get(URL_BASE + "/2"))
@@ -76,6 +79,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-349")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5974")
     void testPostMajorCreditorsSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -99,6 +103,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-349")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5976")
     void testPostMajorCreditorsSearch_WhenMajorCreditorDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -111,6 +116,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-349")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5972")
     void testGetMajorCreditorsRefData() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE).header("authorization", "Bearer some_value"));

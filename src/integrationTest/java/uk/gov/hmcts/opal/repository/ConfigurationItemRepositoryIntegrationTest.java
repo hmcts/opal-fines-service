@@ -25,6 +25,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import java.util.Map;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Configuration Item Repository Integration Tests")
@@ -58,6 +59,7 @@ class ConfigurationItemRepositoryIntegrationTest extends AbstractIntegrationTest
     @Test
     @JiraStory("PO-2881")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6290")
     void shouldKeepBusinessUnitLazyWhenNoEntityGraphIsUsed() {
         ConfigurationItemEntity configurationItem = entityManager.find(
             ConfigurationItemEntity.class,
@@ -70,6 +72,7 @@ class ConfigurationItemRepositoryIntegrationTest extends AbstractIntegrationTest
     @Test
     @JiraStory("PO-2881")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6291")
     void shouldLoadLiteEntityGraphForDirectFetch() {
         ConfigurationItemEntity configurationItem = findWithEntityGraph(ConfigurationItemEntity.ENTITY_GRAPH_LITE);
 
@@ -79,6 +82,7 @@ class ConfigurationItemRepositoryIntegrationTest extends AbstractIntegrationTest
     @Test
     @JiraStory("PO-2881")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6292")
     void shouldLoadFullEntityGraphForDirectFetch() {
         ConfigurationItemEntity configurationItem = findWithEntityGraph(ConfigurationItemEntity.ENTITY_GRAPH_FULL);
         BusinessUnitEntity businessUnit = configurationItem.getBusinessUnit();

@@ -10,6 +10,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import lombok.extern.slf4j.Slf4j;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -20,6 +21,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2287")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6005")
     void testGetHeaderSummaryInd() throws Exception {
         super.getHeaderSummary_Individual(log);
     }
@@ -27,6 +29,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2287")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6006")
     void testGetHeaderSummaryOrg() throws Exception {
         super.getHeaderSummary_Organisation(log);
     }
@@ -34,6 +37,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2297")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6004")
     void testGetHeaderSummary_PO2297_Individual_UsesDefendantAccountPartyId() throws Exception {
         super.testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(log);
     }
@@ -41,6 +45,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2297")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6015")
     void testGetHeaderSummary_PO2297_Organisation_UsesDefendantAccountPartyId() throws Exception {
         super.testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(log);
     }
@@ -49,6 +54,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2287")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6013")
     void get_header_summary_throws_not_found() throws Exception {
         super.testGetHeaderSummary_ThrowsNotFound(log);
     }
@@ -56,6 +62,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1716")
     @JiraEpic("PO-977")
+    @JiraTestKey("PO-6011")
     void testGetPaymentTermsLatest_Success() throws Exception {
         super.testGetPaymentTerms(log);
     }
@@ -63,6 +70,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1716")
     @JiraEpic("PO-977")
+    @JiraTestKey("PO-6009")
     void testGetPaymentTermsLatest_NoPaymentTermFoundForId() throws Exception {
         super.testGetPaymentTermsLatest_NoPaymentTermFoundForId(log);
     }
@@ -70,6 +78,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2119")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6000")
     void opal_exceptionContainsRetriableField() throws Exception {
         super.testEntityNotFoundExceptionContainsRetriable(log);
     }
@@ -77,6 +86,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2119")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6014")
     void opal_wrongMediaTypeContainsRetriableField() throws Exception {
         super.testWrongMediaTypeContainsRetriableField(log);
     }
@@ -84,6 +94,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-2119")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-6003")
     void testInvalidBodyContainsRetriable() throws Exception {
         super.testInvalidBodyContainsRetriable(log);
     }
@@ -91,6 +102,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-6010")
     void testGetEnforcementStatus() throws Exception {
         super.testGetEnforcementStatus(log, false);
     }
@@ -98,6 +110,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-6002")
     void testGetEnforcementStatus_missingAuth_returns401() throws Exception {
         super.testGetEnforcementStatus_missingAuthHeader_returns401();
     }
@@ -105,6 +118,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-6016")
     void testGetEnforcementStatus_forbidden_returns403() throws Exception {
         super.testGetEnforcementStatus_forbidden();
     }
@@ -112,6 +126,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-6007")
     void testGetEnforcementStatus_notFound_returns404() throws Exception {
         super.testGetEnforcementStatus_notFound();
     }
@@ -119,6 +134,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-6008")
     void testGetEnforcementStatus_timeout_returns408() throws Exception {
         super.testGetEnforcementStatus_timeout();
     }
@@ -126,6 +142,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-6012")
     void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
         super.testGetEnforcementStatus_serviceUnavailable();
     }
@@ -133,6 +150,7 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-6001")
     void testGetEnforcementStatus_serverError_returns500() throws Exception {
         super.testGetEnforcementStatus_serverError();
     }

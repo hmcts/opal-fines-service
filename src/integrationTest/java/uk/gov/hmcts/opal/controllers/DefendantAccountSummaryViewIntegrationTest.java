@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Defendant Account At A Glance Payment Terms Integration Tests")
 class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
@@ -23,6 +24,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @DisplayName("PO-2629 INT.01 - At a glance returns the active payment terms summary")
     @JiraStory("PO-2629")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5811")
     void int01_getAtAGlance_returnsActivePaymentTermsSummary() throws Exception {
         authoriseAllPermissions();
 
@@ -47,6 +49,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @DisplayName("PO-2629 INT.02 - At a glance returns not found when no active payment terms exist")
     @JiraStory("PO-2629")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5810")
     void int02_getAtAGlance_returnsNotFound_whenNoActivePaymentTermsExist() throws Exception {
         authoriseAllPermissions();
 

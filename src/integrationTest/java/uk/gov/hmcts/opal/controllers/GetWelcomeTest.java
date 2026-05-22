@@ -14,6 +14,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.GetWelcomeTest")
@@ -27,6 +28,7 @@ class GetWelcomeTest extends AbstractIntegrationTest {
     @DisplayName("Should welcome upon root request with 200 response code")
     @JiraStory("PO-125")
     @JiraEpic("PO-2233")
+    @JiraTestKey("PO-5892")
     void welcomeRootEndpoint() throws Exception {
         log.info(":welcomeRootEndpoint:");
         MvcResult response = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();

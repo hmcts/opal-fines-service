@@ -38,6 +38,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @JiraStory("PO-973")
     @JiraStory("PO-591")
     @JiraEpic("PO-2141")
+    @JiraTestKey("PO-5837")
     void testDeleteDraftAccountById_success() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(delete(URL_BASE + "/4")
@@ -53,7 +54,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     }
 
     //CEP 1 CEP1 - Invalid Request Payload (400)
-    @ParameterizedTest
+    @ParameterizedTest(name = "Invalid payload returns 400 [{index}]")
     @MethodSource("endpointsWithInvalidBodiesProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
@@ -82,10 +83,11 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     }
 
     //CEP3 - Not Authorised to perform the requested action (403)
-    @ParameterizedTest
+    @ParameterizedTest(name = "Unauthorised request returns 403 [{index}]")
     @MethodSource("testCasesRequiringAuthorizationProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5838")
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
@@ -117,10 +119,11 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     }
 
     //CEP4 - Resource Not Found (404) - applies to GET PUT PATCH & DELETE
-    @ParameterizedTest
+    @ParameterizedTest(name = "Missing draft account returns 404 [{index}]")
     @MethodSource("testCasesForResourceNotFoundProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5839")
     void methodsShouldReturn404_whenResourceNotFound(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
@@ -147,10 +150,11 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     }
 
     //CEP5 - Unsupported Content Type for Response (406)
-    @ParameterizedTest
+    @ParameterizedTest(name = "Unsupported accept header returns 406 [{index}]")
     @MethodSource("testCasesWithValidBodiesProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5834")
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 

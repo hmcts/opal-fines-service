@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.BusinessUnitControllerIntegrationTest")
@@ -54,6 +55,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5792")
     void testGetBusinessUnitById_success() throws Exception {
         mockMvc.perform(get(URL_BASE + "/1"))
             .andExpect(status().isOk())
@@ -73,6 +75,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5797")
     void testGetBusinessUnitById_WhenBusinessUnitDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
@@ -82,6 +85,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5795")
     void testPostBusinessUnitsSearch() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -101,6 +105,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5793")
     void testPostBusinessUnitsSearch_WhenBusinessUnitDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -113,6 +118,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5794")
     void testGetBusinessUnitsRefData() throws Exception {
         ResultActions actions =  mockMvc.perform(get(URL_BASE)
                                                      .header("authorization", "Bearer some_value"));
@@ -139,6 +145,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5790")
     void testGetBusinessUnitsRefData_FilterByArea() throws Exception {
         mockMvc.perform(get(URL_BASE)
                             .param("q", "Area")
@@ -154,6 +161,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5796")
     void testGetBusinessUnitRefData_Permission_success() throws Exception {
         UserState userState = Mockito.mock(UserState.class);
 
@@ -177,6 +185,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-313")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5791")
     void testGetBusinessUnitRefData_Permission_empty() throws Exception {
         UserState userState = Mockito.mock(UserState.class);
 
