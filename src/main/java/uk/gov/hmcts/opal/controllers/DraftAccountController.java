@@ -35,6 +35,7 @@ import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.DraftAccountService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -105,6 +106,7 @@ public class DraftAccountController {
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/addDraftAccountRequest.json")
         @RequestBody AddDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        rejectTimelineDataIfSupplied(dto.getTimelineData());
 
         log.debug(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
 
@@ -142,6 +144,7 @@ public class DraftAccountController {
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader(value = "If-Match") String ifMatch) {
+        rejectTimelineDataIfSupplied(dto.getTimelineData());
 
         log.debug(":PUT:putDraftAccount: replacing draft account '{}' with: \n{}", draftAccountId, dto.toPrettyJson());
 
@@ -159,9 +162,16 @@ public class DraftAccountController {
         @RequestBody UpdateDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader(value = "If-Match") String ifMatch) {
+        rejectTimelineDataIfSupplied(dto.getTimelineData());
 
         log.info(":PATCH:patchDraftAccount: updating draft account entity: {}", draftAccountId);
 
         return buildResponse(draftAccountService.updateDraftAccount(draftAccountId, dto, authHeaderValue, ifMatch));
+    }
+
+    private static void rejectTimelineDataIfSupplied(Object timelineData) {
+        if (timelineData != null) {
+            throw new JsonSchemaValidationException("timeline_data is not allowed in draft account requests");
+        }
     }
 }

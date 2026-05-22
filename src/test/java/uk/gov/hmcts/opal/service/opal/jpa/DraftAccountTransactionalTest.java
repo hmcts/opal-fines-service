@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
+import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -145,8 +146,6 @@ class DraftAccountTransactionalTest {
             .submittedByName("Test User")
             .account(minimalAccountJson)
             .accountType(DraftAccountType.FINE)
-            .accountStatus(DraftAccountStatus.REJECTED)
-            .timelineData("[]")
             .build();
 
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
@@ -159,11 +158,17 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
         assertEquals(minimalAccountJson, result.getAccount());
-        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
-        verify(draftAccountRepository).save(captor.capture());
-        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getCreatedDate());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestUser",
+            DraftAccountStatus.SUBMITTED.getLabel(),
+            null
+        );
+        assertEquals(DraftAccountStatus.SUBMITTED, savedCaptor.getValue().getAccountStatus());
 
     }
 
@@ -203,7 +208,6 @@ class DraftAccountTransactionalTest {
             .submittedByName("Test User")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -234,26 +238,30 @@ class DraftAccountTransactionalTest {
         assertEquals(createAccountString(), result.getAccount());
         assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
-        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(businessUnitRepository).findById((short) 2);
-        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestUser",
+            DraftAccountStatus.RESUBMITTED.getLabel(),
+            null
+        );
     }
 
     @Test
     void testReplaceDraftAccount_appendsTimelineDataToExistingTimeline() {
         Long draftAccountId = 1L;
         String existingTimeline = singleTimelineDataString("original-user", "Submitted");
-        String generatedTimeline = singleTimelineDataString("normal@users.com", "Resubmitted");
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .timelineData(generatedTimeline)
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -278,9 +286,9 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional
             .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
 
-        assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
+        assertThat(result.getTimelineData()).contains("original-user", "TestUser");
         assertThat(result.getTimelineData().indexOf("original-user"))
-            .isLessThan(result.getTimelineData().indexOf("normal@users.com"));
+            .isLessThan(result.getTimelineData().indexOf("TestUser"));
     }
 
     @Test
@@ -293,7 +301,6 @@ class DraftAccountTransactionalTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -316,7 +323,6 @@ class DraftAccountTransactionalTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -352,7 +358,6 @@ class DraftAccountTransactionalTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -372,7 +377,6 @@ class DraftAccountTransactionalTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .timelineData(createTimelineDataString())
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
@@ -397,7 +401,6 @@ class DraftAccountTransactionalTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("TestValidator")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
 
@@ -428,20 +431,25 @@ class DraftAccountTransactionalTest {
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertTrue(result.getAccountSnapshot().contains("2026-05-07T10:15:00Z"));
-        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
 
         verify(draftAccountRepository).findById(draftAccountId);
-        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+        ArgumentCaptor<DraftAccountEntity> savedCaptor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(savedCaptor.capture());
+        assertTimelineLastEntry(
+            savedCaptor.getValue().getTimelineData(),
+            "TestValidator",
+            DraftAccountStatus.PUBLISHING_PENDING.getLabel(),
+            null
+        );
     }
 
     @Test
     void testUpdateDraftAccount_appendsTimelineDataToExistingTimeline() {
         Long draftAccountId = 1L;
         String existingTimeline = singleTimelineDataString("original-user", "Submitted");
-        String generatedTimeline = singleTimelineDataString("normal@users.com", "Rejected");
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.REJECTED)
-            .timelineData(generatedTimeline)
+            .validatedBy("normal@users.com")
             .businessUnitId((short) 2)
             .build();
 
@@ -476,7 +484,6 @@ class DraftAccountTransactionalTest {
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("BUUID1")
             .validatedByName("User One")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
 
@@ -524,7 +531,6 @@ class DraftAccountTransactionalTest {
             .accountStatus(DraftAccountStatus.DELETED)
             .validatedBy("BUUID1")
             .validatedByName("User One")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
 
@@ -570,7 +576,6 @@ class DraftAccountTransactionalTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .businessUnitId((short) 2)
-            .timelineData(createTimelineDataString())
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
@@ -655,6 +660,17 @@ class DraftAccountTransactionalTest {
                          "reason_text": "Violation of terms of service."
                      }]
             """;
+    }
+
+    private void assertTimelineLastEntry(String timelineJson, String username, String status, String reasonText) {
+        TimelineData.Entry[] entries = TimelineData.fromJson(timelineJson);
+        TimelineData.Entry lastEntry = entries[entries.length - 1];
+
+        assertEquals(username, lastEntry.getUsername());
+        assertEquals(status, lastEntry.getStatus());
+        assertEquals(reasonText, lastEntry.getReasonText());
+        assertEquals(Instant.parse("2026-05-07T10:15:00Z").atZone(ZoneOffset.UTC).toLocalDate(),
+            lastEntry.getStatusDate());
     }
 
     private String createAccountString() {

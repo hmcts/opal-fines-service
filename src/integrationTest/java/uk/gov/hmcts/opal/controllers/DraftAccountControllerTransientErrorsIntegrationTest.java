@@ -308,27 +308,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             }
             ,
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "timeline_data": [
-                    {
-                        "username": "johndoe123",
-                        "status": "Active",
-                        "status_date": "2023-11-01",
-                        "reason_text": "Account successfully activated after review."
-                    },
-                    {
-                        "username": "janedoe456",
-                        "status": "Pending",
-                        "status_date": "2023-12-05",
-                        "reason_text": "Awaiting additional documentation for verification."
-                    },
-                    {
-                        "username": "mikebrown789",
-                        "status": "Suspended",
-                        "status_date": "2023-10-15",
-                        "reason_text": "Violation of terms of service."
-                    }
-                ]
+              "account_status": "Submitted"
             }""";
     }
 
@@ -336,8 +316,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         return "{\n"
             + "    \"account_status\": \"Publishing Pending\",\n"
             + "    \"validated_by\": \"BUUID1\",\n"
-            + "    \"business_unit_id\": 5,\n"
-            + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
+            + "    \"business_unit_id\": 5\n"
             + "}";
     }
 

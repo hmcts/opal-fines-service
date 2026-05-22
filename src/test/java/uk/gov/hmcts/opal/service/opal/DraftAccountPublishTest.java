@@ -130,7 +130,7 @@ class DraftAccountPublishTest {
 
             TimelineData timelineData = new TimelineData();
             timelineData.insertEntry("Dave", DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                LocalDate.now(), LogUtil.ERRMSG_STORED_PROC_FAILURE + " Error code: [" + operationId + "]");
+                LocalDate.now(clock), LogUtil.ERRMSG_STORED_PROC_FAILURE + " Error code: [" + operationId + "]");
             assertEquals(timelineData.toJson(), published.getTimelineData());
 
             DraftAccountEntity expected = cloneAndModify(existingFromDB, DraftAccountStatus.PUBLISHING_FAILED);
