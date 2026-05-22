@@ -4,6 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,6 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ContentDigestResponseGenerationIntegrationTest extends AbstractContentDigestIntegrationTest {
 
     @Test
+    @JiraStory("PO-2878")
+    @JiraEpic("PO-2675")
     void missingHeader_returnsSuccessWithResponseContentDigest() throws Exception {
         MvcResult result = mockMvc.perform(get(ROOT_ENDPOINT))
             .andExpect(status().isOk())
@@ -26,6 +30,8 @@ class ContentDigestResponseGenerationIntegrationTest extends AbstractContentDige
     }
 
     @Test
+    @JiraStory("PO-2878")
+    @JiraEpic("PO-2675")
     void invalidHeader_returnsContentDigestProblemResponse() throws Exception {
         MvcResult result = mockMvc.perform(get(ROOT_ENDPOINT).header(CONTENT_DIGEST, invalidDigest()))
             .andExpect(status().isBadRequest())
@@ -37,6 +43,8 @@ class ContentDigestResponseGenerationIntegrationTest extends AbstractContentDige
     }
 
     @Test
+    @JiraStory("PO-2878")
+    @JiraEpic("PO-2675")
     void malformedHeader_returnsContentDigestProblemResponse() throws Exception {
         MvcResult result = mockMvc.perform(get(ROOT_ENDPOINT).header(CONTENT_DIGEST, malformedDigest()))
             .andExpect(status().isBadRequest())

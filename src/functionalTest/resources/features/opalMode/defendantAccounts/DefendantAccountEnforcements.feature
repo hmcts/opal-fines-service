@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:account-enquiry
 Feature: Defendant Account Enforcement Overrides
 
-  @cleanUpData @JIRA-STORY:PO-1854 @JIRA-EPIC:PO-1675
+  @cleanUpData @JIRA-STORY:PO-1854 @JIRA-EPIC:PO-1675 @JIRA-TEST-KEY:PO-5620
   Scenario: An enforcement override can be applied to an enforceable defendant account
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details

@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Add Draft Account Authorisation
 
-  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5625
   Scenario: Post Draft Account - Invalid Auth
     Given I set an invalid token
     When I create a draft account with the following details using a raw HTTP client
@@ -15,7 +15,7 @@ Feature: Add Draft Account Authorisation
 
     Then the request is rejected as unauthorized
 
-  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5626
   Scenario: Post Draft Account - No Permission
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to create a draft account with the following details
       | business_unit_id  | 73                                          |
@@ -28,7 +28,7 @@ Feature: Add Draft Account Authorisation
 
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5627
   Scenario: Post Draft Account - Permission in different BU
     When the "opal-test@dev.platform.hmcts.net" user attempts to create a draft account with the following details
       | business_unit_id  | 26                                          |
