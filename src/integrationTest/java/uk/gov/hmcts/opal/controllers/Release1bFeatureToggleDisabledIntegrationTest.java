@@ -11,6 +11,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.RequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -21,6 +23,8 @@ class Release1bFeatureToggleDisabledIntegrationTest extends AbstractIntegrationT
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("uk.gov.hmcts.opal.controllers.util.Release1bFeatureToggleRequestUtil#gatedRequests")
+    @JiraStory("PO-3762")
+    @JiraEpic("PO-3685")
     void shouldReturnFeatureDisabledProblemWhenRelease1bIsDisabled(String endpointName, RequestBuilder request)
         throws Exception {
         mockMvc.perform(request)
