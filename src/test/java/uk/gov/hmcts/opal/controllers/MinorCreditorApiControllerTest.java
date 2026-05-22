@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.NativeWebRequest;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
@@ -21,13 +20,8 @@ import uk.gov.hmcts.opal.service.MinorCreditorService;
 @ExtendWith(MockitoExtension.class)
 class MinorCreditorApiControllerTest {
 
-    private static final String BEARER_TOKEN = "Bearer a_token_goes_here";
-
     @Mock
     private MinorCreditorService minorCreditorService;
-
-    @Mock
-    private NativeWebRequest nativeWebRequest;
 
     @InjectMocks
     private MinorCreditorApiController minorCreditorApiController;
@@ -37,16 +31,14 @@ class MinorCreditorApiControllerTest {
         Long minorCreditorAccountId = 1L;
         MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
 
-        when(nativeWebRequest.getHeader("Authorization")).thenReturn(BEARER_TOKEN);
-        when(minorCreditorService.getMinorCreditorAccount(minorCreditorAccountId, BEARER_TOKEN))
-            .thenReturn(response);
+        when(minorCreditorService.getMinorCreditorAccount(minorCreditorAccountId)).thenReturn(response);
 
         ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
             minorCreditorApiController.getMinorCreditorAccount(minorCreditorAccountId);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertSame(response, result.getBody());
-        verify(minorCreditorService).getMinorCreditorAccount(minorCreditorAccountId, BEARER_TOKEN);
+        verify(minorCreditorService).getMinorCreditorAccount(minorCreditorAccountId);
     }
 
     @Test
