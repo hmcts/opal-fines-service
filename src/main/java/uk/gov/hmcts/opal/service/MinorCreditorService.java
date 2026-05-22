@@ -56,20 +56,6 @@ public class MinorCreditorService {
         return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
     }
 
-    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId, String authHeaderValue) {
-        log.debug(":getMinorCreditorAccount: id={}", minorCreditorAccountId);
-
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            MinorCreditorAccountResponse response = minorCreditorSearchProxy.getMinorCreditorAccount(
-                minorCreditorAccountId);
-            return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-    }
-
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
         String authHeaderValue) {
 

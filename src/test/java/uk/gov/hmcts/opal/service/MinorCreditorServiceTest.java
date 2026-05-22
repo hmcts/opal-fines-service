@@ -121,10 +121,10 @@ class MinorCreditorServiceTest {
         );
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
 
         // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
         // Assert
         assertNotNull(result);
@@ -140,12 +140,12 @@ class MinorCreditorServiceTest {
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionUser);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.getMinorCreditorAccount(123L, "authHeaderValue")
+            () -> minorCreditorService.getMinorCreditorAccount(123L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(minorCreditorSearchProxy);
@@ -159,10 +159,10 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
 
         // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
         // Assert
         assertNotNull(result);
@@ -187,10 +187,10 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
 
         // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
         // Assert
         assertNotNull(result);
@@ -215,10 +215,10 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
 
         // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
         // Assert
         assertNotNull(result);
@@ -244,10 +244,10 @@ class MinorCreditorServiceTest {
         response.setBusinessUnitId(null);
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
 
         // Act
-        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id, "authHeaderValue");
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
 
         // Assert
         assertNotNull(result);
