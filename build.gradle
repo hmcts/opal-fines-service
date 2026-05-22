@@ -274,6 +274,15 @@ tasks.register('integration', Test) {
   }
 }
 
+tasks.register('checkTestJiraAnnotations', JavaExec) {
+  description = "Checks runnable integration and functional tests have Jira story and epic annotations"
+  group = "Verification"
+  dependsOn 'testClasses'
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.scripts.TestJiraAnnotationChecker'
+  args = ['src/integrationTest/java', 'src/functionalTest/resources/features']
+}
+
 tasks.register('functionalOpal', Test) {
 
   description = "Runs functional tests against Opal mode"
@@ -448,6 +457,7 @@ tasks.named("sonarqube") {
   dependsOn(tasks.named("jacocoTestReport"))
 }
 tasks.named("check") {
+  dependsOn(tasks.named("checkTestJiraAnnotations"))
   dependsOn(tasks.named("integration"))
 }
 
@@ -515,7 +525,7 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.9'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.10'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'

@@ -4,7 +4,7 @@ Feature: Results Reference Data
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304
+  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5738
   Scenario: All results are returned when no result id filter is supplied
     When I request results for identifiers ""
     Then 60 results are returned
@@ -37,7 +37,7 @@ Feature: Results Reference Data
       | imposition_creditor         | Any          |
       | imposition_allocation_order | 1            |
 
-  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304
+  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5739
   Scenario: Only requested results are returned when result ids are supplied
     When I request results for identifiers "FO,ABDC"
     Then 2 results are returned

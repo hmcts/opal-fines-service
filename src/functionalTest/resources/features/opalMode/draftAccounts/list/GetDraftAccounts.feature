@@ -18,17 +18,17 @@ Feature: List Draft Accounts
     And the returned draft accounts exclude business units "<excluded_units>"
     And the response body must not include the "version" field anywhere
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5650
     Examples:
       | business_unit | business_unit_name   | excluded_units |
       | 73            | West London          | 77, 65         |
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5651
     Examples:
       | business_unit | business_unit_name | excluded_units |
       | 77            | Camberwell Green   | 73, 65         |
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5652
     Examples:
       | business_unit | business_unit_name   | excluded_units |
       | 65            | Camden and Islington | 73, 77         |
@@ -53,12 +53,12 @@ Feature: List Draft Accounts
     Then only draft accounts with status "<expected_status>" are returned
     And the returned draft accounts exclude status "<excluded_status>"
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5653
     Examples:
       | status_filter | expected_status | excluded_status |
       | SUBMITTED     | Submitted       | Resubmitted     |
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5654
     Examples:
       | status_filter | expected_status | excluded_status |
       | RESUBMITTED   | Resubmitted     | Submitted       |
@@ -75,12 +75,12 @@ Feature: List Draft Accounts
     Then only draft accounts submitted by "<expected_submitted_by>" are returned
     And the returned draft accounts exclude accounts submitted by "<excluded_submitted_by>"
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5655
     Examples:
       | submitted_by_filter | expected_submitted_by | excluded_submitted_by |
       | BUUID              | BUUID                 | BUUID_TWO             |
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5656
     Examples:
       | submitted_by_filter | expected_submitted_by | excluded_submitted_by |
       | BUUID_TWO           | BUUID_TWO             | BUUID                 |
@@ -98,17 +98,17 @@ Feature: List Draft Accounts
     And the returned draft accounts exclude status "Resubmitted"
     And the returned draft accounts exclude accounts submitted by "<excluded_submitted_by>"
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5657
     Examples:
       | status_filter | submitted_by_filter | expected_status | expected_submitted_by | excluded_submitted_by |
       | SUBMITTED     | BUUID              | Submitted       | BUUID                 | BUUID_TWO             |
 
-    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219
+    @JIRA-STORY:PO-606 @JIRA-EPIC:PO-2219 @JIRA-TEST-KEY:PO-5658
     Examples:
       | status_filter | submitted_by_filter | expected_status | expected_submitted_by | excluded_submitted_by |
       | SUBMITTED     | BUUID_TWO           | Submitted       | BUUID_TWO             | BUUID                 |
 
-  @PO-2361 @cleanUpData
+  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5659
   Scenario: Retrieving all draft accounts produces defendant PDPO logs
 
     And the following draft accounts exist
@@ -127,7 +127,7 @@ Feature: List Draft Accounts
 
     # Cleanup
 
-  @PO-2361 @cleanUpData
+  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5660
   Scenario: Retrieving all draft accounts with parent or guardian data produces two PDPO log categories
 
     And the following draft accounts exist
@@ -147,7 +147,7 @@ Feature: List Draft Accounts
 
     # Cleanup
 
-  @PO-2361 @cleanUpData
+  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5661
   Scenario: Invalid token is blocked and no PDPO logs emitted
     Given a draft account exists with the following details
       | business_unit_id  | 73                                                     |

@@ -1,4 +1,4 @@
-@Smoke @PO-149
+@Smoke @JIRA-STORY:PO-149 @JIRA-EPIC:PO-2233
 Feature: Authenticated APIs Reject Invalid Credentials
 
   Scenario Outline: Requests without a token are rejected for <method> <path>
