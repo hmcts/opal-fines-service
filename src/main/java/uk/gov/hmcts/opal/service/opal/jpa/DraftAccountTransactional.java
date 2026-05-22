@@ -336,6 +336,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         timelineData.insertEntry(username, status.getLabel(), LocalDate.now(clock), reasonText);
         return timelineData.toJson();
     }
+
     private void checkValidatorIsNotSubmitter(String submitterUsername, String updaterUserName, Long draftAccountId,
         UserState userState, Short businessUnitId) {
         if (submitterUsername != null && submitterUsername.equals(updaterUserName)) {

@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
+import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -659,6 +660,17 @@ class DraftAccountTransactionalTest {
                          "reason_text": "Violation of terms of service."
                      }]
             """;
+    }
+
+    private void assertTimelineLastEntry(String timelineJson, String username, String status, String reasonText) {
+        TimelineData.Entry[] entries = TimelineData.fromJson(timelineJson);
+        TimelineData.Entry lastEntry = entries[entries.length - 1];
+
+        assertEquals(username, lastEntry.getUsername());
+        assertEquals(status, lastEntry.getStatus());
+        assertEquals(reasonText, lastEntry.getReasonText());
+        assertEquals(Instant.parse("2026-05-07T10:15:00Z").atZone(ZoneOffset.UTC).toLocalDate(),
+            lastEntry.getStatusDate());
     }
 
     private String createAccountString() {
