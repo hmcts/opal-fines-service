@@ -21,6 +21,8 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.ImpositionService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -31,39 +33,42 @@ class DefendantAccountApiControllerTest {
     @Mock
     private DefendantAccountService defendantAccountService;
 
+    @Mock
+    private ImpositionService impositionService;
+
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
 
     @Test
-    void given_validRequest_when_getDefendantAccountImpositions_then_returnsOkResponseWithEtag() {
+    void given_validRequest_when_getImpositions_then_returnsOkResponseWithEtag() {
         Long defendantId = 1L;
         DefendantAccountImpositionsResponseCommon payload = new DefendantAccountImpositionsResponseCommon();
         GetDefendantAccountImpositionsResponse serviceResponse = GetDefendantAccountImpositionsResponse.builder()
             .payload(payload)
             .version(BigInteger.valueOf(12))
             .build();
-        when(defendantAccountService.getDefendantAccountImpositions(defendantId, BEARER_TOKEN))
+        when(impositionService.getImpositions(defendantId, BEARER_TOKEN))
             .thenReturn(serviceResponse);
 
         ResponseEntity<DefendantAccountImpositionsResponseCommon> response =
-            defendantAccountApiController.getDefendantAccountImpositions(defendantId, BEARER_TOKEN);
+            defendantAccountApiController.getImpositions(defendantId, BEARER_TOKEN);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"12\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
-        verify(defendantAccountService).getDefendantAccountImpositions(defendantId, BEARER_TOKEN);
+        verify(impositionService).getImpositions(defendantId, BEARER_TOKEN);
     }
 
     @Test
-    void getDefendantAccountImpositions_isProtectedByRelease1bFeatureToggle() throws NoSuchMethodException {
+    void getImpositions_isProtectedByRelease1BFeatureToggle() throws NoSuchMethodException {
         Method method = DefendantAccountApiController.class.getMethod(
-            "getDefendantAccountImpositions", Long.class, String.class);
+            "getImpositions", Long.class, String.class);
 
         FeatureToggle featureToggle = method.getAnnotation(FeatureToggle.class);
 
         assertNotNull(featureToggle);
-        assertEquals("release-1b", featureToggle.feature());
-        assertEquals("launchdarkly.default-flag-values.release-1b", featureToggle.defaultValueProperty());
+        assertEquals(FeatureFlags.RELEASE_1B, featureToggle.feature());
+        assertEquals(FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY, featureToggle.defaultValueProperty());
     }
 
     @Test

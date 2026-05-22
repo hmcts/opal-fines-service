@@ -10,24 +10,23 @@ import static org.mockito.Mockito.when;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.projection.DefendantAccountImpositionData;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.mapper.DefendantAccountImpositionMapper;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
-class OpalDefendantAccountImpositionsServiceTest {
+class OpalImpositionServiceTest {
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
     private ImpositionRepository impositionRepository;
@@ -36,7 +35,7 @@ class OpalDefendantAccountImpositionsServiceTest {
     private DefendantAccountImpositionMapper defendantAccountImpositionMapper;
 
     @InjectMocks
-    private OpalDefendantAccountService service;
+    private OpalImpositionService service;
 
     @Test
     void getDefendantAccountImpositions_returnsMappedPayloadWithAccountVersion() {
@@ -45,17 +44,20 @@ class OpalDefendantAccountImpositionsServiceTest {
         DefendantAccountImpositionsResponseCommon payload = new DefendantAccountImpositionsResponseCommon()
             .impositions(List.of());
 
-        when(defendantAccountRepository.findVersionDataByDefendantAccountId(defendantAccountId))
-            .thenReturn(Optional.of(new DefendantAccountVersionData(defendantAccountId, 12L)));
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .versionNumber(12L)
+            .build();
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(account);
         when(impositionRepository.findDefendantAccountImpositionsByDefendantAccountId(defendantAccountId))
             .thenReturn(impositions);
         when(defendantAccountImpositionMapper.toResponse(impositions)).thenReturn(payload);
 
-        var response = service.getDefendantAccountImpositions(defendantAccountId);
+        var response = service.getImpositions(defendantAccountId);
 
         assertSame(payload, response.getPayload());
         assertEquals(BigInteger.valueOf(12), response.getVersion());
-        verify(defendantAccountRepository).findVersionDataByDefendantAccountId(defendantAccountId);
+        verify(defendantAccountRepositoryService).findById(defendantAccountId);
         verify(impositionRepository).findDefendantAccountImpositionsByDefendantAccountId(defendantAccountId);
         verify(defendantAccountImpositionMapper).toResponse(impositions);
     }
@@ -63,15 +65,16 @@ class OpalDefendantAccountImpositionsServiceTest {
     @Test
     void getDefendantAccountImpositions_whenAccountDoesNotExist_throwsNotFound() {
         Long defendantAccountId = 77L;
-        when(defendantAccountRepository.findVersionDataByDefendantAccountId(defendantAccountId))
-            .thenReturn(Optional.empty());
+        EntityNotFoundException expectedException = new EntityNotFoundException(
+            "Defendant Account not found with id: " + defendantAccountId);
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenThrow(expectedException);
 
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.getDefendantAccountImpositions(defendantAccountId)
+            () -> service.getImpositions(defendantAccountId)
         );
 
-        verify(defendantAccountRepository).findVersionDataByDefendantAccountId(defendantAccountId);
+        verify(defendantAccountRepositoryService).findById(defendantAccountId);
         verifyNoInteractions(impositionRepository, defendantAccountImpositionMapper);
     }
 }

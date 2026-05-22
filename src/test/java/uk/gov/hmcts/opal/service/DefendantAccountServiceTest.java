@@ -34,7 +34,6 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -123,45 +122,6 @@ class DefendantAccountServiceTest {
         );
 
         // proxy must not be called
-        verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(defendantAccountServiceProxy);
-        verifyNoMoreInteractions(userStateService, userState);
-    }
-
-    @Test
-    void getDefendantAccountImpositions_whenUserHasPermission_returnsProxyResult() {
-        Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
-        GetDefendantAccountImpositionsResponse proxyResponse = GetDefendantAccountImpositionsResponse.builder()
-            .version(BigInteger.valueOf(9))
-            .build();
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(defendantAccountServiceProxy.getDefendantAccountImpositions(defendantAccountId)).thenReturn(proxyResponse);
-
-        GetDefendantAccountImpositionsResponse result =
-            defendantAccountService.getDefendantAccountImpositions(defendantAccountId, authHeader);
-
-        assertSame(proxyResponse, result);
-        verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verify(defendantAccountServiceProxy).getDefendantAccountImpositions(defendantAccountId);
-        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
-    }
-
-    @Test
-    void getDefendantAccountImpositions_whenUserLacksPermission_throwsPermissionNotAllowed() {
-        Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-
-        assertThrows(
-            PermissionNotAllowedException.class,
-            () -> defendantAccountService.getDefendantAccountImpositions(defendantAccountId, authHeader)
-        );
-
         verify(userStateService).checkForAuthorisedUser(authHeader);
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);

@@ -64,7 +64,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns major creditor imposition with schema-valid body")
-    void getDefendantAccountImpositions_returnsMajorCreditorImposition() throws Exception {
+    void getImpositions_returnsMajorCreditorImposition() throws Exception {
         MvcResult result = performGetImpositions(551002L)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -100,7 +100,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns minor creditor imposition")
-    void getDefendantAccountImpositions_returnsMinorCreditorImposition() throws Exception {
+    void getImpositions_returnsMinorCreditorImposition() throws Exception {
         MvcResult result = performGetImpositions(551008L)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -127,7 +127,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns empty list for account without impositions")
-    void getDefendantAccountImpositions_whenNoImpositions_returnsEmptyList() throws Exception {
+    void getImpositions_whenNoImpositions_returnsEmptyList() throws Exception {
         MvcResult result = performGetImpositions(551010L)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -143,7 +143,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns 404 for missing account")
-    void getDefendantAccountImpositions_whenAccountDoesNotExist_returnsNotFound() throws Exception {
+    void getImpositions_whenAccountDoesNotExist_returnsNotFound() throws Exception {
         performGetImpositions(559999L)
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -153,7 +153,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns 403 when user lacks permission")
-    void getDefendantAccountImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
+    void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
 
         performGetImpositions(551002L)
