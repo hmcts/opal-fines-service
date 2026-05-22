@@ -29,13 +29,11 @@
       "minLength": 1,
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
+    "timeline_data": false,
     "status_message": {
       "type": ["string", "null"],
       "minLength": 1,
       "description": "System message related to the account_status"
-    },
-    "timeline_data": {
-      "description": "Legacy inbound timeline data. Accepted for backwards compatibility and ignored by the backend."
     }
   },
   "required": [

@@ -13,8 +13,6 @@ Feature: Draft Account Snapshot Identity
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk1                                |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the draft account is created successfully with the following data
       | business_unit_id                    | 73                               |
       | account_type                        | Fine                             |

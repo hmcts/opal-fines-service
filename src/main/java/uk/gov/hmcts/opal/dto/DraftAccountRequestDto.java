@@ -11,6 +11,4 @@ public interface DraftAccountRequestDto {
     String getSubmittedByName();
 
     DraftAccountType getAccountType();
-
-    String getTimelineData();
 }
