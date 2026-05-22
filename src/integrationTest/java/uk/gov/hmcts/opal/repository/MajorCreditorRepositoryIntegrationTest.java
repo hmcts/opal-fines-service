@@ -25,6 +25,8 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Major Creditor Repository Integration Tests")
@@ -60,6 +62,8 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2887")
+    @JiraEpic("PO-304")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
 
         MajorCreditorEntity majorCreditor = entityManager.find(MajorCreditorEntity.class, MAJOR_CREDITOR_ID);
@@ -71,6 +75,8 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2887")
+    @JiraEpic("PO-304")
     void shouldKeepAssociationsLazyForLiteEntityGraphFetch() {
         EntityGraph<?> liteGraph = entityManager.getEntityGraph(MajorCreditorEntity.ENTITY_GRAPH_LITE);
         MajorCreditorEntity majorCreditor = entityManager.find(
@@ -87,6 +93,8 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2887")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForDirectFetch() {
         MajorCreditorEntity majorCreditor = majorCreditorRepository.findById(MAJOR_CREDITOR_ID).orElseThrow();
 
@@ -98,6 +106,8 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2887")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForSpecificationFetch() {
         Page<MajorCreditorEntity> page = majorCreditorRepository.findBy(
             MajorCreditorSpecs.equalsMajorCreditorId(MAJOR_CREDITOR_ID),

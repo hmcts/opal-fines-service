@@ -22,12 +22,16 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.OpalDefendantsPaymentTermsIntegrationTest")
 class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: Add Payment Terms – Happy Path [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_Happy() throws Exception {
         authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
 
@@ -81,6 +85,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Unauthorized when missing auth header [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_Unauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).checkForAuthorisedUser(any());
@@ -130,6 +136,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Forbidden when user lacks permission [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_Forbidden() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             UserState.builder()
@@ -188,6 +196,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Not Found when account not in header BU [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_NotFound_WrongBU() throws Exception {
         authorise((short) 99, FinesPermission.AMEND_PAYMENT_TERMS);
 
@@ -238,6 +248,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Conflict when If-Match does not match [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_IfMatchConflict() throws Exception {
         authoriseAllPermissions();
 
@@ -288,6 +300,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Conflict when If-Match missing [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_IfMatchMissing() throws Exception {
         authoriseAllPermissions();
 
@@ -343,6 +357,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Schema validation error [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_SchemaValidation() throws Exception {
         authoriseAllPermissions();
 
@@ -364,6 +380,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Timeout [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_Timeout() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.REQUEST_TIMEOUT, "Timeout"));
@@ -413,6 +431,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Service unavailable [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_ServiceUnavailable() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenThrow(new ResponseStatusException(
@@ -463,6 +483,8 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Server error [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
     void test_Opal_AddPaymentTerms_ServerError() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenThrow(new ResponseStatusException(

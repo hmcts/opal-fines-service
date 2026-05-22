@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @DisplayName("Enforcement Repository Integration Tests")
 @Sql(
@@ -44,6 +46,8 @@ class EnforcementRepositoryIntegrationTest extends AbstractIntegrationTest {
     private EntityManager entityManager;
 
     @Test
+    @JiraStory("PO-2883")
+    @JiraEpic("PO-304")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
         entityManager.clear();
 
@@ -58,6 +62,8 @@ class EnforcementRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2883")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForDirectFetch() {
         entityManager.clear();
 
@@ -75,6 +81,8 @@ class EnforcementRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2883")
+    @JiraEpic("PO-304")
     void shouldLoadLiteEntityGraphForMostRecentFetch() {
         entityManager.clear();
 

@@ -26,6 +26,8 @@ import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -45,6 +47,8 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest
     private CreditorAccountRepository creditorAccountRepository;
 
     @Test
+    @JiraStory("PO-1992")
+    @JiraEpic("PO-2234")
     void patchMinorCreditorAccount_whenLocalDefaultDisabled_returns405() throws Exception {
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
 

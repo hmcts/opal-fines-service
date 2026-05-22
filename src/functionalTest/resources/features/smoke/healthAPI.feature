@@ -1,4 +1,4 @@
-@Smoke
+@Smoke @JIRA-STORY:PO-125 @JIRA-EPIC:PO-2233
 Feature: Health API
 
   Scenario: The health endpoint reports that the service is up

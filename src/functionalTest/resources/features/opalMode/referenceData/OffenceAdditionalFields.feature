@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:reference-data
 Feature: Offence Additional Fields
 
-  @JIRA-STORY:PO-614 @JIRA-EPIC:PO-304
+  @JIRA-STORY:PO-614 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5718
   Scenario: Offence reference data includes additional fields
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the offence ref data api filtering by cjs code "AA06001"
