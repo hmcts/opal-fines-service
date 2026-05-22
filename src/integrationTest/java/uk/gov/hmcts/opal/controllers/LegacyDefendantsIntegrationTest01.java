@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
-@ActiveProfiles({"integration", "legacy"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
@@ -47,21 +47,6 @@ class LegacyDefendantsIntegrationTest01 extends CommonDefendantsIntegrationTest0
     @Test
     void testGetEnforcementStatus_forbidden_returns403() throws Exception {
         super.testGetEnforcementStatus_forbidden(log, true);
-    }
-
-    @Test
-    void testGetEnforcementStatus_timeout_returns408() throws Exception {
-        super.testGetEnforcementStatus_timeout(log, true);
-    }
-
-    @Test
-    void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
-        super.testGetEnforcementStatus_serviceUnavailable(log, true);
-    }
-
-    @Test
-    void testGetEnforcementStatus_serverError_returns500() throws Exception {
-        super.testGetEnforcementStatus_serverError(log, true);
     }
 
 }

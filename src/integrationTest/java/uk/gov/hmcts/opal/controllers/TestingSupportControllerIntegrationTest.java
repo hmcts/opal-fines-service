@@ -8,8 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserStateByIdNotFound;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserStateByIdWithPermission;
 
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
@@ -46,9 +44,6 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private AccessTokenService accessTokenService;
-
-    @MockitoBean
-    private UserStateClientService userStateClientService;
 
     @Test
     void testGetAppMode() throws Exception {
@@ -96,19 +91,18 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetUserState() throws Exception {
-        UserState userState = UserStateUtil.permissionUser((short) 5, FinesPermission.ACCOUNT_ENQUIRY);
-        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
+        stubUserStateByIdWithPermission(1L, 5, FinesPermission.ACCOUNT_ENQUIRY);
 
         mockMvc.perform(get("/testing-support/user-client/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.user_name").value(userState.getUserName()))
-            .andExpect(jsonPath("$.user_id").value(userState.getUserId()));
+            .andExpect(jsonPath("$.user_name").value("normal@users.com"))
+            .andExpect(jsonPath("$.user_id").value(1));
     }
 
     @Test
     void testGetUserStateNotFound() throws Exception {
-        when(userStateClientService.getUserState(999L)).thenReturn(Optional.empty());
+        stubUserStateByIdNotFound(999L);
 
         mockMvc.perform(get("/testing-support/user-client/999"))
             .andExpect(status().isNotFound());

@@ -1,13 +1,13 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.LegacyDefendantsUtil.getPaymentTermsRequestSampleAsJson;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -17,25 +17,22 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-
-@ActiveProfiles({"integration", "legacy"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsPaymentsIntegrationTest")
-class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
+class LegacyDefendantsPaymentsIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     @Test
     @DisplayName("LEGACY: Add Payment Card Request – Happy Path [@PO-2088]")
     void testAddPaymentCardRequest_Happy() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
+        stubUserWithAllPermissions(78);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "3");
 
@@ -56,11 +53,10 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @Test
     @DisplayName("LEGACY: Add Payment Card Request – 500 Error [@PO-2088]")
     void testAddPaymentCardRequest_500() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
+        stubUserWithAllPermissions(78);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "1");
 
@@ -78,11 +74,10 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
     void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
+        stubUserWithAllPermissions(69);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "69");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
 
@@ -104,11 +99,10 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @Test
     @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
     void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
+        stubUserWithAllPermissions(500);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "500");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
 

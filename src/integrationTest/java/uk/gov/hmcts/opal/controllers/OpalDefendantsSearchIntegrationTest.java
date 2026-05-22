@@ -6,52 +6,41 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
-@ActiveProfiles({"integration", "opal"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalDefendantsIntegrationTest01")
-class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
+class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
     private static final String DEFENDANTS_SEARCH_RESP_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/postDefendantAccountsSearchResponse.json";
-
-    @MockitoBean
-    UserStateService userStateService;
 
     // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
@@ -60,26 +49,14 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
 
-    @MockitoBean
-    private UserState userState;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @BeforeEach
-    void setup() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-    }
-
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search defendant accounts – POST with valid criteria (seed id=77)")
     void testPostDefendantAccountsSearch_Opal(boolean consolidated) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header(
-            "authorization", "Bearer some_value")
+            "authorization", "Bearer " + validToken)
             .contentType(MediaType.APPLICATION_JSON)
             .content(searchCriteria2(consolidated)));
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -104,10 +81,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search defendant accounts – POST no matches (different BU)")
     void testPostDefendantAccountsSearch_Opal_NoResults(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -142,10 +119,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search by exact name + BU = 1 match (seed id=77)")
     void testPostDefendantAccountsSearch_Opal_ByNameAndBU(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                        "active_accounts_only": true,
@@ -183,10 +160,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Postcode match ignores spaces/hyphens (MA4 1AL vs MA41AL)")
     void testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                             {
                                  "active_accounts_only": true,
@@ -228,10 +205,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         boolean consolidation,
         int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                             {
                                       "active_accounts_only": true,
@@ -265,10 +242,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: PCR exact (090A)")
     void testPostDefendantAccountsSearch_Opal_PcrExact(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -296,10 +273,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: PCR no match -> 0 records")
     void testPostDefendantAccountsSearch_Opal_PcrNoMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -325,10 +302,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
     void testPostDefendantAccountsSearch_Opal_NiStartsWith(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -366,10 +343,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Address line 1 starts-with (\"Lumber\") -> 1 record")
     void testPostDefendantAccountsSearch_Opal_AddressStartsWith(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -409,10 +386,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: DOB exact (1980-02-03) -> 1 record")
     void testPostDefendantAccountsSearch_Opal_DobExact(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -453,10 +430,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Include aliases = true still returns match on main name (no alias in DB)")
     void testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -497,10 +474,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
     void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": false,
@@ -545,10 +522,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
     void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -578,10 +555,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("OPAL: No defendant object in payload → party still resolved")
     void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(boolean consolidation)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -610,10 +587,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search without business_unit_ids → still returns results")
     void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -641,10 +618,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Personal party (Anna Graham) includes title, forenames, and surname")
     void testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -682,10 +659,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Organisation returns no personal fields (awaiting seeded org data)")
     void testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -727,10 +704,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Alias search fallback → matches on main name when no alias exists")
     void testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -767,10 +744,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Optional fields correctly mapped or excluded when null")
     void testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -809,10 +786,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
     void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -842,9 +819,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     public void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
-        mockMvc.perform(post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+        mockMvc.perform(post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -866,10 +843,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
     void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                            "active_accounts_only": true,
@@ -904,10 +881,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Match on alias when both alias and main name exist")
     void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -942,11 +919,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - surname + postcode (both must match) [@PO-710]")
     void testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with surname "Graham" AND postcode "MA4 1AL" - should match account 77
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -981,11 +958,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - surname + wrong postcode (no matches expected) [@PO-710]")
     void testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with surname "Graham" AND wrong postcode - should return 0 results
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1021,10 +998,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - forenames + surname + DOB + NI (all must match) [@PO-710]")
     void testPostDefendantAccountsSearch_AC1_CompletePersonalDetails(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1061,11 +1038,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - address + NI number (both must match) [@PO-710]")
     void testPostDefendantAccountsSearch_AC1_AddressAndNI(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with address line 1 starting "Lumber" AND NI starting "A111" - should match account 77
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1102,11 +1079,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - wrong business unit excludes otherwise matching records [@PO-710]")
     void testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with correct surname but wrong business unit - should return 0 results
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1142,11 +1119,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC2: Only accounts within specified business units are returned [@PO-710]")
     void testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Should find accounts 77, 88, 901, 333 but filter to only return those in business unit 78
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1187,11 +1164,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("AC3a: Active accounts only filtering - false includes both active and completed accounts [@PO-710]")
     void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Test AC3a: active_accounts_only = false should include both active and completed accounts
         ResultActions allAccountsActions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": false,
@@ -1233,10 +1210,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
     void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                            "active_accounts_only": true,
@@ -1272,11 +1249,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - company name + address line 1 (both must match) [@PO-710]")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with company name "TechCorp Solutions Ltd" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1314,11 +1291,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - company name + postcode (both must match) [@PO-710]")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with company name "TechCorp Solutions Ltd" AND postcode "B15 3TG" - should match account 555
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1357,11 +1334,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - partial company name + address (both must match) [@PO-710]")
     void testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with partial company name "TechCorp" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1399,11 +1376,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - correct name + wrong address (no matches expected) [@PO-710]")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with correct company name "TechCorp Solutions Ltd" BUT wrong address "Office Tower"
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1437,11 +1414,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - multiple address fields (all must match) [@PO-710]")
     void testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with company name AND multiple address fields - all must match
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1479,11 +1456,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9a: Only company accounts within specified business units are returned [@PO-710]")
     void testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Apply business unit filter to only BU 78 - should return only TechCorp Solutions Ltd
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1524,11 +1501,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("AC9b: Active accounts only filtering for company accounts - excludes completed accounts [@PO-710]")
     void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation, int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // active_accounts_only = false should include both active and completed company accounts
         ResultActions allAccountsActions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                        "active_accounts_only": false,
@@ -1567,11 +1544,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9d: Where company name or alias starts with input [@PO-710]")
     void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with partial alias "TC Global" - should match "TC Global Ltd" alias (starts with)
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1608,11 +1585,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9di: Where company name or alias results exactly matches input [@PO-710]")
     void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with exact alias "TechCorp Ltd" - should match exactly
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1649,11 +1626,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9e: Company address partial match - Address Line 1 starts with input value [@PO-710]")
     void testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with partial address "Business" - should match "Business Park"
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1690,11 +1667,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9ei: Company postcode partial match - Postcode starts with input value [@PO-710]")
     void testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // Search with partial postcode "B15" - should match "B15 3TG"
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1737,12 +1714,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         boolean consolidation,
         int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // active_accounts_only is ignored because account_number is provided.
         // When consolidation_search=true, the consolidated path also drops zero-balance matches, so only 177A remains.
         ResultActions activeTrue = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1768,7 +1745,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         // Case 2: active_accounts_only = false (also ignored; set should be identical)
         ResultActions activeFalse = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": false,
@@ -1797,11 +1774,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
     void testPostDefendantAccountsSearch_OrganisationFlagRespected1(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // === AC1: organisation = true → only organisation defendants (e.g. 333A) ===
         ResultActions orgTrue = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(true)));
 
         String bodyTrue = orgTrue.andReturn().getResponse().getContentAsString();
@@ -1820,11 +1797,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(booleans = { false, true })
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
     void testPostDefendantAccountsSearch_OrganisationFlagRespected2(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         // === AC2: organisation = false → only individual defendants (e.g. 177A, 177B) ===
         ResultActions orgFalse = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(false)));
 
         String bodyFalse = orgFalse.andReturn().getResponse().getContentAsString();
@@ -1925,10 +1902,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2296: Consolidated search of defendant accounts")
     void testPostDefendantAccountsConsolidatedSearch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content(searchCriteria2(true)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1951,10 +1928,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2966: AC3:"
         + "consolidation_search is true API should return new fields where account has no warnings/errors")
     void testPostDefendantAccountsConsolidatedSearch_noWarningsNoErrors() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content(searchCriteria3(true)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1977,10 +1954,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2966: AC5:"
         + "consolidation_search is true API should return new fields where account has no errors but has warnings")
     void testPostDefendantAccountsConsolidatedSearch_hasWarningsNoErrors() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content(
                     searchCriteriaByAccountNumber("1989", true)));
 
@@ -2004,10 +1981,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2966: AC6:"
         + "consolidation_search is true API should return new fields where account has warnings and errors")
     void testPostDefendantAccountsConsolidatedSearch_hasWarningsHasErrors() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON).content(
                     searchCriteriaByAccountNumber("1988", true)));
 

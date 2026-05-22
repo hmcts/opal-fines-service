@@ -4,24 +4,20 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
 
-import java.util.Collections;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Slf4j(topic = "opal.OpalDefendantsPatchIntegrationTest")
@@ -33,7 +29,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer currentVersion = versionFor(77L);
-        HttpHeaders headers = authorisedHeaders("some_value", "78", "\"" + currentVersion + "\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"" + currentVersion + "\"");
 
         String requestJson = """
             {
@@ -64,7 +60,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     void patch_conflict_whenIfMatchDoesNotMatch() throws Exception {
         authoriseAllPermissions();
 
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"999\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"999\"");
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
@@ -83,7 +79,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     void patch_badRequest_whenIfMatchMissing() throws Exception {
         authoriseAllPermissions();
 
-        HttpHeaders headers = authorisedHeaders("good_token", "78", null);
+        HttpHeaders headers = authorisedHeaders(validToken, "78", null);
 
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
@@ -101,13 +97,9 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Forbidden when user lacks permission [@PO-1565]")
     void patch_forbidden_whenUserLacksAccountMaintenance() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            UserState.builder().userId(999L).userName("no-perm-user").businessUnitUser(Collections.emptySet()).build());
+        stubUserWithNoPermissions(78);
 
-        UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
-
-        HttpHeaders headers = authorisedHeaders("token_without_perm", "78", "\"0\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"0\"");
 
         mockMvc.perform(
                 patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
@@ -119,9 +111,9 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Not Found (account not in BU) [@PO-1565]")
     void patch_notFound_whenAccountNotInHeaderBU() throws Exception {
-        authoriseAllPermissions();
+        authorise((short) 99, FinesPermission.ACCOUNT_MAINTENANCE);
 
-        HttpHeaders headers = authorisedHeaders("good_token", "99", "\"0\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "99", "\"0\"");
 
         ResultActions result = mockMvc.perform(
             patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
@@ -139,7 +131,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     void patch_badRequest_whenMultipleGroupsProvided() throws Exception {
         authoriseAllPermissions();
 
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"0\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
               {
@@ -154,7 +146,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     void patch_badRequest_whenTypesInvalid() throws Exception {
         authoriseAllPermissions();
 
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"0\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
                   {
@@ -177,7 +169,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer currentVersion = versionFor(77L);
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"" + currentVersion + "\"");
 
         String body = """
             {
@@ -206,7 +198,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer currentVersion = versionFor(77L);
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"" + currentVersion + "\"");
 
         String body = """
             {
@@ -229,7 +221,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer currentVersion = versionFor(77L);
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"" + currentVersion + "\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
               {"collection_order":{"collection_order_flag":true,"collection_order_date":"2025-01-01"}}
@@ -242,7 +234,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer currentVersion = versionFor(77L);
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"" + currentVersion + "\"");
 
         mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
               {"collection_order":{"collection_order_flag":true}}
@@ -255,7 +247,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer currentVersion = versionFor(77L);
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"" + currentVersion + "\"");
 
         String body = """
             {
@@ -297,7 +289,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer clearVersion = versionFor(77L);
-        HttpHeaders clearHeaders = authorisedHeaders("good_token", "78", "\"" + clearVersion + "\"");
+        HttpHeaders clearHeaders = authorisedHeaders(validToken, "78", "\"" + clearVersion + "\"");
 
         ResultActions clearAction = mockMvc.perform(
             patch(URL_BASE + "/77").headers(clearHeaders).contentType(MediaType.APPLICATION_JSON).content("""
@@ -327,7 +319,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer clearVersion = versionFor(77L);
-        HttpHeaders clearHeaders = authorisedHeaders("good_token", "78", "\"" + clearVersion + "\"");
+        HttpHeaders clearHeaders = authorisedHeaders(validToken, "78", "\"" + clearVersion + "\"");
 
         ResultActions clearAction = mockMvc.perform(
             patch(URL_BASE + "/77").headers(clearHeaders).contentType(MediaType.APPLICATION_JSON).content("""
@@ -356,7 +348,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         authoriseAllPermissions();
 
         Integer currentVersion = versionFor(77L);
-        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+        HttpHeaders headers = authorisedHeaders(validToken, "78", "\"" + currentVersion + "\"");
 
         ResultActions result = mockMvc.perform(
             patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
@@ -376,19 +368,13 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     }
 
     @Test
-    @DisplayName("OPAL: PATCH Update Defendant Account - Missing required headers [@PO-2281]")
-    void patch_badRequest_whenMissingRequiredHeader() throws Exception {
-        authoriseAllPermissions();
+    @DisplayName("OPAL: PATCH Update Defendant Account - Unauthorized when authorization header is missing [@PO-2281]")
+    void patch_unauthorized_whenAuthorizationHeaderMissing() throws Exception {
         HttpHeaders headers = new HttpHeaders();
+
         mockMvc.perform(patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON).content("")
-            ).andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"))
-            .andExpect(jsonPath("$.title").value("Missing Required Header"))
-            .andExpect(jsonPath("$.detail").value("Required request header \"Authorization\" is missing"))
-            .andExpect(jsonPath("$.instance").isNotEmpty())
-            .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
-            .andExpect(jsonPath("$.retriable").value(false));
+            ).andExpect(status().isUnauthorized());
     }
 }

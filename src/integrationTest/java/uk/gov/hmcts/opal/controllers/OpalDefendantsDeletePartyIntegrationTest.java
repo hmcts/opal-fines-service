@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 
 @Slf4j(topic = "opal.OpalDefendantsDeletePartyIntegrationTest")
 class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
@@ -29,7 +30,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
         Integer currentVersion = versionFor(defendantAccountId);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -87,7 +88,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
         Integer currentVersion = versionFor(78L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -116,12 +117,12 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     @Test
     @DisplayName("OPAL: DELETE Remove DAP – Not Found (account not in BU)")
     void delete_notFound_whenAccountNotInHeaderBU() throws Exception {
-        authoriseAllPermissions();
+        authorise((short) 99, FinesPermission.ACCOUNT_MAINTENANCE);
 
         Integer currentVersion = versionFor(2006L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 

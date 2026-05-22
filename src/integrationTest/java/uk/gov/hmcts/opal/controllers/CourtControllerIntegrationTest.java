@@ -2,19 +2,17 @@ package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.UserStateService;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,12 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
-@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.CourtControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_courts.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("CourtControllerIntegrationTest")
-class CourtControllerIntegrationTest extends AbstractIntegrationTest {
+class CourtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/courts";
 
@@ -36,18 +34,21 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String GET_COURTS_REF_DATA_RESPONSE =
         SchemaPaths.REFERENCE_DATA + "/getCourtsRefDataResponse.json";
 
-    @MockitoBean
-    UserStateService userStateService;
-
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @BeforeEach
+    void stubUserService() {
+        stubAuthorisedUser();
+    }
 
     @Test
     @DisplayName("Get court by ID - When court does exist [@PO-272, @PO-424]")
     void testGetCourtById() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/7")
-                                                    .header("authorization", "Bearer some_value"));
+
+                                                    .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -71,7 +72,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
-                                                    .header("authorization", "Bearer some_value"));
+                                                    .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtById_WhenCourtDoesNotExist: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -84,7 +85,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostCourtsSearch() throws Exception {
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                                                    .header("authorization", "Bearer some_value")
+                                                    .header("authorization", "Bearer " + validToken)
                                                     .contentType(MediaType.APPLICATION_JSON)
                                                     .content("{\"businessUnitId\":\"99\"}"));
 
@@ -109,7 +110,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post search courts - When court does not exist [@PO-272, @PO-424]")
     void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                            .header("authorization", "Bearer some_value")
+                            .header("authorization", "Bearer " + validToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"courtId\":\"2\"}"));
 
@@ -124,7 +125,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtRefData() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                                                    .header("authorization", "Bearer some_value")
+                                                    .header("authorization", "Bearer " + validToken)
                                                     .param("business_unit", "99"));
 
         String body = actions.andReturn().getResponse().getContentAsString();

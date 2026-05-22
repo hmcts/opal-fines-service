@@ -3,14 +3,12 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +32,7 @@ import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 
-@ActiveProfiles({"integration", "opal"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
@@ -267,7 +265,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         // Arrange
         final Long creditorAccountId = 606L;
         final Long partyId = 99007L;
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubAuthorisedUser();
 
         Specification<ImpositionEntity> impositionSpec = ImpositionSpecs
             .equalsCreditorAccountId(creditorAccountId);
@@ -294,6 +292,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         // Act
         ResultActions actions = mockMvc.perform(delete(URL_BASE + "/" + creditorAccountId)
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header("authorization", authHeader())
                             .header("If-Match", "0")
                             .param("ignore_missing", "false"));
 

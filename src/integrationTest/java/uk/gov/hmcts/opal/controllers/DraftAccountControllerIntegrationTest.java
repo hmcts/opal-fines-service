@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -10,8 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
 
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +20,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
@@ -33,10 +29,11 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @Test
     @DisplayName("Delete draft accounts [@PO-973, @PO-591]")
     void testDeleteDraftAccountById_success() throws Exception {
+        authoriseNormalUserForDraftAccount(78);
 
         ResultActions resultActions = mockMvc.perform(delete(URL_BASE + "/4")
             .header("If-Match", "0")
-            .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer " + validToken));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testDeleteDraftAccountById_success: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -52,13 +49,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void methodsShouldReturn400_whenRequestPayloadIsInvalid(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78,
-                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccount(78);
 
         mockMvc.perform(requestBuilder
-                .header("Authorization", "Bearer some_value")
+                .header("Authorization", "Bearer " + validToken)
                 .header("Accept", "application/json")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -78,10 +72,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
+        stubUserWithNoPermissions(78);
 
         ResultActions resultActions = mockMvc.perform(requestBuilder
-            .header("Authorization", "Bearer some_value")
+            .header("Authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
@@ -114,13 +108,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         long nonExistentId = 999L;
 
         // Mock the service behavior
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78,
-                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccount(78);
 
         mockMvc.perform(requestBuilder
-                .header("Authorization", "Bearer some_value")
+                .header("Authorization", "Bearer " + validToken)
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -141,12 +132,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78,
-                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccount(78);
         mockMvc.perform(requestBuilder
-                .header("Authorization", "Bearer some_value")
+                .header("Authorization", "Bearer " + validToken)
                 .header("Accept", "application/xml")
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)

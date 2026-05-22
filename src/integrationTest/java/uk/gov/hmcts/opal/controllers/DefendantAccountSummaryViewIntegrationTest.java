@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.ResultActions;
 
 @DisplayName("Defendant Account At A Glance Payment Terms Integration Tests")
@@ -24,7 +25,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
 
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_MULTI_TERMS_ONE_ACTIVE)
-                .header("authorization", "Bearer some_value")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
         );
 
         resultActions.andExpect(status().isOk())
@@ -46,7 +47,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
 
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_NO_ACTIVE_TERMS)
-                .header("authorization", "Bearer some_value")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                 .accept(APPLICATION_PROBLEM_JSON)
         );
 

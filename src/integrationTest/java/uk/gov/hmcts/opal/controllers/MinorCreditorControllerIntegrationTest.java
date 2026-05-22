@@ -1,35 +1,27 @@
 package uk.gov.hmcts.opal.controllers;
 
 import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.REQUEST_TIMEOUT;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,17 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithPermission;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithPermissions;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
-abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
+abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     protected static final String URL_BASE = "/minor-creditor-accounts";
-    private static final String AUTH_HEADER = "Bearer some_value";
     private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
 
@@ -57,18 +48,29 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     private static final String MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE =
         "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
 
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    UserStateClientService userStateClientService;
-
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
+    @MockitoSpyBean
+    private MinorCreditorSearchProxy minorCreditorSearchProxy;
+
+    protected static String authHeader() {
+        return "Bearer " + validToken;
+    }
+
+    private static void authoriseSearchAndViewAccounts() {
+        stubUserWithPermission(10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+    }
+
+    private static void authorisePatchMinorCreditor() {
+        stubUserWithPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                                FinesPermission.ACCOUNT_MAINTENANCE);
+    }
+
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -79,7 +81,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(objectMapper.writeValueAsString(search))
-                                                          .header("authorization", "Bearer some_value"));
+                                                          .header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -135,7 +137,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void legacyPostSearchMinorCreditorImpl_500Error(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(101))
@@ -146,7 +148,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(
-            objectMapper.writeValueAsString(search)).header("authorization", "Bearer some_value"));
+            objectMapper.writeValueAsString(search)).header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostMinorCreditorSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -157,7 +159,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_checkLetter_returnsBoth(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -166,7 +168,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(search)))
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].account_number")
@@ -174,7 +177,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_noCheckLetter_returnsBoth(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -183,7 +186,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(search)))
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].account_number")
@@ -191,7 +195,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_noResultsForUnknownBusinessUnit_returnsEmpty(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(999))
@@ -201,7 +205,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         ResultActions ra = mockMvc.perform(post(URL_BASE + "/search")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(objectMapper.writeValueAsString(search))
-                                               .header("authorization", "Bearer some_value"));
+                                               .header("authorization", authHeader()));
 
         ra.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -210,7 +214,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_orgNamePrefix_normalizedMatches(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         // "Acme Supplies Ltd" normalized; mixed case + spaces + punctuation
         MinorCreditorSearch search = MinorCreditorSearch.builder()
@@ -223,7 +227,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].account_number")
@@ -231,7 +235,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void search_accountNumber_withWildcardChars_treatedLiterally(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         // Your helper escapes user input then appends %; verify no matches for literal wildcards
         MinorCreditorSearch search = MinorCreditorSearch.builder()
@@ -241,15 +245,13 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(search)))
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(0));
     }
 
     void postSearch_missingAuthHeader_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
-
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(java.util.List.of(10))
             .activeAccountsOnly(false)
@@ -261,14 +263,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .accept(MediaType.APPLICATION_PROBLEM_JSON) // ok even if server doesn't set it
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 
     void postSearch_invalidToken_returns401ProblemJson() throws Exception {
-
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Invalid token"))
-            .when(userStateService).checkForAuthorisedUser(any());
-
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(java.util.List.of(10))
             .activeAccountsOnly(false)
@@ -277,15 +275,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("authorization", "Bearer some_value")
+                            .header("authorization", "Bearer " + expiredToken)
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(jsonPath("$.title").value("Unauthorized"));
     }
 
     void postSearch_authenticatedWithoutPermission_returns403ProblemJson() throws Exception {
-        doThrow(new ResponseStatusException(FORBIDDEN, "Forbidden"))
-            .when(userStateService).checkForAuthorisedUser(any());
+        stubUserWithNoPermissions(10);
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(java.util.List.of(10))
@@ -295,17 +292,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("authorization", "Bearer some_value")
+                            .header("authorization", authHeader())
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
+        authorisePatchMinorCreditor();
 
         final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
         Integer currentVersion = getCurrentCreditorAccountVersion();
@@ -316,7 +310,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         ResultActions a = mockMvc.perform(
             patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", AUTH_HEADER)
+                .header("Authorization", authHeader())
                 .header("If-Match", currentEtag)
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                 .content(requestJson));
@@ -341,17 +335,13 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(noPermissionsUser());
-
-        UserState userState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
+        stubUserWithNoPermissions(10);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
         mockMvc.perform(patch(URL_BASE + "/606")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer some_value")
+                            .header("Authorization", authHeader())
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", "10")
                             .content(patchMinorCreditorWithoutPermissionRequestJson()))
@@ -360,14 +350,13 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
+        stubUserWithPermission(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
         mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", AUTH_HEADER)
+                            .header("Authorization", authHeader())
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                             .content(patchMinorCreditorPayoutHoldRequestJson()))
@@ -376,15 +365,13 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD));
+        stubUserWithPermission(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
         mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", AUTH_HEADER)
+                            .header("Authorization", authHeader())
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                             .content(patchMinorCreditorPayoutHoldRequestJson()))
@@ -393,16 +380,13 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
+        authorisePatchMinorCreditor();
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
         mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", AUTH_HEADER)
+                            .header("Authorization", authHeader())
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                             .content("{}"))
@@ -474,7 +458,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
     void testAC1b_ActiveAccountsOnlyTrue(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -485,7 +469,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].account_number")
@@ -493,7 +477,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void testAC1b_ActiveAccountsOnlyFalse(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -504,7 +488,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].account_number")
@@ -513,7 +497,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1a: Test multiple search parameters - creditor personal details + business unit
     void testAC1a_MultiParam_ForenamesAndSurname(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -526,7 +510,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.creditor_accounts[*].account_number")
@@ -539,7 +523,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1a: Test multiple search parameters - postcode + business unit + account number
     void testAC1a_MultiParam_PostcodeAndAccountNumber(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -552,7 +536,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.creditor_accounts[*].account_number")
@@ -563,7 +547,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1a: Test multiple search parameters - organisation details + business unit + address
     void testAC1a_MultiParam_OrganisationAndAddress(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -576,7 +560,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
@@ -585,7 +569,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC1ai: Test that accounts from different business units are not returned
     void testAC1ai_BusinessUnitFiltering(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10, 11)) // Multiple business units
@@ -595,7 +579,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.creditor_accounts[*].business_unit_id")
                            .value(org.hamcrest.Matchers.everyItem(
@@ -608,7 +592,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2a: Test exact match surname functionality - exact match enabled
     void testAC2a_ExactMatchSurnameEnabled(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -621,7 +605,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.creditor_accounts[*].surname")
@@ -632,7 +616,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2ai: Test exact match surname functionality - exact match disabled (starts with)
     void testAC2ai_ExactMatchSurnameDisabled(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -645,7 +629,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].surname")
@@ -654,7 +638,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2b: Test exact match forenames functionality - exact match enabled
     void testAC2b_ExactMatchForenamesEnabled(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -667,7 +651,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
@@ -678,7 +662,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2bi: Test exact match forenames functionality - exact match disabled (starts with)
     void testAC2bi_ExactMatchForenamesDisabled(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -691,7 +675,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
@@ -700,7 +684,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2c: Test "starts with" behavior for Address Line 1
     void testAC2c_AddressLine1StartsWith(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -712,7 +696,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
@@ -721,7 +705,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC2c: Test "starts with" behavior for Postcode
     void testAC2c_PostcodeStartsWith(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -733,7 +717,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].postcode")
@@ -742,7 +726,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3a: Test exact match for Company name
     void testAC3a_CompanyNameExactMatch(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -756,7 +740,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
@@ -766,7 +750,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
     void testAC3ai_CompanyNameStartsWith(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -780,7 +764,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(3)))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
@@ -790,7 +774,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3ai: Test "starts with" behavior with partial Company name
     void testAC3ai_CompanyNameStartsWithPartial(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -804,7 +788,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
@@ -814,7 +798,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3b: Test "starts with" behavior for Company Address Line 1
     void testAC3b_CompanyAddressLine1StartsWith(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -827,7 +811,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
@@ -836,7 +820,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3b: Test "starts with" behavior for Company Postcode
     void testAC3b_CompanyPostcodeStartsWith(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -849,7 +833,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].postcode")
@@ -858,7 +842,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     // AC3b: Test combined Address Line 1 and Postcode search for companies
     void testAC3b_CompanyAddressAndPostcodeCombined(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
@@ -872,7 +856,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(search))
-                            .header("authorization", "Bearer some_value"))
+                            .header("authorization", authHeader()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
@@ -883,14 +867,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getHeaderSummaryImpl_Success(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         Long minorCreditorId = 99000000000800L;
 
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{id}/header-summary", minorCreditorId)
                 .accept(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", authHeader())
         );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -929,13 +913,13 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getHeaderSummary_notFound_returns404(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         Long missingId = 999999L;
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/header-summary", missingId)
             .accept(MediaType.APPLICATION_JSON)
-            .header("authorization", "Bearer some_value"));
+            .header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMinorCreditorHeaderSummary_NotFound: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -944,32 +928,29 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getHeaderSummary_missingAuthHeader_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
-
         mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 
     void getHeaderSummary_authenticatedWithoutPermission_returns403() throws Exception {
-        doThrow(new ResponseStatusException(FORBIDDEN, "Forbidden"))
-            .when(userStateService).checkForAuthorisedUser(any());
+        stubUserWithNoPermissions(10);
 
         mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"))
+                .header("authorization", authHeader()))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     void getHeaderSummary_timeout_returns408(Logger log) throws Exception {
+        authoriseSearchAndViewAccounts();
         doThrow(new ResponseStatusException(REQUEST_TIMEOUT, "Timeout"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(minorCreditorSearchProxy).getHeaderSummary(104L);
 
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":getHeaderSummary_timeout_returns408: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -978,11 +959,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getHeaderSummary_serviceUnavailable_returns503(Logger log) throws Exception {
+        authoriseSearchAndViewAccounts();
         doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "Gateway down"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(minorCreditorSearchProxy).getHeaderSummary(104L);
 
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":getHeaderSummary_serviceUnavailable_returns503: Response body:\n{}",
@@ -992,11 +974,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getHeaderSummary_serverError_returns500(Logger log) throws Exception {
+        authoriseSearchAndViewAccounts();
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(minorCreditorSearchProxy).getHeaderSummary(104L);
 
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/{id}/header-summary", 104L).header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":getHeaderSummary_serverError_returns500: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -1005,11 +988,11 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
             .contentType(MediaType.APPLICATION_JSON)
-            .header("authorization", "Bearer some_value"));
+            .header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -1048,13 +1031,13 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAtAGlanceImpl_failure_creditorNotFound(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
         Long missingId = 999999L;
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", missingId)
             .accept(MediaType.APPLICATION_JSON)
-            .header("authorization", "Bearer some_value"));
+            .header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMinorCreditorAtAGlance_creditorNotFound: Response body:\n{}",
@@ -1064,11 +1047,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAtAGlanceImpl_serverError_throws500(Logger log) throws Exception {
+        authoriseSearchAndViewAccounts();
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(minorCreditorSearchProxy).getMinorCreditorAtAGlance(104L);
 
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{id}/at-a-glance", 104L).header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/{id}/at-a-glance", 104L).header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":getAtAGlance_serverError_returns500: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -1078,12 +1062,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void legacyGetMinorCreditorAtAGlanceImpl_500Error(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        authoriseSearchAndViewAccounts();
 
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "500")
             .contentType(MediaType.APPLICATION_JSON)
-            .header("authorization", "Bearer some_value"));
+            .header("authorization", authHeader()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMinorGcreditorAtAGlance: Response body:\n{}", ToJsonString.toPrettyJson(body));

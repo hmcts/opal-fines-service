@@ -1,15 +1,13 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.matchesPattern;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +22,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
-@ActiveProfiles({"integration", "legacy"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsPartyIntegrationTest")
@@ -43,7 +41,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     private HttpHeaders partyHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
         return headers;
@@ -52,10 +50,11 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
     void testGetDefendantAccountParty_Happy() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            get(URL_BASE + "/77/defendant-account-parties/77").header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/77/defendant-account-parties/77")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
@@ -78,10 +77,11 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Organisation Only [@PO-1973]")
     void testGetDefendantAccountParty_Organisation() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            get(URL_BASE + "/555/defendant-account-parties/555").header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/555/defendant-account-parties/555")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
@@ -103,10 +103,11 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - 500 Error [@PO-1973]")
     void testGetDefendantAccountParty_500Error() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(
-            get(URL_BASE + "/500/defendant-account-parties/500").header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/500/defendant-account-parties/500")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":legacy_getDefendantAccountParty_500Error body:\n{}", ToJsonString.toPrettyJson(body));
@@ -119,7 +120,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
     void testPutReplaceDefAccParty_Success() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         var res = mockMvc.perform(
             put("/defendant-accounts/77/defendant-account-parties/77")
@@ -140,7 +141,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
     void testPutReplaceDefAccParty_500Error() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         var res = mockMvc.perform(
             put("/defendant-accounts/500/defendant-account-parties/500")

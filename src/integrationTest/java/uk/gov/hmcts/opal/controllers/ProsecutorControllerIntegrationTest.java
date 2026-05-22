@@ -1,14 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -18,22 +18,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.SchemaPaths.GET_PROSECUTORS_REF_DATA_RESPONSE;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
-@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ProsecutorControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_prosecutors.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("Prosecutor Controller Integration Test")
-class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
+class ProsecutorControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/prosecutors";
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
+    @BeforeEach
+    void stubUserService() {
+        stubAuthorisedUser();
+    }
+
     @Test
     @DisplayName("Get Prosecutor By ID [@PO-1787]")
     void testGetProsecutorById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1111"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1111")
+                                                    .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -52,7 +58,8 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get Prosecutor By ID - Prosecutor Does Not Exist [@PO-1787]")
     void testGetProsecutorById_WhenProsecutorDoesNotExist() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/4444"))
+        mockMvc.perform(get(URL_BASE + "/4444")
+                            .header("authorization", "Bearer " + validToken))
             .andExpect(status().isNotFound());
     }
 
@@ -60,7 +67,7 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get Prosecutors as Reference Data [@PO-1787]")
     void testGetProsecutorsRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                                                    .header("authorization", "Bearer some_value"));
+                                                    .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -75,7 +82,8 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get Prosecutor By ID returns full 60-char address_line_1 [@PO-1787]")
     void testGetProsecutorById_WithSixtyCharAddressLine1() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/9990")); // 009990 == 9990
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/9990")
+                                                    .header("authorization", "Bearer " + validToken)); // 009990 == 9990
         String expected = "123456789012345678901234567890123456789012345678901234567890";
 
         actions.andExpect(status().isOk())

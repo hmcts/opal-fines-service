@@ -1,9 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -11,7 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -22,10 +19,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
-@ActiveProfiles({"integration", "legacy"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsCommentNotesIntegrationTest")
@@ -34,12 +30,12 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
     void testUpdateDefAcc_CommentNotes_Success() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         Integer currentVersion = versionFor(77L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
 
@@ -78,7 +74,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 400 Error [@PO-1908]")
     void testUpdateDefAcc_CommentNotes_400ErrorForMissingRequiredHeader() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         String requestJson = commentAndNotesPayload(
             "patch DefAcc comment legacy test",
@@ -89,7 +85,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
         ResultActions actions = mockMvc.perform(
             patch(URL_BASE + "/400")
-                .header("authorization", "Bearer some_value")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
         );
@@ -105,9 +101,6 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 401 Unauthorized [@PO-1908, CEP2]")
     void testUpdateDefAcc_CommentNotes_401Unauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
-
         String requestJson = commentAndNotesPayload(
             "patch DefAcc comment legacy test",
             "patch DefAcc note one legacy test",
@@ -117,21 +110,19 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
         mockMvc.perform(
                 patch(URL_BASE + "/77")
-                    .header("authorization", "Bearer invalid_token")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
                     .header("Business-Unit-Id", "78")
                     .header(HttpHeaders.IF_MATCH, "0")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
             )
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 403 Forbidden [@PO-1908, CEP3]")
     void testUpdateDefAcc_CommentNotes_403Forbidden() throws Exception {
-        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
-            .when(userStateService).checkForAuthorisedUser(any());
+        stubUserWithNoPermissions(78);
 
         String requestJson = commentAndNotesPayload(
             "patch DefAcc comment legacy test",
@@ -142,20 +133,20 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
         mockMvc.perform(
                 patch(URL_BASE + "/77")
-                    .header("authorization", "Bearer some_value")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                     .header("Business-Unit-Id", "78")
                     .header(HttpHeaders.IF_MATCH, "0")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
             )
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 400 Bad Request Invalid Payload [@PO-1908, CEP1]")
     void testUpdateDefAcc_CommentNotes_400BadRequest() throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         String invalidJson = """
             {
@@ -168,7 +159,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
         ResultActions actions = mockMvc.perform(
             patch(URL_BASE + "/77")
-                .header("authorization", "Bearer some_value")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                 .header("Business-Unit-Id", "78")
                 .header(HttpHeaders.IF_MATCH, "0")
                 .contentType(MediaType.APPLICATION_JSON)

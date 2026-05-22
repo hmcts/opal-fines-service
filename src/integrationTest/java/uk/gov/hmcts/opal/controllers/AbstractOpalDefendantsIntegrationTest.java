@@ -1,30 +1,23 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithPermission;
 
 import java.time.LocalDate;
 import java.time.Period;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
-@ActiveProfiles({"integration", "opal"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
 @Sql(
     scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql",
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
@@ -34,7 +27,7 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
     executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS
 )
 @Slf4j
-abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegrationTest {
+abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     protected static final String URL_BASE = "/defendant-accounts";
     protected static final String DEFENDANT_GLANCE_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
@@ -45,30 +38,12 @@ abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegration
         SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountFixedPenaltyResponse.json";
     protected static final LocalDate ACCOUNT_77_BIRTH_DATE = LocalDate.of(1980, 2, 3);
 
-    @MockitoBean
-    protected UserStateService userStateService;
-
     @MockitoSpyBean
     protected JsonSchemaValidationService jsonSchemaValidationService;
 
-    @MockitoBean
-    UserStateClientService userStateClientService;
-
-    @MockitoBean
-    protected UserState userState;
-
-    @MockitoBean
-    protected AccessTokenService accessTokenService;
-
-    @BeforeEach
-    void setupUserState() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-    }
-
     protected static @NonNull HttpHeaders buildHttpHeaders(String number, String currentVersion) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", number);
         headers.add(HttpHeaders.IF_MATCH, currentVersion);
         return headers;
@@ -117,12 +92,10 @@ abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegration
     }
 
     protected void authoriseAllPermissions() {
-        when(userStateService.checkForAuthorisedUser(org.mockito.ArgumentMatchers.any()))
-            .thenReturn(UserStateUtil.allPermissionsUser());
+        stubUserWithAllPermissions(78);
     }
 
     protected void authorise(short businessUnitId, FinesPermission permission) {
-        when(userStateService.checkForAuthorisedUser(org.mockito.ArgumentMatchers.any()))
-            .thenReturn(UserStateUtil.permissionUser(businessUnitId, permission));
+        stubUserWithPermission(businessUnitId, permission);
     }
 }

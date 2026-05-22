@@ -1,53 +1,29 @@
 package uk.gov.hmcts.opal.controllers;
 
-import java.util.Optional;
-import java.util.Set;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import static org.mockito.ArgumentMatchers.any;
-import org.mockito.Mockito;
-import static org.mockito.Mockito.when;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
-
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionsToken;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionsToken;
-
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 
-abstract class NotesIntegrationTest extends AbstractIntegrationTest {
+abstract class NotesIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/notes";
 
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    UserStateClientService userStateClientService;
-
-    @MockitoBean
-    private UserState userState;
-
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     void postNotesImpl(Logger log) throws Exception {
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         // Arrange
         Note note = new Note();
@@ -71,9 +47,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(payload)
-                    .header("authorization", "Bearer some_value")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                     .header(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"")
-                    .with(authentication(allFinesPermissionsToken()))
             );
 
         // Assert
@@ -85,7 +60,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
     void postNotes_IDNotFoundError(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         Note note = new Note();
         note.setNoteText("test");
@@ -102,9 +77,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .header("authorization", "Bearer some_value")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                     .header("If-Match", "1")
-                    .with(authentication(allFinesPermissionsToken()))
             );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -117,8 +91,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes - user without permission [PO-1566]")
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
 
-        UserState userState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
+        stubUserWithNoPermissions(78);
 
         Note note = new Note();
         note.setNoteText("test note");
@@ -133,9 +106,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             post(URL_BASE + "/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .header("authorization", "Bearer some_value")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                 .header("If-Match", "1")
-                .with(authentication(noFinesPermissionsToken()))
         );
 
         resultActions.andExpect(status().isForbidden());
@@ -144,7 +116,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account in legacy [PO-1975]")
     void legacyTestAddNoteSuccess(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         Note note = new Note();
         note.setNoteText("test");
@@ -161,9 +133,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .header("authorization", "Bearer some_value")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                     .header("If-Match", "1")
-                    .with(authentication(allFinesPermissionsToken()))
             );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -176,7 +147,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account ID that does not exist in legacy [PO-1975]")
     void legacyTestAddNote500Error(Logger log) throws Exception {
 
-        setupUserStateClient(getUserStateDtoWithAllPermissions());
+        stubUserWithAllPermissions(78);
 
         Note note = new Note();
         note.setNoteText("FAIL");
@@ -193,9 +164,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .header("authorization", "Bearer some_value")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
                     .header("If-Match", "5")
-                    .with(authentication(allFinesPermissionsToken()))
             );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();

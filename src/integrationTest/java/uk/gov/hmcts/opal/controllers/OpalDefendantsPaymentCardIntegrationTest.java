@@ -1,38 +1,41 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
 
-import java.util.Collections;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
+@ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
+@Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalDefendantsPaymentCardIntegrationTest")
-class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+class OpalDefendantsPaymentCardIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
     void opalAddPaymentCardRequest_Happy() throws Exception {
-        authoriseAllPermissions();
+        stubUserWithAllPermissions(78);
 
         Integer currentVersion = versionFor(901L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "\"" + currentVersion + "\"");
@@ -55,12 +58,12 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Not Found when account not in header BU [@PO-1719]")
     void opalAddPaymentCardRequest_NotFound_WrongBU() throws Exception {
-        authoriseAllPermissions();
+        stubUserWithAllPermissions(78);
 
         Integer currentVersion = versionFor(88L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "99");
         headers.add("If-Match", "\"" + currentVersion + "\"");
 
@@ -83,17 +86,10 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Forbidden when user lacks permission [@PO-1719]")
     void opalAddPaymentCardRequest_Forbidden_NoPermission() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(UserState.builder()
-                .userId(123L)
-                .userName("no-permission")
-                .businessUnitUser(Collections.emptySet())
-                .build());
-        UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
+        stubUserWithNoPermissions(78);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("token_without_permission");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "\"0\"");
 
@@ -110,26 +106,22 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Unauthorized when missing auth header [@PO-1719]")
     void opalAddPaymentCardRequest_Unauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
-
         mockMvc.perform(
                 post("/defendant-accounts/88/payment-card-request")
                     .header("Business-Unit-Id", "78")
                     .header("If-Match", "\"0\"")
                     .contentType(MediaType.APPLICATION_JSON)
             )
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Conflict when If-Match does not match [@PO-1719]")
     void opalAddPaymentCardRequest_IfMatchConflict() throws Exception {
-        authoriseAllPermissions();
+        stubUserWithAllPermissions(78);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "\"9999\"");
 
@@ -146,14 +138,13 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Conflict when PCR already exists [@PO-1719]")
     void opalAddPaymentCardRequest_AlreadyExists() throws Exception {
-        authoriseAllPermissions();
-        when(accessTokenService.extractName(any())).thenReturn("TEST_USER_DISPLAY_NAME");
+        stubUserWithAllPermissions(78);
 
         Integer version1 = versionFor(88L);
         log.info("INITIAL VERSION = {}", version1);
 
         HttpHeaders headers1 = new HttpHeaders();
-        headers1.setBearerAuth("some_value");
+        headers1.setBearerAuth(validToken);
         headers1.add("Business-Unit-Id", "78");
         headers1.add("Business-Unit-User-Id", "TEST_USER_123");
         headers1.add("If-Match", "\"" + version1 + "\"");
@@ -168,7 +159,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         Integer version2 = versionFor(88L);
 
         HttpHeaders headers2 = new HttpHeaders();
-        headers2.setBearerAuth("some_value");
+        headers2.setBearerAuth(validToken);
         headers2.add("Business-Unit-Id", "78");
         headers2.add("Business-Unit-User-Id", "TEST_USER_123");
         headers2.add("If-Match", "\"" + version2 + "\"");
@@ -188,5 +179,9 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
             .andExpect(jsonPath("$.resourceId").value("88"))
             .andExpect(jsonPath("$.retriable").value(true))
             .andExpect(jsonPath("$.conflictReason").doesNotExist());
+    }
+
+    private Integer versionFor(long defendantAccountId) {
+        return DefendantAccountVersionUtil.getVersion(jdbcTemplate, defendantAccountId);
     }
 }

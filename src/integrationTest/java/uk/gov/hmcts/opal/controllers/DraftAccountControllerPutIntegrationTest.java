@@ -13,9 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -25,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -40,13 +37,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
     void testReplaceDraftAccount_success() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
         String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "3")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
@@ -74,11 +70,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_originatorTypeIsMissing() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\",", "");
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", "Bearer " + validToken)
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -90,11 +85,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_originatorTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", "Bearer " + validToken)
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -106,11 +100,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_originatorTypeIsInvalid() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", "Bearer " + validToken)
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -122,14 +115,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_success_and_pdplServiceCalled() throws Exception {
         String validRequestBody = validReplaceRequestBodyForPdpl(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccount(78);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -212,14 +203,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_defendantOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyDefendantOnly(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -255,14 +245,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_parentGuardianOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyParentGuardianOnly(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -323,14 +312,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_minorCreditorOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyMinorCreditorOnly(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -389,11 +377,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @Test
     @DisplayName("Put Draft Account : Deterministic and includes originator type")
     void testPutDraft_deterministic() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
         String requestBody = validReplaceRequestBody(3L);
 
         String first = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", "Bearer " + validToken)
                 .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -402,7 +390,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .getResponse().getContentAsString();
 
         String second = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", "Bearer " + validToken)
                 .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -424,10 +412,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
+        stubUserWithNoPermissions(78);
 
         mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", "Bearer " + validToken)
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validCreateRequestBody()))

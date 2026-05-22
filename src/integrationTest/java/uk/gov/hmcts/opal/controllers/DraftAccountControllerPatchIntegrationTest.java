@@ -8,20 +8,17 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithPermissions;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,9 +26,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -45,11 +39,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
     void testUpdateDraftAccount_success() throws Exception {
         Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccountWithCheckValidate(65);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending","A")));
@@ -74,11 +67,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Update draft account - If-Match Conflict [@PO-2117]")
     void testUpdateDraftAccount_conflict() throws Exception {
         Long draftAccountId = 6L;
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
+        authoriseNormalUserForDraftAccountWithCheckValidate(65);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "\"9999999\"")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending","A")));
@@ -97,11 +89,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
     void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
         Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
-        UserState user = permissionUser((short)78, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        authoriseNormalUserForDraftAccountWithCheckValidate(78);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("78","Rejected","A")));
@@ -122,11 +113,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Patch draft account - user with Publish Pending permission should succeed [@PO-991]")
     void testPatchDraftAccount_withPublishPending_shouldSucceed() throws Exception {
         Long draftAccountId = 9L; // not touched by any other PATCH/PUT test
-        UserState user = permissionUser((short)65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        authoriseNormalUserForDraftAccountWithCheckValidate(65);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("65", "Publishing Pending","D")));
@@ -157,24 +147,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     void testPatchDraftAccount_submitterCannotValidate_returns403() throws Exception {
         Long draftAccountId = 7L; // submitted_by = user_003 in seed data
 
-        BusinessUnitUser buUser = BusinessUnitUser.builder()
-            .businessUnitUserId("user_003")
-            .businessUnitId((short)78)
-            .permissions(Set.of(Permission.builder()
-                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
-                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
-                .build()))
-            .build();
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("normal@users.com")
-            .businessUnitUser(Set.of(buUser))
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        stubUserWithPermissions(78, "user_003", FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("78", "Publishing Pending","A")));
@@ -201,24 +177,11 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     void testPatchDraftAccount_submitterCannotDelete_returns403() throws Exception {
         Long draftAccountId = 7L; // submitted_by = user_003 in seed data
 
-        BusinessUnitUser buUser = BusinessUnitUser.builder()
-            .businessUnitUserId("user_003")
-            .businessUnitId((short)78)
-            .permissions(Set.of(Permission.builder()
-                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
-                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
-                .build()))
-            .build();
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("user_003")
-            .businessUnitUser(Set.of(buUser))
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        stubUserWithPermissions(78, 1L, "user_003", "user_003", "user_003",
+                                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("78", "Deleted","A")));
@@ -249,11 +212,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")
     void testPatchDraftAccount_withCreateManagePermission_shouldFail403() throws Exception {
         Long draftAccountId = 6L;
-        UserState user = permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        authoriseNormalUserForDraftAccountWithCreateManage(78);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validUpdateRequestBody("78", "Publishing Pending","PO1820")));
@@ -281,10 +243,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             + "\n"
             + "            }";
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
+        stubUserWithNoPermissions(5);
 
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
+                .header("authorization", "Bearer " + validToken)
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -296,11 +258,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Re-submit - Defendant only -> Re-submit Draft Account - Defendant PDPL")
     void testResubmitDraftAccount_pdpl_defendantOnly() throws Exception {
         final long draftIdAccount = 105L;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseDeveloperUserForAllDraftTestBusinessUnits();
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -348,11 +309,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Re-submit - pgToPay -> Parent or Guardian then Defendant PDPLs (order)")
     void testResubmitDraftAccount_pdpl_parentOrGuardianThenDefendant() throws Exception {
         final long draftIdAccount = 104L;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseDeveloperUserForAllDraftTestBusinessUnits();
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -404,12 +364,11 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Re-submit - adultOrYouthOnly WITH minor -> Defendant + Minor Creditor PDPLs (order)")
     void testResubmitDraftAccount_pdpl_defendantAndMinor() throws Exception {
         final long draftIdAccount = 8L; // previously used in your suite; confirm or replace if needed
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseDeveloperUserForAllDraftTestBusinessUnits();
 
         String ifMatch = getIfMatchForDraftAccount(draftIdAccount);
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -477,11 +436,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Update draft account (id=103) - company -> no PDPL logging occurs")
     void testUpdateDraftAccount_pdpl_id103_company_noPdpl() throws Exception {
         Long draftAccountId = 103L;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+        authoriseDeveloperUserForAllDraftTestBusinessUnits();
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", "Bearer " + validToken)
             .header("If-Match", "0")
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)

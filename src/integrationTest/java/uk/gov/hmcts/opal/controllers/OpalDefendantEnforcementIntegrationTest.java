@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"integration", "opal"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
 @Slf4j(topic = "opal.OpalDefendantEnforcementIntegrationTest")
 public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcementIntegrationTest {
 
@@ -23,4 +23,3 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
         super.postEnforcementImpl_invalidDefendant_Failure(log);
     }
 }
-

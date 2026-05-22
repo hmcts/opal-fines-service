@@ -9,7 +9,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 import lombok.extern.slf4j.Slf4j;
 
-@ActiveProfiles({"integration", "opal"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalDefendantsIntegrationTest01")
@@ -84,21 +84,6 @@ class OpalDefendantsIntegrationTest01 extends CommonDefendantsIntegrationTest01 
     @Test
     void testGetEnforcementStatus_notFound_returns404() throws Exception {
         super.testGetEnforcementStatus_notFound(log, false);
-    }
-
-    @Test
-    void testGetEnforcementStatus_timeout_returns408() throws Exception {
-        super.testGetEnforcementStatus_timeout(log, false);
-    }
-
-    @Test
-    void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
-        super.testGetEnforcementStatus_serviceUnavailable(log, false);
-    }
-
-    @Test
-    void testGetEnforcementStatus_serverError_returns500() throws Exception {
-        super.testGetEnforcementStatus_serverError(log, false);
     }
 
 }

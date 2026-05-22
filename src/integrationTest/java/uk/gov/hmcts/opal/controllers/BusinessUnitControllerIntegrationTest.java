@@ -1,56 +1,54 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.UserStateService;
 
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithCreateManageDraftAccountsPermission;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
 
-@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.BusinessUnitControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_business_units.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("Business Unit Controller Integration Tests")
-class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
+class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/business-units";
     private static final String GET_BUNITS_REF_DATA_RESPONSE =
         SchemaPaths.REFERENCE_DATA + "/getBusinessUnitsRefDataResponse.json";
 
-    @MockitoBean
-    UserStateService userStateService;
-
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @BeforeEach
+    void stubUserService() {
+        stubAuthorisedUser();
+    }
 
     @Test
     @DisplayName("Get Business Unit by ID - success")
     void testGetBusinessUnitById_success() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/1"))
+        mockMvc.perform(get(URL_BASE + "/1")
+                .header("authorization", "Bearer " + validToken))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.businessUnitId").value(1))
@@ -66,15 +64,17 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetBusinessUnitById_WhenBusinessUnitDoesNotExist() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/2"))
+        mockMvc.perform(get(URL_BASE + "/2")
+                .header("authorization", "Bearer " + validToken))
             .andExpect(status().isNotFound());
     }
 
     @Test
     void testPostBusinessUnitsSearch() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"businessUnitId\":\"1\"}"))
+                .header("authorization", "Bearer " + validToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"businessUnitId\":\"1\"}"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].businessUnitId").value(1))
@@ -89,16 +89,17 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testPostBusinessUnitsSearch_WhenBusinessUnitDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"businessUnitId\":\"2\"}"))
+                .header("authorization", "Bearer " + validToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"businessUnitId\":\"2\"}"))
             .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("Get Business Unit Ref Data [@PO-304, @PO-313]")
     void testGetBusinessUnitsRefData() throws Exception {
-        ResultActions actions =  mockMvc.perform(get(URL_BASE)
-                                                     .header("authorization", "Bearer some_value"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+            .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetBusinessUnitRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -107,7 +108,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(97))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_name")
-                           .value(hasItem("AAA Business Unit 001")))
+                .value(hasItem("AAA Business Unit 001")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_code").value(hasItem("AAAA")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_type").value(hasItem("Area")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].account_number_prefix").value(hasItem("XX")))
@@ -121,8 +122,8 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get Business Unit Ref Data filtered by business unit type Area")
     void testGetBusinessUnitsRefData_FilterByArea() throws Exception {
         mockMvc.perform(get(URL_BASE)
-                            .param("q", "Area")
-                            .header("authorization", "Bearer some_value"))
+                .param("q", "Area")
+                .header("authorization", "Bearer " + validToken))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(greaterThan(0)))
@@ -132,18 +133,15 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetBusinessUnitRefData_Permission_success() throws Exception {
-        UserState userState = Mockito.mock(UserState.class);
-
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
-        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
+        stubUserWithCreateManageDraftAccountsPermission(1);
 
         mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
-                            .header("authorization", "Bearer some_value"))
+                .header("authorization", "Bearer " + validToken))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(97))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_name")
-                           .value(hasItem("AAA Business Unit 001")))
+                .value(hasItem("AAA Business Unit 001")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_code").value(hasItem("AAAA")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_type").value(hasItem("Area")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].account_number_prefix").value(hasItem("XX")))
@@ -152,28 +150,13 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetBusinessUnitRefData_Permission_empty() throws Exception {
-        UserState userState = Mockito.mock(UserState.class);
-
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
-        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
+        stubUserWithNoPermissions(1);
 
         mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
-                            .header("authorization", "Bearer some_value"))
+                .header("authorization", "Bearer " + validToken))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
     }
 
-    private class TestUserBusinessUnits implements UserState.UserBusinessUnits {
-        private final boolean contains;
-
-        public TestUserBusinessUnits(boolean contains) {
-            this.contains = contains;
-        }
-
-        @Override
-        public boolean containsBusinessUnit(Short businessUnitId) {
-            return contains;
-        }
-    }
 }

@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -32,12 +32,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.entity.draft.DraftAccountStatus.SUBMITTED;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
 
-@ActiveProfiles({"integration"})
+@ActiveProfiles(profiles = {"integration-with-spring-security"}, inheritProfiles = false)
 @Slf4j(topic = "opal.DraftAccountControllerTransientErrorsIntegrationTest")
 @DisplayName("DraftAccountController Transient Errors Integration Tests")
-class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractIntegrationTest {
+class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/draft-accounts";
 
@@ -118,14 +119,14 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     void testGetDraftAccountById_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             get(URL_BASE + "/1"), when(
-                draftAccountService.getDraftAccount(1L, "Bearer some_value")));
+                draftAccountService.getDraftAccount(1L, "Bearer " + validToken)));
     }
 
     @Test
     void testGetDraftAccountById_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             get(URL_BASE + "/1"), when(
-                draftAccountService.getDraftAccount(1L, "Bearer some_value")));
+                draftAccountService.getDraftAccount(1L, "Bearer " + validToken)));
     }
 
 
@@ -151,8 +152,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     void shouldReturn406WhenResponseContentTypeNotSupported(MockHttpServletRequestBuilder reqBuilder) throws Exception {
+        stubAuthorisedUser();
+
         mockMvc.perform(reqBuilder
-                            .header("Authorization", "Bearer " + "some_value")
+                            .header("Authorization", "Bearer " + validToken)
                             .accept("application/xml"))
             .andExpect(status().isNotAcceptable());
     }
@@ -162,9 +165,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         throws Exception {
         // Simulating a timeout exception when the service is called
         stubbing.thenThrow(new QueryTimeoutException());
+        stubAuthorisedUser();
 
         ResultActions actions = mockMvc.perform(
-            reqBuilder.header("Authorization", "Bearer " + "some_value"));
+            reqBuilder.header("Authorization", "Bearer " + validToken));
         String response = actions.andReturn().getResponse().getContentAsString();
         log.info(":shouldReturn408WhenTimeout: response: \n{}", ToJsonString.toPrettyJson(response));
 
@@ -187,8 +191,9 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             invocation -> {
                 throw new PSQLException("Connection refused", PSQLState.CONNECTION_FAILURE, new ConnectException());
             });
+        stubAuthorisedUser();
 
-        mockMvc.perform(reqBuilder.header("Authorization", "Bearer " + "some_value"))
+        mockMvc.perform(reqBuilder.header("Authorization", "Bearer " + validToken))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(content().json("""

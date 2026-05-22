@@ -3,14 +3,14 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.hasItem;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -20,12 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
-@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.EnforcerControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcers.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("Enforcer Controller Integration Tests")
-class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
+class EnforcerControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/enforcers";
 
@@ -34,9 +34,15 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
+    @BeforeEach
+    void stubUserService() {
+        stubAuthorisedUser();
+    }
+
     @Test
     void testGetEnforcerById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1")
+                                                    .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -61,13 +67,15 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/2"))
+        mockMvc.perform(get(URL_BASE + "/2")
+                            .header("authorization", "Bearer " + validToken))
             .andExpect(status().isNotFound());
     }
 
     @Test
     void testPostEnforcersSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+                            .header("authorization", "Bearer " + validToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"name\":\"aa\"}"));
 
@@ -95,6 +103,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testPostEnforcersSearch_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
+                            .header("authorization", "Bearer " + validToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
@@ -104,7 +113,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get Enforcer Ref Data [@PO-304, @PO-316]")
     void testGetEnforcerRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                                                    .header("authorization", "Bearer some_value"));
+                                                    .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));

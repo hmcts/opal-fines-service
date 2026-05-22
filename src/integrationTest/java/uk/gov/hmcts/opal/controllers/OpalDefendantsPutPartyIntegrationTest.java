@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Slf4j(topic = "opal.OpalDefendantsPutPartyIntegrationTest")
@@ -28,12 +29,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @Test
     @DisplayName("OPAL: PUT Replace DAP – Not Found (account not in BU)")
     void put_notFound_whenAccountNotInHeaderBU() throws Exception {
-        authoriseAllPermissions();
+        authorise((short) 99, FinesPermission.ACCOUNT_MAINTENANCE);
 
         Integer currentVersion = versionFor(20010L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -72,7 +73,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -137,7 +138,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         Integer currentVersion = versionFor(20010L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -175,7 +176,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -244,7 +245,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -333,7 +334,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -400,7 +401,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -479,7 +480,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(validToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 

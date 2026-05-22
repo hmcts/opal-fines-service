@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"integration", "legacy"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 

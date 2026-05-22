@@ -1,72 +1,44 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
-@ActiveProfiles({"integration", "legacy"})
+@ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
-class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
+class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
-
-    @MockitoBean
-    UserStateService userStateService;
-
-    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
-    @Autowired
-    JdbcTemplate jdbcTemplate;
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
 
-    @MockitoBean
-    private UserState userState;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @BeforeEach
-    void setupUserState() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-    }
-
     @Test
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
         ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
-            .header("authorization", "Bearer some_value")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
                 {
@@ -102,9 +74,10 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Search defendant accounts - No Accounts found [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        stubUserWithAllPermissions(78);
 
-        ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+        ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken)
             .contentType(MediaType.APPLICATION_JSON).content("""
                 {
                    "active_accounts_only": true,

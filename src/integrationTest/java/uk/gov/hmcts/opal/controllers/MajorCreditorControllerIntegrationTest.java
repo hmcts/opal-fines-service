@@ -2,14 +2,14 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.hasItem;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -20,12 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
-@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.MajorCreditorControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_creditor_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("MajorCreditorController Integration Test")
-class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
+class MajorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/major-creditors";
 
@@ -35,10 +35,16 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
+    @BeforeEach
+    void stubUserService() {
+        stubAuthorisedUser();
+    }
+
     @Test
     @DisplayName("Get major creditor by ID [@PO-349, PO-304]")
     void testGetMajorCreditorById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1")
+                                                    .header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMajorCreditorById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -59,7 +65,8 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("No major creditor returned when major creditor does not exist [@PO-349, PO-304]")
     void testGetMajorCreditorById_WhenMajorCreditorDoesNotExist() throws Exception {
 
-        mockMvc.perform(get(URL_BASE + "/2"))
+        mockMvc.perform(get(URL_BASE + "/2")
+                            .header("authorization", "Bearer " + validToken))
             .andExpect(status().isNotFound());
     }
 
@@ -67,6 +74,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Verify search result for major creditor created by POST request [@PO-349, PO-304]")
     void testPostMajorCreditorsSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+                            .header("authorization", "Bearer " + validToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"businessUnitId\":\"78\"}"));
 
@@ -87,6 +95,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Verify no search result when major creditor does not exist [@PO-349, PO-304]")
     void testPostMajorCreditorsSearch_WhenMajorCreditorDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
+                            .header("authorization", "Bearer " + validToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"majorCreditorId\":\"2\"}"))
             .andExpect(status().isOk());
@@ -96,7 +105,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Endpoint correctly retrieves major creditor reference data [@PO-349, PO-304]")
     void testGetMajorCreditorsRefData() throws Exception {
 
-        ResultActions actions = mockMvc.perform(get(URL_BASE).header("authorization", "Bearer some_value"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE).header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMajorCreditorRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));

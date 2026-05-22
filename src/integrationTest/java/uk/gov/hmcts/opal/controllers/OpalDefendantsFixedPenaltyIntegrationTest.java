@@ -1,29 +1,51 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
+@ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
+@Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalDefendantsFixedPenaltyIntegrationTest")
-class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractIntegrationWithSecurityTest {
+
+    private static final String DEFENDANT_FIXED_PENALTY_RESPONSE_SCHEMA =
+        SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountFixedPenaltyResponse.json";
+
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @BeforeEach
+    void stubUserService() {
+        stubUserWithAllPermissions(77);
+    }
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Fixed Penalty [@PO-1819]")
     void testGetDefendantAccountFixedPenalty() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions actions = mockMvc.perform(
-            get("/defendant-accounts/77/fixed-penalty").header("authorization", "Bearer some_value"));
+            get("/defendant-accounts/77/fixed-penalty").header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDefendantAccountFixedPenalty: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -47,10 +69,8 @@ class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIn
     @Test
     @DisplayName("OPAL: Get Defendant Account Fixed Penalty - 404 when not found [@PO-1819]")
     void testGetDefendantAccountFixedPenalty_NotFound() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions actions = mockMvc.perform(
-            get("/defendant-accounts/99999/fixed-penalty").header("authorization", "Bearer some_value"));
+            get("/defendant-accounts/99999/fixed-penalty").header("authorization", "Bearer " + validToken));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDefendantAccountFixedPenalty_NotFound: Response body:\n{}", ToJsonString.toPrettyJson(body));

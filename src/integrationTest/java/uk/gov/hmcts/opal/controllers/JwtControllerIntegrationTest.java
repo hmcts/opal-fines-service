@@ -1,8 +1,10 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -14,6 +16,11 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL = "/business-units/5";
     public static final String AUTHORIZATION = "authorization";
+
+    @BeforeEach
+    void stubUserService() {
+        stubAuthorisedUser();
+    }
 
     @Test
     @DisplayName("Testing Valid Token")
