@@ -269,9 +269,9 @@ paths:
     get:
       tags:
         - Defendant Account
-      summary: Get Defendant Account Impositions
+      summary: Get Impositions
       description: The Get Defendant Account Impositions API is used return an array of data relating to impositions on a defendant account, which populates the on screen table.
-      operationId: getDefendantAccountImpositions
+      operationId: getImpositions
       security:
         - permissions:
             - Search and View Accounts (in at least one business unit)
