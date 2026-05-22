@@ -1,6 +1,13 @@
 package uk.gov.hmcts.opal.service.print;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.StringReader;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,12 +38,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.StringReader;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional(transactionManager = "printTransactionManager")
@@ -53,6 +54,8 @@ public class PrintService {
     private final PrintJobRepository printJobRepository;
 
     private final SftpOutboundService sftpOutboundService;
+
+    private final Clock clock;
 
 
     @Value("${printservice.maxRetries:3}")
@@ -108,10 +111,11 @@ public class PrintService {
         log.debug("Saving print jobs for batch {}", batchId);
 
         for (PrintJob printJob : printJobs) {
+            LocalDateTime now = LocalDateTime.now(clock);
             printJob.setBatchId(batchId);
             printJob.setJobId(UUID.randomUUID());
-            printJob.setCreatedAt(LocalDateTime.now());
-            printJob.setUpdatedAt(LocalDateTime.now());
+            printJob.setCreatedAt(now);
+            printJob.setUpdatedAt(now);
             printJob.setStatus(PrintStatus.PENDING);
             printJobRepository.save(printJob);
         }

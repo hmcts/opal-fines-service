@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +48,7 @@ class UserStateServiceTest {
         when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
 
         // Act
-        UserState userState = userStateService.checkForAuthorisedUser("");
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         // Assert
         assertSame(expectedUserState, userState);
@@ -61,10 +62,11 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser(""));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("Unexpected token type", ade.getMessage());
+        verifyNoInteractions(tokenService);
     }
 
     @Test
@@ -76,7 +78,7 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser(""));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("User state not found in token", ade.getMessage());
@@ -104,5 +106,4 @@ class UserStateServiceTest {
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
     }
-
 }

@@ -2,6 +2,10 @@ package uk.gov.hmcts.opal.service.opal;
 
 
 import jakarta.persistence.EntityNotFoundException;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,15 +20,14 @@ import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
 
-import java.util.List;
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Qualifier("localJusticeAreaService")
 public class LocalJusticeAreaService {
 
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
+
+    private final Clock clock;
 
     private final LocalJusticeAreaSpecs specs = new LocalJusticeAreaSpecs();
 
@@ -52,7 +55,7 @@ public class LocalJusticeAreaService {
         Sort nameSort = Sort.by(Sort.Direction.ASC, LocalJusticeAreaEntity_.NAME);
 
         Page<LjaReferenceData> page = localJusticeAreaRepository
-            .findBy(specs.referenceDataFilter(filter, ljaType),
+            .findBy(specs.referenceDataFilter(filter, ljaType, LocalDateTime.now(clock)),
                     ffq -> ffq
                         .sortBy(nameSort)
                         .as(LjaReferenceData.class)

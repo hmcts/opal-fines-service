@@ -11,7 +11,10 @@ import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 
 import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.jpa.JpaSystemException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
@@ -50,6 +54,9 @@ class DraftAccountPublishTest {
     @Mock
     SecurityEventLoggingService securityEventLoggingService;
 
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+
     private DraftAccountTransactional draftAccountTransactional;
 
     @InjectMocks
@@ -58,7 +65,7 @@ class DraftAccountPublishTest {
     @BeforeEach
     void openMocks() throws Exception {
         draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository,
-            securityEventLoggingService));
+            securityEventLoggingService, clock));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 

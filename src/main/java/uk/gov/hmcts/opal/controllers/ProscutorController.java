@@ -1,7 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,15 +13,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.ProsecutorReferenceData;
 import uk.gov.hmcts.opal.dto.response.RefDataResponse;
 import uk.gov.hmcts.opal.entity.ProsecutorEntity;
 import uk.gov.hmcts.opal.service.opal.ProsecutorService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 
 @RestController
@@ -34,6 +35,7 @@ public class ProscutorController {
 
     @GetMapping(value = "/{prosecutorId}")
     @Operation(summary = "Returns the Prosecutor for the given prosecutorId.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<ProsecutorEntity> getProsecutorById(@PathVariable Long prosecutorId) {
 
         log.debug(":GET:getProsecutorById: prosecutorId: {}", prosecutorId);
@@ -45,6 +47,7 @@ public class ProscutorController {
 
     @GetMapping
     @Operation(summary = "Returns Prosecutors as reference data with an optional filter applied")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<RefDataResponse<ProsecutorReferenceData>> getProsecutorsRefData(
         @RequestParam("q") Optional<String> filter) {
         log.debug(":GET:getProsecutorsRefData: query: \n{}", filter);

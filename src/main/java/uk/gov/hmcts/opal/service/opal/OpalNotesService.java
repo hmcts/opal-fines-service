@@ -5,6 +5,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     private final NoteRepository repository;
     private final EntityManager em;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -57,7 +59,7 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setAssociatedRecordId(requestNote.getRecordId());
         note.setAssociatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS);
         note.setBusinessUnitUserId(managed.getBusinessUnit().getBusinessUnitId().toString());
-        note.setPostedDate(LocalDateTime.now());
+        note.setPostedDate(LocalDateTime.now(clock));
         note.setPostedByUsername(user.getUserName());
 
         NoteEntity entity = repository.save(note);

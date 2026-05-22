@@ -1,8 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.CheckAcceptHeader;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
@@ -29,13 +36,7 @@ import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.DraftAccountService;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @RequestMapping("/draft-accounts")
@@ -52,9 +53,11 @@ public class DraftAccountController {
     @GetMapping(value = "/{draftAccountId}")
     @CheckAcceptHeader
     @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountResponseDto> getDraftAccountById(
         @PathVariable Long draftAccountId,
-        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
 
@@ -64,6 +67,8 @@ public class DraftAccountController {
     @GetMapping()
     @CheckAcceptHeader
     @Operation(summary = "Returns a collection of draft accounts summaries for the given user.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountsResponseDto> getDraftAccountSummaries(
         @RequestParam(value = "business_unit") Optional<List<Short>> optionalBusinessUnitIds,
         @RequestParam(value = "status") Optional<List<DraftAccountStatus>> optionalStatus,
@@ -71,13 +76,13 @@ public class DraftAccountController {
         @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
         @RequestParam(value = "account_status_date_from") Optional<LocalDate> accountStatusDateFrom,
         @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo,
-        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getDraftAccountSummaries:");
 
         return buildResponse(
             draftAccountService.getDraftAccounts(optionalBusinessUnitIds, optionalStatus, optionalSubmittedBys,
-                         optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo, authHeaderValue));
+                optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo, authHeaderValue));
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -94,6 +99,8 @@ public class DraftAccountController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
     @CheckAcceptHeader
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountResponseDto> postDraftAccount(
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/addDraftAccountRequest.json")
         @RequestBody AddDraftAccountRequestDto dto,
@@ -110,7 +117,7 @@ public class DraftAccountController {
     @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
     public ResponseEntity<String> deleteDraftAccountById(
         @PathVariable Long draftAccountId,
-        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
@@ -118,7 +125,7 @@ public class DraftAccountController {
         boolean checkExisted = !(ignoreMissing.orElse(false));
 
         log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
-                  checkExisted ? "" : ", ignore if missing");
+            checkExisted ? "" : ", ignore if missing");
 
         return buildResponse(draftAccountService.deleteDraftAccount((draftAccountId), checkExisted, authHeaderValue));
 
@@ -127,6 +134,8 @@ public class DraftAccountController {
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")
     @CheckAcceptHeader
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountResponseDto> putDraftAccount(
         @PathVariable Long draftAccountId,
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json")
@@ -142,6 +151,8 @@ public class DraftAccountController {
     @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates an existing Draft Account Entity in the DB with data in request body")
     @CheckAcceptHeader
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountResponseDto> patchDraftAccount(
         @PathVariable Long draftAccountId,
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/updateDraftAccountRequest.json")

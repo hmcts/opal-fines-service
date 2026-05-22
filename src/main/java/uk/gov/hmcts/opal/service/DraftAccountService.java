@@ -7,6 +7,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -263,7 +263,7 @@ public class DraftAccountService {
             "DraftAccountIdentifier", accountId,
             "DraftAccountSubmittedByUserIdentifier", submittedBy);;
         securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Success", buId, "Approval",
-            LogUtil.getRequestTimestamp(), data);
+            LocalDateTime.now(clock), data);
     }
 
     public DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {

@@ -1,0 +1,30 @@
+meta {
+  name: Get Draft Accounts
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/draft-accounts
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+headers {
+  Accept: application/json
+}
+
+params:query {
+  business_unit:
+  status:
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
