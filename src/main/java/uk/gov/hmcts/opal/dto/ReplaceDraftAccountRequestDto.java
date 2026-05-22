@@ -48,9 +48,7 @@ public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccount
     private DraftAccountStatus accountStatus;
 
     @JsonProperty("timeline_data")
-    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
-    @JsonRawValue
-    private String timelineData;
+    private Object timelineData;
 
     @JsonIgnore
     private BigInteger version;

@@ -14,6 +14,8 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -47,6 +49,8 @@ class OffenceRepositoryIntegrationTest extends AbstractIntegrationTest {
     private EntityManager entityManager;
 
     @Test
+    @JiraStory("PO-2886")
+    @JiraEpic("PO-304")
     void shouldKeepBusinessUnitLazyWhenNoEntityGraphIsUsed() {
         entityManager.clear();
 
@@ -59,6 +63,8 @@ class OffenceRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2886")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForDirectFetch() {
         entityManager.clear();
 
@@ -72,6 +78,8 @@ class OffenceRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2886")
+    @JiraEpic("PO-304")
     void shouldKeepBusinessUnitLazyForLiteSpecificationFetch() {
         entityManager.clear();
 

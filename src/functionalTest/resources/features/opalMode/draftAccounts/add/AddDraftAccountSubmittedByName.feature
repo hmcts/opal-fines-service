@@ -4,7 +4,7 @@ Feature: Draft Account Snapshot Identity
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData
+  @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5634
   Scenario: Submitted-by snapshot values come from the access token identity
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
@@ -13,8 +13,6 @@ Feature: Draft Account Snapshot Identity
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk1                                |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     Then the draft account is created successfully with the following data
       | business_unit_id                    | 73                               |
       | account_type                        | Fine                             |

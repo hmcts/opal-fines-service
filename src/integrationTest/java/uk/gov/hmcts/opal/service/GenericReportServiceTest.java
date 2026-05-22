@@ -37,6 +37,8 @@ import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportRegistry;
 import uk.gov.hmcts.opal.service.report.ReportType;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Transactional
 @DirtiesContext
@@ -81,6 +83,8 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2257")
+    @JiraEpic("PO-2627")
     void generateReportInstanceContent_persistsReadyInstance_happyPath() {
         //Arrange
         String location = String.valueOf(UUID.randomUUID());
@@ -104,6 +108,8 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2257")
+    @JiraEpic("PO-2627")
     void generateReportInstanceContent_persistsReadyInstance_errorCase() {
         //Arrange
         ReportEntity report = reportRepository.save(buildReportEntity("fp_register"));
