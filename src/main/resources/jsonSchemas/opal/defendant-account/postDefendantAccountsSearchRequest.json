@@ -16,6 +16,9 @@
       "type": ["array", "null"],
       "items": { "type": "integer" }
     },
+    "consolidation_search": {
+      "type": ["boolean", "null"]
+    },
     "reference_number": {
       "oneOf": [
         { "type": "null" },

@@ -137,5 +137,83 @@ class JsonSchemaValidationServiceTest {
             "Expected error about 'submitted_by_email'");
     }
 
+    @Test
+    void testIsValid_defendantAccountSearchRequestWithConsolidationSearch_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": null,
+              "defendant": {
+                "include_aliases": true,
+                "organisation": false,
+                "address_line_1": "Lumber",
+                "postcode": "MA4 1AL",
+                "organisation_name": null,
+                "exact_match_organisation_name": null,
+                "surname": "Graham",
+                "exact_match_surname": true,
+                "forenames": "Anna",
+                "exact_match_forenames": true,
+                "birth_date": "1980-02-03",
+                "national_insurance_number": null
+              },
+              "consolidation_search": true
+            }
+            """;
+
+        Set<String> messages = jsonSchemaValidationService
+            .validate(validJson, "opal/defendant-account/postDefendantAccountsSearchRequest.json");
+
+        assertTrue(messages.isEmpty(), "Expected no validation errors, but got: " + messages);
+    }
+
+    @Test
+    void testIsValid_defendantAccountSearchResponseWithConsolidationFields_shouldPass() {
+        String validJson = """
+            {
+              "count": 1,
+              "defendant_accounts": [
+                {
+                  "defendant_account_id": "77",
+                  "account_number": "177A",
+                  "organisation": false,
+                  "aliases": [],
+                  "address_line_1": "Lumber House",
+                  "postcode": "MA4 1AL",
+                  "business_unit_name": "Business Unit",
+                  "business_unit_id": "78",
+                  "prosecutor_case_reference": null,
+                  "last_enforcement_action": null,
+                  "account_balance": 123.45,
+                  "organisation_name": null,
+                  "defendant_title": "Mr",
+                  "defendant_firstnames": "Anna",
+                  "defendant_surname": "Graham",
+                  "birth_date": "1980-02-03",
+                  "national_insurance_number": null,
+                  "parent_guardian_surname": null,
+                  "parent_guardian_firstnames": null,
+                  "has_collection_order": true,
+                  "account_version": 0,
+                  "checks": {
+                    "warnings": [],
+                    "errors": [
+                      {
+                        "reference": "CON.ER.4",
+                        "message": "Account has days in default"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+            """;
+
+        Set<String> messages = jsonSchemaValidationService
+            .validate(validJson, "opal/defendant-account/postDefendantAccountsSearchResponse.json");
+
+        assertTrue(messages.isEmpty(), "Expected no validation errors, but got: " + messages);
+    }
 
 }
