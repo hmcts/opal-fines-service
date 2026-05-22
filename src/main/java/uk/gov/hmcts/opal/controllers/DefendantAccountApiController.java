@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @RestController
@@ -25,20 +26,20 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 public class DefendantAccountApiController implements DefendantAccountApi {
 
     private final DefendantAccountService defendantAccountService;
+    private final ImpositionService impositionService;
 
-    @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<DefendantAccountImpositionsResponseCommon> getDefendantAccountImpositions(
-        Long id, String authHeaderValue) {
-        log.debug(":GET:getDefendantAccountImpositions: for defendant account id: {}", id);
+    @Override
+    public ResponseEntity<DefendantAccountImpositionsResponseCommon> getImpositions(Long id, String authHeaderValue) {
+        log.debug(":GET:getImpositions: for defendant account id: {}", id);
 
-        GetDefendantAccountImpositionsResponse response =
-            defendantAccountService.getDefendantAccountImpositions(id, authHeaderValue);
+        GetDefendantAccountImpositionsResponse response = impositionService.getImpositions(id, authHeaderValue);
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
     }
 
     @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id, String authHeaderValue) {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);
 
