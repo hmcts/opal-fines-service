@@ -372,7 +372,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         Map<String, Object> currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
         boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
 
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser(
                 GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
@@ -452,7 +452,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
             .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
             .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
-            .andExpect(jsonPath("$.payment.pay_by_bacs").value(nullValue()))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_name").value(nullValue()))
@@ -467,7 +467,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         Map<String, Object> currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
         boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
 
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser(
                 (short) 20,
                 FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
@@ -500,7 +500,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
             .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
             .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
-            .andExpect(jsonPath("$.payment.pay_by_bacs").value(nullValue()))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_name").value(nullValue()))
@@ -522,7 +522,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
         // Arrange
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(noPermissionsUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionsUser());
 
         // Act & Assert
         mockMvc.perform(get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
@@ -534,7 +534,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getMinorCreditorAccount_notFound_returns404(Logger log) throws Exception {
         // Arrange
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(permissionUser(
+        when(userStateService.checkForAuthorisedUser()).thenReturn(permissionUser(
             GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS
