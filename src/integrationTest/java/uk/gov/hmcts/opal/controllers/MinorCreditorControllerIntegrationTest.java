@@ -1477,7 +1477,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAccountImpl_Success(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser((short) 77,
                 FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
                 FinesPermission.VIEW_CREDITOR_BACS));
@@ -1565,7 +1565,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "500")
             .contentType(MediaType.APPLICATION_JSON)
