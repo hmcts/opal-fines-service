@@ -167,7 +167,7 @@ class MinorCreditorServiceTest {
         // Assert
         assertNotNull(result);
         assertNotNull(result.getPayment());
-        assertEquals(null, result.getPayment().getPayByBacs());
+        assertEquals(true, result.getPayment().getPayByBacs());
         assertEquals(null, result.getPayment().getSortCode());
         assertEquals(null, result.getPayment().getAccountNumber());
         assertEquals(null, result.getPayment().getAccountName());
@@ -223,7 +223,7 @@ class MinorCreditorServiceTest {
         // Assert
         assertNotNull(result);
         assertNotNull(result.getPayment());
-        assertEquals(null, result.getPayment().getPayByBacs());
+        assertEquals(true, result.getPayment().getPayByBacs());
         assertEquals(null, result.getPayment().getSortCode());
         assertEquals(null, result.getPayment().getAccountNumber());
         assertEquals(null, result.getPayment().getAccountName());
@@ -252,7 +252,7 @@ class MinorCreditorServiceTest {
         // Assert
         assertNotNull(result);
         assertNotNull(result.getPayment());
-        assertEquals(null, result.getPayment().getPayByBacs());
+        assertEquals(true, result.getPayment().getPayByBacs());
         assertEquals(null, result.getPayment().getSortCode());
         assertEquals(null, result.getPayment().getAccountNumber());
         assertEquals(null, result.getPayment().getAccountName());

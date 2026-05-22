@@ -162,7 +162,6 @@ public class MinorCreditorService {
             return response;
         }
 
-        response.getPayment().setPayByBacs(null);
         response.getPayment().setSortCode(null);
         response.getPayment().setAccountNumber(null);
         response.getPayment().setAccountName(null);
