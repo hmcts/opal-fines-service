@@ -2,14 +2,11 @@ package uk.gov.hmcts.opal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
-import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
 @Data
 @NoArgsConstructor
@@ -34,8 +31,5 @@ public class UpdateDraftAccountRequestDto implements ToJsonString {
     private String reasonText;
 
     @JsonProperty("timeline_data")
-    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
-    @JsonRawValue
-    private String timelineData;
-
+    private Object timelineData;
 }

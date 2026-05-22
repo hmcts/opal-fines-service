@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 public class DraftAccountPublish implements DraftAccountPublishInterface {
 
     private final DraftAccountTransactional draftAccountTransactional;
+    private final Clock clock;
 
     @Override
     public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUser unitUser) {
@@ -52,7 +54,7 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
             String reason = "%s Error code: [%s]".formatted(LogUtil.ERRMSG_STORED_PROC_FAILURE, operationId);
             timelineData.insertEntry(
                 unitUser.getBusinessUnitUserId(), DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                LocalDate.now(), reason
+                LocalDate.now(clock), reason
             );
 
             publishEntity.setTimelineData(timelineData.toJson());

@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers.util;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import java.util.List;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 /**
@@ -48,33 +47,7 @@ public final class DraftAccountTestData {
     }
 
     // -------------------------------------------------------------------------
-    // Shared timeline entry
-    // -------------------------------------------------------------------------
-
-    public record TimelineEntry(
-
-        @JsonProperty("username")
-        String username,
-
-        @JsonProperty("status")
-        String status,
-
-        @JsonProperty("status_date")
-        String statusDate,
-
-        @JsonProperty("reason_text")
-        String reasonText
-
-    ) {
-
-        public static TimelineEntry defaultEntry() {
-            return new TimelineEntry("opal-test", "Submitted", "2026-05-12", "Feature toggle test");
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // POST /draft-accounts  (addDraftAccountRequest.json)
-    // Required: business_unit_id, account_type, account, timeline_data
+    // POST /draft-accounts
     // -------------------------------------------------------------------------
 
     public record Post(
@@ -96,10 +69,7 @@ public final class DraftAccountTestData {
 
         @JsonRawValue
         @JsonProperty("account")
-        String account,
-
-        @JsonProperty("timeline_data")
-        List<TimelineEntry> timelineData
+        String account
 
     ) implements ToJsonString {
 
@@ -110,15 +80,13 @@ public final class DraftAccountTestData {
                 "opal-test-post",
                 "Fine",
                 "Submitted",
-                MINIMAL_ACCOUNT_JSON,
-                List.of(TimelineEntry.defaultEntry())
+                MINIMAL_ACCOUNT_JSON
             );
         }
     }
 
     // -------------------------------------------------------------------------
-    // PUT /draft-accounts/{id}  (replaceDraftAccountRequest.json)
-    // Required: business_unit_id, account_type, account, timeline_data
+    // PUT /draft-accounts/{id}
     // -------------------------------------------------------------------------
 
     public record Put(
@@ -140,10 +108,7 @@ public final class DraftAccountTestData {
 
         @JsonRawValue
         @JsonProperty("account")
-        String account,
-
-        @JsonProperty("timeline_data")
-        List<TimelineEntry> timelineData
+        String account
 
     ) implements ToJsonString {
 
@@ -154,15 +119,13 @@ public final class DraftAccountTestData {
                 "opal-test-put",
                 "Fine",
                 "Resubmitted",
-                MINIMAL_ACCOUNT_JSON,
-                List.of(TimelineEntry.defaultEntry())
+                MINIMAL_ACCOUNT_JSON
             );
         }
     }
 
     // -------------------------------------------------------------------------
-    // PATCH /draft-accounts/{id}  (updateDraftAccountRequest.json)
-    // Required: business_unit_id, account_status, timeline_data
+    // PATCH /draft-accounts/{id}
     // -------------------------------------------------------------------------
 
     public record Patch(
@@ -173,8 +136,14 @@ public final class DraftAccountTestData {
         @JsonProperty("account_status")
         String accountStatus,
 
-        @JsonProperty("timeline_data")
-        List<TimelineEntry> timelineData
+        @JsonProperty("validated_by")
+        String validatedBy,
+
+        @JsonProperty("validated_by_name")
+        String validatedByName,
+
+        @JsonProperty("reason_text")
+        String reasonText
 
     ) implements ToJsonString {
 
@@ -182,9 +151,10 @@ public final class DraftAccountTestData {
             return new Patch(
                 77,
                 "Rejected",
-                List.of(TimelineEntry.defaultEntry())
+                "L077JG",
+                "opal-test-patch",
+                "Feature toggle test"
             );
         }
     }
 }
-

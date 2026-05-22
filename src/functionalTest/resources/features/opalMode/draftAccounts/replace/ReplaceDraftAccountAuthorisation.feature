@@ -11,8 +11,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I set an invalid token
     And I update the draft account that was just created with the following details
       | business_unit_id  | 73                                          |
@@ -21,7 +19,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
     Then the request is rejected as unauthorized
@@ -38,8 +35,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to replace the created draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -47,7 +42,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
     Then the request is rejected as forbidden and the created draft account remains with the following data
@@ -71,8 +65,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When the "opal-test-3@dev.platform.hmcts.net" user attempts to replace the created draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -80,7 +72,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
     Then the request is rejected as forbidden and the created draft account remains with the following data
@@ -104,8 +95,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When the "opal-test@dev.platform.hmcts.net" user attempts to replace the created draft account with the following details
       | business_unit_id  | 26                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -113,7 +102,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
     Then the request is rejected as forbidden and the created draft account remains with the following data
@@ -136,8 +124,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I update the draft account that was just created with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -145,7 +131,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
     Then the created draft account is replaced successfully and the retrieved draft account contains the following data
@@ -169,8 +154,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I update the draft account that was just created with the following details
       | business_unit_id  | 77                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
@@ -178,7 +161,6 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      |                                             |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
       | If-Match          | 0                                           |
 
     Then the request is rejected as bad request and the created draft account remains with the following data
@@ -203,7 +185,5 @@ Feature: Replace Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I attempt to put a draft account with an invalid token
     Then the request is rejected as unauthorized

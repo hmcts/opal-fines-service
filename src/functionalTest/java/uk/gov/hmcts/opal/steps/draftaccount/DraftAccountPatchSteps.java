@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
@@ -110,7 +109,6 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         JSONObject patchBody = new JSONObject();
         patchBody.put("account_status", "Publishing Pending");
         patchBody.put("validated_by", "invalidToken");
-        patchBody.put("timeline_data", new JSONArray());
 
         String id = lastCreatedIdOrFail();
         jsonRequestWithToken("invalidToken")
