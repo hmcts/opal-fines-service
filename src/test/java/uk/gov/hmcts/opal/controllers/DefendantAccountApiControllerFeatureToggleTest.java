@@ -21,60 +21,64 @@ import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.ImpositionService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 class DefendantAccountApiControllerFeatureToggleTest {
 
     private static final Long DEFENDANT_ACCOUNT_ID = 77L;
     private static final String AUTH_HEADER = "Bearer token";
-    private static final String RELEASE_1B_DEFAULT_PROPERTY = "launchdarkly.default-flag-values.release-1b";
 
     @Test
-    void getDefendantAccountImpositions_whenRelease1bEnabled_proceedsToService() {
-        DefendantAccountService service = mock(DefendantAccountService.class);
+    void getImpositions_whenRelease1bEnabled_proceedsToService() {
+        DefendantAccountService defendantAccountService = mock(DefendantAccountService.class);
+        ImpositionService impositionService = mock(ImpositionService.class);
         DefendantAccountImpositionsResponseCommon payload = new DefendantAccountImpositionsResponseCommon();
-        when(service.getDefendantAccountImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER))
+        when(impositionService.getImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER))
             .thenReturn(GetDefendantAccountImpositionsResponse.builder()
                             .payload(payload)
                             .version(BigInteger.valueOf(4))
                             .build());
 
-        DefendantAccountApiController controller = proxiedController(service, true);
+        DefendantAccountApiController controller = proxiedController(defendantAccountService, impositionService, true);
 
         ResponseEntity<DefendantAccountImpositionsResponseCommon> response =
-            controller.getDefendantAccountImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER);
+            controller.getImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"4\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
-        verify(service).getDefendantAccountImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER);
+        verify(impositionService).getImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER);
     }
 
     @Test
-    void getDefendantAccountImpositions_whenRelease1bDisabled_throwsFeatureDisabledWithoutCallingService() {
-        DefendantAccountService service = mock(DefendantAccountService.class);
-        DefendantAccountApiController controller = proxiedController(service, false);
+    void getImpositions_whenRelease1bDisabled_throwsFeatureDisabledWithoutCallingService() {
+        DefendantAccountService defendantAccountService = mock(DefendantAccountService.class);
+        ImpositionService impositionService = mock(ImpositionService.class);
+        DefendantAccountApiController controller = proxiedController(defendantAccountService, impositionService, false);
 
         FeatureDisabledException exception = assertThrows(
             FeatureDisabledException.class,
-            () -> controller.getDefendantAccountImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER)
+            () -> controller.getImpositions(DEFENDANT_ACCOUNT_ID, AUTH_HEADER)
         );
 
         assertEquals(
-            "Feature release-1b is not enabled for method getDefendantAccountImpositions",
+            "Feature release-1b is not enabled for method getImpositions",
             exception.getMessage()
         );
-        verifyNoInteractions(service);
+        verifyNoInteractions(defendantAccountService, impositionService);
     }
 
     private DefendantAccountApiController proxiedController(
-        DefendantAccountService service,
+        DefendantAccountService defendantAccountService,
+        ImpositionService impositionService,
         boolean release1bDefaultValue) {
 
         LaunchDarklyProperties launchDarklyProperties = mock(LaunchDarklyProperties.class);
         when(launchDarklyProperties.isEnabled()).thenReturn(false);
 
         MockEnvironment environment = new MockEnvironment()
-            .withProperty(RELEASE_1B_DEFAULT_PROPERTY, Boolean.toString(release1bDefaultValue));
+            .withProperty(FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY, Boolean.toString(release1bDefaultValue));
 
         FeatureToggleAspect featureToggleAspect = new FeatureToggleAspect(
             mock(FeatureToggleApi.class),
@@ -82,7 +86,8 @@ class DefendantAccountApiControllerFeatureToggleTest {
             environment
         );
 
-        AspectJProxyFactory proxyFactory = new AspectJProxyFactory(new DefendantAccountApiController(service));
+        AspectJProxyFactory proxyFactory =
+            new AspectJProxyFactory(new DefendantAccountApiController(defendantAccountService, impositionService));
         proxyFactory.setProxyTargetClass(true);
         proxyFactory.addAspect(featureToggleAspect);
         return proxyFactory.getProxy();
