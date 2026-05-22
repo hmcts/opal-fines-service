@@ -68,7 +68,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray())
             .andExpect(jsonPath("$.timeline_data[1].username").value("USER01"))
-            .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());

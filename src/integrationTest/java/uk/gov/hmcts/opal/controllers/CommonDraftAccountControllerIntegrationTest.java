@@ -1,9 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -108,6 +111,7 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     }
 
     protected String getIfMatchForDraftAccount(long draftAccountId) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         return mockMvc.perform(get(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .header("Accept", "application/json"))
