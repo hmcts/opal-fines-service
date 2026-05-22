@@ -89,13 +89,12 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-      host: ${OPAL_REDIS_HOST:localhost}
-      port: ${OPAL_REDIS_PORT:6379}
+        url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
-    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/allEnvs, classpath:db/migration/devOnly, classpath:db/migration/stgOnly}
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
 
@@ -120,6 +119,11 @@ launchdarkly:
   offline-mode: ${LAUNCH_DARKLY_OFFLINE_MODE:false}
   env: ${LAUNCH_DARKLY_ENV:default}
   enabled: ${LAUNCH_DARKLY_ENABLED:true}
+  file:
+    - ${LAUNCH_DARKLY_FILE:bin/utils/launchdarkly-flags.json}
+  default-flag-values:
+    release-1a: ${LAUNCH_DARKLY_FLAG_RELEASE_1A:true}
+    release-1b: ${LAUNCH_DARKLY_RELEASE_1B:false}
 
 opal:
   redis:
@@ -151,6 +155,15 @@ opal:
     password: ${OPAL_TEST_USER_PASSWORD}
   common:
     domain: fines
+    content-digest:
+      request:
+        enforce: ${OPAL_COMMON_CONTENT_DIGEST_REQUEST_ENFORCE:false}
+        auto-generate: ${OPAL_COMMON_CONTENT_DIGEST_REQUEST_AUTO_GENERATE:false}
+      response:
+        enforce: ${OPAL_COMMON_CONTENT_DIGEST_RESPONSE_ENFORCE:false}
+        algorithm: ${OPAL_COMMON_CONTENT_DIGEST_RESPONSE_ALGORITHM:SHA-512}
+      supported-algorithms:
+        sha-512: SHA-512
 
   report:
     storage:

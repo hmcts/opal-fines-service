@@ -4,7 +4,7 @@ Feature: Draft Account Access Token Identity
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-2292 @JIRA-EPIC:PO-2808 @cleanUpData
+  @JIRA-STORY:PO-2292 @JIRA-EPIC:PO-2808 @cleanUpData @JIRA-TEST-KEY:PO-5641
   Scenario: Access token identity overrides submitted-by values
     And a draft account exists with the following details
       | business_unit_id  | 73                                          |
@@ -41,5 +41,7 @@ Feature: Draft Account Access Token Identity
       | account_snapshot.account_type       | Fine                |
       | account_snapshot.submitted_by       | L073JG              |
       | account_snapshot.business_unit_name | West London         |
-      | timeline_data[0].status             | Deleted             |
-      | timeline_data[0].reason_text        | Reason for deletion |
+      | timeline_data[1].status             | Deleted             |
+      | timeline_data[1].username           | opal-test@dev.platform.hmcts.net |
+      | timeline_data[1].user_id            | L073JG              |
+      | timeline_data[1].reason_text        | Reason for deletion |

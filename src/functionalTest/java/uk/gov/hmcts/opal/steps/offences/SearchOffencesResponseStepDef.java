@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,6 +67,38 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
                 ), "Values are not equal: " + key + " - " + actual + " - " + expectedDataMap.get(key));
             }
         }
+    }
+
+    /**
+     * Asserts that the response contains all expected CJS codes.
+     *
+     * @param expectedCodesTable Cucumber table containing expected CJS codes.
+     */
+    @Then("the response contains the following cjs codes")
+    public void responseContainsCjsCodes(DataTable expectedCodesTable) {
+
+        List<String> expectedCodes = expectedCodesTable.asList();
+
+        List<String> actualCodes = SerenityRest.then()
+            .extract()
+            .jsonPath()
+            .getList("searchData.cjs_code");
+
+        System.out.println("Actual CJS Codes: " + actualCodes);
+
+        List<String> missingCodes = new ArrayList<>();
+
+        for (String expectedCode : expectedCodes) {
+
+            if (!actualCodes.contains(expectedCode)) {
+                missingCodes.add(expectedCode);
+            }
+        }
+
+        assertTrue(
+            missingCodes.isEmpty(),
+            "Missing expected CJS codes: " + missingCodes
+        );
     }
 
     /**

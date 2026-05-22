@@ -202,6 +202,88 @@ To build the project execute the following command:
 ```bash / zsh
   ./gradlew build
 ```
+
+### Functional test tasks
+
+Use the standard functional suite for normal backend functional coverage:
+
+```bash / zsh
+  ./gradlew functional
+```
+
+This runs the default Opal and Legacy functional suites, and the Opal portion excludes
+environment-specific scenarios tagged `@UAT-Technical`, including the `@R1AOff`,
+`@R1BOff`, and `@R1COff` feature-flag suites.
+
+Use the tagged Opal functional suite when you need to run only scenarios for a specific
+environment or feature-flag configuration:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalOpalTags
+```
+
+You can also pass the tags as a Gradle property instead of an environment variable:
+
+```bash / zsh
+  ./gradlew functionalOpalTags -Ptags='@UAT-Technical and @R1B and @R1C'
+```
+
+Use the combined tagged wrapper when you want the default Opal suite and the tagged Opal
+scenarios in one run, with the same Serenity report and merged JUnit summary flow used by
+the standard `functional` task:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalWithTags
+```
+
+Use the Zephyr variant when you want the same combined tagged run and the tagged Opal
+execution recorded through the existing cucumber-report Zephyr flow:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalWithTagsWithZephyrExecution
+```
+
+Common examples:
+
+```bash / zsh
+  TAGS='@UAT-Technical and @R1B and @R1COff' ./gradlew functionalOpalTags
+  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalOpalTags
+  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalWithTags
+  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalWithTagsWithZephyrExecution
+```
+
+### Zephyr tasks
+
+Zephyr tasks require `JIRA_AUTH_TOKEN` to be exported before the upload task runs:
+
+```bash / zsh
+  export JIRA_AUTH_TOKEN=<token>
+```
+
+The create and update tasks process an existing test report; they do not run the tests.
+Run the matching functional or integration suite first if the report is not already present.
+
+| Task | Purpose |
+| --- | --- |
+| `functionalWithZephyrExecution` | Runs the default Opal functional suite, creates an Opal Cucumber report copy, creates an Opal Zephyr execution, then runs the Legacy functional suite and creates a Legacy Zephyr execution. |
+| `functionalWithTagsWithZephyrExecution` | Runs the default Opal functional suite and the tagged Opal functional suite selected by `TAGS` or `-Ptags`, then creates Zephyr executions for both reports. |
+| `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `target/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
+| `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `target/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
+| `functionalLegacyWithZephyrExecution` | Runs only `functionalLegacy`, copies its Cucumber report to `target/zephyr/cucumber-legacy.json`, and creates the Legacy Zephyr execution. |
+
+| `createJiraTicketsFromCucumberReport` | Creates and links Jira test tickets from `target/cucumber.json`. |
+| `updateJiraTicketsFromCucumberReport` | Updates Jira test tickets from `target/cucumber.json`. |
+
+| `createJiraExecutionFromCucumberReport` | Creates a Zephyr execution from `target/cucumber.json`. |
+| `createJiraExecutionFromOpalCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal.json`. |
+| `createJiraExecutionFromOpalTagsCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal-tags.json`. |
+| `createJiraExecutionFromLegacyCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-legacy.json`. |
+
+| `integrationTestWithZephyrExecution` | Runs `integration`, then creates a Zephyr execution from the generated JUnit5 integration report. |
+| `createJiraTicketsFromJUnit5ReportIntegrationTest` | Creates and links Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+| `updateJiraTicketsFromJUnit5ReportIntegrationTest` | Updates Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+| `createJiraExecutionFromJUnit5ReportIntegrationTest` | Creates a Zephyr execution from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+
 ## Manual api testing (Postman)
 
 Within the project's postman directory is an importable script to set up api tests in the Postman app.

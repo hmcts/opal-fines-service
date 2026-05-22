@@ -20,6 +20,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -51,6 +53,8 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
+    @JiraStory("PO-1973")
+    @JiraEpic("PO-1970")
     void testGetDefendantAccountParty_Happy() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -77,6 +81,8 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - Organisation Only [@PO-1973]")
+    @JiraStory("PO-1973")
+    @JiraEpic("PO-1970")
     void testGetDefendantAccountParty_Organisation() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -102,6 +108,8 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     @Test
     @DisplayName("LEGACY: Get Defendant Account Party - 500 Error [@PO-1973]")
+    @JiraStory("PO-1973")
+    @JiraEpic("PO-1970")
     void testGetDefendantAccountParty_500Error() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -118,6 +126,8 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
+    @JiraStory("PO-1974")
+    @JiraEpic("PO-1970")
     void testPutReplaceDefAccParty_Success() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -139,6 +149,8 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     @Test
     @DisplayName("LEGACY: PUT Replace DAP")
+    @JiraStory("PO-1974")
+    @JiraEpic("PO-1970")
     void testPutReplaceDefAccParty_500Error() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 

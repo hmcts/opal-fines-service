@@ -2,9 +2,14 @@ package uk.gov.hmcts.opal.controllers.print;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,12 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
 import uk.gov.hmcts.opal.service.print.PrintService;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ContentDisposition;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/print")
@@ -31,6 +30,8 @@ public class PrintRequestController {
     private final PrintService printService;
 
     private final AsyncPrintJobProcessor asyncPrintJobProcessor;
+
+    private final Clock clock;
 
 
     @PostMapping(value = "/enqueue-print-jobs", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -62,7 +63,7 @@ public class PrintRequestController {
     public ResponseEntity<String> processPendingJobs() {
         log.debug(":POST:processPendingJobs: processing pending print jobs");
 
-        asyncPrintJobProcessor.processPendingJobsAsync(LocalDateTime.now());
+        asyncPrintJobProcessor.processPendingJobsAsync(LocalDateTime.now(clock));
 
         return ResponseEntity.ok().body("OK");
     }

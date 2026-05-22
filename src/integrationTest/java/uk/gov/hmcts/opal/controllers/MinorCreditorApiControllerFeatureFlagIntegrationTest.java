@@ -1,0 +1,95 @@
+package uk.gov.hmcts.opal.controllers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+
+@ActiveProfiles({"integration", "opal"})
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=false"
+})
+@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
+@Slf4j(topic = "opal.MinorCreditorApiControllerFeatureFlagIntegrationTest")
+class MinorCreditorApiControllerFeatureFlagIntegrationTest
+    extends AbstractIntegrationTest {
+
+    private static final long MINOR_CREDITOR_ACCOUNT_ID = 607L;
+    private static final short BUSINESS_UNIT_ID = 10;
+
+    @Autowired
+    private CreditorAccountRepository creditorAccountRepository;
+
+    @Test
+    @JiraStory("PO-1992")
+    @JiraEpic("PO-2234")
+    void patchMinorCreditorAccount_whenLocalDefaultDisabled_returns405() throws Exception {
+        PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
+
+        ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer some_value")
+                            .header("Business-Unit-Id", String.valueOf(BUSINESS_UNIT_ID))
+                            .header("If-Match", "\"1\"")
+                            .content(objectMapper.writeValueAsString(request)));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditorAccount_whenLocalDefaultDisabled_returns405 body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isMethodNotAllowed())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.title").value("Feature Disabled"))
+            .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
+
+        CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
+        assertFalse(creditorAccount.isHoldPayout());
+        assertEquals(1L, creditorAccount.getVersionNumber());
+    }
+
+    private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {
+        return new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon()
+                              .partyId("99008")
+                              .organisationFlag(false)
+                              .individualDetails(new IndividualDetailsCommon()
+                                                     .forenames("Creditor")
+                                                     .surname("Updated")))
+            .address(new AddressDetailsCommon()
+                         .addressLine1("99 Updated Road")
+                         .postcode("NW1 1AA"))
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                         .holdPayment(true)
+                         .payByBacs(true));
+    }
+
+    private CreditorAccountEntity getCurrentCreditorAccount() {
+        return creditorAccountRepository.findById(MINOR_CREDITOR_ACCOUNT_ID).orElseThrow();
+    }
+}

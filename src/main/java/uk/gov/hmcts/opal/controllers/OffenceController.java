@@ -1,7 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
@@ -20,11 +25,7 @@ import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 
 @RestController
@@ -41,6 +42,7 @@ public class OffenceController {
 
     @GetMapping(value = "/{offenceId}")
     @Operation(summary = "Returns the Offence for the given offenceId.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<OffenceEntity> getOffenceById(@PathVariable Long offenceId) {
 
         log.debug(":GET:getOffenceById: offenceId: {}", offenceId);
@@ -54,6 +56,7 @@ public class OffenceController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Offences based upon criteria in request body")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<OffenceSearchDataResults> postOffencesSearch(@RequestBody OffenceSearchDto criteria) {
         log.debug(":POST:postOffencesSearch: query: \n{}", criteria.toPrettyJson());
 
@@ -67,6 +70,7 @@ public class OffenceController {
     @Operation(summary = "Returns 'global' Offences as reference data with an optional filter applied. "
         + "If the business unit is provided, then that is used to return only 'local' offences "
         + "for that business unit, or ALL local offences if the business unit provided is zero.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(
         @RequestParam("q") Optional<String> filter,
         @RequestParam("business_unit_id") Optional<Short> businessUnit,

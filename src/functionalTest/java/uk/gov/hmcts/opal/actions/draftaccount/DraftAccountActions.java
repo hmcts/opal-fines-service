@@ -41,6 +41,16 @@ public class DraftAccountActions extends BaseStepDef {
     public Response createDraftAccount(Map<String, String> accountData) throws JSONException, IOException {
         JSONObject postBody = requestFactory.buildCreateRequestBody(accountData);
 
+        return createDraftAccount(postBody);
+    }
+
+    /**
+     * Creates a draft account using a fully prepared JSON request body.
+     *
+     * @param postBody request body to submit to the draft-account API.
+     * @return API response returned by the create request.
+     */
+    public Response createDraftAccount(JSONObject postBody) {
         return loggedAuthorisedJsonRequest()
             .body(postBody.toString())
             .when()
@@ -350,6 +360,11 @@ public class DraftAccountActions extends BaseStepDef {
             String validatedBy = data.get("validated_by");
             patch.put("validated_by", (validatedBy == null || validatedBy.isBlank()) ? JSONObject.NULL
                 : validatedBy);
+        }
+        if (data.containsKey("reason_text")) {
+            String reasonText = data.get("reason_text");
+            patch.put("reason_text", (reasonText == null || reasonText.isBlank()) ? JSONObject.NULL
+                : reasonText);
         }
 
         JSONObject timelineEntry = new JSONObject();

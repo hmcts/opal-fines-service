@@ -14,7 +14,10 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +27,11 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -57,6 +62,9 @@ class DraftAccountTransactionalTest {
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
+
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
     @InjectMocks
     private DraftAccountTransactional draftAccountTransactional;
@@ -131,22 +139,13 @@ class DraftAccountTransactionalTest {
     void testSubmitDraftAccounts_success() {
         String minimalAccountJson = createAccountString();
 
-        DraftAccountEntity saved = DraftAccountEntity.builder()
-            .account(minimalAccountJson)
-            .accountSnapshot("{}")
-            .accountType(DraftAccountType.FINE)
-            .draftAccountId(1L)
-            .createdDate(LocalDateTime.now())
-            .accountStatus(DraftAccountStatus.SUBMITTED)
-            .accountStatusDate(LocalDateTime.now())
-            .build();
-
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short)2)
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(minimalAccountJson)
             .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.REJECTED)
             .timelineData("[]")
             .build();
 
@@ -155,11 +154,16 @@ class DraftAccountTransactionalTest {
             .build();
 
         when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
-        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(saved);
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
-        assertEquals(saved.getAccount(), result.getAccount());
+        assertEquals(minimalAccountJson, result.getAccount());
+        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        verify(draftAccountRepository).save(captor.capture());
+        assertEquals(DraftAccountStatus.SUBMITTED, captor.getValue().getAccountStatus());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getCreatedDate());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
 
     }
 
@@ -215,19 +219,9 @@ class DraftAccountTransactionalTest {
             .businessUnitName("New Bailey")
             .build();
 
-        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
-            .draftAccountId(draftAccountId)
-            .submittedBy("TestUser")
-            .account(createAccountString())
-            .accountType(DraftAccountType.FINE)
-            .accountStatus(DraftAccountStatus.RESUBMITTED)
-            .timelineData(createTimelineDataString())
-            .versionNumber(1L)
-            .build();
-
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
-        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // Act
         DraftAccountEntity result = draftAccountTransactional
@@ -240,11 +234,53 @@ class DraftAccountTransactionalTest {
         assertEquals(createAccountString(), result.getAccount());
         assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
-        assertEquals(createTimelineDataString(), result.getTimelineData());
+        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(businessUnitRepository).findById((short) 2);
         verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testReplaceDraftAccount_appendsTimelineDataToExistingTimeline() {
+        Long draftAccountId = 1L;
+        String existingTimeline = singleTimelineDataString("original-user", "Submitted");
+        String generatedTimeline = singleTimelineDataString("normal@users.com", "Resubmitted");
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .submittedBy("TestUser")
+            .submittedByName("Test User")
+            .account(createAccountString())
+            .accountType(DraftAccountType.FINE)
+            .timelineData(generatedTimeline)
+            .version(BigInteger.valueOf(0L))
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .createdDate(LocalDateTime.now())
+            .timelineData(existingTimeline)
+            .versionNumber(0L)
+            .build();
+
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+            .businessUnitId(((short) 2))
+            .businessUnitName("New Bailey")
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(invocation -> invocation
+            .getArgument(0));
+
+        DraftAccountEntity result = draftAccountTransactional
+            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
+
+        assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
+        assertThat(result.getTimelineData().indexOf("original-user"))
+            .isLessThan(result.getTimelineData().indexOf("normal@users.com"));
     }
 
     @Test
@@ -374,19 +410,8 @@ class DraftAccountTransactionalTest {
             .versionNumber(0L)
             .build();
 
-        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
-            .draftAccountId(draftAccountId)
-            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
-            .validatedBy("TestValidator")
-            .validatedByName("Tester McValidator")
-            .validatedDate(LocalDateTime.now())
-            .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
-            .timelineData(createTimelineDataString())
-            .versionNumber(1L)
-            .build();
-
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
-        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         UserState userState = UserState.builder().userName("USER_NAME_1").build();
 
@@ -399,13 +424,47 @@ class DraftAccountTransactionalTest {
         assertEquals(draftAccountId, result.getDraftAccountId());
         assertEquals(DraftAccountStatus.PUBLISHING_PENDING, result.getAccountStatus());
         assertEquals("TestValidator", result.getValidatedBy());
-        assertEquals("Tester McValidator", result.getValidatedByName());
-        assertNotNull(result.getValidatedDate());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getValidatedDate());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
-        assertEquals(createTimelineDataString(), result.getTimelineData());
+        assertTrue(result.getAccountSnapshot().contains("2026-05-07T10:15:00Z"));
+        assertThat(result.getTimelineData()).contains("johndoe123", "janedoe456", "mikebrown789");
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testUpdateDraftAccount_appendsTimelineDataToExistingTimeline() {
+        Long draftAccountId = 1L;
+        String existingTimeline = singleTimelineDataString("original-user", "Submitted");
+        String generatedTimeline = singleTimelineDataString("normal@users.com", "Rejected");
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.REJECTED)
+            .timelineData(generatedTimeline)
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .timelineData(existingTimeline)
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(invocation -> invocation
+            .getArgument(0));
+
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+
+        DraftAccountEntity result = draftAccountTransactional
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
+
+        assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
+        assertThat(result.getTimelineData().indexOf("original-user"))
+            .isLessThan(result.getTimelineData().indexOf("normal@users.com"));
     }
 
     @Test
@@ -447,7 +506,7 @@ class DraftAccountTransactionalTest {
             eq("Failure"),
             eq((short) 2),
             eq("Approval"),
-            any(LocalDateTime.class),
+            eq(LocalDateTime.of(2026, 5, 7, 10, 15)),
             eq(Map.of(
                 "UserIdentifier", 23L,
                 "DraftAccountIdentifier", draftAccountId,
@@ -495,7 +554,7 @@ class DraftAccountTransactionalTest {
             eq("Failure"),
             eq((short) 2),
             eq("Deletion"),
-            any(LocalDateTime.class),
+            eq(LocalDateTime.of(2026, 5, 7, 10, 15)),
             eq(Map.of(
                 "UserIdentifier", 23L,
                 "DraftAccountIdentifier", draftAccountId,
@@ -670,6 +729,17 @@ class DraftAccountTransactionalTest {
                     ]
                }
             """;
+    }
+
+    private String singleTimelineDataString(String username, String status) {
+        return """
+            [{
+                         "username": "%s",
+                         "status": "%s",
+                         "status_date": "2026-04-22",
+                         "reason_text": "Timeline reason"
+                     }]
+            """.formatted(username, status);
     }
 
 }

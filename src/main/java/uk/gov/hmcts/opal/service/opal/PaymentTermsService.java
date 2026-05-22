@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
@@ -16,8 +16,9 @@ import uk.gov.hmcts.opal.service.iface.PaymentTermsServiceInterface;
 @Qualifier("paymentTermsService")
 public class PaymentTermsService implements PaymentTermsServiceInterface {
 
-    @Autowired
     private final DefendantAccountPaymentTermsRepository paymentTermsRepository;
+
+    private final Clock clock;
 
     @Override
     public PaymentTermsEntity addPaymentTerm(PaymentTermsEntity paymentTermsEntity) {
@@ -26,7 +27,7 @@ public class PaymentTermsService implements PaymentTermsServiceInterface {
 
         // Set posted_details metadata
         if (paymentTermsEntity.getPostedDate() == null) {
-            paymentTermsEntity.setPostedDate(LocalDateTime.now());
+            paymentTermsEntity.setPostedDate(LocalDateTime.now(clock));
         }
         paymentTermsEntity.setPostedBy(paymentTermsEntity.getPostedBy());
         paymentTermsEntity.setPostedByUsername(paymentTermsEntity.getPostedByUsername());

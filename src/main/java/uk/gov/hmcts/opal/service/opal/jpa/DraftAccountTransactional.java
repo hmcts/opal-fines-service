@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,11 +29,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
-import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -41,6 +40,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -66,6 +66,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     private final BusinessUnitRepository businessUnitRepository;
 
     private final SecurityEventLoggingService securityEventLoggingService;
+
+    private final Clock clock;
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
 
@@ -107,7 +109,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
     @Transactional
     public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
-        LocalDateTime created = LocalDateTime.now();
+        LocalDateTime created = LocalDateTime.now(clock);
         BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(
             dto.getBusinessUnitId());
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
@@ -143,8 +145,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setAccountSnapshot(newSnapshot);
         existingAccount.setAccountType(dto.getAccountType());
         existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
-        existingAccount.setAccountStatusDate(LocalDateTime.now());
-        existingAccount.setTimelineData(dto.getTimelineData());
+        existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
+        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
 
         log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
                   draftAccountId, newSnapshot);
@@ -180,13 +182,14 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setVersionNumber(updateVersion.longValueExact());
 
         if (newStatus.isPublishingPending()) {
+            LocalDateTime validationTimestamp = LocalDateTime.now(clock);
             checkValidatorIsNotSubmitter(existingAccount.getSubmittedBy(), dto.getValidatedBy(), draftAccountId,
                 userState, dto.getBusinessUnitId());
-            existingAccount.setValidatedDate(LocalDateTime.now());
+            existingAccount.setValidatedDate(validationTimestamp);
             existingAccount.setValidatedBy(dto.getValidatedBy());
             existingAccount.setValidatedByName(dto.getValidatedByName());
             existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
-            existingAccount.setAccountStatusDate(LocalDateTime.now());
+            existingAccount.setAccountStatusDate(validationTimestamp);
         }
 
         if (newStatus.isDeleted()) {
@@ -194,8 +197,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 userState, dto.getBusinessUnitId());
         }
 
-        // Set the timeline data as received from the front end
-        existingAccount.setTimelineData(dto.getTimelineData());
+        existingAccount.setTimelineData(appendTimelineData(existingAccount.getTimelineData(), dto.getTimelineData()));
 
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
                   draftAccountId, existingAccount.getAccountStatus());
@@ -216,7 +218,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         dbDraftAccount.setAccountStatus(status);
         dbDraftAccount.setVersionNumber(entity.getVersion().longValueExact());
-        dbDraftAccount.setAccountStatusDate(LocalDateTime.now());
+        dbDraftAccount.setAccountStatusDate(LocalDateTime.now(clock));
 
         // These are specific to the results from the 'publish' activity, success
         dbDraftAccount.setAccountNumber(entity.getAccountNumber());
@@ -295,7 +297,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .build();
     }
 
-    DraftAccountEntity toEntity(DraftAccountRequestDto dto, LocalDateTime created,
+    DraftAccountEntity toEntity(AddDraftAccountRequestDto dto, LocalDateTime created,
                                 BusinessUnitEntity businessUnit, String snapshot) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)
@@ -306,7 +308,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .accountStatusDate(LocalDateTime.now())
+            .accountStatusDate(created)
+            .statusMessage(dto.getStatusMessage())
             .timelineData(dto.getTimelineData())
             .draftAccountId(null)
             .build();
@@ -317,7 +320,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         if (submitterUsername != null && submitterUsername.equals(updaterUserName)) {
             Map<String, Object> data = getSecurityLogDataMap(userState.getUserId(), draftAccountId, submitterUsername);
             securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Failure", businessUnitId,
-                "Approval", LogUtil.getRequestTimestamp(), data);
+                "Approval", LocalDateTime.now(clock), data);
             throw new SubmitterDeniedException(submitterUsername, "validate");
         }
     }
@@ -327,7 +330,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         if (submitterUsername != null && submitterUsername.equals(updaterUserName)) {
             Map<String, Object> data = getSecurityLogDataMap(userState.getUserId(), draftAccountId, submitterUsername);
             securityEventLoggingService.logEvent(EVENT_NAME_DELETION,
-                  "Failure", businessUnitId, "Deletion", LogUtil.getRequestTimestamp(), data);
+                  "Failure", businessUnitId, "Deletion", LocalDateTime.now(clock), data);
             throw new SubmitterDeniedException(submitterUsername, "delete");
         }
     }
@@ -336,5 +339,11 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         return MapUtils.ofNullable("UserIdentifier", approverId,
             "DraftAccountIdentifier", accountId,
             "DraftAccountSubmittedByUserIdentifier", submittedBy);
+    }
+
+    private String appendTimelineData(String existingTimelineData, String generatedTimelineData) {
+        TimelineData timelineData = new TimelineData(existingTimelineData);
+        timelineData.appendEntries(generatedTimelineData);
+        return timelineData.toJson();
     }
 }

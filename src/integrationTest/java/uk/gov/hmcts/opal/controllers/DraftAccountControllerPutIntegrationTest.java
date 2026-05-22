@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,7 +16,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissio
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +29,8 @@ import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.DraftAccountControllerPutIntegrationTest")
 @DisplayName("DraftAccountControllerPutIntegrationTest")
@@ -38,6 +38,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-746")
+    @JiraEpic("PO-2220")
     void testReplaceDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any()))
@@ -63,7 +66,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
-            .andExpect(jsonPath("$.timeline_data").isArray());
+            .andExpect(jsonPath("$.timeline_data").isArray())
+            .andExpect(jsonPath("$.timeline_data[1].username").value("normal@users.com"))
+            .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
+            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
+            .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
@@ -71,6 +79,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Replace draft account - Should return 400 when originator_type is missing")
+    @JiraStory("PO-2749")
+    @JiraStory("PO-2751")
+    @JiraStory("PO-2752")
+    @JiraEpic("PO-2750")
     void testReplaceDraftAccount_originatorTypeIsMissing() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\",", "");
@@ -87,6 +99,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Replace draft account - Should return 400 when originator_type is blank")
+    @JiraStory("PO-2749")
+    @JiraStory("PO-2751")
+    @JiraStory("PO-2752")
+    @JiraEpic("PO-2750")
     void testReplaceDraftAccount_originatorTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
@@ -103,6 +119,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Replace draft account - Should return 400 when originator_type has invalid value")
+    @JiraStory("PO-2749")
+    @JiraStory("PO-2751")
+    @JiraStory("PO-2752")
+    @JiraEpic("PO-2750")
     void testReplaceDraftAccount_originatorTypeIsInvalid() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
@@ -119,6 +139,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Replace draft account - Should create and call PDPLLoggingService [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
     void testPutDraftAccount_success_and_pdplServiceCalled() throws Exception {
         String validRequestBody = validReplaceRequestBodyForPdpl(0L);
 
@@ -209,6 +231,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Replace draft account - Defendant only PDPL log [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
     void testPutDraftAccount_defendantOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyDefendantOnly(0L);
 
@@ -216,7 +240,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
@@ -224,7 +247,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
-        final OffsetDateTime after = OffsetDateTime.now();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
@@ -245,13 +267,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("1", pdpl.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
-        OffsetDateTime createdAt = pdpl.getCreatedAt();
-        assertNotNull(createdAt);
-        assertTrue(!createdAt.isBefore(before.minusSeconds(5)) && !createdAt.isAfter(after.plusSeconds(5)));
+        assertEquals(FIXED_DATE_TIME, pdpl.getCreatedAt());
     }
 
     @Test
     @DisplayName("Replace draft account - Parent/Guardian only PDPL log [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
     void testPutDraftAccount_parentGuardianOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyParentGuardianOnly(0L);
 
@@ -259,7 +281,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
@@ -267,7 +288,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
-        final OffsetDateTime after = OffsetDateTime.now();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
@@ -320,6 +340,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Replace draft account - Minor creditor only PDPL log [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
     void testPutDraftAccount_minorCreditorOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyMinorCreditorOnly(0L);
 
@@ -327,7 +349,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        final OffsetDateTime before = OffsetDateTime.now();
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
             .header("authorization", "Bearer some_value")
@@ -335,7 +356,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
-        final OffsetDateTime after = OffsetDateTime.now();
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
@@ -388,6 +408,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @Test
     @DisplayName("Put Draft Account : Deterministic and includes originator type")
+    @JiraStory("PO-2749")
+    @JiraStory("PO-2751")
+    @JiraStory("PO-2752")
+    @JiraEpic("PO-2750")
     void testPutDraft_deterministic() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         String requestBody = validReplaceRequestBody(3L);
@@ -415,12 +439,15 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         assertThat(r1)
             .usingRecursiveComparison()
-            .ignoringFields("accountStatusDate")
+            .ignoringFields("accountStatusDate", "timelineData")
             .isEqualTo(r2);
     }
 
     @Test
     @DisplayName("Replace draft account - user with no permission [@PO-973, @PO-830]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-830")
+    @JiraEpic("PO-2220")
     void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
 

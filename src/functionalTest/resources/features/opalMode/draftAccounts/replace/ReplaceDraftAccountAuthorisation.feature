@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Replace Draft Account Authorisation
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5671
   Scenario: Update draft account - no auth
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -28,7 +28,7 @@ Feature: Replace Draft Account Authorisation
 
     #    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5672
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -61,7 +61,7 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5673
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -94,7 +94,7 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5674
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -126,7 +126,7 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.business_unit_name | Hertfordshire |
 
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5675
   Scenario: Update draft account - user with permissions in same business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -159,7 +159,7 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.business_unit_name | West London  |
 
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5676
   Scenario: Update draft account - user with permissions in same business unit - updating business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -193,7 +193,7 @@ Feature: Replace Draft Account Authorisation
 
 
 
-  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
+  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5677
   Scenario: Invalid token replacement attempts are rejected and do not create PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
