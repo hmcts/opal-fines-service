@@ -420,7 +420,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         Map<String, Object> currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
         boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
 
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser(
                 GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
@@ -511,7 +511,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
         // Arrange
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).checkForAuthorisedUser();
 
         // Act & Assert
         mockMvc.perform(get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
@@ -557,7 +557,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAccount_timeout_returns408(Logger log) throws Exception {
         // Arrange
         doThrow(new ResponseStatusException(REQUEST_TIMEOUT, "Timeout"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).checkForAuthorisedUser();
 
         // Act
         ResultActions resultActions = mockMvc.perform(
@@ -576,7 +576,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAccount_serviceUnavailable_returns503(Logger log) throws Exception {
         // Arrange
         doThrow(new ResponseStatusException(SERVICE_UNAVAILABLE, "Gateway down"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).checkForAuthorisedUser();
 
         // Act
         ResultActions resultActions = mockMvc.perform(
@@ -596,7 +596,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAccount_serverError_returns500(Logger log) throws Exception {
         // Arrange
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).checkForAuthorisedUser();
 
         // Act
         ResultActions resultActions = mockMvc.perform(
@@ -1516,7 +1516,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAccountImpl_filtersBacsDetailsWithoutPermission(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
@@ -1535,7 +1535,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.sort_code").doesNotExist())
             .andExpect(jsonPath("$.payment.account_number").doesNotExist())
             .andExpect(jsonPath("$.payment.account_reference").doesNotExist())
-            .andExpect(jsonPath("$.payment.pay_by_bacs").value(nullValue()))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
     }
 
