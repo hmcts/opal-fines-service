@@ -333,7 +333,6 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: NI starts-with (A111) includes matching account")
-    @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     void testPostDefendantAccountsSearch_Opal_NiStartsWith(boolean consolidation) throws Exception {
