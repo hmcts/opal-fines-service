@@ -211,6 +211,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post offence search handles cjs code prefix queries. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
     void testPostOffencesPartialCodeSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -231,6 +233,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post offence search handles partial title queries. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
     void testPostOffencesPartialTitleSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -251,6 +255,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post offence search handles partial act & section queries. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
     void testPostOffencesPartialActSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -271,6 +277,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post offence search handles large result sets. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
     void testPostOffencesLargeCodeCount() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -291,6 +299,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post offence search applies max result limit. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
     void testPostOffencesMaxLimitCodeCount() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)

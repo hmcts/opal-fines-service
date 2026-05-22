@@ -39,36 +39,50 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     }
 
     @Test
+    @JiraStory("PO-1912")
+    @JiraEpic("PO-2234")
     void testGetMinorCreditorHeaderSummarySuccess() throws Exception {
         super.getHeaderSummaryImpl_Success(log);
     }
 
     @Test
+    @JiraStory("PO-1912")
+    @JiraEpic("PO-2234")
     void testGetMinorCreditorHeaderSummary_500Error() throws Exception {
         super.legacyGetMinorCreditorHeaderSummaryImpl_500Error(log);
     }
 
     @Test
+    @JiraStory("PO-1991")
+    @JiraEpic("PO-2234")
     void testGetMinorCreditorAccountSuccess() throws Exception {
         super.getMinorCreditorAccountImpl_Success(log);
     }
 
     @Test
+    @JiraStory("PO-1991")
+    @JiraEpic("PO-2234")
     void testGetMinorCreditorAccountFiltersBacsWithoutPermission() throws Exception {
         super.getMinorCreditorAccountImpl_filtersBacsDetailsWithoutPermission(log);
     }
 
     @Test
+    @JiraStory("PO-1991")
+    @JiraEpic("PO-2234")
     void testGetMinorCreditorAccountMissingAuthHeaderReturns401() throws Exception {
         super.getMinorCreditorAccount_missingAuthHeader_returns401();
     }
 
     @Test
+    @JiraStory("PO-1991")
+    @JiraEpic("PO-2234")
     void testGetMinorCreditorAccountAuthenticatedWithoutPermissionReturns403() throws Exception {
         super.getMinorCreditorAccount_authenticatedWithoutPermission_returns403();
     }
 
     @Test
+    @JiraStory("PO-1991")
+    @JiraEpic("PO-2234")
     void testGetMinorCreditorAccount_500Error() throws Exception {
         super.legacyGetMinorCreditorAccountImpl_500Error(log);
     }
