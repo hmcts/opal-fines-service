@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +37,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     @Override
     public ResponseEntity<PostDefendantAccountSearchResponseDefendantAccount> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
-        @Valid @RequestBody PostDefendantAccountSearchRequestDefendantAccount request,
+        @RequestBody PostDefendantAccountSearchRequestDefendantAccount request,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":POST:postDefendantAccountSearch: query: {}", request);
