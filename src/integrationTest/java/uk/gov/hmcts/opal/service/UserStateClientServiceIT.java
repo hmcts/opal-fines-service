@@ -8,19 +8,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.opal.support.UserServiceStub.USER_STATE_PATH;
+import static uk.gov.hmcts.opal.support.UserServiceStub.V2_USER_STATE;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.UserStateClientServiceIT")
@@ -41,13 +40,9 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     @Test
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
 
-        WireMock.configureFor("localhost", 4553);
-        stubFor(get("/opal/v2/users/0/state")
-            .willReturn(aResponse()
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(V2_USER_STATE)));
+        stubAuthorisedUser(V2_USER_STATE);
 
-        WireMock.verify(0, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
+        WireMock.verify(0, getRequestedFor(urlEqualTo(USER_STATE_PATH)));
 
         Jwt jwt = Jwt.withTokenValue("test-token")
             .header("alg", "none")
@@ -60,9 +55,9 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         // First Call - user service used
         UserStateV2 userStateFromUserServiceStub = userStateClientService.getUserStateByAuthenticationToken(jwt).get();
         assertThat(userStateFromUserServiceStub.getName()).isEqualTo("Pablo");
-        WireMock.verify(1, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
+        WireMock.verify(1, getRequestedFor(urlEqualTo(USER_STATE_PATH)));
 
-        //we have only a stub user service so need to update cache ourselves
+        // We have only a stub user service so need to update cache ourselves.
         @SuppressWarnings("unchecked")
         Map<String, Object> fakeCachedUserState = objectMapper.readValue(V2_USER_STATE, Map.class);
         fakeCachedUserState.put("name", "Pablo-CACHED");
@@ -72,6 +67,6 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         // Second Call - cache should be used
         UserStateV2 userStateFromCache = userStateClientService.getUserStateByAuthenticationToken(jwt).get();
         assertThat(userStateFromCache.getName()).isEqualTo("Pablo-CACHED");
-        WireMock.verify(1, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
+        WireMock.verify(1, getRequestedFor(urlEqualTo(USER_STATE_PATH)));
     }
 }
