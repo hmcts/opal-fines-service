@@ -20,6 +20,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
 @Slf4j(topic = "opal.MinorCreditorAuthIntegrationTest")
@@ -34,6 +36,8 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     private UserStateClientService userStateClientService;
 
     @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
     void getMinorCreditorAccount_withBacsPermissionInSecurityContext_returnsBacsFields() throws Exception {
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
 
@@ -56,6 +60,8 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
     void getMinorCreditorAccount_withoutBacsPermissionInSecurityContext_redactsBacsFields() throws Exception {
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
 
@@ -77,6 +83,8 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
     void getMinorCreditorAccount_withBacsPermissionInAuthenticatedUserState_returnsBacsFields() throws Exception {
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
             BUSINESS_UNIT_ID,
@@ -101,6 +109,8 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
     void getMinorCreditorAccount_withoutBacsPermissionInAuthenticatedUserState_redactsBacsFields() throws Exception {
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
             BUSINESS_UNIT_ID,
