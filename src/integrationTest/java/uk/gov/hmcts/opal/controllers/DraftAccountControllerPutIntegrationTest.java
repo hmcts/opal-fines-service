@@ -137,7 +137,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validReplaceRequestBody(0L)
             .replace(
-                "\"version\": 0",
+                "\"version\":0",
                 "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
         String ifMatch = getIfMatchForDraftAccount(5L);
@@ -638,7 +638,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "version": """ + version
             +
             """
-            
+
           }""";
     }
 
