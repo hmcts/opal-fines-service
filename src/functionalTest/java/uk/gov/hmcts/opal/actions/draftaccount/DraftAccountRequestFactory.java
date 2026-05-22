@@ -21,6 +21,7 @@ import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObjectOrNull;
 public class DraftAccountRequestFactory {
 
     public static final String DEFAULT_ACCOUNT_PATH = "draftAccounts/accountJson/account.json";
+    public static final String DEFAULT_TIMELINE_PATH = "draftAccounts/timelineJson/default.json";
 
     private static final String MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT =
         "features/opalMode/manualAccountCreation/";
@@ -130,6 +131,17 @@ public class DraftAccountRequestFactory {
         }
 
         return accountObject;
+    }
+
+    /**
+     * Loads the standard timeline fixture used by draft-account functional tests.
+     *
+     * @return parsed default timeline JSON array.
+     * @throws IOException if the fixture cannot be read.
+     * @throws JSONException if the fixture does not contain valid JSON.
+     */
+    public JSONArray loadDefaultTimelineFixture() throws IOException, JSONException {
+        return new JSONArray(readResource(MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT + DEFAULT_TIMELINE_PATH));
     }
 
     /**
