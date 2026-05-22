@@ -32,8 +32,6 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
@@ -91,21 +89,6 @@ public class DefendantAccountController {
         GetDefendantAccountPartyResponse response =
             defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
                 authHeaderValue);
-
-        return buildResponse(response);
-    }
-
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches defendant accounts based upon criteria in request body")
-    public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
-        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
-            @RequestBody
-           AccountSearchDto accountSearchDto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
-
-        DefendantAccountSearchResultsDto response =
-            defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
 
         return buildResponse(response);
     }

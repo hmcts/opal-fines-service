@@ -18,6 +18,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,7 +43,10 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.mapper.DefendantAccountSearchMapper;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -59,6 +64,9 @@ class DefendantAccountServiceTest {
 
     @Mock
     private OpalDefendantAccountService opalDefendantAccountService;
+
+    @Mock
+    private DefendantAccountSearchMapper defendantAccountSearchMapper;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -229,6 +237,39 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
+    }
+
+    @Test
+    void searchDefendantAccounts_generatedRequest_mapsThroughInternalSearch() {
+        PostDefendantAccountSearchRequestDefendantAccount request =
+            PostDefendantAccountSearchRequestDefendantAccount.builder()
+                .activeAccountsOnly(true)
+                .businessUnitIds(List.of(77))
+                .build();
+        AccountSearchDto searchDto = AccountSearchDto.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 77))
+            .build();
+        DefendantAccountSearchResultsDto internalResponse = DefendantAccountSearchResultsDto.builder().build();
+        PostDefendantAccountSearchResponseDefendantAccount generatedResponse =
+            PostDefendantAccountSearchResponseDefendantAccount.builder()
+                .count(0)
+                .defendantAccounts(Collections.emptyList())
+                .build();
+
+        when(defendantAccountSearchMapper.toDto(request)).thenReturn(searchDto);
+        when(userStateService.checkForAuthorisedUser("authHeaderValue")).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(defendantAccountServiceProxy.searchDefendantAccounts(searchDto)).thenReturn(internalResponse);
+        when(defendantAccountSearchMapper.toResponse(internalResponse)).thenReturn(generatedResponse);
+
+        PostDefendantAccountSearchResponseDefendantAccount result =
+            defendantAccountService.searchDefendantAccounts(request, "authHeaderValue");
+
+        assertSame(generatedResponse, result);
+        verify(defendantAccountSearchMapper).toDto(request);
+        verify(defendantAccountServiceProxy).searchDefendantAccounts(searchDto);
+        verify(defendantAccountSearchMapper).toResponse(internalResponse);
     }
 
     @Test

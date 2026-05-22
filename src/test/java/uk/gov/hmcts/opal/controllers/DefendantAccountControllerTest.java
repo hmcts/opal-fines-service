@@ -17,8 +17,6 @@ import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
@@ -31,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,28 +49,6 @@ class DefendantAccountControllerTest {
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
-
-    @Test
-    void testPostDefendantAccountSearch_Success() {
-        // Arrange
-        AccountSearchDto requestEntity = AccountSearchDto.builder().build();
-        DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder().build();
-
-        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN)))
-            .thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
-            defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN);
-
-        // Assert
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals(mockResponse, responseEntity.getBody());
-
-        verify(defendantAccountService, times(1))
-            .searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN));
-    }
 
     @Test
     void testGetHeaderSummary_Success() {
