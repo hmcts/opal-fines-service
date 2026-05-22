@@ -29,4 +29,7 @@ public class UpdateDraftAccountRequestDto implements ToJsonString {
 
     @JsonProperty("reason_text")
     private String reasonText;
+
+    @JsonProperty("timeline_data")
+    private Object timelineData;
 }

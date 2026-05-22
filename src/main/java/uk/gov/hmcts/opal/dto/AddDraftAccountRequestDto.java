@@ -58,6 +58,10 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
 
     @JsonProperty("status_message")
     private String statusMessage;
+
+    @JsonProperty("timeline_data")
+    private Object timelineData;
+
     @JsonProperty("submitted_by")
     private String submittedBy;
 
