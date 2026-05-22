@@ -138,13 +138,8 @@ public class UserStateUtil {
 
     public static OpalJwtAuthenticationToken permissionsToken(Short buid, FinesPermission... permissions) {
         Map<Domain, DomainBusinessUnitUsers> domainsMap = new HashMap<>();
-        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
-            .businessUnitId(buid)
-            .businessUnitUserId("s")
-            .permissions(permissionsFor(permissions))
-            .build();
         DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
-            .businessUnitUsers(List.of(businessUnitUser)).build();
+            .businessUnitUsers(List.of(permissions(buid, permissionsFor(permissions)))).build();
         domainsMap.put(FINES, domainBusinessUnitUsers);
 
         UserStateV2 userState = getUserStateV2(domainsMap);
