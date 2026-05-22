@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -851,11 +850,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
         throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
-    }
-
-    @Override
-    public GetDefendantAccountImpositionsResponse getDefendantAccountImpositions(Long defendantAccountId) {
-        throw new UnsupportedOperationException("Legacy GetDefendantAccountImpositions not implemented yet");
     }
 
     @Override
