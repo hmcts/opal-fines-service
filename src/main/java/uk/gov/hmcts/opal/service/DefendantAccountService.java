@@ -24,7 +24,10 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.mapper.DefendantAccountSearchMapper;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -36,6 +39,8 @@ public class DefendantAccountService {
     private final DefendantAccountServiceProxy defendantAccountServiceProxy;
 
     private final UserStateService userStateService;
+
+    private final DefendantAccountSearchMapper defendantAccountSearchMapper;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId, String authHeaderValue) {
         log.debug(":getHeaderSummary:");
@@ -61,6 +66,16 @@ public class DefendantAccountService {
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+    }
+
+    public PostDefendantAccountSearchResponseDefendantAccount searchDefendantAccounts(
+        PostDefendantAccountSearchRequestDefendantAccount request,
+        String authHeaderValue) {
+
+        AccountSearchDto accountSearchDto = defendantAccountSearchMapper.toDto(request);
+        DefendantAccountSearchResultsDto response = searchDefendantAccounts(accountSearchDto, authHeaderValue);
+
+        return defendantAccountSearchMapper.toResponse(response);
     }
 
     public GetDefendantAccountPartyResponse getDefendantAccountParty(

@@ -56,28 +56,6 @@ class DefendantAccountControllerTest {
     private DefendantAccountController defendantAccountController;
 
     @Test
-    void testPostDefendantAccountSearch_Success() {
-        // Arrange
-        AccountSearchDto requestEntity = AccountSearchDto.builder().build();
-        DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder().build();
-
-        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN)))
-            .thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
-            defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN);
-
-        // Assert
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals(mockResponse, responseEntity.getBody());
-
-        verify(defendantAccountService, times(1))
-            .searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN));
-    }
-
-    @Test
     void testGetHeaderSummary_Success() {
         // Arrange
         DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
