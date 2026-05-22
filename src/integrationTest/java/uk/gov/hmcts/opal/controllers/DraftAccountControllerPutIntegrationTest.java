@@ -67,7 +67,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray())
-            .andExpect(jsonPath("$.timeline_data[1].username").value("normal@users.com"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("USER01"))
             .andExpect(jsonPath("$.timeline_data[1].user_id").value("USER01"))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
@@ -141,12 +141,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "\"version\": 0",
                 "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
+        String ifMatch = getIfMatchForDraftAccount(5L);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(put(URL_BASE + "/" + 5)
                 .header("authorization", "Bearer some_value")
-                .header("If-Match", "0")
+                .header("If-Match", ifMatch)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
