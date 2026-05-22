@@ -654,8 +654,6 @@ components:
       type: object
       required:
         - organisation
-        - account_number
-        - prosecutor_case_reference
       properties:
         organisation:
           type: boolean
@@ -673,16 +671,6 @@ components:
       required:
         - include_aliases
         - organisation
-        - address_line_1
-        - postcode
-        - organisation_name
-        - exact_match_organisation_name
-        - surname
-        - exact_match_surname
-        - forenames
-        - exact_match_forenames
-        - birth_date
-        - national_insurance_number
       properties:
         include_aliases:
           type: boolean
