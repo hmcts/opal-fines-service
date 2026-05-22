@@ -638,6 +638,11 @@ components:
             - 'null'
           items:
             type: integer
+        consolidation_search:
+          type:
+            - boolean
+            - 'null'
+          description: Whether to use consolidated defendant account search.
         reference_number:
           oneOf:
             - type: 'null'
@@ -887,7 +892,7 @@ components:
 
     defendantAccountSearchResult:
       type: object
-      description: Details of a defendant account, with all possible fields always present.
+      description: Details of a defendant account. Consolidated search fields are present only for consolidated searches.
       required:
         - defendant_account_id
         - account_number
@@ -975,6 +980,20 @@ components:
           type:
             - string
             - 'null'
+        has_collection_order:
+          type:
+            - boolean
+            - 'null'
+          description: Whether the account has a collection order. Present only for consolidated searches.
+        account_version:
+          type:
+            - integer
+            - 'null'
+          description: Version number for the defendant account. Present only for consolidated searches.
+        checks:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/defendantAccountSearchChecks'
       oneOf:
         - properties:
             organisation:
@@ -1004,6 +1023,34 @@ components:
               type: string
             defendant_surname:
               type: string
+      additionalProperties: false
+
+    defendantAccountSearchChecks:
+      type: object
+      required:
+        - warnings
+        - errors
+      properties:
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchCheck'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchCheck'
+      additionalProperties: false
+
+    defendantAccountSearchCheck:
+      type: object
+      required:
+        - reference
+        - message
+      properties:
+        reference:
+          type: string
+        message:
+          type: string
       additionalProperties: false
 
     defendantAccountSearchAlias:
