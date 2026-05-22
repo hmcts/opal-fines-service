@@ -20,6 +20,7 @@ services:
       - TESTING_SUPPORT_ENDPOINTS_ENABLED=true
       - OPAL_REDIS_ENABLED=false
 
+
     ports:
       - "4550:4550"
     depends_on:
