@@ -31,6 +31,8 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.DraftAccountControllerPostIntegrationTest")
 @DisplayName("DraftAccountControllerPostIntegrationTest")
@@ -147,6 +149,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @Test
     @DisplayName("Create draft account - POST with valid request - Should return newly created account "
         + "[@PO-973, @PO-591]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-591")
+    @JiraEpic("PO-2219")
     void testPostDraftAccount_permission() throws Exception {
 
         String validRequestBody = validRawJsonCreateRequestBody();
@@ -181,6 +186,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should ignore blank submitted_by_name")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldIgnoreBlankSubmittedByName() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by_name\": \"John\"", "\"submitted_by_name\": \"\"");
@@ -197,6 +204,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should ignore blank submitted_by")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldIgnoreBlankSubmittedBy() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by\": \"BUUID1\"", "\"submitted_by\": \"\"");
@@ -213,6 +222,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should return 400 when account_type is blank")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldReturn400WhenAccountTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"account_type\": \"Fine\"", "\"account_type\": \"\"");
@@ -229,6 +240,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should return 400 when originator_type is missing")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldReturn400WhenOriginatorTypeIsMissing() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\",", "");
@@ -244,6 +257,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should return 400 when timeline_data is supplied")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldReturn400WhenTimelineDataIsSupplied() throws Exception {
         String request = validCreateRequestBody()
             .replace(
@@ -262,6 +277,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should return 400 when originator_type is blank")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldReturn400WhenOriginatorTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
@@ -277,6 +294,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should return 400 when originator_type has invalid value")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldReturn400WhenOriginatorTypeIsInvalid() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
@@ -292,6 +311,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should return 400 when document language is set to English")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldReturn400WhenDocumentLanguageIsEnglish() throws Exception {
         String request = invalidLanguageRawJsonCreateRequestBody("document_language");
 
@@ -311,6 +332,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Should return 400 when hearing language is set to English")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void shouldReturn400WhenHearingLanguageIsEnglish() throws Exception {
         String request = invalidLanguageRawJsonCreateRequestBody("hearing_language");
 
@@ -330,6 +353,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Create draft account - Should return 400 Bad Request [@PO-973, @PO-691]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
     void testPostDraftAccount_trap400Response() throws Exception {
 
         String expectedErrorMessageStart =
@@ -357,6 +383,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Create draft account - user with no permission [@PO-973, @PO-827]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-827")
+    @JiraEpic("PO-2219")
     void testPostDraftAccount_trap403Response_noPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
@@ -383,6 +412,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Create draft account - user with wrong permission [@PO-973, @PO-827]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-827")
+    @JiraEpic("PO-2219")
     void testPostDraftAccount_trap403Response_wrongPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
@@ -411,6 +443,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Create draft account - user with wrong permission (correct permission, wrong business unit)")
+    @JiraStory("PO-973")
+    @JiraStory("PO-827")
+    @JiraEpic("PO-2219")
     void testPostDraftAccount_trap403Response_wrongBusinessUnitPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
@@ -439,6 +474,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     @Test
     @DisplayName("Create draft account - Should create and call PDPLLoggingService")
+    @JiraStory("PO-2357")
+    @JiraEpic("PO-2219")
     void testPostDraftAccount_success_and_pdplServiceCalled() throws Exception {
 
         // arrange: request body from your helper

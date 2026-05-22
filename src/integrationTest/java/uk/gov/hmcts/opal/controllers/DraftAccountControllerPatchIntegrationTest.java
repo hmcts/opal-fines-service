@@ -102,6 +102,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
 
     @Test
     @DisplayName("Update draft account - Should return 400 when timeline_data is supplied")
+    @JiraStory("PO-747")
+    @JiraEpic("PO-2220")
     void testUpdateDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validUpdateRequestBody("65", "Publishing Pending", "A")
             .replace(
