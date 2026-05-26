@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -49,6 +50,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest
     @Test
     @JiraStory("PO-1992")
     @JiraEpic("PO-2234")
+    @JiraTestKey("PO-5977")
     void patchMinorCreditorAccount_whenLocalDefaultDisabled_returns405() throws Exception {
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
 

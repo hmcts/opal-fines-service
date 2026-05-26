@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.OffenceControllerIntegrationTest")
@@ -48,6 +49,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-420")
     @JiraStory("PO-272")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5985")
     void testGetOffenceById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/30000"));
 
@@ -69,6 +71,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-311")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5979")
     void testGetOffenceReferenceData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE).param("cjs_code","CW96023"));
 
@@ -92,6 +95,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-420")
     @JiraStory("PO-272")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5987")
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/999999"))
             .andExpect(status().isNotFound());
@@ -102,6 +106,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-926")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5983")
     void testPostOffencesSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                               .contentType(MediaType.APPLICATION_JSON)
@@ -130,6 +135,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-926")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5989")
     void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -148,6 +154,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1445")
     @Test
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5988")
     void testGetOffencesWithCjsCode() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
@@ -170,6 +177,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-1445")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5990")
     void testGetOffencesWithMultipleCjsCodes() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
@@ -189,6 +197,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search with valid active_date in Zulu format [PO-1904]")
     @JiraStory("PO-1904")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5986")
     void testPostOffencesSearchWithActiveDate() throws Exception {
         ResultActions actions = mockMvc.perform(post("/offences/search")
             .contentType(MediaType.APPLICATION_JSON)
@@ -213,6 +222,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search handles cjs code prefix queries. [@PO-1070]")
     @JiraStory("PO-1070")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5991")
     void testPostOffencesPartialCodeSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -235,6 +245,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search handles partial title queries. [@PO-1070]")
     @JiraStory("PO-1070")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5980")
     void testPostOffencesPartialTitleSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -257,6 +268,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search handles partial act & section queries. [@PO-1070]")
     @JiraStory("PO-1070")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5982")
     void testPostOffencesPartialActSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -279,6 +291,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search handles large result sets. [@PO-1070]")
     @JiraStory("PO-1070")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5984")
     void testPostOffencesLargeCodeCount() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -301,6 +314,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search applies max result limit. [@PO-1070]")
     @JiraStory("PO-1070")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5981")
     void testPostOffencesMaxLimitCodeCount() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)

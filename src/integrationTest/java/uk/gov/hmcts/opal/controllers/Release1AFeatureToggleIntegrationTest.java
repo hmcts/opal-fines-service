@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.controllers.util.DraftAccountTestData;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 /**
@@ -85,6 +86,7 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
     @DisplayName("should return 405 Method Not Allowed")
     @JiraStory("PO-2833")
     @JiraEpic("PO-2352")
+    @JiraTestKey("PO-6232")
     void shouldReturn405WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
         log.debug("Testing feature-disabled 405 for: {}", description);

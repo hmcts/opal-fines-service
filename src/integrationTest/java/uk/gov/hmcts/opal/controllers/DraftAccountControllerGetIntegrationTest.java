@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetail
 import tools.jackson.databind.JsonNode;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.DraftAccountControllerGetIntegrationTest")
 @DisplayName("DraftAccountControllerGetIntegrationTest")
@@ -47,6 +48,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-559")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5830")
     void testGetDraftAccountById_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
@@ -79,6 +81,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Get Draft Account by ID returns status message for publishing failed account [@PO-769]")
     @JiraStory("PO-769")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5822")
     void testGetDraftAccountById_publishingFailed_returnsStatusMessage() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
@@ -109,6 +112,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-2360")
     @JiraStory("PO-2361")
     @JiraEpic("PO-2355")
+    @JiraTestKey("PO-5827")
     void testGetDraftAccountById_PdplLogging() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             permissionUser((short)65, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
@@ -158,6 +162,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-606")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5831")
     void testGetDraftAccountsSummaries_noParams() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
@@ -189,6 +194,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-2360")
     @JiraStory("PO-2361")
     @JiraEpic("PO-2355")
+    @JiraTestKey("PO-5825")
     void testGetDraftAccounts_success_and_pdplServiceCalled() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             permissionUser((short) 65, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
@@ -267,6 +273,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-606")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5832")
     void testGetDraftAccountsSummaries_paramBusinessUnit() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
@@ -296,6 +303,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Get draft accounts summaries - Params for status dates from and to")
     @JiraStory("PO-946")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5821")
     void testGetDraftAccountsSummaries_paramStatusDate() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
@@ -330,6 +338,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-606")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5815")
     void testGetDraftAccountsSummaries_paramStatus() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
@@ -359,6 +368,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-606")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5816")
     void testGetDraftAccountsSummaries_paramSubmittedBy() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
@@ -388,6 +398,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-832")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5828")
     void testGetDraftAccountsSummaries_paramNotSubmittedBy() throws Exception {
 
 
@@ -421,6 +432,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-829")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5817")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits1() throws Exception {
 
         UserState user = permissionUser(BU_ID, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -448,6 +460,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-829")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5818")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits2() throws Exception {
 
         UserState user = permissionUser(new Short[] {BU_ID, (short)77}, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -476,6 +489,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-829")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5819")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits3() throws Exception {
 
         UserState user = permissionUser(new Short[] {BU_ID, (short)77}, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -508,6 +522,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-2751")
     @JiraStory("PO-2752")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5814")
     void testGetDraftAccountById_deterministic() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         ResultActions resultActions1 = mockMvc.perform(get(URL_BASE + "/1")
@@ -529,6 +544,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-559")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5823")
     void testSearchDraftAccountsPost() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
@@ -551,6 +567,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-559")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5824")
     void testSearchDraftAccountsPost_whenDraftAccountDoesNotExist() throws Exception {
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
             .header("authorization", "Bearer some_value")
@@ -571,6 +588,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-828")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5812")
     void testGetDraftAccountById_trap403Response_wrongPermission() throws Exception {
 
         UserState userState = permissionUser(BU_ID, FinesPermission.COLLECTION_ORDER);
@@ -597,6 +615,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-828")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5826")
     void testGetDraftAccountById_trap403Response_wrongBusinessUnit() throws Exception {
 
         UserState userState = permissionUser((short)005, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
@@ -624,6 +643,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-828")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5829")
     void testGetDraftAccountsSummaries_trap403Response_noPermission() throws Exception {
         final Short businessId = (short)1;
 
@@ -645,6 +665,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-690")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5833")
     void testGetDraftAccountById_trap404Response() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
@@ -659,6 +680,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-690")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5813")
     void testGetDraftAccountById_trap406Response() throws Exception {
         mockMvc.perform(get(URL_BASE + "/99")
                 .header("Authorization", "Bearer " + "some_value")
@@ -671,6 +693,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-973")
     @JiraStory("PO-647")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5820")
     void testGetDraftAccountsSummaries_trap400Response() throws Exception {
         final Short businessId = (short)1;
 

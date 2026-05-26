@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPostPartyIntegrationTest")
 class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
@@ -67,6 +68,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @DisplayName("POST Add DAP - 404 when account not in header BU")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6055")
     void post_notFound_whenAccountNotInHeaderBU() throws Exception {
         authoriseAllPermissions();
 
@@ -106,6 +108,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @DisplayName("POST Add DAP - happy path: organisation, non-debtor, bumps version")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6059")
     void post_happyPath_organisation_isDebtorFalse() throws Exception {
         authoriseAllPermissions();
 
@@ -156,6 +159,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @DisplayName("POST Add DAP - happy path: individual debtor creates debtor_detail row")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6057")
     void post_happyPath_individual_isDebtorTrue_createsDebtorDetail() throws Exception {
         authoriseAllPermissions();
 
@@ -255,6 +259,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @DisplayName("POST Add DAP - stale If-Match returns 409 conflict")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6058")
     void post_conflict_whenIfMatchIsStale() throws Exception {
         authoriseAllPermissions();
 
@@ -291,6 +296,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @DisplayName("POST Add DAP - two sequential calls succeed and each bumps version")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6054")
     void post_twoSequentialParties_eachBumpsVersion() throws Exception {
         authoriseAllPermissions();
 
@@ -343,6 +349,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @DisplayName("POST Add DAP - is_debtor true without details creates debtor row with null fields")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6056")
     void post_isDebtor_true_noDetails_createsDebtorRow_withNulls() throws Exception {
         authoriseAllPermissions();
 
@@ -397,6 +404,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @DisplayName("POST Add DAP - response validates against schema")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6060")
     void post_response_validatesAgainstSchema() throws Exception {
         authoriseAllPermissions();
 

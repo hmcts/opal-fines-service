@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Creditor Account Repository Integration Tests")
@@ -49,6 +50,7 @@ class CreditorAccountRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2882")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6299")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
         entityManager.clear();
 
@@ -63,6 +65,7 @@ class CreditorAccountRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2882")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6298")
     void shouldKeepAssociationsLazyForLiteEntityGraphFetch() {
         entityManager.clear();
 
@@ -78,6 +81,7 @@ class CreditorAccountRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2882")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6300")
     void shouldLoadAssociationsForFullEntityGraphFetch() {
         entityManager.clear();
 

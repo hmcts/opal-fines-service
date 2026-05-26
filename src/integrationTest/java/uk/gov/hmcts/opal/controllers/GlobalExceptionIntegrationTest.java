@@ -38,6 +38,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.GlobalExceptionIntegrationTest")
@@ -77,6 +78,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / QueryTimeoutException -> 408 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5902")
     void retriable_QueryTimeout_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/query-timeout").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -92,6 +94,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / DataAccessResourceFailureException -> 503 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5900")
     void retriable_DataAccessResourceFailure_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/data-access-resource-failure").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -108,6 +111,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / PSQLException(connectivity) -> 503 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5894")
     void retriable_PsqlConnectivity_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/psql-connectivity").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -124,6 +128,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / JpaSystemException(40001) -> 500 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5898")
     void retriable_JpaTransient_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/jpa-serial-failure").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -140,6 +145,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / TransactionSystemException(40P01) -> 500 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5896")
     void retriable_TransactionDeadlock_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/tx-deadlock").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -156,6 +162,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / HttpServerErrorException upstream 503 -> 500 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5899")
     void retriable_HttpServer503_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/http-503").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -172,6 +179,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / FeignException 503 -> 503 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5903")
     void retriable_Feign503_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/feign-503").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -188,6 +196,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / FeignException 502 -> 502 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5893")
     void retriable_Feign502_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/feign-502").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -200,6 +209,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / FeignException 504 -> 504 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5901")
     void retriable_Feign504_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/feign-504").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -212,6 +222,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / FeignException 429 -> 429 with retriable=true")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5904")
     void retriable_Feign429_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/feign-429").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -224,6 +235,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / PSQLException non-connectivity -> 500 with retriable=false")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5895")
     void nonRetriable_PsqlOther_ReturnsFalse() throws Exception {
         var a = mockMvc.perform(get("/__exc/psql-other").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
@@ -237,6 +249,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2120 / FeignException non-retriable (404) -> 404 with retriable=false")
     @JiraStory("PO-2120")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-5897")
     void nonRetriable_Feign404_ReturnsFalse() throws Exception {
         var a = mockMvc.perform(get("/__exc/feign-404").header("authorization", "Bearer some_value")
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
