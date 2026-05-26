@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,5 +45,26 @@ class MinorCreditorApiControllerTest {
         assertEquals("\"7\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());
         verify(minorCreditorService).getMinorCreditorAccount(101L);
+    }
+
+    @Test
+    void given_validRequest_when_patchMinorCreditorAccount_then_returnsOkResponse() {
+        MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
+        response.setCreditorAccountId(101L);
+        response.setVersion(BigInteger.valueOf(2));
+
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest();
+
+        when(minorCreditorService.updateMinorCreditorAccount(101L, request, BigInteger.ONE,
+            "Bearer token", "77")).thenReturn(response);
+
+        ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
+            minorCreditorApiController.patchMinorCreditorAccount(101L, "77", "\"1\"", "Bearer token", request);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("\"2\"", result.getHeaders().getETag());
+        assertSame(response, result.getBody());
+        verify(minorCreditorService).updateMinorCreditorAccount(101L, request, BigInteger.ONE,
+            "Bearer token", "77");
     }
 }

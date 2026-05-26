@@ -108,14 +108,13 @@ public class MinorCreditorService {
             throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
         }
 
-        Short businessUnitIdShort = businessUnitId != null ? Short.valueOf(businessUnitId) : null;
-
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
-                businessUnitIdShort,
+                (Short) null,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
+        Short businessUnitIdShort = Short.valueOf(businessUnitId);
         if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.ACCOUNT_MAINTENANCE)) {
             throw new PermissionNotAllowedException(
                 businessUnitIdShort,
