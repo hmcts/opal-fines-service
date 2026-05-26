@@ -235,7 +235,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             .andExpect(content().json("""
             {
                 "title": "Service Unavailable",
-                "detail": "Opal Fines Database is currently unavailable",
+                "detail": "Opal database is currently unavailable",
                 "status": 503,
                 "type": "https://hmcts.gov.uk/problems/database-unavailable"
             }"""));

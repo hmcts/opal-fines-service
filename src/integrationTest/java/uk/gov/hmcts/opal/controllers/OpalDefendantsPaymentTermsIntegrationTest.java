@@ -134,7 +134,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
                     .content(requestJson)
             )
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
