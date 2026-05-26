@@ -29,6 +29,8 @@ import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.ReportSpecs;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementFiltersDto;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
@@ -39,6 +41,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Autowired
     private PaymentTermsRepository paymentTermsRepository;
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @ParameterizedTest
     @NullAndEmptySource
     void businessUnitSpec_businessUnitIdsNullOrEmpty_returnConjunction(List<Long> buIds) {
@@ -54,6 +59,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         assertThat(results).hasSize((int) total);
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void businessUnitSpec_businessUnitIdsList_returnAllFromBusinessUnitIds() {
         //Arrange
@@ -69,6 +77,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             .containsOnly((short) 78);
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void accountTypesSpec_includeAdult_returnAllAdultAccounts() {
         //Arrange
@@ -87,6 +98,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             );
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void accountTypesSpec_includeYouth_returnAllYouthAccounts() {
         //Arrange
@@ -105,6 +119,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             );
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void accountTypesSpec_includeCompany_returnAllCompanyAccounts() {
         //Arrange
@@ -124,6 +141,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             );
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void parentGuardianSpec_returnAllAccountsWithParentGuardian() {
         //Arrange
@@ -140,6 +160,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         );
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void collectionOrderSpec_withCollectionOrder_returnAllAccountsWithCollectionOrder() {
         //Arrange
@@ -155,6 +178,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             .containsOnly(true);
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void collectionOrderSpec_withoutCollectionOrder_returnAllAccountsWithoutCollectionOrder() {
         //Arrange
@@ -170,6 +196,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             .containsOnly(false);
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void accountStatusSpec_live_returnAllAccountsWithLiveStatus() {
         //Arrange
@@ -187,6 +216,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             });
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void accountStatusSpec_closed_returnAllAccountsWithClosedStatus() {
         //Arrange
@@ -204,6 +236,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             });
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void balanceRangeSpec_minAndMaxGiven_returnAllAccountsWithinRange() {
         //Arrange
@@ -222,6 +257,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             });
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void nameRangeSpec_lowerAndUpperGiven_returnAllAccountsWithinRange() {
         //Arrange
@@ -242,6 +280,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         );
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void next7DaysSpec_true_returnsAccountsWhereRelevantDateIsInNext7Days() {
         //Arrange
@@ -272,6 +313,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         });
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void notUnderEnforcement_returnsAccountsWithoutEnforcements() {
         //Arrange
@@ -287,6 +331,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         );
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @Test
     void defendantAccountIdsIn_account() {
         // Arrange
@@ -300,6 +347,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
             .containsExactlyInAnyOrder(77L, 78L);
     }
 
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @ParameterizedTest
     @MethodSource("emptyAccountIdLists")
     void defendantAccountIdsIn_emptyOrNullList_returnsNoResults(List<Long> accountIds) {

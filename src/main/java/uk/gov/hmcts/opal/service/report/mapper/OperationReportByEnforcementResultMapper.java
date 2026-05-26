@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.mapper.report;
+package uk.gov.hmcts.opal.service.report.mapper;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -26,6 +26,8 @@ import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
+import uk.gov.hmcts.opal.service.report.mapper.OperationReportByEnforcementRowDtoCoreMapper;
+import uk.gov.hmcts.opal.service.report.mapper.OperationReportByEnforcementRowDtoCoreMapperDecorator;
 
 @ExtendWith(MockitoExtension.class)
 class OperationReportByEnforcementRowDtoCoreMapperDecoratorTest {
