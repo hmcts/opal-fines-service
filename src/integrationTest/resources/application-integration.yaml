@@ -17,6 +17,15 @@ spring:
       - org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
       - org.springframework.boot.security.autoconfigure.actuate.web.servlet.ManagementWebSecurityAutoConfiguration
       - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
+      -
+launchdarkly:
+  enabled: true
+  sdk-key: integration-test-key
+  file:
+    - src/integrationTest/resources/launchdarkly-flags.json
+  default-flag-values:
+    release-1a: false
+
 logging:
   level:
     org:
@@ -41,11 +50,11 @@ testcontainers:
   reuse:
     enable: true
 legacy-gateway:
-  url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
+  url: http://localhost:4553/opal
 opal:
   report:
     consumer:
       enabled: false
 user:
   service:
-    url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4553/opal}
+    url: http://localhost:4553/opal

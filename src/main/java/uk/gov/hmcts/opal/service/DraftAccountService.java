@@ -5,10 +5,12 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Map;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -32,7 +33,6 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
-import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -59,8 +59,6 @@ public class DraftAccountService {
 
     private final UserStateService userStateService;
 
-    private final BusinessUnitRepository businessUnitRepository;
-
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
     private final DraftAccountMapper draftAccountMapper;
@@ -69,6 +67,7 @@ public class DraftAccountService {
 
     private final DraftAccountPdplLoggingService loggingService;
     private final SecurityEventLoggingService securityEventLoggingService;
+    private final Clock clock;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
@@ -225,7 +224,9 @@ public class DraftAccountService {
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
-            applyValidatedBy(dto, userState, unitUser.orElseThrow());
+            if (DraftAccountStatus.PUBLISHING_PENDING.equals(dto.getAccountStatus())) {
+                applyValidatedBy(dto, userState, unitUser.orElseThrow());
+            }
             jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             BigInteger updateVersion = extractBigInteger(ifMatch);
@@ -256,7 +257,7 @@ public class DraftAccountService {
             "DraftAccountIdentifier", accountId,
             "DraftAccountSubmittedByUserIdentifier", submittedBy);;
         securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Success", buId, "Approval",
-            LogUtil.getRequestTimestamp(), data);
+            LocalDateTime.now(clock), data);
     }
 
     public DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {

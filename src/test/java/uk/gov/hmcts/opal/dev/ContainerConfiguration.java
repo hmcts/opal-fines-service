@@ -15,6 +15,9 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class ContainerConfiguration {
 
+    private static final String DEFAULT_POSTGRES_IMAGE = "postgres:17.5";
+    private static final String POSTGRES_IMAGE =
+        System.getenv().getOrDefault("OPAL_POSTGRES_IMAGE", DEFAULT_POSTGRES_IMAGE);
     private static final int DB_HOST_PORT = 5432;
     private static final int DB_EXPOSED_PORT = 5432;
     private static final PortBinding DB_PORT_BINDING =
@@ -25,7 +28,7 @@ public class ContainerConfiguration {
     @ServiceConnection
     @RestartScope
     PostgreSQLContainer databaseContainer() {
-        return new PostgreSQLContainer("postgres:17")
+        return new PostgreSQLContainer(POSTGRES_IMAGE)
             .withCreateContainerCmdModifier(cmd ->
                 cmd.withHostConfig(new HostConfig().withPortBindings(DB_PORT_BINDING)))
             .withExposedPorts(DB_EXPOSED_PORT)

@@ -21,10 +21,10 @@ import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObjectOrNull;
 public class DraftAccountRequestFactory {
 
     public static final String DEFAULT_ACCOUNT_PATH = "draftAccounts/accountJson/account.json";
+    public static final String DEFAULT_TIMELINE_PATH = "draftAccounts/timelineJson/default.json";
 
     private static final String MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT =
         "features/opalMode/manualAccountCreation/";
-    private static final String DEFAULT_TIMELINE_PATH = "draftAccounts/timelineJson/default.json";
 
     /**
      * Defines how the `business_unit_id` field should be written into replace payloads.
@@ -49,7 +49,6 @@ public class DraftAccountRequestFactory {
         addAllToJsonObject(postBody, dataToPost, "submitted_by", "submitted_by_name", "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
         postBody.put("account", loadAccountFixture(dataToPost.get("account")));
-        postBody.put("timeline_data", loadDefaultTimelineFixture());
         return postBody;
     }
 
@@ -99,7 +98,6 @@ public class DraftAccountRequestFactory {
         addToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
         postBody.put("account", loadAccountFixture(dataToPost.get("account")));
-        postBody.put("timeline_data", loadDefaultTimelineFixture());
         return postBody;
     }
 
@@ -136,10 +134,10 @@ public class DraftAccountRequestFactory {
     }
 
     /**
-     * Loads the default draft-account timeline fixture.
+     * Loads the standard timeline fixture used by draft-account functional tests.
      *
      * @return parsed default timeline JSON array.
-     * @throws IOException if the timeline fixture cannot be read.
+     * @throws IOException if the fixture cannot be read.
      * @throws JSONException if the fixture does not contain valid JSON.
      */
     public JSONArray loadDefaultTimelineFixture() throws IOException, JSONException {

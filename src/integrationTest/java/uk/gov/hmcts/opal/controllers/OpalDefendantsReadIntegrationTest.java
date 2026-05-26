@@ -20,12 +20,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsReadIntegrationTest")
 class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: Get header summary for non-existent ID returns 404")
+    @JiraStory("PO-2287")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6070")
     void getHeaderSummary_Opal_NotFound() throws Exception {
         authoriseAllPermissions();
 
@@ -42,6 +48,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Party - Happy Path [@PO-1588]")
+    @JiraStory("PO-1588")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6075")
     void opalGetDefendantAccountParty_Happy() throws Exception {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/77/defendant-account-parties/77").header("Authorization", "Bearer test-token"));
@@ -129,6 +138,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Party - Organisation Only [@PO-1588]")
+    @JiraStory("PO-1588")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6077")
     void opalGetDefendantAccountParty_Organisation() throws Exception {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/555/defendant-account-parties/555").header("Authorization", "Bearer test-token"));
@@ -196,6 +208,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Party - Null/Optional Fields [@PO-1588]")
+    @JiraStory("PO-1588")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6069")
     void opalGetDefendantAccountParty_NullFields() throws Exception {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/88/defendant-account-parties/88").header("Authorization", "Bearer test-token"));
@@ -207,6 +222,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an individual")
+    @JiraStory("PO-1564")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6076")
     void opalGetAtAGlance_Individual() throws Exception {
         authoriseAllPermissions();
 
@@ -240,6 +258,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an individual (Parent/Guardian)")
+    @JiraStory("PO-1564")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6073")
     void opalGetAtAGlance_Individual_ParentGuardian() throws Exception {
         authoriseAllPermissions();
 
@@ -271,6 +292,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation")
+    @JiraStory("PO-1564")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6081")
     void opalGetAtAGlance_Organisation() throws Exception {
         authoriseAllPermissions();
 
@@ -309,6 +333,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation. \n"
         + "No language preferences set (as these are optional) \n"
         + "No account comments or notes set (as these are optional)")
+    @JiraStory("PO-1564")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6078")
     void opalGetAtAGlance_Organisation_NoLanguagePrefs() throws Exception {
         authoriseAllPermissions();
 
@@ -337,6 +364,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation. "
         + "One language preference not set (as this is optional)")
+    @JiraStory("PO-1564")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6071")
     void opalGetAtAGlance_Organisation_NoHearingLanguagePref() throws Exception {
         authoriseAllPermissions();
 
@@ -366,26 +396,41 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 401 Unauthorized \n"
         + "when no auth header provided \n")
+    @JiraStory("PO-1564")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6072")
     void opalGetAtAGlance_missingAuthHeader_returns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized")).when(userStateService)
             .checkForAuthorisedUser(any());
 
         mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").accept(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(status().isUnauthorized()).andExpect(content().string(""));
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 403 Forbidden\nNo auth header provided \n")
+    @JiraStory("PO-1564")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6080")
     void opalGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
         doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden")).when(
             userStateService).checkForAuthorisedUser(any());
 
         mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").accept(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(status().isForbidden()).andExpect(content().string(""));
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Forbidden"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance - Verify aliases array organisation [@PO-2312]")
+    @JiraStory("PO-2312")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6079")
     void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
         authoriseAllPermissions();
 
@@ -432,6 +477,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @DisplayName("OPAL: Get Defendant Account At A Glance - Verify aliases array individual [@PO-2312]")
+    @JiraStory("PO-2312")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6074")
     void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
         authoriseAllPermissions();
 

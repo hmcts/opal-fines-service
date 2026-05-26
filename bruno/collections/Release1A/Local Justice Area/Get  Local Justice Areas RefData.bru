@@ -1,0 +1,25 @@
+meta {
+  name: Get  Local Justice Areas RefData
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/local-justice-areas?q=1&lja_type=LJA,SJCRT
+  body: none
+  auth: inherit
+}
+
+params:query {
+  q: 1
+  lja_type: LJA,SJCRT
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

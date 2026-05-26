@@ -6,42 +6,39 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import org.junit.jupiter.api.BeforeEach;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 
+@ExtendWith(MockitoExtension.class)
 class PaymentTermsServiceTest {
 
     @Mock
     private DefendantAccountPaymentTermsRepository paymentTermsRepository;
 
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+
     @InjectMocks
     private PaymentTermsService paymentTermsService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void addPaymentTerm_shouldSetActiveAndPostedDateAndSave() {
         PaymentTermsEntity entity = new PaymentTermsEntity();
         entity.setPostedBy("user1");
         entity.setPostedByUsername("username1");
-        entity.setPostedDate(LocalDateTime.now());
+        entity.setPostedDate(LocalDateTime.of(2026, 5, 1, 9, 0));
 
-        PaymentTermsEntity savedEntity = new PaymentTermsEntity();
-        savedEntity.setActive(true);
-        savedEntity.setPostedBy("user1");
-        savedEntity.setPostedByUsername("username1");
-        savedEntity.setPostedDate(LocalDateTime.now());
-
-        when(paymentTermsRepository.save(any(PaymentTermsEntity.class))).thenReturn(savedEntity);
+        when(paymentTermsRepository.save(any(PaymentTermsEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         PaymentTermsEntity result = paymentTermsService.addPaymentTerm(entity);
 
@@ -49,7 +46,7 @@ class PaymentTermsServiceTest {
         assertEquals(true, result.getActive());
         assertEquals("user1", result.getPostedBy());
         assertEquals("username1", result.getPostedByUsername());
-        assertNotNull(result.getPostedDate());
+        assertEquals(LocalDateTime.of(2026, 5, 1, 9, 0), result.getPostedDate());
         verify(paymentTermsRepository).save(any(PaymentTermsEntity.class));
     }
 
@@ -67,17 +64,11 @@ class PaymentTermsServiceTest {
         entity.setPostedByUsername("username2");
         entity.setPostedDate(null);
 
-        PaymentTermsEntity savedEntity = new PaymentTermsEntity();
-        savedEntity.setActive(true);
-        savedEntity.setPostedBy("user2");
-        savedEntity.setPostedByUsername("username2");
-        savedEntity.setPostedDate(LocalDateTime.now());
-
-        when(paymentTermsRepository.save(any(PaymentTermsEntity.class))).thenReturn(savedEntity);
+        when(paymentTermsRepository.save(any(PaymentTermsEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         PaymentTermsEntity result = paymentTermsService.addPaymentTerm(entity);
 
-        assertNotNull(result.getPostedDate());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getPostedDate());
         verify(paymentTermsRepository).save(any(PaymentTermsEntity.class));
     }
 }

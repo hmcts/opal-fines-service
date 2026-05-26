@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
@@ -14,7 +17,6 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @Service
@@ -22,10 +24,11 @@ import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 @RequiredArgsConstructor
 public class MinorCreditorService {
 
+    private static final String VIEW_CREDITOR_BACS_PERMISSION = "View Creditor BACS";
+
     private final MinorCreditorSearchProxy minorCreditorSearchProxy;
 
     private final UserStateService userStateService;
-    private final CreditorAccountRepository creditorAccountRepository;
 
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
                                                                         String authHeaderValue) {
@@ -38,6 +41,21 @@ public class MinorCreditorService {
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+    }
+
+    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
+        log.debug(":getMinorCreditorAccount: id={}", minorCreditorAccountId);
+
+        UserState userState = userStateService.checkForAuthorisedUser();
+
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        MinorCreditorAccountResponse response =
+            minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
+        filterBacsDetailsIfRequired(response, userState);
+        return response;
     }
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
@@ -90,19 +108,23 @@ public class MinorCreditorService {
             throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
         }
 
-        Short businessUnitIdShort = businessUnitId != null ? Short.valueOf(businessUnitId) : null;
-
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-        if (businessUnitId == null || !userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
+        if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
-                businessUnitIdShort,
+                (Short) null,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
+        Short businessUnitIdShort = Short.valueOf(businessUnitId);
         if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.ACCOUNT_MAINTENANCE)) {
             throw new PermissionNotAllowedException(
                 businessUnitIdShort,
                 FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
+            throw new PermissionNotAllowedException(
+                businessUnitIdShort,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)
@@ -114,4 +136,25 @@ public class MinorCreditorService {
             businessUnitIdShort);
     }
 
+    private void filterBacsDetailsIfRequired(MinorCreditorAccountResponse response, UserState userState) {
+        if (response == null || response.getPayment() == null) {
+            return;
+        }
+
+        Short businessUnitId = response.getBusinessUnitId();
+        boolean canViewBacs = Optional.ofNullable(businessUnitId)
+            .flatMap(userState::getBusinessUnitUserForBusinessUnit)
+            .map(BusinessUnitUser::getPermissions)
+            .stream()
+            .flatMap(java.util.Set::stream)
+            .map(Permission::getPermissionName)
+            .anyMatch(VIEW_CREDITOR_BACS_PERMISSION::equals);
+
+        if (!canViewBacs) {
+            response.getPayment().setAccountName(null);
+            response.getPayment().setSortCode(null);
+            response.getPayment().setAccountNumber(null);
+            response.getPayment().setAccountReference(null);
+        }
+    }
 }

@@ -4,7 +4,7 @@ Feature: Update Draft Accounts
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-745 @JIRA-STORY:PO-991 @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2220
+  @JIRA-STORY:PO-745 @JIRA-STORY:PO-991 @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5684
   Scenario: Reject publishing a submitted draft account
     And a draft account exists with the following details
       | business_unit_id  | 73                                          |
@@ -13,8 +13,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | PATCH001                                    |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -23,7 +21,7 @@ Feature: Update Draft Accounts
 
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220
+  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5685
   Scenario: Mark a submitted draft account as rejected
     And a draft account exists with the following details
       | business_unit_id  | 73                                          |
@@ -32,8 +30,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | PATCH002                                    |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
@@ -50,11 +46,13 @@ Feature: Update Draft Accounts
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | L073JG               |
       | account_snapshot.business_unit_name | West London          |
-      | timeline_data[0].status             | Rejected             |
-      | timeline_data[0].username           | PATCH002_REVIEWER    |
-      | timeline_data[0].reason_text        | Reason for rejection |
+      | timeline_data[0].status             | Submitted            |
+      | timeline_data[0].username           | L073JG               |
+      | timeline_data[1].status             | Rejected             |
+      | timeline_data[1].username           | PATCH002_REVIEWER    |
+      | timeline_data[1].reason_text        | Reason for rejection |
 
-  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220
+  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5686
   Scenario: Mark a submitted draft account as deleted
     And a draft account exists with the following details
       | business_unit_id  | 73                                          |
@@ -63,8 +61,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                  |
       | account_status   | Deleted             |
@@ -80,11 +76,13 @@ Feature: Update Draft Accounts
       | account_snapshot.account_type       | Fine                |
       | account_snapshot.submitted_by       | L073JG              |
       | account_snapshot.business_unit_name | West London         |
-      | timeline_data[0].status             | Deleted             |
-      | timeline_data[0].username           | BUUID_REVIEWER      |
-      | timeline_data[0].reason_text        | Reason for deletion |
+      | timeline_data[0].status             | Submitted           |
+      | timeline_data[0].username           | L073JG              |
+      | timeline_data[1].status             | Deleted             |
+      | timeline_data[1].username           | BUUID_REVIEWER      |
+      | timeline_data[1].reason_text        | Reason for deletion |
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5687
   Scenario: Reject publishing a parent or guardian draft account
     And a draft account exists with the following details
       | business_unit_id  | 73                                                     |
@@ -93,8 +91,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                              |
       | submitted_by      | PATCH003                                               |
       | submitted_by_name | Laura Clerk                                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json                |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -103,7 +99,7 @@ Feature: Update Draft Accounts
 
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5688
   Scenario: Reject publishing a minor creditor draft account
     And a draft account exists with the following details
       | business_unit_id  | 73                                                  |
@@ -112,8 +108,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                           |
       | submitted_by      | PATCH004                                            |
       | submitted_by_name | Laura Clerk                                         |
-      | timeline_data     | draftAccounts/timelineJson/default.json             |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -122,7 +116,7 @@ Feature: Update Draft Accounts
 
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5689
   Scenario: Reject publishing a minor creditor draft account with a defendant
     And a draft account exists with the following details
       | business_unit_id  | 73                                                  |
@@ -131,8 +125,6 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                           |
       | submitted_by      | PATCH005                                            |
       | submitted_by_name | Laura Clerk                                         |
-      | timeline_data     | draftAccounts/timelineJson/default.json             |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                 |
       | account_status   | Publishing Pending |
@@ -141,7 +133,7 @@ Feature: Update Draft Accounts
 
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5690
   Scenario: Reject updating a draft account with an invalid token
     And a draft account exists with the following details
       | business_unit_id  | 73                                          |
@@ -150,15 +142,13 @@ Feature: Update Draft Accounts
       | account_status    | Submitted                                   |
       | submitted_by      | PATCH006                                    |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I attempt to update the draft account with an invalid token
     Then the request is rejected as unauthorized
 
     #    NOTE: This is temporarily commented out as the PDPO logging currently causes the log file to grow significantly when running the tests, which is causing issues in CI. Once we have a solution in place to prevent the log file from growing too much, we can uncomment this and verify the PDPO logs are being created as expected.
     #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5691
   Scenario: Reject updating an unknown draft account id
 
     When I patch the "00000000-0000-0000-0000-000000000000" draft account with the following details

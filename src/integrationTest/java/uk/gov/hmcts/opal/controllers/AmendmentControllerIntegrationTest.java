@@ -29,6 +29,9 @@ import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.AmendmentService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.AmendmentControllerIntegrationTest")
@@ -49,6 +52,9 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     AmendmentService amendmentService;
 
     @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5785")
     void testGetAmendmentById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/7"));
 
@@ -70,11 +76,17 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5789")
     void testGetAmendmentById_fail() throws Exception {
         mockMvc.perform(get(URL_BASE + "/999999")).andExpect(status().isNotFound());
     }
 
     @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5787")
     void testPostAmendmentsSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                                      .contentType(MediaType.APPLICATION_JSON)
@@ -96,6 +108,9 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5788")
     void testPostAmendmentSearch_noMatch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                                                     .contentType(MediaType.APPLICATION_JSON)
@@ -114,6 +129,9 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_METHOD)
     @Sql(scripts = "classpath:db/deleteData/delete_from_amendments.sql", executionPhase = AFTER_TEST_METHOD)
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5786")
     void testAuditStoredProcedures() throws Exception {
         Long defAccId = 77L;
         Short busUnitId = (short)78;

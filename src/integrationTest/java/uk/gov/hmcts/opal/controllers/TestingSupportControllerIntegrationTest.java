@@ -21,14 +21,17 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.TestingSupportControllerTest")
@@ -42,7 +45,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     private DynamicConfigService dynamicConfigService;
 
     @MockitoBean
-    private FeatureToggleService featureToggleService;
+    private FeatureToggleApi featureToggleApi;
 
     @MockitoBean
     private AccessTokenService accessTokenService;
@@ -51,6 +54,9 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     private UserStateClientService userStateClientService;
 
     @Test
+    @JiraStory("PO-256")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-6279")
     void testGetAppMode() throws Exception {
         AppMode appMode = AppMode.builder().mode("test").build();
 
@@ -63,8 +69,11 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-256")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-6276")
     void testIsFeatureEnabled() throws Exception {
-        when(featureToggleService.isFeatureEnabled(anyString())).thenReturn(true);
+        when(featureToggleApi.isFeatureEnabled(anyString())).thenReturn(true);
 
         mockMvc.perform(get("/testing-support/launchdarkly/bool/testFeature"))
             .andExpect(status().isOk())
@@ -73,9 +82,12 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-256")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-6278")
     void testGetFeatureValue() throws Exception {
         String featureValue = "testValue";
-        when(featureToggleService.getFeatureValue(anyString())).thenReturn(featureValue);
+        when(featureToggleApi.getFeatureValue(anyString(), anyString())).thenReturn(featureValue);
 
         mockMvc.perform(get("/testing-support/launchdarkly/string/testFeature"))
             .andExpect(status().isOk())
@@ -83,6 +95,9 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-256")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-6277")
     void testParseToken() throws Exception {
         String token = "Bearer testToken";
 
@@ -95,6 +110,9 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-256")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-6282")
     void testGetUserState() throws Exception {
         UserState userState = UserStateUtil.permissionUser((short) 5, FinesPermission.ACCOUNT_ENQUIRY);
         when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
@@ -107,6 +125,9 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-256")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-6280")
     void testGetUserStateNotFound() throws Exception {
         when(userStateClientService.getUserState(999L)).thenReturn(Optional.empty());
 
@@ -119,6 +140,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     @Test
+    @JiraStory("PO-1772")
+    @JiraStory("PO-1777")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6281")
     void shouldDeleteDefendantAccountAndAssociatedData() throws Exception {
         // Pre-check that data exists
         assertThat(count(

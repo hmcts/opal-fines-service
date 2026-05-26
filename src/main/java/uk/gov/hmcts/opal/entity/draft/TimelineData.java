@@ -22,12 +22,24 @@ public final class TimelineData {
     }
 
     public TimelineData(String json) {
-        entries = new ArrayList<>(Arrays.asList(fromJson(json)));
+        entries = new ArrayList<>();
+        appendEntries(json);
+    }
+
+    public void appendEntries(String json) {
+        if (json != null && !json.isBlank()) {
+            entries.addAll(Arrays.asList(fromJson(json)));
+        }
     }
 
     public void insertEntry(String username, String status, LocalDate timestamp, String reason) {
+        insertEntry(username, null, status, timestamp, reason);
+    }
+
+    public void insertEntry(String username, String userId, String status, LocalDate timestamp, String reason) {
         Entry entry = Entry.builder()
             .username(username)
+            .userId(userId)
             .status(status)
             .statusDate(timestamp)
             .reasonText(reason)
@@ -48,6 +60,9 @@ public final class TimelineData {
 
         @JsonProperty("username")
         private String username;
+
+        @JsonProperty("user_id")
+        private String userId;
 
         @JsonProperty("status")
         private String status;

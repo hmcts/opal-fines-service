@@ -24,15 +24,10 @@
       "type": ["string", "null"],
       "description": "Required when status is Rejected or Deleted; optional otherwise"
     },
-
-    "timeline_data": {
-      "$ref": "resource:/jsonSchemas/opal/timeline/timelineData.json",
-      "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
-    }
+    "timeline_data": false
   },
   "required": [
     "business_unit_id",
-    "account_status",
-	"timeline_data"
+    "account_status"
   ]
 }

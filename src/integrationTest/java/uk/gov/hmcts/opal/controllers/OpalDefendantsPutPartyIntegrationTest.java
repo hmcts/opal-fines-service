@@ -21,12 +21,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPutPartyIntegrationTest")
 class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: PUT Replace DAP – Not Found (account not in BU)")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6063")
     void put_notFound_whenAccountNotInHeaderBU() throws Exception {
         authoriseAllPermissions();
 
@@ -65,6 +71,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
     @Test
     @DisplayName("OPAL: PUT Replace DAP – Happy path (updates party + debtor + bumps version)")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6067")
     void put_happyPath_updates_andReturnsResponse() throws Exception {
         authoriseAllPermissions();
 
@@ -131,6 +140,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
     @Test
     @DisplayName("OPAL: PUT Replace DAP – DAP not found on account")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6062")
     void put_notFound_whenDapMissing() throws Exception {
         authoriseAllPermissions();
 
@@ -168,6 +180,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
     @Test
     @DisplayName("OPAL: PUT Replace DAP – Individual aliases upsert/trim on isolated IDs (22004)")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6066")
     void put_individual_aliases_upsert_and_trim() throws Exception {
         authoriseAllPermissions();
 
@@ -236,6 +251,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @Test
     @Sql(scripts = "classpath:db/insertData/update_into_parties.sql", executionPhase = BEFORE_TEST_METHOD)
     @DisplayName("OPAL: PUT Replace DAP – Organisation aliases upsert (update + insert) and trim (delete missing)")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6068")
     void put_org_aliases_upsert_and_trim() throws Exception {
         authoriseAllPermissions();
 
@@ -325,6 +343,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @Test
     @Sql(scripts = "classpath:db/insertData/update_into_parties.sql", executionPhase = BEFORE_TEST_METHOD)
     @DisplayName("OPAL: PUT Replace DAP – is_debtor = false -> clear debtor fields but do not delete row")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6065")
     void put_replace_dap_isDebtorFalse_clearsDebtorFieldsButKeepsRow() throws Exception {
         authoriseAllPermissions();
 
@@ -392,6 +413,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @Test
     @Sql(scripts = "classpath:db/insertData/update_into_parties.sql", executionPhase = BEFORE_TEST_METHOD)
     @DisplayName("OPAL: PUT Replace DAP – is_debtor = true -> upsert debtor details (create/update)")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6061")
     void put_replace_dap_isDebtorTrue_upsertsDebtorDetails() throws Exception {
         authoriseAllPermissions();
 
@@ -466,6 +490,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @Test
     @Sql(scripts = "classpath:db/insertData/update_into_parties.sql", executionPhase = BEFORE_TEST_METHOD)
     @DisplayName("OPAL: PUT Replace DAP – individual to organisation removes parent/guardian DAP in same tx")
+    @JiraStory("PO-1963")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6064")
     void put_convertIndividualToOrganisation_removesParentGuardianParty() throws Exception {
         authoriseAllPermissions();
 

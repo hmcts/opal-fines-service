@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.mapper.common.PartyMapper;
         PartyMapper.class,
         CreditorAccountTypeMapper.class
     })
-public interface MinorCreditorAccountHeaderSummaryMapper {
+public interface MinorCreditorAccountHeaderEntityMapper {
 
     @Mapping(target = "creditor.accountNumber", source = "entity.creditorAccountNumber")
     @Mapping(target = "creditor.accountId", source = "entity.creditorAccountId")

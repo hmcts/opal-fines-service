@@ -84,6 +84,10 @@ withPipeline(type, product, component) {
     }
   }
 
+  before('test') {
+    steps.sh './gradlew checkTestJiraAnnotations'
+  }
+
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'

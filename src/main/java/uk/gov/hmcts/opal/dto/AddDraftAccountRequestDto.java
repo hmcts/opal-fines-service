@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
@@ -52,10 +53,14 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     @NotNull(message = "account_type must not be null")
     private DraftAccountType accountType;
 
-    @JsonProperty(value = "timeline_data", required = true)
-    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
-    @JsonRawValue
-    private String timelineData;
+    @JsonProperty("account_status")
+    private DraftAccountStatus accountStatus;
+
+    @JsonProperty("status_message")
+    private String statusMessage;
+
+    @JsonProperty("timeline_data")
+    private Object timelineData;
 
     @JsonProperty("submitted_by")
     private String submittedBy;

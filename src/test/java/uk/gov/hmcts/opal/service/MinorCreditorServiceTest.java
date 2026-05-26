@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
@@ -33,9 +34,9 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
-import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,9 +47,6 @@ class MinorCreditorServiceTest {
 
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
-
-    @Mock
-    CreditorAccountRepository creditorAccountRepository;
 
     @InjectMocks
     private MinorCreditorService minorCreditorService;
@@ -109,15 +107,18 @@ class MinorCreditorServiceTest {
 
     @Test
     void testGetMinorCreditorAccountAtAGlance() {
+        // Arrange
         Long id = 123L;
         GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
 
+        // Act
         GetMinorCreditorAccountAtAGlanceResponse result =
             minorCreditorService.getMinorCreditorAtAGlance(id, "authHeaderValue");
 
+        // Assert
         assertNotNull(result);
         assertEquals(response, result);
         verify(minorCreditorSearchProxy).getMinorCreditorAtAGlance(eq(id));
@@ -137,6 +138,93 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.getMinorCreditorAtAGlance(123L, "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+    }
+
+    @Test
+    void testGetMinorCreditorAccount() {
+        // Arrange
+        Long id = 123L;
+        MinorCreditorAccountResponse response = responseWithBacsDetails();
+
+        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
+
+        // Act
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(response, result);
+        verify(minorCreditorSearchProxy).getMinorCreditorAccount(eq(id));
+    }
+
+    @Test
+    void testGetMinorCreditorAccount_permissionNotAllowed() {
+        // Arrange
+        UserState noPermissionUser = mock(UserState.class);
+        when(noPermissionUser.anyBusinessUnitUserHasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.getMinorCreditorAccount(123L)
+        );
+
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+    }
+
+    @Test
+    void testGetMinorCreditorAccount_filtersBacsDetailsWithoutPermission() {
+        // Arrange
+        Long id = 123L;
+        MinorCreditorAccountResponse response = responseWithBacsDetails();
+
+        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(
+            UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)
+        );
+
+        // Act
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
+
+        // Assert
+        assertNotNull(result.getPayment());
+        assertEquals(null, result.getPayment().getAccountName());
+        assertEquals(null, result.getPayment().getSortCode());
+        assertEquals(null, result.getPayment().getAccountNumber());
+        assertEquals(null, result.getPayment().getAccountReference());
+        assertEquals(true, result.getPayment().getPayByBacs());
+        assertEquals(false, result.getPayment().getHoldPayment());
+    }
+
+    @Test
+    void testGetMinorCreditorAccount_keepsBacsDetailsWithPermission() {
+        // Arrange
+        Long id = 123L;
+        MinorCreditorAccountResponse response = responseWithBacsDetails();
+
+        Permission searchPermission = UserStateUtil.permissionFor(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        Permission bacsPermission = Permission.builder()
+            .permissionId(999L)
+            .permissionName("View Creditor BACS")
+            .build();
+
+        when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(
+            UserStateUtil.permissionUser((short) 10, searchPermission, bacsPermission)
+        );
+
+        // Act
+        MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
+
+        // Assert
+        assertNotNull(result.getPayment());
+        assertEquals("Test Name", result.getPayment().getAccountName());
+        assertEquals("123456", result.getPayment().getSortCode());
+        assertEquals("12345678", result.getPayment().getAccountNumber());
+        assertEquals("REF123", result.getPayment().getAccountReference());
     }
 
     @Test
@@ -276,11 +364,88 @@ class MinorCreditorServiceTest {
         assertEquals("test.user@hmcts.net", postedByCaptor.getValue());
     }
 
+    @Test
+    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_evenWhenHoldUnchanged_throwsPermissionNotAllowed(
+    ) {
+        // Arrange
+        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(
+                1L,
+                request,
+                BigInteger.ONE,
+                "authHeaderValue",
+                "10"
+            )
+        );
+
+        // Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+    }
+
+    @Test
+    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_whenHoldChanges_throwsPermissionNotAllowed() {
+        // Arrange
+        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        PatchMinorCreditorAccountRequest request = validPatchRequest();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                "authHeaderValue", "10")
+        );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+    }
+
     private PatchMinorCreditorAccountRequest validPatchRequest() {
         return new PatchMinorCreditorAccountRequest()
             .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(true))
             .address(new AddressDetailsCommon())
-            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(true));
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                         .holdPayment(true)
+                         .payByBacs(true)
+                         .accountName("Account Name")
+                         .sortCode("112233")
+                         .accountNumber("12345678")
+                         .accountReference("PAY-REF"));
+    }
+
+    private PatchMinorCreditorAccountRequest unchangedHoldPatchRequest() {
+        return new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(true))
+            .address(new AddressDetailsCommon())
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                         .holdPayment(true)
+                         .payByBacs(true)
+                         .accountName("Account Name")
+                         .sortCode("112233")
+                         .accountNumber("12345678")
+                         .accountReference("PAY-REF"));
+    }
+
+    private MinorCreditorAccountResponse responseWithBacsDetails() {
+        MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
+        response.setCreditorAccountId(123L);
+        response.setBusinessUnitId((short) 10);
+        response.setPayment(new MinorCreditorAccountResponseMinorCreditorPayment()
+            .accountName("Test Name")
+            .sortCode("123456")
+            .accountNumber("12345678")
+            .accountReference("REF123")
+            .payByBacs(true)
+            .holdPayment(false));
+        return response;
     }
 
     @Test
