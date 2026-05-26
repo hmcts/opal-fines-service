@@ -24,6 +24,8 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementTransaction;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
+import uk.gov.hmcts.opal.service.report.mapper.OperationReportByEnforcementResultMapper;
+import uk.gov.hmcts.opal.service.report.mapper.OperationReportByEnforcementRowDtoMapper;
 
 class OperationReportByEnforcementResultMapperTest {
 

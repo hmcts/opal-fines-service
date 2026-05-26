@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.mapper.report;
+package uk.gov.hmcts.opal.service.report.mapper;
 
 import java.time.LocalDateTime;
 import java.util.List;

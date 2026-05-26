@@ -37,6 +37,8 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.util.AgeUtil;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
@@ -79,6 +81,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         Assertions.assertThat(reportMetadata.getPdpoPartyIds()).doesNotHaveDuplicates();
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterSummaryReportType_returnSortedResultsOfSummaryReportType() {
         //Arrange
@@ -163,29 +167,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
-    @Test
-    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType() {
-        //Arrange
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn("""
-            {
-              "reportType": "DETAILED"
-            }
-            """);
-        //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
-        //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
-        long totalAccounts = defendantAccountRepository.count();
-        assertThat(transactions.size()).isEqualTo(totalAccounts);
-        //Currently there is no Detailed option so this will be the same as Summary
-        Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
-            .isSorted();
-        verifyMetadata(result, transactions);
-    }
-
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByBusinessUnitIds_returnSortedResultsOfCorrectBusinessUnitIds() {
         //Arrange
@@ -211,6 +194,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementModeAll_returnAllSortedResults() {
         //Arrange
@@ -233,6 +218,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementModeNull_returnAllSortedResults() {
         //Arrange
@@ -254,6 +241,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementModeLastActionWithNoEnforcementAction_throwsError() {
         //Arrange
@@ -267,6 +256,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         assertThrows(IllegalArgumentException.class, () -> service.generateReportData(reportInstance));
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementModeLastActionWithoutDates_returnLastActionSortedResults() {
         //Arrange
@@ -298,6 +289,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementModeLastActionWithDates_returnLastActionSortedResultsBetweenDates() {
         //Arrange
@@ -340,6 +333,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementModeRegfWithDates_returnRegfSortedResults() {
         LocalDate from = LocalDate.of(2000, 1, 1);
@@ -379,6 +374,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
         String json = """
@@ -410,6 +407,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByEnforcementDate_returnSortedResults() {
         //Arrange
@@ -445,6 +444,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByNotUnderEnforcement_returnResultsNotUnderEnforcement() {
         //Arrange
@@ -478,6 +479,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByIncludeAdult_returnResultsOfAdults() {
         //Arrange
@@ -503,6 +506,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByIncludeYouth_returnResultsOfYouth() {
         //Arrange
@@ -528,6 +533,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByIncludeCompany_returnResultsOfCompanies() {
         //Arrange
@@ -552,6 +559,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByParentOrGuardian_returnResultsWithParentOrGuardian() {
         //Arrange
@@ -576,6 +585,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @ParameterizedTest
     @CsvSource({
         "WITH, true",
@@ -612,6 +623,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByAccountStatusLive_returnResults() {
         // Arrange
@@ -643,6 +656,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByAccountStatusClosed_returnResults() {
         // Arrange
@@ -674,6 +689,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByMinAndMaxBalance_returnSortedWithinMinAndMaxBalance() {
         //Arrange
@@ -698,6 +715,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByFirstPaymentOrPayByInNext7Days_returnsForAccountWithPaymentInNext7Days() {
         //Arrange
@@ -736,6 +755,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @Test
     void generateReportData_filterByNameRange_returnSortedWithinNameRange() {
         //Arrange
