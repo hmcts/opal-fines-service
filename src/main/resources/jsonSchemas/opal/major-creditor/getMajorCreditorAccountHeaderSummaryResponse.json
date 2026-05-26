@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "major_creditor",
+    "business_unit_details",
+    "awaiting_payout"
+  ],
+  "properties": {
+    "major_creditor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "creditor_account_id",
+        "account_number",
+        "name",
+        "account_reference"
+      ],
+      "properties": {
+        "creditor_account_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "account_number": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10
+        },
+        "name": {
+          "type": "string"
+        },
+        "account_reference": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "account_type": {
+              "type": "string",
+              "enum": [
+                "MN",
+                "MJ",
+                "CF"
+              ]
+            },
+            "display_name": {
+              "type": "string",
+              "enum": [
+                "Minor Creditor",
+                "Major Creditor",
+                "Central Fund"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "business_unit_details": {
+      "$ref": "../common-objects/businessUnitSummary.json"
+    },
+    "awaiting_payout": {
+      "type": "number",
+      "multipleOf": 0.01,
+      "minimum": 0
+    }
+  }
+}
