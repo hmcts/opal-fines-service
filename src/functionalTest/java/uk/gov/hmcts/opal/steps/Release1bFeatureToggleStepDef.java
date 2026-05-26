@@ -109,8 +109,6 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 );
             case "Get Defendant Account Fixed Penalty" ->
                 callGet(DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/fixed-penalty");
-            case "Get Defendant Account Impositions" ->
-                callGet(DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/impositions");
             case "Get Minor Creditor Account Header Summary" ->
                 callGet(MINOR_CREDITOR_ACCOUNTS_URI + "/" + PLACEHOLDER_MINOR_CREDITOR_ACCOUNT_ID + "/header-summary");
             case "Get Minor Creditor Account At A Glance" ->
