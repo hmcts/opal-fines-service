@@ -6,7 +6,7 @@ public final class FeatureFlags {
     public static final String RELEASE_1A = "release-1a";
     public static final String RELEASE_1A_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1A;
     public static final String RELEASE_1B = "release-1b";
-    public static final String RELEASE_1B_DEFAULT_VALUE_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1B;
+    public static final String RELEASE_1B_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1B;
 
     private FeatureFlags() {
     }

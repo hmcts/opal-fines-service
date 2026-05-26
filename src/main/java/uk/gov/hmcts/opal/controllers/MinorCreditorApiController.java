@@ -35,7 +35,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     @Override
     @FeatureToggle(
         feature = FeatureFlags.RELEASE_1B,
-        defaultValueProperty = FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY
+        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
