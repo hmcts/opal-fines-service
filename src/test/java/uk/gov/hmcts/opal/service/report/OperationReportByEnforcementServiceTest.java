@@ -3,15 +3,12 @@ package uk.gov.hmcts.opal.service.report;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.service.report.ReportId.OP_ENFORCEMENT;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -45,158 +42,172 @@ class OperationReportByEnforcementServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private OperationReportByEnforcementValidator validator;
+
     @InjectMocks
     private OperationReportByEnforcementService service;
 
-    // ----------------------------------------
-    // Helpers
-    // ----------------------------------------
-    private ReportInstanceEntity reportWithJson(String json) {
-        ReportInstanceEntity instance = mock(ReportInstanceEntity.class);
-        when(instance.getReportParameters()).thenReturn(json);
-        return instance;
-    }
-
-    private DefendantAccountEntity account(String accNo) {
-        DefendantAccountEntity acc = new DefendantAccountEntity();
-        acc.setAccountNumber(accNo);
-        return acc;
-    }
-
-    private EnforcementEntity enforcement(DefendantAccountEntity acc) {
-        EnforcementEntity e = new EnforcementEntity();
-        e.setDefendantAccount(acc);
-        return e;
-    }
-
-    // ----------------------------------------
-    // Tests
-    // ----------------------------------------
-
     @Test
-    void getReportId_returnsCorrectId() {
-        assertThat(service.getReportId()).isEqualTo(OP_ENFORCEMENT);
+    void getReportId_returnsOpEnforcement() {
+        assertThat(service.getReportId()).isEqualTo(ReportId.OP_ENFORCEMENT);
     }
 
     @Test
-    void generateReportData_notUnderEnforcement_usesAccountRepository() {
-        // Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+    void generateReportData_whenNotFilteringOnEnforcementData_usesAccountRepositoryOnly() {
+        ReportInstanceEntity reportInstance = mockReportInstance("""
+            { "reportEnforcementMode": "NOT_UNDER_ENFORCEMENT" }
+            """);
+
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.NOT_UNDER_ENFORCEMENT)
             .build();
-        when(objectMapper.readValue(anyString(), eq(ReportFiltersDto.class)))
+
+        List<DefendantAccountEntity> accounts = List.of(mock(DefendantAccountEntity.class));
+        OperationReportByEnforcementTransaction mapped = mock(OperationReportByEnforcementTransaction.class);
+
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
             .thenReturn(filters);
-        List<DefendantAccountEntity> accounts = List.of(
-            account("A1"),
-            account("A2")
-        );
         when(defendantAccountRepository.findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        OperationReportByEnforcementTransaction mapped =
-            new OperationReportByEnforcementTransaction();
         when(resultMapper.map(accounts)).thenReturn(mapped);
-        String json = """
-                { "reportEnforcementMode": "NOT_UNDER_ENFORCEMENT" }
-            """;
 
-        // Act
-        ReportDataInterface result =
-            service.generateReportData(reportWithJson(json));
+        ReportDataInterface result = service.generateReportData(reportInstance);
 
-        // Assert
         assertThat(result).isSameAs(mapped);
         verify(defendantAccountRepository).findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
-        verify(enforcementRepository, never()).findAll(
+        verifyNoInteractions(enforcementRepository);
+        verify(resultMapper).map(accounts);
+    }
+
+    @Test
+    void generateReportData_whenAllModeWithNoEnforcementDates_usesAccountRepositoryOnly() {
+        ReportInstanceEntity reportInstance = mockReportInstance("""
+            { "reportEnforcementMode": "ALL" }
+            """);
+
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
+            .reportEnforcementMode(ReportEnforcementMode.ALL)
+            .build();
+
+        List<DefendantAccountEntity> accounts = List.of(mock(DefendantAccountEntity.class));
+        OperationReportByEnforcementTransaction mapped = mock(OperationReportByEnforcementTransaction.class);
+
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class))).thenReturn(
+            filters);
+        when(defendantAccountRepository.findAll(
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
+            any(Sort.class)
+        )).thenReturn(accounts);
+        when(resultMapper.map(accounts)).thenReturn(mapped);
+
+        ReportDataInterface result = service.generateReportData(reportInstance);
+
+        assertThat(result).isSameAs(mapped);
+        verify(defendantAccountRepository).findAll(
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
+            any(Sort.class)
+        );
+        verifyNoInteractions(enforcementRepository);
+        verify(resultMapper).map(accounts);
+    }
+
+    @Test
+    void generateReportData_whenFilteringOnEnforcementData_usesEnforcementAndAccountRepositories() {
+        ReportInstanceEntity reportInstance = mockReportInstance("""
+            {
+              "reportEnforcementMode": "LAST_ACTION",
+              "enforcementAction": "REGF"
+            }
+            """);
+
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
+            .reportEnforcementMode(ReportEnforcementMode.LAST_ACTION)
+            .enforcementAction("REGF")
+            .build();
+
+        DefendantAccountEntity account1 = mock(DefendantAccountEntity.class);
+        DefendantAccountEntity account2 = mock(DefendantAccountEntity.class);
+
+        when(account1.getDefendantAccountId()).thenReturn(77L);
+        when(account2.getDefendantAccountId()).thenReturn(88L);
+
+        EnforcementEntity enforcement1 = mock(EnforcementEntity.class);
+        EnforcementEntity enforcement2 = mock(EnforcementEntity.class);
+
+        when(enforcement1.getDefendantAccount()).thenReturn(account1);
+        when(enforcement2.getDefendantAccount()).thenReturn(account2);
+
+        List<EnforcementEntity> enforcements = List.of(enforcement1, enforcement2);
+        List<DefendantAccountEntity> accounts = List.of(account1, account2);
+        OperationReportByEnforcementTransaction mapped = mock(OperationReportByEnforcementTransaction.class);
+
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class))).thenReturn(
+            filters);
+        when(enforcementRepository.findAll(
             ArgumentMatchers.<Specification<EnforcementEntity>>any()
+        )).thenReturn(enforcements);
+        when(defendantAccountRepository.findAll(
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
+            any(Sort.class)
+        )).thenReturn(accounts);
+        when(resultMapper.map(accounts)).thenReturn(mapped);
+
+        ReportDataInterface result = service.generateReportData(reportInstance);
+
+        assertThat(result).isSameAs(mapped);
+        verify(enforcementRepository).findAll(
+            ArgumentMatchers.<Specification<EnforcementEntity>>any()
+        );
+        verify(defendantAccountRepository).findAll(
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
+            any(Sort.class)
         );
         verify(resultMapper).map(accounts);
     }
 
     @Test
-    void generateReportData_enforcementModes_useEnforcementRepository() {
-        // Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
-            .reportEnforcementMode(ReportEnforcementMode.ALL)
+    void generateReportData_validationFails_ThrowsIllegalArgumentException() {
+        ReportInstanceEntity reportInstance = mockReportInstance("""
+            {
+              "reportEnforcementMode": "LAST_ACTION"
+            }
+            """);
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
+            .reportEnforcementMode(ReportEnforcementMode.LAST_ACTION)
             .build();
-        when(objectMapper.readValue(anyString(), eq(ReportFiltersDto.class)))
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
             .thenReturn(filters);
-        DefendantAccountEntity acc1 = account("B2");
-        DefendantAccountEntity acc2 = account("A1");
-        List<EnforcementEntity> enforcements = List.of(
-            enforcement(acc1),
-            enforcement(acc2),
-            enforcement(acc1)
-        );
-        when(enforcementRepository.findAll(
-            ArgumentMatchers.<Specification<EnforcementEntity>>any()
-        )).thenReturn(enforcements);
-        OperationReportByEnforcementTransaction mapped =
-            new OperationReportByEnforcementTransaction();
-        when(resultMapper.map(anyList())).thenReturn(mapped);
-        String json = """
-                { "reportEnforcementMode": "ALL" }
-            """;
-        // Act
-        ReportDataInterface result =
-            service.generateReportData(reportWithJson(json));
-        // Assert
-        assertThat(result).isSameAs(mapped);
-        verify(defendantAccountRepository, never()).findAll(
-            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
-            any(Sort.class)
-        );
-        verify(resultMapper).map(argThat(accounts ->
-            accounts.stream()
-                .map(DefendantAccountEntity::getAccountNumber)
-                .toList()
-                .equals(List.of("A1", "B2"))
-        ));
+        doThrow(new IllegalArgumentException("not valid"))
+            .when(validator)
+            .validate(filters);
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("not valid");
     }
 
     @Test
-    void generateReportData_sortsAccountsByAccountNumber() {
-        // Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
-            .reportEnforcementMode(ReportEnforcementMode.ALL)
-            .build();
-        when(objectMapper.readValue(anyString(), eq(ReportFiltersDto.class)))
-            .thenReturn(filters);
-        DefendantAccountEntity acc1 = account("Z9");
-        DefendantAccountEntity acc2 = account("A1");
-        when(enforcementRepository.findAll(
-            ArgumentMatchers.<Specification<EnforcementEntity>>any()
-        )).thenReturn(List.of(enforcement(acc1), enforcement(acc2)));
-        when(resultMapper.map(
-            ArgumentMatchers.any()
-        )).thenReturn(new OperationReportByEnforcementTransaction());
-        String json = """
-                { "reportEnforcementMode": "ALL" }
-            """;
-        // Act
-        service.generateReportData(reportWithJson(json));
-        verify(resultMapper).map(argThat(list ->
-            list.stream()
-                .map(DefendantAccountEntity::getAccountNumber)
-                .toList()
-                .equals(List.of("A1", "Z9"))
-        ));
-    }
+    void generateReportData_whenReportParametersCannotBeRead_throwsRuntimeException() {
+        ReportInstanceEntity reportInstance = mockReportInstance("{ invalid json }");
 
-    @Test
-    void generateReportData_handlesInvalidJson_throwsException() {
-        // Arrange
-        ReportInstanceEntity instance = mock(ReportInstanceEntity.class);
-        when(instance.getReportParameters()).thenReturn("invalid-json");
-        when(objectMapper.readValue(anyString(), eq(ReportFiltersDto.class)))
-            .thenThrow(new RuntimeException("boom"));
-        // Act + Assert
-        assertThatThrownBy(() -> service.generateReportData(instance))
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
+            .thenThrow(new RuntimeException());
+
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Failed to parse report filters");
+
+        verifyNoInteractions(defendantAccountRepository, enforcementRepository, resultMapper);
+    }
+
+    private ReportInstanceEntity mockReportInstance(String json) {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        when(reportInstance.getReportParameters()).thenReturn(json);
+        return reportInstance;
     }
 }

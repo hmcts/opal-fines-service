@@ -165,20 +165,6 @@ class OperationReportByEnforcementRowDtoCoreMapperDecoratorTest {
     }
 
     @Test
-    void shouldApplyFallbacks() {
-        DefendantAccountEntity entity = DefendantAccountEntity.builder()
-            .prosecutorCaseReference("PCR123")
-            .jailDays(5)
-            .build();
-
-        EnforcementReportRowDto dto = new EnforcementReportRowDto();
-        when(delegate.map(entity, context)).thenReturn(dto);
-        decorator.map(entity, context);
-        assertThat(dto.getParentOrGuardian()).isEqualTo("PCR123");
-        assertThat(dto.getJailDays()).isEqualTo(5);
-    }
-
-    @Test
     void shouldHandleNoPartiesGracefully() {
         DefendantAccountEntity entity = DefendantAccountEntity.builder()
             .parties(null)

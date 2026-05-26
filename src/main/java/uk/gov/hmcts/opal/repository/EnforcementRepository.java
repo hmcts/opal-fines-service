@@ -29,4 +29,8 @@ public interface EnforcementRepository extends JpaRepository<EnforcementEntity, 
 
     @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
     List<EnforcementEntity> findByDefendantAccountIdAndResultId(Long accountId, String regf);
+
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    EnforcementEntity findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(
+        Long defendantAccountId, String resultId);
 }

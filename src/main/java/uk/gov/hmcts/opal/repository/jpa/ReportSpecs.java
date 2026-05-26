@@ -28,27 +28,42 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity_;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_;
-import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
+import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
+import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementFiltersDto;
 
 @AllArgsConstructor
 public final class ReportSpecs {
 
-    public static Specification<DefendantAccountEntity> build(ReportFiltersDto filters) {
+    public static Specification<DefendantAccountEntity> build(OperationReportByEnforcementFiltersDto filters) {
         return Specification.where(fetchJoins())
             .and(accountFiltersSpec(filters));
     }
 
-    public static Specification<DefendantAccountEntity> accountFiltersSpec(ReportFiltersDto filters) {
+    public static Specification<DefendantAccountEntity> accountFiltersSpec(
+        OperationReportByEnforcementFiltersDto filters) {
         return (root, query, cb) ->
             accountFilters(root, query, cb, filters);
+    }
+
+    public static Specification<DefendantAccountEntity> defendantAccountIdsIn(
+        List<Long> accountIds
+    ) {
+        return (root, query, cb) -> {
+            if (accountIds == null || accountIds.isEmpty()) {
+                return cb.disjunction();
+            }
+            return root.get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID).in(accountIds);
+        };
     }
 
     public static Predicate accountFilters(
         From<?, DefendantAccountEntity> root,
         CriteriaQuery<?> query,
         CriteriaBuilder cb,
-        ReportFiltersDto filters
+        OperationReportByEnforcementFiltersDto filters
     ) {
         List<Predicate> preds = new ArrayList<>();
 
@@ -59,7 +74,8 @@ public final class ReportSpecs {
         addAccountStatusFilter(root, cb, filters, preds);
         addBalanceFilter(root, cb, filters, preds);
         addNameRangeFilter(root, cb, filters, preds);
-        addNext7DaysFilter(root, cb, filters, preds);
+        addNext7DaysFilter(root, query, cb, filters, preds);
+        addNotUnderEnforcementFilter(root, cb, filters, preds);
 
         return preds.isEmpty()
             ? cb.conjunction()
@@ -68,7 +84,7 @@ public final class ReportSpecs {
 
     private static void addBusinessUnitFilter(
         From<?, DefendantAccountEntity> root,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (filters.getBusinessUnitIds() != null && !filters.getBusinessUnitIds().isEmpty()) {
@@ -81,7 +97,7 @@ public final class ReportSpecs {
     private static void addAccountTypeFilter(
         From<?, DefendantAccountEntity> root,
         CriteriaBuilder cb,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (!(Boolean.TRUE.equals(filters.getIncludeAdult())
@@ -112,7 +128,7 @@ public final class ReportSpecs {
         From<?, DefendantAccountEntity> root,
         CriteriaQuery<?> query,
         CriteriaBuilder cb,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (!Boolean.TRUE.equals(filters.getOnlyAccountsWithParentGuardian())) {
@@ -138,7 +154,7 @@ public final class ReportSpecs {
     private static void addCollectionOrderFilter(
         From<?, DefendantAccountEntity> root,
         CriteriaBuilder cb,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (filters.getCollectionOrderChoice() == null) {
@@ -155,7 +171,7 @@ public final class ReportSpecs {
     private static void addAccountStatusFilter(
         From<?, DefendantAccountEntity> root,
         CriteriaBuilder cb,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (filters.getAccountStatus() == null) {
@@ -178,7 +194,7 @@ public final class ReportSpecs {
     private static void addBalanceFilter(
         From<?, DefendantAccountEntity> root,
         CriteriaBuilder cb,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (filters.getMinBalance() != null) {
@@ -193,7 +209,7 @@ public final class ReportSpecs {
     private static void addNameRangeFilter(
         From<?, DefendantAccountEntity> root,
         CriteriaBuilder cb,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (filters.getLowerNameRange() == null && filters.getUpperNameRange() == null) {
@@ -221,8 +237,9 @@ public final class ReportSpecs {
 
     private static void addNext7DaysFilter(
         From<?, DefendantAccountEntity> root,
+        CriteriaQuery<?> query,
         CriteriaBuilder cb,
-        ReportFiltersDto filters,
+        OperationReportByEnforcementFiltersDto filters,
         List<Predicate> preds
     ) {
         if (!Boolean.TRUE.equals(filters.getFirstPaymentOrPayByInNext7Days())) {
@@ -230,35 +247,37 @@ public final class ReportSpecs {
         }
         LocalDate today = todayUk();
         LocalDate in7Days = todayPlusDaysUk(7);
-        List<Predicate> datePreds = new ArrayList<>();
 
-        List<String> fields = List.of(
-            DefendantAccountEntity_.IMPOSED_HEARING_DATE,
-            DefendantAccountEntity_.COLLECTION_ORDER_EFFECTIVE_DATE,
-            DefendantAccountEntity_.PAYMENT_CARD_REQUESTED_DATE
+        Subquery<Long> sq = query.subquery(Long.class);
+        Root<PaymentTermsEntity> paymentTerms = sq.from(PaymentTermsEntity.class);
+
+        sq.select(cb.literal(1L)); // 'SELECT 1' TO CHECK EXISTS
+        sq.where(
+            cb.equal(
+                paymentTerms.get(PaymentTermsEntity_.DEFENDANT_ACCOUNT)
+                    .get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID),
+                root.get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID)
+            ),
+            cb.between(
+                paymentTerms.get(PaymentTermsEntity_.EFFECTIVE_DATE),
+                today,
+                in7Days
+            )
         );
-        fields.forEach(f -> addBetweenTwoDatesConditionIfFieldPresent(root, cb, datePreds, f, today, in7Days));
-        if (!datePreds.isEmpty()) {
-            preds.add(cb.or(datePreds.toArray(new Predicate[0])));
-        }
+        preds.add(cb.exists(sq));
     }
 
-    private static void addBetweenTwoDatesConditionIfFieldPresent(
-        From<?, ?> root,
+    private static void addNotUnderEnforcementFilter(
+        From<?, DefendantAccountEntity> root,
         CriteriaBuilder cb,
-        List<Predicate> preds,
-        String field,
-        LocalDate from,
-        LocalDate to
+        OperationReportByEnforcementFiltersDto filters,
+        List<Predicate> preds
     ) {
-        try {
-            Expression<LocalDate> expr = root.get(field).as(LocalDate.class);
-            preds.add(cb.between(expr, from, to));
-        } catch (IllegalArgumentException ignored) {
-            // field doesn't exist — skip
+        if (!ReportEnforcementMode.NOT_UNDER_ENFORCEMENT.equals(filters.getReportEnforcementMode())) {
+            return;
         }
+        preds.add(cb.isNull(root.get(DefendantAccountEntity_.LAST_ENFORCEMENT)));
     }
-
 
     private static Specification<DefendantAccountEntity> fetchJoins() {
         return (root, query, cb) -> {

@@ -41,7 +41,6 @@ public class OperationReportByEnforcementRowDtoCoreMapperDecorator implements Op
         applyParty(entity, dto, context);
         applyLatestEnforcement(entity, dto);
         applyParentGuardian(entity, dto, context);
-        applyFallbacks(entity, dto);
 
         return dto;
     }
@@ -141,16 +140,6 @@ public class OperationReportByEnforcementRowDtoCoreMapperDecorator implements Op
             context.addParticipant(String.valueOf(parentGuardianId), PdplIdentifierType.PARENT_GUARDIAN);
         }
         dto.setParentOrGuardian(parentGuardianIds.isEmpty() ? NO : YES);
-    }
-
-    private void applyFallbacks(DefendantAccountEntity entity, EnforcementReportRowDto dto) {
-        if (dto.getParentOrGuardian() == null) {
-            dto.setParentOrGuardian(entity.getProsecutorCaseReference());
-        }
-
-        if (dto.getJailDays() == null) {
-            dto.setJailDays(entity.getJailDays());
-        }
     }
 
     @Override

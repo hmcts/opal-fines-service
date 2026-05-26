@@ -24,6 +24,9 @@ WHERE defendant_account_id = 77;
 DELETE FROM debtor_detail
 WHERE party_id = 77;
 
+DELETE FROM payment_terms
+WHERE defendant_account_id = 77;
+
 DELETE FROM defendant_accounts
 WHERE defendant_account_id = 77;
 
