@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.entity.draft.DraftAccountStatus.SUBMITTED;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 @ActiveProfiles({"integration"})
@@ -49,6 +50,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-747")
     @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5880")
     void testUpdateDraftAccount_trap406Response() throws Exception {
         DraftAccountResponseDto dto = DraftAccountResponseDto.builder()
             .draftAccountId(1L)
@@ -69,6 +71,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @DisplayName("Update draft account - Should return 408 [@PO-2117] ")
     @JiraStory("PO-2117")
     @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5882")
     void testUpdateDraftAccount_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             patch(URL_BASE + "/1")
@@ -83,6 +86,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @DisplayName("Update draft account - Should return 503 [@PO-2117] ")
     @JiraStory("PO-2117")
     @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5879")
     void testUpdateDraftAccount_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             patch(URL_BASE + "/1")
@@ -98,6 +102,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-691")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5876")
     void testPostDraftAccount_trap406Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn406WhenResponseContentTypeNotSupported(
@@ -108,6 +113,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-691")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5878")
     void testPostDraftAccount_trap408Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn408WhenTimeout(
@@ -119,6 +125,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-691")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5886")
     void testPostDraftAccount_trap503Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn503WhenDownstreamServiceIsUnavailable(
@@ -132,6 +139,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-690")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5877")
     void testGetDraftAccountById_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             get(URL_BASE + "/1"), when(
@@ -142,6 +150,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-690")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5885")
     void testGetDraftAccountById_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             get(URL_BASE + "/1"), when(
@@ -155,6 +164,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-647")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5883")
     void testGetDraftAccountsSummaries_trap406Response() throws Exception {
         shouldReturn406WhenResponseContentTypeNotSupported(get(URL_BASE));
     }
@@ -163,6 +173,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-647")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5884")
     void testGetDraftAccountsSummaries_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             get(URL_BASE), when(draftAccountService
@@ -173,6 +184,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraStory("PO-973")
     @JiraStory("PO-647")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5881")
     void testGetDraftAccountsSummaries_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             get(URL_BASE), when(draftAccountService

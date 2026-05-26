@@ -23,6 +23,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -34,6 +35,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @DisplayName("LEGACY: Add Payment Card Request – Happy Path [@PO-2088]")
     @JiraStory("PO-2088")
     @JiraEpic("PO-977")
+    @JiraTestKey("PO-5941")
     void testAddPaymentCardRequest_Happy() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
@@ -61,6 +63,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @DisplayName("LEGACY: Add Payment Card Request – 500 Error [@PO-2088]")
     @JiraStory("PO-2088")
     @JiraEpic("PO-977")
+    @JiraTestKey("PO-5938")
     void testAddPaymentCardRequest_500() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
@@ -85,6 +88,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @DisplayName("LEGACY: POST Add Payment Terms - Success")
     @JiraStory("PO-2087")
     @JiraEpic("PO-977")
+    @JiraTestKey("PO-5939")
     void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
@@ -113,6 +117,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @DisplayName("LEGACY: POST Add Payment Terms - Handle 500 error from the gateway")
     @JiraStory("PO-2087")
     @JiraEpic("PO-977")
+    @JiraTestKey("PO-5940")
     void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());

@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import java.util.Map;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Result Repository Integration Tests")
 @Sql(
@@ -62,6 +63,7 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2888")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6317")
     void shouldKeepEnforcementsLazyWhenNoEntityGraphIsUsed() {
         ResultEntity result = entityManager.find(ResultEntity.class, RESULT_ID);
 
@@ -74,6 +76,7 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2888")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6318")
     void shouldKeepEnforcementsLazyForRepositoryFindById() {
         ResultEntity result = resultRepository.findById(RESULT_ID).orElseThrow();
 
@@ -86,6 +89,7 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2888")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6315")
     void shouldLoadFullEntityGraphWhenRequestedExplicitly() {
         EntityGraph<?> fullGraph = entityManager.getEntityGraph(ResultEntity.ENTITY_GRAPH_FULL);
         ResultEntity result = entityManager.find(
@@ -105,6 +109,7 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2888")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6316")
     void shouldKeepEnforcementsLazyForSpecificationFetch() {
         Specification<ResultEntity> spec =
             (root, query, builder) -> builder.equal(root.get("resultId"), RESULT_ID);

@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.LocalJusticeAreaControllerIntegrationTest")
@@ -65,6 +66,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-312")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5963")
     void testGetLocalJusticeAreaById() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
@@ -87,6 +89,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-312")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5966")
     void testGetLocalJusticeAreaById_WhenLocalJusticeAreaDoesNotExist() throws Exception {
 
         mockMvc.perform(get(URL_BASE + "/2"))
@@ -98,6 +101,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-312")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5964")
     void testPostLocalJusticeAreasSearch() throws Exception {
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
@@ -121,6 +125,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-312")
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5962")
     void testPostLocalJusticeAreasSearch_WhenLocalJusticeAreaDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -132,6 +137,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify search result for LocalJusticeAreasRefData created by GET request no filters [@PO-2757]")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5960")
     public void testGetLocalJusticeAreasRefData_returnAllData() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE));
 
@@ -161,6 +167,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request single lja_type param [@PO-2757]")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5965")
     public void testGetLocalJusticeAreasRefData_filterBySingleLjaType() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "LJA"));
 
@@ -178,6 +185,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request with unknown lja_type [@PO-2757]")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5970")
     public void testGetLocalJusticeAreasRefData_filterByUnknownLjaType() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN"));
 
@@ -193,6 +201,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request with known/unknown lja_type [@PO-2757]")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5961")
     public void testGetLocalJusticeAreasRefData_filterByKnownAndUnknownLjaTypes() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN", "LJA"));
         String body =
@@ -211,6 +220,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request multiple lja_type [@PO-2757]")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5967")
     public void testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes(MockHttpServletRequestBuilder requestBuilder)
         throws Exception {
         ResultActions actions = mockMvc.perform(requestBuilder);
@@ -232,6 +242,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify deterministic results for LocalJusticeAreasRefData created by multiple GET requests")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5971")
     void testGetLocalJusticeAreasRefData_returnsSameResultsInStableOrderForMultipleCalls() throws Exception {
         String cacheName = "ljaReferenceDataCache";
         var actions1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"));
@@ -251,6 +262,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("Verify search result for LocalJusticeAreasRefData created by GET request with filter query params")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
+    @JiraTestKey("PO-5959")
     public void testGetLocalJusticeAreasRefData_whenAllQueryParamsPresent() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE)
             .param("q", "0007")
