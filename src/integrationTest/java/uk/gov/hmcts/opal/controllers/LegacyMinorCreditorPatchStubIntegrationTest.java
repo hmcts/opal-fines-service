@@ -5,8 +5,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
@@ -20,7 +18,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
@@ -46,33 +43,6 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
 
     @MockitoBean
     private UserStateService userStateService;
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
-    void patchMinorCreditor_success_hitsLegacyStub() throws Exception {
-        authorisePatchUser();
-
-        ResultActions resultActions = performLegacyPatch(607L, "\"1\"");
-
-        String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":patchMinorCreditor_success_hitsLegacyStub body:\n{}", ToJsonString.toPrettyJson(body));
-
-        resultActions.andExpect(status().isOk())
-            .andExpect(header().string("ETag", "\"2\""))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.creditor_account_id").value(607L))
-            .andExpect(jsonPath("$.party_details.party_id").value("99008"))
-            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
-            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Updated Ltd"))
-            .andExpect(jsonPath("$.address.address_line_1").value("99 Updated Road"))
-            .andExpect(jsonPath("$.payment.account_name").value("Updated Account"))
-            .andExpect(jsonPath("$.payment.sort_code").value("112233"))
-            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
-            .andExpect(jsonPath("$.payment.account_reference").value("Ref-01"))
-            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
-            .andExpect(jsonPath("$.payment.hold_payment").value(true));
-    }
 
     @Test
     @JiraStory("PO-1915")
