@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
@@ -13,10 +14,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
@@ -27,13 +26,16 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
 import uk.gov.hmcts.opal.dto.report.OperationReportByEnforcementTotalsRowDto;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.util.AgeUtil;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -48,6 +50,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     private DefendantAccountRepository defendantAccountRepository;
     @Autowired
     private EnforcementRepository enforcementRepository;
+    @Autowired
+    private PaymentTermsRepository paymentTermsRepository;
 
     // ----------------------------------------
     // Helper
@@ -125,7 +129,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
                 assertThat(dto.getEmployerTel()).isEqualTo("02079997777");
                 assertThat(dto.getEmployerEmail()).isEqualTo("employer77@company.com");
                 assertThat(dto.getEnforcementReason()).isEqualTo("Test enforcement");
-                assertThat(dto.getLastEnforcementDate()).isEqualTo(LocalDate.of(2000, 1, 1));
+                assertThat(dto.getLastEnforcementDate()).isEqualTo(LocalDate.of(2000, 1, 2));
                 assertThat(dto.getUser()).isEqualTo("L080JG");
                 assertThat(dto.getWarrantRef()).isEqualTo("001/25/00001");
                 assertThat(dto.getJailDays()).isEqualTo(101);
@@ -135,6 +139,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
 
         OperationReportByEnforcementTotalsRowDto totalsRow = result.getEnforcementReport().getTotals();
         assertThat(totalsRow.getAccountsReported()).isEqualTo(transactions.size());
+        int totalAccounts = (int) defendantAccountRepository.count();
+        assertThat(totalAccounts).isEqualTo(totalsRow.getAccountsReported());
 
         BigDecimal expectedTotalBalance = transactions.stream()
             .map(EnforcementReportRowDto::getBalance)
@@ -157,7 +163,6 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         verifyMetadata(result, transactions);
     }
 
-
     @Test
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType() {
         //Arrange
@@ -172,6 +177,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
         //Assert
         List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        long totalAccounts = defendantAccountRepository.count();
+        assertThat(transactions.size()).isEqualTo(totalAccounts);
         //Currently there is no Detailed option so this will be the same as Summary
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
@@ -217,6 +224,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             service.generateReportData(reportWithFilters(json));
         //Assert
         List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        long totalAccounts = defendantAccountRepository.count();
+        assertThat(totalAccounts).isEqualTo(transactions.size());
         assertThat(transactions).isNotNull();
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
@@ -237,7 +246,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             service.generateReportData(reportWithFilters(json));
         //Assert
         List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
-        assertThat(transactions).isNotNull();
+        long totalAccounts = defendantAccountRepository.count();
+        assertThat(totalAccounts).isEqualTo(transactions.size());
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
             .isSorted();
@@ -245,7 +255,51 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     }
 
     @Test
-    void generateReportData_filterByEnforcementModeLastAction_returnLastActionSortedResults() {
+    void generateReportData_filterByEnforcementModeLastActionWithNoEnforcementAction_throwsError() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "reportEnforcementMode": "LAST_ACTION"
+            }
+            """
+        );
+        assertThrows(IllegalArgumentException.class, () -> service.generateReportData(reportInstance));
+    }
+
+    @Test
+    void generateReportData_filterByEnforcementModeLastActionWithoutDates_returnLastActionSortedResults() {
+        //Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "reportEnforcementMode": "LAST_ACTION",
+              "enforcementAction": "ABDC"
+            }
+            """
+        );
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        //Assert
+        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+        Map<String, Long> accountNoToId = getAccountNoToId();
+        Assertions.assertThat(transactions).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            EnforcementEntity latest = enforcementRepository
+                .findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(
+                    accountId, ResultId.ABDC.value()
+                );
+            Assertions.assertThat(latest).isNotNull();
+        });
+        verifyMetadata(result, transactions);
+    }
+
+    @Test
+    void generateReportData_filterByEnforcementModeLastActionWithDates_returnLastActionSortedResultsBetweenDates() {
         //Arrange
         LocalDateTime start = LocalDate.now().minusDays(2).atStartOfDay();
         LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
@@ -254,6 +308,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportEnforcementMode": "LAST_ACTION",
+              "enforcementAction": "ABDC",
               "lastActionDateFrom": "%s",
               "lastActionDateTo": "%s"
             }
@@ -273,21 +328,20 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         Map<String, Long> accountNoToId = getAccountNoToId();
         Assertions.assertThat(transactions).allSatisfy(dto -> {
             Long accountId = accountNoToId.get(dto.getAccountNo());
-            Optional<EnforcementEntity> latest =
-                enforcementRepository.findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(accountId);
-            Assertions.assertThat(latest).isPresent();
-            latest.ifPresent(e -> {
-                Assertions.assertThat(e.getPostedDate())
-                    .isAfterOrEqualTo(start)
-                    .isBeforeOrEqualTo(end);
-            });
+            EnforcementEntity latest = enforcementRepository
+                .findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(
+                    accountId, ResultId.ABDC.value()
+                );
+            Assertions.assertThat(latest).isNotNull();
+            Assertions.assertThat(latest.getPostedDate())
+                .isAfterOrEqualTo(start)
+                .isBefore(end.plusDays(1));
         });
         verifyMetadata(result, transactions);
     }
 
     @Test
-    void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
-        // Arrange
+    void generateReportData_filterByEnforcementModeRegfWithDates_returnRegfSortedResults() {
         LocalDate from = LocalDate.of(2000, 1, 1);
         LocalDate to = LocalDate.of(2000, 2, 2);
         String json = """
@@ -326,6 +380,37 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     }
 
     @Test
+    void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
+        String json = """
+            {
+              "reportEnforcementMode": "REGF"
+            }
+            """;
+        //Act
+        OperationReportByEnforcementTransaction result =
+            (OperationReportByEnforcementTransaction)
+                service.generateReportData(reportWithFilters(json));
+        // Assert
+        assertThat(result).isNotNull();
+        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .isSorted();
+
+        Map<String, Long> accountNoToId = getAccountNoToId();
+
+        Assertions.assertThat(transactions).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            List<EnforcementEntity> regfEnforcements =
+                enforcementRepository.findByDefendantAccountIdAndResultId(accountId, "REGF");
+            Assertions.assertThat(regfEnforcements)
+                .as("Account %s should have REGF enforcement in range", dto.getAccountNo())
+                .isNotEmpty();
+        });
+        verifyMetadata(result, transactions);
+    }
+
+    @Test
     void generateReportData_filterByEnforcementDate_returnSortedResults() {
         //Arrange
         String json = """
@@ -342,6 +427,21 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
             .isSorted();
+
+        List<String> expectedAccountNumbers = enforcementRepository.findAll().stream()
+            .filter(e -> {
+                LocalDate date = e.getPostedDate().toLocalDate();
+                return !date.isBefore(LocalDate.of(2000, 1, 1))
+                    && !date.isAfter(LocalDate.of(2000, 2, 2));
+            })
+            .map(e -> e.getDefendantAccount().getAccountNumber())
+            .distinct()
+            .toList();
+
+        Assertions.assertThat(transactions)
+            .extracting(EnforcementReportRowDto::getAccountNo)
+            .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers);
+
         verifyMetadata(result, transactions);
     }
 
@@ -350,7 +450,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         //Arrange
         String json = """
             {
-              "enforcementMode": "NOT_UNDER_ENFORCEMENT"
+              "reportEnforcementMode": "NOT_UNDER_ENFORCEMENT"
             }
             """;
         //Act
@@ -361,6 +461,20 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         Assertions.assertThat(transactions)
             .extracting(EnforcementReportRowDto::getAccountNo)
             .isSorted();
+
+        Map<String, DefendantAccountEntity> accounts = defendantAccountRepository.findAll().stream()
+            .collect(Collectors.toMap(
+                DefendantAccountEntity::getAccountNumber,
+                Function.identity()
+            ));
+
+        Assertions.assertThat(transactions)
+            .allSatisfy(row -> {
+                DefendantAccountEntity defendantAccount =
+                    accounts.get(row.getAccountNo());
+                Assertions.assertThat(defendantAccount).isNotNull();
+                Assertions.assertThat(defendantAccount.getLastEnforcement()).isNull();
+            });
         verifyMetadata(result, transactions);
     }
 
@@ -472,12 +586,12 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         boolean expectedValue
     ) {
         // Arrange
-        List<String> expectedAccountNumbers = enforcementRepository.findAll().stream()
-            .map(EnforcementEntity::getDefendantAccount)
-            .filter(acc -> Boolean.valueOf(expectedValue).equals(acc.getCollectionOrder()))
-            .map(DefendantAccountEntity::getAccountNumber)
-            .distinct()
-            .toList();
+        List<String> expectedAccountNumbers =
+            defendantAccountRepository.findAll().stream()
+                .filter(account ->
+                    Boolean.valueOf(expectedValue).equals(account.getCollectionOrder()))
+                .map(DefendantAccountEntity::getAccountNumber)
+                .toList();
 
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
 
@@ -585,34 +699,6 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     }
 
     @Test
-    void generateReportData_filterByFirstPaymentOrPayByInNext7Days_doesNotReturnForAccountWithoutPaymentInNext7Days() {
-        //Arrange
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn("""
-            {
-              "firstPaymentOrPayByInNext7Days": "true"
-            }
-            """);
-        //Arrange
-        DefendantAccountEntity entity =
-            defendantAccountRepository.findByDefendantAccountId(77L).orElseThrow();
-        LocalDate inPast = LocalDate.now().minusDays(7);
-        entity.setImposedHearingDate(inPast);
-        entity.setCollectionOrderEffectiveDate(inPast);
-        entity.setPaymentCardRequestedDate(inPast);
-        defendantAccountRepository.saveAndFlush(entity);
-        //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
-        //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
-        Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
-            .doesNotContain(entity.getAccountNumber());
-        verifyMetadata(result, transactions);
-    }
-
-    @Test
     void generateReportData_filterByFirstPaymentOrPayByInNext7Days_returnsForAccountWithPaymentInNext7Days() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -622,32 +708,32 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             }
             """);
         //Arrange
-        DefendantAccountEntity entity =
-            defendantAccountRepository.findByDefendantAccountId(77L).orElseThrow();
-        LocalDate inPast = LocalDate.now().plusDays(7);
-        entity.setImposedHearingDate(inPast);
-        entity.setCollectionOrderEffectiveDate(inPast);
-        entity.setPaymentCardRequestedDate(inPast);
-        defendantAccountRepository.saveAndFlush(entity);
+        PaymentTermsEntity paymentTermsForSeededData = paymentTermsRepository
+            .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(77L)
+            .stream().findFirst().orElseThrow();
+        paymentTermsForSeededData.setEffectiveDate(LocalDate.now().plusDays(7));
+        paymentTermsRepository.saveAndFlush(paymentTermsForSeededData);
+
         //Act
         OperationReportByEnforcementTransaction result =
             (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
         //Assert
         List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
-        Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
-            .contains(entity.getAccountNumber());
+        Map<String, Long> accountNoToId = getAccountNoToId();
+        Assertions.assertThat(transactions).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountNo());
+            List<PaymentTermsEntity> paymentTerms = paymentTermsRepository
+                .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
+                    accountId
+                );
+            Assertions.assertThat(paymentTerms).isNotEmpty();
+            Assertions.assertThat(paymentTerms).anySatisfy(term ->
+                Assertions.assertThat(term.getEffectiveDate())
+                    .isBetween(LocalDate.now(), LocalDate.now().plusDays(7))
+            );
+        });
+
         verifyMetadata(result, transactions);
-    }
-
-    private static Stream<Consumer<DefendantAccountEntity>> next7DaysCases() {
-        LocalDate targetDate = LocalDate.now().plusDays(7);
-
-        return Stream.of(
-            entity -> entity.setImposedHearingDate(targetDate),
-            entity -> entity.setCollectionOrderEffectiveDate(targetDate),
-            entity -> entity.setPaymentCardRequestedDate(targetDate)
-        );
     }
 
     @Test

@@ -320,6 +320,27 @@ ON CONFLICT (defendant_account_id) DO UPDATE
         account_note_3 = EXCLUDED.account_note_3,
         jail_days = EXCLUDED.jail_days;
 
+INSERT INTO payment_terms
+( payment_terms_id, defendant_account_id, posted_date, posted_by
+, terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
+, jail_days, extension, account_balance)
+VALUES ( 0077, 0077, '2023-11-03 16:05:10', '01000000A'
+       , 'B', '2025-10-12 00:00:00', 'W', NULL, NULL
+       , 120, 'N', 700.58)
+ON CONFLICT (payment_terms_id) DO UPDATE
+      SET defendant_account_id = EXCLUDED.defendant_account_id,
+      posted_date = EXCLUDED.posted_date,
+      posted_by = EXCLUDED.posted_by,
+      terms_type_code = EXCLUDED.terms_type_code,
+      effective_date = EXCLUDED.effective_date,
+      instalment_period = EXCLUDED.instalment_period,
+      instalment_amount = EXCLUDED.instalment_amount,
+      instalment_lump_sum = EXCLUDED.instalment_lump_sum,
+      jail_days = EXCLUDED.jail_days,
+      extension = EXCLUDED.extension,
+      account_balance = EXCLUDED.account_balance;
+
+
 INSERT INTO defendant_account_parties (
     defendant_account_party_id,
     defendant_account_id,
@@ -358,6 +379,17 @@ VALUES (
            TIMESTAMP '2000-01-01',
            'L080JG',
            'REGF',
+           'Test enforcement',
+           '001/25/00001',
+           1,
+           'opal-test'
+       ),
+       (
+           2,
+           77,
+           TIMESTAMP '2000-01-02',
+           'L080JG',
+           'ABDC',
            'Test enforcement',
            '001/25/00001',
            1,

@@ -12,8 +12,10 @@ import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_G
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,9 +23,12 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.ReportSpecs;
-import uk.gov.hmcts.opal.service.report.ReportFiltersDto;
+import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
+import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementFiltersDto;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
@@ -31,13 +36,15 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
 
     @Autowired
     private DefendantAccountRepository defendantAccountRepository;
+    @Autowired
+    private PaymentTermsRepository paymentTermsRepository;
 
     @ParameterizedTest
     @NullAndEmptySource
     void businessUnitSpec_businessUnitIdsNullOrEmpty_returnConjunction(List<Long> buIds) {
         //Arrange
         long total = defendantAccountRepository.count();
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .businessUnitIds(buIds)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -50,7 +57,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void businessUnitSpec_businessUnitIdsList_returnAllFromBusinessUnitIds() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .businessUnitIds(List.of(78L))
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -65,7 +72,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void accountTypesSpec_includeAdult_returnAllAdultAccounts() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .includeAdult(true)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -83,7 +90,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void accountTypesSpec_includeYouth_returnAllYouthAccounts() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .includeYouth(true)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -101,7 +108,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void accountTypesSpec_includeCompany_returnAllCompanyAccounts() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .includeCompany(true)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -120,7 +127,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void parentGuardianSpec_returnAllAccountsWithParentGuardian() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .onlyAccountsWithParentGuardian(true)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -136,7 +143,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void collectionOrderSpec_withCollectionOrder_returnAllAccountsWithCollectionOrder() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .collectionOrderChoice(WITH)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -151,7 +158,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void collectionOrderSpec_withoutCollectionOrder_returnAllAccountsWithoutCollectionOrder() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .collectionOrderChoice(WITHOUT)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -166,7 +173,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void accountStatusSpec_live_returnAllAccountsWithLiveStatus() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .accountStatus(LIVE)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -183,7 +190,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void accountStatusSpec_closed_returnAllAccountsWithClosedStatus() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .accountStatus(CLOSED)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
@@ -200,7 +207,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void balanceRangeSpec_minAndMaxGiven_returnAllAccountsWithinRange() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .maxBalance(BigDecimal.valueOf(600))
             .minBalance(BigDecimal.valueOf(400))
             .build();
@@ -218,7 +225,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void nameRangeSpec_lowerAndUpperGiven_returnAllAccountsWithinRange() {
         //Arrange
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .lowerNameRange("l")
             .upperNameRange("l")
             .build();
@@ -238,33 +245,78 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @Test
     void next7DaysSpec_true_returnsAccountsWhereRelevantDateIsInNext7Days() {
         //Arrange
-        DefendantAccountEntity entity =
-            defendantAccountRepository.findByDefendantAccountId(77L).orElseThrow();
-        LocalDate inPast = LocalDate.now().minusDays(7);
-        entity.setImposedHearingDate(inPast);
-        entity.setCollectionOrderEffectiveDate(inPast);
-        entity.setPaymentCardRequestedDate(inPast);
-        defendantAccountRepository.saveAndFlush(entity);
-
-        DefendantAccountEntity entity2 =
-            defendantAccountRepository.findByDefendantAccountId(78L).orElseThrow();
-        LocalDate in7 = LocalDate.now().plusDays(7);
-        entity2.setImposedHearingDate(in7);
-        entity2.setCollectionOrderEffectiveDate(in7);
-        entity2.setPaymentCardRequestedDate(in7);
-        defendantAccountRepository.saveAndFlush(entity2);
-
-        ReportFiltersDto filters = ReportFiltersDto.builder()
+        PaymentTermsEntity paymentTermsForSeededData = paymentTermsRepository
+            .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(77L)
+            .stream().findFirst().orElseThrow();
+        paymentTermsForSeededData.setEffectiveDate(LocalDate.now().plusDays(7));
+        paymentTermsRepository.saveAndFlush(paymentTermsForSeededData);
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .firstPaymentOrPayByInNext7Days(true)
             .build();
         Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
         //Act
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
         //Assert
+        assertThat(results).allSatisfy(account -> {
+            List<PaymentTermsEntity> paymentTerms = paymentTermsRepository
+                    .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
+                    account.getDefendantAccountId()
+                );
+
+            assertThat(paymentTerms).isNotEmpty();
+
+            assertThat(paymentTerms).anySatisfy(term ->
+                assertThat(term.getEffectiveDate())
+                    .isBetween(LocalDate.now(), LocalDate.now().plusDays(7))
+            );
+        });
+    }
+
+    @Test
+    void notUnderEnforcement_returnsAccountsWithoutEnforcements() {
+        //Arrange
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
+            .reportEnforcementMode(ReportEnforcementMode.NOT_UNDER_ENFORCEMENT)
+            .build();
+        Specification<DefendantAccountEntity> spec = ReportSpecs.build(filters);
+        //Act
+        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
+        //Assert
+        assertThat(results).allSatisfy(account ->
+            assertThat(account.getLastEnforcement()).isNull()
+        );
+    }
+
+    @Test
+    void defendantAccountIdsIn_account() {
+        // Arrange
+        Specification<DefendantAccountEntity> spec =
+            ReportSpecs.defendantAccountIdsIn(List.of(77L, 78L));
+        // Act
+        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
+        // Assert
         assertThat(results)
             .extracting(DefendantAccountEntity::getDefendantAccountId)
-            .contains(78L)
-            .doesNotContain(77L);
+            .containsExactlyInAnyOrder(77L, 78L);
+    }
+
+    @ParameterizedTest
+    @MethodSource("emptyAccountIdLists")
+    void defendantAccountIdsIn_emptyOrNullList_returnsNoResults(List<Long> accountIds) {
+        // Arrange
+        Specification<DefendantAccountEntity> spec =
+            ReportSpecs.defendantAccountIdsIn(accountIds);
+        // Act
+        List<DefendantAccountEntity> results = defendantAccountRepository.findAll(spec);
+        // Assert
+        assertThat(results).isEmpty();
+    }
+
+    private static Stream<List<Long>> emptyAccountIdLists() {
+        return Stream.of(
+            null,
+            List.of()
+        );
     }
 
     private static String displayName(PartyEntity party) {

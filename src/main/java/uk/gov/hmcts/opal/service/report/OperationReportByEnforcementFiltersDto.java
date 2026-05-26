@@ -14,11 +14,12 @@ import uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReportFiltersDto {
+public class OperationReportByEnforcementFiltersDto {
 
     private ReportType reportType;
     private List<Long> businessUnitIds;
     private ReportEnforcementMode reportEnforcementMode;
+    private String enforcementAction;
     private LocalDate enforcementDateFrom;
     private LocalDate enforcementDateTo;
     private LocalDate lastActionDateFrom;
