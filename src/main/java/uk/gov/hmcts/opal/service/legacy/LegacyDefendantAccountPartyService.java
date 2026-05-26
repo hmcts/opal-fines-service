@@ -32,10 +32,14 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -47,16 +51,18 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
+    public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.remove_defendant_account_party";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
 
     /* ---- Mappers ---- */
     private final DefendantAccountPartyLegacyResponseMapper defendantAccountPartyLegacyResponseMapper;
+    private final RemoveDefendantAccountPartyLegacyResponseMapper removeDAPLegacyResponseMapper;
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId) {
+                                                                     Long defendantAccountPartyId) {
         log.debug(":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
             defendantAccountId, defendantAccountPartyId);
 
@@ -346,6 +352,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         } else if (response.isSuccessful()) {
             log.info(":addDefendantAccountParty: Legacy success.");
         }
+
         return defendantAccountPartyLegacyResponseMapper.toDefendantAccountPartyResponse(response.responseEntity);
     }
 
@@ -484,14 +491,35 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             .build();
     }
 
+    @Override
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        Short businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        String postedBy,
-        DefendantAccountParty defendantAccountParty) {
+        Long defendantAccountPartyId, Short businessUnitId, String businessUnitUserId, String postedBy,
+        String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        RemoveDefendantAccountPartyLegacyRequest req = RemoveDefendantAccountPartyLegacyRequest.builder()
+            .version(VersionUtils.extractBigInteger(ifMatch))
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .defendantAccountPartyId(defendantAccountPartyId)
+            .build();
 
-        throw new UnsupportedOperationException("Legacy removeDefendantAccountParty is not implemented");
+        Response<RemoveDefendantAccountPartyLegacyResponse> response = gatewayService.postToGateway(
+            REMOVE_DEFENDANT_ACCOUNT_PARTY,
+            RemoveDefendantAccountPartyLegacyResponse.class,
+            req,
+            null);
+
+        if (response.isError()) {
+            log.error(":removeDefendantAccountParty: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":removeDefendantAccountParty: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":removeDefendantAccountParty: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":removeDefendantAccountParty: Legacy success.");
+        }
+
+        return removeDAPLegacyResponseMapper.toRemoveDefendantAccountPartyResponse(response.responseEntity);
     }
 }
