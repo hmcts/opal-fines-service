@@ -260,6 +260,8 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2077")
+    @JiraEpic("PO-979")
     @DisplayName("FeatureDisabledException -> 405 with feature-disabled problem detail")
     void featureDisabled_ReturnsExistingProblemShape() throws Exception {
         var action = mockMvc.perform(get("/__exc/feature-disabled").header("authorization", "Bearer some_value")

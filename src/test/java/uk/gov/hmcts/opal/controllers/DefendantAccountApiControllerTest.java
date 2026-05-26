@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -22,7 +24,6 @@ import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseComm
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -67,8 +68,8 @@ class DefendantAccountApiControllerTest {
         FeatureToggle featureToggle = method.getAnnotation(FeatureToggle.class);
 
         assertNotNull(featureToggle);
-        assertEquals(FeatureFlags.RELEASE_1B, featureToggle.feature());
-        assertEquals(FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY, featureToggle.defaultValueProperty());
+        assertEquals(RELEASE_1B, featureToggle.feature());
+        assertEquals(RELEASE_1B_ENABLED_PROPERTY, featureToggle.defaultValueProperty());
     }
 
     @Test
