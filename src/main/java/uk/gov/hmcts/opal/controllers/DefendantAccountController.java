@@ -10,8 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -30,16 +30,17 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
+import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
@@ -57,20 +58,20 @@ public class DefendantAccountController {
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
     private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountPartyService defendantAccountPartyService;
-    private final FeatureToggleService featureToggleService;
+    private final FeatureToggleApi featureToggleApi;
 
     public DefendantAccountController(DefendantAccountService defendantAccountService,
         DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService,
         DefendantAccountPaymentTermsService defendantAccountPaymentTermsService,
         DefendantAccountEnforcementService defendantAccountEnforcementService,
         DefendantAccountPartyService defendantAccountPartyService,
-        FeatureToggleService featureToggleService) {
+        FeatureToggleApi featureToggleApi) {
         this.defendantAccountService = defendantAccountService;
         this.defendantAccountPaymentTermsService = defendantAccountPaymentTermsService;
         this.defendantAccountFixedPenaltyService = defendantAccountFixedPenaltyService;
         this.defendantAccountEnforcementService = defendantAccountEnforcementService;
         this.defendantAccountPartyService = defendantAccountPartyService;
-        this.featureToggleService = featureToggleService;
+        this.featureToggleApi = featureToggleApi;
     }
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
@@ -125,7 +126,11 @@ public class DefendantAccountController {
 
     private void rejectConsolidatedSearchWhenDisabled(AccountSearchDto accountSearchDto) {
         if (accountSearchDto.isConsolidationSearch()
-            && !featureToggleService.isFeatureEnabled(FeatureFlags.RELEASE_1C)) {
+            && !featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+                FeatureFlags.RELEASE_1C,
+                FeatureFlags.RELEASE_1C_DEFAULT_VALUE_PROPERTY,
+                false
+            )) {
             throw new FeatureDisabledException(
                 "Feature release-1c is not enabled for defendant account consolidated search");
         }
@@ -257,7 +262,7 @@ public class DefendantAccountController {
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestBody DefendantAccountParty request
+        @RequestBody RemoveDefendantAccountPartyRequest request
     ) {
         log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
             defendantAccountId, defendantAccountPartyId);

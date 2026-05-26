@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,11 +16,16 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -56,6 +62,9 @@ import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
 
+    private static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);
+    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC);
+
     @Mock
     private BusinessUnitRepository businessUnitRepository;
 
@@ -80,8 +89,17 @@ class DraftAccountServiceTest {
     @Mock
     SecurityEventLoggingService securityEventLoggingService;
 
+    @Mock
+    private Clock clock;
+
     @InjectMocks
     private DraftAccountService draftAccountService;
+
+    @BeforeEach
+    void setupClock() {
+        lenient().when(clock.instant()).thenReturn(FIXED_CLOCK.instant());
+        lenient().when(clock.getZone()).thenReturn(FIXED_CLOCK.getZone());
+    }
 
     @Test
     void testGetDraftAccount() {
@@ -163,7 +181,6 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .timelineData(createTimelineDataString())
             .build();
         // Act
         DraftAccountResponseDto result = draftAccountService
@@ -189,7 +206,6 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .submittedBy("TestUser")
             .submittedByName("Test User")
-            .timelineData(createTimelineDataString())
             .build();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
 
@@ -211,7 +227,6 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString().replace("\"hearing_language\": \"EN\"", "\"hearing_language\": \"English\""))
             .accountType(DraftAccountType.FINE)
-            .timelineData(createTimelineDataString())
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
@@ -288,7 +303,6 @@ class DraftAccountServiceTest {
             .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
         // Act
@@ -325,7 +339,6 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .submittedBy("SpoofedUser")
             .submittedByName("Spoofed Name")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
@@ -354,7 +367,6 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .submittedBy("SpoofedUser")
             .submittedByName("Spoofed Name")
-            .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
@@ -375,7 +387,6 @@ class DraftAccountServiceTest {
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .timelineData(createTimelineDataString())
             .build();
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
@@ -402,7 +413,6 @@ class DraftAccountServiceTest {
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("SpoofedUser")
             .validatedByName("Spoofed Name")
-            .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
         final DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
@@ -436,7 +446,7 @@ class DraftAccountServiceTest {
             eq("Success"),
             eq((short) 2),
             eq("Approval"),
-            any(LocalDateTime.class),
+            eq(LocalDateTime.of(2026, 4, 22, 0, 0)),
             eq(Map.of(
                 "UserIdentifier", 1L,
                 "DraftAccountIdentifier", draftAccountId,
@@ -446,6 +456,56 @@ class DraftAccountServiceTest {
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
+    }
+
+    @Test
+    void testUpdateDraftAccount_rejected_preservesValidatedBy() {
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.REJECTED)
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .businessUnitId((short) 2)
+            .build();
+        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.REJECTED)
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .timelineData(createTimelineDataString())
+            .versionNumber(1L)
+            .build();
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+            .thenReturn(updatedAccount);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.REJECTED)
+                .validatedBy("PATCH002_REVIEWER")
+                .validatedByName("Laura Reviewer")
+                .timelineData(updatedAccount.getTimelineData())
+                .build()
+        );
+
+        DraftAccountResponseDto result = draftAccountService
+            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0");
+
+        assertNotNull(result);
+        assertEquals("PATCH002_REVIEWER", result.getValidatedBy());
+        assertEquals("Laura Reviewer", result.getValidatedByName());
+
+        ArgumentCaptor<UpdateDraftAccountRequestDto> captor =
+            ArgumentCaptor.forClass(UpdateDraftAccountRequestDto.class);
+        verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any(), any());
+        assertEquals("PATCH002_REVIEWER", captor.getValue().getValidatedBy());
+        assertEquals("Laura Reviewer", captor.getValue().getValidatedByName());
+
+        verify(draftAccountPublishProxy, never()).publishDefendantAccount(any(), any());
+        verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
+        verify(jsonSchemaValidationService).validateOrError(any(), any());
     }
 
     private void publishPending_success(DraftAccountEntity updatedAccount, Long draftAccountId,
@@ -513,6 +573,21 @@ class DraftAccountServiceTest {
                          "reason_text": "Violation of terms of service."
                      }]
             """;
+    }
+
+    private void assertGeneratedTimeline(String timelineData, DraftAccountStatus status, String reasonText) {
+        assertThat(timelineData)
+            .contains("\"username\" : \"normal@users.com\"")
+            .contains("\"user_id\" : \"USER01\"")
+            .contains("\"status\" : \"" + status.getLabel() + "\"")
+            .contains("\"status_date\" : \"" + TIMELINE_STATUS_DATE + "\"")
+            .doesNotContain("johndoe123");
+
+        if (reasonText == null) {
+            assertThat(timelineData).doesNotContain("\"reason_text\"");
+        } else {
+            assertThat(timelineData).contains("\"reason_text\" : \"" + reasonText + "\"");
+        }
     }
 
     private String createAccountString() {

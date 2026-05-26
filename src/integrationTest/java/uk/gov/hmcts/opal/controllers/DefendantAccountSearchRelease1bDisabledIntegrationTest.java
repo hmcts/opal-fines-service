@@ -14,6 +14,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = {
@@ -31,6 +33,8 @@ class DefendantAccountSearchRelease1bDisabledIntegrationTest extends AbstractInt
 
     @Test
     @DisplayName("POST /defendant-accounts/search is unavailable when release-1b is disabled")
+    @JiraStory("PO-3768")
+    @JiraEpic("PO-3685")
     void postDefendantAccountsSearch_returnsFeatureDisabledWhenRelease1bDisabled() throws Exception {
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
                 .header("authorization", "Bearer some_value")

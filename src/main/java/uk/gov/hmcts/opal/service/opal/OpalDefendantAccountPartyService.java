@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -334,15 +335,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Override
     @Transactional
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        Short businessUnitId,
-        String businessUserId,
-        String ifMatch,
-        String postedBy,
-        DefendantAccountParty defendantAccountParty) {
+        Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
+        String ifMatch, RemoveDefendantAccountPartyRequest request) {
 
-        DefendantAccountEntity account = defendantAccountRepositoryService
-            .findById(defendantAccountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
         log.debug(":removeDefendantAccountParty: accountId={}, dapId={}, buId={}, postedBy={}",
             defendantAccountId, defendantAccountPartyId, businessUnitId, postedBy);
@@ -365,15 +361,6 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account Party not found for accountId=" + defendantAccountId
                     + ", partyId=" + defendantAccountPartyId));
-
-        // Ensure the entity being removed matches the request party_id (if present in the request)
-        if (defendantAccountParty != null && defendantAccountParty.getPartyDetails() != null) {
-            String requestedPartyId = defendantAccountParty.getPartyDetails().getPartyId();
-            if (requestedPartyId != null
-                && !requestedPartyId.equals(String.valueOf(partyToRemove.getParty().getPartyId()))) {
-                throw new IllegalArgumentException("Request party_id does not match the entity being removed");
-            }
-        }
 
         account.getParties().removeIf(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId));
 

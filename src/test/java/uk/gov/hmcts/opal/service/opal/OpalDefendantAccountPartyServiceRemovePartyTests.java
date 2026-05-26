@@ -17,9 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -77,8 +76,8 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
 
-        DefendantAccountParty request = DefendantAccountParty.builder()
-            .partyDetails(PartyDetails.builder().partyId("99").build())
+        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
+            .defendantAccountPartyId(99L)
             .build();
 
         RemoveDefendantAccountPartyResponse response = service.removeDefendantAccountParty(
@@ -86,8 +85,8 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             5L,
             (short) 10,
             "businessUser",
-            "1",
             "posted",
+            "1",
             request);
 
         assertEquals("5", response.getDefendantAccountPartyId());
@@ -101,15 +100,22 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
     }
 
     @Test
-    void removeDefendantAccountParty_whenPartyIdMismatch_throwsIllegalArgumentException() {
+    void removeDefendantAccountParty_whenDefendantAccountPartyIdMismatch_throwsEntityNotFound() {
+
+        DefendantAccountPartiesEntity party = new DefendantAccountPartiesEntity();
+        party.setDefendantAccountPartyId(999L);
+
+        account.setParties(List.of(party));
+
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
-        DefendantAccountParty request = DefendantAccountParty.builder()
-            .partyDetails(PartyDetails.builder().partyId("123").build())
+        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
+            .defendantAccountPartyId(123L)
             .build();
 
-        assertThrows(IllegalArgumentException.class, () ->
-            service.removeDefendantAccountParty(1L, 5L, (short) 10, "businessUser", "1", "posted", request));
+        assertThrows(EntityNotFoundException.class, () ->
+            service.removeDefendantAccountParty(1L, 5L, (short) 10,
+                                                "businessUser", "posted", "1", request));
     }
 
     @Test
@@ -117,7 +123,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.removeDefendantAccountParty(1L, 5L, (short) 11, "businessUser", "1", "posted", null));
+            service.removeDefendantAccountParty(1L, 5L, (short) 11, "businessUser", "posted", "1", null));
 
         assertEquals("Defendant Account not found in business unit. Defendant Account: 1 Business Unit: 11",
             exception.getMessage());
@@ -131,7 +137,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.removeDefendantAccountParty(1L, 999L, (short) 10, "businessUser", "1", "posted", null));
+            service.removeDefendantAccountParty(1L, 999L, (short) 10, "businessUser", "posted", "1", null));
 
         assertEquals("Defendant Account Party not found for accountId=1, partyId=999", exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);

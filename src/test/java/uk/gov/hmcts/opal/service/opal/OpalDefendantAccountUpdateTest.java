@@ -16,12 +16,18 @@ import static org.mockito.Mockito.when;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.RecordType;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -29,6 +35,7 @@ import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -77,6 +84,9 @@ class OpalDefendantAccountUpdateTest {
 
     @Mock
     private EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
+
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
     // Service under test
     @InjectMocks
@@ -199,6 +209,10 @@ class OpalDefendantAccountUpdateTest {
         assertEquals("EO-1", entity.getEnforcementOverrideResultId());
         assertEquals(Long.valueOf(22), entity.getEnforcementOverrideEnforcerId());
         assertEquals(Short.valueOf((short) 33), entity.getEnforcementOverrideTfoLjaId());
+
+        ArgumentCaptor<NoteEntity> noteCaptor = ArgumentCaptor.forClass(NoteEntity.class);
+        verify(noteRepository).save(noteCaptor.capture());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), noteCaptor.getValue().getPostedDate());
     }
 
     @Test

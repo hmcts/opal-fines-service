@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DocumentEntity;
@@ -19,14 +19,13 @@ import uk.gov.hmcts.opal.util.DocumentIdConstants;
 @Slf4j(topic = "opal.DocumentService")
 public class DocumentService implements DocumentServiceInterface {
 
-    @Autowired
-    private DocumentInstanceRepository documentInstanceRepository;
+    private final DocumentInstanceRepository documentInstanceRepository;
 
-    @Autowired
-    private DocumentRepository documentRepository;
+    private final DocumentRepository documentRepository;
 
-    @Autowired
-    private BusinessUnitService businessUnitService;
+    private final BusinessUnitService businessUnitService;
+
+    private final Clock clock;
 
     @Override
     public void createDocumentInstance(Long defAccountId, short businessUnitId) {
@@ -37,7 +36,7 @@ public class DocumentService implements DocumentServiceInterface {
         DocumentInstanceEntity documentInstanceEntity = DocumentInstanceEntity.builder()
             .document(doc)
             .businessUnit(businessUnitService.getBusinessUnit(businessUnitId))
-            .generatedDate(LocalDateTime.now())
+            .generatedDate(LocalDateTime.now(clock))
             .generatedBy("generatedby")
             .associatedRecordId(defAccountId)
             .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)

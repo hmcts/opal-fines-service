@@ -135,6 +135,7 @@ opal-user-service:
       TESTING_SUPPORT_ENDPOINTS_ENABLED: true
       LAUNCH_DARKLY_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
+      RELEASE_1A_ENABLED: true
     postgresql:
       enabled: false
 opal-logging-service:

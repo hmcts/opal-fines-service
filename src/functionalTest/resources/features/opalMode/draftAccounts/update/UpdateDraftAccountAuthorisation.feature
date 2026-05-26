@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
 Feature: Update Draft Account Authorisation
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5692
   Scenario: Patch draft account - no auth
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -11,7 +11,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | If-Match          | 0                                       |
 
     When I set an invalid token
@@ -25,7 +24,7 @@ Feature: Update Draft Account Authorisation
     Then the request is rejected as unauthorized
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5693
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -35,7 +34,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | If-Match          | 0                                       |
 
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to patch the created draft account with the following details
@@ -56,7 +54,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5694
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -66,7 +64,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | If-Match          | 0                                       |
 
     When the "opal-test-3@dev.platform.hmcts.net" user attempts to patch the created draft account with the following details
@@ -87,7 +84,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5695
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -97,7 +94,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | version           | 0                                       |
 
     When the "opal-test@dev.platform.hmcts.net" user attempts to patch the created draft account with the following details
@@ -117,7 +113,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | Hertfordshire |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5696
   Scenario: Update draft account - user with permissions in same business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -127,8 +123,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
@@ -147,7 +141,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London  |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5697
   Scenario: Update draft account - user with permissions in same business unit - updating business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -157,8 +151,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I patch the draft account with the following details
       | business_unit_id | 77                   |
       | account_status   | Rejected             |

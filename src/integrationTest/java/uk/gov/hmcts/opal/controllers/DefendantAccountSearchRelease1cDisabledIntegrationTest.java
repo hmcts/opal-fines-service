@@ -21,6 +21,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = {
@@ -38,6 +40,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
 
     @Test
     @DisplayName("POST /defendant-accounts/search remains available without consolidated search")
+    @JiraStory("PO-3768")
+    @JiraEpic("PO-3685")
     void postDefendantAccountsSearch_returnsOkWithoutConsolidatedSearchWhenRelease1cDisabled() throws Exception {
         DefendantAccountSearchResultsDto response = DefendantAccountSearchResultsDto.builder()
             .defendantAccounts(List.of())
@@ -60,6 +64,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
 
     @Test
     @DisplayName("POST /defendant-accounts/search rejects consolidated search when release-1c is disabled")
+    @JiraStory("PO-3768")
+    @JiraEpic("PO-3685")
     void postDefendantAccountsSearch_returnsFeatureDisabledForConsolidatedSearchWhenRelease1cDisabled()
         throws Exception {
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)

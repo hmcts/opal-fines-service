@@ -1,9 +1,18 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -11,8 +20,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -33,6 +42,12 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     static final String URL_BASE = "/draft-accounts";
     static final String GET_DRAFT_ACCOUNT_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountResponse.json";
     static final String GET_DRAFT_ACCOUNTS_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountsResponse.json";
+    static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);
+    static final OffsetDateTime FIXED_DATE_TIME = TIMELINE_STATUS_DATE.atStartOfDay().atOffset(ZoneOffset.UTC);
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+        FIXED_DATE_TIME.toInstant(),
+        ZoneOffset.UTC
+    );
 
     @MockitoBean
     UserStateService userStateService;
@@ -49,6 +64,15 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
 
+    @MockitoBean
+    Clock clock;
+
+    @BeforeEach
+    void setupClock() {
+        lenient().when(clock.instant()).thenReturn(FIXED_CLOCK.instant());
+        lenient().when(clock.getZone()).thenReturn(FIXED_CLOCK.getZone());
+    }
+
     protected static String validUpdateRequestBody(String businessUnit, String status, String delta) {
         return """
             {
@@ -56,10 +80,10 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
               "validated_by": "BUUID1%3$s",
               "validated_by_name": "%3$s",
               "business_unit_id": %1$s,
-              "version": 0,
-              "timeline_data": %4$s
+              "reason_text": "Reason %3$s",
+              "version": 0
             }
-            """.formatted(businessUnit, status, delta, validTimelineDataJson());
+            """.formatted(businessUnit, status, delta);
     }
 
     protected static String validTimelineDataJson() {
@@ -87,6 +111,7 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     }
 
     protected String getIfMatchForDraftAccount(long draftAccountId) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         return mockMvc.perform(get(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .header("Accept", "application/json"))

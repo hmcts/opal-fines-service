@@ -16,6 +16,8 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,6 +56,8 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     private final BusinessUnitSpecs specs = new BusinessUnitSpecs();
 
     @Test
+    @JiraStory("PO-2880")
+    @JiraEpic("PO-304")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
         entityManager.clear();
 
@@ -66,6 +70,8 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2880")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForDirectFetch() {
         entityManager.clear();
 
@@ -80,6 +86,8 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2880")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForSpecificationFetch() {
         entityManager.clear();
 
@@ -97,6 +105,8 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2880")
+    @JiraEpic("PO-304")
     void shouldLoadLiteEntityGraphForReferenceDataFetchOnly() {
         entityManager.clear();
 
@@ -115,6 +125,8 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2880")
+    @JiraEpic("PO-304")
     void shouldNotDuplicateBusinessUnitRowsWhenFullEntityGraphFetchesConfigurationItems() {
         entityManager.clear();
 
@@ -127,6 +139,8 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2880")
+    @JiraEpic("PO-304")
     void shouldNotDuplicateBusinessUnitRowsWhenLiteEntityGraphFetchesConfigurationItems() {
         entityManager.clear();
 

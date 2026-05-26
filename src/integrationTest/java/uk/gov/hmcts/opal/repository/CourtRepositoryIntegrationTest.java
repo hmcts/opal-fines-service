@@ -15,6 +15,8 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,6 +64,8 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
         CourtEntity court = entityManager.find(CourtEntity.class, COURT_ID);
 
@@ -74,6 +78,8 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForDirectFetch() {
         CourtEntity court = courtLiteRepository.findById(COURT_ID).orElseThrow();
 
@@ -81,6 +87,8 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForSpecificationFetch() {
         Page<CourtEntity> page = courtLiteRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),
@@ -93,6 +101,8 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForDirectFetch() {
         CourtEntity court = courtRepository.findById(COURT_ID).orElseThrow();
 
@@ -107,6 +117,8 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
     void shouldLoadFullEntityGraphForSpecificationFetch() {
         Page<CourtEntity> page = courtRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),

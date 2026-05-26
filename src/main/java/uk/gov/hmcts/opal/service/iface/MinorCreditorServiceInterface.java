@@ -12,6 +12,8 @@ public interface MinorCreditorServiceInterface {
 
     PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorSearchDto);
 
+    MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId);
+
     GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId);
 
     GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(

@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:content-digest @JIRA-STORY:PO-2878
+@Opal @JIRA-LABEL:content-digest @JIRA-STORY:PO-2878 @JIRA-EPIC:PO-2675
 Feature: Content-Digest handling
 
   Scenario: Missing request Content-Digest succeeds when content digest is disabled

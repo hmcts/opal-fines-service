@@ -23,12 +23,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.OpalDefendantsPatchIntegrationTest")
 class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Happy Path [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void opalUpdateDefendantAccount_Happy() throws Exception {
         authoriseAllPermissions();
 
@@ -61,6 +65,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - If-Match Mismatch [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_conflict_whenIfMatchDoesNotMatch() throws Exception {
         authoriseAllPermissions();
 
@@ -80,6 +86,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Missing If-Match [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_badRequest_whenIfMatchMissing() throws Exception {
         authoriseAllPermissions();
 
@@ -100,6 +108,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Forbidden when user lacks permission [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_forbidden_whenUserLacksAccountMaintenance() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             UserState.builder().userId(999L).userName("no-perm-user").businessUnitUser(Collections.emptySet()).build());
@@ -118,6 +128,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Not Found (account not in BU) [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_notFound_whenAccountNotInHeaderBU() throws Exception {
         authoriseAllPermissions();
 
@@ -136,6 +148,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Wrong Business Unit [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_badRequest_whenMultipleGroupsProvided() throws Exception {
         authoriseAllPermissions();
 
@@ -151,6 +165,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Schema violation (multiple groups) [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_badRequest_whenTypesInvalid() throws Exception {
         authoriseAllPermissions();
 
@@ -173,6 +189,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Court [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_updatesEnforcementCourt_andValidatesResponseSchema() throws Exception {
         authoriseAllPermissions();
 
@@ -202,6 +220,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Court With Long Court Id [@PO-3667]")
+    @JiraStory("PO-3667")
+    @JiraEpic("PO-812")
     void patch_updatesEnforcementCourt_withLongCourtId() throws Exception {
         authoriseAllPermissions();
 
@@ -225,6 +245,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Collection Order [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_updatesCollectionOrder() throws Exception {
         authoriseAllPermissions();
 
@@ -238,6 +260,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Collection Order With Missing Date [@PO-3667]")
+    @JiraStory("PO-3667")
+    @JiraEpic("PO-812")
     void patch_updatesCollectionOrder_whenDateMissing() throws Exception {
         authoriseAllPermissions();
 
@@ -251,6 +275,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Override [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_updatesEnforcementOverride() throws Exception {
         authoriseAllPermissions();
 
@@ -293,6 +319,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Clear Enforcement Override Enforcer/LJA [@PO-3640]")
+    @JiraStory("PO-3640")
+    @JiraEpic("PO-1675")
     void patch_clearsEnforcementOverrideEnforcerAndLja_whenOmitted() throws Exception {
         authoriseAllPermissions();
 
@@ -323,6 +351,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Remove Enforcement Override [@PO-1854]")
+    @JiraStory("PO-1854")
+    @JiraEpic("PO-1675")
     void patch_clearsEnforcementOverride_whenResultEnforcerAndLjaAreNull() throws Exception {
         authoriseAllPermissions();
 
@@ -352,6 +382,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - ETag present & Response Schema OK [@PO-1565]")
+    @JiraStory("PO-1565")
+    @JiraEpic("PO-812")
     void patch_returnsETag_andResponseConformsToSchema() throws Exception {
         authoriseAllPermissions();
 
@@ -377,6 +409,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Missing required headers [@PO-2281]")
+    @JiraStory("PO-2281")
+    @JiraEpic("PO-812")
     void patch_badRequest_whenMissingRequiredHeader() throws Exception {
         authoriseAllPermissions();
         HttpHeaders headers = new HttpHeaders();
