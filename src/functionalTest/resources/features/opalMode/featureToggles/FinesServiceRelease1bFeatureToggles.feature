@@ -23,6 +23,7 @@ Feature: Fines Service Release 1b Feature Toggles
       | Add Defendant Account Party                |
       | Remove Defendant Account Party             |
       | Get Defendant Account Enforcement Status   |
+      | Get Defendant Account Impositions          |
       | Add Defendant Account Enforcement          |
       | Remove Defendant Account Enforcement Hold  |
       | Get Defendant Account Payment Terms        |
@@ -34,3 +35,8 @@ Feature: Fines Service Release 1b Feature Toggles
       | Get Minor Creditor Account Header Summary  |
       | Get Minor Creditor Account At A Glance     |
       | Get Minor Creditor Account                 |
+
+  @R1B @JIRA-STORY:PO-3762 @JIRA-EPIC:PO-3685
+  Scenario: Get Defendant Account Impositions is available when release 1b is enabled
+    When I call the release 1b gated endpoint "Get Defendant Account Impositions"
+    Then the request is rejected as not found
