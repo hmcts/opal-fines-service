@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountPartyService;
@@ -146,7 +147,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "USER123";
         String ifMatch = "1";
         String postedBy = "user@example.com";
-        DefendantAccountParty request = DefendantAccountParty.builder().build();
+        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()
             .defendantAccountPartyId("5")
@@ -177,7 +178,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
         String postedBy = "admin@example.com";
-        DefendantAccountParty request = DefendantAccountParty.builder().build();
+        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()
             .defendantAccountPartyId("10")
