@@ -27,6 +27,8 @@ import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -46,6 +48,8 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     private UserStateService userStateService;
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_success_hitsLegacyStub() throws Exception {
         authorisePatchUser();
 
@@ -71,6 +75,8 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_notFound_hitsLegacyStub() throws Exception {
         authorisePatchUser();
 
@@ -80,6 +86,8 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_timeout_hitsLegacyStub() throws Exception {
         authorisePatchUser();
 
@@ -89,6 +97,8 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_conflict_hitsLegacyStub() throws Exception {
         authorisePatchUser();
 
@@ -98,6 +108,8 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_serviceUnavailable_hitsLegacyStub() throws Exception {
         authorisePatchUser();
 
@@ -107,6 +119,8 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_serverError_hitsLegacyStub() throws Exception {
         authorisePatchUser();
 

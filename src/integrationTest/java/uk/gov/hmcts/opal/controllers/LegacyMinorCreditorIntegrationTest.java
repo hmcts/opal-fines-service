@@ -111,26 +111,36 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutPermission_returns403();
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutHoldPermission_returns403();
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutAccountMaintenancePermission_returns403();
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
         super.patchMinorCreditor_missingAuthHeader_returns401();
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         super.patchMinorCreditor_missingPayload_returns400();
     }
