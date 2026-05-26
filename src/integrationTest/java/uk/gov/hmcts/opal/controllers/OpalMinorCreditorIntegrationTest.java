@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -35,6 +36,9 @@ import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 
 @ActiveProfiles({"integration", "opal"})
+@TestPropertySource(properties = {
+    "launchdarkly.default-flag-values.release-1b=true"
+})
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")

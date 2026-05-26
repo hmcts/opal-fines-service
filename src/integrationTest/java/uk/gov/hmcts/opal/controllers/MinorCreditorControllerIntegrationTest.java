@@ -364,7 +364,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
+                FinesPermission.ACCOUNT_MAINTENANCE,
+                FinesPermission.VIEW_CREDITOR_BACS));
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
         int amendmentsBefore = getCurrentAmendmentCountForCreditorAccount();
@@ -483,7 +484,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
+                FinesPermission.ACCOUNT_MAINTENANCE,
+                FinesPermission.VIEW_CREDITOR_BACS));
 
         // Act & Assert
         mockMvc.perform(patch(URL_BASE + "/999999")
@@ -501,7 +503,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
+                FinesPermission.ACCOUNT_MAINTENANCE,
+                FinesPermission.VIEW_CREDITOR_BACS));
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
