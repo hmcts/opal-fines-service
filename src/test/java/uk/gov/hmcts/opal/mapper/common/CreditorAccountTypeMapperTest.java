@@ -3,25 +3,13 @@ package uk.gov.hmcts.opal.mapper.common;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
-import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapperTest.TestConfig;
 
-@SpringJUnitConfig(classes = TestConfig.class)
 public class CreditorAccountTypeMapperTest {
 
-    @Configuration
-    @ComponentScan(basePackageClasses = CreditorAccountTypeMapper.class)
-    static class TestConfig {
-
-    }
-
-    @Autowired
-    private CreditorAccountTypeMapper mapper;
+    private final CreditorAccountTypeMapper mapper = Mappers.getMapper(CreditorAccountTypeMapper.class);
 
     @Test
     void shouldMapMinorCreditor() {

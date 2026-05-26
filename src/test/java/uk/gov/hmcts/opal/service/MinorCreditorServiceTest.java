@@ -365,7 +365,8 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_throwsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_evenWhenHoldUnchanged_throwsPermissionNotAllowed(
+    ) {
         // Arrange
         UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
@@ -385,6 +386,24 @@ class MinorCreditorServiceTest {
         );
 
         // Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+    }
+
+    @Test
+    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_whenHoldChanges_throwsPermissionNotAllowed() {
+        // Arrange
+        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        PatchMinorCreditorAccountRequest request = validPatchRequest();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
+                "authHeaderValue", "10")
+        );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
     }
