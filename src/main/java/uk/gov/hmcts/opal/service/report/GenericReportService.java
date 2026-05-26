@@ -115,7 +115,6 @@ public class GenericReportService implements GenericReportServiceInterface {
             reportInstanceEntity = saveReportInstance(reportInstanceEntity);
             if (generateReportContentAsync) {
                 reportQueuePublisher.publish(reportInstanceEntity.getReportInstanceId());
-                //todo what do if publish fails
             } else {
                 //TODO future ticket generateReportContentAsync false
                 throw new UnprocessableException("generateReportContentAsync cannot be false");
