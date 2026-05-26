@@ -517,7 +517,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
