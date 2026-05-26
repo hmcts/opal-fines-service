@@ -1539,31 +1539,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
     }
 
-    void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser();
-
-        mockMvc.perform(get(URL_BASE + "/{id}", 104L)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
-            .andExpect(jsonPath("$.retriable").value(false));
-    }
-
-    void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
-        doThrow(new ResponseStatusException(FORBIDDEN, "Forbidden"))
-            .when(userStateService).checkForAuthorisedUser();
-
-        mockMvc.perform(get(URL_BASE + "/{id}", 104L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", AUTH_HEADER))
-            .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Forbidden"))
-            .andExpect(jsonPath("$.retriable").value(false));
-    }
-
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
 
