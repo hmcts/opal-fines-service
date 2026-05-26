@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.config.ReportQueuePublisherProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 @Component
-@Slf4j
+@Slf4j(topic = "opal.ReportPublishService")
 public class ReportQueuePublisherImpl implements ReportQueuePublisher {
 
 
