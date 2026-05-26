@@ -47,6 +47,7 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final UserStateService userStateService;
     private final ReportInstanceMapper reportInstanceMapper;
     private final ReportQueuePublisherImpl reportQueuePublisher;
+    private final ReportParameterService reportParameterService;
 
     @Override
     public void generateReportInstanceContent(Long id) {
@@ -98,6 +99,10 @@ public class GenericReportService implements GenericReportServiceInterface {
             .map(buUser -> buUser.getBusinessUnitId().intValue()).collect(Collectors.toSet())
             .containsAll(request.getBusinessUnitIds())) {
             throw new AccessDeniedException("You cannot generate reports for other business units");
+        }
+
+        if (!reportParameterService.validateReportInstanceParameterValues(request.getReportParameters(), reportEntity)) {
+            throw new UnprocessableException("Validation failed for report instance parameters");
         }
 
         try {

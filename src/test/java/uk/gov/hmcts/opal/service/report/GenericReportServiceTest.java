@@ -110,7 +110,10 @@ class GenericReportServiceTest {
     Map<String, Object> reportParameters;
 
     @Mock
-    private ReportQueuePublisherImpl reportQueuePublisher;
+    ReportQueuePublisherImpl reportQueuePublisher;
+
+    @Mock
+    ReportParameterService reportParameterService;
 
     String reportId;
 
@@ -249,6 +252,8 @@ class GenericReportServiceTest {
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
+        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+            .thenReturn(true);
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
         reportInstance.setReportInstanceId(123L);
@@ -276,6 +281,8 @@ class GenericReportServiceTest {
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
+        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+            .thenReturn(true);
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
         when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
@@ -358,6 +365,31 @@ class GenericReportServiceTest {
     }
 
     @Test
+    public void addReportInstance_failsValidation_throwsException() {
+        //setup
+        when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
+        when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
+        when(reportEntity.getSupportsMultiBu()).thenReturn(true);
+        when(reportEntity.getCanManuallyCreate()).thenReturn(true);
+        //when(mapper.writeValueAsString(any())).thenReturn("{}");
+        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+            .thenReturn(false);
+
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        //test
+        UnprocessableException exception = assertThrows(UnprocessableException.class,
+            () -> genericReportService.addReportInstance(
+                CreateReportInstanceRequestReports.builder()
+                    .reportId(reportId)
+                    .reportName(null)
+                    .businessUnitIds(List.of(1))
+                    .reportParameters(reportParameters)
+                    .build(), true));
+        assertEquals("Validation failed for report instance parameters", exception.getDetailedReason());
+    }
+
+    @Test
     public void addReportInstance_genReportAsyncFalse_throwsException() throws JsonProcessingException {
         //setup
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
@@ -367,6 +399,8 @@ class GenericReportServiceTest {
         when(reportEntity.getCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
+        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+            .thenReturn(true);
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 

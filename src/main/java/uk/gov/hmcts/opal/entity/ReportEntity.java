@@ -21,6 +21,7 @@ import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
+import uk.gov.hmcts.opal.service.report.ReportParameterData;
 
 @Entity
 @Table(name = "reports")
@@ -73,4 +74,6 @@ public class ReportEntity {
     @Column(name = "can_manually_create", nullable = false)
     private boolean canManuallyCreate;
 
+    //todo not sure how to get this type, some json jdbc mapping thing?
+    private List<ReportParameterData> reportParameters;
 }
