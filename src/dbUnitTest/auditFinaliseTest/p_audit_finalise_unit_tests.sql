@@ -12,6 +12,7 @@
 * Date          Author      Version     Nature of Change
 * ----------    -------     --------    ----------------------------------------------------------------------------------------------------------------
 * 28/08/2025    C Cho       1.0         PO-1677 Unit tests for p_audit_finalise.
+* 26/05/2026    C Cho       2.0         PO-2596 Add pi_posted_by_name coverage for p_audit_finalise.
 *
 **/
 
@@ -213,6 +214,7 @@ BEGIN
         'defendant_accounts',
         v_business_unit_id,
         'TEST_USER',
+        'Test User Name',
         'CASE123',
         'ACCOUNT_ENQUIRY'
     );
@@ -224,6 +226,14 @@ BEGIN
     AND associated_record_id = v_defendant_account_id::VARCHAR;
 
     ASSERT v_amendment_count >= 5, 'Should have created at least 5 amendment records for the changes made';
+
+    PERFORM 1 FROM amendments
+    WHERE associated_record_type = 'defendant_accounts'
+      AND associated_record_id = v_defendant_account_id::VARCHAR
+      AND amended_by = 'TEST_USER'
+      AND amended_by_name = 'Test User Name';
+
+    ASSERT FOUND, 'Amendments should store both amended_by and amended_by_name for defendant account changes';
 
     -- Verify last_changed_date was updated
     SELECT last_changed_date INTO v_last_changed_after 
@@ -324,6 +334,7 @@ BEGIN
         'creditor_accounts',
         v_business_unit_id,
         'TEST_USER',
+        'Test User Name',
         'CASE456',
         'CREDITOR_MAINTENANCE'
     );
@@ -335,6 +346,14 @@ BEGIN
     AND associated_record_id = v_creditor_account_id::VARCHAR;
 
     ASSERT v_amendment_count >= 6, 'Should have created at least 6 amendment records for the changes made';
+
+    PERFORM 1 FROM amendments
+    WHERE associated_record_type = 'creditor_accounts'
+      AND associated_record_id = v_creditor_account_id::VARCHAR
+      AND amended_by = 'TEST_USER'
+      AND amended_by_name = 'Test User Name';
+
+    ASSERT FOUND, 'Amendments should store both amended_by and amended_by_name for creditor account changes';
 
     -- Verify specific amendments exist
     PERFORM 1 FROM amendments 
@@ -490,6 +509,7 @@ BEGIN
         v_business_unit_id,
         'TEST_USER',
         NULL,
+        NULL,
         'ACCOUNT_ENQUIRY'
     );
 
@@ -528,6 +548,7 @@ BEGIN
             'defendant_accounts'::VARCHAR, 
             65::SMALLINT, 
             'TEST_USER'::VARCHAR, 
+            NULL::VARCHAR,
             NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
@@ -567,6 +588,7 @@ BEGIN
             'invalid_type'::VARCHAR, 
             65::SMALLINT, 
             'TEST_USER'::VARCHAR, 
+            NULL::VARCHAR,
             NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
@@ -607,6 +629,7 @@ BEGIN
             'defendant_accounts'::VARCHAR, 
             NULL::SMALLINT, 
             'TEST_USER'::VARCHAR, 
+            NULL::VARCHAR,
             NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
@@ -647,6 +670,7 @@ BEGIN
             'defendant_accounts'::VARCHAR, 
             65::SMALLINT, 
             NULL::VARCHAR, 
+            NULL::VARCHAR,
             NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
@@ -715,6 +739,7 @@ BEGIN
             v_business_unit_id,
             'TEST_USER',
             NULL,
+            NULL,
             'TEST'
         );
     EXCEPTION
@@ -758,6 +783,7 @@ BEGIN
             'defendant_accounts'::VARCHAR,
             65::SMALLINT,
             'TEST_USER'::VARCHAR,
+            NULL::VARCHAR,
             NULL::VARCHAR,
             'TEST'::VARCHAR
         );
