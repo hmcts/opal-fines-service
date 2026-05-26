@@ -285,7 +285,7 @@ public class DefendantAccountService {
         if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
             addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
                 .postedBy(businessUnitUserId)
-                .postedByName(userState.getUserName())
+                .postedByName(userState.getDisplayName())
                 .build());
         }
 
