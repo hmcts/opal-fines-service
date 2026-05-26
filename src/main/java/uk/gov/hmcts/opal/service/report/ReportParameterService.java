@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.report;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +28,8 @@ public class ReportParameterService {
             .filter(ReportParameterData::isMandatory)
             .map(ReportParameterData::getName)
             .collect(Collectors.toSet());
-        if (reportInstanceParameters == null && !mandatoryReportParameters.isEmpty()) {
-            return false;
+        if (reportInstanceParameters == null) {
+            return mandatoryReportParameters.isEmpty();
         }
 
         try {

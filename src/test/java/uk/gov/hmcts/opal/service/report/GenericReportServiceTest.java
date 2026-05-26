@@ -53,7 +53,6 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 class GenericReportServiceTest {
 
     public static final String LOCATION = "location";
-    public static final String USER_AUTH_HEADER = "auth-token";
 
     @InjectMocks
     private GenericReportService genericReportService;
