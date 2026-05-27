@@ -55,11 +55,12 @@ class CentralFundServiceTest {
 
         GetCentralFundByBusinessUnit200Response payload = response.getPayload();
         GetCentralFundByBusinessUnit200ResponseMajorCreditor majorCreditor = payload.getMajorCreditor();
-        BusinessUnitSummaryCommon businessUnitDetails = payload.getBusinessUnitDetails();
 
         assertEquals(123L, majorCreditor.getCreditorAccountId());
         assertEquals("CF123", majorCreditor.getAccountNumber());
         assertEquals("Central Fund", majorCreditor.getName());
+
+        BusinessUnitSummaryCommon businessUnitDetails = payload.getBusinessUnitDetails();
         assertEquals("70", businessUnitDetails.getBusinessUnitId());
         assertEquals("London Collection", businessUnitDetails.getBusinessUnitName());
         assertEquals("Y", businessUnitDetails.getWelshSpeaking());
