@@ -17,11 +17,10 @@ public class MajorCreditorAccountService {
     private final UserStateService userStateService;
     private final LegacyMajorCreditorAccountService legacyMajorCreditorAccountService;
 
-    public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId,
-                                                                         String authHeaderValue) {
+    public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId) {
         log.debug(":getHeaderSummary: id={}", majorCreditorAccountId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return legacyMajorCreditorAccountService.getHeaderSummary(majorCreditorAccountId);
