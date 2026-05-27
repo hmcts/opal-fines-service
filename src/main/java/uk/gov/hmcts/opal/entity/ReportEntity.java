@@ -50,10 +50,6 @@ public class ReportEntity {
     @Column(name = "audited_report", nullable = false)
     private boolean auditedReport;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "report_parameters", columnDefinition = "json")
-    private String reportParameters;
-
     @Column(name = "supports_multi_bu", nullable = false)
     private boolean supportsMultiBu;
 
@@ -74,6 +70,7 @@ public class ReportEntity {
     @Column(name = "can_manually_create", nullable = false)
     private boolean canManuallyCreate;
 
-    //todo not sure how to get this type, some json jdbc mapping thing?
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "report_parameters", columnDefinition = "json")
     private List<ReportParameterData> reportParameters;
 }
