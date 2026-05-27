@@ -30,7 +30,7 @@ plugins {
   id 'org.springframework.boot' version '4.0.6'
   id 'com.github.ben-manes.versions' version '0.54.0'
   id 'org.sonarqube' version '7.3.0.8198'
-  id 'uk.gov.hmcts.java' version '0.12.68'
+  id 'uk.gov.hmcts.java' version '0.12.70'
   id 'org.flywaydb.flyway' version '12.6.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
   id "org.openapi.generator" version "7.22.0"
@@ -521,6 +521,7 @@ repositories {
 
 ext['snakeyaml.version'] = '2.0'
 ext['tomcat.version'] = '10.1.42'
+ext['postgresql.version'] = '42.7.11'
 
 
 dependencies {
@@ -535,7 +536,7 @@ dependencies {
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.49"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-  implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
+  implementation 'com.microsoft.azure:applicationinsights-web:3.7.8'
   implementation 'com.azure:azure-storage-blob:12.33.4'
   implementation 'org.springframework.boot:spring-boot-flyway'
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -586,7 +587,9 @@ dependencies {
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.5.Final'
 
-  implementation 'uk.gov.hmcts:spring-exception-handler:1.0.1'
+  implementation('uk.gov.hmcts:spring-exception-handler:1.0.1') {
+    exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
+  }
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -646,7 +649,10 @@ dependencies {
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
   testImplementation 'com.azure:azure-messaging-servicebus:7.17.18'
 
-  implementation 'uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5'
+  implementation('uk.gov.hmcts:opal-logging-service-integration-lib:0.0.5') {
+    exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
+    exclude group: 'org.springframework.boot'
+  }
 
 
   //Added to override dependency version to resolve vulnerability
