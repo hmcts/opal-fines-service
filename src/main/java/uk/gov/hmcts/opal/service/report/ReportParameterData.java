@@ -1,24 +1,18 @@
 package uk.gov.hmcts.opal.service.report;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
-@Data
-@AllArgsConstructor
-public class ReportParameterData {
-    private String name;
-    private String prompt;
-    private String type;
-    private boolean mandatory;
-    private Object min;
-    private Object max;
-
-    @JsonProperty("language_dependent")
-    private String languageDependent;
-    private String hint;
-
-    private List<String> options;
-    private String apidata;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record ReportParameterData(String name,
+                                  String prompt,
+                                  String type,
+                                  boolean mandatory,
+                                  Object min,
+                                  Object max,
+                                  @JsonProperty("language_dependent") String languageDependent,
+                                  String hint,
+                                  List<String> options,
+                                  String apidata) {
 }

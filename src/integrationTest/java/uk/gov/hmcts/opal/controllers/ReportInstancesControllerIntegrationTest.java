@@ -11,6 +11,7 @@ import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQ
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,16 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
                 .reportId(REPORT_1BU_ID)
                 .reportName(null)
                 .businessUnitIds(List.of(1))
-                .reportParameters(new HashMap<>())
+                .reportParameters(Map.of(
+                    "date-param", "2026-05-26",
+                    "decimal-param", 5.0,
+                    "integer-param", 5L,
+                    "radio-param", List.of("one"),
+                    "checkbox-param", List.of("one","two"),
+                    "text-60-param", "value",
+                    "text-100-param", "value",
+                    "text-1000-param", "value"
+                ))
                 .build();
 
         String payload = objectMapper.writeValueAsString(request);
@@ -311,7 +321,16 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
             .reportId(REPORT_1BU_ID)
             .reportName(null)
             .businessUnitIds(List.of(1))
-            .reportParameters(new HashMap<>())
+            .reportParameters(Map.of(
+                "date-param", "2026-05-26",
+                "decimal-param", 5.0,
+                "integer-param", 5L,
+                "radio-param", List.of("one"),
+                "checkbox-param", List.of("one","two"),
+                "text-60-param", "value",
+                "text-100-param", "value",
+                "text-1000-param", "value"
+            ))
             .build();
 
         String payload = objectMapper.writeValueAsString(request);
@@ -331,5 +350,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":createReportInstance_publishFail response:\n{}", ToJsonString.toPrettyJson(body));
         resultActions.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() {
+
     }
 }

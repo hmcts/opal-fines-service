@@ -26,8 +26,8 @@ public class ReportParameterService {
         List<ReportParameterData> reportParameterDataList = report.getReportParameters() == null ? List.of() : report.getReportParameters();
 
         Set<String> mandatoryReportParameters = reportParameterDataList.stream()
-            .filter(ReportParameterData::isMandatory)
-            .map(ReportParameterData::getName)
+            .filter(ReportParameterData::mandatory)
+            .map(ReportParameterData::name)
             .collect(Collectors.toSet());
         if (reportInstanceParameters == null) {
             return mandatoryReportParameters.isEmpty();
@@ -37,19 +37,19 @@ public class ReportParameterService {
             for (String parameterName : reportInstanceParameters.keySet()) {
                 //get report param data for name
                 ReportParameterData reportParameterData = reportParameterDataList.stream()
-                    .filter(rpd -> parameterName.equals(rpd.getName()))
+                    .filter(rpd -> parameterName.equals(rpd.name()))
                     .findFirst().orElseThrow(() -> new UnprocessableException(
                         String.format("Report Parameter %s for report %s doesn't exist", parameterName,
                             report.getReportId())));
                 //see if given value for
-                switch (ReportParameterType.fromParameterName(reportParameterData.getType())) {
+                switch (ReportParameterType.fromParameterName(reportParameterData.type())) {
                     case DATE -> {
                         if (reportInstanceParameters.get(parameterName) instanceof String dateString) {
                             LocalDate date = LocalDate.parse(dateString);
-                            LocalDate min = reportParameterData.getMin() != null ? LocalDate.parse(
-                                reportParameterData.getMin().toString()) : null;
-                            LocalDate max = reportParameterData.getMax() != null ? LocalDate.parse(
-                                reportParameterData.getMax().toString()) : null;
+                            LocalDate min = reportParameterData.min() != null ? LocalDate.parse(
+                                reportParameterData.min().toString()) : null;
+                            LocalDate max = reportParameterData.max() != null ? LocalDate.parse(
+                                reportParameterData.max().toString()) : null;
                             if ((min != null && !min.isAfter(date)) && (max != null && !max.isBefore(date))) {
                                 return false;
                             }
@@ -60,9 +60,9 @@ public class ReportParameterService {
                     case DECIMAL -> {
                         if (reportInstanceParameters.get(parameterName) instanceof Double value) {
                             //todo look into 2dp validation, I don't think its really possible to ensure...
-                            double min = reportParameterData.getMin() != null ? (Double) reportParameterData.getMin()
+                            double min = reportParameterData.min() != null ? (Double) reportParameterData.min()
                                 : Double.MIN_VALUE;
-                            double max = reportParameterData.getMax() != null ? (Double) reportParameterData.getMax()
+                            double max = reportParameterData.max() != null ? (Double) reportParameterData.max()
                                 : Double.MAX_VALUE;
                             if (min > value || value > max) {
                                 return false;
@@ -72,11 +72,10 @@ public class ReportParameterService {
                         }
                     }
                     case INTEGER -> {
-                        if (reportInstanceParameters.get(parameterName) instanceof Long value) {
-                            long min = reportParameterData.getMin() != null ? (Long) reportParameterData.getMin()
-                                : Long.MIN_VALUE;
-                            long max = reportParameterData.getMax() != null ? (Long) reportParameterData.getMax()
-                                : Long.MAX_VALUE;
+                        Long value = convertNumberObjectToLongOrDefaultValue(reportInstanceParameters.get(parameterName), null);
+                        if (value != null) {
+                            long min = convertNumberObjectToLongOrDefaultValue(reportParameterData.min(), Long.MIN_VALUE);
+                            long max = convertNumberObjectToLongOrDefaultValue(reportParameterData.max(), Long.MAX_VALUE);
                             if (min > value || value > max) {
                                 return false;
                             }
@@ -87,10 +86,10 @@ public class ReportParameterService {
                     case MENU_RADIO, MENU_CHECKBOX -> {
                         List<String> values = mapper.convertValue(reportInstanceParameters.get(parameterName),
                             TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
-                        int min = reportParameterData.getMin() != null ? (Integer) reportParameterData.getMin() : 0;
-                        int max = reportParameterData.getMax() != null ? (Integer) reportParameterData.getMax() : 1;
+                        int min = reportParameterData.min() != null ? (Integer) reportParameterData.min() : 0;
+                        int max = reportParameterData.max() != null ? (Integer) reportParameterData.max() : 1;
                         if ((values.size() > max || values.size() < min) || !new HashSet<>(
-                            reportParameterData.getOptions()).containsAll(values)) {
+                            reportParameterData.options()).containsAll(values)) {
                             return false;
                         }
                     }
@@ -109,9 +108,9 @@ public class ReportParameterService {
                     }
                     case TEXT_MAX_60, TEXT_MAX_100, TEXT_MAX_1000 -> {
                         if (reportInstanceParameters.get(parameterName) instanceof String text) {
-                            int min = reportParameterData.getMin() != null ? (Integer) reportParameterData.getMin() : 0;
+                            int min = reportParameterData.min() != null ? (Integer) reportParameterData.min() : 0;
                             int max =
-                                reportParameterData.getMax() != null ? (Integer) reportParameterData.getMax() : 1000;
+                                reportParameterData.max() != null ? (Integer) reportParameterData.max() : 1000;
                             if (text.length() < min || text.length() > max) {
                                 return false;
                             }
@@ -130,5 +129,15 @@ public class ReportParameterService {
 
         //check that all mandatory parameters have been set
         return mandatoryReportParameters.isEmpty();
+    }
+
+    private Long convertNumberObjectToLongOrDefaultValue(Object inputNumber, Long defaultValue) {
+        if (inputNumber instanceof Integer integer) {
+            return integer.longValue();
+        } else if (inputNumber instanceof Long l) {
+            return l;
+        } else {
+            return defaultValue;
+        }
     }
 }

@@ -72,7 +72,7 @@ INSERT INTO public.reports (
     'Single BU report',
     'group-1',
     false,
-    null,
+    '[{"name":"date-param","prompt":"date-param","type":"date","mandatory":true,"min":null,"max":null,"hint":null,"options":null,"apidata":null,"language_dependent":null},{"name":"decimal-param","prompt":"decimal-param","type":"decimal-2dp","mandatory":true,"min":1.0,"max":10.0,"hint":null,"options":null,"apidata":null,"language_dependent":null},{"name":"integer-param","prompt":"integer-param","type":"integer","mandatory":true,"min":1,"max":10,"hint":null,"options":null,"apidata":null,"language_dependent":null},{"name":"radio-param","prompt":"radio-param","type":"menu-radio","mandatory":true,"min":1,"max":1,"hint":null,"options":["one","two"],"apidata":null,"language_dependent":null},{"name":"checkbox-param","prompt":"checkbox-param","type":"menu-checkbox","mandatory":true,"min":1,"max":2,"hint":null,"options":["one","two"],"apidata":null,"language_dependent":null},{"name":"text-60-param","prompt":"text-60-param","type":"text-60","mandatory":true,"min":1,"max":60,"hint":null,"options":null,"apidata":null,"language_dependent":null},{"name":"text-100-param","prompt":"text-100-param","type":"text-100","mandatory":true,"min":1,"max":100,"hint":null,"options":null,"apidata":null,"language_dependent":null},{"name":"text-1000-param","prompt":"text-1000-param","type":"text-1000","mandatory":true,"min":1,"max":1000,"hint":null,"options":null,"apidata":null,"language_dependent":null}]',
     false,
     false,
     false,

@@ -40,6 +40,14 @@ public class ReportParameterServiceTest {
         Mockito.lenient().when(report.getReportId()).thenReturn(REPORT_ID);
     }
 
+    //@Test
+    void testtest() throws Exception {
+        String json = "[{\"name\":\"date-param\",\"prompt\":\"date-param\",\"type\":\"date\",\"mandatory\":true,\"min\":null,\"max\":null,\"hint\":null,\"options\":null,\"apidata\":null,\"language_dependent\":null},{\"name\":\"decimal-param\",\"prompt\":\"decimal-param\",\"type\":\"decimal-2dp\",\"mandatory\":true,\"min\":1.0,\"max\":10.0,\"hint\":null,\"options\":null,\"apidata\":null,\"language_dependent\":null},{\"name\":\"integer-param\",\"prompt\":\"integer-param\",\"type\":\"integer\",\"mandatory\":true,\"min\":1,\"max\":10,\"hint\":null,\"options\":null,\"apidata\":null,\"language_dependent\":null},{\"name\":\"radio-param\",\"prompt\":\"radio-param\",\"type\":\"menu-radio\",\"mandatory\":true,\"min\":1,\"max\":1,\"hint\":null,\"options\":[\"one\",\"two\"],\"apidata\":null,\"language_dependent\":null},{\"name\":\"checkbox-param\",\"prompt\":\"checkbox-param\",\"type\":\"menu-checkbox\",\"mandatory\":true,\"min\":1,\"max\":2,\"hint\":null,\"options\":[\"one\",\"two\"],\"apidata\":null,\"language_dependent\":null},{\"name\":\"text-60-param\",\"prompt\":\"text-60-param\",\"type\":\"text-60\",\"mandatory\":true,\"min\":1,\"max\":60,\"hint\":null,\"options\":null,\"apidata\":null,\"language_dependent\":null},{\"name\":\"text-100-param\",\"prompt\":\"text-100-param\",\"type\":\"text-100\",\"mandatory\":true,\"min\":1,\"max\":100,\"hint\":null,\"options\":null,\"apidata\":null,\"language_dependent\":null},{\"name\":\"text-1000-param\",\"prompt\":\"text-1000-param\",\"type\":\"text-1000\",\"mandatory\":true,\"min\":1,\"max\":1000,\"hint\":null,\"options\":null,\"apidata\":null,\"language_dependent\":null}]";
+        List<ReportParameterData> data = new ObjectMapper().readValue(json, TypeFactory.defaultInstance().constructCollectionType(List.class, ReportParameterData.class));
+
+        System.out.println(data.size());
+    }
+
     @Test
     void validateReportInstanceParameterValues_allSupportedParameterTypesValid_returnsTrue() {
         List<String> checkboxList = List.of("one", "two");
@@ -326,6 +334,6 @@ public class ReportParameterServiceTest {
 
     private ReportParameterData parameter(String name, String type, boolean mandatory, Object min, Object max,
                                           List<String> options) {
-        return new ReportParameterData(name, name, type, mandatory, min, max, null, null, options, null);
+        return new ReportParameterData(name, null, type, mandatory, min, max, null, null, options, null);
     }
 }
