@@ -332,21 +332,29 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_timeout_returns408() throws Exception {
         super.patchMinorCreditor_timeout_returns408(log);
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_serviceUnavailable_returns503() throws Exception {
         super.patchMinorCreditor_serviceUnavailable_returns503(log);
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_serverError_returns500() throws Exception {
         super.patchMinorCreditor_serverError_returns500(log);
     }
 
     @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
     }
@@ -416,6 +424,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    @JiraStory("PO-1914")
+    @JiraEpic("PO-812")
     void getAtAGlance_withoutViewCreditorBacsPermission_returns403() throws Exception {
         super.getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403();
     }
