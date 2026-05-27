@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -19,9 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
-import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundResponseMajorCreditor;
+import uk.gov.hmcts.opal.mapper.CentralFundMapper;
 import uk.gov.hmcts.opal.repository.CentralFundProjection;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
@@ -37,6 +36,9 @@ class CentralFundServiceTest {
     private CreditorAccountRepository creditorAccountRepository;
 
     @Mock
+    private CentralFundMapper centralFundMapper;
+
+    @Mock
     private UserState userState;
 
     @InjectMocks
@@ -45,28 +47,22 @@ class CentralFundServiceTest {
     @Test
     void getCentralFundByBusinessUnit_whenUserHasPermission_returnsMappedResponse() {
         CentralFundProjection centralFund = centralFundProjection();
+        CentralFundResponse mappedResponse = CentralFundResponse.builder()
+            .version(BigInteger.valueOf(7))
+            .build();
 
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(creditorAccountRepository.findCentralFundByBusinessUnitId((short) 70))
             .thenReturn(Optional.of(centralFund));
+        when(centralFundMapper.toCentralFundResponse(centralFund)).thenReturn(mappedResponse);
 
         CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER);
 
-        GetCentralFundResponse payload = response.getPayload();
-        GetCentralFundResponseMajorCreditor majorCreditor = payload.getMajorCreditor();
-
-        assertEquals(123L, majorCreditor.getCreditorAccountId());
-        assertEquals("CF123", majorCreditor.getAccountNumber());
-        assertEquals("Central Fund", majorCreditor.getName());
-
-        BusinessUnitSummaryCommon businessUnitDetails = payload.getBusinessUnitDetails();
-        assertEquals("70", businessUnitDetails.getBusinessUnitId());
-        assertEquals("London Collection", businessUnitDetails.getBusinessUnitName());
-        assertEquals("Y", businessUnitDetails.getWelshSpeaking());
-        assertEquals(BigInteger.valueOf(7), response.getVersion());
+        assertSame(mappedResponse, response);
         verify(userStateService).checkForAuthorisedUser(AUTH_HEADER);
         verify(creditorAccountRepository).findCentralFundByBusinessUnitId((short) 70);
+        verify(centralFundMapper).toCentralFundResponse(centralFund);
     }
 
     @Test
@@ -80,7 +76,7 @@ class CentralFundServiceTest {
         );
 
         assertThat(exception.getPermission()).containsExactly(SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(creditorAccountRepository);
+        verifyNoInteractions(creditorAccountRepository, centralFundMapper);
     }
 
     @Test
@@ -95,6 +91,7 @@ class CentralFundServiceTest {
         );
 
         assertEquals("Central fund not found for business unit: 70", exception.getMessage());
+        verifyNoInteractions(centralFundMapper);
     }
 
     @Test
@@ -108,7 +105,7 @@ class CentralFundServiceTest {
         );
 
         assertEquals("Business unit id is out of range: 32768", exception.getMessage());
-        verifyNoInteractions(creditorAccountRepository);
+        verifyNoInteractions(creditorAccountRepository, centralFundMapper);
     }
 
     private CentralFundProjection centralFundProjection() {

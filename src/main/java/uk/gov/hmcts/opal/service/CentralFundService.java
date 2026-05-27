@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -10,9 +9,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
-import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundResponseMajorCreditor;
+import uk.gov.hmcts.opal.mapper.CentralFundMapper;
 import uk.gov.hmcts.opal.repository.CentralFundProjection;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
@@ -23,6 +20,7 @@ public class CentralFundService {
 
     private final UserStateService userStateService;
     private final CreditorAccountRepository creditorAccountRepository;
+    private final CentralFundMapper centralFundMapper;
 
     @Transactional(readOnly = true)
     public CentralFundResponse getCentralFundByBusinessUnit(int businessUnitId, String authHeaderValue) {
@@ -40,10 +38,7 @@ public class CentralFundService {
                 "Central fund not found for business unit: " + businessUnitId
             ));
 
-        return CentralFundResponse.builder()
-            .payload(toPayload(centralFund))
-            .version(toVersion(centralFund))
-            .build();
+        return centralFundMapper.toCentralFundResponse(centralFund);
     }
 
     private Short toBusinessUnitId(int businessUnitId) {
@@ -53,26 +48,4 @@ public class CentralFundService {
         return (short) businessUnitId;
     }
 
-    private GetCentralFundResponse toPayload(CentralFundProjection centralFund) {
-        return GetCentralFundResponse.builder()
-            .majorCreditor(GetCentralFundResponseMajorCreditor.builder()
-                .creditorAccountId(centralFund.getCreditorAccountId())
-                .accountNumber(centralFund.getAccountNumber())
-                .name(centralFund.getName())
-                .build())
-            .businessUnitDetails(BusinessUnitSummaryCommon.builder()
-                .businessUnitId(String.valueOf(centralFund.getBusinessUnitId()))
-                .businessUnitName(centralFund.getBusinessUnitName())
-                .welshSpeaking(toWelshSpeaking(centralFund.getWelshLanguage()))
-                .build())
-            .build();
-    }
-
-    private String toWelshSpeaking(Boolean welshLanguage) {
-        return Boolean.TRUE.equals(welshLanguage) ? "Y" : "N";
-    }
-
-    private BigInteger toVersion(CentralFundProjection centralFund) {
-        return centralFund.getVersionNumber() == null ? null : BigInteger.valueOf(centralFund.getVersionNumber());
-    }
 }
