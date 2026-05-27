@@ -34,13 +34,12 @@ public class MajorCreditorApiController implements MajorCreditorApi {
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
     public ResponseEntity<GetMajorCreditorAccountHeaderSummary200Response> getMajorCreditorAccountHeaderSummary(
-        Long id,
-        @Nullable String authorization) {
+        Long id) {
 
         log.debug(":GET:getMajorCreditorAccountHeaderSummary: id={}", id);
 
         GetMajorCreditorAccountHeaderSummaryResponse response =
-            majorCreditorAccountService.getHeaderSummary(id, authorization);
+            majorCreditorAccountService.getHeaderSummary(id);
 
         return buildResponse(response);
     }

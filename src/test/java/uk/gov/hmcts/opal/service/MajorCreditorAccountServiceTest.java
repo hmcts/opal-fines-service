@@ -23,8 +23,6 @@ import uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService;
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorAccountServiceTest {
 
-    private static final String AUTH_HEADER = "Bearer some_value";
-
     @Mock
     private UserStateService userStateService;
 
@@ -39,15 +37,15 @@ class MajorCreditorAccountServiceTest {
         GetMajorCreditorAccountHeaderSummaryResponse response =
             new GetMajorCreditorAccountHeaderSummaryResponse();
 
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.allFinesPermissionUser());
         when(legacyMajorCreditorAccountService.getHeaderSummary(123L)).thenReturn(response);
 
         GetMajorCreditorAccountHeaderSummaryResponse result =
-            majorCreditorAccountService.getHeaderSummary(123L, AUTH_HEADER);
+            majorCreditorAccountService.getHeaderSummary(123L);
 
         assertEquals(response, result);
-        verify(userStateService).checkForAuthorisedUser(AUTH_HEADER);
+        verify(userStateService).checkForAuthorisedUser();
         verify(legacyMajorCreditorAccountService).getHeaderSummary(123L);
     }
 
@@ -56,11 +54,11 @@ class MajorCreditorAccountServiceTest {
         UserState userState = mock(UserState.class);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
 
         PermissionNotAllowedException exception = assertThrows(
             PermissionNotAllowedException.class,
-            () -> majorCreditorAccountService.getHeaderSummary(123L, AUTH_HEADER)
+            () -> majorCreditorAccountService.getHeaderSummary(123L)
         );
 
         assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);

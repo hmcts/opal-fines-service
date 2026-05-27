@@ -70,7 +70,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @JiraStory("PO-2136")
     @JiraEpic("FAE: View Major Creditor Account Summary")
     void getHeaderSummary_successReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(get(URL, 99000000000800L)
@@ -115,7 +115,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @JiraStory("PO-2136")
     @JiraEpic("FAE: View Major Creditor Account Summary")
     void getHeaderSummary_repeatedRequestReturnsConsistentResponse() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions first = mockMvc.perform(get(URL, 99000000000800L)
@@ -136,7 +136,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @JiraStory("PO-2136")
     @JiraEpic("FAE: View Major Creditor Account Summary")
     void getHeaderSummary_withoutPermissionReturns403() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(noPermissionsUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionsUser());
 
         mockMvc.perform(get(URL, 99000000000800L)
                 .accept(MediaType.APPLICATION_JSON)
@@ -153,7 +153,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @JiraEpic("FAE: View Major Creditor Account Summary")
     void getHeaderSummary_missingTokenReturns401() throws Exception {
         doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(null);
+            .when(userStateService).checkForAuthorisedUser();
 
         mockMvc.perform(get(URL, 99000000000800L).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
@@ -168,7 +168,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @JiraStory("PO-2136")
     @JiraEpic("FAE: View Major Creditor Account Summary")
     void getHeaderSummary_notFoundReturns404() throws Exception {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+        when(userStateService.checkForAuthorisedUser())
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         mockMvc.perform(get(URL, 999999L)

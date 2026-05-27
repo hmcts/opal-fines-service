@@ -19,8 +19,6 @@ import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorApiControllerTest {
 
-    private static final String AUTH_HEADER = "Bearer some_value";
-
     @Mock
     private MajorCreditorAccountService majorCreditorAccountService;
 
@@ -32,14 +30,14 @@ class MajorCreditorApiControllerTest {
         GetMajorCreditorAccountHeaderSummaryResponse response = new GetMajorCreditorAccountHeaderSummaryResponse();
         response.setVersion(BigInteger.valueOf(7));
 
-        when(majorCreditorAccountService.getHeaderSummary(123L, AUTH_HEADER)).thenReturn(response);
+        when(majorCreditorAccountService.getHeaderSummary(123L)).thenReturn(response);
 
         ResponseEntity<GetMajorCreditorAccountHeaderSummary200Response> result =
-            controller.getMajorCreditorAccountHeaderSummary(123L, AUTH_HEADER);
+            controller.getMajorCreditorAccountHeaderSummary(123L);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(response, result.getBody());
         assertEquals("\"7\"", result.getHeaders().getETag());
-        verify(majorCreditorAccountService).getHeaderSummary(123L, AUTH_HEADER);
+        verify(majorCreditorAccountService).getHeaderSummary(123L);
     }
 }
