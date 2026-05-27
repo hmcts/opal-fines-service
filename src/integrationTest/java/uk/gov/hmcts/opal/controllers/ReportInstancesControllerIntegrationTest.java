@@ -353,7 +353,30 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() {
+    public void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
+        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
+        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
+        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
+        CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+            .reportId(REPORT_1BU_ID)
+            .reportName(null)
+            .businessUnitIds(List.of(1))
+            .reportParameters(null)
+            .build();
+
+        String payload = objectMapper.writeValueAsString(request);
+        log.info(":createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail payload: {}", payload);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+
+        // Assert
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail response:\n{}", ToJsonString.toPrettyJson(body));
+        resultActions.andExpect(status().isUnprocessableContent());
     }
 }
