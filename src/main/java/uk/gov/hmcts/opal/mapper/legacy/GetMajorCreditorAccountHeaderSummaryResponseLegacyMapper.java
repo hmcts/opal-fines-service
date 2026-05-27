@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
 import java.math.BigInteger;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
@@ -15,69 +18,36 @@ import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200
 
 @Mapper(
     componentModel = "spring",
-    unmappedTargetPolicy = ReportingPolicy.IGNORE
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    builder = @Builder(disableBuilder = true)
 )
 public interface GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper {
 
-    default GetMajorCreditorAccountHeaderSummaryResponse toOpal(
-        GetMajorCreditorAccountHeaderSummaryLegacyResponse legacy) {
+    @Mapping(target = "version", source = "majorCreditor.accountVersion", qualifiedByName = "toVersion")
+    GetMajorCreditorAccountHeaderSummaryResponse toOpal(
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse legacy);
 
-        if (legacy == null) {
-            return null;
-        }
+    GetMajorCreditorAccountHeaderSummary200ResponseMajorCreditor toOpal(MajorCreditorLegacy legacy);
 
-        GetMajorCreditorAccountHeaderSummaryResponse response = new GetMajorCreditorAccountHeaderSummaryResponse();
-        response.setMajorCreditor(toOpal(legacy.getMajorCreditor()));
-        response.setBusinessUnitDetails(toOpal(legacy.getBusinessUnitDetails()));
-        response.setAwaitingPayout(legacy.getAwaitingPayout());
+    BusinessUnitSummaryCommon toOpal(BusinessUnitSummary legacy);
 
-        if (legacy.getMajorCreditor() != null && legacy.getMajorCreditor().getAccountVersion() != null) {
-            response.setVersion(BigInteger.valueOf(legacy.getMajorCreditor().getAccountVersion()));
-        }
+    @Mapping(target = "accountType", source = "accountType", qualifiedByName = "toAccountType")
+    @Mapping(target = "displayName", source = "accountType", qualifiedByName = "toDisplayName")
+    CreditorAccountTypeReferenceCommon toOpal(CreditorAccountTypeReference legacy);
 
-        return response;
+    @Named("toVersion")
+    default BigInteger toVersion(Long value) {
+        return value == null ? null : BigInteger.valueOf(value);
     }
 
-    default GetMajorCreditorAccountHeaderSummary200ResponseMajorCreditor toOpal(MajorCreditorLegacy legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        return new GetMajorCreditorAccountHeaderSummary200ResponseMajorCreditor()
-            .creditorAccountId(legacy.getCreditorAccountId())
-            .accountNumber(legacy.getAccountNumber())
-            .name(legacy.getName())
-            .accountReference(toOpal(legacy.getAccountReference()));
+    @Named("toAccountType")
+    default CreditorAccountTypeReferenceCommon.AccountTypeEnum toAccountType(String accountType) {
+        return accountType == null ? null : CreditorAccountTypeReferenceCommon.AccountTypeEnum.fromValue(accountType);
     }
 
-    default BusinessUnitSummaryCommon toOpal(BusinessUnitSummary legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        return new BusinessUnitSummaryCommon()
-            .businessUnitId(legacy.getBusinessUnitId())
-            .businessUnitName(legacy.getBusinessUnitName())
-            .welshSpeaking(legacy.getWelshSpeaking());
-    }
-
-    default CreditorAccountTypeReferenceCommon toOpal(CreditorAccountTypeReference legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        String accountType = legacy.getAccountType();
-        CreditorAccountTypeReferenceCommon accountReference = new CreditorAccountTypeReferenceCommon();
-
-        if (accountType != null) {
-            accountReference.setAccountType(CreditorAccountTypeReferenceCommon.AccountTypeEnum.fromValue(accountType));
-        }
-
+    @Named("toDisplayName")
+    default CreditorAccountTypeReferenceCommon.DisplayNameEnum toDisplayName(String accountType) {
         String displayName = CreditorAccountType.getDisplayName(accountType);
-        if (displayName != null) {
-            accountReference.setDisplayName(CreditorAccountTypeReferenceCommon.DisplayNameEnum.fromValue(displayName));
-        }
-
-        return accountReference;
+        return displayName == null ? null : CreditorAccountTypeReferenceCommon.DisplayNameEnum.fromValue(displayName);
     }
 }
