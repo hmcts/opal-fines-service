@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -16,7 +16,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
 
-import java.math.BigDecimal;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -29,8 +28,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -38,9 +37,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -63,7 +59,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @MockitoBean
     private UserStateService userStateService;
 
-    @MockitoBean
+    @MockitoSpyBean
     private GatewayService gatewayService;
 
     @Autowired
@@ -76,12 +72,6 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     void getHeaderSummary_successReturnsMappedResponseAndEtag() throws Exception {
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-        when(gatewayService.postToGateway(
-            eq(GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
-            eq(GetMajorCreditorAccountHeaderSummaryLegacyResponse.class),
-            any(),
-            eq(null)
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse()));
 
         ResultActions resultActions = mockMvc.perform(get(URL, 99000000000800L)
             .accept(MediaType.APPLICATION_JSON)
@@ -115,7 +105,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
             eq(GetMajorCreditorAccountHeaderSummaryLegacyResponse.class),
             requestCaptor.capture(),
-            eq(null)
+            isNull()
         );
         assertThat(requestCaptor.getValue().getCreditorAccountId()).isEqualTo("99000000000800");
     }
@@ -127,12 +117,6 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     void getHeaderSummary_repeatedRequestReturnsConsistentResponse() throws Exception {
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-        when(gatewayService.postToGateway(
-            eq(GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
-            eq(GetMajorCreditorAccountHeaderSummaryLegacyResponse.class),
-            any(),
-            eq(null)
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse()));
 
         ResultActions first = mockMvc.perform(get(URL, 99000000000800L)
             .accept(MediaType.APPLICATION_JSON)
@@ -186,43 +170,11 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     void getHeaderSummary_notFoundReturns404() throws Exception {
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-        when(gatewayService.postToGateway(
-            eq(GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
-            eq(GetMajorCreditorAccountHeaderSummaryLegacyResponse.class),
-            any(),
-            eq(null)
-        )).thenThrow(HttpClientErrorException.create(
-            HttpStatus.NOT_FOUND,
-            "Not Found",
-            HttpHeaders.EMPTY,
-            null,
-            null
-        ));
 
         mockMvc.perform(get(URL, 999999L)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
-    }
-
-    private GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse() {
-        return GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
-            .majorCreditor(MajorCreditorLegacy.builder()
-                               .creditorAccountId(99000000000800L)
-                               .accountVersion(7L)
-                               .accountNumber("87654321")
-                               .name("Major Creditor Test Ltd")
-                               .accountReference(CreditorAccountTypeReference.builder()
-                                                     .accountType("MJ")
-                                                     .build())
-                               .build())
-            .businessUnitDetails(BusinessUnitSummary.builder()
-                                     .businessUnitId("77")
-                                     .businessUnitName("Camberwell Green")
-                                     .welshSpeaking("N")
-                                     .build())
-            .awaitingPayout(new BigDecimal("123.45"))
-            .build();
     }
 }
