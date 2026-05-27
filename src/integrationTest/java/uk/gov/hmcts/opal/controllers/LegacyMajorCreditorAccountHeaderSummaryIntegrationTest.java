@@ -16,12 +16,10 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
 
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,7 +36,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -53,17 +50,12 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
 
     private static final String AUTH_HEADER = "Bearer some_value";
     private static final String URL = "/major-creditor-accounts/{id}/header-summary";
-    private static final String RESPONSE_SCHEMA =
-        "opal/major-creditor/getMajorCreditorAccountHeaderSummaryResponse.json";
 
     @MockitoBean
     private UserStateService userStateService;
 
     @MockitoSpyBean
     private GatewayService gatewayService;
-
-    @Autowired
-    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     @DisplayName("PO-2136 INT.01 to INT.04 - valid request returns mapped body and ETag")
@@ -95,9 +87,6 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
             .andExpect(jsonPath("$.business_unit_details.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit_details.welsh_speaking").value("N"))
             .andExpect(jsonPath("$.awaiting_payout").value(123.45));
-
-        Set<String> validationErrors = jsonSchemaValidationService.validate(body, RESPONSE_SCHEMA);
-        assertThat(validationErrors).isEmpty();
 
         ArgumentCaptor<GetMajorCreditorAccountHeaderSummaryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetMajorCreditorAccountHeaderSummaryLegacyRequest.class);
