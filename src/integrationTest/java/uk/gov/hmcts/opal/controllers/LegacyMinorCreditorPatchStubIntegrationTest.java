@@ -103,7 +103,8 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
             .thenReturn(permissionUser(BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE));
+                FinesPermission.ACCOUNT_MAINTENANCE,
+                FinesPermission.VIEW_CREDITOR_BACS));
     }
 
     private ResultActions performLegacyPatch(long creditorAccountId, String ifMatch) throws Exception {
