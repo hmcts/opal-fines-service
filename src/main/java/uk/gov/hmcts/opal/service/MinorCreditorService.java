@@ -1,14 +1,12 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
-import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
@@ -23,8 +21,6 @@ import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 @Slf4j(topic = "opal.MinorCreditorService")
 @RequiredArgsConstructor
 public class MinorCreditorService {
-
-    private static final String VIEW_CREDITOR_BACS_PERMISSION = "View Creditor BACS";
 
     private final MinorCreditorSearchProxy minorCreditorSearchProxy;
 
@@ -54,8 +50,7 @@ public class MinorCreditorService {
 
         MinorCreditorAccountResponse response =
             minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
-        filterBacsDetailsIfRequired(response, userState);
-        return response;
+        return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
     }
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
@@ -136,25 +131,49 @@ public class MinorCreditorService {
             businessUnitIdShort);
     }
 
-    private void filterBacsDetailsIfRequired(MinorCreditorAccountResponse response, UserState userState) {
+    private MinorCreditorAccountResponse redactBacsDetailsWhenNotPermitted(
+        Long minorCreditorAccountId,
+        MinorCreditorAccountResponse response,
+        UserState userState
+    ) {
         if (response == null || response.getPayment() == null) {
-            return;
+            return response;
         }
 
+        // Fail closed: if the account business unit cannot be confirmed here, redact BACS details.
         Short businessUnitId = response.getBusinessUnitId();
-        boolean canViewBacs = Optional.ofNullable(businessUnitId)
-            .flatMap(userState::getBusinessUnitUserForBusinessUnit)
-            .map(BusinessUnitUser::getPermissions)
-            .stream()
-            .flatMap(java.util.Set::stream)
-            .map(Permission::getPermissionName)
-            .anyMatch(VIEW_CREDITOR_BACS_PERMISSION::equals);
+        boolean hasBusinessUnitUser = businessUnitId != null
+            && userState.getBusinessUnitUserForBusinessUnit(businessUnitId).isPresent();
+        boolean canViewBacs = businessUnitId != null
+            && userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.VIEW_CREDITOR_BACS);
 
-        if (!canViewBacs) {
-            response.getPayment().setAccountName(null);
-            response.getPayment().setSortCode(null);
-            response.getPayment().setAccountNumber(null);
-            response.getPayment().setAccountReference(null);
+        log.debug(":redactBacsDetailsWhenNotPermitted: id={}, businessUnitId={}, hasBusinessUnitUser={}, "
+                + "canViewBacs={}, availableBusinessUnits={}",
+            minorCreditorAccountId,
+            businessUnitId,
+            hasBusinessUnitUser,
+            canViewBacs,
+            summariseBusinessUnits(userState));
+
+        if (canViewBacs) {
+            return response;
         }
+
+        response.getPayment().setSortCode(null);
+        response.getPayment().setAccountNumber(null);
+        response.getPayment().setAccountName(null);
+        response.getPayment().setAccountReference(null);
+        return response;
+    }
+
+    private String summariseBusinessUnits(UserState userState) {
+        if (userState.getBusinessUnitUser() == null || userState.getBusinessUnitUser().isEmpty()) {
+            return "[]";
+        }
+
+        return userState.getBusinessUnitUser().stream()
+            .map(businessUnitUser -> String.valueOf(businessUnitUser.getBusinessUnitId()))
+            .sorted()
+            .collect(Collectors.joining(",", "[", "]"));
     }
 }

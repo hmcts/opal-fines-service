@@ -357,6 +357,69 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
+        super.getMinorCreditorAccount_missingAuthHeader_returns401();
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
+        super.getMinorCreditorAccount_authenticatedWithoutPermission_returns403();
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_notFound_returns404() throws Exception {
+        super.getMinorCreditorAccount_notFound_returns404(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_timeout_returns408() throws Exception {
+        super.getMinorCreditorAccount_timeout_returns408(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_serviceUnavailable_returns503() throws Exception {
+        super.getMinorCreditorAccount_serviceUnavailable_returns503(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_serverError_returns500() throws Exception {
+        super.getMinorCreditorAccount_serverError_returns500(log);
+    }
+
+    @Test
     @JiraStory("PO-1911")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6194")

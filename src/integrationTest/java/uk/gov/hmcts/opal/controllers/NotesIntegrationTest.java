@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionsToken;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionsToken;
 
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
@@ -109,7 +110,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
 
-        UserState userState = UserState.builder().userId(123L).build();
+        UserState userState = noFinesPermissionUser();
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         Note note = new Note();
