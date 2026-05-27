@@ -26,6 +26,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -52,6 +54,8 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("PO-2320: GET central fund returns 200 with payload and ETag")
+    @JiraStory("PO-2320")
+    @JiraEpic("PO-1286")
     void getCentralFund_returnsPayloadWithEtag() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/73")
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
@@ -72,6 +76,8 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("PO-2320: GET central fund returns 404 when central fund does not exist")
+    @JiraStory("PO-2320")
+    @JiraEpic("PO-1286")
     void getCentralFund_whenCentralFundDoesNotExist_returnsNotFound() throws Exception {
         mockMvc.perform(get(URL_BASE + "/999").header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isNotFound())
@@ -81,6 +87,8 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("PO-2320: GET central fund returns 403 when user lacks Search and View Accounts")
+    @JiraStory("PO-2320")
+    @JiraEpic("PO-1286")
     void getCentralFund_whenUserLacksPermission_returnsForbidden() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
 
