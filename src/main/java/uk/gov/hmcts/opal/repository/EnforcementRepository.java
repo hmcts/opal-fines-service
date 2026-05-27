@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
@@ -15,6 +16,10 @@ public interface EnforcementRepository extends JpaRepository<EnforcementEntity, 
     @Override
     @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
     Optional<EnforcementEntity> findById(Long enforcementId);
+
+    @Override
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
+    List<EnforcementEntity> findAll(Specification<EnforcementEntity> spec);
 
     void deleteByDefendantAccountId(long defendantAccountId);
 
