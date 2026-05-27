@@ -7,6 +7,8 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import tools.jackson.core.JacksonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
@@ -35,6 +38,9 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
@@ -87,6 +93,34 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+    }
+
+    @GetMapping(value = "/{defendantAccountId}/history")
+    @Operation(summary = "Get history for a defendant account")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<DefendantAccountHistoryResponse> getHistory(
+        @PathVariable Long defendantAccountId,
+        @RequestParam(required = false) LocalDate dateFrom,
+        @RequestParam(required = false) LocalDate dateTo,
+        @RequestParam(required = false) List<String> itemTypes,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:getHistory: for defendant id: {}", defendantAccountId);
+
+        DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
+            .dateFrom(dateFrom)
+            .dateTo(dateTo)
+            .itemTypes(toHistoryItemTypes(itemTypes))
+            .build();
+
+        return buildResponse(defendantAccountService.getHistory(defendantAccountId, filter, authHeaderValue));
+    }
+
+    private List<HistoryItemType> toHistoryItemTypes(List<String> itemTypes) {
+        return itemTypes == null ? List.of() : itemTypes.stream()
+            .map(HistoryItemType::fromValue)
+            .toList();
     }
 
     @GetMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")

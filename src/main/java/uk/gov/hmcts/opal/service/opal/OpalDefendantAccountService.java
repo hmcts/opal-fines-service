@@ -66,6 +66,8 @@ import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -177,6 +179,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final ReportEntryServiceInterface reportEntryService;
 
+    private final OpalDefendantAccountHistoryService opalDefendantAccountHistoryService;
+
     // Mappers
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
     private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
@@ -209,6 +213,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 + defendantAccountId));
 
         return defendantAccountHeaderSummaryMapper.toDto(entity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
+        return opalDefendantAccountHistoryService.getHistory(defendantAccountId, filter);
     }
 
     @Override
