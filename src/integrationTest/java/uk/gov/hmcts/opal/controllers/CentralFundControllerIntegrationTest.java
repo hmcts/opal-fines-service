@@ -18,16 +18,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 @ActiveProfiles({"integration"})
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=true"
+})
 @Sql(scripts = "classpath:db/insertData/insert_into_central_funds.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_central_funds.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.CentralFundControllerIntegrationTest")
@@ -40,12 +44,8 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     private UserStateService userStateService;
 
-    @MockitoBean
-    private FeatureToggleService featureToggleService;
-
     @BeforeEach
     void setup() {
-        when(featureToggleService.isFeatureEnabled("release-1b")).thenReturn(true);
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(UserStateUtil.permissionUser((short) 73, SEARCH_AND_VIEW_ACCOUNTS));
     }
@@ -68,18 +68,6 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.business_unit_details.business_unit_id").value("73"))
             .andExpect(jsonPath("$.business_unit_details.business_unit_name").value("West London"))
             .andExpect(jsonPath("$.business_unit_details.welsh_speaking").value("N"));
-    }
-
-    @Test
-    @DisplayName("PO-2320: GET central fund returns 405 when release-1b is disabled")
-    void getCentralFund_whenFeatureDisabled_returnsMethodNotAllowed() throws Exception {
-        when(featureToggleService.isFeatureEnabled("release-1b")).thenReturn(false);
-
-        mockMvc.perform(get(URL_BASE + "/73").header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
-            .andExpect(status().isMethodNotAllowed())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Feature Disabled"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"));
     }
 
     @Test

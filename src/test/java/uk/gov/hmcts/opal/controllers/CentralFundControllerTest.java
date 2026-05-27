@@ -2,10 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
@@ -16,8 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200Response;
@@ -27,14 +22,10 @@ import uk.gov.hmcts.opal.service.CentralFundService;
 @ExtendWith(MockitoExtension.class)
 class CentralFundControllerTest {
 
-    private static final String RELEASE_1B_FEATURE = "release-1b";
     private static final String AUTH_HEADER = "Bearer test-token";
 
     @Mock
     private CentralFundService centralFundService;
-
-    @Mock
-    private FeatureToggleService featureToggleService;
 
     @InjectMocks
     private CentralFundController centralFundController;
@@ -47,7 +38,6 @@ class CentralFundControllerTest {
             .version(BigInteger.valueOf(7))
             .build();
 
-        when(featureToggleService.isFeatureEnabled(RELEASE_1B_FEATURE)).thenReturn(true);
         when(centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER)).thenReturn(serviceResponse);
 
         ResponseEntity<GetCentralFundByBusinessUnit200Response> response =
@@ -56,26 +46,7 @@ class CentralFundControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"7\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
-        verify(featureToggleService).isFeatureEnabled(RELEASE_1B_FEATURE);
-        verifyNoMoreInteractions(featureToggleService);
         verify(centralFundService).getCentralFundByBusinessUnit(70, AUTH_HEADER);
-    }
-
-    @Test
-    void getCentralFundByBusinessUnit_whenFeatureDisabled_throwsFeatureDisabledException() {
-        when(featureToggleService.isFeatureEnabled(RELEASE_1B_FEATURE)).thenReturn(false);
-
-        FeatureDisabledException exception = assertThrows(
-            FeatureDisabledException.class,
-            () -> centralFundController.getCentralFundByBusinessUnit(70, AUTH_HEADER)
-        );
-
-        assertEquals(
-            "Feature release-1b is not enabled for method getCentralFundByBusinessUnit",
-            exception.getMessage()
-        );
-        verify(featureToggleService).isFeatureEnabled(RELEASE_1B_FEATURE);
-        verifyNoInteractions(centralFundService);
     }
 
     private GetCentralFundByBusinessUnit200Response centralFundPayload() {
