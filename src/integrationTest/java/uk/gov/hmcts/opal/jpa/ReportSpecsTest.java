@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
@@ -28,7 +29,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.ReportSpecs;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
-import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementFiltersDto;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -300,7 +300,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         //Assert
         assertThat(results).allSatisfy(account -> {
             List<PaymentTermsEntity> paymentTerms = paymentTermsRepository
-                    .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
+                .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
                     account.getDefendantAccountId()
                 );
 

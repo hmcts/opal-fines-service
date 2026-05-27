@@ -32,7 +32,7 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity_;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
-import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
 
 @AllArgsConstructor
 public final class ReportSpecs {

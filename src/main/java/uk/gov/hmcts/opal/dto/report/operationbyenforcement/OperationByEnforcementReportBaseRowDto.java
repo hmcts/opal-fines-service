@@ -1,17 +1,17 @@
-package uk.gov.hmcts.opal.dto.report;
+package uk.gov.hmcts.opal.dto.report.operationbyenforcement;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EnforcementReportRowDto {
+public class OperationByEnforcementReportBaseRowDto {
 
     /**
      * See <a

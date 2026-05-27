@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.service.report.operationbyenforcement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -20,12 +20,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.service.report.mapper.OperationReportByEnforcementResultMapper;
+import uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.DetailedResultMapper;
+import uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.SummaryResultMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.service.report.ReportDataInterface;
+import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
+import uk.gov.hmcts.opal.service.report.ReportId;
+import uk.gov.hmcts.opal.service.report.ReportType;
 
 @ExtendWith(MockitoExtension.class)
 class OperationReportByEnforcementServiceTest {
@@ -37,7 +43,16 @@ class OperationReportByEnforcementServiceTest {
     private EnforcementRepository enforcementRepository;
 
     @Mock
-    private OperationReportByEnforcementResultMapper resultMapper;
+    private SummaryResultMapper summaryResultMapper;
+
+    @Mock
+    private OperationByEnforcementDetailedReport mappedDetailedReport;
+
+    @Mock
+    private DetailedResultMapper detailedResultMapper;
+
+    @Mock
+    private OperationByEnforcementSummaryReport mappedSummaryReport;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -62,27 +77,24 @@ class OperationReportByEnforcementServiceTest {
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.NOT_UNDER_ENFORCEMENT)
             .build();
-
         List<DefendantAccountEntity> accounts = List.of(mock(DefendantAccountEntity.class));
-        OperationReportByEnforcementTransaction mapped = mock(OperationReportByEnforcementTransaction.class);
-
         when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
             .thenReturn(filters);
         when(defendantAccountRepository.findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(resultMapper.map(accounts)).thenReturn(mapped);
+        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
-        assertThat(result).isSameAs(mapped);
+        assertThat(result).isSameAs(mappedDetailedReport);
         verify(defendantAccountRepository).findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(resultMapper).map(accounts);
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -90,31 +102,27 @@ class OperationReportByEnforcementServiceTest {
         ReportInstanceEntity reportInstance = mockReportInstance("""
             { "reportEnforcementMode": "ALL" }
             """);
-
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.ALL)
             .build();
-
         List<DefendantAccountEntity> accounts = List.of(mock(DefendantAccountEntity.class));
-        OperationReportByEnforcementTransaction mapped = mock(OperationReportByEnforcementTransaction.class);
-
         when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class))).thenReturn(
             filters);
         when(defendantAccountRepository.findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(resultMapper.map(accounts)).thenReturn(mapped);
+        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
-        assertThat(result).isSameAs(mapped);
+        assertThat(result).isSameAs(mappedDetailedReport);
         verify(defendantAccountRepository).findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(resultMapper).map(accounts);
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -145,7 +153,6 @@ class OperationReportByEnforcementServiceTest {
 
         List<EnforcementEntity> enforcements = List.of(enforcement1, enforcement2);
         List<DefendantAccountEntity> accounts = List.of(account1, account2);
-        OperationReportByEnforcementTransaction mapped = mock(OperationReportByEnforcementTransaction.class);
 
         when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class))).thenReturn(
             filters);
@@ -156,11 +163,11 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(resultMapper.map(accounts)).thenReturn(mapped);
+        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
-        assertThat(result).isSameAs(mapped);
+        assertThat(result).isSameAs(mappedDetailedReport);
         verify(enforcementRepository).findAll(
             ArgumentMatchers.<Specification<EnforcementEntity>>any()
         );
@@ -168,7 +175,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
-        verify(resultMapper).map(accounts);
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -192,6 +199,39 @@ class OperationReportByEnforcementServiceTest {
     }
 
     @Test
+    void generateReportData_whenSummaryReportType_useSummaryMapperFlow() {
+        ReportInstanceEntity reportInstance = mockReportInstance("""
+            {
+              "reportType": "SUMMARY",
+              "reportEnforcementMode": "NOT_UNDER_ENFORCEMENT"
+            }""");
+
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
+            .reportType(ReportType.SUMMARY)
+            .reportEnforcementMode(ReportEnforcementMode.NOT_UNDER_ENFORCEMENT)
+            .build();
+        List<DefendantAccountEntity> accounts = List.of(mock(DefendantAccountEntity.class));
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
+            .thenReturn(filters);
+        when(defendantAccountRepository.findAll(
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
+            any(Sort.class)
+        )).thenReturn(accounts);
+        when(summaryResultMapper.map(accounts)).thenReturn(mappedSummaryReport);
+
+        ReportDataInterface result = service.generateReportData(reportInstance);
+
+        assertThat(result).isSameAs(mappedSummaryReport);
+        verify(defendantAccountRepository).findAll(
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
+            any(Sort.class)
+        );
+        verifyNoInteractions(enforcementRepository);
+        verify(summaryResultMapper).map(accounts);
+        verifyNoInteractions(detailedResultMapper);
+    }
+
+    @Test
     void generateReportData_whenReportParametersCannotBeRead_throwsRuntimeException() {
         ReportInstanceEntity reportInstance = mockReportInstance("{ invalid json }");
 
@@ -202,7 +242,7 @@ class OperationReportByEnforcementServiceTest {
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Failed to parse report filters");
 
-        verifyNoInteractions(defendantAccountRepository, enforcementRepository, resultMapper);
+        verifyNoInteractions(defendantAccountRepository, enforcementRepository, detailedResultMapper);
     }
 
     private ReportInstanceEntity mockReportInstance(String json) {

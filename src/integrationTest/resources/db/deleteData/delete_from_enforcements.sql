@@ -27,8 +27,20 @@ WHERE party_id = 77;
 DELETE FROM payment_terms
 WHERE defendant_account_id = 77;
 
+DELETE FROM impositions
+WHERE defendant_account_id = 77;
+
+DELETE FROM creditor_accounts
+WHERE creditor_account_id = 1;
+
+DELETE FROM defendant_transactions
+WHERE defendant_account_id = 77;
+
 DELETE FROM defendant_accounts
 WHERE defendant_account_id = 77;
+
+DELETE FROM defendant_accounts
+WHERE defendant_account_id IN (77, 78);
 
 DELETE FROM parties
 WHERE party_id = 77;

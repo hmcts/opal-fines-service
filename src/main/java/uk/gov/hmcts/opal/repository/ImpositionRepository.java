@@ -2,11 +2,10 @@ package uk.gov.hmcts.opal.repository;
 
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 
@@ -24,4 +23,9 @@ public interface ImpositionRepository extends JpaRepository<ImpositionEntity, Lo
 
     @EntityGraph(value = ImpositionEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
     List<ImpositionEntity> findAllByDefendantAccountId(long defendantAccountId);
+
+    @EntityGraph(value = ImpositionEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    ImpositionEntity findFirstByDefendantAccountIdOrderByImposedDateAsc(Long defendantAccountId);
+
+
 }

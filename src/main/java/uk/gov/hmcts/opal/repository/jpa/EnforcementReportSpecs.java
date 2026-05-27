@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity_;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
-import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
 
 public class EnforcementReportSpecs {
 

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.service.report.operationbyenforcement;
 
 import static uk.gov.hmcts.opal.service.report.ReportEnforcementMode.LAST_ACTION;
 import static uk.gov.hmcts.opal.service.report.ReportEnforcementMode.REGF;
@@ -6,6 +6,7 @@ import static uk.gov.hmcts.opal.service.report.ReportEnforcementMode.REGF;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
 
 @Component
 public class OperationReportByEnforcementValidator {

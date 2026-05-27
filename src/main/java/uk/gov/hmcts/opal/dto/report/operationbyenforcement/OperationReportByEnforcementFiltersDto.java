@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.dto.report.operationbyenforcement;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.AccountStatusReportFilterType;
 import uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType;
+import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
+import uk.gov.hmcts.opal.service.report.ReportType;
 
 @Data
 @Builder
