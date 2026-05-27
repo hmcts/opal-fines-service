@@ -23,7 +23,8 @@ public class ReportParameterService {
 
     public boolean validateReportInstanceParameterValues(Map<String, Object> reportInstanceParameters, ReportEntity report) {
 
-        List<ReportParameterData> reportParameterDataList = report.getReportParameters();
+        List<ReportParameterData> reportParameterDataList = report.getReportParameters() == null ? List.of() : report.getReportParameters();
+
         Set<String> mandatoryReportParameters = reportParameterDataList.stream()
             .filter(ReportParameterData::isMandatory)
             .map(ReportParameterData::getName)
