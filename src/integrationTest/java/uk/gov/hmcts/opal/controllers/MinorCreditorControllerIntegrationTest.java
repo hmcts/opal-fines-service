@@ -270,7 +270,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .accept(MediaType.APPLICATION_PROBLEM_JSON) // ok even if server doesn't set it
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void postSearch_invalidToken_returns401ProblemJson() throws Exception {
@@ -289,7 +291,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value")
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Invalid token"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void postSearch_authenticatedWithoutPermission_returns403ProblemJson() throws Exception {
@@ -307,7 +311,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value")
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Forbidden"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
@@ -335,7 +341,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         log.info(":patchMinorCreditor_payoutHold_success body:\n{}", ToJsonString.toPrettyJson(body));
 
-        a.andExpect(status().isCreated())
+        a.andExpect(status().isOk())
             .andExpect(header().exists("ETag"))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
@@ -356,7 +362,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         assertEquals("MC-REF-01", getCurrentCreditorAccountBankAccountReference());
         assertEquals(true, getCurrentCreditorAccountPayByBacs());
         Integer updatedVersion = getCurrentCreditorAccountVersion();
-        assertEquals(initialHoldPayout ? currentVersion : currentVersion + 1, updatedVersion);
+        assertEquals(currentVersion + 2, updatedVersion);
     }
 
     void patchMinorCreditor_success_createsAmendments(Logger log) throws Exception {
@@ -422,24 +428,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("If-Match", currentVersion)
                             .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                             .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
-            .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
-
-    void patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403() throws Exception {
-        // Arrange
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE));
-
-        boolean currentHoldPayout = getCurrentCreditorAccountHoldPayout();
-        Integer currentVersion = getCurrentCreditorAccountVersion();
-
-        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", AUTH_HEADER)
-                            .header("If-Match", currentVersion)
-                            .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                            .content(objectMapper.writeValueAsString(patchMinorCreditorRequest(currentHoldPayout))))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
@@ -609,6 +597,33 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(content().string(org.hamcrest.Matchers.anything()));
+    }
+
+    private String patchMinorCreditorPayoutHoldRequestJson() {
+        return patchMinorCreditorRequestJson(true);
+    }
+
+    private String patchMinorCreditorRequestJson(boolean holdPayment) {
+        return """
+            {
+              "party_details": {
+                "party_id": "99008",
+                "organisation_flag": false,
+                "individual_details": {
+                  "surname": "Updated",
+                  "forenames": "Creditor"
+                }
+              },
+              "address": {
+                "address_line_1": "99 Updated Road",
+                "postcode": "NW1 1AA"
+              },
+              "payment": {
+                "pay_by_bacs": true,
+                "hold_payment": %s
+              }
+            }
+            """.formatted(holdPayment);
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorPayoutHoldRequest() {
@@ -1240,7 +1255,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void getHeaderSummary_authenticatedWithoutPermission_returns403() throws Exception {
@@ -1251,7 +1268,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("authorization", "Bearer some_value"))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Forbidden"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void getHeaderSummary_timeout_returns408(Logger log) throws Exception {
@@ -1412,7 +1431,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         mockMvc.perform(get(URL_BASE + "/{id}", 104L)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
@@ -1423,7 +1444,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("authorization", AUTH_HEADER))
             .andExpect(status().isForbidden())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Forbidden"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {

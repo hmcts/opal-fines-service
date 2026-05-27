@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
@@ -368,7 +369,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 44L;
         short businessUnitId = 9;
         String ifMatch = "W/\"3\"";
-        DefendantAccountParty request = new DefendantAccountParty();
+        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
         RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
@@ -377,13 +378,15 @@ class DefendantAccountPartyServiceTest {
         when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
-        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
+            defendantAccountId,
             defendantAccountPartyId,
             businessUnitId,
             "bu-user-id",
-            ifMatch,
             "bu-user-id",
-            request)).thenReturn(expectedResponse);
+            ifMatch,
+            request
+        )).thenReturn(expectedResponse);
 
         // Act
         RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
@@ -401,8 +404,8 @@ class DefendantAccountPartyServiceTest {
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             buUserIdCaptor.capture(),
-            eq(ifMatch),
             postedByCaptor.capture(),
+            eq(ifMatch),
             eq(request)
         );
 
@@ -420,7 +423,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 66L;
         short businessUnitId = 11;
         String ifMatch = "W/\"4\"";
-        DefendantAccountParty request = new DefendantAccountParty();
+        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
         RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
 
         // No BusinessUnitUser present
@@ -429,13 +432,15 @@ class DefendantAccountPartyServiceTest {
         when(userState.getUserName()).thenReturn("fallback-user");
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
-        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
+            defendantAccountId,
             defendantAccountPartyId,
             businessUnitId,
             "",
-            ifMatch,
             "fallback-user",
-            request)).thenReturn(expectedResponse);
+            ifMatch,
+            request
+        )).thenReturn(expectedResponse);
 
         // Act
         RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
@@ -452,8 +457,8 @@ class DefendantAccountPartyServiceTest {
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             buUserIdCaptor.capture(),
-            eq(ifMatch),
             postedByCaptor.capture(),
+            eq(ifMatch),
             eq(request)
         );
 
@@ -470,15 +475,18 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 88L;
         short businessUnitId = 13;
         String ifMatch = "W/\"5\"";
-        DefendantAccountParty request = new DefendantAccountParty();
+        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
 
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.hasBusinessUnitUserWithPermission(businessUnitId,
-            FinesPermission.ACCOUNT_MAINTENANCE)).thenReturn(false);
+        when(userState.hasBusinessUnitUserWithPermission(
+            businessUnitId,
+            FinesPermission.ACCOUNT_MAINTENANCE
+        )).thenReturn(false);
 
-        PermissionNotAllowedException ex = assertThrows(PermissionNotAllowedException.class, () ->
-            defendantAccountPartyService.removeDefendantAccountParty(
-                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request)
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class, () ->
+                defendantAccountPartyService.removeDefendantAccountParty(
+                    defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request)
         );
 
         // When the user does not have the correct permission, the call is not passed to the proxy

@@ -37,12 +37,13 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
 
-abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest {
+abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";
     static final String DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
@@ -76,6 +77,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get header summary for individual defendant account [@PO-2287]")
+    @JiraStory("PO-2287")
     void getHeaderSummary_Individual(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -104,6 +106,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get header summary for organisation defendant account [@PO-2287]")
+    @JiraStory("PO-2287")
     void getHeaderSummary_Organisation(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -127,6 +130,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @DisplayName("PO-2297: header-summary (individual) returns correct defendant_party_id from "
         + "defendantAccountPartyId bug fix validation")
+    @JiraStory("PO-2297")
     void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -150,6 +154,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
 
     @DisplayName("PO-2297: header-summary (organisation) returns correct defendant_party_id from"
         + " defendantAccountPartyId — bug fix validation")
+    @JiraStory("PO-2297")
     void testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -264,6 +269,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    @JiraStory("PO-2119")
     void testEntityNotFoundExceptionContainsRetriable(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -284,6 +290,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    @JiraStory("PO-2119")
     void testWrongMediaTypeContainsRetriableField(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -316,6 +323,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable for invalid request body")
+    @JiraStory("PO-2119")
     void testInvalidBodyContainsRetriable(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -332,6 +340,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get enforcement status for individual defendant account [@PO-1696]")
+    @JiraStory("PO-1696")
     void testGetEnforcementStatus(Logger log, boolean isLegacy) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -387,7 +396,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get enforcement status - missing auth header returns 401")
-    void testGetEnforcementStatus_missingAuthHeader_returns401(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_missingAuthHeader_returns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Missing token"))
             .when(userStateService).checkForAuthorisedUser(null);
 
@@ -397,7 +406,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get enforcement status - forbidden without permission")
-    void testGetEnforcementStatus_forbidden(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_forbidden() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
         UserState dummyUserState = UserState.builder().userId(123L).build();
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
@@ -410,18 +419,16 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get enforcement status - resource not found")
-    void testGetEnforcementStatus_notFound(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_notFound() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-        ResultMatcher statusMatcher = isLegacy ? status().is5xxServerError() : status().isNotFound();
 
         mockMvc.perform(get(URL_BASE + "/999999/enforcement-status").header("authorization", "Bearer some_value"))
             .andDo(MockMvcResultHandlers.print())
-            .andExpect(statusMatcher);
+            .andExpect(status().isNotFound());
     }
 
     @DisplayName("Get enforcement status - timeout")
-    void testGetEnforcementStatus_timeout(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_timeout() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.REQUEST_TIMEOUT, "Timeout"));
 
@@ -431,7 +438,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get enforcement status - service unavailable")
-    void testGetEnforcementStatus_serviceUnavailable(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_serviceUnavailable() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenThrow(new ResponseStatusException(
                 org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Gateway down"));
@@ -443,7 +450,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationTest
     }
 
     @DisplayName("Get enforcement status - server error")
-    void testGetEnforcementStatus_serverError(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_serverError() throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
             .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Boom"));
 
