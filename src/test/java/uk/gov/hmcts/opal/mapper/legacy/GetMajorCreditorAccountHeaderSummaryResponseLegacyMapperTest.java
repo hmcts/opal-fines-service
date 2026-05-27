@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
 class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends AbstractMapperTest {
@@ -51,5 +53,54 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
         assertEquals("N", result.getBusinessUnitDetails().getWelshSpeaking());
         assertEquals(new BigDecimal("123.45"), result.getAwaitingPayout());
         assertEquals(7L, result.getVersion().longValue());
+    }
+
+    @Test
+    void toOpal_returnsNullWhenLegacyHeaderSummaryResponseIsNull() {
+        assertNull(mapper.toOpal((GetMajorCreditorAccountHeaderSummaryLegacyResponse) null));
+    }
+
+    @Test
+    void toOpal_returnsNullWhenMajorCreditorIsNull() {
+        assertNull(mapper.toOpal((MajorCreditorLegacy) null));
+    }
+
+    @Test
+    void toOpal_returnsNullWhenBusinessUnitSummaryIsNull() {
+        assertNull(mapper.toOpal((BusinessUnitSummary) null));
+    }
+
+    @Test
+    void toOpal_returnsNullWhenCreditorAccountTypeReferenceIsNull() {
+        assertNull(mapper.toOpal((CreditorAccountTypeReference) null));
+    }
+
+    @Test
+    void toOpal_mapsNullNestedValues() {
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse legacy =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .majorCreditor(MajorCreditorLegacy.builder()
+                                   .creditorAccountId(123L)
+                                   .accountReference(null)
+                                   .build())
+                .businessUnitDetails(null)
+                .awaitingPayout(new BigDecimal("123.45"))
+                .build();
+
+        GetMajorCreditorAccountHeaderSummaryResponse result = mapper.toOpal(legacy);
+
+        assertEquals(123L, result.getMajorCreditor().getCreditorAccountId());
+        assertNull(result.getMajorCreditor().getAccountReference());
+        assertNull(result.getBusinessUnitDetails());
+        assertEquals(new BigDecimal("123.45"), result.getAwaitingPayout());
+        assertNull(result.getVersion());
+    }
+
+    @Test
+    void toOpal_mapsAccountReferenceWithNullAccountType() {
+        CreditorAccountTypeReferenceCommon result = mapper.toOpal(CreditorAccountTypeReference.builder().build());
+
+        assertNull(result.getAccountType());
+        assertNull(result.getDisplayName());
     }
 }

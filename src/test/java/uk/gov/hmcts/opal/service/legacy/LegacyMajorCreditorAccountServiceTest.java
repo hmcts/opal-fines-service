@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
@@ -33,18 +34,11 @@ class LegacyMajorCreditorAccountServiceTest {
 
     @Test
     void getHeaderSummary_postsLegacyRequestMapsResponseAndSetsVersion() {
-        GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
-            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
-                .majorCreditor(MajorCreditorLegacy.builder()
-                                   .creditorAccountId(123L)
-                                   .accountVersion(7L)
-                                   .build())
-                .build();
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse = legacyResponse();
         GetMajorCreditorAccountHeaderSummaryResponse mappedResponse =
             new GetMajorCreditorAccountHeaderSummaryResponse();
 
-        GetMajorCreditorAccountHeaderSummaryLegacyRequest expectedRequest =
-            GetMajorCreditorAccountHeaderSummaryLegacyRequest.builder().creditorAccountId("123").build();
+        GetMajorCreditorAccountHeaderSummaryLegacyRequest expectedRequest = legacyRequest();
 
         when(gatewayService.postToGateway(
             GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
@@ -66,5 +60,74 @@ class LegacyMajorCreditorAccountServiceTest {
             expectedRequest,
             null
         );
+    }
+
+    @Test
+    void getHeaderSummary_handlesGatewayExceptionResponse() {
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse = legacyResponse();
+        GetMajorCreditorAccountHeaderSummaryResponse mappedResponse =
+            new GetMajorCreditorAccountHeaderSummaryResponse();
+        GetMajorCreditorAccountHeaderSummaryLegacyRequest expectedRequest = legacyRequest();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            legacyResponse,
+            null,
+            new RuntimeException("Gateway error")
+        ));
+        when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        GetMajorCreditorAccountHeaderSummaryResponse result =
+            legacyMajorCreditorAccountService.getHeaderSummary(123L);
+
+        assertSame(mappedResponse, result);
+        assertEquals(BigInteger.valueOf(7), result.getVersion());
+        verify(headerSummaryResponseMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void getHeaderSummary_handlesLegacyFailureResponse() {
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse = legacyResponse();
+        GetMajorCreditorAccountHeaderSummaryResponse mappedResponse =
+            new GetMajorCreditorAccountHeaderSummaryResponse();
+        GetMajorCreditorAccountHeaderSummaryLegacyRequest expectedRequest = legacyRequest();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            legacyResponse,
+            "<legacyFailure/>",
+            null
+        ));
+        when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        GetMajorCreditorAccountHeaderSummaryResponse result =
+            legacyMajorCreditorAccountService.getHeaderSummary(123L);
+
+        assertSame(mappedResponse, result);
+        assertEquals(BigInteger.valueOf(7), result.getVersion());
+        verify(headerSummaryResponseMapper).toOpal(legacyResponse);
+    }
+
+    private GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse() {
+        return GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+            .majorCreditor(MajorCreditorLegacy.builder()
+                               .creditorAccountId(123L)
+                               .accountVersion(7L)
+                               .build())
+            .build();
+    }
+
+    private GetMajorCreditorAccountHeaderSummaryLegacyRequest legacyRequest() {
+        return GetMajorCreditorAccountHeaderSummaryLegacyRequest.builder().creditorAccountId("123").build();
     }
 }
