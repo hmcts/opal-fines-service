@@ -25,7 +25,7 @@ public class CentralFundService {
     private final CreditorAccountRepository creditorAccountRepository;
 
     @Transactional(readOnly = true)
-    public CentralFundResponse getCentralFundByBusinessUnit(Integer businessUnitId, String authHeaderValue) {
+    public CentralFundResponse getCentralFundByBusinessUnit(int businessUnitId, String authHeaderValue) {
         log.debug(":getCentralFundByBusinessUnit: businessUnitId={}", businessUnitId);
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -46,14 +46,11 @@ public class CentralFundService {
             .build();
     }
 
-    private Short toBusinessUnitId(Integer businessUnitId) {
-        if (businessUnitId == null) {
-            throw new IllegalArgumentException("Business unit id must be provided");
-        }
+    private Short toBusinessUnitId(int businessUnitId) {
         if (businessUnitId < Short.MIN_VALUE || businessUnitId > Short.MAX_VALUE) {
             throw new IllegalArgumentException("Business unit id is out of range: " + businessUnitId);
         }
-        return businessUnitId.shortValue();
+        return (short) businessUnitId;
     }
 
     private GetCentralFundByBusinessUnit200Response toPayload(CentralFundProjection centralFund) {

@@ -30,7 +30,7 @@ public class CentralFundController {
     )
     @GetMapping(value = "/central-funds/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GetCentralFundByBusinessUnit200Response> getCentralFundByBusinessUnit(
-        @PathVariable("id") Integer businessUnitId,
+        @PathVariable("id") int businessUnitId,
         @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeaderValue) {
 
         log.debug(":GET:getCentralFundByBusinessUnit: businessUnitId={}", businessUnitId);
