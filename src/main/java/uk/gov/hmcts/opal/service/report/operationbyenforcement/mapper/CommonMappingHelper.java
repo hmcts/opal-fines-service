@@ -1,13 +1,13 @@
 package uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper;
 
+import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA_DELIMINATOR;
+import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.EMPTY_STRING;
+
 import org.mapstruct.Named;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.service.report.CommonReportStringConstants;
 
 public interface CommonMappingHelper {
-
-    String YES = "Y";
-    String NO = "N";
-    String EMPTY_STRING = "";
 
     default String buildDefendantName(PartyEntity party) {
         if (party.isOrganisation()) {
@@ -15,7 +15,7 @@ public interface CommonMappingHelper {
         }
         String surname = party.getSurname() == null ? EMPTY_STRING : party.getSurname();
         String forenames = party.getForenames() == null ? EMPTY_STRING : party.getForenames();
-        return forenames.isBlank() ? surname : surname + ", " + forenames;
+        return forenames.isBlank() ? surname : surname + COMMA_DELIMINATOR + forenames;
     }
 
     default String truncate34(String value) {
@@ -26,7 +26,15 @@ public interface CommonMappingHelper {
 
     @Named("booleanToYesNo")
     default String booleanToYesNo(Boolean value) {
-        return value == null ? null : (value ? YES : NO);
+        return value == null
+            ? null
+            : (value
+               ? CommonReportStringConstants.YES
+                : CommonReportStringConstants.NO);
     }
 
+    @Named("organisationToYesNo")
+    default String organisationToYesNo(PartyEntity party) {
+        return booleanToYesNo(party.isOrganisation());
+    }
 }

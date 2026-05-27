@@ -15,12 +15,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.ImpositionTotalsDto;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 
 @Service
+@Slf4j(topic = "opal.ImpositionService")
 @AllArgsConstructor
 public class ImpositionService {
 
@@ -43,6 +45,7 @@ public class ImpositionService {
     private final ImpositionRepository impositionRepository;
 
     public ImpositionTotalsDto getAccountImpositionTotals(long defendantAccountId) {
+        log.debug(":getAccountImpositionTotals:");
         List<ImpositionEntity> impositions =
             impositionRepository.findAllByDefendantAccountId(defendantAccountId);
         if (impositions.isEmpty()) {
@@ -69,6 +72,16 @@ public class ImpositionService {
             .build();
     }
 
+    public LocalDate getEarliestImpositionDate(Long defendantAccountId) {
+        log.debug(":getEarliestImpositionDate:");
+        ImpositionEntity entity =
+            impositionRepository.findFirstByDefendantAccountIdOrderByImposedDateAsc(defendantAccountId);
+        if (entity == null || entity.getImposedDate() == null) {
+            return null;
+        }
+        return entity.getImposedDate().toLocalDate();
+    }
+
     private BigDecimal calculateCostImposition(Map<String, BigDecimal> totalsByResultId) {
         return totalsByResultId.getOrDefault(FCPC_VALUE, BigDecimal.ZERO)
             .add(totalsByResultId.getOrDefault(FCOST_VALUE, BigDecimal.ZERO));
@@ -79,14 +92,5 @@ public class ImpositionService {
             .filter(entry -> !OPERATIONAL_REPORT_OTHER_IMPOSITION_EXCLUSIONS.contains(entry.getKey()))
             .map(Map.Entry::getValue)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    public LocalDate getEarliestImpositionDate(Long defendantAccountId) {
-        ImpositionEntity entity =
-            impositionRepository.findFirstByDefendantAccountIdOrderByImposedDateAsc(defendantAccountId);
-        if (entity == null || entity.getImposedDate() == null) {
-            return null;
-        }
-        return entity.getImposedDate().toLocalDate();
     }
 }

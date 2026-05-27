@@ -21,7 +21,7 @@ public interface DetailedRowDtoCoreMapper extends CommonMappingHelper {
     @Mapping(target = "balance", source = "entity.accountBalance")
     OperationByEnforcementDetailedReportAccountRowDto map(DefendantAccountEntity entity, ReportMetadataContext context);
 
-    @Mapping(target = "company", expression = "java(party.isOrganisation() ? YES : NO)")
+    @Mapping(target = "company", source = ".", qualifiedByName = "organisationToYesNo")
     @Mapping(target = "defendantName", expression = "java(truncate34(buildDefendantName(party)))")
     @Mapping(target = "dateOfBirth", source = "birthDate")
     @Mapping(target = "address1", source = "addressLine1")

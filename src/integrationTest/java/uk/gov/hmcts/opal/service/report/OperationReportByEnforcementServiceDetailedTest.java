@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
@@ -115,43 +116,45 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             .orElseThrow();
 
         OperationByEnforcementDetailedReportAccountRowDto account = report.getAccountRow();
-        assertThat(account.getHeader1()).isEqualTo("ACCOUNT");
-        assertThat(account.getCompany()).isEqualTo("N");
-        assertThat(account.getDefendantName()).isEqualTo("Graham, Anna");
-        assertThat(account.getAccountNo()).isEqualTo("177A");
-        assertThat(account.getDateOfBirth()).isEqualTo(LocalDate.of(1980, 2, 3));
-        assertThat(account.getAddress1()).isEqualTo("Lumber House");
-        assertThat(account.getAddress2()).isEqualTo("77 Gordon Road");
-        assertThat(account.getAddress3()).isEqualTo("Maidstone, Kent");
-        assertThat(account.getPostcode()).isEqualTo("MA4 1AL");
-        assertThat(account.getEmployeeRef()).isEqualTo("EMPREF77");
-        assertThat(account.getEmployerName()).isEqualTo("Tesco Ltd");
-        assertThat(account.getEmployerAddress1()).isEqualTo("123 Employer Road");
-        assertThat(account.getEmployerAddress2()).isEqualTo("Employer Lane");
-        assertThat(account.getEmployerAddress3()).isEqualTo("London Borough");
-        assertThat(account.getEmployerAddress4()).isEqualTo("London");
-        assertThat(account.getEmployerAddress5()).isEqualTo("England");
-        assertThat(account.getEmployerPostcode()).isEqualTo("EMP1 2AA");
-        assertThat(account.getEmployerTel()).isEqualTo("02079997777");
-        assertThat(account.getEmployerEmail()).isEqualTo("employer77@company.com");
-        assertThat(account.getCollectionOrder()).isEqualTo("Y");
-        assertThat(account.getLastMovementDate()).isEqualTo(LocalDate.of(2024, 1, 2));
-        assertThat(account.getDateOfHearing()).isEqualTo(LocalDate.of(2023, 11, 3));
-        assertThat(account.getImposingCourt()).isEqualTo("AAA Test Court");
-        assertThat(account.getPaymentTerms()).isEqualTo("12/10/2025");
-        assertThat(account.getAmountImposed()).isEqualByComparingTo("700.58");
-        assertThat(account.getBalance()).isEqualByComparingTo("-500.58");
-        assertThat(account.getArrearsTotal()).isEqualByComparingTo("500.58");
-        assertThat(account.getFineImpositions()).isEqualByComparingTo("120.00");
-        assertThat(account.getCostImpositions()).isEqualByComparingTo("100.00");
-        assertThat(account.getCompensationImpositions()).isEqualByComparingTo("50.00");
-        assertThat(account.getCriminalCourtsChargeImpositions()).isEqualByComparingTo("301.80");
-        assertThat(account.getVictimSurchargeImpositions()).isEqualByComparingTo("150.00");
-        assertThat(account.getOtherImpositions()).isEqualByComparingTo("404.40");
-        assertThat(account.getProsecutorCaseReference()).isEqualTo("090A");
-        assertThat(account.getParentOrGuardian()).isEqualTo("N");
+        assertAll("account row",
+            () -> assertThat(account.getHeader1()).isEqualTo("ACCOUNT"),
+            () -> assertThat(account.getCompany()).isEqualTo("N"),
+            () -> assertThat(account.getDefendantName()).isEqualTo("Graham, Anna"),
+            () -> assertThat(account.getAccountNo()).isEqualTo("177A"),
+            () -> assertThat(account.getDateOfBirth()).isEqualTo(LocalDate.of(1980, 2, 3)),
+            () -> assertThat(account.getAddress1()).isEqualTo("Lumber House"),
+            () -> assertThat(account.getAddress2()).isEqualTo("77 Gordon Road"),
+            () -> assertThat(account.getAddress3()).isEqualTo("Maidstone, Kent"),
+            () -> assertThat(account.getPostcode()).isEqualTo("MA4 1AL"),
+            () -> assertThat(account.getEmployeeRef()).isEqualTo("EMPREF77"),
+            () -> assertThat(account.getEmployerName()).isEqualTo("Tesco Ltd"),
+            () -> assertThat(account.getEmployerAddress1()).isEqualTo("123 Employer Road"),
+            () -> assertThat(account.getEmployerAddress2()).isEqualTo("Employer Lane"),
+            () -> assertThat(account.getEmployerAddress3()).isEqualTo("London Borough"),
+            () -> assertThat(account.getEmployerAddress4()).isEqualTo("London"),
+            () -> assertThat(account.getEmployerAddress5()).isEqualTo("England"),
+            () -> assertThat(account.getEmployerPostcode()).isEqualTo("EMP1 2AA"),
+            () -> assertThat(account.getEmployerTel()).isEqualTo("02079997777"),
+            () -> assertThat(account.getEmployerEmail()).isEqualTo("employer77@company.com"),
+            () -> assertThat(account.getCollectionOrder()).isEqualTo("Y"),
+            () -> assertThat(account.getLastMovementDate()).isEqualTo(LocalDate.of(2024, 1, 2)),
+            () -> assertThat(account.getDateOfHearing()).isEqualTo(LocalDate.of(2023, 11, 3)),
+            () -> assertThat(account.getImposingCourt()).isEqualTo("AAA Test Court"),
+            () -> assertThat(account.getPaymentTerms()).isEqualTo("12/10/2025"),
+            () -> assertThat(account.getAmountImposed()).isEqualByComparingTo("700.58"),
+            () -> assertThat(account.getBalance()).isEqualByComparingTo("-500.58"),
+            () -> assertThat(account.getArrearsTotal()).isEqualByComparingTo("500.58"),
+            () -> assertThat(account.getFineImpositions()).isEqualByComparingTo("120.00"),
+            () -> assertThat(account.getCostImpositions()).isEqualByComparingTo("100.00"),
+            () -> assertThat(account.getCompensationImpositions()).isEqualByComparingTo("50.00"),
+            () -> assertThat(account.getCriminalCourtsChargeImpositions()).isEqualByComparingTo("301.80"),
+            () -> assertThat(account.getVictimSurchargeImpositions()).isEqualByComparingTo("150.00"),
+            () -> assertThat(account.getOtherImpositions()).isEqualByComparingTo("404.40"),
+            () -> assertThat(account.getProsecutorCaseReference()).isEqualTo("090A"),
+            () -> assertThat(account.getParentOrGuardian()).isEqualTo("N")
+        );
 
-        assertThat(report.getTransactionRows()).isEqualTo(List.of(
+        Assertions.assertThat(report.getTransactionRows()).containsExactly(
             OperationByEnforcementDetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
                 .consolidatedAccountNo("ConsolidatedAcc")
@@ -168,7 +171,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("50.00"))
                 .build()
-        ));
+        );
         verifyMetadata(result);
     }
 

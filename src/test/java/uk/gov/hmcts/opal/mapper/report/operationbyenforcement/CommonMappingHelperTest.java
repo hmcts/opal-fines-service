@@ -1,11 +1,15 @@
 package uk.gov.hmcts.opal.mapper.report.operationbyenforcement;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.service.report.CommonReportStringConstants;
 import uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.CommonMappingHelper;
 
 class CommonMappingHelperTest {
@@ -76,16 +80,25 @@ class CommonMappingHelperTest {
 
     @Test
     void booleanToYesNo_whenTrue_returnsY() {
-        assertThat(helper.booleanToYesNo(true)).isEqualTo(CommonMappingHelper.YES);
+        assertThat(helper.booleanToYesNo(true)).isEqualTo(CommonReportStringConstants.YES);
     }
 
     @Test
     void booleanToYesNo_whenFalse_returnsN() {
-        assertThat(helper.booleanToYesNo(false)).isEqualTo(CommonMappingHelper.NO);
+        assertThat(helper.booleanToYesNo(false)).isEqualTo(CommonReportStringConstants.NO);
     }
 
     @Test
     void booleanToYesNo_whenNull_returnsNull() {
         assertThat(helper.booleanToYesNo(null)).isNull();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true, Y", "false, N"})
+    void organisationToYesNo_returnsExpectedValue(boolean isOrganisation, String expected) {
+        PartyEntity party = mock(PartyEntity.class);
+        given(party.isOrganisation()).willReturn(isOrganisation);
+        String result = helper.organisationToYesNo(party);
+        assertThat(result).isEqualTo(expected);
     }
 }

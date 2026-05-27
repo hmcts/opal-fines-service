@@ -2,8 +2,6 @@ package uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper;
 
 import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.DEFENDANT;
 import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_GUARDIAN;
-import static uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.CommonMappingHelper.NO;
-import static uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.CommonMappingHelper.YES;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +14,7 @@ import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.report.CommonReportStringConstants;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @Service
@@ -100,6 +99,6 @@ public class CommonRowMappingHelper {
         boolean hasParentGuardian = entity.getParties().stream()
             .filter(Objects::nonNull)
             .anyMatch(p -> PARENT_GUARDIAN.equals(p.getAssociationType()));
-        return hasParentGuardian ? YES : NO;
+        return hasParentGuardian ? CommonReportStringConstants.YES : CommonReportStringConstants.NO;
     }
 }

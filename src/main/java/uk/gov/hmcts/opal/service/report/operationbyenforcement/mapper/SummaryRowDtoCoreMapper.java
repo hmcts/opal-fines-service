@@ -22,7 +22,7 @@ public interface SummaryRowDtoCoreMapper extends CommonMappingHelper {
     @Mapping(target = "lastEnforcementDate", ignore = true)
     OperationByEnforcementSummaryReportRowDto map(DefendantAccountEntity entity, ReportMetadataContext context);
 
-    @Mapping(target = "company", expression = "java(party.isOrganisation() ? YES : NO)")
+    @Mapping(target = "company", source = ".", qualifiedByName = "organisationToYesNo")
     @Mapping(target = "defendantName", expression = "java(truncate34(buildDefendantName(party)))")
     @Mapping(target = "dateOfBirth", source = "birthDate")
     @Mapping(target = "nationalInsuranceNo", source = "niNumber")
