@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
@@ -69,7 +70,7 @@ public class OpalDefendantAccountHistoryService {
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         log.debug(":getHistorySources: Opal mode - ID: {}", defendantAccountId);
 
-        defendantAccountRepository.findByDefendantAccountId(defendantAccountId)
+        DefendantAccountEntity defendantAccount = defendantAccountRepository.findByDefendantAccountId(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + defendantAccountId));
 
         DefendantAccountHistorySources sources = DefendantAccountHistorySources.builder()
@@ -81,6 +82,7 @@ public class OpalDefendantAccountHistoryService {
             .build();
 
         return DefendantAccountHistoryResponse.builder()
+            .version(defendantAccount.getVersion())
             .historyItems(toHistoryItems(sources))
             .build();
     }
@@ -113,7 +115,7 @@ public class OpalDefendantAccountHistoryService {
             return List.of();
         }
 
-        return amendmentRepository.findAll(Specification.allOf(
+        return amendmentRepository.findAll(allOf(
             amendmentForDefendantAccount(defendantAccountId),
             amendmentDateFrom(filter.getDateFrom()),
             amendmentDateTo(filter.getDateTo())
@@ -125,7 +127,7 @@ public class OpalDefendantAccountHistoryService {
             return List.of();
         }
 
-        return enforcementRepository.findAll(Specification.allOf(
+        return enforcementRepository.findAll(allOf(
             enforcementForDefendantAccount(defendantAccountId),
             enforcementDateFrom(filter.getDateFrom()),
             enforcementDateTo(filter.getDateTo())
@@ -137,11 +139,11 @@ public class OpalDefendantAccountHistoryService {
             return List.of();
         }
 
-        return noteRepository.findAll(Specification.allOf(
-            noteForDefendantAccount(defendantAccountId),
-            noteDateFrom(filter.getDateFrom()),
-            noteDateTo(filter.getDateTo())
-        ));
+        return noteRepository.findDefendantAccountHistoryNotes(
+            defendantAccountId.toString(),
+            filter.getDateFrom(),
+            filter.getDateTo()
+        );
     }
 
     private List<PaymentTermsEntity> getPaymentTerms(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
@@ -149,7 +151,7 @@ public class OpalDefendantAccountHistoryService {
             return List.of();
         }
 
-        return paymentTermsRepository.findAll(Specification.allOf(
+        return paymentTermsRepository.findAll(allOf(
             paymentTermsForDefendantAccount(defendantAccountId),
             paymentTermsDateFrom(filter.getDateFrom()),
             paymentTermsDateTo(filter.getDateTo())
@@ -162,7 +164,7 @@ public class OpalDefendantAccountHistoryService {
             return List.of();
         }
 
-        return defendantTransactionRepository.findAll(Specification.allOf(
+        return defendantTransactionRepository.findAll(allOf(
             transactionForDefendantAccount(defendantAccountId),
             transactionDateFrom(filter.getDateFrom()),
             transactionDateTo(filter.getDateTo())
@@ -196,24 +198,6 @@ public class OpalDefendantAccountHistoryService {
     }
 
     private Specification<EnforcementEntity> enforcementDateTo(LocalDate dateTo) {
-        return dateTo == null ? null
-            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
-    }
-
-    private Specification<NoteEntity> noteForDefendantAccount(Long defendantAccountId) {
-        return (root, query, builder) -> builder.and(
-            builder.equal(root.get("associatedRecordType"), AssociatedRecordType.DEFENDANT_ACCOUNTS),
-            builder.equal(root.get("associatedRecordId"), defendantAccountId.toString()),
-            builder.equal(root.get("noteType"), NoteType.AA)
-        );
-    }
-
-    private Specification<NoteEntity> noteDateFrom(LocalDate dateFrom) {
-        return dateFrom == null ? null
-            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), atStartOfDay(dateFrom));
-    }
-
-    private Specification<NoteEntity> noteDateTo(LocalDate dateTo) {
         return dateTo == null ? null
             : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
     }
@@ -253,6 +237,13 @@ public class OpalDefendantAccountHistoryService {
 
     private LocalDateTime dayAfterStart(LocalDate date) {
         return date.plusDays(1).atStartOfDay();
+    }
+
+    @SafeVarargs
+    private final <T> Specification<T> allOf(Specification<T>... specifications) {
+        return Specification.allOf(Stream.of(specifications)
+            .filter(specification -> specification != null)
+            .toList());
     }
 
     @Value
