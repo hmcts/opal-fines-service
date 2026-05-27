@@ -20,8 +20,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200Response;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200ResponseMajorCreditor;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponseMajorCreditor;
 import uk.gov.hmcts.opal.repository.CentralFundProjection;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
@@ -53,8 +53,8 @@ class CentralFundServiceTest {
 
         CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER);
 
-        GetCentralFundByBusinessUnit200Response payload = response.getPayload();
-        GetCentralFundByBusinessUnit200ResponseMajorCreditor majorCreditor = payload.getMajorCreditor();
+        GetCentralFundResponse payload = response.getPayload();
+        GetCentralFundResponseMajorCreditor majorCreditor = payload.getMajorCreditor();
 
         assertEquals(123L, majorCreditor.getCreditorAccountId());
         assertEquals("CF123", majorCreditor.getAccountNumber());

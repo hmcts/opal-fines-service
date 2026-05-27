@@ -15,8 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200Response;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200ResponseMajorCreditor;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponseMajorCreditor;
 import uk.gov.hmcts.opal.service.CentralFundService;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,7 +32,7 @@ class CentralFundControllerTest {
 
     @Test
     void getCentralFundByBusinessUnit_whenFeatureEnabled_returnsPayloadWithEtag() {
-        GetCentralFundByBusinessUnit200Response payload = centralFundPayload();
+        GetCentralFundResponse payload = centralFundPayload();
         CentralFundResponse serviceResponse = CentralFundResponse.builder()
             .payload(payload)
             .version(BigInteger.valueOf(7))
@@ -40,7 +40,7 @@ class CentralFundControllerTest {
 
         when(centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER)).thenReturn(serviceResponse);
 
-        ResponseEntity<GetCentralFundByBusinessUnit200Response> response =
+        ResponseEntity<GetCentralFundResponse> response =
             centralFundController.getCentralFundByBusinessUnit(70, AUTH_HEADER);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -49,9 +49,9 @@ class CentralFundControllerTest {
         verify(centralFundService).getCentralFundByBusinessUnit(70, AUTH_HEADER);
     }
 
-    private GetCentralFundByBusinessUnit200Response centralFundPayload() {
-        return GetCentralFundByBusinessUnit200Response.builder()
-            .majorCreditor(GetCentralFundByBusinessUnit200ResponseMajorCreditor.builder()
+    private GetCentralFundResponse centralFundPayload() {
+        return GetCentralFundResponse.builder()
+            .majorCreditor(GetCentralFundResponseMajorCreditor.builder()
                 .creditorAccountId(123L)
                 .accountNumber("CF123")
                 .name("Central Fund")

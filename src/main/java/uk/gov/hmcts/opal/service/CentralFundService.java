@@ -11,8 +11,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200Response;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200ResponseMajorCreditor;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponseMajorCreditor;
 import uk.gov.hmcts.opal.repository.CentralFundProjection;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
@@ -53,9 +53,9 @@ public class CentralFundService {
         return (short) businessUnitId;
     }
 
-    private GetCentralFundByBusinessUnit200Response toPayload(CentralFundProjection centralFund) {
-        return GetCentralFundByBusinessUnit200Response.builder()
-            .majorCreditor(GetCentralFundByBusinessUnit200ResponseMajorCreditor.builder()
+    private GetCentralFundResponse toPayload(CentralFundProjection centralFund) {
+        return GetCentralFundResponse.builder()
+            .majorCreditor(GetCentralFundResponseMajorCreditor.builder()
                 .creditorAccountId(centralFund.getCreditorAccountId())
                 .accountNumber(centralFund.getAccountNumber())
                 .name(centralFund.getName())

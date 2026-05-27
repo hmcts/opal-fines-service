@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
-import uk.gov.hmcts.opal.generated.model.GetCentralFundByBusinessUnit200Response;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
 import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -29,7 +29,7 @@ public class CentralFundController {
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
     @GetMapping(value = "/central-funds/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetCentralFundByBusinessUnit200Response> getCentralFundByBusinessUnit(
+    public ResponseEntity<GetCentralFundResponse> getCentralFundByBusinessUnit(
         @PathVariable("id") int businessUnitId,
         @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeaderValue) {
 
