@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAdapter;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.io.ByteArrayInputStream;
@@ -39,6 +40,7 @@ public class JsonSchemaValidationAdvice extends RequestBodyAdviceAdapter {
         JsonSchemaValidated annotation = parameter.getParameterAnnotation(JsonSchemaValidated.class);
         if (annotation != null) {
             String schemaPath = annotation.schemaPath();
+            rejectTimelineDataForDraftAccountRequests(body, schemaPath);
             jsonSchemaValidationService.validateOrError(body, schemaPath);
         }
 
@@ -53,5 +55,15 @@ public class JsonSchemaValidationAdvice extends RequestBodyAdviceAdapter {
                 return new ByteArrayInputStream(bodyBytes);
             }
         };
+    }
+
+    private static void rejectTimelineDataForDraftAccountRequests(String body, String schemaPath) {
+        if (schemaPath.contains("draft-account")
+            && (schemaPath.contains("addDraftAccountRequest")
+            || schemaPath.contains("replaceDraftAccountRequest")
+            || schemaPath.contains("updateDraftAccountRequest"))
+            && body.contains("\"timeline_data\"")) {
+            throw new JsonSchemaValidationException("timeline_data is not allowed in draft account requests");
+        }
     }
 }

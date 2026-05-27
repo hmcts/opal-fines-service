@@ -15,6 +15,8 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.CourtControllerIntegrationTest")
@@ -44,6 +47,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get court by ID - When court does exist [@PO-272, @PO-424]")
+    @JiraStory("PO-272")
+    @JiraStory("PO-424")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5805")
     void testGetCourtById() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/7")
@@ -68,6 +75,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get court by ID - When court does not exist [@PO-272, @PO-424]")
+    @JiraStory("PO-272")
+    @JiraStory("PO-424")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5808")
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
@@ -81,6 +92,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post search courts - Should return matching court when one exists [@PO-272, @PO-424]")
+    @JiraStory("PO-272")
+    @JiraStory("PO-424")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5806")
     void testPostCourtsSearch() throws Exception {
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
@@ -107,6 +122,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Post search courts - When court does not exist [@PO-272, @PO-424]")
+    @JiraStory("PO-272")
+    @JiraStory("PO-424")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5807")
     void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
@@ -121,6 +140,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get court reference data - Should return court ref data when available [@PO-272, @PO-424]")
+    @JiraStory("PO-272")
+    @JiraStory("PO-424")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5809")
     void testGetCourtRefData() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)

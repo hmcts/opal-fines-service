@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -23,6 +25,8 @@ class ResultControllerRelease1aDisabledIntegrationTest extends AbstractIntegrati
 
     @Test
     @DisplayName("GET /results is unavailable when release-1a is disabled")
+    @JiraStory("PO-3765")
+    @JiraEpic("PO-3685")
     void getResults_returnsFeatureDisabledWhenRelease1aDisabled() throws Exception {
         mockMvc.perform(get("/results"))
             .andExpect(status().isMethodNotAllowed())

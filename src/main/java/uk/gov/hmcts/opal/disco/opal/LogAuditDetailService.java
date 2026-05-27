@@ -1,6 +1,10 @@
 package uk.gov.hmcts.opal.disco.opal;
 
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -15,10 +19,6 @@ import uk.gov.hmcts.opal.repository.LogAuditDetailRepository;
 import uk.gov.hmcts.opal.repository.jpa.LogAuditDetailSpecs;
 import uk.gov.hmcts.opal.disco.LogAuditDetailServiceInterface;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Qualifier("logAuditDetailService")
@@ -29,6 +29,8 @@ public class LogAuditDetailService implements LogAuditDetailServiceInterface {
     private final LogActionRepository logActionRepository;
 
     private final BusinessUnitRepository businessUnitRepository;
+
+    private final Clock clock;
 
     private final LogAuditDetailSpecs specs = new LogAuditDetailSpecs();
 
@@ -58,7 +60,7 @@ public class LogAuditDetailService implements LogAuditDetailServiceInterface {
             .businessUnit(Optional.ofNullable(dto.getBusinessUnitId())
                               .map(businessUnitRepository::getReferenceById).orElse(null))
             .jsonRequest(dto.getJsonRequest())
-            .logTimestamp(LocalDateTime.now())
+            .logTimestamp(LocalDateTime.now(clock))
             .build();
     }
 

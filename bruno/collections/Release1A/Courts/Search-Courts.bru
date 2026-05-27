@@ -1,0 +1,34 @@
+meta {
+  name: Search Courts
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseURL}}/courts/search
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "courtCode": "",
+    "businessUnitId": "",
+    "localJusticeAreaId": "",
+    "courtType": "",
+    "division": "",
+    "addressLine1": "",
+    "addressLine2": "",
+    "addressLine3": "",
+    "postcode": ""
+  }
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

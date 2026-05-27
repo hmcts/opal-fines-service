@@ -13,12 +13,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsFixedPenaltyIntegrationTest")
 class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Fixed Penalty [@PO-1819]")
+    @JiraStory("PO-1819")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6021")
     void testGetDefendantAccountFixedPenalty() throws Exception {
         authoriseAllPermissions();
 
@@ -46,6 +52,9 @@ class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Fixed Penalty - 404 when not found [@PO-1819]")
+    @JiraStory("PO-1819")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6020")
     void testGetDefendantAccountFixedPenalty_NotFound() throws Exception {
         authoriseAllPermissions();
 

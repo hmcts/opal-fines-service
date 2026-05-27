@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
@@ -39,16 +39,17 @@ public class ResultController {
     );
 
     private final ResultService resultService;
-    private final FeatureToggleService featureToggleService;
+    private final FeatureToggleApi featureToggleApi;
 
-    public ResultController(ResultService resultService, FeatureToggleService featureToggleService) {
+    public ResultController(ResultService resultService, FeatureToggleApi featureToggleApi) {
         this.resultService = resultService;
-        this.featureToggleService = featureToggleService;
+        this.featureToggleApi = featureToggleApi;
     }
 
     @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the full ResultDto for the given resultId.")
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<ResultDto> getResultById(@PathVariable String resultId) {
 
         log.debug(":GET:getResultById: resultId: {}", resultId);
@@ -59,10 +60,7 @@ public class ResultController {
 
     @GetMapping
     @Operation(summary = "Returns all results or results for the given resultIds.")
-    @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1A,
-        defaultValueProperty = FeatureFlags.RELEASE_1A_DEFAULT_VALUE_PROPERTY
-    )
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<ResultReferenceDataResponse> getResults(
         @RequestParam MultiValueMap<String, String> requestParams,
         @RequestParam(name = "result_ids") Optional<List<String>> resultIds,
@@ -81,7 +79,7 @@ public class ResultController {
     }
 
     private void rejectFilteringWhenDisabled(MultiValueMap<String, String> requestParams) {
-        if (filteringRequested(requestParams) && !featureToggleService.isFeatureEnabled(FeatureFlags.RELEASE_1B)) {
+        if (filteringRequested(requestParams) && !featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1B)) {
             throw new FeatureDisabledException("Feature release-1b is not enabled for results filtering");
         }
     }

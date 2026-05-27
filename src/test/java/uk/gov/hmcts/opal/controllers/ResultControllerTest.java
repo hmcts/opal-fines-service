@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
@@ -34,7 +34,7 @@ class ResultControllerTest {
     private ResultService resultService;
 
     @Mock
-    private FeatureToggleService featureToggleService;
+    private FeatureToggleApi featureToggleApi;
 
     @InjectMocks
     private ResultController resultController;
@@ -102,7 +102,7 @@ class ResultControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(dto, response.getBody());
         verify(resultService).getResultsByIds(Optional.empty(), null, null, null, null, null);
-        verifyNoInteractions(featureToggleService);
+        verifyNoInteractions(featureToggleApi);
     }
 
     @Test
@@ -125,7 +125,7 @@ class ResultControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(dto, response.getBody());
         verify(resultService).getResultsByIds(resultIds, null, null, null, null, null);
-        verifyNoInteractions(featureToggleService);
+        verifyNoInteractions(featureToggleApi);
     }
 
     @ParameterizedTest
@@ -141,7 +141,7 @@ class ResultControllerTest {
         MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
         requestParams.add(filterParameter, "");
 
-        when(featureToggleService.isFeatureEnabled("release-1b")).thenReturn(false);
+        when(featureToggleApi.isFeatureEnabled("release-1b")).thenReturn(false);
 
         // Act
         FeatureDisabledException exception = assertThrows(FeatureDisabledException.class,
@@ -150,7 +150,7 @@ class ResultControllerTest {
 
         // Assert
         assertEquals("Feature release-1b is not enabled for results filtering", exception.getMessage());
-        verify(featureToggleService).isFeatureEnabled("release-1b");
+        verify(featureToggleApi).isFeatureEnabled("release-1b");
         verifyNoInteractions(resultService);
     }
 
@@ -169,7 +169,7 @@ class ResultControllerTest {
         requestParams.add("enforcement", "true");
         requestParams.add("enforcement_override", "false");
 
-        when(featureToggleService.isFeatureEnabled("release-1b")).thenReturn(true);
+        when(featureToggleApi.isFeatureEnabled("release-1b")).thenReturn(true);
         when(resultService.getResultsByIds(resultIds, true, true, false, true, false)).thenReturn(dto);
 
         // Act
@@ -179,7 +179,7 @@ class ResultControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(dto, response.getBody());
-        verify(featureToggleService).isFeatureEnabled("release-1b");
+        verify(featureToggleApi).isFeatureEnabled("release-1b");
         verify(resultService).getResultsByIds(resultIds, true, true, false, true, false);
     }
 

@@ -21,6 +21,9 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -42,6 +45,11 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get result by ID - validates all fields populated [@PO-703, PO-304, PO-2449]")
+    @JiraStory("PO-703")
+    @JiraStory("PO-304")
+    @JiraStory("PO-2449")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6272")
     void testGetResultById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/BBBBBB"));
 
@@ -81,6 +89,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("No results returned when result does not exist [@PO-703, PO-304]")
+    @JiraStory("PO-703")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6255")
     void testGetResultById_WhenResultDoesNotExist() throws Exception {
         mockMvc.perform(get("/api/result/xyz"))
             .andExpect(status().isNotFound());
@@ -88,6 +100,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get all results from endpoint [@PO-703, PO-304]")
+    @JiraStory("PO-703")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6270")
     void testGetResultsRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE));
 
@@ -107,6 +123,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get results by multiple IDs [@PO-703, PO-304]")
+    @JiraStory("PO-703")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6254")
     void testGetResultsByIds() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=AAAAAA,BWTD"));
@@ -127,6 +147,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get results by multiple IDs [@PO-703, PO-304]")
+    @JiraStory("PO-703")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6271")
     void testGetResultsByIdsMultipleIds() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=AAAAAA,DDDDDD"));
@@ -147,6 +171,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get result by single ID and validate result_parameters JSON")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6257")
     void testGetSingleResultAndParameters() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=DDDDDD"));
@@ -170,6 +197,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get results by ids with unknown id returns only known results")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6269")
     void testGetResultsWithUnknownId() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=AAAAAA,UNKNOWN_ID"));
@@ -187,6 +217,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get results by IDs with generates_hearing filter returns only those with generates_hearing=true")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6261")
     void testGetResultsWithGeneratesHearingFilter() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE
@@ -206,6 +239,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get all active results when active=true")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6275")
     void testGetResultsActiveFilter() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?active=true"));
@@ -223,6 +259,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Generates hearing: generates_hearing=true returns those that generate hearings")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6260")
     void testGeneratesHearingTrue() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?generates_hearing=true"));
 
@@ -240,6 +279,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Generates hearing: generates_hearing=false returns those that do NOT generate hearings")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6273")
     void testGeneratesHearingFalse() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?generates_hearing=false"));
 
@@ -257,6 +299,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Generates hearing omitted (null) returns all")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6259")
     void testGeneratesHearingNull() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE));
 
@@ -272,6 +317,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Manual enforcement: manual_enforcement_only=true returns those with manual_enforcement=true")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6264")
     void testManualEnforcementTrue() throws Exception {
         // AAAAAA and DDDDDD have manual_enforcement = true
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?manual_enforcement_only=true"));
@@ -287,6 +335,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Manual enforcement: manual_enforcement_only=false returns those with manual_enforcement=false")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6265")
     void testManualEnforcementFalse() throws Exception {
         // BBBBBB and CC0000 have manual_enforcement = false
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?manual_enforcement_only=false"));
@@ -302,6 +353,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Manual enforcement omitted returns all")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6263")
     void testManualEnforcementNull() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE));
 
@@ -317,6 +371,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Enforcement: enforcement=true returns those with enforcement=true")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6267")
     void testEnforcementTrue() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?enforcement=true"));
 
@@ -334,6 +391,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Enforcement: enforcement=false returns those with enforcement=false")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6258")
     void testEnforcementFalse() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?enforcement=false"));
 
@@ -351,6 +411,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Enforcement omitted returns all")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6266")
     void testEnforcementNull() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE));
 
@@ -366,6 +429,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Mixed booleans: active=true & enforcement=true returns intersection")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6274")
     void testMixedActiveAndEnforcement() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?active=true&enforcement=true"));
 
@@ -384,6 +450,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Mixed booleans: active=true & manual_enforcement_only=true & enforcement=true "
         + "returns single AAAAAA from a constrained set")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6262")
     void testMixedThreeBooleansReturnsSingle() throws Exception {
         // Within this constrained set, only AAAAAA satisfies all three filters.
         ResultActions actions = mockMvc.perform(get(URL_BASE
@@ -402,6 +471,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Get results with empty result_ids parameter returns all results")
+    @JiraStory("PO-1771")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6268")
     void testGetResultsWithEmptyResultIdsReturnsAll() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids="));
@@ -427,6 +499,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Enforcement override: enforcement_override=true returns only those with enforcement_override=true")
+    @JiraStory("PO-1852")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6256")
     void testEnforcementOverrideTrue() throws Exception {
         // Use real IDs: NBWT has enforcement_override = true, NAP has enforcement_override = false
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=NBWT,NAP&enforcement_override=true"));
@@ -446,6 +521,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Enforcement override: enforcement_override=false returns only those with enforcement_override=false")
+    @JiraStory("PO-1852")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6253")
     void testEnforcementOverrideFalse() throws Exception {
         // Use real IDs: NBWT (true) and NAP (false) — expect only NAP when enforcement_override=false
         ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=NBWT,NAP&enforcement_override=false"));

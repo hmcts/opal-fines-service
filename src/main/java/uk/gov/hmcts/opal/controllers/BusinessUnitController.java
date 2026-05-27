@@ -1,7 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.PermissionUtil.filterBusinessUnitsByPermission;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,18 +19,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
-import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.PermissionUtil.filterBusinessUnitsByPermission;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 
 @RestController
@@ -45,6 +46,7 @@ public class BusinessUnitController {
 
     @GetMapping(value = "/{businessUnitId}")
     @Operation(summary = "Returns the BusinessUnit for the given businessUnitId.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Short businessUnitId) {
 
         log.debug(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
@@ -67,13 +69,14 @@ public class BusinessUnitController {
 
     @GetMapping
     @Operation(summary = "Returns Business Units as reference data with an optional filter applied")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<BusinessUnitReferenceDataResults> getBusinessUnitRefData(
         @RequestParam("q") Optional<String> filter, @RequestParam Optional<FinesPermission> permission,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
 
-        List<BusinessUnitReferenceData> refData =  filterBusinessUnitsByPermission(
+        List<BusinessUnitReferenceData> refData = filterBusinessUnitsByPermission(
             userStateService, businessUnitService.getReferenceData(filter), permission, authHeaderValue);
 
         log.debug(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());

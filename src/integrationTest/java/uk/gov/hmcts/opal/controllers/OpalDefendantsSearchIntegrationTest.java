@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
@@ -24,9 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -39,6 +36,9 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -52,10 +52,6 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     UserStateService userStateService;
-
-    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
-    @Autowired
-    JdbcTemplate jdbcTemplate;
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
@@ -75,6 +71,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search defendant accounts – POST with valid criteria (seed id=77)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6092")
     void testPostDefendantAccountsSearch_Opal(boolean consolidated) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
         ResultActions actions = mockMvc.perform(
@@ -103,6 +102,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search defendant accounts – POST no matches (different BU)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6084")
     void testPostDefendantAccountsSearch_Opal_NoResults(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -141,6 +143,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search by exact name + BU = 1 match (seed id=77)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6157")
     void testPostDefendantAccountsSearch_Opal_ByNameAndBU(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -182,6 +187,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Postcode match ignores spaces/hyphens (MA4 1AL vs MA41AL)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6105")
     void testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -224,6 +232,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("OPAL: Account number 'starts with' (177*) — consolidated search excludes zero-balance matches")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6148")
     void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith_ConsolidatedExcludesZeroBalance(
         boolean consolidation,
         int count)
@@ -264,6 +275,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: PCR exact (090A)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6142")
     void testPostDefendantAccountsSearch_Opal_PcrExact(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -295,6 +309,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: PCR no match -> 0 records")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6113")
     void testPostDefendantAccountsSearch_Opal_PcrNoMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -324,6 +341,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6152")
     void testPostDefendantAccountsSearch_Opal_NiStartsWith(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -365,6 +385,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Address line 1 starts-with (\"Lumber\") -> 1 record")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6090")
     void testPostDefendantAccountsSearch_Opal_AddressStartsWith(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -408,6 +431,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: DOB exact (1980-02-03) -> 1 record")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6099")
     void testPostDefendantAccountsSearch_Opal_DobExact(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -452,6 +478,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Include aliases = true still returns match on main name (no alias in DB)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6128")
     void testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -495,6 +524,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6097")
     void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -544,6 +576,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6088")
     void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -576,6 +611,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: No defendant object in payload → party still resolved")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6168")
     void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(boolean consolidation)
         throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -609,6 +647,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Search without business_unit_ids → still returns results")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6126")
     void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -640,6 +681,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Personal party (Anna Graham) includes title, forenames, and surname")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6140")
     void testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -681,6 +725,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Organisation returns no personal fields (awaiting seeded org data)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6115")
     void testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -726,6 +773,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Alias search fallback → matches on main name when no alias exists")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6132")
     void testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -766,6 +816,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Optional fields correctly mapped or excluded when null")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6170")
     void testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -808,6 +861,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6118")
     void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -840,12 +896,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC1: Multi-parameter search tests - ALL search parameters must match
 
-    public void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = { false, true })
+    @DisplayName("OPAL: Search defendant accounts - business unit fallback when business unit row is missing")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6138")
+    void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(APPLICATION_JSON).content("""
+                .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
                       "business_unit_ids": [9999],
@@ -865,6 +927,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6082")
     void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -903,6 +968,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("OPAL: Match on alias when both alias and main name exist")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6146")
     void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -941,6 +1009,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - surname + postcode (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6130")
     void testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -980,6 +1051,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - surname + wrong postcode (no matches expected) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6109")
     void testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1020,6 +1094,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - forenames + surname + DOB + NI (all must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6136")
     void testPostDefendantAccountsSearch_AC1_CompletePersonalDetails(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1060,6 +1137,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - address + NI number (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6166")
     void testPostDefendantAccountsSearch_AC1_AddressAndNI(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1101,6 +1181,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC1: Multi-parameter search - wrong business unit excludes otherwise matching records [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6150")
     void testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1141,6 +1224,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC2: Only accounts within specified business units are returned [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6086")
     void testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1185,6 +1271,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("AC3a: Active accounts only filtering - false includes both active and completed accounts [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6164")
     void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -1232,6 +1321,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6124")
     void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1271,6 +1363,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - company name + address line 1 (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6162")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1313,6 +1408,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - company name + postcode (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6134")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1356,6 +1454,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - partial company name + address (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6172")
     void testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1398,6 +1499,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - correct name + wrong address (no matches expected) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6107")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1436,6 +1540,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9: Company multi-parameter search - multiple address fields (all must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6155")
     void testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1478,6 +1585,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9a: Only company accounts within specified business units are returned [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6122")
     void testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1522,6 +1632,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("AC9b: Active accounts only filtering for company accounts - excludes completed accounts [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6144")
     void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation, int count)
         throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
@@ -1566,6 +1679,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9d: Where company name or alias starts with input [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6120")
     void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1607,6 +1723,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9di: Where company name or alias results exactly matches input [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6094")
     void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1648,6 +1767,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9e: Company address partial match - Address Line 1 starts with input value [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6159")
     void testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1689,6 +1811,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = { false, true })
     @DisplayName("AC9ei: Company postcode partial match - Postcode starts with input value [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6103")
     void testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(boolean consolidation) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1733,6 +1858,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         "true, 1"
     })
     @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; consolidated search returns only non-zero-balance matches")
+    @JiraStory("PO-2241")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6101")
     void testPostDefendantAccountsSearch_PO2241_Core177_ConsolidatedExcludesZeroBalance(
         boolean consolidation,
         int count)
@@ -1793,10 +1921,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @Test
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
-    void testPostDefendantAccountsSearch_OrganisationFlagRespected1(boolean consolidation) throws Exception {
+    @JiraStory("PO-2298")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6111")
+    void testPostDefendantAccountsSearch_OrganisationFlagRespected1() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // === AC1: organisation = true → only organisation defendants (e.g. 333A) ===
@@ -1816,10 +1946,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(bodyTrue, DEFENDANTS_SEARCH_RESP_SCHEMA);
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @Test
     @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
-    void testPostDefendantAccountsSearch_OrganisationFlagRespected2(boolean consolidation) throws Exception {
+    @JiraStory("PO-2298")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6112")
+    void testPostDefendantAccountsSearch_OrganisationFlagRespected2() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         // === AC2: organisation = false → only individual defendants (e.g. 177A, 177B) ===
@@ -1880,7 +2012,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    private String searchCriteria3(boolean consolidation) {
+    private String consolidatedSearchCriteriaWithoutWarnings() {
         return """
               {
               "active_accounts_only": true,
@@ -1900,12 +2032,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 "birth_date": null,
                 "national_insurance_number": null
               },
-              "consolidation_search": %s
-            }""".formatted(consolidation);
+              "consolidation_search": true
+            }""";
 
     }
 
-    private String searchCriteriaByAccountNumber(String accNo, boolean consolidation) {
+    private String consolidatedSearchCriteriaByAccountNumber(String accNo) {
         return """
               {
               "active_accounts_only": false,
@@ -1917,13 +2049,16 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 "organisation": false
               },
               "defendant": null,
-              "consolidation_search": %s
-            }""".formatted("\"" + accNo + "\"", consolidation);
+              "consolidation_search": true
+            }""".formatted("\"" + accNo + "\"");
 
     }
 
     @Test
     @DisplayName("PO-2296: Consolidated search of defendant accounts")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6096")
     void testPostDefendantAccountsConsolidatedSearch() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -1950,12 +2085,15 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2966: AC3:"
         + "consolidation_search is true API should return new fields where account has no warnings/errors")
+    @JiraStory("PO-2966")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6161")
     void testPostDefendantAccountsConsolidatedSearch_noWarningsNoErrors() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON).content(searchCriteria3(true)));
+                .contentType(MediaType.APPLICATION_JSON).content(consolidatedSearchCriteriaWithoutWarnings()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -1976,13 +2114,16 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2966: AC5:"
         + "consolidation_search is true API should return new fields where account has no errors but has warnings")
+    @JiraStory("PO-2966")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6117")
     void testPostDefendantAccountsConsolidatedSearch_hasWarningsNoErrors() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON).content(
-                    searchCriteriaByAccountNumber("1989", true)));
+                    consolidatedSearchCriteriaByAccountNumber("1989")));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -2003,13 +2144,16 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2966: AC6:"
         + "consolidation_search is true API should return new fields where account has warnings and errors")
+    @JiraStory("PO-2966")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6154")
     void testPostDefendantAccountsConsolidatedSearch_hasWarningsHasErrors() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON).content(
-                    searchCriteriaByAccountNumber("1988", true)));
+                    consolidatedSearchCriteriaByAccountNumber("1988")));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));

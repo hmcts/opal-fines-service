@@ -252,6 +252,38 @@ Common examples:
   TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalWithTagsWithZephyrExecution
 ```
 
+### Zephyr tasks
+
+Zephyr tasks require `JIRA_AUTH_TOKEN` to be exported before the upload task runs:
+
+```bash / zsh
+  export JIRA_AUTH_TOKEN=<token>
+```
+
+The create and update tasks process an existing test report; they do not run the tests.
+Run the matching functional or integration suite first if the report is not already present.
+
+| Task | Purpose |
+| --- | --- |
+| `functionalWithZephyrExecution` | Runs the default Opal functional suite, creates an Opal Cucumber report copy, creates an Opal Zephyr execution, then runs the Legacy functional suite and creates a Legacy Zephyr execution. |
+| `functionalWithTagsWithZephyrExecution` | Runs the default Opal functional suite and the tagged Opal functional suite selected by `TAGS` or `-Ptags`, then creates Zephyr executions for both reports. |
+| `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `target/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
+| `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `target/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
+| `functionalLegacyWithZephyrExecution` | Runs only `functionalLegacy`, copies its Cucumber report to `target/zephyr/cucumber-legacy.json`, and creates the Legacy Zephyr execution. |
+
+| `createJiraTicketsFromCucumberReport` | Creates and links Jira test tickets from `target/cucumber.json`. |
+| `updateJiraTicketsFromCucumberReport` | Updates Jira test tickets from `target/cucumber.json`. |
+
+| `createJiraExecutionFromCucumberReport` | Creates a Zephyr execution from `target/cucumber.json`. |
+| `createJiraExecutionFromOpalCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal.json`. |
+| `createJiraExecutionFromOpalTagsCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal-tags.json`. |
+| `createJiraExecutionFromLegacyCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-legacy.json`. |
+
+| `integrationTestWithZephyrExecution` | Runs `integration`, then creates a Zephyr execution from the generated JUnit5 integration report. |
+| `createJiraTicketsFromJUnit5ReportIntegrationTest` | Creates and links Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+| `updateJiraTicketsFromJUnit5ReportIntegrationTest` | Updates Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+| `createJiraExecutionFromJUnit5ReportIntegrationTest` | Creates a Zephyr execution from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+
 ## Manual api testing (Postman)
 
 Within the project's postman directory is an importable script to set up api tests in the Postman app.
