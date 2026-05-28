@@ -223,7 +223,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
 
             assertEquals(REPORT_ID, response.getReport().getId());
             MatcherAssert.assertThat(response.getReport().getSupportedFileTypes(), Matchers.containsInAnyOrder(
-                SupportedFileTypesEnum.XML, SupportedFileTypesEnum.CSV, SupportedFileTypesEnum.PDF));
+                SupportedFileTypesEnum.XML, SupportedFileTypesEnum.CSV, SupportedFileTypesEnum.PDF, SupportedFileTypesEnum.JSON));
         }
 
         @Test
