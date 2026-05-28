@@ -40,6 +40,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -405,18 +406,37 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpServerErrorException.class)
     public ResponseEntity<ProblemDetail> handleHttpServerErrorException(HttpServerErrorException e) {
         int upstream = e.getStatusCode().value();
+        HttpStatus responseStatus = upstream == HttpStatus.SERVICE_UNAVAILABLE.value()
+            ? HttpStatus.SERVICE_UNAVAILABLE
+            : HttpStatus.INTERNAL_SERVER_ERROR;
         boolean retriable = RETRIABLE_HTTP.contains(upstream);
 
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Downstream Server Error",
-            e.getMessage(),
+            responseStatus,
+            responseStatus == HttpStatus.SERVICE_UNAVAILABLE ? "Service Unavailable" : "Downstream Server Error",
+            Optional.ofNullable(e.getStatusText()).filter(text -> !text.isBlank()).orElse(e.getMessage()),
             "http-server-error",
             retriable,
             e
         );
 
-        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail); // response status = 500
+        return responseWithProblemDetail(responseStatus, problemDetail);
+    }
+
+    @ExceptionHandler(HttpClientErrorException.class)
+    public ResponseEntity<ProblemDetail> handleHttpClientErrorException(HttpClientErrorException e) {
+        HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
+
+        ProblemDetail problemDetail = createProblemDetail(
+            status,
+            status.getReasonPhrase(),
+            Optional.ofNullable(e.getStatusText()).filter(text -> !text.isBlank()).orElse(e.getMessage()),
+            "http-client-error",
+            false,
+            e
+        );
+
+        return responseWithProblemDetail(status, problemDetail);
     }
 
     @ExceptionHandler(JsonSchemaValidationException.class)

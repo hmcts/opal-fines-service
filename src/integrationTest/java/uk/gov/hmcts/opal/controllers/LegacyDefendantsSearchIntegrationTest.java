@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -56,6 +57,7 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-33")
     @JiraStory("PO-119")
     @JiraEpic("PO-704")
+    @JiraTestKey("PO-5943")
     void testPostDefendantAccountsSearch() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 
@@ -98,6 +100,7 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-33")
     @JiraStory("PO-119")
     @JiraEpic("PO-704")
+    @JiraTestKey("PO-5944")
     void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
 

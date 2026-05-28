@@ -11,7 +11,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | If-Match          | 0                                       |
 
     When I set an invalid token
@@ -35,7 +34,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | If-Match          | 0                                       |
 
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to patch the created draft account with the following details
@@ -66,7 +64,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | If-Match          | 0                                       |
 
     When the "opal-test-3@dev.platform.hmcts.net" user attempts to patch the created draft account with the following details
@@ -97,7 +94,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
       | version           | 0                                       |
 
     When the "opal-test@dev.platform.hmcts.net" user attempts to patch the created draft account with the following details
@@ -127,8 +123,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
@@ -157,8 +151,6 @@ Feature: Update Draft Account Authorisation
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I patch the draft account with the following details
       | business_unit_id | 77                   |
       | account_status   | Rejected             |

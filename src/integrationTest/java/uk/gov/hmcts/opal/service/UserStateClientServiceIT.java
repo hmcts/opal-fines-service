@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.UserStateClientServiceIT")
@@ -43,6 +44,7 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     @Test
     @JiraStory("PO-2833")
     @JiraEpic("PO-2233")
+    @JiraTestKey("PO-6321")
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
 
         WireMock.configureFor("localhost", 4553);

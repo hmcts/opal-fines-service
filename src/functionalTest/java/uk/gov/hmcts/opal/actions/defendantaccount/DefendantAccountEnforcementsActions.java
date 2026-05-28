@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.actions.defendantaccount;
 import io.restassured.response.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
+import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.Map;
@@ -16,6 +17,7 @@ import static uk.gov.hmcts.opal.utils.JsonObjectUtils.addLongObjectIfPresent;
  * scenarios.
  */
 public class DefendantAccountEnforcementsActions extends BaseStepDef {
+    private final DraftAccountActions draftAccountActions = new DraftAccountActions();
 
     /**
      * Extracts the created defendant-account ID from the supplied response and stores it in the
@@ -25,6 +27,10 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
      */
     public void storeCreatedDefendantAccountId(Response response) {
         Object accountId = response.jsonPath().get("account_id");
+        if (accountId == null) {
+            Response refreshedDraftAccount = draftAccountActions.getSingleCreatedDraftAccount();
+            accountId = refreshedDraftAccount.jsonPath().get("account_id");
+        }
         assertNotNull(accountId, "Expected published draft account response to contain account_id");
         scenarioContext().setCreatedDefendantAccountId(String.valueOf(accountId));
     }

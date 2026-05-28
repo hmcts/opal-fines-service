@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Business Unit Repository Integration Tests")
@@ -58,6 +59,7 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2880")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6285")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
         entityManager.clear();
 
@@ -72,6 +74,7 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2880")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6289")
     void shouldLoadFullEntityGraphForDirectFetch() {
         entityManager.clear();
 
@@ -88,6 +91,7 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2880")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6284")
     void shouldLoadFullEntityGraphForSpecificationFetch() {
         entityManager.clear();
 
@@ -107,6 +111,7 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2880")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6286")
     void shouldLoadLiteEntityGraphForReferenceDataFetchOnly() {
         entityManager.clear();
 
@@ -127,6 +132,7 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2880")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6287")
     void shouldNotDuplicateBusinessUnitRowsWhenFullEntityGraphFetchesConfigurationItems() {
         entityManager.clear();
 
@@ -141,6 +147,7 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2880")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-6288")
     void shouldNotDuplicateBusinessUnitRowsWhenLiteEntityGraphFetchesConfigurationItems() {
         entityManager.clear();
 

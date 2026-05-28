@@ -24,10 +24,7 @@
       "type": ["string", "null"],
       "description": "Required when status is Rejected or Deleted; optional otherwise"
     },
-
-    "timeline_data": {
-      "description": "Legacy inbound timeline data. Accepted for backwards compatibility and ignored by the backend."
-    }
+    "timeline_data": false
   },
   "required": [
     "business_unit_id",

@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.EnforcerControllerIntegrationTest")
@@ -33,6 +34,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-316")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5891")
     void testGetEnforcerById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
 
@@ -61,6 +63,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-316")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5889")
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
@@ -70,6 +73,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-316")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5888")
     void testPostEnforcersSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -100,6 +104,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-316")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5890")
     void testPostEnforcersSearch_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -112,6 +117,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-304")
     @JiraStory("PO-316")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-5887")
     void testGetEnforcerRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
                                                     .header("authorization", "Bearer some_value"));

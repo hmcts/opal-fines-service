@@ -1,0 +1,20 @@
+meta {
+  name: Get-Minor-Creditor
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/minor-creditor-accounts/99000000000808
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

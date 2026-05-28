@@ -13,8 +13,6 @@ Feature: Update Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I patch the draft account with the following details
       | business_unit_id__ | 73                   |
       | account_status     | Rejected             |
@@ -32,8 +30,6 @@ Feature: Update Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I set an invalid token
     And I patch the draft account with the following details
       | business_unit_id | 73                   |
@@ -78,7 +74,6 @@ Feature: Update Draft Account Error Handling
       | account_status    | Submitted                               |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
     Then the request creates a resource
     And the response must include a strong quoted ETag header
     And I remember the last response ETag as "before"

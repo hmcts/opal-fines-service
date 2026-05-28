@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.service.opal.ReportEntryService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Remove Defendant Account Enforcement Hold Integration Tests")
 class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
@@ -37,6 +38,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @DisplayName("Remove enforcement hold returns 200 and updates the defendant account")
     @JiraStory("PO-1775")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5996")
     void int01_removeEnforcementHold_returnsOkAndUpdatesDatabase() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
@@ -71,6 +73,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @DisplayName("Remove enforcement hold returns 401 when access token is missing")
     @JiraStory("PO-1775")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5992")
     void int02_removeEnforcementHold_returnsUnauthorized_whenAccessTokenMissing() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).checkForAuthorisedUser(any());
@@ -97,6 +100,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @DisplayName("Remove enforcement hold returns 403 when user lacks permission")
     @JiraStory("PO-1775")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5993")
     void int03_removeEnforcementHold_returnsForbidden_whenUserLacksPermission() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
@@ -123,6 +127,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @DisplayName("Remove enforcement hold returns 404 when defendant account is not found")
     @JiraStory("PO-1775")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5994")
     void int04_removeEnforcementHold_returnsNotFound_whenAccountDoesNotExist() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
@@ -156,6 +161,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @DisplayName("Remove enforcement hold returns 409 when If-Match does not match")
     @JiraStory("PO-1775")
     @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5995")
     void int05_removeEnforcementHold_returnsConflict_whenIfMatchDoesNotMatch() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         int invalidVersion = versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + 1;

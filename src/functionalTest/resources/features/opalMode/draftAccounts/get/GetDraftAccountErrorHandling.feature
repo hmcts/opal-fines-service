@@ -23,8 +23,6 @@ Feature: Get Draft Account Error Handling
       | account_status    |                                         |
       | submitted_by      | BUUID                                   |
       | submitted_by_name | Laura Clerk                             |
-      | timeline_data     | draftAccounts/timelineJson/default.json |
-
     When I attempt to get a draft account with an unsupported content type
     Then the request is rejected as not acceptable
 
