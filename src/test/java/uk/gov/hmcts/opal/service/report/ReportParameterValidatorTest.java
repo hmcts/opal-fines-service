@@ -22,12 +22,12 @@ import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 
 @ExtendWith(MockitoExtension.class)
-public class ReportParameterServiceTest {
+public class ReportParameterValidatorTest {
 
     private static final String REPORT_ID = "report-id";
 
     @InjectMocks
-    ReportParameterService reportParameterService;
+    ReportParameterValidator reportParameterValidator;
 
     @Mock
     ObjectMapper objectMapper;
@@ -61,7 +61,7 @@ public class ReportParameterServiceTest {
             parameter("text-1000-param", "text-1000", true, 1, 1000, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of(
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of(
             "date-param", "2026-05-26",
             "decimal-param", 5.0,
             "integer-param", 5L,
@@ -82,7 +82,7 @@ public class ReportParameterServiceTest {
             parameter("text-param", "text-60", true, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(null, report);
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(null, report);
 
         assertFalse(result);
     }
@@ -93,7 +93,7 @@ public class ReportParameterServiceTest {
             parameter("text-param", "text-60", false, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(null, report);
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(null, report);
 
         assertTrue(result);
     }
@@ -104,7 +104,7 @@ public class ReportParameterServiceTest {
             parameter("text-param", "text-60", false, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of(), report);
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of(), report);
 
         assertTrue(result);
     }
@@ -115,7 +115,7 @@ public class ReportParameterServiceTest {
             parameter("text-param", "text-60", true, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of(), report);
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of(), report);
 
         assertFalse(result);
     }
@@ -127,7 +127,7 @@ public class ReportParameterServiceTest {
         ));
 
         assertThrows(UnprocessableException.class,
-            () -> reportParameterService.validateReportInstanceParameterValues(Map.of("unknown-param", "value"),
+            () -> reportParameterValidator.validateReportInstanceParameterValues(Map.of("unknown-param", "value"),
                                                                                report));
     }
 
@@ -138,7 +138,7 @@ public class ReportParameterServiceTest {
         ));
 
         assertThrows(ReportNotFoundException.class,
-            () -> reportParameterService.validateReportInstanceParameterValues(Map.of("text-param", "value"), report));
+            () -> reportParameterValidator.validateReportInstanceParameterValues(Map.of("text-param", "value"), report));
     }
 
     @Test
@@ -147,7 +147,7 @@ public class ReportParameterServiceTest {
             parameter("date-param", "date", false, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("date-param", 123L),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("date-param", 123L),
                                                                                      report);
 
         assertFalse(result);
@@ -159,7 +159,7 @@ public class ReportParameterServiceTest {
             parameter("date-param", "date", false, "2026-01-01", "2026-12-31", null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
             Map.of("date-param", "2026-05-26"), report);
 
         assertFalse(result);
@@ -172,7 +172,7 @@ public class ReportParameterServiceTest {
         ));
 
         assertThrows(DateTimeParseException.class,
-            () -> reportParameterService.validateReportInstanceParameterValues(Map.of("date-param", "not-a-date"),
+            () -> reportParameterValidator.validateReportInstanceParameterValues(Map.of("date-param", "not-a-date"),
                                                                                report));
     }
 
@@ -182,7 +182,7 @@ public class ReportParameterServiceTest {
             parameter("decimal-param", "decimal-2dp", false, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("decimal-param", 5L),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("decimal-param", 5L),
                                                                                      report);
 
         assertFalse(result);
@@ -194,7 +194,7 @@ public class ReportParameterServiceTest {
             parameter("decimal-param", "decimal-2dp", false, 1.0, 10.0, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("decimal-param", 11.0),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("decimal-param", 11.0),
                                                                                      report);
 
         assertFalse(result);
@@ -206,7 +206,7 @@ public class ReportParameterServiceTest {
             parameter("integer-param", "integer", false, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("integer-param", 5),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("integer-param", 5),
                                                                                      report);
 
         assertFalse(result);
@@ -218,7 +218,7 @@ public class ReportParameterServiceTest {
             parameter("integer-param", "integer", false, 1L, 10L, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("integer-param", 11L),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("integer-param", 11L),
                                                                                      report);
 
         assertFalse(result);
@@ -234,7 +234,7 @@ public class ReportParameterServiceTest {
             parameter("menu-param", "menu-checkbox", false, 0, 1, List.of("one", "two"))
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
             Map.of("menu-param", menuChoiceList), report);
 
         assertFalse(result);
@@ -249,7 +249,7 @@ public class ReportParameterServiceTest {
             parameter("menu-param", "menu-checkbox", false, 1, 2, List.of("one", "two"))
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
             Map.of("menu-param", menuChoiceList), report);
 
         assertFalse(result);
@@ -265,7 +265,7 @@ public class ReportParameterServiceTest {
             parameter("menu-param", "menu-radio", false, 1, 1, List.of("one", "two"))
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
             Map.of("menu-param", menuChoiceList), report);
 
         assertFalse(result);
@@ -282,7 +282,7 @@ public class ReportParameterServiceTest {
             parameter("menu-param", "menu-radio", false, 0, 2, List.of("one", "two"))
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
             Map.of("menu-param", notAList), report);
 
         assertFalse(result);
@@ -294,7 +294,7 @@ public class ReportParameterServiceTest {
             parameter("text-param", "text-60", false, null, null, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("text-param", 123L),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("text-param", 123L),
                                                                                      report);
 
         assertFalse(result);
@@ -306,7 +306,7 @@ public class ReportParameterServiceTest {
             parameter("text-param", "text-100", false, 5, 100, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("text-param", "abcd"),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("text-param", "abcd"),
                                                                                      report);
 
         assertFalse(result);
@@ -318,7 +318,7 @@ public class ReportParameterServiceTest {
             parameter("text-param", "text-1000", false, 0, 5, null)
         ));
 
-        boolean result = reportParameterService.validateReportInstanceParameterValues(Map.of("text-param", "abcdef"),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("text-param", "abcdef"),
                                                                                      report);
 
         assertFalse(result);

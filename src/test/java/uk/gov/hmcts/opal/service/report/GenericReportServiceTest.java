@@ -112,7 +112,7 @@ class GenericReportServiceTest {
     ReportQueuePublisherImpl reportQueuePublisher;
 
     @Mock
-    ReportParameterService reportParameterService;
+    ReportParameterValidator reportParameterValidator;
 
     String reportId;
 
@@ -251,7 +251,7 @@ class GenericReportServiceTest {
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
-        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+        when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -280,7 +280,7 @@ class GenericReportServiceTest {
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
-        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+        when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -371,7 +371,7 @@ class GenericReportServiceTest {
         when(reportEntity.getSupportsMultiBu()).thenReturn(true);
         when(reportEntity.getCanManuallyCreate()).thenReturn(true);
         //when(mapper.writeValueAsString(any())).thenReturn("{}");
-        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+        when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(false);
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -397,7 +397,7 @@ class GenericReportServiceTest {
         when(reportEntity.getCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
-        when(reportParameterService.validateReportInstanceParameterValues(reportParameters, reportEntity))
+        when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);

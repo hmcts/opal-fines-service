@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.exception.UnprocessableException;
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.ReportParameterService")
-public class ReportParameterService {
+public class ReportParameterValidator {
 
     private final ObjectMapper mapper;
 
