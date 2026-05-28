@@ -33,6 +33,7 @@ class DefendantAccountSearchMapperTest {
 
     @Test
     void toDto_mapsGeneratedRequestToInternalDto() {
+        //Arrange
         DefendantAccountSearchReferenceNumberDefendantAccount referenceNumber =
             DefendantAccountSearchReferenceNumberDefendantAccount.builder()
                 .organisation(false)
@@ -63,8 +64,10 @@ class DefendantAccountSearchMapperTest {
                 .defendant(defendant)
                 .build();
 
+        //Act
         AccountSearchDto result = mapper.toDto(request);
 
+        //Assert
         assertTrue(result.getActiveAccountsOnly());
         assertEquals(List.of((short) 77, (short) 78), result.getBusinessUnitIds());
         assertTrue(result.getConsolidationSearch());
@@ -87,6 +90,7 @@ class DefendantAccountSearchMapperTest {
 
     @Test
     void toResponse_mapsInternalDtoToGeneratedResponse() {
+        //Arrange
         DefendantAccountSummaryDto summary = DefendantAccountSummaryDto.builder()
             .defendantAccountId("1000000001")
             .accountNumber("23000000001")
@@ -123,8 +127,10 @@ class DefendantAccountSearchMapperTest {
             .defendantAccounts(List.of(summary))
             .build();
 
+        //Act
         PostDefendantAccountSearchResponseDefendantAccount response = mapper.toResponse(dto);
 
+        //Assert
         assertEquals(1, response.getCount());
         DefendantAccountSearchResultDefendantAccount account = value(response.getDefendantAccounts()).getFirst();
         assertEquals("1000000001", account.getDefendantAccountId());

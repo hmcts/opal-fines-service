@@ -1,5 +1,11 @@
 package uk.gov.hmcts.opal.disco.opal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -7,13 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class JsonSchemaValidationServiceTest {
@@ -139,6 +138,7 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void testIsValid_defendantAccountSearchRequestWithConsolidationSearch_shouldPass() {
+        // Arrange
         String validJson = """
             {
               "active_accounts_only": true,
@@ -161,15 +161,16 @@ class JsonSchemaValidationServiceTest {
               "consolidation_search": true
             }
             """;
-
+        // Act
         Set<String> messages = jsonSchemaValidationService
             .validate(validJson, "opal/defendant-account/postDefendantAccountsSearchRequest.json");
-
+        //Assert
         assertTrue(messages.isEmpty(), "Expected no validation errors, but got: " + messages);
     }
 
     @Test
     void testIsValid_defendantAccountSearchResponseWithConsolidationFields_shouldPass() {
+        // Arrange
         String validJson = """
             {
               "count": 1,
@@ -209,10 +210,11 @@ class JsonSchemaValidationServiceTest {
               ]
             }
             """;
-
+        //Act
         Set<String> messages = jsonSchemaValidationService
             .validate(validJson, "opal/defendant-account/postDefendantAccountsSearchResponse.json");
 
+        //Assert
         assertTrue(messages.isEmpty(), "Expected no validation errors, but got: " + messages);
     }
 
