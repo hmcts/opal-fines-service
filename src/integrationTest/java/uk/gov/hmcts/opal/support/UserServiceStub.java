@@ -4,178 +4,36 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
 public final class UserServiceStub {
 
-    public static final String USER_STATE_PATH = "/v2/users/0/state";
-    public static final String V2_USER_STATE = """
-        {
-          "user_id" : 500000000,
-          "username" : "opal-test@HMCTS.NET",
-          "name" : "Pablo",
-          "status" : "ACTIVE",
-          "version" : 0,
-          "cache_name" : "USER_STATE_k9LpT2xVqR8m",
-          "domains" : {
-            "fines" : {
-              "business_unit_users" : [ {
-                "business_unit_user_id" : "L065JG",
-                "business_unit_id" : 70,
-                "permissions" : [ {
-                  "permission_id" : 1,
-                  "permission_name" : "Create and Manage Draft Accounts"
-                }, {
-                  "permission_id" : 3,
-                  "permission_name" : "Account Enquiry"
-                }, {
-                  "permission_id" : 4,
-                  "permission_name" : "Collection Order"
-                }, {
-                  "permission_id" : 5,
-                  "permission_name" : "Check and Validate Draft Accounts"
-                }, {
-                  "permission_id" : 6,
-                  "permission_name" : "Search and View Accounts"
-                } ]
-              }, {
-                "business_unit_user_id" : "L066JG",
-                "business_unit_id" : 68,
-                "permissions" : [ ]
-              }, {
-                "business_unit_user_id" : "L067JG",
-                "business_unit_id" : 73,
-                "permissions" : [ ]
-              }, {
-                "business_unit_user_id" : "L073JG",
-                "business_unit_id" : 71,
-                "permissions" : [ ]
-              }, {
-                "business_unit_user_id" : "L077JG",
-                "business_unit_id" : 67,
-                "permissions" : [ ]
-              }, {
-                "business_unit_user_id" : "L078JG",
-                "business_unit_id" : 69,
-                "permissions" : [ ]
-              }, {
-                "business_unit_user_id" : "L080JG",
-                "business_unit_id" : 61,
-                "permissions" : [ ]
-              } ]
-            }
-          }
-        }""";
-    private static final int DEFAULT_BUSINESS_UNIT_ID = 70;
+    private static final short DEFAULT_BUSINESS_UNIT_ID = 70;
+    private static final int DEFAULT_USER_ID = 1;
+    private static final String DEFAULT_USERNAME = "opal-test@HMCTS.NET";
+    private static final String DEFAULT_NAME = "Pablo";
+    private static final String NORMAL_USER = "normal@users.com";
+    private static final String NORMAL_BUSINESS_UNIT_USER_ID = "USER01";
+    private static final String DEVELOPER_USER = "Developer_User";
+    private static final List<FinesPermission> DEFAULT_PERMISSIONS = Arrays.asList(FinesPermission.values());
     private static final String USER_STATE_BY_ID_PATH_TEMPLATE = "/users/%d/state";
-    private static final String CREATE_MANAGE_DRAFT_ACCOUNTS_PERMISSION = """
-        [
-          {
-            "permission_id": 1,
-            "permission_name": "Create and Manage Draft Accounts"
-          }
-        ]
-        """;
-    private static final String ALL_PERMISSIONS = """
-        [
-          {
-            "permission_id": 1,
-            "permission_name": "Create and Manage Draft Accounts"
-          },
-          {
-            "permission_id": 2,
-            "permission_name": "Account Enquiry - Account Notes"
-          },
-          {
-            "permission_id": 3,
-            "permission_name": "Account Enquiry"
-          },
-          {
-            "permission_id": 4,
-            "permission_name": "Collection Order"
-          },
-          {
-            "permission_id": 5,
-            "permission_name": "Check and Validate Draft Accounts"
-          },
-          {
-            "permission_id": 6,
-            "permission_name": "Search and View Accounts"
-          },
-          {
-            "permission_id": 7,
-            "permission_name": "Account Maintenance"
-          },
-          {
-            "permission_id": 9,
-            "permission_name": "Amend Payment Terms"
-          },
-          {
-            "permission_id": 10,
-            "permission_name": "Enter Enforcement"
-          },
-          {
-            "permission_id": 13,
-            "permission_name": "Consolidate"
-          },
-          {
-            "permission_id": 14,
-            "permission_name": "Add and Remove payment hold"
-          }
-        ]
-        """;
-    private static final String NO_PERMISSIONS = "[]";
-    private static final String USER_STATE_BY_ID_TEMPLATE = """
-        {
-          "user_id": %d,
-          "username": "%s",
-          "name": "%s",
-          "status": "ACTIVE",
-          "version": 0,
-          "business_unit_users": [
-        %s
-          ]
-        }
-        """;
-    private static final String USER_STATE_TEMPLATE = """
-        {
-          "user_id": %d,
-          "username": "%s",
-          "name": "%s",
-          "status": "ACTIVE",
-          "version": 0,
-          "cache_name": "USER_STATE_test_permissions",
-          "domains": {
-            "fines": {
-              "business_unit_users": [
-        %s
-              ]
-            }
-          }
-        }
-        """;
-    private static final String BUSINESS_UNIT_USER_TEMPLATE = """
-                {
-                  "business_unit_user_id": "%s",
-                  "business_unit_id": %d,
-                  "permissions": %s
-                }""";
-    private static final String USER_STATE_WITH_NO_BUSINESS_UNITS = """
-        {
-          "user_id": 500000000,
-          "username": "opal-test@HMCTS.NET",
-          "name": "Pablo",
-          "status": "ACTIVE",
-          "version": 0,
-          "cache_name": "USER_STATE_no_business_units",
-          "domains": {
-            "fines": {
-              "business_unit_users": []
-            }
-          }
-        }
-        """;
+
+    public static final String USER_STATE_PATH = "/v2/users/0/state";
+    public static final String V2_USER_STATE = TestUtil.toJsonString(createDefaultUserState());
 
     private UserServiceStub() {
     }
@@ -191,6 +49,10 @@ public final class UserServiceStub {
                 .withBody(userStateJson)));
     }
 
+    public static void stubAuthorisedUser(UserStateV2 userState) {
+        stubAuthorisedUser(TestUtil.toJsonString(userState));
+    }
+
     public static void stubUserStateById(long userId, String userStateJson) {
         stubFor(get(USER_STATE_BY_ID_PATH_TEMPLATE.formatted(userId))
             .willReturn(aResponse()
@@ -204,70 +66,217 @@ public final class UserServiceStub {
     }
 
     public static void stubUserStateByIdWithPermission(long userId, int businessUnitId, FinesPermission permission) {
-        stubUserStateById(userId, userStateByIdForBusinessUnit(userId, businessUnitId, permissionJson(permission)));
+        stubUserStateById(
+            userId,
+            userStateByIdForBusinessUnit(userId, (short) businessUnitId, List.of(permission))
+        );
     }
 
     public static void stubUserWithAllPermissions(int businessUnitId) {
-        stubAuthorisedUser(userStateForBusinessUnit(businessUnitId, ALL_PERMISSIONS));
+        stubUserWithAllPermissions((short) businessUnitId);
+    }
+
+    public static void stubUserWithAllPermissions(short businessUnitId) {
+        stubUserWithPermissions(businessUnitId, FinesPermission.values());
+    }
+
+    public static void stubUserWithAllPermissions(short... businessUnitIds) {
+        stubUserWithPermissionsForBusinessUnits(businessUnitIds, FinesPermission.values());
     }
 
     public static void stubUserWithCreateManageDraftAccountsPermission(int businessUnitId) {
-        stubAuthorisedUser(userStateForBusinessUnit(businessUnitId, CREATE_MANAGE_DRAFT_ACCOUNTS_PERMISSION));
+        stubUserWithPermissions((short) businessUnitId, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
     }
 
     public static void stubUserWithPermission(int businessUnitId, FinesPermission permission) {
-        stubAuthorisedUser(userStateForBusinessUnit(businessUnitId, permissionJson(permission)));
+        stubUserWithPermissions((short) businessUnitId, permission);
+    }
+
+    public static void stubUserWithPermission(short businessUnitId, FinesPermission permission) {
+        stubUserWithPermissions(businessUnitId, permission);
     }
 
     public static void stubUserWithPermissions(int businessUnitId, FinesPermission... permissions) {
-        stubAuthorisedUser(userStateForBusinessUnit(businessUnitId, permissionsJson(permissions)));
+        stubUserWithPermissions((short) businessUnitId, permissions);
+    }
+
+    public static void stubUserWithPermissions(short businessUnitId, FinesPermission... permissions) {
+        stubAuthorisedUser(createUserStateWithPermissionsForBusinessUnit(businessUnitId, permissions));
     }
 
     public static void stubUserWithPermissions(int businessUnitId, String businessUnitUserId,
                                                FinesPermission... permissions) {
-        stubAuthorisedUser(userStateForBusinessUnit(
-            businessUnitId, 1L, "normal@users.com", "normal@users.com", businessUnitUserId,
-            permissionsJson(permissions)));
+        stubAuthorisedUser(buildUserStateForBusinessUnits(
+            DEFAULT_USER_ID,
+            NORMAL_USER,
+            NORMAL_USER,
+            Map.of((short) businessUnitId, businessUnitUser(businessUnitId, businessUnitUserId, permissions))
+        ));
     }
 
     public static void stubUserWithPermissions(int businessUnitId, long userId, String username, String name,
                                                String businessUnitUserId, FinesPermission... permissions) {
-        stubAuthorisedUser(userStateForBusinessUnit(
-            businessUnitId, userId, username, name, businessUnitUserId, permissionsJson(permissions)));
+        stubAuthorisedUser(buildUserStateForBusinessUnits(
+            userId,
+            username,
+            name,
+            Map.of((short) businessUnitId, businessUnitUser(businessUnitId, businessUnitUserId, permissions))
+        ));
     }
 
     public static void stubNormalUserWithPermissions(int businessUnitId, FinesPermission... permissions) {
-        stubAuthorisedUser(userStateForBusinessUnit(
-            businessUnitId, 1L, "normal@users.com", "normal@users.com", "USER01", permissionsJson(permissions)));
+        stubAuthorisedUser(buildUserStateForBusinessUnits(
+            DEFAULT_USER_ID,
+            NORMAL_USER,
+            NORMAL_USER,
+            Map.of((short) businessUnitId, businessUnitUser(businessUnitId, NORMAL_BUSINESS_UNIT_USER_ID, permissions))
+        ));
     }
 
     public static void stubNormalUserWithAllPermissions(int businessUnitId) {
-        stubAuthorisedUser(userStateForBusinessUnit(businessUnitId, 1L, "normal@users.com", "normal@users.com",
-                                                    "USER01", ALL_PERMISSIONS));
+        stubNormalUserWithPermissions(businessUnitId, FinesPermission.values());
     }
 
     public static void stubNormalUserWithPermissionsForBusinessUnits(int[] businessUnitIds,
                                                                      FinesPermission... permissions) {
-        stubAuthorisedUser(userStateForBusinessUnits(
-            businessUnitIds, 1L, "normal@users.com", "normal@users.com", "USER01", permissionsJson(permissions)));
+        Map<Short, BusinessUnitUser> businessUnitUsers = Arrays.stream(businessUnitIds)
+            .boxed()
+            .collect(Collectors.toMap(
+                Integer::shortValue,
+                businessUnitId -> businessUnitUser(businessUnitId, NORMAL_BUSINESS_UNIT_USER_ID, permissions)
+            ));
+        stubAuthorisedUser(buildUserStateForBusinessUnits(
+            DEFAULT_USER_ID,
+            NORMAL_USER,
+            NORMAL_USER,
+            businessUnitUsers
+        ));
     }
 
     public static void stubDeveloperUserWithAllPermissions(int... businessUnitIds) {
-        stubAuthorisedUser(userStateForBusinessUnits(businessUnitIds, 0L, "Developer_User", "Developer_User", "",
-                                                    ALL_PERMISSIONS));
+        Map<Short, BusinessUnitUser> businessUnitUsers = Arrays.stream(businessUnitIds)
+            .boxed()
+            .collect(Collectors.toMap(
+                Integer::shortValue,
+                businessUnitId -> businessUnitUser(businessUnitId, "", FinesPermission.values())
+            ));
+        stubAuthorisedUser(buildUserStateForBusinessUnits(0L, DEVELOPER_USER, DEVELOPER_USER, businessUnitUsers));
     }
 
     public static void stubUserWithNoPermissions(int businessUnitId) {
-        stubAuthorisedUser(userStateForBusinessUnit(businessUnitId, NO_PERMISSIONS));
+        stubUserWithNoPermissions((short) businessUnitId);
+    }
+
+    public static void stubUserWithNoPermissions(short businessUnitId) {
+        stubUserWithPermissions(businessUnitId);
+    }
+
+    public static void stubUserWithNoPermissions(short... businessUnitIds) {
+        stubUserWithPermissionsForBusinessUnits(businessUnitIds);
+    }
+
+    public static void stubUserWithPermissionsForBusinessUnits(short[] businessUnitIds,
+                                                              FinesPermission... permissions) {
+        stubAuthorisedUser(createUserStateWithPermissionsForBusinessUnits(businessUnitIds, permissions));
+    }
+
+    public static UserStateV2 createUserStateWithPermissionsForBusinessUnits(short[] businessUnitIds,
+                                                                             FinesPermission... permissions) {
+        Map<Short, List<FinesPermission>> businessUnitIdToPermissions = new HashMap<>();
+        for (short businessUnitId : businessUnitIds) {
+            businessUnitIdToPermissions.put(businessUnitId, List.of(permissions));
+        }
+        return createUserStateForBusinessUnit(businessUnitIdToPermissions);
+    }
+
+    public static UserStateV2 createUserStateWithPermissionsForBusinessUnit(short businessUnitId,
+                                                                            FinesPermission... permissions) {
+        return createUserStateForBusinessUnit(Map.of(businessUnitId, List.of(permissions)));
+    }
+
+    public static UserStateV2 createUserStateForBusinessUnit(
+        Map<Short, List<FinesPermission>> businessUnitIdToPermissions) {
+
+        Map<Short, BusinessUnitUser> businessUnitUsers = businessUnitIdToPermissions.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> createBusinessUnitUser(entry.getKey(), "L%03dJG".formatted(entry.getKey()), entry.getValue())
+            ));
+        return buildUserStateForBusinessUnits(
+            DEFAULT_USER_ID,
+            DEFAULT_USERNAME,
+            DEFAULT_NAME,
+            businessUnitUsers
+        );
+    }
+
+    public static UserStateV2 createDefaultUserState() {
+        return createDefaultUserState(DEFAULT_USER_ID);
+    }
+
+    public static UserStateV2 createDefaultUserState(int userId) {
+        return createDefaultUserState(userId, List.of(
+            createBusinessUnitUser((short) 70, "L065JG", DEFAULT_PERMISSIONS),
+            createBusinessUnitUser((short) 68, "L066JG", List.of()),
+            createBusinessUnitUser((short) 73, "L067JG", List.of()),
+            createBusinessUnitUser((short) 71, "L073JG", List.of()),
+            createBusinessUnitUser((short) 67, "L077JG", List.of()),
+            createBusinessUnitUser((short) 69, "L078JG", List.of()),
+            createBusinessUnitUser((short) 61, "L080JG", List.of())
+        ));
+    }
+
+    public static UserStateV2 createDefaultUserState(int userId, short businessUnitId) {
+        return createDefaultUserState(userId, List.of(
+            createBusinessUnitUser(businessUnitId, "USER" + businessUnitId, DEFAULT_PERMISSIONS)
+        ));
+    }
+
+    public static UserStateV2 createDefaultUserState(int userId, List<BusinessUnitUser> businessUnitUsers) {
+        Map<Domain, DomainBusinessUnitUsers> domains = new EnumMap<>(Domain.class);
+        domains.put(
+            Domain.FINES,
+            DomainBusinessUnitUsers.builder().businessUnitUsers(businessUnitUsers).build()
+        );
+
+        return UserStateV2.builder()
+            .userId((long) userId)
+            .username(DEFAULT_USERNAME)
+            .name(DEFAULT_NAME)
+            .status(UserStatus.ACTIVE)
+            .version(1L)
+            .domains(domains)
+            .build();
+    }
+
+    public static BusinessUnitUser createBusinessUnitUser(short businessUnitId, String businessUnitUserId,
+                                                          List<FinesPermission> permissions) {
+        return BusinessUnitUser.builder()
+            .businessUnitUserId(businessUnitUserId)
+            .businessUnitId(businessUnitId)
+            .permissions(createPermissions(permissions))
+            .build();
+    }
+
+    public static Set<Permission> createPermissions(List<FinesPermission> permissions) {
+        return permissions.stream()
+            .map(UserServiceStub::getPermission)
+            .collect(Collectors.toSet());
+    }
+
+    public static Permission getPermission(FinesPermission permission) {
+        return Permission.builder()
+            .permissionId(permission.getId())
+            .permissionName(permission.getDescription())
+            .build();
     }
 
     public static void stubUserNotLinkedToAnyBusinessUnit() {
-        stubAuthorisedUser(USER_STATE_WITH_NO_BUSINESS_UNITS);
+        stubAuthorisedUser(createDefaultUserState(500000000, List.of()));
     }
 
     public static void stubUserServiceUnauthorized() {
-        stubFor(get(USER_STATE_PATH)
-            .willReturn(aResponse().withStatus(401)));
+        stubUserServiceStatus(401);
     }
 
     public static void stubUserServiceForbidden() {
@@ -279,60 +288,60 @@ public final class UserServiceStub {
             .willReturn(aResponse().withStatus(status)));
     }
 
-    private static String userStateForBusinessUnit(int businessUnitId, String permissionsJson) {
-        return userStateForBusinessUnit(
-            businessUnitId, 500000000L, "opal-test@HMCTS.NET", "Pablo",
-            "L%03dJG".formatted(businessUnitId), permissionsJson);
-    }
-
-    private static String userStateForBusinessUnit(int businessUnitId, long userId, String username, String name,
-                                                   String businessUnitUserId, String permissionsJson) {
-        return userState(userId, username, name, businessUnitUserJson(businessUnitId, businessUnitUserId,
-                                                                      permissionsJson));
-    }
-
-    private static String userStateByIdForBusinessUnit(long userId, int businessUnitId, String permissionsJson) {
-        return USER_STATE_BY_ID_TEMPLATE.formatted(
-            userId,
-            "normal@users.com",
-            "normal@users.com",
-            businessUnitUserJson(businessUnitId, "USER01", permissionsJson)
+    private static UserStateV2 buildUserStateForBusinessUnits(long userId, String username, String name,
+                                                              Map<Short, BusinessUnitUser> businessUnitUsers) {
+        Map<Domain, DomainBusinessUnitUsers> domains = new EnumMap<>(Domain.class);
+        domains.put(
+            Domain.FINES,
+            DomainBusinessUnitUsers.builder().businessUnitUsers(List.copyOf(businessUnitUsers.values())).build()
         );
+        return UserStateV2.builder()
+            .userId(userId)
+            .username(username)
+            .name(name)
+            .status(UserStatus.ACTIVE)
+            .version(1L)
+            .domains(domains)
+            .build();
     }
 
-    private static String permissionJson(FinesPermission permission) {
-        return permissionsJson(permission);
+    private static BusinessUnitUser businessUnitUser(int businessUnitId, String businessUnitUserId,
+                                                     FinesPermission... permissions) {
+        return createBusinessUnitUser((short) businessUnitId, businessUnitUserId, List.of(permissions));
     }
 
-    private static String permissionsJson(FinesPermission... permissions) {
-        String permissionJson = java.util.Arrays.stream(permissions)
+    private static String userStateByIdForBusinessUnit(long userId, short businessUnitId,
+                                                       List<FinesPermission> permissions) {
+        String permissionsJson = permissions.stream()
             .map(UserServiceStub::permissionObjectJson)
-            .collect(java.util.stream.Collectors.joining(",\n"));
-        return "[\n%s\n]".formatted(permissionJson);
+            .collect(Collectors.joining(",\n"));
+
+        return """
+            {
+              "user_id": %d,
+              "username": "%s",
+              "name": "%s",
+              "status": "ACTIVE",
+              "version": 0,
+              "business_unit_users": [
+                {
+                  "business_unit_user_id": "%s",
+                  "business_unit_id": %d,
+                  "permissions": [
+            %s
+                  ]
+                }
+              ]
+            }
+            """.formatted(userId, NORMAL_USER, NORMAL_USER, NORMAL_BUSINESS_UNIT_USER_ID, businessUnitId,
+                          permissionsJson);
     }
 
     private static String permissionObjectJson(FinesPermission permission) {
         return """
-          {
-            "permission_id": %d,
-            "permission_name": "%s"
-          }
-        """.formatted(permission.getId(), permission.getDescription());
-    }
-
-    private static String userStateForBusinessUnits(int[] businessUnitIds, long userId, String username, String name,
-                                                    String businessUnitUserId, String permissionsJson) {
-        String businessUnitUsersJson = java.util.Arrays.stream(businessUnitIds)
-            .mapToObj(businessUnitId -> businessUnitUserJson(businessUnitId, businessUnitUserId, permissionsJson))
-            .collect(java.util.stream.Collectors.joining(",\n"));
-        return userState(userId, username, name, businessUnitUsersJson);
-    }
-
-    private static String businessUnitUserJson(int businessUnitId, String businessUnitUserId, String permissionsJson) {
-        return BUSINESS_UNIT_USER_TEMPLATE.formatted(businessUnitUserId, businessUnitId, permissionsJson);
-    }
-
-    private static String userState(long userId, String username, String name, String businessUnitUsersJson) {
-        return USER_STATE_TEMPLATE.formatted(userId, username, name, businessUnitUsersJson);
+                    {
+                      "permission_id": %d,
+                      "permission_name": "%s"
+                    }""".formatted(permission.getId(), permission.getDescription());
     }
 }

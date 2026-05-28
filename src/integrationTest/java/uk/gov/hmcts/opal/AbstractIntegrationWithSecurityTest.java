@@ -31,6 +31,9 @@ import org.springframework.test.context.ActiveProfiles;
 @DisplayName("JWT Controller Integration Tests")
 public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest {
 
+    protected static final String TEST_USER_SUBJECT = "GfsHbIMt49WjQ";
+    protected static final String TEST_USER_STATE_CACHE_KEY = USER_STATE_CACHE_PREFIX + TEST_USER_SUBJECT;
+
     protected static String validToken;
     protected static String expiredToken;
     private static String jwkResponse;
@@ -38,8 +41,8 @@ public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    //We must stub the WireMock endpoints only once so this code must be in a static block.
-    //Otherwise the access token signatures can get out of step with the keystore in WireMock.
+    // We must stub the WireMock endpoints only once so this code must be in a static block.
+    // Otherwise the access token signatures can get out of step with the keystore in WireMock.
     @BeforeAll
     static void beforeAll(@Autowired SecurityItProperties securityItProperties) throws JOSEException {
         URI jwksUri = URI.create(securityItProperties.getWireMockJwksUri());
@@ -72,20 +75,20 @@ public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest
 
     @BeforeEach
     void clearCachedUserState() {
-        redisTemplate.delete(USER_STATE_CACHE_PREFIX + "GfsHbIMt49WjQ");
+        redisTemplate.delete(TEST_USER_STATE_CACHE_KEY);
     }
 
     protected static String validToken(RSAKey rsaKey, RSASSASigner signer, String issuerUri) throws JOSEException {
         var claimsSet = new JWTClaimsSet.Builder()
             .expirationTime(new Date(new Date().getTime() + 60 * 10000))
             .issuer(issuerUri)
-            .subject("GfsHbIMt49WjQ") //500000001
+            .subject(TEST_USER_SUBJECT)
             .claim("name", "Pablo")
             .build();
         return generateToken(claimsSet, rsaKey, signer);
     }
 
-    protected static  String expiredToken(RSAKey rsaKey, RSASSASigner signer, String issuerUri) throws JOSEException {
+    protected static String expiredToken(RSAKey rsaKey, RSASSASigner signer, String issuerUri) throws JOSEException {
         var claimsSet = new JWTClaimsSet.Builder()
             .expirationTime(new Date(new Date().getTime() - 60 * 1000))
             .issuer(issuerUri)

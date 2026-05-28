@@ -33,7 +33,6 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
 
     @BeforeEach
     void setUp() {
-        redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
         WireMock.reset(); // Clears everything before each test
     }
 
@@ -46,7 +45,7 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
 
         Jwt jwt = Jwt.withTokenValue("test-token")
             .header("alg", "none")
-            .claim("sub", "GfsHbIMt49WjQ")
+            .claim("sub", TEST_USER_SUBJECT)
             .claim("name", "Pablo")
             .issuedAt(Instant.now())
             .expiresAt(Instant.now().plusSeconds(300))
@@ -62,7 +61,7 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         Map<String, Object> fakeCachedUserState = objectMapper.readValue(V2_USER_STATE, Map.class);
         fakeCachedUserState.put("name", "Pablo-CACHED");
         String fakeCachedUserStateJson = objectMapper.writeValueAsString(fakeCachedUserState);
-        redisTemplate.opsForValue().set("USER_STATE_GfsHbIMt49WjQ", fakeCachedUserStateJson);
+        redisTemplate.opsForValue().set(TEST_USER_STATE_CACHE_KEY, fakeCachedUserStateJson);
 
         // Second Call - cache should be used
         UserStateV2 userStateFromCache = userStateClientService.getUserStateByAuthenticationToken(jwt).get();
