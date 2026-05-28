@@ -102,7 +102,7 @@ public class GenericReportService implements GenericReportServiceInterface {
         }
 
         if (!reportParameterService.validateReportInstanceParameterValues(request.getReportParameters(), reportEntity)) {
-            throw new UnprocessableException("Validation failed for report instance parameters");
+            throw new UnprocessableException("Validation failed for report instance parameters", true);
         }
 
         try {

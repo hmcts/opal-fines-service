@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.report;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +23,7 @@ public class ReportParameterService {
     private final ObjectMapper mapper;
 
     public boolean validateReportInstanceParameterValues(Map<String, Object> reportInstanceParameters, ReportEntity report) {
-
         List<ReportParameterData> reportParameterDataList = report.getReportParameters() == null ? List.of() : report.getReportParameters();
-
         Set<String> mandatoryReportParameters = reportParameterDataList.stream()
             .filter(ReportParameterData::mandatory)
             .map(ReportParameterData::name)
@@ -32,7 +31,6 @@ public class ReportParameterService {
         if (reportInstanceParameters == null) {
             return mandatoryReportParameters.isEmpty();
         }
-
         try {
             for (String parameterName : reportInstanceParameters.keySet()) {
                 //get report param data for name
@@ -40,17 +38,12 @@ public class ReportParameterService {
                     .filter(rpd -> parameterName.equals(rpd.name()))
                     .findFirst().orElseThrow(() -> new UnprocessableException(
                         String.format("Report Parameter %s for report %s doesn't exist", parameterName,
-                            report.getReportId())));
+                            report.getReportId()), true));
                 //see if given value for
                 switch (ReportParameterType.fromParameterName(reportParameterData.type())) {
                     case DATE -> {
                         if (reportInstanceParameters.get(parameterName) instanceof String dateString) {
-                            LocalDate date = LocalDate.parse(dateString);
-                            LocalDate min = reportParameterData.min() != null ? LocalDate.parse(
-                                reportParameterData.min().toString()) : null;
-                            LocalDate max = reportParameterData.max() != null ? LocalDate.parse(
-                                reportParameterData.max().toString()) : null;
-                            if ((min != null && !min.isAfter(date)) && (max != null && !max.isBefore(date))) {
+                            if (isInvalidDate(dateString, reportParameterData)) {
                                 return false;
                             }
                         } else {
@@ -59,12 +52,7 @@ public class ReportParameterService {
                     }
                     case DECIMAL -> {
                         if (reportInstanceParameters.get(parameterName) instanceof Double value) {
-                            //todo look into 2dp validation, I don't think its really possible to ensure...
-                            double min = reportParameterData.min() != null ? (Double) reportParameterData.min()
-                                : Double.MIN_VALUE;
-                            double max = reportParameterData.max() != null ? (Double) reportParameterData.max()
-                                : Double.MAX_VALUE;
-                            if (min > value || value > max) {
+                            if (isInvalidDecimal(value, reportParameterData)) {
                                 return false;
                             }
                         } else {
@@ -72,49 +60,30 @@ public class ReportParameterService {
                         }
                     }
                     case INTEGER -> {
-                        Long value = convertNumberObjectToLongOrDefaultValue(reportInstanceParameters.get(parameterName), null);
-                        if (value != null) {
-                            long min = convertNumberObjectToLongOrDefaultValue(reportParameterData.min(), Long.MIN_VALUE);
-                            long max = convertNumberObjectToLongOrDefaultValue(reportParameterData.max(), Long.MAX_VALUE);
-                            if (min > value || value > max) {
-                                return false;
-                            }
-                        } else {
+                        if (isInvalidInteger(reportInstanceParameters, parameterName, reportParameterData)) {
                             return false;
                         }
                     }
                     case MENU_RADIO, MENU_CHECKBOX -> {
-                        List<String> values = mapper.convertValue(reportInstanceParameters.get(parameterName),
-                            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
-                        int min = reportParameterData.min() != null ? (Integer) reportParameterData.min() : 0;
-                        int max = reportParameterData.max() != null ? (Integer) reportParameterData.max() : 1;
-                        if ((values.size() > max || values.size() < min) || !new HashSet<>(
-                            reportParameterData.options()).containsAll(values)) {
+                        if (isInvalidMenu(reportInstanceParameters, parameterName, reportParameterData)) {
                             return false;
                         }
                     }
                     case MENU_AUTOCOMPLETE -> {
-                        /*
-                        List<String> values = mapper.convertValue(reportInstanceParameters.get(parameterName),
-                            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
-                        int min = reportParameterData.getMin() != null ? (Integer) reportParameterData.getMin() : 0;
-                        int max = reportParameterData.getMax() != null ? (Integer) reportParameterData.getMax() : 1;
-                        List<String> apidata = new ArrayList<>();//todo apidata? call an endpoint?
-                        if ((values.size() > max || values.size() < min) || !new HashSet<>(apidata).containsAll(
-                            values)) {
+                        isInvalidMenuAutocomplete();
+                    }
+                    case TEXT_MAX_60 -> {
+                        if (isInvalidText(reportInstanceParameters, parameterName, reportParameterData, 60)) {
                             return false;
                         }
-                        */
                     }
-                    case TEXT_MAX_60, TEXT_MAX_100, TEXT_MAX_1000 -> {
-                        if (reportInstanceParameters.get(parameterName) instanceof String text) {
-                            int min = reportParameterData.min() != null ? (Integer) reportParameterData.min() : 0;
-                            int max =
-                                reportParameterData.max() != null ? (Integer) reportParameterData.max() : 1000;
-                            if (text.length() < min || text.length() > max) {
-                                return false;
-                            }
-                        } else {
+                    case TEXT_MAX_100 -> {
+                        if (isInvalidText(reportInstanceParameters, parameterName, reportParameterData, 100)) {
+                            return false;
+                        }
+                    }
+                    case TEXT_MAX_1000 -> {
+                        if (isInvalidText(reportInstanceParameters, parameterName, reportParameterData, 1000)) {
                             return false;
                         }
                     }
@@ -122,13 +91,74 @@ public class ReportParameterService {
                 //mandatory parameter has been set
                 mandatoryReportParameters.remove(parameterName);
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | DateTimeParseException e) {
             log.warn("Error with validation of report instance parameter values", e);
             return false;
         }
-
         //check that all mandatory parameters have been set
         return mandatoryReportParameters.isEmpty();
+    }
+
+    private boolean isInvalidText(Map<String, Object> reportInstanceParameters, String parameterName,
+        ReportParameterData reportParameterData, int defaultMaxValue) {
+        if (reportInstanceParameters.get(parameterName) instanceof String text) {
+            int min = reportParameterData.min() != null ? (Integer) reportParameterData.min() : 0;
+            int max = reportParameterData.max() != null ? (Integer) reportParameterData.max() : defaultMaxValue;
+            return text.length() < min || text.length() > max;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean isInvalidMenu(Map<String, Object> reportInstanceParameters, String parameterName,
+        ReportParameterData reportParameterData) {
+        List<String> values = mapper.convertValue(reportInstanceParameters.get(parameterName),
+            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+        int min = reportParameterData.min() != null ? (Integer) reportParameterData.min() : 0;
+        int max = reportParameterData.max() != null ? (Integer) reportParameterData.max() : 1;
+        return (values.size() > max || values.size() < min) || !new HashSet<>(
+            reportParameterData.options()).containsAll(values);
+    }
+
+    private boolean isInvalidInteger(Map<String, Object> reportInstanceParameters, String parameterName,
+        ReportParameterData reportParameterData) {
+        Long value = convertNumberObjectToLongOrDefaultValue(reportInstanceParameters.get(parameterName), null);
+        if (value != null) {
+            long min = convertNumberObjectToLongOrDefaultValue(reportParameterData.min(), Long.MIN_VALUE);
+            long max = convertNumberObjectToLongOrDefaultValue(reportParameterData.max(), Long.MAX_VALUE);
+            return min > value || value > max;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean isInvalidDecimal(Double value, ReportParameterData reportParameterData) {
+        double min = reportParameterData.min() != null ? (Double) reportParameterData.min() : Double.MIN_VALUE;
+        double max = reportParameterData.max() != null ? (Double) reportParameterData.max() : Double.MAX_VALUE;
+        return min > value || value > max;
+    }
+
+    private boolean isInvalidDate(String dateString, ReportParameterData reportParameterData) {
+        LocalDate date = LocalDate.parse(dateString);
+        LocalDate min = reportParameterData.min() != null ? LocalDate.parse(
+            reportParameterData.min().toString()) : null;
+        LocalDate max = reportParameterData.max() != null ? LocalDate.parse(
+            reportParameterData.max().toString()) : null;
+        return (min != null && !min.isAfter(date)) && (max != null && !max.isBefore(date));
+    }
+
+    private void isInvalidMenuAutocomplete() {
+        /*
+        List<String> values = mapper.convertValue(reportInstanceParameters.get(parameterName),
+            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+        int min = reportParameterData.getMin() != null ? (Integer) reportParameterData.getMin() : 0;
+        int max = reportParameterData.getMax() != null ? (Integer) reportParameterData.getMax() : 1;
+        List<String> apidata = new ArrayList<>();//todo apidata? call an endpoint?
+        if ((values.size() > max || values.size() < min) || !new HashSet<>(apidata).containsAll(
+            values)) {
+            return false;
+        }
+        */
     }
 
     private Long convertNumberObjectToLongOrDefaultValue(Object inputNumber, Long defaultValue) {
