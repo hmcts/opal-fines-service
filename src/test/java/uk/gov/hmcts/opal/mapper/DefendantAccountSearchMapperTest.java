@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
@@ -28,7 +29,7 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 
 class DefendantAccountSearchMapperTest {
 
-    private final DefendantAccountSearchMapper mapper = new DefendantAccountSearchMapper();
+    private final DefendantAccountSearchMapper mapper = Mappers.getMapper(DefendantAccountSearchMapper.class);
 
     @Test
     void toDto_mapsGeneratedRequestToInternalDto() {
