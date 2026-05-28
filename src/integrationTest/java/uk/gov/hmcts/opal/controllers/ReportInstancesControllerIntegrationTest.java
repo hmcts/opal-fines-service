@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +20,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -36,6 +38,10 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ReportInstanceControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_CLASS)
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=true"
+})
 public class ReportInstancesControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/report-instances";
     private static final String REPORT_1BU_ID = "IT-report-1";
@@ -64,7 +70,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     private ReportInstanceRepository reportInstanceRepository;
 
     @Test
-    public void createReportInstance_singleBU() throws Exception {
+    void createReportInstance_singleBU() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         Mockito.when(userState.getUserId()).thenReturn(USER_ID);
@@ -115,7 +121,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_multiBUs() throws Exception {
+    void createReportInstance_multiBUs() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         Mockito.when(userState.getUserId()).thenReturn(USER_ID);
@@ -145,7 +151,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_singleBU_fail2BUs_422() throws Exception {
+    void createReportInstance_singleBU_fail2BUs_422() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -168,7 +174,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_cannotManuallyCreate_422() throws Exception {
+    void createReportInstance_cannotManuallyCreate_422() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -190,7 +196,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
 
     @Test
-    public void createReportInstance_wrongBU_403() throws Exception {
+    void createReportInstance_wrongBU_403() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -211,7 +217,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_notAllBUs_403() throws Exception {
+    void createReportInstance_notAllBUs_403() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -232,7 +238,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_reportIDNotFound_404() throws Exception {
+    void createReportInstance_reportIDNotFound_404() throws Exception {
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId("unknown-report-id")
             .reportName(null)
@@ -259,7 +265,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_missingBUs_400() throws Exception {
+    void createReportInstance_missingBUs_400() throws Exception {
         String payload = """
             {
               "report_id": "%s",
@@ -278,7 +284,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_malformedRequest_400() throws Exception {
+    void createReportInstance_malformedRequest_400() throws Exception {
         String payload = """
             {
               "report_id": "%s",
@@ -307,7 +313,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_publishFail() throws Exception{
+    void createReportInstance_publishFail() throws Exception{
         Mockito.doThrow(new IllegalArgumentException("Unable to publish report queue message"))
             .when(reportQueuePublisher).publish(anyLong());
 
@@ -353,7 +359,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
-    public void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
+    void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         Mockito.when(userState.getUserId()).thenReturn(USER_ID);
@@ -378,5 +384,130 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail response:\n{}", ToJsonString.toPrettyJson(body));
         resultActions.andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void createReportInstance_reportParameterValidation_unknownParameterFail() throws Exception {
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
+        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
+        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
+        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+
+        CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+            .reportId(REPORT_1BU_ID)
+            .reportName(null)
+            .businessUnitIds(List.of(1))
+            .reportParameters(Map.of(
+                "NOT A PARAMETER", "NOT A VALUE!",
+                "decimal-param", 5.0,
+                "integer-param", 5L,
+                "radio-param", List.of("one"),
+                "checkbox-param", List.of("one","two"),
+                "text-60-param", "value",
+                "text-100-param", "value",
+                "text-1000-param", "value"
+            ))
+            .build();
+
+        String payload = objectMapper.writeValueAsString(request);
+        log.info(":createReportInstance_reportParameterValidation_unknownParameterFail payload: {}", payload);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+
+        // Assert
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_reportParameterValidation_unknownParameterFail response:\n{}", ToJsonString.toPrettyJson(body));
+        resultActions.andExpect(status().isUnprocessableContent())
+            .andExpect(jsonPath("$.retriable").value(true));
+    }
+
+    @Test
+    void createReportInstance_reportParameterValidation_parameterTypeMismatchFail() throws Exception {
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
+        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
+        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
+        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+
+        CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+            .reportId(REPORT_1BU_ID)
+            .reportName(null)
+            .businessUnitIds(List.of(1))
+            .reportParameters(Map.of(
+                "date-param", "NOT A DATE!",
+                "decimal-param", 5.0,
+                "integer-param", 5L,
+                "radio-param", List.of("one"),
+                "checkbox-param", List.of("one","two"),
+                "text-60-param", "value",
+                "text-100-param", "value",
+                "text-1000-param", "value"
+            ))
+            .build();
+
+        String payload = objectMapper.writeValueAsString(request);
+        log.info(":createReportInstance_reportParameterValidation_parameterTypeMismatchFail payload: {}", payload);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+
+        // Assert
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_reportParameterValidation_parameterTypeMismatchFail response:\n{}", ToJsonString.toPrettyJson(body));
+        resultActions.andExpect(status().isUnprocessableContent())
+            .andExpect(jsonPath("$.retriable").value(true));
+    }
+
+    @Test
+    void createReportInstance_repeatSuccess() throws Exception {
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
+        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
+        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
+        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+
+        CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+            .reportId(REPORT_1BU_ID)
+            .reportName(null)
+            .businessUnitIds(List.of(1))
+            .reportParameters(Map.of(
+                "date-param", "2026-05-26",
+                "decimal-param", 5.0,
+                "integer-param", 5L,
+                "radio-param", List.of("one"),
+                "checkbox-param", List.of("one","two"),
+                "text-60-param", "value",
+                "text-100-param", "value",
+                "text-1000-param", "value"
+            ))
+            .build();
+
+        String payload = objectMapper.writeValueAsString(request);
+        log.info(":createReportInstance_singleBU payload: {}", payload);
+
+        ResultActions resultActions1 = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+        ResultActions resultActions2 = mockMvc.perform(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(payload));
+
+        // Assert
+        String body1 = resultActions1.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_singleBU 1st response:\n{}", ToJsonString.toPrettyJson(body1));
+        resultActions1.andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        String body2 = resultActions2.andReturn().getResponse().getContentAsString();
+        log.info(":createReportInstance_singleBU 2nd response:\n{}", ToJsonString.toPrettyJson(body2));
+        resultActions2.andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        //verify data in db row saved correctly
+        CreateReportInstanceResponseReports dto1 = objectMapper.readValue(body1, CreateReportInstanceResponseReports.class);
+        CreateReportInstanceResponseReports dto2 = objectMapper.readValue(body2, CreateReportInstanceResponseReports.class);
+        assertNotEquals(dto1.getReportInstanceId(), dto2.getReportInstanceId());
     }
 }
