@@ -531,9 +531,9 @@ dependencies {
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
 
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.41"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.49"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.49"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.43"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.50"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.50"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.8'
