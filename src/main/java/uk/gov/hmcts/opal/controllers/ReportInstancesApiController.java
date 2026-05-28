@@ -51,7 +51,7 @@ public class ReportInstancesApiController implements ReportInstancesApi {
 
 
     @Override
-    public ResponseEntity<ReportInstanceReports> getReportInstance(Integer id) {
+    public ResponseEntity<ReportInstanceReports> getReportInstance(Long id) {
         return buildResponse(genericReportService.getReportInstance(id));
     }
 }
