@@ -613,7 +613,7 @@ dependencies {
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
   constraints {
-    testImplementation('org.mozilla:rhino:1.7.15.1') {
+    testImplementation('org.mozilla:rhino:1.9.1') {
       because '1.7.7.2 is vulnerable to CVE-2025-66453'
     }
   }
