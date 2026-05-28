@@ -169,7 +169,8 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .requestedAt(REQUESTED_AT)
                 .createdTimestamp(GENERATED_AT)
                 .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(List.of(
-                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV, ReportSupportedFileType.PDF)).build()) //todo add JSON
+                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV,
+                ReportSupportedFileType.PDF, ReportSupportedFileType.JSON)).build())
                 .reportName(null)
                 .businessUnit(List.of(1L,2L))
                 .generationStatus(ReportInstanceGenerationStatus.READY)

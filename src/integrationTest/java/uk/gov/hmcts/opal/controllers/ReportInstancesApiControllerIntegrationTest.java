@@ -409,7 +409,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.report.id").value("full_report_single_bu"))
             .andExpect(jsonPath("$.report.supported_file_types").value(
                 Matchers.contains(SupportedFileTypesEnum.CSV.name(), SupportedFileTypesEnum.PDF.name(),
-                    SupportedFileTypesEnum.XML.name()/*, SupportedFileTypesEnum.JSON.name()*/)));
+                    SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
     @Test
@@ -566,7 +566,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.instance_id").value(REPORT_INSTANCE_ID_READY))
             .andExpect(jsonPath("$.report.supported_file_types").value(
                 Matchers.containsInAnyOrder(SupportedFileTypesEnum.CSV.name(), SupportedFileTypesEnum.PDF.name(),
-                    SupportedFileTypesEnum.XML.name()))); //todo add JSON
+                    SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
     @Test

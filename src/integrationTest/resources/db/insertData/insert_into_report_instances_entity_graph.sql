@@ -34,7 +34,7 @@ INSERT INTO reports (
           FALSE,
           FALSE,
           '14',
-          ARRAY['CSV', 'PDF','XML']::r_supported_file_type_enum[],
+          ARRAY['CSV', 'PDF','XML', 'JSON']::r_supported_file_type_enum[],
           TRUE
       ),
       (
@@ -47,7 +47,7 @@ INSERT INTO reports (
           FALSE,
           FALSE,
           '14',
-          ARRAY['CSV', 'PDF','XML']::r_supported_file_type_enum[],
+          ARRAY['CSV', 'PDF','XML', 'JSON']::r_supported_file_type_enum[],
           TRUE
       ),
       (
