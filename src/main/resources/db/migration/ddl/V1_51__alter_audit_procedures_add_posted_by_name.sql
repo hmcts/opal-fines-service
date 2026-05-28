@@ -16,11 +16,11 @@
 CREATE OR REPLACE PROCEDURE public.p_audit_finalise(
     IN pi_associated_account_id bigint,
     IN pi_record_type character varying,
-    IN pi_business_unit_id smallint,
-    IN pi_posted_by character varying,
-    IN pi_posted_by_name character varying,
-    IN pi_case_reference character varying,
-    IN pi_function_code character varying
+    IN pi_business_unit_id business_units.business_unit_id%TYPE,
+    IN pi_posted_by defendant_transactions.posted_by%TYPE,
+    IN pi_posted_by_name amendments.amended_by_name%TYPE,
+    IN pi_case_reference amendments.case_reference%TYPE,
+    IN pi_function_code amendments.function_code%TYPE
 )
     LANGUAGE plpgsql
     AS $$
@@ -495,29 +495,29 @@ $$;
 COMMENT ON PROCEDURE public.p_audit_finalise(
     IN pi_associated_account_id bigint,
     IN pi_record_type character varying,
-    IN pi_business_unit_id smallint,
-    IN pi_posted_by character varying,
-    IN pi_posted_by_name character varying,
-    IN pi_case_reference character varying,
-    IN pi_function_code character varying
+    IN pi_business_unit_id business_units.business_unit_id%TYPE,
+    IN pi_posted_by defendant_transactions.posted_by%TYPE,
+    IN pi_posted_by_name amendments.amended_by_name%TYPE,
+    IN pi_case_reference amendments.case_reference%TYPE,
+    IN pi_function_code amendments.function_code%TYPE
 ) IS 'Procedure to fetch current values of auditable amendment data fields, compare with stored initial values, and record changes in the amendments table.';
 
 CREATE OR REPLACE PROCEDURE public.p_add_defendant_account_enforcement(
-    IN pi_result_id character varying,
-    IN pi_defendant_account_id bigint,
-    IN pi_business_unit_id smallint,
-    IN pi_record_type character varying,
-    IN pi_case_reference character varying,
-    IN pi_function_code character varying,
-    IN pi_jail_days integer,
-    IN pi_posted_by character varying,
-    IN pi_posted_by_name character varying,
-    IN pi_reason character varying,
-    IN pi_enforcer_id bigint,
-    IN pi_result_responses json,
-    IN pi_earliest_release_date timestamp without time zone,
-    IN pi_version_number bigint,
-    OUT po_enforcement_id bigint
+    IN pi_result_id results.result_id%TYPE,
+    IN pi_defendant_account_id defendant_accounts.defendant_account_id%TYPE,
+    IN pi_business_unit_id business_units.business_unit_id%TYPE,
+    IN pi_record_type amendments.associated_record_type%TYPE,
+    IN pi_case_reference amendments.case_reference%TYPE,
+    IN pi_function_code amendments.function_code%TYPE,
+    IN pi_jail_days defendant_accounts.jail_days%TYPE,
+    IN pi_posted_by defendant_transactions.posted_by%TYPE,
+    IN pi_posted_by_name amendments.amended_by_name%TYPE,
+    IN pi_reason enforcements.reason%TYPE,
+    IN pi_enforcer_id enforcers.enforcer_id%TYPE,
+    IN pi_result_responses enforcements.result_responses%TYPE,
+    IN pi_earliest_release_date enforcements.earliest_release_date%TYPE,
+    IN pi_version_number defendant_accounts.version_number%TYPE,
+    OUT po_enforcement_id enforcements.enforcement_id%TYPE
 )
     LANGUAGE plpgsql
     AS $$
@@ -852,4 +852,4 @@ $$;
 -- Name: PROCEDURE p_add_defendant_account_enforcement(IN pi_result_id character varying, IN pi_defendant_account_id bigint, IN pi_business_unit_id smallint, IN pi_record_type character varying, IN pi_case_reference character varying, IN pi_function_code character varying, IN pi_jail_days integer, IN pi_posted_by character varying, IN pi_posted_by_name character varying, IN pi_reason character varying, IN pi_enforcer_id bigint, IN pi_result_responses json, IN pi_earliest_release_date timestamp without time zone, IN pi_version_number bigint, OUT po_enforcement_id bigint); Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON PROCEDURE public.p_add_defendant_account_enforcement(IN pi_result_id character varying, IN pi_defendant_account_id bigint, IN pi_business_unit_id smallint, IN pi_record_type character varying, IN pi_case_reference character varying, IN pi_function_code character varying, IN pi_jail_days integer, IN pi_posted_by character varying, IN pi_posted_by_name character varying, IN pi_reason character varying, IN pi_enforcer_id bigint, IN pi_result_responses json, IN pi_earliest_release_date timestamp without time zone, IN pi_version_number bigint, OUT po_enforcement_id bigint) IS 'Procedure to add a new enforcement action for a defendant account with audit tracking, associated record creation, and concurrency check.';
+COMMENT ON PROCEDURE public.p_add_defendant_account_enforcement(IN pi_result_id results.result_id%TYPE, IN pi_defendant_account_id defendant_accounts.defendant_account_id%TYPE, IN pi_business_unit_id business_units.business_unit_id%TYPE, IN pi_record_type amendments.associated_record_type%TYPE, IN pi_case_reference amendments.case_reference%TYPE, IN pi_function_code amendments.function_code%TYPE, IN pi_jail_days defendant_accounts.jail_days%TYPE, IN pi_posted_by defendant_transactions.posted_by%TYPE, IN pi_posted_by_name amendments.amended_by_name%TYPE, IN pi_reason enforcements.reason%TYPE, IN pi_enforcer_id enforcers.enforcer_id%TYPE, IN pi_result_responses enforcements.result_responses%TYPE, IN pi_earliest_release_date enforcements.earliest_release_date%TYPE, IN pi_version_number defendant_accounts.version_number%TYPE, OUT po_enforcement_id enforcements.enforcement_id%TYPE) IS 'Procedure to add a new enforcement action for a defendant account with audit tracking, associated record creation, and concurrency check.';
