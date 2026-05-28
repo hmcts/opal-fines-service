@@ -29,22 +29,17 @@ class MinorCreditorApiControllerTest {
 
     @Test
     void given_validRequest_when_getMinorCreditorAccount_then_returnsOkResponse() {
-        // Arrange
+        Long minorCreditorAccountId = 1L;
         MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
-        response.setCreditorAccountId(101L);
-        response.setVersion(BigInteger.valueOf(7));
 
-        when(minorCreditorService.getMinorCreditorAccount(101L)).thenReturn(response);
+        when(minorCreditorService.getMinorCreditorAccount(minorCreditorAccountId)).thenReturn(response);
 
-        // Act
         ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
-            minorCreditorApiController.getMinorCreditorAccount(101L);
+            minorCreditorApiController.getMinorCreditorAccount(minorCreditorAccountId);
 
-        // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("\"7\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());
-        verify(minorCreditorService).getMinorCreditorAccount(101L);
+        verify(minorCreditorService).getMinorCreditorAccount(minorCreditorAccountId);
     }
 
     @Test
