@@ -29,7 +29,8 @@ public final class UserServiceStub {
     private static final String NORMAL_USER = "normal@users.com";
     private static final String NORMAL_BUSINESS_UNIT_USER_ID = "USER01";
     private static final String DEVELOPER_USER = "Developer_User";
-    private static final List<FinesPermission> DEFAULT_PERMISSIONS = Arrays.asList(FinesPermission.values());
+    private static final FinesPermission[] ALL_PERMISSIONS = FinesPermission.values();
+    private static final List<FinesPermission> ALL_PERMISSIONS_LIST = Arrays.asList(ALL_PERMISSIONS);
     private static final String USER_STATE_BY_ID_PATH_TEMPLATE = "/users/%d/state";
 
     public static final String USER_STATE_PATH = "/v2/users/0/state";
@@ -77,11 +78,11 @@ public final class UserServiceStub {
     }
 
     public static void stubUserWithAllPermissions(short businessUnitId) {
-        stubUserWithPermissions(businessUnitId, FinesPermission.values());
+        stubUserWithPermissions(businessUnitId, ALL_PERMISSIONS);
     }
 
     public static void stubUserWithAllPermissions(short... businessUnitIds) {
-        stubUserWithPermissionsForBusinessUnits(businessUnitIds, FinesPermission.values());
+        stubUserWithPermissionsForBusinessUnits(businessUnitIds, ALL_PERMISSIONS);
     }
 
     public static void stubUserWithCreateManageDraftAccountsPermission(int businessUnitId) {
@@ -134,7 +135,7 @@ public final class UserServiceStub {
     }
 
     public static void stubNormalUserWithAllPermissions(int businessUnitId) {
-        stubNormalUserWithPermissions(businessUnitId, FinesPermission.values());
+        stubNormalUserWithPermissions(businessUnitId, ALL_PERMISSIONS);
     }
 
     public static void stubNormalUserWithPermissionsForBusinessUnits(int[] businessUnitIds,
@@ -158,7 +159,7 @@ public final class UserServiceStub {
             .boxed()
             .collect(Collectors.toMap(
                 Integer::shortValue,
-                businessUnitId -> businessUnitUser(businessUnitId, "", FinesPermission.values())
+                businessUnitId -> businessUnitUser(businessUnitId, "", ALL_PERMISSIONS)
             ));
         stubAuthorisedUser(buildUserStateForBusinessUnits(0L, DEVELOPER_USER, DEVELOPER_USER, businessUnitUsers));
     }
@@ -216,7 +217,7 @@ public final class UserServiceStub {
 
     public static UserStateV2 createDefaultUserState(int userId) {
         return createDefaultUserState(userId, List.of(
-            createBusinessUnitUser((short) 70, "L065JG", DEFAULT_PERMISSIONS),
+            createBusinessUnitUser((short) 70, "L065JG", ALL_PERMISSIONS_LIST),
             createBusinessUnitUser((short) 68, "L066JG", List.of()),
             createBusinessUnitUser((short) 73, "L067JG", List.of()),
             createBusinessUnitUser((short) 71, "L073JG", List.of()),
@@ -228,7 +229,7 @@ public final class UserServiceStub {
 
     public static UserStateV2 createDefaultUserState(int userId, short businessUnitId) {
         return createDefaultUserState(userId, List.of(
-            createBusinessUnitUser(businessUnitId, "USER" + businessUnitId, DEFAULT_PERMISSIONS)
+            createBusinessUnitUser(businessUnitId, "USER" + businessUnitId, ALL_PERMISSIONS_LIST)
         ));
     }
 
