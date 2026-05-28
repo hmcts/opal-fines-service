@@ -33,14 +33,6 @@ target
 applicationinsights-agent-*.jar
 *.log
 
-### Shared OPAL Codex Skills ###
-.codex/skills/opal-fines-functional-test-review
-.codex/skills/opal-fines-functional-tests
-.codex/skills/opal-fines-integration-test-review
-.codex/skills/opal-fines-integration-tests
-.codex/skills/opal-java
-.codex/skills/review
-
 ### Bruno ###
 
 # Ignore real Bruno environment files
