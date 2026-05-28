@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.mapper;
 
+import org.mapstruct.Builder;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.openapitools.jackson.nullable.JsonNullable;
-import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
@@ -25,142 +28,92 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-@Component
-public class DefendantAccountSearchMapper {
+@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
+public interface DefendantAccountSearchMapper {
 
-    public AccountSearchDto toDto(PostDefendantAccountSearchRequestDefendantAccount request) {
-        if (request == null) {
-            return null;
-        }
+    @Mapping(target = "businessUnitIds", source = "businessUnitIds", qualifiedByName = "toShorts")
+    @Mapping(target = "consolidationSearch", source = "consolidationSearch", qualifiedByName = "valueOrNull")
+    @Mapping(target = "referenceNumberDto", source = "referenceNumber")
+    AccountSearchDto toDto(PostDefendantAccountSearchRequestDefendantAccount request);
 
-        return AccountSearchDto.builder()
-            .activeAccountsOnly(request.getActiveAccountsOnly())
-            .businessUnitIds(toShorts(valueOrNull(request.getBusinessUnitIds())))
-            .consolidationSearch(valueOrNull(request.getConsolidationSearch()))
-            .referenceNumberDto(toDto(request.getReferenceNumber()))
-            .defendant(toDto(request.getDefendant()))
-            .build();
+    @Mapping(target = "accountNumber", source = "accountNumber", qualifiedByName = "valueOrNull")
+    @Mapping(target = "prosecutorCaseReference", source = "prosecutorCaseReference",
+             qualifiedByName = "valueOrNull")
+    ReferenceNumberDto toDto(DefendantAccountSearchReferenceNumberDefendantAccount referenceNumber);
+
+    @Mapping(target = "addressLine1", source = "addressLine1", qualifiedByName = "valueOrNull")
+    @Mapping(target = "postcode", source = "postcode", qualifiedByName = "valueOrNull")
+    @Mapping(target = "organisationName", source = "organisationName", qualifiedByName = "valueOrNull")
+    @Mapping(target = "exactMatchOrganisationName", source = "exactMatchOrganisationName",
+             qualifiedByName = "valueOrNull")
+    @Mapping(target = "surname", source = "surname", qualifiedByName = "valueOrNull")
+    @Mapping(target = "exactMatchSurname", source = "exactMatchSurname", qualifiedByName = "valueOrNull")
+    @Mapping(target = "forenames", source = "forenames", qualifiedByName = "valueOrNull")
+    @Mapping(target = "exactMatchForenames", source = "exactMatchForenames", qualifiedByName = "valueOrNull")
+    @Mapping(target = "birthDate", source = "birthDate", qualifiedByName = "valueOrNull")
+    @Mapping(target = "nationalInsuranceNumber", source = "nationalInsuranceNumber",
+             qualifiedByName = "valueOrNull")
+    DefendantDto toDto(DefendantAccountSearchDefendantDefendantAccount defendant);
+
+    @Mapping(target = "defendantAccounts", source = "defendantAccounts", qualifiedByName = "toGeneratedAccounts")
+    PostDefendantAccountSearchResponseDefendantAccount toResponse(DefendantAccountSearchResultsDto dto);
+
+    @Mapping(target = "aliases", source = "aliases", qualifiedByName = "toGeneratedAliases")
+    @Mapping(target = "postcode", source = "postcode", qualifiedByName = "toNullable")
+    @Mapping(target = "prosecutorCaseReference", source = "prosecutorCaseReference",
+             qualifiedByName = "toNullable")
+    @Mapping(target = "lastEnforcementAction", source = "lastEnforcementAction", qualifiedByName = "toNullable")
+    @Mapping(target = "organisationName", source = "organisationName", qualifiedByName = "toNullable")
+    @Mapping(target = "defendantTitle", source = "defendantTitle", qualifiedByName = "toNullable")
+    @Mapping(target = "defendantFirstnames", source = "defendantFirstnames", qualifiedByName = "toNullable")
+    @Mapping(target = "defendantSurname", source = "defendantSurname", qualifiedByName = "toNullable")
+    @Mapping(target = "birthDate", source = "birthDate", qualifiedByName = "toNullableLocalDate")
+    @Mapping(target = "nationalInsuranceNumber", source = "nationalInsuranceNumber",
+             qualifiedByName = "toNullable")
+    @Mapping(target = "parentGuardianSurname", source = "parentGuardianSurname", qualifiedByName = "toNullable")
+    @Mapping(target = "parentGuardianFirstnames", source = "parentGuardianFirstnames",
+             qualifiedByName = "toNullable")
+    @Mapping(target = "hasCollectionOrder", source = "hasCollectionOrder",
+             qualifiedByName = "toOptionalNullable")
+    @Mapping(target = "accountVersion", source = "accountVersion", qualifiedByName = "toOptionalNullableInteger")
+    @Mapping(target = "checks", source = "checks", qualifiedByName = "toOptionalNullableChecks")
+    DefendantAccountSearchResultDefendantAccount toGenerated(DefendantAccountSummaryDto dto);
+
+    @Mapping(target = "organisationName", source = "organisationName", qualifiedByName = "toNullable")
+    @Mapping(target = "surname", source = "surname", qualifiedByName = "toNullable")
+    @Mapping(target = "forenames", source = "forenames", qualifiedByName = "toNullable")
+    DefendantAccountSearchAliasDefendantAccount toGenerated(AliasDto alias);
+
+    @Mapping(target = "warnings", source = "warnings", qualifiedByName = "toGeneratedChecks")
+    @Mapping(target = "errors", source = "errors", qualifiedByName = "toGeneratedChecks")
+    DefendantAccountSearchChecksDefendantAccount toGenerated(Checks checks);
+
+    DefendantAccountSearchCheckDefendantAccount toGenerated(WarnError check);
+
+    @Named("toGeneratedAccounts")
+    default JsonNullable<List<DefendantAccountSearchResultDefendantAccount>> toGeneratedAccounts(
+        List<DefendantAccountSummaryDto> accounts) {
+
+        return JsonNullable.of(Optional.ofNullable(accounts)
+                                   .orElse(Collections.emptyList())
+                                   .stream()
+                                   .map(this::toGenerated)
+                                   .toList());
     }
 
-    private ReferenceNumberDto toDto(DefendantAccountSearchReferenceNumberDefendantAccount referenceNumber) {
-        if (referenceNumber == null) {
-            return null;
-        }
+    @Named("toGeneratedAliases")
+    default JsonNullable<List<DefendantAccountSearchAliasDefendantAccount>> toGeneratedAliases(
+        List<AliasDto> aliases) {
 
-        return ReferenceNumberDto.builder()
-            .organisation(referenceNumber.getOrganisation())
-            .accountNumber(valueOrNull(referenceNumber.getAccountNumber()))
-            .prosecutorCaseReference(valueOrNull(referenceNumber.getProsecutorCaseReference()))
-            .build();
+        return JsonNullable.of(Optional.ofNullable(aliases)
+                                   .orElse(Collections.emptyList())
+                                   .stream()
+                                   .map(this::toGenerated)
+                                   .toList());
     }
 
-    private DefendantDto toDto(DefendantAccountSearchDefendantDefendantAccount defendant) {
-        if (defendant == null) {
-            return null;
-        }
-
-        return DefendantDto.builder()
-            .includeAliases(defendant.getIncludeAliases())
-            .organisation(defendant.getOrganisation())
-            .addressLine1(valueOrNull(defendant.getAddressLine1()))
-            .postcode(valueOrNull(defendant.getPostcode()))
-            .organisationName(valueOrNull(defendant.getOrganisationName()))
-            .exactMatchOrganisationName(valueOrNull(defendant.getExactMatchOrganisationName()))
-            .surname(valueOrNull(defendant.getSurname()))
-            .exactMatchSurname(valueOrNull(defendant.getExactMatchSurname()))
-            .forenames(valueOrNull(defendant.getForenames()))
-            .exactMatchForenames(valueOrNull(defendant.getExactMatchForenames()))
-            .birthDate(valueOrNull(defendant.getBirthDate()))
-            .nationalInsuranceNumber(valueOrNull(defendant.getNationalInsuranceNumber()))
-            .build();
-    }
-
-    public PostDefendantAccountSearchResponseDefendantAccount toResponse(DefendantAccountSearchResultsDto dto) {
-        if (dto == null) {
-            return null;
-        }
-
-        List<DefendantAccountSearchResultDefendantAccount> accounts = Optional
-            .ofNullable(dto.getDefendantAccounts())
-            .orElse(Collections.emptyList())
-            .stream()
-            .map(this::toGenerated)
-            .toList();
-
-        return PostDefendantAccountSearchResponseDefendantAccount.builder()
-            .count(dto.getCount())
-            .defendantAccounts(accounts)
-            .build();
-    }
-
-    private DefendantAccountSearchResultDefendantAccount toGenerated(DefendantAccountSummaryDto dto) {
-        DefendantAccountSearchResultDefendantAccount account = DefendantAccountSearchResultDefendantAccount.builder()
-            .defendantAccountId(dto.getDefendantAccountId())
-            .accountNumber(dto.getAccountNumber())
-            .organisation(dto.getOrganisation())
-            .aliases(toGeneratedAliases(dto.getAliases()))
-            .addressLine1(dto.getAddressLine1())
-            .postcode(dto.getPostcode())
-            .businessUnitName(dto.getBusinessUnitName())
-            .businessUnitId(dto.getBusinessUnitId())
-            .prosecutorCaseReference(dto.getProsecutorCaseReference())
-            .lastEnforcementAction(dto.getLastEnforcementAction())
-            .accountBalance(dto.getAccountBalance())
-            .organisationName(dto.getOrganisationName())
-            .defendantTitle(dto.getDefendantTitle())
-            .defendantFirstnames(dto.getDefendantFirstnames())
-            .defendantSurname(dto.getDefendantSurname())
-            .birthDate(toLocalDate(dto.getBirthDate()))
-            .nationalInsuranceNumber(dto.getNationalInsuranceNumber())
-            .parentGuardianSurname(dto.getParentGuardianSurname())
-            .parentGuardianFirstnames(dto.getParentGuardianFirstnames())
-            .build();
-
-        if (dto.getHasCollectionOrder() != null) {
-            account.hasCollectionOrder(dto.getHasCollectionOrder());
-        }
-        if (dto.getAccountVersion() != null) {
-            account.accountVersion(toInteger(dto.getAccountVersion()));
-        }
-        if (dto.getChecks() != null) {
-            account.checks(toGenerated(dto.getChecks()));
-        }
-
-        return account;
-    }
-
-    private DefendantAccountSearchAliasDefendantAccount toGenerated(AliasDto alias) {
-        return DefendantAccountSearchAliasDefendantAccount.builder()
-            .aliasNumber(alias.getAliasNumber())
-            .organisationName(alias.getOrganisationName())
-            .surname(alias.getSurname())
-            .forenames(alias.getForenames())
-            .build();
-    }
-
-    private DefendantAccountSearchChecksDefendantAccount toGenerated(Checks checks) {
-        return DefendantAccountSearchChecksDefendantAccount.builder()
-            .warnings(toGeneratedChecks(checks.getWarnings()))
-            .errors(toGeneratedChecks(checks.getErrors()))
-            .build();
-    }
-
-    private DefendantAccountSearchCheckDefendantAccount toGenerated(WarnError check) {
-        return DefendantAccountSearchCheckDefendantAccount.builder()
-            .reference(check.getReference())
-            .message(check.getMessage())
-            .build();
-    }
-
-    private List<DefendantAccountSearchAliasDefendantAccount> toGeneratedAliases(List<AliasDto> aliases) {
-        return Optional.ofNullable(aliases)
-            .orElse(Collections.emptyList())
-            .stream()
-            .map(this::toGenerated)
-            .toList();
-    }
-
-    private List<DefendantAccountSearchCheckDefendantAccount> toGeneratedChecks(List<WarnError> checks) {
+    @Named("toGeneratedChecks")
+    default List<DefendantAccountSearchCheckDefendantAccount> toGeneratedChecks(List<WarnError> checks) {
         return Optional.ofNullable(checks)
             .orElse(Collections.emptyList())
             .stream()
@@ -168,21 +121,41 @@ public class DefendantAccountSearchMapper {
             .toList();
     }
 
-    private List<Short> toShorts(List<Integer> values) {
-        return values == null ? null : values.stream()
+    @Named("toNullable")
+    default <T> JsonNullable<T> toNullable(T value) {
+        return JsonNullable.of(value);
+    }
+
+    @Named("toNullableLocalDate")
+    default JsonNullable<LocalDate> toNullableLocalDate(String value) {
+        return JsonNullable.of(value == null || value.isBlank() ? null : LocalDate.parse(value));
+    }
+
+    @Named("toOptionalNullable")
+    default <T> JsonNullable<T> toOptionalNullable(T value) {
+        return value == null ? JsonNullable.undefined() : JsonNullable.of(value);
+    }
+
+    @Named("toOptionalNullableInteger")
+    default JsonNullable<Integer> toOptionalNullableInteger(BigInteger value) {
+        return value == null ? JsonNullable.undefined() : JsonNullable.of(value.intValue());
+    }
+
+    @Named("toOptionalNullableChecks")
+    default JsonNullable<DefendantAccountSearchChecksDefendantAccount> toOptionalNullableChecks(Checks checks) {
+        return checks == null ? JsonNullable.undefined() : JsonNullable.of(toGenerated(checks));
+    }
+
+    @Named("toShorts")
+    default List<Short> toShorts(JsonNullable<List<Integer>> values) {
+        List<Integer> unwrappedValues = valueOrNull(values);
+        return unwrappedValues == null ? null : unwrappedValues.stream()
             .map(value -> value == null ? null : value.shortValue())
             .toList();
     }
 
-    private LocalDate toLocalDate(String value) {
-        return value == null || value.isBlank() ? null : LocalDate.parse(value);
-    }
-
-    private Integer toInteger(BigInteger value) {
-        return value == null ? null : value.intValue();
-    }
-
-    private <T> T valueOrNull(JsonNullable<T> value) {
+    @Named("valueOrNull")
+    default <T> T valueOrNull(JsonNullable<T> value) {
         return value != null && value.isPresent() ? value.get() : null;
     }
 }
