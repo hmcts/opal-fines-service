@@ -323,7 +323,6 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_noManualCreation_throwsException() {
         //setup
-        //when(userStateService.checkForAuthorisedUserInSecurityContextHolder()).thenReturn(userState);
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.getSupportsMultiBu()).thenReturn(false);
         when(reportEntity.getCanManuallyCreate()).thenReturn(false);

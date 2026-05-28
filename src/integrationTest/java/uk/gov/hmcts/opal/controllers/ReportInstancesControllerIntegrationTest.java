@@ -3,6 +3,11 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -16,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -38,6 +42,7 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ReportInstanceControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_CLASS)
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=true"
@@ -71,26 +76,26 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_singleBU() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
-        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
-
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        Map<String, Object> parameterMap = Map.of(
+            "date-param", "2026-05-26",
+            "decimal-param", 5.0,
+            "integer-param", 5,
+            "radio-param", List.of("one"),
+            "checkbox-param", List.of("one","two"),
+            "text-60-param", "value",
+            "text-100-param", "value",
+            "text-1000-param", "value"
+        );
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
                 .reportId(REPORT_1BU_ID)
                 .reportName(null)
                 .businessUnitIds(List.of(1))
-                .reportParameters(Map.of(
-                    "date-param", "2026-05-26",
-                    "decimal-param", 5.0,
-                    "integer-param", 5L,
-                    "radio-param", List.of("one"),
-                    "checkbox-param", List.of("one","two"),
-                    "text-60-param", "value",
-                    "text-100-param", "value",
-                    "text-1000-param", "value"
-                ))
+                .reportParameters(parameterMap)
                 .build();
 
         String payload = objectMapper.writeValueAsString(request);
@@ -117,17 +122,27 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         assertEquals(USER_NAME, reportInstanceEntity.getRequestedByName());
         assertEquals(REQUESTED, reportInstanceEntity.getGenerationStatus());
 
-        Mockito.verify(reportQueuePublisher).publish(dto.getReportInstanceId());
+        Map dtoParameters = objectMapper.readValue(reportInstanceEntity.getReportParameters(), Map.class);
+        assertEquals(parameterMap.get("date-param"), dtoParameters.get("date-param"));
+        assertEquals(parameterMap.get("decimal-param"), dtoParameters.get("decimal-param"));
+        assertEquals(parameterMap.get("integer-param"), dtoParameters.get("integer-param"));
+        assertEquals(parameterMap.get("radio-param"), dtoParameters.get("radio-param"));
+        assertEquals(parameterMap.get("checkbox-param"), dtoParameters.get("checkbox-param"));
+        assertEquals(parameterMap.get("text-60-param"), dtoParameters.get("text-60-param"));
+        assertEquals(parameterMap.get("text-100-param"), dtoParameters.get("text-100-param"));
+        assertEquals(parameterMap.get("text-1000-param"), dtoParameters.get("text-1000-param"));
+
+        verify(reportQueuePublisher).publish(dto.getReportInstanceId());
     }
 
     @Test
     void createReportInstance_multiBUs() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
-        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
-        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
-        Mockito.when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_2BUs_ID)
@@ -152,10 +167,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_singleBU_fail2BUs_422() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
-        Mockito.when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -175,9 +190,9 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_cannotManuallyCreate_422() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_NO_MANUAL_CREATION)
@@ -197,9 +212,9 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_wrongBU_403() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -218,9 +233,9 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_notAllBUs_403() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_2BUs_ID)
@@ -314,14 +329,14 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_publishFail() throws Exception{
-        Mockito.doThrow(new IllegalArgumentException("Unable to publish report queue message"))
+        doThrow(new IllegalArgumentException("Unable to publish report queue message"))
             .when(reportQueuePublisher).publish(anyLong());
 
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
-        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -360,11 +375,11 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
-        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -388,11 +403,11 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_reportParameterValidation_unknownParameterFail() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
-        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -426,11 +441,11 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_reportParameterValidation_parameterTypeMismatchFail() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
-        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -464,11 +479,11 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
     @Test
     void createReportInstance_repeatSuccess() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.anyString())).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        Mockito.when(userState.getUserId()).thenReturn(USER_ID);
-        Mockito.when(userState.getUserName()).thenReturn(USER_NAME);
-        Mockito.when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)

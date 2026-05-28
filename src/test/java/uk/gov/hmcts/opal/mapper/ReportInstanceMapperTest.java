@@ -21,7 +21,6 @@ public class ReportInstanceMapperTest {
         CreateReportInstanceResponseReports  responseDto = reportInstanceMapper.toResponseDto(reportInstanceEntity);
 
         assertNotNull(responseDto);
-        //assertEquals("REPORT-ID-123", responseDto.getReportId());
-        //assertEquals(456L, responseDto.getReportInstanceId());
+        assertEquals(456L, responseDto.getReportInstanceId());
     }
 }

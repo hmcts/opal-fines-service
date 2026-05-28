@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -16,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -27,7 +25,6 @@ import uk.gov.hmcts.opal.service.UserStateService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ReportInstanceControllerIntegrationTest")
-@Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_CLASS)
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=false"

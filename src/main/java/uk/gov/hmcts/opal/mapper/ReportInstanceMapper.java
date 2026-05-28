@@ -7,7 +7,5 @@ import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 @Mapper(componentModel = "spring")
 public interface ReportInstanceMapper {
 
-
-    //@Mapping(source = "report.reportId", target = "reportId")
     CreateReportInstanceResponseReports toResponseDto(ReportInstanceEntity entity);
 }
