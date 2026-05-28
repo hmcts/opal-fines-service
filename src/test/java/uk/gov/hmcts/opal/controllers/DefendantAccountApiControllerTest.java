@@ -34,15 +34,17 @@ class DefendantAccountApiControllerTest {
 
     @Test
     void given_validRequest_when_getEnforcementStatus_then_returnsOkResponse() {
+        // Arrange
         Long defendantId = 1L;
         EnforcementStatus status = EnforcementStatus.builder()
             .build();
         when(defendantAccountService.getEnforcementStatus(defendantId, BEARER_TOKEN))
             .thenReturn(status);
-
+        // Act
         ResponseEntity<GetEnforcementStatusResponse> response =
             defendantAccountApiController.getEnforcementStatus(defendantId, BEARER_TOKEN);
 
+        //Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(status, response.getBody());
         verify(defendantAccountService).getEnforcementStatus(defendantId, BEARER_TOKEN);
@@ -50,6 +52,7 @@ class DefendantAccountApiControllerTest {
 
     @Test
     void postDefendantAccountSearch_returnsServiceResponse() {
+        //Arrange
         PostDefendantAccountSearchRequestDefendantAccount request =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
                 .activeAccountsOnly(true)
@@ -63,10 +66,10 @@ class DefendantAccountApiControllerTest {
 
         when(defendantAccountService.searchDefendantAccounts(request, BEARER_TOKEN))
             .thenReturn(serviceResponse);
-
+        //Act
         ResponseEntity<PostDefendantAccountSearchResponseDefendantAccount> response =
             defendantAccountApiController.postDefendantAccountSearch(request, BEARER_TOKEN);
-
+        //Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(serviceResponse, response.getBody());
         verify(defendantAccountService).searchDefendantAccounts(request, BEARER_TOKEN);
