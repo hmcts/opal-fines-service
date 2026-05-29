@@ -325,6 +325,68 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/search:
+    post:
+      tags:
+        - Defendant Account
+      summary: Search Defendant Accounts
+      description: Searches defendant accounts based upon criteria in the request body.
+      operationId: postDefendantAccountSearch
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
+      requestBody:
+        description: Defendant account search criteria
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postDefendantAccountSearchRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/postDefendantAccountSearchResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/{id}:
     patch:
       summary: Update a defendant account (partial update)
@@ -559,6 +621,281 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
   schemas:
+    postDefendantAccountSearchRequest:
+      title: Defendant Account Search Request
+      type: object
+      required:
+        - active_accounts_only
+        - business_unit_ids
+      properties:
+        active_accounts_only:
+          type: boolean
+        business_unit_ids:
+          type:
+            - array
+            - 'null'
+          items:
+            type: integer
+        consolidation_search:
+          type:
+            - boolean
+            - 'null'
+          description: Whether to use consolidated defendant account search.
+        reference_number:
+          allOf:
+            - $ref: '#/components/schemas/defendantAccountSearchReferenceNumber'
+          nullable: true
+        defendant:
+          allOf:
+            - $ref: '#/components/schemas/defendantAccountSearchDefendant'
+          nullable: true
+
+    defendantAccountSearchReferenceNumber:
+      type: object
+      required:
+        - organisation
+      properties:
+        organisation:
+          type: boolean
+        account_number:
+          type:
+            - string
+            - 'null'
+        prosecutor_case_reference:
+          type:
+            - string
+            - 'null'
+
+    defendantAccountSearchDefendant:
+      type: object
+      required:
+        - include_aliases
+        - organisation
+      properties:
+        include_aliases:
+          type: boolean
+        organisation:
+          type: boolean
+        address_line_1:
+          type:
+            - string
+            - 'null'
+        postcode:
+          type:
+            - string
+            - 'null'
+        organisation_name:
+          type:
+            - string
+            - 'null'
+        exact_match_organisation_name:
+          type:
+            - boolean
+            - 'null'
+        surname:
+          type:
+            - string
+            - 'null'
+        exact_match_surname:
+          type:
+            - boolean
+            - 'null'
+        forenames:
+          type:
+            - string
+            - 'null'
+        exact_match_forenames:
+          type:
+            - boolean
+            - 'null'
+        birth_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        national_insurance_number:
+          type:
+            - string
+            - 'null'
+
+    postDefendantAccountSearchResponse:
+      title: Defendant Account Search Response
+      type: object
+      required:
+        - count
+        - defendant_accounts
+      properties:
+        count:
+          type: integer
+          description: The total number of records identified.
+        defendant_accounts:
+          type:
+            - array
+            - 'null'
+          description: A list of defendant accounts. Null if none are found.
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchResult'
+      additionalProperties: false
+
+    defendantAccountSearchResult:
+      type: object
+      description: Details of a defendant account. Consolidated search fields are present only for consolidated searches.
+      required:
+        - defendant_account_id
+        - account_number
+        - organisation
+        - aliases
+        - address_line_1
+        - postcode
+        - business_unit_name
+        - business_unit_id
+        - prosecutor_case_reference
+        - last_enforcement_action
+        - account_balance
+        - organisation_name
+        - defendant_title
+        - defendant_firstnames
+        - defendant_surname
+        - birth_date
+        - national_insurance_number
+        - parent_guardian_surname
+        - parent_guardian_firstnames
+      properties:
+        defendant_account_id:
+          type: string
+        account_number:
+          type: string
+        organisation:
+          type: boolean
+        aliases:
+          type:
+            - array
+            - 'null'
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchAlias'
+        address_line_1:
+          type: string
+        postcode:
+          type:
+            - string
+            - 'null'
+        business_unit_name:
+          type: string
+        business_unit_id:
+          type: string
+        prosecutor_case_reference:
+          type:
+            - string
+            - 'null'
+        last_enforcement_action:
+          type:
+            - string
+            - 'null'
+        account_balance:
+          type: number
+        organisation_name:
+          type:
+            - string
+            - 'null'
+        defendant_title:
+          type:
+            - string
+            - 'null'
+        defendant_firstnames:
+          type:
+            - string
+            - 'null'
+        defendant_surname:
+          type:
+            - string
+            - 'null'
+        birth_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        national_insurance_number:
+          type:
+            - string
+            - 'null'
+        parent_guardian_surname:
+          type:
+            - string
+            - 'null'
+        parent_guardian_firstnames:
+          type:
+            - string
+            - 'null'
+        has_collection_order:
+          type:
+            - boolean
+            - 'null'
+          description: Whether the account has a collection order. Present only for consolidated searches.
+        account_version:
+          type:
+            - integer
+            - 'null'
+          description: Version number for the defendant account. Present only for consolidated searches.
+        checks:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/defendantAccountSearchChecks'
+      additionalProperties: false
+
+    defendantAccountSearchChecks:
+      type: object
+      required:
+        - warnings
+        - errors
+      properties:
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchCheck'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchCheck'
+      additionalProperties: false
+
+    defendantAccountSearchCheck:
+      type: object
+      required:
+        - reference
+        - message
+      properties:
+        reference:
+          type: string
+        message:
+          type: string
+      additionalProperties: false
+
+    defendantAccountSearchAlias:
+      type: object
+      description: Details of a single alias.
+      required:
+        - alias_number
+        - organisation_name
+        - surname
+        - forenames
+      properties:
+        alias_number:
+          type: integer
+        organisation_name:
+          type:
+            - string
+            - 'null'
+        surname:
+          type:
+            - string
+            - 'null'
+        forenames:
+          type:
+            - string
+            - 'null'
+      additionalProperties: false
+
     enforcementOverview:
       type: object
       additionalProperties: false

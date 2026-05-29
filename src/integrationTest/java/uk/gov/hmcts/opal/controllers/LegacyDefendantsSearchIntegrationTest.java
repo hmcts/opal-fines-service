@@ -81,7 +81,7 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                        "forenames": "John",
                        "exact_match_forenames": false,
                        "birth_date": "1985-06-15",
-                       "national_insurance_number": "QQ123456C"
+                       "national_insurance_number": null
                        }
                 }"""));
 
@@ -122,7 +122,7 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                        "forenames": "John",
                        "exact_match_forenames": false,
                        "birth_date": "1985-06-15",
-                       "national_insurance_number": "QQ123456C"
+                       "national_insurance_number": null
                        }
                 }"""));
 
