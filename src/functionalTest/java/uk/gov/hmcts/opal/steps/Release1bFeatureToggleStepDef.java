@@ -302,7 +302,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
         return jsonObject("""
             {
               "activity_note": {
-                "record_type": "DEFENDANT_ACCOUNTS",
+                "record_type": "defendant_accounts",
                 "record_id": "77",
                 "note_text": "release-1b off-path check",
                 "note_type": "AA"
