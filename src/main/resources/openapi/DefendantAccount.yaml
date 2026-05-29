@@ -156,6 +156,7 @@ paths:
                   - account_type
                   - originator_type
                   - originator_name
+                  - collection_order
                   - business_unit_summary
                   - payment_state_summary
                   - party_details
@@ -216,11 +217,15 @@ paths:
                     enum:
                       - TFO
                       - FP
+                      - NEW
+                      - TFOS
                       - CASE
-                      - MAC
                   originator_name:
                     type: string
                     description: NEW - DB Mapping - defendant.accounts.originator_name
+                  collection_order:
+                    type: boolean
+                    description: DB Mapping - defendant_accounts.collection_order
                   prosecutor_case_reference:
                     type: string
                     description: DB Mapping - defendant.accounts.prosecutor_case_reference

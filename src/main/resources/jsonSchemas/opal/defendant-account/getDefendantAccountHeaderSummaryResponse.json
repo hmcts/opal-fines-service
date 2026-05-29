@@ -20,6 +20,12 @@
       "type": "string",
       "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"]
     },
+    "originator_type": {
+      "type": "string",
+      "enum": ["TFO", "FP", "NEW", "TFOS", "CASE"]
+    },
+    "originator_name": { "type": "string" },
+    "collection_order": { "type": "boolean" },
     "prosecutor_case_reference": { "type": ["string", "null"] },
     "fixed_penalty_ticket_number": { "type": ["string", "null"] },
     "business_unit_summary": {
@@ -41,6 +47,9 @@
     "is_youth",
     "account_status_reference",
     "account_type",
+    "originator_type",
+    "originator_name",
+    "collection_order",
     "prosecutor_case_reference",
     "fixed_penalty_ticket_number",
     "business_unit_summary",
