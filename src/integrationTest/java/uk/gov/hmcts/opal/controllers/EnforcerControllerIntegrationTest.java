@@ -7,12 +7,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -29,17 +30,16 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationWithSecurityT
 
     private static final String URL_BASE = "/enforcers";
 
-    private static final String GET_ENFORCERS_REF_DATA_RESPONSE = "getEnforcersRefDataResponse.json";
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
-
     @BeforeEach
     void stubUserService() {
         stubAuthorisedUser();
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5891")
     void testGetEnforcerById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1")
                                                     .header("authorization", "Bearer " + validToken));
@@ -66,6 +66,10 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationWithSecurityT
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5889")
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/2")
                             .header("authorization", "Bearer " + validToken))
@@ -73,6 +77,10 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationWithSecurityT
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5888")
     void testPostEnforcersSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer " + validToken)
@@ -101,6 +109,10 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationWithSecurityT
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5890")
     void testPostEnforcersSearch_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer " + validToken)
@@ -111,6 +123,10 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationWithSecurityT
 
     @Test
     @DisplayName("Get Enforcer Ref Data [@PO-304, @PO-316]")
+    @JiraStory("PO-304")
+    @JiraStory("PO-316")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5887")
     void testGetEnforcerRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
                                                     .header("authorization", "Bearer " + validToken));
@@ -126,8 +142,5 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationWithSecurityT
             )))
             .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].enforcer_code").value(hasItem(1)))
             .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].name").value(hasItem("AAA Enforcers")));
-
-        // Currently no Schema to validate against
-        // jsonSchemaValidationService.validateOrError(body, GET_ENFORCERS_REF_DATA_RESPONSE);
     }
 }

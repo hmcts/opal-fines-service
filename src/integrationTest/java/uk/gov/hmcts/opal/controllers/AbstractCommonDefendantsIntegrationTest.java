@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithAllPermissions;
 import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserWithNoPermissions;
+import static uk.gov.hmcts.opal.support.UserServiceStub.stubUserServiceStatus;
 
 import org.junit.jupiter.api.DisplayName;
 import org.slf4j.Logger;
@@ -24,12 +25,13 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
 
-abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWithSecurityTest {
+abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     static final String URL_BASE = "/defendant-accounts";
     private static final int BUSINESS_UNIT_ID = 78;
@@ -49,6 +51,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     AccessTokenService accessTokenService;
 
     @DisplayName("Get header summary for individual defendant account [@PO-2287]")
+    @JiraStory("PO-2287")
     void getHeaderSummary_Individual(Logger log) throws Exception {
 
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
@@ -77,6 +80,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     }
 
     @DisplayName("Get header summary for organisation defendant account [@PO-2287]")
+    @JiraStory("PO-2287")
     void getHeaderSummary_Organisation(Logger log) throws Exception {
 
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
@@ -100,6 +104,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
 
     @DisplayName("PO-2297: header-summary (individual) returns correct defendant_party_id from "
         + "defendantAccountPartyId bug fix validation")
+    @JiraStory("PO-2297")
     void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
@@ -123,6 +128,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
 
     @DisplayName("PO-2297: header-summary (organisation) returns correct defendant_party_id from"
         + " defendantAccountPartyId — bug fix validation")
+    @JiraStory("PO-2297")
     void testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(Logger log) throws Exception {
         // Arrange
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
@@ -237,6 +243,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    @JiraStory("PO-2119")
     void testEntityNotFoundExceptionContainsRetriable(Logger log) throws Exception {
 
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
@@ -257,6 +264,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    @JiraStory("PO-2119")
     void testWrongMediaTypeContainsRetriableField(Logger log) throws Exception {
 
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
@@ -289,6 +297,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable for invalid request body")
+    @JiraStory("PO-2119")
     void testInvalidBodyContainsRetriable(Logger log) throws Exception {
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
 
@@ -305,6 +314,7 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     }
 
     @DisplayName("Get enforcement status for individual defendant account [@PO-1696]")
+    @JiraStory("PO-1696")
     void testGetEnforcementStatus(Logger log, boolean isLegacy) throws Exception {
 
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
@@ -360,14 +370,14 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     }
 
     @DisplayName("Get enforcement status - missing auth header returns 401")
-    void testGetEnforcementStatus_missingAuthHeader_returns401(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_missingAuthHeader_returns401() throws Exception {
         mockMvc.perform(get(URL_BASE + "/78/enforcement-status"))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isUnauthorized());
     }
 
     @DisplayName("Get enforcement status - forbidden without permission")
-    void testGetEnforcementStatus_forbidden(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_forbidden() throws Exception {
         stubUserWithNoPermissions(BUSINESS_UNIT_ID);
 
         mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", authorizationHeader()))
@@ -376,14 +386,40 @@ abstract class CommonDefendantsIntegrationTest01 extends AbstractIntegrationWith
     }
 
     @DisplayName("Get enforcement status - resource not found")
-    void testGetEnforcementStatus_notFound(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_notFound() throws Exception {
         stubUserWithAllPermissions(BUSINESS_UNIT_ID);
-
-        ResultMatcher statusMatcher = isLegacy ? status().is5xxServerError() : status().isNotFound();
 
         mockMvc.perform(get(URL_BASE + "/999999/enforcement-status").header("authorization", authorizationHeader()))
             .andDo(MockMvcResultHandlers.print())
-            .andExpect(statusMatcher);
+            .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("Get enforcement status - timeout")
+    void testGetEnforcementStatus_timeout() throws Exception {
+        stubUserServiceStatus(408);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", authorizationHeader()))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isRequestTimeout());
+    }
+
+    @DisplayName("Get enforcement status - service unavailable")
+    void testGetEnforcementStatus_serviceUnavailable() throws Exception {
+        stubUserServiceStatus(503);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
+                .header("authorization", authorizationHeader()))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isServiceUnavailable());
+    }
+
+    @DisplayName("Get enforcement status - server error")
+    void testGetEnforcementStatus_serverError() throws Exception {
+        stubUserServiceStatus(500);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", authorizationHeader()))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isInternalServerError());
     }
 
     static ResultMatcher ignoreForLegacy(ResultMatcher matcher, boolean legacy) {

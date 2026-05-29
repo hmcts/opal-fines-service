@@ -20,6 +20,9 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -29,6 +32,9 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
+    @JiraStory("PO-1908")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5911")
     void testUpdateDefAcc_CommentNotes_Success() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -73,6 +79,9 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 400 Error [@PO-1908]")
+    @JiraStory("PO-1908")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5912")
     void testUpdateDefAcc_CommentNotes_400ErrorForMissingRequiredHeader() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -100,6 +109,9 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 401 Unauthorized [@PO-1908, CEP2]")
+    @JiraStory("PO-1908")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5909")
     void testUpdateDefAcc_CommentNotes_401Unauthorized() throws Exception {
         String requestJson = commentAndNotesPayload(
             "patch DefAcc comment legacy test",
@@ -116,11 +128,17 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
             )
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 403 Forbidden [@PO-1908, CEP3]")
+    @JiraStory("PO-1908")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5910")
     void testUpdateDefAcc_CommentNotes_403Forbidden() throws Exception {
         stubUserWithNoPermissions(78);
 
@@ -140,11 +158,16 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
                     .content(requestJson)
             )
             .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.detail").value("Forbidden"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - 400 Bad Request Invalid Payload [@PO-1908, CEP1]")
+    @JiraStory("PO-1908")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5913")
     void testUpdateDefAcc_CommentNotes_400BadRequest() throws Exception {
         stubUserWithAllPermissions(78);
 

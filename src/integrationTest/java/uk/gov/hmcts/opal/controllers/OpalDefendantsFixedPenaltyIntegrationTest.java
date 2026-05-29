@@ -23,6 +23,9 @@ import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -43,6 +46,9 @@ class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractIntegrationWithS
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Fixed Penalty [@PO-1819]")
+    @JiraStory("PO-1819")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6021")
     void testGetDefendantAccountFixedPenalty() throws Exception {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/77/fixed-penalty").header("authorization", "Bearer " + validToken));
@@ -68,6 +74,9 @@ class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractIntegrationWithS
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Fixed Penalty - 404 when not found [@PO-1819]")
+    @JiraStory("PO-1819")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6020")
     void testGetDefendantAccountFixedPenalty_NotFound() throws Exception {
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/99999/fixed-penalty").header("authorization", "Bearer " + validToken));

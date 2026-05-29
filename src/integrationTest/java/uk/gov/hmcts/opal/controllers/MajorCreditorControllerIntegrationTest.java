@@ -13,6 +13,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -21,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.MajorCreditorControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_creditor_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -42,6 +45,10 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecu
 
     @Test
     @DisplayName("Get major creditor by ID [@PO-349, PO-304]")
+    @JiraStory("PO-349")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5975")
     void testGetMajorCreditorById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1")
                                                     .header("authorization", "Bearer " + validToken));
@@ -63,6 +70,10 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecu
 
     @Test
     @DisplayName("No major creditor returned when major creditor does not exist [@PO-349, PO-304]")
+    @JiraStory("PO-349")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5973")
     void testGetMajorCreditorById_WhenMajorCreditorDoesNotExist() throws Exception {
 
         mockMvc.perform(get(URL_BASE + "/2")
@@ -72,6 +83,10 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecu
 
     @Test
     @DisplayName("Verify search result for major creditor created by POST request [@PO-349, PO-304]")
+    @JiraStory("PO-349")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5974")
     void testPostMajorCreditorsSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer " + validToken)
@@ -93,6 +108,10 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecu
 
     @Test
     @DisplayName("Verify no search result when major creditor does not exist [@PO-349, PO-304]")
+    @JiraStory("PO-349")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5976")
     void testPostMajorCreditorsSearch_WhenMajorCreditorDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer " + validToken)
@@ -103,6 +122,10 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecu
 
     @Test
     @DisplayName("Endpoint correctly retrieves major creditor reference data [@PO-349, PO-304]")
+    @JiraStory("PO-349")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5972")
     void testGetMajorCreditorsRefData() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE).header("authorization", "Bearer " + validToken));
@@ -112,7 +135,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationWithSecu
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(97))
+            .andExpect(jsonPath("$.count").value(144))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].major_creditor_code").value(hasItem("AAAA")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].name")
                            .value(hasItem("AAAA Credit Services")))

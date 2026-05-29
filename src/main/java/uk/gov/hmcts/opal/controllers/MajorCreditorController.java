@@ -1,7 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,16 +16,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @RequestMapping("/major-creditors")
@@ -37,6 +38,7 @@ public class MajorCreditorController {
 
     @GetMapping(value = "/{majorCreditorId}")
     @Operation(summary = "Returns the MajorCreditor for the given majorCreditorId.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<MajorCreditorEntity> getMajorCreditorById(@PathVariable Long majorCreditorId) {
 
         log.debug(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
@@ -59,6 +61,7 @@ public class MajorCreditorController {
 
     @GetMapping
     @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<MajorCreditorReferenceDataResults> getMajorCreditorRefData(
         @RequestParam("q") Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
         log.debug(":GET:getMajorCreditorRefData: business unit: {}, filter string: {}", businessUnit, filter);

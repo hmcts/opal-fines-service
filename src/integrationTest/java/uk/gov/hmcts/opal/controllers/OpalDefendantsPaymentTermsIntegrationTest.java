@@ -25,6 +25,9 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPaymentTermsIntegrationTest")
 class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
@@ -34,6 +37,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms – Happy Path [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6049")
     void test_Opal_AddPaymentTerms_Happy() throws Exception {
         authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
 
@@ -87,6 +93,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Unauthorized when missing auth header [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6045")
     void test_Opal_AddPaymentTerms_Unauthorized() throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Business-Unit-Id", "78");
@@ -127,11 +136,17 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
             )
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Forbidden when user lacks permission [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6050")
     void test_Opal_AddPaymentTerms_Forbidden() throws Exception {
         stubUserWithNoPermissions((short) 78);
 
@@ -182,6 +197,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Not Found when account not in header BU [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6044")
     void test_Opal_AddPaymentTerms_NotFound_WrongBU() throws Exception {
         authorise((short) 99, FinesPermission.AMEND_PAYMENT_TERMS);
 
@@ -232,6 +250,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Conflict when If-Match does not match [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6047")
     void test_Opal_AddPaymentTerms_IfMatchConflict() throws Exception {
         authoriseAllPermissions();
 
@@ -282,6 +303,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Conflict when If-Match missing [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6053")
     void test_Opal_AddPaymentTerms_IfMatchMissing() throws Exception {
         authoriseAllPermissions();
 
@@ -337,6 +361,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Schema validation error [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6046")
     void test_Opal_AddPaymentTerms_SchemaValidation() throws Exception {
         authoriseAllPermissions();
 
@@ -358,6 +385,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Timeout [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6051")
     void test_Opal_AddPaymentTerms_Timeout() throws Exception {
         authoriseAllPermissions();
         stubAddPaymentTermsProxyException(REQUEST_TIMEOUT, "Timeout");
@@ -407,6 +437,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Service unavailable [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6048")
     void test_Opal_AddPaymentTerms_ServiceUnavailable() throws Exception {
         authoriseAllPermissions();
         stubAddPaymentTermsProxyException(SERVICE_UNAVAILABLE, "Gateway down");
@@ -456,6 +489,9 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - Server error [@PO-1718]")
+    @JiraStory("PO-1718")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6052")
     void test_Opal_AddPaymentTerms_ServerError() throws Exception {
         authoriseAllPermissions();
         stubAddPaymentTermsProxyException(INTERNAL_SERVER_ERROR, "Boom");

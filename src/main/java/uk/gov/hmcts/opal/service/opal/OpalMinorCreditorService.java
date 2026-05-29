@@ -1,8 +1,11 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +26,7 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntit
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderSummaryMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
@@ -48,11 +51,11 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final CreditorAccountRepository creditorAccountRepository;
     private final PartyRepository partyRepository;
     private final AmendmentService amendmentService;
-    private final MinorCreditorAccountHeaderSummaryMapper headerSummaryMapper;
+    private final MinorCreditorAccountHeaderEntityMapper headerSummaryMapper;
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
-
+    private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
     @Override
@@ -60,6 +63,30 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         Specification<MinorCreditorEntity> spec = specs.findBySearchCriteria(criteria);
         List<MinorCreditorEntity> results = minorCreditorRepository.findAll(spec);
         return toResponse(results);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
+        log.debug(":getMinorCreditorAccount (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
+
+        CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Minor creditor account not found: " + minorCreditorAccountId
+            ));
+
+        if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
+            .isMinorCreditor()) {
+            throw new EntityNotFoundException("Account is not a minor creditor account: " + minorCreditorAccountId);
+        }
+
+        PartyEntity party = partyRepository.findById(creditorAccount.getMinorCreditorPartyId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Party not found for minor creditor account: " + creditorAccount.getCreditorAccountId()));
+
+        MinorCreditorAccountResponse response = responseMapper.toMinorCreditorAccountResponse(creditorAccount, party);
+        response.setVersion(creditorAccount.getVersion());
+        return response;
     }
 
     @Override
@@ -142,10 +169,19 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         updateMapper.updateParty(request.getPartyDetails(), request.getAddress(), party);
 
+        creditorAccount.setBankAccountName(request.getPayment().getAccountName());
+        creditorAccount.setBankSortCode(request.getPayment().getSortCode());
+        creditorAccount.setBankAccountNumber(request.getPayment().getAccountNumber());
+        creditorAccount.setBankAccountReference(request.getPayment().getAccountReference());
+        creditorAccount.setPayByBacs(request.getPayment().getPayByBacs());
         creditorAccount.setHoldPayout(request.getPayment().getHoldPayment());
+        creditorAccount.setLastChangedDate(LocalDateTime.now());
 
         partyRepository.save(party);
-        creditorAccountRepository.saveAndFlush(creditorAccount);
+        creditorAccountRepository.save(creditorAccount);
+
+        em.lock(creditorAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        em.flush();
 
         amendmentService.auditFinaliseStoredProc(
             minorCreditorAccountId,

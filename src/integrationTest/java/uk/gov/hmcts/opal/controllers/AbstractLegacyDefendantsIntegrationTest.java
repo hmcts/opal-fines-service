@@ -13,6 +13,8 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
     protected static final String URL_BASE = "/defendant-accounts";
     protected static final String DEFENDANT_PARTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/getDefendantAccountPartyResponse.json";
+    protected static final String REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
+        + "/removeDefendantAccountPartyResponse.json";
 
     @MockitoSpyBean
     protected JsonSchemaValidationService jsonSchemaValidationService;

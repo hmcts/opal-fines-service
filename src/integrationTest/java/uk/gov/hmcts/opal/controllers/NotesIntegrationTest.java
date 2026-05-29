@@ -16,12 +16,14 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL_BASE = "/notes";
 
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
+    @JiraStory("PO-1566")
     void postNotesImpl(Logger log) throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -58,6 +60,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationWithSecurityTest 
     }
 
     @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
+    @JiraStory("PO-1566")
     void postNotes_IDNotFoundError(Logger log) throws Exception {
 
         stubUserWithAllPermissions(78);
@@ -89,6 +92,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationWithSecurityTest 
     }
 
     @DisplayName("post notes - user without permission [PO-1566]")
+    @JiraStory("PO-1566")
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
 
         stubUserWithNoPermissions(78);
@@ -114,6 +118,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationWithSecurityTest 
     }
 
     @DisplayName("post notes for a defendant account in legacy [PO-1975]")
+    @JiraStory("PO-1975")
     void legacyTestAddNoteSuccess(Logger log) throws Exception {
 
         stubUserWithAllPermissions(78);
@@ -145,6 +150,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationWithSecurityTest 
     }
 
     @DisplayName("post notes for a defendant account ID that does not exist in legacy [PO-1975]")
+    @JiraStory("PO-1975")
     void legacyTestAddNote500Error(Logger log) throws Exception {
 
         stubUserWithAllPermissions(78);

@@ -17,9 +17,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -82,6 +85,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - success")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5928")
     void testPostAddEnforcement_Success() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -101,6 +107,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - backend 500")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5932")
     void testPostAddEnforcement_500Error() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -116,6 +125,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - forbidden without ENTER_ENFORCEMENT")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5930")
     void testPostAddEnforcement_403Forbidden() throws Exception {
         stubUserWithNoPermissions(78);
 
@@ -139,6 +151,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - unauthorized token rejected")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5924")
     void testPostAddEnforcement_401Unauthorized() throws Exception {
         mockMvc.perform(
                 post("/defendant-accounts/72/enforcements")
@@ -146,7 +161,10 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(ENFORCEMENT_REQUEST)
             )
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     private HttpHeaders removeEnforcementHeaders(String bearerToken) {
@@ -159,6 +177,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - success")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5926")
     void testPatchRemoveEnforcementHold_Success() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -174,6 +195,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - forbidden without ENTER_ENFORCEMENT")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5925")
     void testPatchRemoveEnforcementHold_403Forbidden() throws Exception {
         stubUserWithNoPermissions(78);
 
@@ -188,6 +212,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - unauthorized token rejected")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5929")
     void testPatchRemoveEnforcementHold_401Unauthorized() throws Exception {
         mockMvc.perform(
                 patch("/defendant-accounts/72/remove-enf-hold")
@@ -195,11 +222,17 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REMOVE_ENFORCEMENT_REQUEST)
             )
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - missing If-Match rejected")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5927")
     void testPatchRemoveEnforcementHold_missingIfMatch() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -219,6 +252,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - invalid If-Match rejected")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5931")
     void testPatchRemoveEnforcementHold_invalidIfMatch() throws Exception {
         stubUserWithAllPermissions(78);
 

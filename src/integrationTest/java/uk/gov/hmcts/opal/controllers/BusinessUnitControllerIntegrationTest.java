@@ -12,6 +12,9 @@ import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
@@ -46,6 +49,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
 
     @Test
     @DisplayName("Get Business Unit by ID - success")
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5792")
     void testGetBusinessUnitById_success() throws Exception {
         mockMvc.perform(get(URL_BASE + "/1")
                 .header("authorization", "Bearer " + validToken))
@@ -63,6 +70,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
 
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5797")
     void testGetBusinessUnitById_WhenBusinessUnitDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/2")
                 .header("authorization", "Bearer " + validToken))
@@ -70,6 +81,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5795")
     void testPostBusinessUnitsSearch() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                 .header("authorization", "Bearer " + validToken)
@@ -87,6 +102,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5793")
     void testPostBusinessUnitsSearch_WhenBusinessUnitDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                 .header("authorization", "Bearer " + validToken)
@@ -97,6 +116,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
 
     @Test
     @DisplayName("Get Business Unit Ref Data [@PO-304, @PO-313]")
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5794")
     void testGetBusinessUnitsRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
             .header("authorization", "Bearer " + validToken));
@@ -120,6 +143,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
 
     @Test
     @DisplayName("Get Business Unit Ref Data filtered by business unit type Area")
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5790")
     void testGetBusinessUnitsRefData_FilterByArea() throws Exception {
         mockMvc.perform(get(URL_BASE)
                 .param("q", "Area")
@@ -132,6 +159,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5796")
     void testGetBusinessUnitRefData_Permission_success() throws Exception {
         stubUserWithCreateManageDraftAccountsPermission(1);
 
@@ -149,6 +180,10 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationWithSecur
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5791")
     void testGetBusinessUnitRefData_Permission_empty() throws Exception {
         stubUserWithNoPermissions(1);
 

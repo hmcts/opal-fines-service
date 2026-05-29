@@ -15,12 +15,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsDeletePartyIntegrationTest")
 class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: DELETE Remove DAP - Happy path (removed association + bumps version")
+    @JiraStory("PO-1897")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6017")
     void delete_happyPath_removesAssociation_returnsResponse() throws Exception {
         authoriseAllPermissions();
 
@@ -70,18 +76,20 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     }
 
     private @Nullable Integer getAssociationCountForDAP(Long defAccountId, Long dapId) {
-        Integer associationCount = jdbcTemplate.queryForObject(
+        return jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM defendant_account_parties "
                  + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
             Integer.class,
             defAccountId,
             dapId
         );
-        return associationCount;
     }
 
     @Test
     @DisplayName("OPAL: DELETE Remove DAP – Not Found (DAP not on account)")
+    @JiraStory("PO-1897")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6019")
     void delete_notFound_whenDefendantAccountPartyNotOnAccount() throws Exception {
         authoriseAllPermissions();
 
@@ -116,6 +124,9 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
 
     @Test
     @DisplayName("OPAL: DELETE Remove DAP – Not Found (account not in BU)")
+    @JiraStory("PO-1897")
+    @JiraEpic("PO-1970")
+    @JiraTestKey("PO-6018")
     void delete_notFound_whenAccountNotInHeaderBU() throws Exception {
         authorise((short) 99, FinesPermission.ACCOUNT_MAINTENANCE);
 

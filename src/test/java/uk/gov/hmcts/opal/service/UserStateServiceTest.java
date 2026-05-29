@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -22,7 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class UserStateServiceTest {
@@ -31,23 +35,41 @@ class UserStateServiceTest {
     private AccessTokenService tokenService;
 
     @Mock
+    private UserStateClientService userStateClientService;
+
+    @Mock
     private UserStateMapper userStateMapper;
 
     @InjectMocks
     private UserStateService userStateService;
 
     @Test
-    void testCheckForAuthorisedUser_success() {
+    void testCheckForAuthorisedUser_usesCurrentAuthenticatedUserStateWhenAvailable() {
+        // Arrange
+        final UserState expectedUserState = mock(UserState.class);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(expectedUserState));
+
+        // Act
+        UserState userState = userStateService.checkForAuthorisedUser("");
+
+        // Assert
+        assertSame(expectedUserState, userState);
+        verifyNoInteractions(userStateMapper);
+    }
+
+    @Test
+    void testCheckForAuthorisedUser_fallsBackToSecurityContextUserState() {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         UserStateV2 userStateV2 = mock(UserStateV2.class);
-        UserState expectedUserState = mock(UserState.class);
+        final UserState expectedUserState = mock(UserState.class);
         setAuthentication(authToken);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
         when(authToken.getUserState()).thenReturn(userStateV2);
         when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
 
         // Act
-        UserState userState = userStateService.checkForAuthorisedUser("");
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         // Assert
         assertSame(expectedUserState, userState);
@@ -58,13 +80,15 @@ class UserStateServiceTest {
         // Arrange
         Authentication authentication = mock(Authentication.class);
         setAuthentication(authentication);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser(""));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("Unexpected token type", ade.getMessage());
+        verifyNoInteractions(tokenService);
     }
 
     @Test
@@ -72,11 +96,12 @@ class UserStateServiceTest {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         setAuthentication(authToken);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
         when(authToken.getUserState()).thenReturn(null);
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser(""));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("User state not found in token", ade.getMessage());
@@ -104,5 +129,4 @@ class UserStateServiceTest {
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
     }
-
 }

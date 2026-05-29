@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal;
 import static uk.gov.hmcts.opal.TestContainerConfig.POSTGRES_CONTAINER;
 import static uk.gov.hmcts.opal.TestContainerConfig.REDIS_CONTAINER;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +36,8 @@ import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
         )
 })
 public abstract class AbstractIntegrationTest {
+
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
     protected MockMvc mockMvc;

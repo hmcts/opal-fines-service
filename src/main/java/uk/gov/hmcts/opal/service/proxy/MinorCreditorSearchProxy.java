@@ -33,6 +33,13 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         return getCurrentModeService().searchMinorCreditors(criteria);
     }
 
+    @Override
+    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
+        log.debug(":getMinorCreditorAccount: minorCreditorAccountId={}", minorCreditorAccountId);
+        return getCurrentModeService().getMinorCreditorAccount(minorCreditorAccountId);
+    }
+
+    @Override
     public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
         log.debug(":getHeaderSummary: minorCreditorAccountId={}", minorCreditorAccountId);
         return getCurrentModeService().getHeaderSummary(minorCreditorAccountId);

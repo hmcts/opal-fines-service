@@ -3,7 +3,7 @@ appVersion: "1.0"
 description: A Helm chart for opal-fines-service app
 name: opal-fines-service
 home: https://github.com/hmcts/opal-fines-service
-version: 0.0.93
+version: 0.0.96
 maintainers:
   - name: HMCTS Opal Team
 dependencies:
@@ -11,11 +11,11 @@ dependencies:
     version: 5.3.0
     repository: 'oci://hmctsprod.azurecr.io/helm'
   - name: opal-user-service
-    version: 0.0.44
+    version: 0.0.48
     repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: opal-user-service.enabled
   - name: opal-logging-service
-    version: 0.0.22
+    version: 0.0.24
     repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: opal-logging-service.enabled
   - name: servicebus
@@ -23,6 +23,6 @@ dependencies:
     repository: 'oci://hmctsprod.azurecr.io/helm'
     condition: servicebus.enabled
   - name: hmcts-redis
-    version: 0.8.0
+    version: 1.0.0
     repository: "oci://hmctsprod.azurecr.io/helm"
     condition: hmcts-redis.enabled

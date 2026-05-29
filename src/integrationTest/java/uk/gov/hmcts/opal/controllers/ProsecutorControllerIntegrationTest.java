@@ -11,6 +11,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.SchemaPaths.GET_PROSECUTORS_REF_DATA_RESPONSE;
 import static uk.gov.hmcts.opal.support.UserServiceStub.stubAuthorisedUser;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.ProsecutorControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_prosecutors.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -37,6 +40,9 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationWithSecurit
 
     @Test
     @DisplayName("Get Prosecutor By ID [@PO-1787]")
+    @JiraStory("PO-1787")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6228")
     void testGetProsecutorById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1111")
                                                     .header("authorization", "Bearer " + validToken));
@@ -57,6 +63,9 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationWithSecurit
 
     @Test
     @DisplayName("Get Prosecutor By ID - Prosecutor Does Not Exist [@PO-1787]")
+    @JiraStory("PO-1787")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6229")
     void testGetProsecutorById_WhenProsecutorDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/4444")
                             .header("authorization", "Bearer " + validToken))
@@ -65,6 +74,9 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationWithSecurit
 
     @Test
     @DisplayName("Get Prosecutors as Reference Data [@PO-1787]")
+    @JiraStory("PO-1787")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6230")
     void testGetProsecutorsRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
                                                     .header("authorization", "Bearer " + validToken));
@@ -81,6 +93,9 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationWithSecurit
 
     @Test
     @DisplayName("Get Prosecutor By ID returns full 60-char address_line_1 [@PO-1787]")
+    @JiraStory("PO-1787")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6231")
     void testGetProsecutorById_WithSixtyCharAddressLine1() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/9990")
                                                     .header("authorization", "Bearer " + validToken)); // 009990 == 9990

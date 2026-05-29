@@ -82,13 +82,17 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
@@ -114,6 +118,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
+    public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.remove_defendant_account_party";
     public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
     public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
 
@@ -135,7 +140,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
             Response<LegacyGetDefendantAccountHeaderSummaryResponse> response = gatewayService.postToGateway(
                 GET_HEADER_SUMMARY, LegacyGetDefendantAccountHeaderSummaryResponse.class,
-                createGetDefendantAccountRequest(defendantAccountId.toString()), null);
+                createGetDefendantAccountRequest(defendantAccountId.toString()), null
+            );
 
             checkResponseForError(response, "getHeaderSummary");
 
@@ -151,8 +157,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         LegacyDefendantAccountSearchCriteria criteria =
             LegacyDefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);
-        log.debug(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(),
-            legacyGatewayProperties.getUrl());
+        log.debug(
+            ":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(),
+            legacyGatewayProperties.getUrl()
+        );
         Response<LegacyDefendantAccountsSearchResults> response = gatewayService.postToGateway(
             SEARCH_DEFENDANT_ACCOUNTS, LegacyDefendantAccountsSearchResults.class, criteria, null);
 
@@ -166,7 +174,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
             GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
-            createGetDefendantAccountRequest(defendantAccountId.toString()), null);
+            createGetDefendantAccountRequest(defendantAccountId.toString()), null
+        );
 
         checkResponseForError(response, "getPaymentTerms");
 
@@ -243,29 +252,29 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         BusinessUnitSummary bu = response.getBusinessUnitSummary() == null ? null
             : BusinessUnitSummary.builder()
-                .businessUnitId(response.getBusinessUnitSummary().getBusinessUnitId())
-                .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
-                .welshSpeaking("N")
-                .build();
+            .businessUnitId(response.getBusinessUnitSummary().getBusinessUnitId())
+            .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
+            .welshSpeaking("N")
+            .build();
 
         AccountStatusReference status = response.getAccountStatusReference() == null ? null
             : AccountStatusReference.builder()
-                .accountStatusCode(response.getAccountStatusReference().getAccountStatusCode())
-                .accountStatusDisplayName(
-                    Optional.ofNullable(response.getAccountStatusReference().getAccountStatusDisplayName())
-                        .orElse(SpecificationUtils.mapAccountStatusDisplayName(
-                            response.getAccountStatusReference().getAccountStatusCode()))
-                )
-                .build();
+            .accountStatusCode(response.getAccountStatusReference().getAccountStatusCode())
+            .accountStatusDisplayName(
+                Optional.ofNullable(response.getAccountStatusReference().getAccountStatusDisplayName())
+                    .orElse(SpecificationUtils.mapAccountStatusDisplayName(
+                        response.getAccountStatusReference().getAccountStatusCode()))
+            )
+            .build();
 
         // ----- Payment State Summary (never null numbers) -----
         PaymentStateSummary pay = response.getPaymentStateSummary() == null ? null
             : PaymentStateSummary.builder()
-                .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
-                .arrearsAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getArrearsAmount()))
-                .paidAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getPaidAmount()))
-                .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
-                .build();
+            .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
+            .arrearsAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getArrearsAmount()))
+            .paidAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getPaidAmount()))
+            .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
+            .build();
 
         return DefendantAccountHeaderSummary.builder()
             .version(new BigInteger(Optional.ofNullable(response.getVersion()).orElse("1")))
@@ -396,9 +405,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     @Override
     //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId) {
-        log.debug(":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
-            defendantAccountId, defendantAccountPartyId);
+                                                                     Long defendantAccountPartyId) {
+        log.debug(
+            ":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
+            defendantAccountId, defendantAccountPartyId
+        );
 
         GetDefendantAccountPartyLegacyRequest req = GetDefendantAccountPartyLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
@@ -434,8 +445,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         OrganisationDetails opalOrg = null;
         if (isOrg) {
             opalOrg = OrganisationDetails.builder()
-                .organisationName(mapSafe(pd != null ? pd.getOrganisationDetails() : null,
-                    OrganisationDetailsLegacy::getOrganisationName))
+                .organisationName(mapSafe(
+                    pd != null ? pd.getOrganisationDetails() : null,
+                    OrganisationDetailsLegacy::getOrganisationName
+                ))
                 // arrays must not be null (schema expects an array)
                 .organisationAliases(Collections.emptyList())
                 .build();
@@ -445,15 +458,23 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         if (!isOrg) {
             opalInd = IndividualDetails.builder()
                 .title(mapSafe(pd != null ? pd.getIndividualDetails() : null, IndividualDetailsLegacy::getTitle))
-                .forenames(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getForenames))
-                .surname(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getSurname))
-                .dateOfBirth(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getDateOfBirth))
+                .forenames(mapSafe(
+                    pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getForenames
+                ))
+                .surname(mapSafe(
+                    pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getSurname
+                ))
+                .dateOfBirth(mapSafe(
+                    pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getDateOfBirth
+                ))
                 .age(mapSafe(pd != null ? pd.getIndividualDetails() : null, IndividualDetailsLegacy::getAge))
-                .nationalInsuranceNumber(mapSafe(pd != null ? pd.getIndividualDetails() : null,
-                    IndividualDetailsLegacy::getNationalInsuranceNumber))
+                .nationalInsuranceNumber(mapSafe(
+                    pd != null ? pd.getIndividualDetails() : null,
+                    IndividualDetailsLegacy::getNationalInsuranceNumber
+                ))
                 // arrays must not be null (schema expects an array)
                 .individualAliases(Collections.emptyList())
                 .build();
@@ -471,25 +492,25 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         final AddressDetails apiAddress =
             (a == null) ? null
                 : AddressDetails.builder()
-                    .addressLine1(mapSafe(a, AddressDetailsLegacy::getAddressLine1))
-                    .addressLine2(mapSafe(a, AddressDetailsLegacy::getAddressLine2))
-                    .addressLine3(mapSafe(a, AddressDetailsLegacy::getAddressLine3))
-                    .addressLine4(mapSafe(a, AddressDetailsLegacy::getAddressLine4))
-                    .addressLine5(mapSafe(a, AddressDetailsLegacy::getAddressLine5))
-                    .postcode(mapSafe(a, AddressDetailsLegacy::getPostcode))
-                    .build();
+                .addressLine1(mapSafe(a, AddressDetailsLegacy::getAddressLine1))
+                .addressLine2(mapSafe(a, AddressDetailsLegacy::getAddressLine2))
+                .addressLine3(mapSafe(a, AddressDetailsLegacy::getAddressLine3))
+                .addressLine4(mapSafe(a, AddressDetailsLegacy::getAddressLine4))
+                .addressLine5(mapSafe(a, AddressDetailsLegacy::getAddressLine5))
+                .postcode(mapSafe(a, AddressDetailsLegacy::getPostcode))
+                .build();
 
         // ----- Contact -----
         ContactDetailsLegacy c = src.getContactDetails();
         ContactDetails apiContact =
             (c == null) ? null
                 : ContactDetails.builder()
-                    .primaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getPrimaryEmailAddress))
-                    .secondaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getSecondaryEmailAddress))
-                    .mobileTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getMobileTelephoneNumber))
-                    .homeTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getHomeTelephoneNumber))
-                    .workTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getWorkTelephoneNumber))
-                    .build();
+                .primaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getPrimaryEmailAddress))
+                .secondaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getSecondaryEmailAddress))
+                .mobileTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getMobileTelephoneNumber))
+                .homeTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getHomeTelephoneNumber))
+                .workTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getWorkTelephoneNumber))
+                .build();
         // Drop empty {} contact_details
         if (apiContact != null
             && apiContact.getPrimaryEmailAddress() == null
@@ -505,9 +526,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         VehicleDetails apiVehicle =
             (v == null) ? null
                 : VehicleDetails.builder()
-                    .vehicleMakeAndModel(mapSafe(v, VehicleDetailsLegacy::getVehicleMakeAndModel))
-                    .vehicleRegistration(mapSafe(v, VehicleDetailsLegacy::getVehicleRegistration))
-                    .build();
+                .vehicleMakeAndModel(mapSafe(v, VehicleDetailsLegacy::getVehicleMakeAndModel))
+                .vehicleRegistration(mapSafe(v, VehicleDetailsLegacy::getVehicleRegistration))
+                .build();
         // Drop empty {} vehicle_details
         if (apiVehicle != null
             && apiVehicle.getVehicleMakeAndModel() == null
@@ -615,7 +636,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         Response<LegacyGetDefendantAccountAtAGlanceResponse> response = gatewayService.postToGateway(
             GET_DEFENDANT_AT_A_GLANCE, LegacyGetDefendantAccountAtAGlanceResponse.class,
-            createGetDefendantAccountRequest(defendantAccountId.toString()), null);
+            createGetDefendantAccountRequest(defendantAccountId.toString()), null
+        );
 
         checkResponseForError(response, "getAtAGlance");
 
@@ -752,12 +774,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         String docCode = Optional.ofNullable(src.getDocumentLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.DocumentLanguagePreference
-                ::getDocumentLanguageCode)
+                     ::getDocumentLanguageCode)
             .orElse(null);
 
         String hearingCode = Optional.ofNullable(src.getHearingLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.HearingLanguagePreference
-                ::getHearingLanguageCode)
+                     ::getHearingLanguageCode)
             .orElse(null);
 
         return LanguagePreferences.ofCodes(docCode, hearingCode);
@@ -825,9 +847,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     @Override
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-        String businessUnitId,
-        @NonNull UpdateDefendantAccountRequest request,
-        String postedBy) {
+                                                                 String businessUnitId,
+                                                                 @NonNull UpdateDefendantAccountRequest request,
+                                                                 String postedBy) {
 
         log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
 
@@ -839,7 +861,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         // Send the request to the gateway service
         Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.postToGateway(
             PATCH_DEFENDANT_ACCOUNT, LegacyUpdateDefendantAccountResponse.class,
-            legacyRequest, null);
+            legacyRequest, null
+        );
 
         checkResponseForError(gwResponse, "updateDefendantAccount");
 
@@ -858,8 +881,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
         BigInteger version = VersionUtils.extractBigInteger(ifMatch);
-        AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, version.toString());
+        AddPaymentCardLegacyRequest request = buildLegacyRequest(
+            defendantAccountId, businessUnitId,
+            businessUnitUserId, version.toString()
+        );
 
         AddPaymentCardLegacyResponse response = callGateway(request);
         Long id = Long.valueOf(response.getDefendantAccountId());
@@ -922,9 +947,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     @Override
     //TODO: Remove method, duplicated in refactored class
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
-        String businessUnitUserId) {
+                                                                         Long defendantAccountPartyId,
+                                                                         DefendantAccountParty defendantAccountParty,
+                                                                         String ifMatch,
+                                                                         String businessUnitId,
+                                                                         String postedBy,
+                                                                         String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch).longValue())
@@ -944,6 +972,47 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         checkResponseForError(response, "replaceDefendantAccountParty");
 
         return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
+    }
+
+    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+                                                                           Long defendantAccountPartyId,
+                                                                           Short businessUnitId,
+                                                                           String businessUnitUserId,
+                                                                           String postedBy,
+                                                                           String ifMatch,
+                                                                           RemoveDefendantAccountPartyRequest request) {
+        RemoveDefendantAccountPartyLegacyRequest req = RemoveDefendantAccountPartyLegacyRequest.builder()
+            .version(VersionUtils.extractBigInteger(ifMatch))
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .defendantAccountPartyId(defendantAccountPartyId)
+            .build();
+
+        Response<RemoveDefendantAccountPartyLegacyResponse> response = gatewayService.postToGateway(
+            REMOVE_DEFENDANT_ACCOUNT_PARTY,
+            RemoveDefendantAccountPartyLegacyResponse.class,
+            req,
+            null
+        );
+
+        checkResponseForError(response, "removeDefendantAccountParty");
+
+        return fromRemoveDefendantAccountPartyLegacy(response.responseEntity);
+    }
+
+    private RemoveDefendantAccountPartyResponse fromRemoveDefendantAccountPartyLegacy(
+        RemoveDefendantAccountPartyLegacyResponse legacy) {
+
+        if (legacy == null) {
+            return null;
+        }
+
+        RemoveDefendantAccountPartyResponse response = new RemoveDefendantAccountPartyResponse();
+        response.setDefendantAccountPartyId(legacy.getDefendantAccountPartyId());
+        response.setVersion(legacy.getVersion());
+
+        return response;
     }
 
     private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy(
@@ -1111,7 +1180,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
 
     }
-
+    
     private List<ResultResponsesLegacy> mapResultResponses(List<ResultResponse> responses) {
         if (responses == null || responses.isEmpty()) {
             return Collections.emptyList();

@@ -9,6 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.JwtControllerIntegrationTest")
 @DisplayName("JWT Controller Integration Tests")
@@ -24,6 +27,9 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     @Test
     @DisplayName("Testing Valid Token")
+    @JiraStory("PO-2833")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-5906")
     void testValidJwtTokenGivesOk() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(URL)
                 .header(AUTHORIZATION, "Bearer " + validToken))
@@ -32,6 +38,9 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     @Test
     @DisplayName("Testing Expired JWT Token")
+    @JiraStory("PO-2833")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-5907")
     void testExpiredTokenGivesUnauthorized() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(URL)
                 .header(AUTHORIZATION, "Bearer " + expiredToken))
@@ -40,6 +49,9 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     @Test
     @DisplayName("Testing Invalid JWT Token")
+    @JiraStory("PO-2833")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-5905")
     void testInvalidTokenGivesUnauthorized() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(URL)
                 .header(AUTHORIZATION, "Bearer aa.bb.cc"))
@@ -48,6 +60,9 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     @Test
     @DisplayName("Testing Missing JWT Token")
+    @JiraStory("PO-2833")
+    @JiraEpic("PO-2233")
+    @JiraTestKey("PO-5908")
     void testMissingTokenGivesUnauthorized() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(URL)
                 .header(AUTHORIZATION, "Bearer "))

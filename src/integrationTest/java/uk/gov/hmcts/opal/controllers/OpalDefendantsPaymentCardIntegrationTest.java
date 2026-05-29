@@ -20,6 +20,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles(profiles = {"integration-with-spring-security", "opal"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -29,6 +32,9 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractIntegrationWithSe
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
+    @JiraStory("PO-1719")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6039")
     void opalAddPaymentCardRequest_Happy() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -57,6 +63,9 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractIntegrationWithSe
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Not Found when account not in header BU [@PO-1719]")
+    @JiraStory("PO-1719")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6041")
     void opalAddPaymentCardRequest_NotFound_WrongBU() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -85,6 +94,9 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractIntegrationWithSe
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Forbidden when user lacks permission [@PO-1719]")
+    @JiraStory("PO-1719")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6040")
     void opalAddPaymentCardRequest_Forbidden_NoPermission() throws Exception {
         stubUserWithNoPermissions(78);
 
@@ -105,6 +117,9 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractIntegrationWithSe
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Unauthorized when missing auth header [@PO-1719]")
+    @JiraStory("PO-1719")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6038")
     void opalAddPaymentCardRequest_Unauthorized() throws Exception {
         mockMvc.perform(
                 post("/defendant-accounts/88/payment-card-request")
@@ -112,11 +127,17 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractIntegrationWithSe
                     .header("If-Match", "\"0\"")
                     .contentType(MediaType.APPLICATION_JSON)
             )
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Conflict when If-Match does not match [@PO-1719]")
+    @JiraStory("PO-1719")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6042")
     void opalAddPaymentCardRequest_IfMatchConflict() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -137,6 +158,9 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractIntegrationWithSe
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Conflict when PCR already exists [@PO-1719]")
+    @JiraStory("PO-1719")
+    @JiraEpic("PO-977")
+    @JiraTestKey("PO-6043")
     void opalAddPaymentCardRequest_AlreadyExists() throws Exception {
         stubUserWithAllPermissions(78);
 

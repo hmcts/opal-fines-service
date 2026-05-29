@@ -14,12 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles(profiles = {"integration-with-spring-security", "legacy"}, inheritProfiles = false)
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -29,11 +30,12 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationWithSecur
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
 
-    @MockitoSpyBean
-    JsonSchemaValidationService jsonSchemaValidationService;
-
     @Test
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
+    @JiraStory("PO-33")
+    @JiraStory("PO-119")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-5943")
     void testPostDefendantAccountsSearch() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -73,6 +75,10 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationWithSecur
 
     @Test
     @DisplayName("Search defendant accounts - No Accounts found [@PO-33, @PO-119]")
+    @JiraStory("PO-33")
+    @JiraStory("PO-119")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-5944")
     void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
         stubUserWithAllPermissions(78);
 
@@ -106,6 +112,4 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationWithSecur
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
     }
-
-
 }

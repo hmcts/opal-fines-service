@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,6 @@ import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @Service
@@ -25,7 +25,6 @@ public class MinorCreditorService {
     private final MinorCreditorSearchProxy minorCreditorSearchProxy;
 
     private final UserStateService userStateService;
-    private final CreditorAccountRepository creditorAccountRepository;
 
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
                                                                         String authHeaderValue) {
@@ -38,6 +37,20 @@ public class MinorCreditorService {
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+    }
+
+    public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
+        log.debug(":getMinorCreditorAccount: id={}", minorCreditorAccountId);
+
+        UserState userState = userStateService.checkForAuthorisedUser();
+
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        MinorCreditorAccountResponse response =
+            minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
+        return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
     }
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
@@ -90,19 +103,23 @@ public class MinorCreditorService {
             throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
         }
 
-        Short businessUnitIdShort = businessUnitId != null ? Short.valueOf(businessUnitId) : null;
-
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-        if (businessUnitId == null || !userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
+        if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
-                businessUnitIdShort,
+                (Short) null,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
+        Short businessUnitIdShort = Short.valueOf(businessUnitId);
         if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.ACCOUNT_MAINTENANCE)) {
             throw new PermissionNotAllowedException(
                 businessUnitIdShort,
                 FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
+            throw new PermissionNotAllowedException(
+                businessUnitIdShort,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
         }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)
@@ -114,4 +131,49 @@ public class MinorCreditorService {
             businessUnitIdShort);
     }
 
+    private MinorCreditorAccountResponse redactBacsDetailsWhenNotPermitted(
+        Long minorCreditorAccountId,
+        MinorCreditorAccountResponse response,
+        UserState userState
+    ) {
+        if (response == null || response.getPayment() == null) {
+            return response;
+        }
+
+        // Fail closed: if the account business unit cannot be confirmed here, redact BACS details.
+        Short businessUnitId = response.getBusinessUnitId();
+        boolean hasBusinessUnitUser = businessUnitId != null
+            && userState.getBusinessUnitUserForBusinessUnit(businessUnitId).isPresent();
+        boolean canViewBacs = businessUnitId != null
+            && userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.VIEW_CREDITOR_BACS);
+
+        log.debug(":redactBacsDetailsWhenNotPermitted: id={}, businessUnitId={}, hasBusinessUnitUser={}, "
+                + "canViewBacs={}, availableBusinessUnits={}",
+            minorCreditorAccountId,
+            businessUnitId,
+            hasBusinessUnitUser,
+            canViewBacs,
+            summariseBusinessUnits(userState));
+
+        if (canViewBacs) {
+            return response;
+        }
+
+        response.getPayment().setSortCode(null);
+        response.getPayment().setAccountNumber(null);
+        response.getPayment().setAccountName(null);
+        response.getPayment().setAccountReference(null);
+        return response;
+    }
+
+    private String summariseBusinessUnits(UserState userState) {
+        if (userState.getBusinessUnitUser() == null || userState.getBusinessUnitUser().isEmpty()) {
+            return "[]";
+        }
+
+        return userState.getBusinessUnitUser().stream()
+            .map(businessUnitUser -> String.valueOf(businessUnitUser.getBusinessUnitId()))
+            .sorted()
+            .collect(Collectors.joining(",", "[", "]"));
+    }
 }
