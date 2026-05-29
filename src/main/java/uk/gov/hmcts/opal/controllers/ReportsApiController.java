@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING;
-import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_DEFAULT_VALUE_PROPERTY;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class ReportsApiController implements ReportsApi {
     private final ReportService reportService;
 
     @FeatureToggle(feature = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING,
-        defaultValueProperty = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_DEFAULT_VALUE_PROPERTY)
+        defaultValueProperty = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY)
     @Override
     public ResponseEntity<ReportReports> getReport(String id) {
 
