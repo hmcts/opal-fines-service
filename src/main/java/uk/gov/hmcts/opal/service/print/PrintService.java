@@ -50,8 +50,6 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
-    //private final SftpOutboundService sftpOutboundService;
-
     private final Clock clock;
 
 
