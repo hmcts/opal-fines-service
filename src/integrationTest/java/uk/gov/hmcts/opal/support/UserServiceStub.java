@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
@@ -59,6 +62,10 @@ public final class UserServiceStub {
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(userStateJson)));
+    }
+
+    public static void stubUserStateById(long userId, UserStateDto userState) {
+        stubUserStateById(userId, TestUtil.toJsonString(userState));
     }
 
     public static void stubUserStateByIdNotFound(long userId) {
@@ -311,38 +318,30 @@ public final class UserServiceStub {
         return createBusinessUnitUser((short) businessUnitId, businessUnitUserId, List.of(permissions));
     }
 
-    private static String userStateByIdForBusinessUnit(long userId, short businessUnitId,
-                                                       List<FinesPermission> permissions) {
-        String permissionsJson = permissions.stream()
-            .map(UserServiceStub::permissionObjectJson)
-            .collect(Collectors.joining(",\n"));
-
-        return """
-            {
-              "user_id": %d,
-              "username": "%s",
-              "name": "%s",
-              "status": "ACTIVE",
-              "version": 0,
-              "business_unit_users": [
-                {
-                  "business_unit_user_id": "%s",
-                  "business_unit_id": %d,
-                  "permissions": [
-            %s
-                  ]
-                }
-              ]
-            }
-            """.formatted(userId, NORMAL_USER, NORMAL_USER, NORMAL_BUSINESS_UNIT_USER_ID, businessUnitId,
-                          permissionsJson);
+    private static UserStateDto userStateByIdForBusinessUnit(long userId, short businessUnitId,
+                                                             List<FinesPermission> permissions) {
+        return UserStateDto.builder()
+            .userId(userId)
+            .username(NORMAL_USER)
+            .name(NORMAL_USER)
+            .status(UserStatus.ACTIVE.name())
+            .version(0L)
+            .businessUnitUsers(List.of(createBusinessUnitUserDto(businessUnitId, permissions)))
+            .build();
     }
 
-    private static String permissionObjectJson(FinesPermission permission) {
-        return """
-                    {
-                      "permission_id": %d,
-                      "permission_name": "%s"
-                    }""".formatted(permission.getId(), permission.getDescription());
+    private static BusinessUnitUserDto createBusinessUnitUserDto(short businessUnitId,
+                                                                 List<FinesPermission> permissions) {
+        return new BusinessUnitUserDto(
+            NORMAL_BUSINESS_UNIT_USER_ID,
+            businessUnitId,
+            permissions.stream()
+                .map(UserServiceStub::createPermissionDto)
+                .toList()
+        );
+    }
+
+    private static PermissionDto createPermissionDto(FinesPermission permission) {
+        return new PermissionDto(permission.getId(), permission.getDescription());
     }
 }
