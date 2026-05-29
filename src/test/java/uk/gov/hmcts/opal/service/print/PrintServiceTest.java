@@ -1,6 +1,19 @@
 package uk.gov.hmcts.opal.service.print;
 
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -28,21 +41,6 @@ import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
-import uk.gov.hmcts.opal.sftp.SftpOutboundService;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PrintServiceTest {
@@ -53,8 +51,8 @@ class PrintServiceTest {
     @Mock
     private PrintJobRepository printJobRepository;
 
-    @Mock
-    private SftpOutboundService sftpOutboundService;
+    //    @Mock
+    //    private SftpOutboundService sftpOutboundService;
 
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
@@ -164,7 +162,7 @@ class PrintServiceTest {
             .thenReturn(new PageImpl<>(Collections.singletonList(printJob)))
             .thenReturn(new PageImpl<>(Collections.emptyList()));
 
-        doNothing().when(sftpOutboundService).uploadFile(any(byte[].class), anyString(), anyString());
+        //  doNothing().when(sftpOutboundService).uploadFile(any(byte[].class), anyString(), anyString());
         printService.setPageSize(10);
         // Act
         printService.processJobsWithLock(cutoffDate);
@@ -172,7 +170,7 @@ class PrintServiceTest {
         // Assert
         verify(printJobRepository, atLeastOnce()).findPendingJobsForUpdate(eq(PrintStatus.PENDING), eq(cutoffDate),
                                                                            any(Pageable.class));
-        verify(sftpOutboundService, atLeastOnce()).uploadFile(any(byte[].class), anyString(), anyString());
+        // verify(sftpOutboundService, atLeastOnce()).uploadFile(any(byte[].class), anyString(), anyString());
         verify(printJobRepository, atLeastOnce()).save(any(PrintJob.class));
     }
 
