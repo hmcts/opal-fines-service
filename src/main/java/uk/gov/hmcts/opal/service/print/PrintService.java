@@ -8,6 +8,13 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import javax.xml.XMLConstants;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -28,16 +35,6 @@ import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
-import uk.gov.hmcts.opal.sftp.SftpLocation;
-import uk.gov.hmcts.opal.sftp.SftpOutboundService;
-
-import javax.xml.XMLConstants;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
 
 @Service
 @Transactional(transactionManager = "printTransactionManager")
@@ -53,7 +50,7 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
-    private final SftpOutboundService sftpOutboundService;
+    //private final SftpOutboundService sftpOutboundService;
 
     private final Clock clock;
 
@@ -189,7 +186,7 @@ public class PrintService {
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
         log.debug("Saving PDF to file: {}", fileName);
 
-        sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
+        //sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
     }
 
 
