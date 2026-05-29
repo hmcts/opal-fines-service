@@ -51,9 +51,6 @@ class PrintServiceTest {
     @Mock
     private PrintJobRepository printJobRepository;
 
-    //    @Mock
-    //    private SftpOutboundService sftpOutboundService;
-
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
