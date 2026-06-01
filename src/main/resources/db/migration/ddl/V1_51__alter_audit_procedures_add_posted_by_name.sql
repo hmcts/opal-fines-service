@@ -13,6 +13,8 @@
 *
 **/
 
+DROP PROCEDURE IF EXISTS public.p_audit_finalise(bigint, character varying, smallint, character varying, character varying, character varying);
+
 CREATE OR REPLACE PROCEDURE public.p_audit_finalise(
     IN pi_associated_account_id bigint,
     IN pi_record_type character varying,
