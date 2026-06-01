@@ -123,7 +123,8 @@ launchdarkly:
     - ${LAUNCH_DARKLY_FILE:bin/utils/launchdarkly-flags.json}
   default-flag-values:
     release-1a: ${RELEASE_1A_ENABLED:true}
-    release-1b: ${RELEASE_1B_ENABLED:false}
+    release-1b: ${RELEASE_1B_ENABLED:true}
+    release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
 
 opal:
   redis:
