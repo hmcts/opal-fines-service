@@ -220,6 +220,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Should return 400 when Business-Unit-User-Id is missing")
     @JiraStory("PO-2726")
+    @JiraEpic("PO-50")
     void opalAddPaymentCardRequest_businessUnitUserIdMissing_returns400() throws Exception {
 
         HttpHeaders headers = new HttpHeaders();
