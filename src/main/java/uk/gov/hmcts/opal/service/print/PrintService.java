@@ -52,7 +52,6 @@ public class PrintService {
 
     private final Clock clock;
 
-
     @Value("${printservice.maxRetries:3}")
     private int maxRetries;
 
@@ -184,6 +183,7 @@ public class PrintService {
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
         log.debug("Saving PDF to file: {}", fileName);
 
+        // commenting this out so a decision can be made about how to better implement this.
         //sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
     }
 
