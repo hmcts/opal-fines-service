@@ -7,6 +7,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import tools.jackson.core.JacksonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Arrays;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -119,6 +120,9 @@ public class DefendantAccountController {
 
     private List<HistoryItemType> toHistoryItemTypes(List<String> itemTypes) {
         return itemTypes == null ? List.of() : itemTypes.stream()
+            .flatMap(itemType -> Arrays.stream(itemType.split(",")))
+            .map(String::trim)
+            .filter(itemType -> !itemType.isEmpty())
             .map(HistoryItemType::fromValue)
             .toList();
     }

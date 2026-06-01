@@ -303,7 +303,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                .queryParam("itemTypes", "note", "paymentTerms")
+                .queryParam("itemTypes", "note,paymentTerms")
                 .header("Authorization", "Bearer test-token")
         );
 
