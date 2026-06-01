@@ -174,7 +174,10 @@ public class ReportRefDataStepDef {
             return;
         }
 
-        assertTrue(body != null && body.contains("Full authentication is required"), "Unexpected no-token response body");
+        assertTrue(
+            body != null && body.contains("Full authentication is required"),
+            "Unexpected no-token response body"
+        );
     }
 
     private void validateProblemDetailResponse(String body, int expectedStatus) throws Exception {
