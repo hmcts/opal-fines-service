@@ -149,7 +149,7 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "Business-Unit-User-Id", required = false) String businessUnitUserId,
+        @RequestHeader(value = "Business-Unit-User-Id") String businessUnitUserId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch
     ) {
         log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);

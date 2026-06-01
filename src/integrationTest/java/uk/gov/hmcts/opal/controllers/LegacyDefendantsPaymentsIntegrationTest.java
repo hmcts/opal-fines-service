@@ -43,6 +43,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
         headers.add("Business-Unit-Id", "78");
+        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "3");
 
         ResultActions result = mockMvc.perform(
@@ -71,6 +72,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
         headers.add("Business-Unit-Id", "78");
+        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "1");
 
         ResultActions result = mockMvc.perform(

@@ -71,6 +71,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
         headers.add("Business-Unit-Id", "99");
+        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "\"" + currentVersion + "\"");
 
         ResultActions result = mockMvc.perform(
@@ -107,6 +108,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("token_without_permission");
         headers.add("Business-Unit-Id", "78");
+        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "\"0\"");
 
         mockMvc.perform(
@@ -131,6 +133,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         mockMvc.perform(
                 post("/defendant-accounts/88/payment-card-request")
                     .header("Business-Unit-Id", "78")
+                    .header("Business-Unit-User-Id", "TEST_USER_123")
                     .header("If-Match", "\"0\"")
                     .contentType(MediaType.APPLICATION_JSON)
             )
@@ -151,6 +154,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
         headers.add("Business-Unit-Id", "78");
+        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "\"9999\"");
 
         mockMvc.perform(
@@ -211,5 +215,22 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
             .andExpect(jsonPath("$.resourceId").value("88"))
             .andExpect(jsonPath("$.retriable").value(true))
             .andExpect(jsonPath("$.conflictReason").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("OPAL: Add Payment Card Request – Should return 400 when Business-Unit-User-Id is missing")
+    @JiraStory("PO-2726")
+    void opalAddPaymentCardRequest_businessUnitUserIdMissing_returns400() throws Exception {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "0");
+
+        mockMvc.perform(
+            post("/defendant-accounts/901/payment-card-request")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isBadRequest());
     }
 }
