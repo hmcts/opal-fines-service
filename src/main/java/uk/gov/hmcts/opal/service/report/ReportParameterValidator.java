@@ -70,7 +70,7 @@ public class ReportParameterValidator {
                         }
                     }
                     case MENU_AUTOCOMPLETE -> {
-                        isInvalidMenuAutocomplete();
+                        //TODO future ticket apidata implementation in report parameters
                     }
                     case TEXT_MAX_60 -> {
                         if (isInvalidText(reportInstanceParameters, parameterName, reportParameterData, 60)) {
@@ -145,20 +145,6 @@ public class ReportParameterValidator {
         LocalDate max = reportParameterData.max() != null ? LocalDate.parse(
             reportParameterData.max().toString()) : null;
         return (min != null && !min.isAfter(date)) && (max != null && !max.isBefore(date));
-    }
-
-    private void isInvalidMenuAutocomplete() {
-        /*
-        List<String> values = mapper.convertValue(reportInstanceParameters.get(parameterName),
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
-        int min = reportParameterData.getMin() != null ? (Integer) reportParameterData.getMin() : 0;
-        int max = reportParameterData.getMax() != null ? (Integer) reportParameterData.getMax() : 1;
-        List<String> apidata = new ArrayList<>();//todo apidata? call an endpoint?
-        if ((values.size() > max || values.size() < min) || !new HashSet<>(apidata).containsAll(
-            values)) {
-            return false;
-        }
-        */
     }
 
     private Long convertNumberObjectToLongOrDefaultValue(Object inputNumber, Long defaultValue) {
