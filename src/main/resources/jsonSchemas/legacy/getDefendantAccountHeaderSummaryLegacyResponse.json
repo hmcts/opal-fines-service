@@ -41,12 +41,16 @@
       "enum": [
         "TFO",
         "FP",
-        "CASE",
-        "MAC"
+        "NEW",
+        "TFOS",
+        "CASE"
       ]
     },
     "originator_name": {
       "type": "string"
+    },
+    "collection_order": {
+      "type": "boolean"
     },
     "account_type": {
       "type": "string",
@@ -84,6 +88,7 @@
     "account_type",
     "originator_type",
     "originator_name",
+    "collection_order",
     "business_unit_summary",
     "payment_state_summary",
     "party_details"
