@@ -56,6 +56,7 @@ java:
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: false
     FLYWAY_LOCATIONS: classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev
+    RELEASE_1B_ENABLED: true
     APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}"
     DEFAULT_APP_MODE: ${APP_MODE}
     SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
@@ -195,4 +196,3 @@ hmcts-redis:
     enabled: false
   metrics:
     enabled: false
-

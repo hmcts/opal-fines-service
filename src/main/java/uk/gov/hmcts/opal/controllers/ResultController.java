@@ -49,7 +49,10 @@ public class ResultController {
     @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the full ResultDto for the given resultId.")
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
-    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
+    )
     public ResponseEntity<ResultDto> getResultById(@PathVariable String resultId) {
 
         log.debug(":GET:getResultById: resultId: {}", resultId);
