@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
-import static org.hamcrest.Matchers.contains;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -39,6 +40,9 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @BeforeEach
     void insertHistoryData() {
+        when(userStateService.checkForAuthorisedUser("Bearer test-token"))
+            .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+
         jdbcTemplate.update("""
             INSERT INTO results (
                 result_id, result_title, result_title_cy, result_type, active, imposition, imposition_accruing,
@@ -142,6 +146,10 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.01 mixed history items returned and ordered")
     void getDefendantAccountHistory_mixedItems_returnsAllItemsNewestFirst() throws Exception {
+        // Arrange
+        // Test data is inserted in BeforeEach.
+
+        // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .header("Authorization", "Bearer test-token")
@@ -151,6 +159,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         log.info(":getDefendantAccountHistory_mixedItems_returnsAllItemsNewestFirst: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
+        // Assert
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string("ETag", matchesPattern("\"\\d+\"")))
@@ -173,6 +182,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.02 amendments mapping and multiplicity")
     void getDefendantAccountHistory_amendments_returnsAllAmendmentRows() throws Exception {
+        // Arrange
         jdbcTemplate.update("""
             INSERT INTO amendments (
                 amendment_id, business_unit_id, associated_record_type, associated_record_id, amended_date,
@@ -188,12 +198,15 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             )
             """);
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("itemTypes", "amendment")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("itemTypes", "amendment")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
             .andExpect(jsonPath("$.historyItems[*].type",
                 contains("Amendment", "Amendment", "Amendment")))
@@ -209,6 +222,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.03 enforcements mapping and multiplicity")
     void getDefendantAccountHistory_enforcements_returnsAllEnforcementRows() throws Exception {
+        // Arrange
         insertResult("HST02", "Second history enforcement");
 
         jdbcTemplate.update("""
@@ -229,12 +243,15 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             )
             """);
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("itemTypes", "enforcement")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("itemTypes", "enforcement")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
             .andExpect(jsonPath("$.historyItems[*].type",
                 contains("Enforcement", "Enforcement", "Enforcement")))
@@ -250,6 +267,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.04 notes and payment terms mapping")
     void getDefendantAccountHistory_notesAndPaymentTerms_returnsAllRows() throws Exception {
+        // Arrange
         jdbcTemplate.update("""
             INSERT INTO notes (
                 note_id, note_type, associated_record_type, associated_record_id, note_text, posted_date,
@@ -272,12 +290,15 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             )
             """);
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("itemTypes", "note", "paymentTerms")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("itemTypes", "note", "paymentTerms")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(4)))
             .andExpect(jsonPath("$.historyItems[*].type",
                 contains("Payment terms", "Note", "Note", "Payment terms")))
@@ -293,6 +314,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.05 transactions mapping for repeated actions")
     void getDefendantAccountHistory_transactions_returnsRepeatedActionsAsDistinctItems() throws Exception {
+        // Arrange
         jdbcTemplate.update("""
             INSERT INTO defendant_transactions (
                 defendant_transaction_id, defendant_account_id, posted_date, posted_by, transaction_type,
@@ -305,12 +327,15 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             )
             """);
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("itemTypes", "financial")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("itemTypes", "financial")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(2)))
             .andExpect(jsonPath("$.historyItems[*].type", contains("Financial", "Financial")))
             .andExpect(jsonPath("$.historyItems[0].amount").value(-25.00))
@@ -327,22 +352,29 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.07 dateFrom and dateTo filters are inclusive")
     void getDefendantAccountHistory_dateFilters_returnItemsWithinInclusiveRange() throws Exception {
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("dateFrom", "2026-01-03")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        // Arrange
+        // Test data is inserted in BeforeEach.
+
+        // Act
+        ResultActions dateFromResult = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("dateFrom", "2026-01-03")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        ResultActions dateToResult = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("dateTo", "2026-01-02")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
+        dateFromResult.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
             .andExpect(jsonPath("$.historyItems[*].type",
                 contains("Note", "Financial", "Payment terms")));
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("dateTo", "2026-01-02")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        dateToResult.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(2)))
             .andExpect(jsonPath("$.historyItems[*].type",
                 contains("Enforcement", "Amendment")));
@@ -351,12 +383,18 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.08 itemTypes filter supports a single category")
     void getDefendantAccountHistory_singleItemType_returnsOnlyMatchingItems() throws Exception {
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("itemTypes", "note")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        // Arrange
+        // Test data is inserted in BeforeEach.
+
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("itemTypes", "note")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(1)))
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
             .andExpect(jsonPath("$.historyItems[0].details.noteText").value("History account note"));
@@ -365,12 +403,18 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.08 itemTypes filter supports multiple categories")
     void getDefendantAccountHistory_multipleItemTypes_returnsOnlyMatchingItems() throws Exception {
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("itemTypes", "note", "paymentTerms")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        // Arrange
+        // Test data is inserted in BeforeEach.
+
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("itemTypes", "note", "paymentTerms")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(2)))
             .andExpect(jsonPath("$.historyItems[*].type", contains("Note", "Payment terms")));
     }
@@ -378,6 +422,10 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.09 combined filters return deterministic intersected results")
     void getDefendantAccountHistory_combinedFilters_returnDeterministicIntersectedResults() throws Exception {
+        // Arrange
+        // Test data is inserted in BeforeEach.
+
+        // Act
         ResultActions firstResult = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("dateFrom", "2026-01-02")
@@ -388,32 +436,38 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
         String firstBody = firstResult.andReturn().getResponse().getContentAsString();
 
+        ResultActions secondResult = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("dateFrom", "2026-01-02")
+                .queryParam("dateTo", "2026-01-04")
+                .queryParam("itemTypes", "financial", "enforcement", "amendment")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        // Assert
         firstResult.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(2)))
             .andExpect(jsonPath("$.historyItems[*].type", contains("Financial", "Enforcement")));
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .queryParam("dateFrom", "2026-01-02")
-                    .queryParam("dateTo", "2026-01-04")
-                    .queryParam("itemTypes", "financial", "enforcement", "amendment")
-                    .header("Authorization", "Bearer test-token")
-            )
-            .andExpect(status().isOk())
+        secondResult.andExpect(status().isOk())
             .andExpect(content().json(firstBody));
     }
 
     @Test
     @DisplayName("PO-2622: INT.10 missing authentication returns 401")
     void getDefendantAccountHistory_missingAuthentication_returnsUnauthorized() throws Exception {
+        // Arrange
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized")).when(userStateService)
-            .checkForAuthorisedUser(any());
+            .checkForAuthorisedUser(isNull());
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
-            )
-            .andExpect(status().isUnauthorized())
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .accept(MediaType.APPLICATION_PROBLEM_JSON)
+        );
+
+        // Assert
+        result.andExpect(status().isUnauthorized())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.detail").value("Unauthorized"))
             .andExpect(jsonPath("$.retriable").value(false));
@@ -422,14 +476,19 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.10 missing Search and View Accounts permission returns 403")
     void getDefendantAccountHistory_missingPermission_returnsForbidden() throws Exception {
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        // Arrange
+        when(userStateService.checkForAuthorisedUser("Bearer test-token"))
+            .thenReturn(UserStateUtil.noPermissionsUser());
 
-        mockMvc.perform(
-                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                    .header("Authorization", "Bearer test-token")
-                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
-            )
-            .andExpect(status().isForbidden())
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .header("Authorization", "Bearer test-token")
+                .accept(MediaType.APPLICATION_PROBLEM_JSON)
+        );
+
+        // Assert
+        result.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.retriable").value(false));
@@ -438,12 +497,18 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @Test
     @DisplayName("PO-2622: INT.10 unknown defendant account returns 404")
     void getDefendantAccountHistory_unknownDefendantAccount_returnsNotFound() throws Exception {
-        mockMvc.perform(
-                get(URL_BASE + "/999999999/history")
-                    .header("Authorization", "Bearer test-token")
-                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
-            )
-            .andExpect(status().isNotFound())
+        // Arrange
+        // Authorised user is configured in BeforeEach.
+
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/999999999/history")
+                .header("Authorization", "Bearer test-token")
+                .accept(MediaType.APPLICATION_PROBLEM_JSON)
+        );
+
+        // Assert
+        result.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
             .andExpect(jsonPath("$.status").value(404));
