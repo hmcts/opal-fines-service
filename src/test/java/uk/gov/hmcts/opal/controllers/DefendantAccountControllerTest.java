@@ -96,7 +96,7 @@ class DefendantAccountControllerTest {
 
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
             FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_DEFAULT_VALUE_PROPERTY,
+            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
             false
         )).thenReturn(true);
         when(defendantAccountService.searchDefendantAccounts(requestEntity, BEARER_TOKEN)).thenReturn(mockResponse);
@@ -110,7 +110,7 @@ class DefendantAccountControllerTest {
         assertEquals(mockResponse, responseEntity.getBody());
         verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
             FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_DEFAULT_VALUE_PROPERTY,
+            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
             false
         );
         verify(defendantAccountService).searchDefendantAccounts(requestEntity, BEARER_TOKEN);
@@ -123,7 +123,7 @@ class DefendantAccountControllerTest {
 
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
             FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_DEFAULT_VALUE_PROPERTY,
+            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
             false
         )).thenReturn(false);
 
@@ -137,7 +137,7 @@ class DefendantAccountControllerTest {
             exception.getMessage());
         verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
             FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_DEFAULT_VALUE_PROPERTY,
+            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
             false
         );
         verifyNoInteractions(defendantAccountService);

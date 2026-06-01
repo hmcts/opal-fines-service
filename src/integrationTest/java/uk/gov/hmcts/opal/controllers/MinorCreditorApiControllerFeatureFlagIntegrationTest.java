@@ -10,9 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -38,8 +38,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Slf4j(topic = "opal.MinorCreditorApiControllerFeatureFlagIntegrationTest")
-class MinorCreditorApiControllerFeatureFlagIntegrationTest
-    extends AbstractIntegrationTest {
+class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractIntegrationTest {
 
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short BUSINESS_UNIT_ID = 10;
@@ -64,7 +63,6 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditorAccount_whenLocalDefaultDisabled_returns405 body:\n{}",
             ToJsonString.toPrettyJson(body));
-
         result.andExpect(status().isMethodNotAllowed())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))

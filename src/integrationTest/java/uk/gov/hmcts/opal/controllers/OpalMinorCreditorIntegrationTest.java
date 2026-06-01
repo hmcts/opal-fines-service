@@ -303,14 +303,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
-    @JiraTestKey("PO-6180")
-    void patchMinorCreditor_success_createsAmendments() throws Exception {
-        super.patchMinorCreditor_success_createsAmendments(log);
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
     @JiraTestKey("PO-6191")
     void patchMinorCreditor_withoutPermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutPermission_returns403();
@@ -327,14 +319,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
-    @JiraTestKey("PO-6197")
-    void patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403() throws Exception {
-        super.patchMinorCreditor_withoutHoldPermission_paymentUnchanged_returns403();
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
     @JiraTestKey("PO-6179")
     void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
         super.patchMinorCreditor_withoutAccountMaintenancePermission_returns403();
@@ -343,49 +327,9 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
-    @JiraTestKey("PO-6176")
-    void patchMinorCreditor_notFound_returns404() throws Exception {
-        super.patchMinorCreditor_notFound_returns404();
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-6218")
-    void patchMinorCreditor_staleVersion_returns409() throws Exception {
-        super.patchMinorCreditor_staleVersion_returns409();
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
     @JiraTestKey("PO-6212")
     void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
         super.patchMinorCreditor_missingAuthHeader_returns401();
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-6215")
-    void patchMinorCreditor_timeout_returns408() throws Exception {
-        super.patchMinorCreditor_timeout_returns408(log);
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-6224")
-    void patchMinorCreditor_serviceUnavailable_returns503() throws Exception {
-        super.patchMinorCreditor_serviceUnavailable_returns503(log);
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-6203")
-    void patchMinorCreditor_serverError_returns500() throws Exception {
-        super.patchMinorCreditor_serverError_returns500(log);
     }
 
     @Test
@@ -410,6 +354,69 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraTestKey("PO-6201")
     void getHeaderSummary_authenticatedWithoutPermission_returns403() throws Exception {
         super.getHeaderSummary_authenticatedWithoutPermission_returns403();
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields() throws Exception {
+        super.getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
+        super.getMinorCreditorAccount_missingAuthHeader_returns401();
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
+        super.getMinorCreditorAccount_authenticatedWithoutPermission_returns403();
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_notFound_returns404() throws Exception {
+        super.getMinorCreditorAccount_notFound_returns404(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_timeout_returns408() throws Exception {
+        super.getMinorCreditorAccount_timeout_returns408(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_serviceUnavailable_returns503() throws Exception {
+        super.getMinorCreditorAccount_serviceUnavailable_returns503(log);
+    }
+
+    @Test
+    @JiraStory("PO-1986")
+    @JiraEpic("PO-812")
+    void getMinorCreditorAccount_serverError_returns500() throws Exception {
+        super.getMinorCreditorAccount_serverError_returns500(log);
     }
 
     @Test

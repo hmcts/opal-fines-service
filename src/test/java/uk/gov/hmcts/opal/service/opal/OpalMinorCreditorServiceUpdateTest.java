@@ -11,7 +11,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -64,6 +66,9 @@ class OpalMinorCreditorServiceUpdateTest {
 
     @Mock
     private MinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
+
+    @Mock
+    private EntityManager em;
 
     @InjectMocks
     private OpalMinorCreditorService service;
@@ -127,7 +132,7 @@ class OpalMinorCreditorServiceUpdateTest {
             .thenReturn(Optional.of(account));
         when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
         when(partyRepository.save(any(PartyEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(creditorAccountRepository.saveAndFlush(any(CreditorAccountEntity.class)))
+        when(creditorAccountRepository.save(any(CreditorAccountEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
         MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
         mappedResponse.setCreditorAccountId(accountId);
@@ -161,7 +166,9 @@ class OpalMinorCreditorServiceUpdateTest {
         assertEquals(BigInteger.valueOf(5L), response.getVersion());
         ArgumentCaptor<CreditorAccountEntity> entityCaptor =
             ArgumentCaptor.forClass(CreditorAccountEntity.class);
-        verify(creditorAccountRepository).saveAndFlush(entityCaptor.capture());
+        verify(creditorAccountRepository).save(entityCaptor.capture());
+        verify(em).lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        verify(em).flush();
         CreditorAccountEntity savedEntity = entityCaptor.getValue();
         assertNotNull(savedEntity);
         assertEquals(accountId, savedEntity.getCreditorAccountId());

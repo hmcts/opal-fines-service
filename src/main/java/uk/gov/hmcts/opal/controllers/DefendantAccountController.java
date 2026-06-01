@@ -107,7 +107,7 @@ public class DefendantAccountController {
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     @FeatureToggle(
         feature = FeatureFlags.RELEASE_1B,
-        defaultValueProperty = FeatureFlags.RELEASE_1B_DEFAULT_VALUE_PROPERTY
+        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
@@ -128,7 +128,7 @@ public class DefendantAccountController {
         if (accountSearchDto.isConsolidationSearch()
             && !featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
                 FeatureFlags.RELEASE_1C,
-                FeatureFlags.RELEASE_1C_DEFAULT_VALUE_PROPERTY,
+                FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
                 false
             )) {
             throw new FeatureDisabledException(

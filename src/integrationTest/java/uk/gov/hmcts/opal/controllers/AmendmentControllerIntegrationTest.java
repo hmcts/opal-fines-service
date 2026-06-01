@@ -171,6 +171,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     @Component
     @Transactional
     @RequiredArgsConstructor
+    @Slf4j
     public static class TransactionalContext {
 
         private final JdbcTemplate jdbcTemplate;
