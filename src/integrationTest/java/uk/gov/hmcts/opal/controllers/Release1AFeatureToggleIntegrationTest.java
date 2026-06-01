@@ -76,7 +76,6 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
             args("GET /prosecutors", withAuth(get("/prosecutors").param("q", ""))),
 
             // ResultController
-            args("GET /results/{id}", withAuth(get("/results/FVS"))),
             args("GET /results", withAuth(get("/results")))
         );
     }

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
@@ -28,6 +31,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountService defendantAccountService;
 
     @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id, String authHeaderValue) {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);
 
@@ -35,6 +39,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     }
 
     @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostDefendantAccountSearchResponseDefendantAccount> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
         @RequestBody PostDefendantAccountSearchRequestDefendantAccount request,
@@ -46,6 +51,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     }
 
     @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<UpdateDefendantAccountResponsePayload> updateDefendantAccount(Long defendantAccountId,
         String authHeaderValue, String businessUnitId, UpdateDefendantAccountRequestPayload request, String ifMatch) {
         log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);

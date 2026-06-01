@@ -5,10 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigInteger;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,26 +25,18 @@ import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
-
-import java.math.BigInteger;
-import java.time.LocalDate;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = GetMinorCreditorAccountAtAGlanceResponseMapperTest.MapperTestConfig.class)
 @Isolated
-public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
+class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
 
     @Autowired
     private GetMinorCreditorAccountAtAGlanceResponseMapper mapper;
 
-    @Configuration
-    @ComponentScan(basePackages = "uk.gov.hmcts.opal.mapper")
-    static class MapperTestConfig {
-    }
-
     @Test
-    public void testLegacyToOpalFullConversion() {
+    void testLegacyToOpalFullConversion() {
 
         //Arrange
         LegacyPartyDetails legacyParty = LegacyPartyDetails.builder()
@@ -82,7 +78,7 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
             .isBacs(true)
             .holdPayment(false)
             .build();
-        
+
         LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
             LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
                 .party(legacyParty)
@@ -110,7 +106,7 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
     }
 
     @Test
-    public void testEntityToOpalFullConversion() {
+    void testEntityToOpalFullConversion() {
         MinorCreditorAccountAtAGlanceEntity entity = MinorCreditorAccountAtAGlanceEntity.builder()
             .creditorId(66L)
             .accountNumber("ORDER-66")
@@ -157,6 +153,16 @@ public class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
         assertNotNull(dto.getPayment());
         assertTrue(dto.getPayment().getBacs());
         assertFalse(dto.getPayment().getHoldPayment());
+    }
+
+    @Configuration
+    @ComponentScan(basePackages = "uk.gov.hmcts.opal.mapper")
+    static class MapperTestConfig {
+
+        @Bean
+        public ObjectMapper objectMapper() {
+            return new ObjectMapper();
+        }
     }
 
 }
