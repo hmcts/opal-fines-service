@@ -25,6 +25,7 @@ import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,7 @@ import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 @Getter
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.PrintService")
+@ConditionalOnProperty(prefix = "opal.common.poc", name = "enabled", havingValue = "true")
 public class PrintService {
 
     private final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
