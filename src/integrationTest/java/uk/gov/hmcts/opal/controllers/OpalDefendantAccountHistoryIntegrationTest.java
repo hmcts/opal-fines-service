@@ -3,6 +3,10 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.contains;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -18,6 +22,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @ActiveProfiles({"integration", "opal"})
@@ -395,6 +401,52 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             )
             .andExpect(status().isOk())
             .andExpect(content().json(firstBody));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.10 missing authentication returns 401")
+    void getDefendantAccountHistory_missingAuthentication_returnsUnauthorized() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized")).when(userStateService)
+            .checkForAuthorisedUser(any());
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
+            )
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.10 missing Search and View Accounts permission returns 403")
+    void getDefendantAccountHistory_missingPermission_returnsForbidden() throws Exception {
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .header("Authorization", "Bearer test-token")
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
+            )
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.10 unknown defendant account returns 404")
+    void getDefendantAccountHistory_unknownDefendantAccount_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                get(URL_BASE + "/999999999/history")
+                    .header("Authorization", "Bearer test-token")
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
+            )
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.status").value(404));
     }
 
     private void insertResult(String resultId, String resultTitle) {
