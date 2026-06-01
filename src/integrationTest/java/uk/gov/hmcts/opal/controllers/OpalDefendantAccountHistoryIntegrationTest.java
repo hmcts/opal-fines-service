@@ -165,6 +165,160 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     }
 
     @Test
+    @DisplayName("PO-2622: INT.02 amendments mapping and multiplicity")
+    void getDefendantAccountHistory_amendments_returnsAllAmendmentRows() throws Exception {
+        jdbcTemplate.update("""
+            INSERT INTO amendments (
+                amendment_id, business_unit_id, associated_record_type, associated_record_id, amended_date,
+                amended_by, field_code, old_value, new_value, case_reference, function_code
+            ) VALUES
+            (
+                26220006, 78, 'defendant_accounts', '262200', TIMESTAMP '2026-01-06 08:00:00',
+                'hist-user-6', 2, 'Old two', 'New two', 'CASE-HIST-2', 'UPD'
+            ),
+            (
+                26220007, 78, 'defendant_accounts', '262200', TIMESTAMP '2026-01-07 08:00:00',
+                'hist-user-7', 1, 'Old three', 'New three', 'CASE-HIST-3', 'UPD'
+            )
+            """);
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("itemTypes", "amendment")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(3)))
+            .andExpect(jsonPath("$.historyItems[*].type",
+                contains("Amendment", "Amendment", "Amendment")))
+            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("1"))
+            .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("Old three"))
+            .andExpect(jsonPath("$.historyItems[0].details.newValue").value("New three"))
+            .andExpect(jsonPath("$.historyItems[1].details.attributeName").value("2"))
+            .andExpect(jsonPath("$.historyItems[1].details.oldValue").value("Old two"))
+            .andExpect(jsonPath("$.historyItems[2].details.attributeName").value("1"))
+            .andExpect(jsonPath("$.historyItems[2].details.oldValue").value("Old value"));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.03 enforcements mapping and multiplicity")
+    void getDefendantAccountHistory_enforcements_returnsAllEnforcementRows() throws Exception {
+        insertResult("HST02", "Second history enforcement");
+
+        jdbcTemplate.update("""
+            INSERT INTO enforcements (
+                enforcement_id, defendant_account_id, posted_date, posted_by, result_id, reason, jail_days,
+                warrant_reference, case_reference, hearing_date, hearing_court_id, posted_by_name,
+                enforcement_account_type
+            ) VALUES
+            (
+                26220008, 262200, TIMESTAMP '2026-01-06 09:00:00', 'hist-user-8', 'HST02',
+                'Second enforcement reason', 21, 'WR262201', 'CASE-HIST-2',
+                TIMESTAMP '2026-02-06 10:00:00', 262200, 'History User Eight', 'COLL'
+            ),
+            (
+                26220009, 262200, TIMESTAMP '2026-01-07 09:00:00', 'hist-user-9', 'HST01',
+                'Repeated enforcement reason', 28, 'WR262202', 'CASE-HIST-3',
+                TIMESTAMP '2026-02-07 10:00:00', 262200, 'History User Nine', 'COLL'
+            )
+            """);
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("itemTypes", "enforcement")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(3)))
+            .andExpect(jsonPath("$.historyItems[*].type",
+                contains("Enforcement", "Enforcement", "Enforcement")))
+            .andExpect(jsonPath("$.historyItems[0].details.enforcementAction").value("HST01"))
+            .andExpect(jsonPath("$.historyItems[0].details.daysInDefault").value(28))
+            .andExpect(jsonPath("$.historyItems[0].details.warrantNumber").value("WR262202"))
+            .andExpect(jsonPath("$.historyItems[1].details.enforcementAction").value("HST02"))
+            .andExpect(jsonPath("$.historyItems[1].details.reason").value("Second enforcement reason"))
+            .andExpect(jsonPath("$.historyItems[2].details.enforcementAction").value("HST01"))
+            .andExpect(jsonPath("$.historyItems[2].details.daysInDefault").value(14));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.04 notes and payment terms mapping")
+    void getDefendantAccountHistory_notesAndPaymentTerms_returnsAllRows() throws Exception {
+        jdbcTemplate.update("""
+            INSERT INTO notes (
+                note_id, note_type, associated_record_type, associated_record_id, note_text, posted_date,
+                posted_by, posted_by_name
+            ) VALUES (
+                26220010, 'AA', 'defendant_accounts', '262200', 'Second account note',
+                TIMESTAMP '2026-01-06 09:00:00', 'hist-user-10', 'History User Ten'
+            )
+            """);
+
+        jdbcTemplate.update("""
+            INSERT INTO payment_terms (
+                payment_terms_id, defendant_account_id, posted_date, posted_by, terms_type_code, effective_date,
+                instalment_period, instalment_amount, instalment_lump_sum, jail_days, extension, account_balance,
+                posted_by_name, active
+            ) VALUES (
+                26220011, 262200, TIMESTAMP '2026-01-07 09:00:00', 'hist-user-11', 'B',
+                TIMESTAMP '2026-02-07 00:00:00', 'M', 35.00, 125.00, 9, FALSE, 450.00,
+                'History User Eleven', FALSE
+            )
+            """);
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("itemTypes", "note", "paymentTerms")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(4)))
+            .andExpect(jsonPath("$.historyItems[*].type",
+                contains("Payment terms", "Note", "Note", "Payment terms")))
+            .andExpect(jsonPath("$.historyItems[0].details.payment_terms_type.payment_terms_type_code")
+                .value("B"))
+            .andExpect(jsonPath("$.historyItems[0].details.instalment_amount").value(35.00))
+            .andExpect(jsonPath("$.historyItems[1].details.noteText").value("Second account note"))
+            .andExpect(jsonPath("$.historyItems[2].details.noteText").value("History account note"))
+            .andExpect(jsonPath("$.historyItems[3].details.payment_terms_type.payment_terms_type_code")
+                .value("I"));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.05 transactions mapping for repeated actions")
+    void getDefendantAccountHistory_transactions_returnsRepeatedActionsAsDistinctItems() throws Exception {
+        jdbcTemplate.update("""
+            INSERT INTO defendant_transactions (
+                defendant_transaction_id, defendant_account_id, posted_date, posted_by, transaction_type,
+                transaction_amount, payment_method, payment_reference, text, status, status_date, status_amount,
+                posted_by_name
+            ) VALUES (
+                26220012, 262200, TIMESTAMP '2026-01-06 09:00:00', 'hist-user-12', 'PAYMNT',
+                -25.00, 'NC', 'PAY262201', 'Second history payment', 'P',
+                TIMESTAMP '2026-01-06 10:00:00', -25.00, 'History User Twelve'
+            )
+            """);
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("itemTypes", "financial")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(2)))
+            .andExpect(jsonPath("$.historyItems[*].type", contains("Financial", "Financial")))
+            .andExpect(jsonPath("$.historyItems[0].amount").value(-25.00))
+            .andExpect(jsonPath("$.historyItems[0].details.transactionType.transactionType").value("PAYMNT"))
+            .andExpect(jsonPath("$.historyItems[0].details.paymentMethod.paymentMethod").value("NC"))
+            .andExpect(jsonPath("$.historyItems[0].details.paymentReference").value("PAY262201"))
+            .andExpect(jsonPath("$.historyItems[0].details.additionalInformation")
+                .value("Second history payment"))
+            .andExpect(jsonPath("$.historyItems[0].details.status.defendantTransactionStatus").value("P"))
+            .andExpect(jsonPath("$.historyItems[1].amount").value(-50.00))
+            .andExpect(jsonPath("$.historyItems[1].details.paymentReference").value("PAY262200"));
+    }
+
+    @Test
     @DisplayName("PO-2622: INT.07 dateFrom and dateTo filters are inclusive")
     void getDefendantAccountHistory_dateFilters_returnItemsWithinInclusiveRange() throws Exception {
         mockMvc.perform(
@@ -241,5 +395,21 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             )
             .andExpect(status().isOk())
             .andExpect(content().json(firstBody));
+    }
+
+    private void insertResult(String resultId, String resultTitle) {
+        jdbcTemplate.update("""
+            INSERT INTO results (
+                result_id, result_title, result_title_cy, result_type, active, imposition, imposition_accruing,
+                enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow,
+                enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order,
+                extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies,
+                manual_enforcement, allow_payment_terms, requires_employment_data, allow_additional_action,
+                requires_lja
+            ) VALUES (
+                ?, ?, ?, 'Result', TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,
+                FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE
+            ) ON CONFLICT (result_id) DO NOTHING
+            """, resultId, resultTitle, resultTitle);
     }
 }
