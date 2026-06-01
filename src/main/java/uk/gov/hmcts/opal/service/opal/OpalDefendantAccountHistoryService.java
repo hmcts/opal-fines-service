@@ -69,7 +69,8 @@ public class OpalDefendantAccountHistoryService {
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         log.debug(":getHistorySources: Opal mode - ID: {}", defendantAccountId);
 
-        DefendantAccountEntity defendantAccount = defendantAccountRepository.findByDefendantAccountId(defendantAccountId)
+        DefendantAccountEntity defendantAccount = defendantAccountRepository
+            .findByDefendantAccountId(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + defendantAccountId));
 
         DefendantAccountHistorySources sources = DefendantAccountHistorySources.builder()

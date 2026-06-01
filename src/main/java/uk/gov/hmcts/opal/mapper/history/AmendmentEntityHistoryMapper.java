@@ -9,7 +9,6 @@ import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.history.AmendmentDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
