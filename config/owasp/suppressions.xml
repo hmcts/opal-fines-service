@@ -28,7 +28,7 @@
     <cve>CVE-2025-7962</cve>
   </suppress>
 
-  <suppress until="2026-06-01Z">
+  <suppress until="2026-06-10Z">
     <notes><![CDATA[
     Reviewed 2026-04-01.
     CVE-2025-15104 relates to nu.validator:validator, which is not present in this repo's runtime classpath.
