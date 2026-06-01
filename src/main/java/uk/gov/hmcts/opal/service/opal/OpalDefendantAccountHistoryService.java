@@ -103,9 +103,8 @@ public class OpalDefendantAccountHistoryService {
     private Comparator<DefendantAccountHistoryItem> newestFirstHistoryItemComparator() {
         return Comparator.comparing(
                 DefendantAccountHistoryItem::getEventDateTime,
-                Comparator.nullsLast(Comparator.naturalOrder())
+                Comparator.nullsLast(Comparator.reverseOrder())
             )
-            .reversed()
             .thenComparing(DefendantAccountHistoryItem::getType, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(DefendantAccountHistoryItem::getSourceId, Comparator.nullsLast(Comparator.naturalOrder()));
     }
