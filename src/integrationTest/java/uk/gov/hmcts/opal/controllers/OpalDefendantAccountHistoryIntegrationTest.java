@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -161,5 +162,84 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.historyItems[4].type").value("Amendment"))
             .andExpect(jsonPath("$.historyItems[4].details.oldValue").value("Old value"))
             .andExpect(jsonPath("$.historyItems[4].details.newValue").value("New value"));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.07 dateFrom and dateTo filters are inclusive")
+    void getDefendantAccountHistory_dateFilters_returnItemsWithinInclusiveRange() throws Exception {
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("dateFrom", "2026-01-03")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(3)))
+            .andExpect(jsonPath("$.historyItems[*].type",
+                contains("Note", "Financial", "Payment terms")));
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("dateTo", "2026-01-02")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(2)))
+            .andExpect(jsonPath("$.historyItems[*].type",
+                contains("Enforcement", "Amendment")));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.08 itemTypes filter supports a single category")
+    void getDefendantAccountHistory_singleItemType_returnsOnlyMatchingItems() throws Exception {
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("itemTypes", "note")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(1)))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[0].details.noteText").value("History account note"));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.08 itemTypes filter supports multiple categories")
+    void getDefendantAccountHistory_multipleItemTypes_returnsOnlyMatchingItems() throws Exception {
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("itemTypes", "note", "paymentTerms")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(2)))
+            .andExpect(jsonPath("$.historyItems[*].type", contains("Note", "Payment terms")));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.09 combined filters return deterministic intersected results")
+    void getDefendantAccountHistory_combinedFilters_returnDeterministicIntersectedResults() throws Exception {
+        ResultActions firstResult = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("dateFrom", "2026-01-02")
+                .queryParam("dateTo", "2026-01-04")
+                .queryParam("itemTypes", "financial", "enforcement", "amendment")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        String firstBody = firstResult.andReturn().getResponse().getContentAsString();
+
+        firstResult.andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(2)))
+            .andExpect(jsonPath("$.historyItems[*].type", contains("Financial", "Enforcement")));
+
+        mockMvc.perform(
+                get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                    .queryParam("dateFrom", "2026-01-02")
+                    .queryParam("dateTo", "2026-01-04")
+                    .queryParam("itemTypes", "financial", "enforcement", "amendment")
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().json(firstBody));
     }
 }

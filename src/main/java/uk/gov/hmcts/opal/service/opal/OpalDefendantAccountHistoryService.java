@@ -139,11 +139,11 @@ public class OpalDefendantAccountHistoryService {
             return List.of();
         }
 
-        return noteRepository.findDefendantAccountHistoryNotes(
-            defendantAccountId.toString(),
-            filter.getDateFrom(),
-            filter.getDateTo()
-        );
+        return noteRepository.findAll(allOf(
+            noteForDefendantAccount(defendantAccountId),
+            noteDateFrom(filter.getDateFrom()),
+            noteDateTo(filter.getDateTo())
+        ));
     }
 
     private List<PaymentTermsEntity> getPaymentTerms(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
@@ -185,7 +185,7 @@ public class OpalDefendantAccountHistoryService {
 
     private Specification<AmendmentEntity> amendmentDateTo(LocalDate dateTo) {
         return dateTo == null ? null
-            : (root, query, builder) -> builder.lessThanOrEqualTo(root.get("amendedDate"), dateTo);
+            : (root, query, builder) -> builder.lessThan(root.get("amendedDate"), dateTo.plusDays(1));
     }
 
     private Specification<EnforcementEntity> enforcementForDefendantAccount(Long defendantAccountId) {
@@ -228,7 +228,25 @@ public class OpalDefendantAccountHistoryService {
 
     private Specification<DefendantTransactionEntity> transactionDateTo(LocalDate dateTo) {
         return dateTo == null ? null
-            : (root, query, builder) -> builder.lessThanOrEqualTo(root.get("postedDate"), dateTo);
+            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dateTo.plusDays(1));
+    }
+
+    private Specification<NoteEntity> noteForDefendantAccount(Long defendantAccountId) {
+        return (root, query, builder) -> builder.and(
+            builder.equal(root.get("associatedRecordType"), AssociatedRecordType.DEFENDANT_ACCOUNTS),
+            builder.equal(root.get("associatedRecordId"), defendantAccountId.toString()),
+            builder.equal(root.get("noteType"), NoteType.AA)
+        );
+    }
+
+    private Specification<NoteEntity> noteDateFrom(LocalDate dateFrom) {
+        return dateFrom == null ? null
+            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), atStartOfDay(dateFrom));
+    }
+
+    private Specification<NoteEntity> noteDateTo(LocalDate dateTo) {
+        return dateTo == null ? null
+            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
     }
 
     private LocalDateTime atStartOfDay(LocalDate date) {
