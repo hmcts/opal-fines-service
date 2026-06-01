@@ -24,8 +24,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -145,6 +147,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.01 mixed history items returned and ordered")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_mixedItems_returnsAllItemsNewestFirst() throws Exception {
         // Arrange
         // Test data is inserted in BeforeEach.
@@ -181,6 +185,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.02 amendments mapping and multiplicity")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_amendments_returnsAllAmendmentRows() throws Exception {
         // Arrange
         jdbcTemplate.update("""
@@ -221,6 +227,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.03 enforcements mapping and multiplicity")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_enforcements_returnsAllEnforcementRows() throws Exception {
         // Arrange
         insertResult("HST02", "Second history enforcement");
@@ -266,6 +274,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.04 notes and payment terms mapping")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_notesAndPaymentTerms_returnsAllRows() throws Exception {
         // Arrange
         jdbcTemplate.update("""
@@ -313,6 +323,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.05 transactions mapping for repeated actions")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_transactions_returnsRepeatedActionsAsDistinctItems() throws Exception {
         // Arrange
         jdbcTemplate.update("""
@@ -351,6 +363,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.07 dateFrom and dateTo filters are inclusive")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_dateFilters_returnItemsWithinInclusiveRange() throws Exception {
         // Arrange
         // Test data is inserted in BeforeEach.
@@ -382,6 +396,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.08 itemTypes filter supports a single category")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_singleItemType_returnsOnlyMatchingItems() throws Exception {
         // Arrange
         // Test data is inserted in BeforeEach.
@@ -402,6 +418,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.08 itemTypes filter supports multiple categories")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_multipleItemTypes_returnsOnlyMatchingItems() throws Exception {
         // Arrange
         // Test data is inserted in BeforeEach.
@@ -421,6 +439,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.09 combined filters return deterministic intersected results")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_combinedFilters_returnDeterministicIntersectedResults() throws Exception {
         // Arrange
         // Test data is inserted in BeforeEach.
@@ -455,6 +475,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.10 missing authentication returns 401")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_missingAuthentication_returnsUnauthorized() throws Exception {
         // Arrange
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized")).when(userStateService)
@@ -475,6 +497,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.10 missing Search and View Accounts permission returns 403")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_missingPermission_returnsForbidden() throws Exception {
         // Arrange
         when(userStateService.checkForAuthorisedUser("Bearer test-token"))
@@ -496,6 +520,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @Test
     @DisplayName("PO-2622: INT.10 unknown defendant account returns 404")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
     void getDefendantAccountHistory_unknownDefendantAccount_returnsNotFound() throws Exception {
         // Arrange
         // Authorised user is configured in BeforeEach.
