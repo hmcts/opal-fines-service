@@ -13,7 +13,7 @@ Feature: Report Definition Reference Data
   Scenario: Report definition requests without a token are rejected by the security layer
     When I call GET on the seeded report definition api with "no token"
     Then the request is rejected with status 401
-    And the latest report definition response is a plain-text unauthorized message
+    And the latest report definition response is an unauthorized response
 
   @JIRA-STORY:PO-2250 @JIRA-EPIC:PO-2248
   Scenario: Report definition requests with an invalid token are rejected with standard error responses

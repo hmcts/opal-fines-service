@@ -152,6 +152,32 @@ public class ReportRefDataStepDef {
             body = SerenityRest.lastResponse().asString();
         }
 
+        validateProblemDetailResponse(body, expectedStatus);
+    }
+
+    /**
+     * Asserts that the latest no-token report-definition response is an unauthorised response,
+     * tolerating both the local plain-text security-layer message and the deployed problem-detail
+     * shape returned in some environments.
+     */
+    @Then("the latest report definition response is an unauthorized response")
+    public void latestReportDefinitionResponseIsAnUnauthorizedResponse() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawReportResponse;
+        latestRawReportResponse = null;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report request");
+        assertEquals(401, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        String body = latestHttpResponse.body();
+        if (body != null && body.trim().startsWith("{")) {
+            validateProblemDetailResponse(body, 401);
+            return;
+        }
+
+        assertTrue(body != null && body.contains("Full authentication is required"), "Unexpected no-token response body");
+    }
+
+    private void validateProblemDetailResponse(String body, int expectedStatus) throws Exception {
         JsonNode root = OBJECT_MAPPER.readTree(body);
         assertTrue(root.isObject(), "Problem detail response should be a JSON object");
         assertTrue(root.path("title").isTextual(), "title should be a string");
@@ -166,23 +192,6 @@ public class ReportRefDataStepDef {
         if (!root.path("retriable").isMissingNode() && !root.path("retriable").isNull()) {
             assertTrue(root.path("retriable").isBoolean(), "retriable should be a boolean when present");
         }
-    }
-
-    /**
-     * Asserts that the latest report-definition response is the plain-text message returned by the
-     * security layer when no bearer token is supplied.
-     */
-    @Then("the latest report definition response is a plain-text unauthorized message")
-    public void latestReportDefinitionResponseIsPlainTextUnauthorizedMessage() {
-        TestHttpResponse latestHttpResponse = latestRawReportResponse;
-        latestRawReportResponse = null;
-
-        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report request");
-        assertEquals(401, latestHttpResponse.statusCode(), "Unexpected HTTP status");
-        assertTrue(
-            latestHttpResponse.body().contains("Full authentication is required"),
-            "Unexpected no-token response body"
-        );
     }
 
     private void validateSupportedFileTypes(JsonNode supportedFileTypes) {
