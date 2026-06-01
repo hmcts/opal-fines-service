@@ -41,7 +41,17 @@
     <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>
     <cve>CVE-2025-15104</cve>
   </suppress>
-  <suppress until="2026-06-01Z">
+  <suppress until="2026-06-10Z">
+    <notes><![CDATA[
+    Reviewed 2026-06-01.
+    Dependency-Check flags org.apache.pdfbox:pdfbox and org.apache.pdfbox:pdfbox-io for CVE-2026-23907.
+    Apache PDFBox documents CVE-2026-23907 as affecting the pdfbox-examples module; this repo depends on
+    the core pdfbox artifact for PDF generation and does not depend on pdfbox-examples.
+    Maven metadata review found 3.0.7 is currently the latest stable release in the 3.x line.
+    This suppression expires shortly so the dependency-check failure returns unless an upstream fixed
+    release, updated vulnerability metadata, or a better remediation path is available.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox(\-io)?@.*$</packageUrl>
     <cve>CVE-2026-23907</cve>
   </suppress>
   <suppress until="2026-06-10Z">
