@@ -94,18 +94,4 @@ INSERT INTO public.reports (
     null,
     '{CSV,PDF}',
     true
-),
-(
-    'IT-report-3',
-    'No manual creation report',
-    'group-3',
-    false,
-    null,
-    true,
-    false,
-    false,
-    'P14D',
-    null,
-    '{CSV,PDF}',
-    false
 );

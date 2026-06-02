@@ -51,7 +51,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     private static final String URL_BASE = "/report-instances";
     private static final String REPORT_1BU_ID = "IT-report-1";
     private static final String REPORT_2BUs_ID = "IT-report-2";
-    private static final String REPORT_NO_MANUAL_CREATION = "IT-report-3";
+    private static final String REPORT_NO_MANUAL_CREATION = "it_report_full";
     private static final Long USER_ID = 41L;
     private static final String USER_NAME = "Mx User Person";
 
