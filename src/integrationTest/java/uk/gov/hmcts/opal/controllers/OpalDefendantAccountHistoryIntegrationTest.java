@@ -573,39 +573,45 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
              .andExpect(jsonPath("$.status").value(404));
      }
 
-     @Test
-     @DisplayName("PO-2622: INT.11 response contains only OpenAPI-documented fields")
-     @JiraStory("PO-2622")
-     @JiraEpic("PO-812")
-     void getDefendantAccountHistory_responseStructure_containsOnlyDocumentedFields() throws Exception {
-         // Arrange
-         // Test data is inserted in BeforeEach.
+    @Test
+    @DisplayName("PO-2622: INT.11 response contains only OpenAPI-documented fields")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
+    void getDefendantAccountHistory_responseStructure_containsOnlyDocumentedFields() throws Exception {
+        // Arrange
+        // Test data is inserted in BeforeEach.
 
-         // Act
-         ResultActions result = mockMvc.perform(
-             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                 .header("Authorization", "Bearer test-token")
-         );
+        // Act
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .header("Authorization", "Bearer test-token")
+        );
 
-         String body = result.andReturn().getResponse().getContentAsString();
-         log.info(":getDefendantAccountHistory_responseStructure_containsOnlyDocumentedFields: Response body:\n{}",
-             ToJsonString.toPrettyJson(body));
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getDefendantAccountHistory_responseStructure_containsOnlyDocumentedFields: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
-          // Assert: Root level has only documented fields
-          result.andExpect(status().isOk())
-              .andExpect(jsonPath("$.historyItems").isArray())
-              // Verify each history item has only documented fields
-              .andExpect(jsonPath("$.historyItems[0].postedDetails").exists())
-              .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").exists())
-              .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").exists())
-              .andExpect(jsonPath("$.historyItems[0].type").exists())
-              .andExpect(jsonPath("$.historyItems[0].details").exists())
-              // Amount field should exist for Financial items only
-              .andExpect(jsonPath("$.historyItems[1].amount").exists())
-              // Verify no generated orders/notices type is returned (only Amendment, Enforcement, Financial, Note, Payment terms)
-              .andExpect(jsonPath("$.historyItems[*].type",
-                  contains("Note", "Financial", "Payment terms", "Enforcement", "Amendment")));
-     }
+        // Assert: Root level has only documented fields
+        result.andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems").isArray())
+            // Verify each history item has only documented fields
+            .andExpect(jsonPath("$.historyItems[0].postedDetails").exists())
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").exists())
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").exists())
+            .andExpect(jsonPath("$.historyItems[0].type").exists())
+            .andExpect(jsonPath("$.historyItems[0].details").exists())
+            // Amount field should exist for Financial items only
+            .andExpect(jsonPath("$.historyItems[1].amount").exists())
+            // Verify no generated orders/notices type is returned (only Amendment, Enforcement, Financial, Note, Payment terms)
+            .andExpect(jsonPath("$.historyItems[*].type",
+                contains(
+                    "Note",
+                    "Financial",
+                    "Payment terms",
+                    "Enforcement",
+                    "Amendment"
+                )));
+    }
 
      @Test
      @DisplayName("PO-2622: AC6 same-day mixed-source events are ordered deterministically")
