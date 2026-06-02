@@ -13,7 +13,6 @@ import static uk.gov.hmcts.opal.config.Constants.CENTRAL_FUNDS_URI;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
@@ -22,7 +21,6 @@ import java.util.HashSet;
 import java.util.Set;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.CommonMethods;
-import uk.gov.hmcts.opal.utils.TestHttpClient;
 import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 /**
