@@ -78,4 +78,7 @@ public class PaymentInEntity {
     @Column(name = "allocated")
     private boolean allocated;
 
+    @Column(name = "auto_payment")
+    private boolean autoPayment;
+
 }
