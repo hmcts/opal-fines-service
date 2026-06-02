@@ -5,6 +5,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -13,28 +18,31 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
-import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.repository.AmendmentRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
-import uk.gov.hmcts.opal.repository.EnforcementRepository;
-import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantTransactionEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.EnforcementEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.NoteEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.PaymentTermsEntityHistoryMapper;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
+import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +62,8 @@ public class OpalDefendantAccountHistoryService {
     private final PaymentTermsRepository paymentTermsRepository;
 
     private final DefendantTransactionRepository defendantTransactionRepository;
+
+    private final ImpositionRepository impositionRepository;
 
     private final AmendmentEntityHistoryMapper amendmentEntityHistoryMapper;
 
@@ -88,16 +98,104 @@ public class OpalDefendantAccountHistoryService {
     }
 
     private List<DefendantAccountHistoryItem> toHistoryItems(DefendantAccountHistorySources sources) {
+        DefendantTransactionHistoryAssociations transactionAssociations =
+            getTransactionHistoryAssociations(sources.getTransactions());
+
         return Stream.of(
                 sources.getAmendments().stream().map(amendmentEntityHistoryMapper::toHistoryItem),
                 sources.getEnforcements().stream().map(enforcementEntityHistoryMapper::toHistoryItem),
                 sources.getNotes().stream().map(noteEntityHistoryMapper::toHistoryItem),
                 sources.getPaymentTerms().stream().map(paymentTermsEntityHistoryMapper::toHistoryItem),
-                sources.getTransactions().stream().map(defendantTransactionEntityHistoryMapper::toHistoryItem)
+                sources.getTransactions().stream()
+                    .map(transaction -> toTransactionHistoryItem(transaction, transactionAssociations))
             )
             .flatMap(stream -> stream)
             .sorted(newestFirstHistoryItemComparator())
             .toList();
+    }
+
+    private DefendantTransactionHistoryAssociations getTransactionHistoryAssociations(
+        List<DefendantTransactionEntity> transactions) {
+
+        Set<Long> defendantAccountIds = getAssociatedRecordIds(transactions, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        Set<Long> impositionIds = getAssociatedRecordIds(transactions, AssociatedRecordType.IMPOSITIONS);
+
+        return DefendantTransactionHistoryAssociations.builder()
+            .defendantAccounts(defendantAccountRepository.findAllById(defendantAccountIds).stream()
+                .collect(Collectors.toMap(DefendantAccountEntity::getDefendantAccountId, Function.identity())))
+            .impositions(impositionRepository.findAllById(impositionIds).stream()
+                .collect(Collectors.toMap(ImpositionEntity::getImpositionId, Function.identity())))
+            .build();
+    }
+
+    private Set<Long> getAssociatedRecordIds(List<DefendantTransactionEntity> transactions,
+                                             AssociatedRecordType associatedRecordType) {
+        return transactions.stream()
+            .filter(transaction -> associatedRecordType.equals(transaction.getAssociatedRecordType()))
+            .map(transaction -> parseAssociatedRecordId(transaction.getAssociatedRecordId()))
+            .flatMap(Optional::stream)
+            .collect(Collectors.toSet());
+    }
+
+    private DefendantAccountHistoryItem toTransactionHistoryItem(DefendantTransactionEntity transaction,
+                                                                 DefendantTransactionHistoryAssociations associations) {
+        DefendantAccountHistoryItem historyItem = defendantTransactionEntityHistoryMapper.toHistoryItem(transaction);
+
+        if (historyItem.getDetails() instanceof DefendantTransactionDetails details) {
+            enrichTransactionDetails(transaction, details, associations);
+        }
+
+        return historyItem;
+    }
+
+    private void enrichTransactionDetails(DefendantTransactionEntity transaction, DefendantTransactionDetails details,
+                                          DefendantTransactionHistoryAssociations associations) {
+        AssociatedRecordType associatedRecordType = transaction.getAssociatedRecordType();
+        Optional<Long> associatedRecordId = parseAssociatedRecordId(transaction.getAssociatedRecordId());
+
+        if (associatedRecordType == null || associatedRecordId.isEmpty()) {
+            return;
+        }
+
+        switch (associatedRecordType) {
+            case DEFENDANT_ACCOUNTS -> enrichDefendantAccountTransactionDetails(associatedRecordId.get(), details,
+                associations.getDefendantAccounts());
+            case IMPOSITIONS -> enrichImpositionTransactionDetails(associatedRecordId.get(), details,
+                associations.getImpositions());
+            default -> {
+            }
+        }
+    }
+
+    private void enrichDefendantAccountTransactionDetails(Long defendantAccountId,
+                                                          DefendantTransactionDetails details,
+                                                          Map<Long, DefendantAccountEntity> defendantAccounts) {
+        Optional.ofNullable(defendantAccounts.get(defendantAccountId)).ifPresent(defendantAccount -> {
+            details.setAccountNumber(defendantAccount.getAccountNumber());
+            details.setSendingCourt(defendantAccount.getOriginatorName());
+        });
+    }
+
+    private void enrichImpositionTransactionDetails(Long impositionId, DefendantTransactionDetails details,
+                                                    Map<Long, ImpositionEntity> impositions) {
+        Optional.ofNullable(impositions.get(impositionId)).ifPresent(imposition -> {
+            details.setImpositionDate(toLocalDate(imposition));
+            details.setImpositionCode(imposition.getResultId());
+            details.setAmountImposed(imposition.getImposedAmount());
+        });
+    }
+
+    private LocalDate toLocalDate(ImpositionEntity imposition) {
+        return imposition.getPostedDate() == null ? null : imposition.getPostedDate().toLocalDate();
+    }
+
+    private Optional<Long> parseAssociatedRecordId(String associatedRecordId) {
+        try {
+            return associatedRecordId == null ? Optional.empty() : Optional.of(Long.valueOf(associatedRecordId));
+        } catch (NumberFormatException ex) {
+            log.debug(":parseAssociatedRecordId: unable to parse associated record id '{}'", associatedRecordId);
+            return Optional.empty();
+        }
     }
 
     private Comparator<DefendantAccountHistoryItem> newestFirstHistoryItemComparator() {
@@ -258,5 +356,14 @@ public class OpalDefendantAccountHistoryService {
         List<PaymentTermsEntity> paymentTerms;
 
         List<DefendantTransactionEntity> transactions;
+    }
+
+    @Value
+    @Builder
+    public static class DefendantTransactionHistoryAssociations {
+
+        Map<Long, DefendantAccountEntity> defendantAccounts;
+
+        Map<Long, ImpositionEntity> impositions;
     }
 }

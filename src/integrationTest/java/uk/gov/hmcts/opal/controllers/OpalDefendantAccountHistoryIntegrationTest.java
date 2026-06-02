@@ -64,9 +64,10 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             INSERT INTO defendant_accounts (
                 defendant_account_id, version_number, business_unit_id, account_number, amount_paid,
                 account_balance, amount_imposed, account_status, allow_writeoffs, allow_cheques, account_type,
-                collection_order, payment_card_requested
+                collection_order, payment_card_requested, originator_name
             ) VALUES (
-                262200, 0, 78, '262200A', 0.00, 500.00, 500.00, 'L', 'N', 'N', 'Fine', 'N', 'N'
+                262200, 0, 78, '262200A', 0.00, 500.00, 500.00, 'L', 'N', 'N', 'Fine', 'N', 'N',
+                'History Sending Court'
             ) ON CONFLICT (defendant_account_id) DO NOTHING
             """);
 
@@ -114,11 +115,11 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             INSERT INTO defendant_transactions (
                 defendant_transaction_id, defendant_account_id, posted_date, posted_by, transaction_type,
                 transaction_amount, payment_method, payment_reference, text, status, status_date, status_amount,
-                posted_by_name
+                posted_by_name, associated_record_type, associated_record_id
             ) VALUES (
                 26220004, 262200, TIMESTAMP '2026-01-04 09:00:00', 'hist-user-4', 'PAYMNT',
                 -50.00, 'NC', 'PAY262200', 'History payment', 'C', TIMESTAMP '2026-01-04 10:00:00',
-                -50.00, 'History User Four'
+                -50.00, 'History User Four', 'defendant_accounts', '262200'
             ) ON CONFLICT (defendant_transaction_id) DO NOTHING
             """);
 
@@ -137,6 +138,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     void deleteHistoryData() {
         jdbcTemplate.update("DELETE FROM notes WHERE note_id = 26220005 OR associated_record_id = '262200'");
         jdbcTemplate.update("DELETE FROM defendant_transactions WHERE defendant_account_id = 262200");
+        jdbcTemplate.update("DELETE FROM impositions WHERE defendant_account_id = 262200");
+        jdbcTemplate.update("DELETE FROM creditor_accounts WHERE creditor_account_id = 262200");
         jdbcTemplate.update("DELETE FROM payment_terms WHERE defendant_account_id = 262200");
         jdbcTemplate.update("DELETE FROM enforcements WHERE defendant_account_id = 262200");
         jdbcTemplate.update("DELETE FROM amendments WHERE amendment_id = 26220001 OR associated_record_id = '262200'");
@@ -328,14 +331,35 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     void getDefendantAccountHistory_transactions_returnsRepeatedActionsAsDistinctItems() throws Exception {
         // Arrange
         jdbcTemplate.update("""
+            INSERT INTO creditor_accounts (
+                creditor_account_id, business_unit_id, account_number, creditor_account_type, prosecution_service,
+                from_suspense, hold_payout, pay_by_bacs, version_number
+            ) VALUES (
+                262200, 78, 'CR262200', 'MJ', TRUE, FALSE, FALSE, FALSE, 0
+            ) ON CONFLICT (creditor_account_id) DO NOTHING
+            """);
+
+        jdbcTemplate.update("""
+            INSERT INTO impositions (
+                imposition_id, defendant_account_id, posted_date, posted_by, posted_by_name, result_id,
+                imposing_court_id, imposed_date, imposed_amount, paid_amount, creditor_account_id, completed
+            ) VALUES (
+                26220012, 262200, TIMESTAMP '2026-01-06 08:00:00', 'hist-user-12',
+                'History User Twelve', 'HST01', 262200, TIMESTAMP '2026-01-06 08:00:00',
+                -125.00, 0.00, 262200, FALSE
+            ) ON CONFLICT (imposition_id) DO NOTHING
+            """);
+
+        jdbcTemplate.update("""
             INSERT INTO defendant_transactions (
                 defendant_transaction_id, defendant_account_id, posted_date, posted_by, transaction_type,
                 transaction_amount, payment_method, payment_reference, text, status, status_date, status_amount,
-                posted_by_name
+                posted_by_name, associated_record_type, associated_record_id, imposed_amount
             ) VALUES (
                 26220012, 262200, TIMESTAMP '2026-01-06 09:00:00', 'hist-user-12', 'PAYMNT',
                 -25.00, 'NC', 'PAY262201', 'Second history payment', 'P',
-                TIMESTAMP '2026-01-06 10:00:00', -25.00, 'History User Twelve'
+                TIMESTAMP '2026-01-06 10:00:00', -25.00, 'History User Twelve',
+                'impositions', '26220012', -125.00
             )
             """);
 
@@ -357,8 +381,17 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.historyItems[0].details.additionalInformation")
                 .value("Second history payment"))
             .andExpect(jsonPath("$.historyItems[0].details.status.defendantTransactionStatus").value("P"))
+            .andExpect(jsonPath("$.historyItems[0].details.associatedRecordType").value("impositions"))
+            .andExpect(jsonPath("$.historyItems[0].details.associatedRecordId").value("26220012"))
+            .andExpect(jsonPath("$.historyItems[0].details.impositionDate").value("2026-01-06"))
+            .andExpect(jsonPath("$.historyItems[0].details.impositionCode").value("HST01"))
+            .andExpect(jsonPath("$.historyItems[0].details.amountImposed").value(-125.00))
             .andExpect(jsonPath("$.historyItems[1].amount").value(-50.00))
-            .andExpect(jsonPath("$.historyItems[1].details.paymentReference").value("PAY262200"));
+            .andExpect(jsonPath("$.historyItems[1].details.paymentReference").value("PAY262200"))
+            .andExpect(jsonPath("$.historyItems[1].details.associatedRecordType").value("defendant_accounts"))
+            .andExpect(jsonPath("$.historyItems[1].details.associatedRecordId").value("262200"))
+            .andExpect(jsonPath("$.historyItems[1].details.accountNumber").value("262200A"))
+            .andExpect(jsonPath("$.historyItems[1].details.sendingCourt").value("History Sending Court"));
     }
 
     @Test
