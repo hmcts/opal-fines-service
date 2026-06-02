@@ -212,7 +212,10 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(centralFund.get("name"), majorCreditor.get("name").asText());
 
         JsonNode businessUnitDetails = response.get("business_unit_details");
-        assertEquals(Set.of("business_unit_id", "business_unit_name", "welsh_speaking"), fieldNames(businessUnitDetails));
+        assertEquals(
+            Set.of("business_unit_id", "business_unit_name", "welsh_speaking"),
+            fieldNames(businessUnitDetails)
+        );
         assertEquals(String.valueOf(longValue(centralFund, "business_unit_id")),
             businessUnitDetails.get("business_unit_id").asText());
         assertEquals(centralFund.get("business_unit_name"), businessUnitDetails.get("business_unit_name").asText());
