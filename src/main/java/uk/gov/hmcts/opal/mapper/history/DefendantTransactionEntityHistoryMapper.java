@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.mapper.history;
 
-import java.time.LocalDateTime;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
