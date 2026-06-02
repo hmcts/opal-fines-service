@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto.history;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class DefendantTransactionDetails {
 
     private DefendantTransactionStatusReference status;
 
-    private LocalDate statusDate;
+    private LocalDateTime statusDate;
 
     private String associatedRecordType;
 

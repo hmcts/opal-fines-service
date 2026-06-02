@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.mapper.history;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,11 +16,11 @@ public interface AmendmentEntityHistoryMapper {
     @Mapping(target = "postedDetails", source = ".")
     @Mapping(target = "type", expression = "java(uk.gov.hmcts.opal.dto.history.HistoryItemType.AMENDMENT)")
     @Mapping(target = "details", source = ".", qualifiedByName = "toAmendmentDetails")
-    @Mapping(target = "eventDateTime", source = "amendedDate", qualifiedByName = "toStartOfDay")
+    @Mapping(target = "eventDateTime", source = "amendedDate")
     @Mapping(target = "sourceId", source = "amendmentId")
     DefendantAccountHistoryItem toHistoryItem(AmendmentEntity entity);
 
-    @Mapping(target = "postedDate", source = "amendedDate", qualifiedByName = "toStartOfDay")
+    @Mapping(target = "postedDate", source = "amendedDate")
     @Mapping(target = "postedBy", source = "amendedBy")
     PostedDetails toPostedDetails(AmendmentEntity entity);
 
@@ -31,10 +30,5 @@ public interface AmendmentEntityHistoryMapper {
 
     default String map(Short fieldCode) {
         return fieldCode == null ? null : fieldCode.toString();
-    }
-
-    @Named("toStartOfDay")
-    default LocalDateTime toStartOfDay(LocalDate date) {
-        return date == null ? null : date.atStartOfDay();
     }
 }

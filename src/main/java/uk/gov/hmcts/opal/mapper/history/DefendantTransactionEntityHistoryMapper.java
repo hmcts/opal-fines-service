@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.mapper.history;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -22,13 +21,13 @@ import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionWriteOf
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DefendantTransactionEntityHistoryMapper {
 
-    @Mapping(target = "postedDetails.postedDate", source = "postedDate", qualifiedByName = "toStartOfDay")
+    @Mapping(target = "postedDetails.postedDate", source = "postedDate")
     @Mapping(target = "postedDetails.postedBy", source = "postedBy")
     @Mapping(target = "postedDetails.postedByName", source = "postedByUsername")
     @Mapping(target = "type", expression = "java(uk.gov.hmcts.opal.dto.history.HistoryItemType.FINANCIAL)")
     @Mapping(target = "details", source = ".", qualifiedByName = "toTransactionDetails")
     @Mapping(target = "amount", source = "transactionAmount")
-    @Mapping(target = "eventDateTime", source = "postedDate", qualifiedByName = "toStartOfDay")
+    @Mapping(target = "eventDateTime", source = "postedDate")
     @Mapping(target = "sourceId", source = "defendantTransactionId")
     DefendantAccountHistoryItem toHistoryItem(DefendantTransactionEntity entity);
 
@@ -82,10 +81,5 @@ public interface DefendantTransactionEntityHistoryMapper {
 
     default String map(AssociatedRecordType associatedRecordType) {
         return associatedRecordType == null ? null : associatedRecordType.getLabel();
-    }
-
-    @Named("toStartOfDay")
-    default LocalDateTime toStartOfDay(LocalDate date) {
-        return date == null ? null : date.atStartOfDay();
     }
 }

@@ -24,11 +24,10 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
-import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "defendant_transactions")
@@ -52,8 +51,8 @@ public class DefendantTransactionEntity {
     private Long defendantAccountId;
 
     @Column(name = "posted_date", nullable = false)
-    @XmlJavaTypeAdapter(LocalDateAdapter.class)
-    private LocalDate postedDate;
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime postedDate;
 
     @Column(name = "posted_by")
     private String postedBy;
@@ -81,7 +80,7 @@ public class DefendantTransactionEntity {
 
     @Column(name = "status_date", nullable = false)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-    private LocalDate statusDate;
+    private LocalDateTime statusDate;
 
     @Column(name = "status_amount", precision = 18, scale = 2)
     private BigDecimal statusAmount;

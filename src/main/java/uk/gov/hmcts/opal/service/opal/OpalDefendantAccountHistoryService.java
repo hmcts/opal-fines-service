@@ -179,14 +179,14 @@ public class OpalDefendantAccountHistoryService {
     private void enrichImpositionTransactionDetails(Long impositionId, DefendantTransactionDetails details,
                                                     Map<Long, ImpositionEntity> impositions) {
         Optional.ofNullable(impositions.get(impositionId)).ifPresent(imposition -> {
-            details.setImpositionDate(toLocalDate(imposition));
+            details.setImpositionDate(imposition.getPostedDate().toLocalDate());
             details.setImpositionCode(imposition.getResultId());
             details.setAmountImposed(imposition.getImposedAmount());
         });
     }
 
-    private LocalDate toLocalDate(ImpositionEntity imposition) {
-        return imposition.getPostedDate() == null ? null : imposition.getPostedDate().toLocalDate();
+    private LocalDateTime toLocalDateTime(ImpositionEntity imposition) {
+        return imposition.getPostedDate();
     }
 
     private Optional<Long> parseAssociatedRecordId(String associatedRecordId) {
@@ -277,12 +277,12 @@ public class OpalDefendantAccountHistoryService {
 
     private Specification<AmendmentEntity> amendmentDateFrom(LocalDate dateFrom) {
         return dateFrom == null ? null
-            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("amendedDate"), dateFrom);
+            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("amendedDate"), atStartOfDay(dateFrom));
     }
 
     private Specification<AmendmentEntity> amendmentDateTo(LocalDate dateTo) {
         return dateTo == null ? null
-            : (root, query, builder) -> builder.lessThan(root.get("amendedDate"), dateTo.plusDays(1));
+            : (root, query, builder) -> builder.lessThan(root.get("amendedDate"), dayAfterStart(dateTo));
     }
 
     private Specification<EnforcementEntity> enforcementForDefendantAccount(Long defendantAccountId) {
@@ -320,12 +320,12 @@ public class OpalDefendantAccountHistoryService {
 
     private Specification<DefendantTransactionEntity> transactionDateFrom(LocalDate dateFrom) {
         return dateFrom == null ? null
-            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), dateFrom);
+            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), atStartOfDay(dateFrom));
     }
 
     private Specification<DefendantTransactionEntity> transactionDateTo(LocalDate dateTo) {
         return dateTo == null ? null
-            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dateTo.plusDays(1));
+            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
     }
 
     private LocalDateTime atStartOfDay(LocalDate date) {
