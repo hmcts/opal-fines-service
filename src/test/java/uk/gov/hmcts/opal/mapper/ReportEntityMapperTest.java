@@ -102,43 +102,6 @@ class ReportEntityMapperTest {
             assertTrue(actual.getReportParameters() == null || actual.getReportParameters().isEmpty());
         }
 
-        @Test
-        @DisplayName("Should parse complex JSON parameters correctly")
-        void toDto_withComplexReportParameters_shouldParseCorrectly() {
-            ReportEntity entity = createReportEntityWithComplexParameters();
-
-            Map<?, ?> params = reportEntityMapper.toDto(entity).getReportParameters();
-
-            assertAll(
-                () -> assertEquals(9, params.size()),
-                () -> assertEquals("date", ((Map<?, ?>)params.get("date-param")).get("type")),
-                () -> assertEquals(true, ((Map<?, ?>)params.get("date-param")).get("mandatory")),
-                () -> assertEquals("decimal-2dp", ((Map<?, ?>)params.get("decimal-param")).get("type")),
-                () -> assertEquals(1.0, ((Map<?, ?>)params.get("decimal-param")).get("min")),
-                () -> assertEquals(10.0, ((Map<?, ?>)params.get("decimal-param")).get("max")),
-                () -> assertEquals("integer", ((Map<?, ?>)params.get("integer-param")).get("type")),
-                () -> assertEquals(1L, ((Map<?, ?>)params.get("integer-param")).get("min")),
-                () -> assertEquals(10L, ((Map<?, ?>)params.get("integer-param")).get("max")),
-                () -> assertEquals("menu-radio", ((Map<?, ?>)params.get("radio-param")).get("type")),
-                () -> assertEquals(1, ((Map<?, ?>)params.get("radio-param")).get("min")),
-                () -> assertEquals(1, ((Map<?, ?>)params.get("radio-param")).get("max")),
-                () -> assertEquals(List.of("one", "two"), ((Map<?, ?>)params.get("radio-param")).get("options")),
-                () -> assertEquals("menu-checkbox", ((Map<?, ?>)params.get("checkbox-param")).get("type")),
-                () -> assertEquals(1, ((Map<?, ?>)params.get("checkbox-param")).get("min")),
-                () -> assertEquals(2, ((Map<?, ?>)params.get("checkbox-param")).get("max")),
-                () -> assertEquals(List.of("one", "two"), ((Map<?, ?>)params.get("checkbox-param")).get("options")),
-                () -> assertEquals("menu-autocomplete", ((Map<?, ?>)params.get("autocomplete-param")).get("type")),
-                () -> assertEquals("text-60", ((Map<?, ?>)params.get("text-60-param")).get("type")),
-                () -> assertEquals(1, ((Map<?, ?>)params.get("text-60-param")).get("min")),
-                () -> assertEquals(60, ((Map<?, ?>)params.get("text-60-param")).get("max")),
-                () -> assertEquals("text-100", ((Map<?, ?>)params.get("text-100-param")).get("type")),
-                () -> assertEquals(1, ((Map<?, ?>)params.get("text-100-param")).get("min")),
-                () -> assertEquals(100, ((Map<?, ?>)params.get("text-100-param")).get("max")),
-                () -> assertEquals("text-1000", ((Map<?, ?>)params.get("text-1000-param")).get("type")),
-                () -> assertEquals(1, ((Map<?, ?>)params.get("text-1000-param")).get("min")),
-                () -> assertEquals(1000, ((Map<?, ?>)params.get("text-1000-param")).get("max"))
-            );
-        }
     }
 
     @Nested

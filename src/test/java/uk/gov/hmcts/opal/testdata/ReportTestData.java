@@ -89,21 +89,25 @@ public class ReportTestData {
             .reportId("complex_params_report")
             .reportTitle("Complex Parameters Report")
             .reportGroup("Test Group")
-            .reportParameters(List.of(
-                parameter("date-param", ReportParameterType.DATE.getTypeName(), true, null, null, null),
-                parameter("decimal-param", ReportParameterType.DECIMAL.getTypeName(), true, 1.0, 10.0, null),
-                parameter("integer-param", ReportParameterType.INTEGER.getTypeName(), true, 1L, 10L, null),
-                parameter("radio-param", ReportParameterType.MENU_RADIO.getTypeName(), true, 1, 1,
-                    List.of("one", "two")),
-                parameter("checkbox-param", ReportParameterType.MENU_CHECKBOX.getTypeName(), true, 1, 2,
-                    List.of("one", "two")),
-                parameter("autocomplete-param", ReportParameterType.MENU_AUTOCOMPLETE.getTypeName(), true, null, null,
-                    null),
-                parameter("text-60-param", ReportParameterType.TEXT_MAX_60.getTypeName(), true, 1, 60, null),
-                parameter("text-100-param", ReportParameterType.TEXT_MAX_100.getTypeName(), true, 1, 100, null),
-                parameter("text-1000-param", ReportParameterType.TEXT_MAX_1000.getTypeName(), true, 1, 1000, null)
-            ))
+            .reportParameters(createComplexReportParameters())
             .build();
+    }
+
+    public static List<ReportParameterData> createComplexReportParameters() {
+        return List.of(
+            parameter("date-param", ReportParameterType.DATE.getTypeName(), true, null, null, null),
+            parameter("decimal-param", ReportParameterType.DECIMAL.getTypeName(), true, 1.0, 10.0, null),
+            parameter("integer-param", ReportParameterType.INTEGER.getTypeName(), true, 1L, 10L, null),
+            parameter("radio-param", ReportParameterType.MENU_RADIO.getTypeName(), true, 1, 1,
+                List.of("one", "two")),
+            parameter("checkbox-param", ReportParameterType.MENU_CHECKBOX.getTypeName(), true, 1, 2,
+                List.of("one", "two")),
+            parameter("autocomplete-param", ReportParameterType.MENU_AUTOCOMPLETE.getTypeName(), true, null, null,
+                null),
+            parameter("text-60-param", ReportParameterType.TEXT_MAX_60.getTypeName(), true, 1, 60, null),
+            parameter("text-100-param", ReportParameterType.TEXT_MAX_100.getTypeName(), true, 1, 100, null),
+            parameter("text-1000-param", ReportParameterType.TEXT_MAX_1000.getTypeName(), true, 1, 1000, null)
+        );
     }
 
     /**
