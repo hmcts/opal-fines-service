@@ -171,9 +171,10 @@ public class ReportParameterValidatorTest {
             parameter("date-param", "date", false, null, null, null)
         ));
 
-        assertThrows(DateTimeParseException.class,
-            () -> reportParameterValidator.validateReportInstanceParameterValues(Map.of("date-param", "not-a-date"),
-                                                                               report));
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
+            Map.of("date-param", "not-a-date"), report);
+
+        assertFalse(result);
     }
 
     @Test
@@ -201,12 +202,12 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_integerValueIsNotLong_returnsFalse() {
+    void validateReportInstanceParameterValues_integerValueIsNotInteger_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("integer-param", "integer", false, null, null, null)
         ));
 
-        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("integer-param", 5),
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("integer-param", 1.23),
                                                                                      report);
 
         assertFalse(result);

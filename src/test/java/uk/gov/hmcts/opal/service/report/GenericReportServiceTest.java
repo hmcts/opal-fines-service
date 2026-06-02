@@ -246,8 +246,8 @@ class GenericReportServiceTest {
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getSupportsMultiBu()).thenReturn(false);
-        when(reportEntity.getCanManuallyCreate()).thenReturn(true);
+        when(reportEntity.isSupportsMultiBu()).thenReturn(false);
+        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
@@ -275,8 +275,8 @@ class GenericReportServiceTest {
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getSupportsMultiBu()).thenReturn(true);
-        when(reportEntity.getCanManuallyCreate()).thenReturn(true);
+        when(reportEntity.isSupportsMultiBu()).thenReturn(true);
+        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
@@ -306,7 +306,7 @@ class GenericReportServiceTest {
         //when(userStateService.checkForAuthorisedUserInSecurityContextHolder()).thenReturn(userState);
         //when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getSupportsMultiBu()).thenReturn(false);
+        when(reportEntity.isSupportsMultiBu()).thenReturn(false);
 
         //test
         UnprocessableException exception = assertThrows(UnprocessableException.class,
@@ -324,8 +324,8 @@ class GenericReportServiceTest {
     public void addReportInstance_noManualCreation_throwsException() {
         //setup
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getSupportsMultiBu()).thenReturn(false);
-        when(reportEntity.getCanManuallyCreate()).thenReturn(false);
+        when(reportEntity.isSupportsMultiBu()).thenReturn(false);
+        when(reportEntity.isCanManuallyCreate()).thenReturn(false);
 
         //test
         UnprocessableException exception = assertThrows(UnprocessableException.class,
@@ -345,8 +345,8 @@ class GenericReportServiceTest {
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getSupportsMultiBu()).thenReturn(true);
-        when(reportEntity.getCanManuallyCreate()).thenReturn(true);
+        when(reportEntity.isSupportsMultiBu()).thenReturn(true);
+        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         //when(mapper.writeValueAsString(any())).thenReturn("{}");
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
@@ -368,8 +368,8 @@ class GenericReportServiceTest {
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getSupportsMultiBu()).thenReturn(true);
-        when(reportEntity.getCanManuallyCreate()).thenReturn(true);
+        when(reportEntity.isSupportsMultiBu()).thenReturn(true);
+        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         //when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(false);
@@ -393,8 +393,8 @@ class GenericReportServiceTest {
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getSupportsMultiBu()).thenReturn(false);
-        when(reportEntity.getCanManuallyCreate()).thenReturn(true);
+        when(reportEntity.isSupportsMultiBu()).thenReturn(false);
+        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
@@ -402,7 +402,6 @@ class GenericReportServiceTest {
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
-        //todo add to queue setup/asserts?
         //test
         UnprocessableException exception = assertThrows(UnprocessableException.class,
             () -> genericReportService.addReportInstance(

@@ -11,7 +11,7 @@ public record ReportParameterData(String name,
                                   boolean mandatory,
                                   Object min,
                                   Object max,
-                                  @JsonProperty("language_dependent") String languageDependent,
+                                  @JsonProperty("language_dependent") Boolean languageDependent,
                                   String hint,
                                   List<String> options,
                                   String apidata) {

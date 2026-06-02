@@ -86,10 +86,10 @@ public class GenericReportService implements GenericReportServiceInterface {
         boolean generateReportContentAsync) {
         ReportEntity reportEntity = reportRepository.findById(request.getReportId())
             .orElseThrow(EntityNotFoundException::new);
-        if (!reportEntity.getSupportsMultiBu() && request.getBusinessUnitIds().size() > 1) {
+        if (!reportEntity.isSupportsMultiBu() && request.getBusinessUnitIds().size() > 1) {
             throw new UnprocessableException("Too many business units supplied, this report only allows 1");
         }
-        if (!reportEntity.getCanManuallyCreate()) {
+        if (!reportEntity.isCanManuallyCreate()) {
             throw new UnprocessableException("This report cannot be manually created");
         }
 

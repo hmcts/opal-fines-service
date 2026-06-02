@@ -57,8 +57,8 @@ class ReportEntityMapperTest {
                 () -> assertTrue(actual.getSupportedFileTypes().contains(ReportReports.SupportedFileTypesEnum.CSV)),
                 () -> assertTrue(actual.getSupportedFileTypes().contains(ReportReports.SupportedFileTypesEnum.PDF)),
                 () -> assertTrue(actual.getSupportedFileTypes().contains(ReportReports.SupportedFileTypesEnum.XML)),
-                () -> assertEquals("2026-01-01", params.get("fromDate")),
-                () -> assertEquals("2026-04-24", params.get("toDate")),
+                () -> assertEquals("2026-01-01", ((Map<?, ?>)params.get("date-param")).get("min")),
+                () -> assertEquals("2026-04-24", ((Map<?, ?>)params.get("date-param")).get("max")),
                 () -> assertEquals(entity.isAuditedReport(), actual.getAuditedReport()),
                 () -> assertEquals(entity.isSupportsMultiBu(), actual.getSupportsMultipleBusinessUnits()),
                 () -> assertEquals(entity.isBespokeJourney(), actual.getIsBespokeJourney()),
@@ -95,7 +95,7 @@ class ReportEntityMapperTest {
         @Test
         @DisplayName("Should return null when report parameters is empty JSON object")
         void toDto_withEmptyReportParameters_shouldReturnNull() {
-            ReportEntity entity = defaultReportEntityBuilder().reportParameters("{}").build();
+            ReportEntity entity = defaultReportEntityBuilder().reportParameters(List.of()).build();
 
             ReportReports actual = reportEntityMapper.toDto(entity);
 
@@ -110,14 +110,33 @@ class ReportEntityMapperTest {
             Map<?, ?> params = reportEntityMapper.toDto(entity).getReportParameters();
 
             assertAll(
-                () -> {
-                    assert params != null;
-                    assertTrue(params.containsKey("filters"));
-                },
-                () -> {
-                    assert params != null;
-                    assertTrue(params.containsKey("options"));
-                }
+                () -> assertEquals(9, params.size()),
+                () -> assertEquals("date", ((Map<?, ?>)params.get("date-param")).get("type")),
+                () -> assertEquals(true, ((Map<?, ?>)params.get("date-param")).get("mandatory")),
+                () -> assertEquals("decimal-2dp", ((Map<?, ?>)params.get("decimal-param")).get("type")),
+                () -> assertEquals(1.0, ((Map<?, ?>)params.get("decimal-param")).get("min")),
+                () -> assertEquals(10.0, ((Map<?, ?>)params.get("decimal-param")).get("max")),
+                () -> assertEquals("integer", ((Map<?, ?>)params.get("integer-param")).get("type")),
+                () -> assertEquals(1L, ((Map<?, ?>)params.get("integer-param")).get("min")),
+                () -> assertEquals(10L, ((Map<?, ?>)params.get("integer-param")).get("max")),
+                () -> assertEquals("menu-radio", ((Map<?, ?>)params.get("radio-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("radio-param")).get("min")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("radio-param")).get("max")),
+                () -> assertEquals(List.of("one", "two"), ((Map<?, ?>)params.get("radio-param")).get("options")),
+                () -> assertEquals("menu-checkbox", ((Map<?, ?>)params.get("checkbox-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("checkbox-param")).get("min")),
+                () -> assertEquals(2, ((Map<?, ?>)params.get("checkbox-param")).get("max")),
+                () -> assertEquals(List.of("one", "two"), ((Map<?, ?>)params.get("checkbox-param")).get("options")),
+                () -> assertEquals("menu-autocomplete", ((Map<?, ?>)params.get("autocomplete-param")).get("type")),
+                () -> assertEquals("text-60", ((Map<?, ?>)params.get("text-60-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("text-60-param")).get("min")),
+                () -> assertEquals(60, ((Map<?, ?>)params.get("text-60-param")).get("max")),
+                () -> assertEquals("text-100", ((Map<?, ?>)params.get("text-100-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("text-100-param")).get("min")),
+                () -> assertEquals(100, ((Map<?, ?>)params.get("text-100-param")).get("max")),
+                () -> assertEquals("text-1000", ((Map<?, ?>)params.get("text-1000-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("text-1000-param")).get("min")),
+                () -> assertEquals(1000, ((Map<?, ?>)params.get("text-1000-param")).get("max"))
             );
         }
     }
@@ -186,4 +205,3 @@ class ReportEntityMapperTest {
 
     }
 }
-

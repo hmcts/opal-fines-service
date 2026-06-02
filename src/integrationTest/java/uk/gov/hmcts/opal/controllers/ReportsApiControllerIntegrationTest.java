@@ -132,9 +132,11 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_parameters").isMap())
-                .andExpect(jsonPath("$.report_parameters.filters.status[0]").value("ACTIVE"))
-                .andExpect(jsonPath("$.report_parameters.filters.status[1]").value("PENDING"))
-                .andExpect(jsonPath("$.report_parameters.options.includeArchived").value(false));
+                .andExpect(jsonPath("$.report_parameters.filters.name").value("filters"))
+                .andExpect(jsonPath("$.report_parameters.filters.options[0]").value("ACTIVE"))
+                .andExpect(jsonPath("$.report_parameters.filters.options[1]").value("PENDING"))
+                .andExpect(jsonPath("$.report_parameters.filters.type").value("menu-radio"))
+                .andExpect(jsonPath("$.report_parameters.filters.mandatory").value(false));
         }
 
         @Test
