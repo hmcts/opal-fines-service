@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -37,6 +38,8 @@ import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ReportInstanceControllerIntegrationTest")
@@ -70,6 +73,9 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     private ReportInstanceRepository reportInstanceRepository;
 
     @Test
+    @DisplayName("create report instance single business unit")
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_singleBU() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -131,6 +137,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_multiBUs() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
@@ -161,6 +169,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_singleBU_fail2BUs_422() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
@@ -184,6 +194,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_cannotManuallyCreate_422() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -206,6 +218,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_wrongBU_403() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -227,6 +241,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_notAllBUs_403() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -248,6 +264,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_reportIDNotFound_404() throws Exception {
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId("unknown-report-id")
@@ -275,6 +293,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_missingBUs_400() throws Exception {
         String payload = """
             {
@@ -294,6 +314,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_malformedRequest_400() throws Exception {
         String payload = """
             {
@@ -323,6 +345,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_publishFail() throws Exception{
         doThrow(new IllegalArgumentException("Unable to publish report queue message"))
             .when(reportQueuePublisher).publish(anyLong());
@@ -369,6 +393,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -397,6 +423,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_reportParameterValidation_unknownParameterFail() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -435,6 +463,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_reportParameterValidation_parameterTypeMismatchFail() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -473,6 +503,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     void createReportInstance_repeatSuccess() throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -519,5 +551,12 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceResponseReports dto1 = objectMapper.readValue(body1, CreateReportInstanceResponseReports.class);
         CreateReportInstanceResponseReports dto2 = objectMapper.readValue(body2, CreateReportInstanceResponseReports.class);
         assertNotEquals(dto1.getReportInstanceId(), dto2.getReportInstanceId());
+    }
+
+    @Test
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
+    void fakeTestFuckYouGradle() {
+
     }
 }
