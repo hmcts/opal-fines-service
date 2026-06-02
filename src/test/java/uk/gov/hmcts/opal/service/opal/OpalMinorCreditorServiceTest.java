@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse.AtAGlanceD
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
+import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.Payment;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
@@ -29,13 +30,16 @@ import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
@@ -72,7 +76,13 @@ class OpalMinorCreditorServiceTest {
     private MinorCreditorAccountAtAGlanceRepository minorCreditorAccountAtAGlanceRepository;
 
     @Mock
+    private CreditorAccountRepository creditorAccountRepository;
+
+    @Mock
     private PartyRepository partyRepository;
+
+    @Mock
+    private MinorCreditorAccountResponseMapper responseMapper;
 
     @Mock
     private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
@@ -239,6 +249,84 @@ class OpalMinorCreditorServiceTest {
 
         assertEquals(1, response.getCount());
         assertEquals("104", response.getCreditorAccounts().getFirst().getCreditorAccountId());
+    }
+
+    @Test
+    void getMinorCreditorAccount_happyPath_returnsMappedResponseWithVersion() {
+        Long accountId = 99000000000800L;
+        Long partyId = 99000000000900L;
+        CreditorAccountEntity creditorAccount = CreditorAccountEntity.builder()
+            .creditorAccountId(accountId)
+            .creditorAccountType(CreditorAccountType.MN)
+            .minorCreditorPartyId(partyId)
+            .versionNumber(7L)
+            .build();
+        PartyEntity party = PartyEntity.builder().partyId(partyId).build();
+        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
+        mappedResponse.setCreditorAccountId(accountId);
+
+        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(creditorAccount));
+        when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
+        when(responseMapper.toMinorCreditorAccountResponse(creditorAccount, party)).thenReturn(mappedResponse);
+
+        MinorCreditorAccountResponse response = service.getMinorCreditorAccount(accountId);
+
+        assertSame(mappedResponse, response);
+        assertEquals(BigInteger.valueOf(7L), response.getVersion());
+        verify(creditorAccountRepository).findById(accountId);
+        verify(partyRepository).findById(partyId);
+        verify(responseMapper).toMinorCreditorAccountResponse(creditorAccount, party);
+    }
+
+    @Test
+    void getMinorCreditorAccount_accountNotFound_throwsEntityNotFoundException() {
+        Long accountId = 123L;
+        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+            () -> service.getMinorCreditorAccount(accountId));
+
+        assertEquals("Minor creditor account not found: " + accountId, ex.getMessage());
+        verify(creditorAccountRepository).findById(accountId);
+        verify(responseMapper, Mockito.never()).toMinorCreditorAccountResponse(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void getMinorCreditorAccount_nonMinorCreditor_throwsEntityNotFoundException() {
+        Long accountId = 456L;
+        CreditorAccountEntity creditorAccount = CreditorAccountEntity.builder()
+            .creditorAccountId(accountId)
+            .creditorAccountType(CreditorAccountType.MJ)
+            .build();
+
+        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(creditorAccount));
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+            () -> service.getMinorCreditorAccount(accountId));
+
+        assertEquals("Account is not a minor creditor account: " + accountId, ex.getMessage());
+        verify(responseMapper, Mockito.never()).toMinorCreditorAccountResponse(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void getMinorCreditorAccount_partyNotFound_throwsEntityNotFoundException() {
+        Long accountId = 789L;
+        Long partyId = 987L;
+        CreditorAccountEntity creditorAccount = CreditorAccountEntity.builder()
+            .creditorAccountId(accountId)
+            .creditorAccountType(CreditorAccountType.MN)
+            .minorCreditorPartyId(partyId)
+            .build();
+
+        when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(creditorAccount));
+        when(partyRepository.findById(partyId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+            () -> service.getMinorCreditorAccount(accountId));
+
+        assertEquals("Party not found for minor creditor account: " + accountId, ex.getMessage());
+        verify(partyRepository).findById(partyId);
+        verify(responseMapper, Mockito.never()).toMinorCreditorAccountResponse(Mockito.any(), Mockito.any());
     }
 
     @Test
