@@ -582,6 +582,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS,
                 businessUnitId,
                 businessUnitUserId,
+                userState.getUserName(),
                 null,
                 "Remove Enforcement Hold"
             );
@@ -764,6 +765,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 eq(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS),
                 eq(businessUnitId),
                 eq(businessUnitUserId),
+                eq(userState.getUserName()),
                 isNull(),
                 eq("Remove Enforcement Hold")
             );

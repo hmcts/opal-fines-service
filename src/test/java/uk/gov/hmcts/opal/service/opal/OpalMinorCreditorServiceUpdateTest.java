@@ -192,7 +192,7 @@ class OpalMinorCreditorServiceUpdateTest {
         assertEquals("ZZ1 1ZZ", savedParty.getPostcode());
         verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.CREDITOR_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            accountId, RecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy, null, "ACCOUNT_ENQUIRY");
+            accountId, RecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy, postedBy, null, "ACCOUNT_ENQUIRY");
     }
 
     @Test

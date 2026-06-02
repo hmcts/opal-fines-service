@@ -63,6 +63,7 @@ public class DefendantAccountPartyService {
                                                                businessUnitId,
                                                                getBusinessUnitUserIdForBusinessUnit(userState, buId),
                                                                postedBy,
+                                                               userState.getUserName(),
                                                                ifMatch,
                                                                request);
         } else {
@@ -89,7 +90,7 @@ public class DefendantAccountPartyService {
         if (userState.hasBusinessUnitUserWithPermission(buId,
                 FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountPartyServiceProxy.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
+                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, userState.getUserName(),
                 getBusinessUnitUserIdForBusinessUnit(userState, buId));
         } else {
             throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
@@ -113,7 +114,8 @@ public class DefendantAccountPartyService {
             FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, businessUnitId,
-                getBusinessUnitUserIdForBusinessUnit(userState, businessUnitId), postedBy, ifMatch, request);
+                getBusinessUnitUserIdForBusinessUnit(userState, businessUnitId), postedBy, userState.getUserName(),
+                ifMatch, request);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }

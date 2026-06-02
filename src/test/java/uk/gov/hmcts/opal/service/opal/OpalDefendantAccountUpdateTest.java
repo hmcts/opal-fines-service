@@ -321,7 +321,7 @@ class OpalDefendantAccountUpdateTest {
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
             eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
-            eq("11111111A"), any(), eq("ACCOUNT_ENQUIRY"));
+            eq("11111111A"), eq("11111111A"), any(), eq("ACCOUNT_ENQUIRY"));
     }
 
     @Test

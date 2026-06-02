@@ -849,7 +849,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                                  String businessUnitId,
                                                                  @NonNull UpdateDefendantAccountRequest request,
-                                                                 String postedBy) {
+                                                                 String postedBy,
+                                                                 String postedByName) {
 
         log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
 
@@ -952,6 +953,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                                                                          String ifMatch,
                                                                          String businessUnitId,
                                                                          String postedBy,
+                                                                         String postedByName,
                                                                          String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
