@@ -12,6 +12,7 @@ Feature: Fines Service Release 1b Feature Toggles
 
     Examples:
       | endpoint                                   |
+      | Search Defendant Accounts                  |
       | Search Minor Creditor Accounts             |
       | Get Defendant Account Header Summary       |
       | Get Defendant Account At A Glance          |

@@ -9,6 +9,10 @@ public final class FeatureFlags {
     public static final String RELEASE_1B_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1B;
     public static final String RELEASE_1C = "release-1c";
     public static final String RELEASE_1C_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C;
+    public static final String RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING =
+        "release-1c-enforcement-operational-reporting";
+    public static final String RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY =
+        DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING;
 
     private FeatureFlags() {
     }
