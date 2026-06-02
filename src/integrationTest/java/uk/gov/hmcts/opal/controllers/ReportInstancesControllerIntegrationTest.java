@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -43,10 +42,6 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 @Slf4j(topic = "opal.ReportInstanceControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_CLASS)
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=true"
-})
 public class ReportInstancesControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/report-instances";
     private static final String REPORT_1BU_ID = "IT-report-1";
