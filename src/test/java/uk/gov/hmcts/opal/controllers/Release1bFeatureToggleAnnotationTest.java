@@ -59,7 +59,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
             "DefendantAccountController#getHeaderSummary",
-            "DefendantAccountController#postDefendantAccountSearch",
+            "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountController#removeDefendantAccountParty",
             "DefendantAccountController#removeEnforcementHold",
             "DefendantAccountController#replaceDefendantAccountParty",

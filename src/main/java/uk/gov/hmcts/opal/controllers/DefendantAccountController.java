@@ -99,22 +99,6 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches defendant accounts based upon criteria in request body")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
-        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
-            @RequestBody
-           AccountSearchDto accountSearchDto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
-
-        DefendantAccountSearchResultsDto response =
-            defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
-
-        return buildResponse(response);
-    }
-
     @PostMapping(value = "/{defendantAccountId}/payment-terms")
     @Operation(summary = "Add Payment Terms to a defendant account")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
