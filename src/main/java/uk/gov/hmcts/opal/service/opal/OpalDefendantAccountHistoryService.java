@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -337,9 +338,9 @@ public class OpalDefendantAccountHistoryService {
     }
 
     @SafeVarargs
-    private final <T> Specification<T> allOf(Specification<T>... specifications) {
+    private <T> Specification<T> allOf(Specification<T>... specifications) {
         return Specification.allOf(Stream.of(specifications)
-            .filter(specification -> specification != null)
+            .filter(Objects::nonNull)
             .toList());
     }
 

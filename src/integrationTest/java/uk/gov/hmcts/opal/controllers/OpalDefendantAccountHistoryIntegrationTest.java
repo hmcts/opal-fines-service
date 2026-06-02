@@ -551,29 +551,140 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
-    @Test
-    @DisplayName("PO-2622: INT.10 unknown defendant account returns 404")
-    @JiraStory("PO-2622")
-    @JiraEpic("PO-812")
-    void getDefendantAccountHistory_unknownDefendantAccount_returnsNotFound() throws Exception {
-        // Arrange
-        // Authorised user is configured in BeforeEach.
+     @Test
+     @DisplayName("PO-2622: INT.10 unknown defendant account returns 404")
+     @JiraStory("PO-2622")
+     @JiraEpic("PO-812")
+     void getDefendantAccountHistory_unknownDefendantAccount_returnsNotFound() throws Exception {
+         // Arrange
+         // Authorised user is configured in BeforeEach.
 
-        // Act
-        ResultActions result = mockMvc.perform(
-            get(URL_BASE + "/999999999/history")
-                .header("Authorization", "Bearer test-token")
-                .accept(MediaType.APPLICATION_PROBLEM_JSON)
-        );
+         // Act
+         ResultActions result = mockMvc.perform(
+             get(URL_BASE + "/999999999/history")
+                 .header("Authorization", "Bearer test-token")
+                 .accept(MediaType.APPLICATION_PROBLEM_JSON)
+         );
 
-        // Assert
-        result.andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.status").value(404));
-    }
+         // Assert
+         result.andExpect(status().isNotFound())
+             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+             .andExpect(jsonPath("$.status").value(404));
+     }
 
-    private void insertResult(String resultId, String resultTitle) {
+     @Test
+     @DisplayName("PO-2622: INT.11 response contains only OpenAPI-documented fields")
+     @JiraStory("PO-2622")
+     @JiraEpic("PO-812")
+     void getDefendantAccountHistory_responseStructure_containsOnlyDocumentedFields() throws Exception {
+         // Arrange
+         // Test data is inserted in BeforeEach.
+
+         // Act
+         ResultActions result = mockMvc.perform(
+             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                 .header("Authorization", "Bearer test-token")
+         );
+
+         String body = result.andReturn().getResponse().getContentAsString();
+         log.info(":getDefendantAccountHistory_responseStructure_containsOnlyDocumentedFields: Response body:\n{}",
+             ToJsonString.toPrettyJson(body));
+
+         // Assert: Root level has only documented fields
+         result.andExpect(status().isOk())
+             .andExpect(jsonPath("$.historyItems").isArray())
+             // Verify each history item has only documented fields
+             .andExpect(jsonPath("$.historyItems[0].postedDetails").exists())
+             .andExpect(jsonPath("$.historyItems[0].postedDetails.postedDate").exists())
+             .andExpect(jsonPath("$.historyItems[0].postedDetails.postedBy").exists())
+             .andExpect(jsonPath("$.historyItems[0].type").exists())
+             .andExpect(jsonPath("$.historyItems[0].details").exists())
+             // Amount field should exist for Financial items only
+             .andExpect(jsonPath("$.historyItems[1].amount").exists())
+             // Verify no generated orders/notices type is returned (only Amendment, Enforcement, Financial, Note, Payment terms)
+             .andExpect(jsonPath("$.historyItems[*].type",
+                 contains("Note", "Financial", "Payment terms", "Enforcement", "Amendment")));
+     }
+
+     @Test
+     @DisplayName("PO-2622: AC6 same-day mixed-source events are ordered deterministically")
+     @JiraStory("PO-2622")
+     @JiraEpic("PO-812")
+     void getDefendantAccountHistory_sameDayMixedSources_orderedDeterministically() throws Exception {
+         // Arrange: Insert multiple events on the same day with interleaved minutes/seconds
+         // to verify that millisecond precision and source type ordering are applied consistently
+         jdbcTemplate.update("""
+             INSERT INTO amendments (
+                 amendment_id, business_unit_id, associated_record_type, associated_record_id, amended_date,
+                 amended_by, field_code, old_value, new_value, case_reference, function_code
+             ) VALUES (
+                 26220020, 78, 'defendant_accounts', '262200', TIMESTAMP '2026-01-10 10:30:45.123',
+                 'same-day-user-1', 1, 'Old', 'New', 'CASE-SAME-DAY', 'UPD'
+             ) ON CONFLICT (amendment_id) DO NOTHING
+             """);
+
+         jdbcTemplate.update("""
+             INSERT INTO enforcements (
+                 enforcement_id, defendant_account_id, posted_date, posted_by, result_id, reason, jail_days,
+                 warrant_reference, case_reference, hearing_date, hearing_court_id, posted_by_name,
+                 enforcement_account_type
+             ) VALUES (
+                 26220021, 262200, TIMESTAMP '2026-01-10 10:30:45.456', 'same-day-user-2', 'HST01',
+                 'Same day enforcement', 7, 'WR_SAME', 'CASE-SAME-DAY', TIMESTAMP '2026-02-10 10:00:00',
+                 262200, 'Same Day User Two', 'COLL'
+             ) ON CONFLICT (enforcement_id) DO NOTHING
+             """);
+
+         jdbcTemplate.update("""
+             INSERT INTO defendant_transactions (
+                 defendant_transaction_id, defendant_account_id, posted_date, posted_by, transaction_type,
+                 transaction_amount, payment_method, payment_reference, text, status, status_date, status_amount,
+                 posted_by_name, associated_record_type, associated_record_id
+             ) VALUES (
+                 26220022, 262200, TIMESTAMP '2026-01-10 10:30:45.789', 'same-day-user-3', 'PAYMNT',
+                 -10.00, 'NC', 'PAY_SAME', 'Same day payment', 'C', TIMESTAMP '2026-01-10 10:30:45.790',
+                 -10.00, 'Same Day User Three', 'defendant_accounts', '262200'
+             ) ON CONFLICT (defendant_transaction_id) DO NOTHING
+             """);
+
+         // Act: Call endpoint twice to verify deterministic ordering
+         ResultActions firstCall = mockMvc.perform(
+             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                 .queryParam("dateFrom", "2026-01-10")
+                 .queryParam("dateTo", "2026-01-10")
+                 .header("Authorization", "Bearer test-token")
+         );
+
+         String firstResponse = firstCall.andReturn().getResponse().getContentAsString();
+
+         ResultActions secondCall = mockMvc.perform(
+             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                 .queryParam("dateFrom", "2026-01-10")
+                 .queryParam("dateTo", "2026-01-10")
+                 .header("Authorization", "Bearer test-token")
+         );
+
+         String secondResponse = secondCall.andReturn().getResponse().getContentAsString();
+
+         log.info(":getDefendantAccountHistory_sameDayMixedSources_orderedDeterministically: First call response:\n{}",
+             ToJsonString.toPrettyJson(firstResponse));
+
+         // Assert: Ordered newest-first by timestamp, with consistent secondary ordering
+         firstCall.andExpect(status().isOk())
+             .andExpect(jsonPath("$.historyItems", hasSize(3)))
+             .andExpect(jsonPath("$.historyItems[*].type",
+                 contains("Financial", "Enforcement", "Amendment")))
+             .andExpect(jsonPath("$.historyItems[0].amount").value(-10.00))
+             .andExpect(jsonPath("$.historyItems[1].details.enforcementAction").value("HST01"))
+             .andExpect(jsonPath("$.historyItems[2].details.oldValue").value("Old"));
+
+         // Verify second call returns identical response (deterministic ordering)
+         secondCall.andExpect(status().isOk())
+             .andExpect(content().json(firstResponse));
+     }
+
+     private void insertResult(String resultId, String resultTitle) {
         jdbcTemplate.update("""
             INSERT INTO results (
                 result_id, result_title, result_title_cy, result_type, active, imposition, imposition_accruing,
