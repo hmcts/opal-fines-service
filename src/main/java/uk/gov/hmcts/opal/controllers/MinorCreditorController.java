@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import java.util.Optional;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -45,6 +48,7 @@ public class MinorCreditorController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
         @RequestBody MinorCreditorSearch criteria,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
@@ -58,6 +62,7 @@ public class MinorCreditorController {
 
     @GetMapping(value = "{minorCreditorId}/at-a-glance")
     @Operation(summary = "Get Minor Creditor Account At A Glance")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> getMinorCreditorsAtAGlance(
         @PathVariable Long minorCreditorId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
@@ -91,6 +96,7 @@ public class MinorCreditorController {
 
     @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Gets Minor Creditor account header summary for the given minorCreditorId")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetMinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary(
         @PathVariable Long minorCreditorId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
@@ -102,5 +108,4 @@ public class MinorCreditorController {
 
         return buildResponse(response);
     }
-
 }

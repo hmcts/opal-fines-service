@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -69,6 +72,7 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
@@ -81,6 +85,7 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
     @Operation(summary = "Get details for a defendant account party")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPartyResponse> getDefendantAccountParty(
         @PathVariable Long defendantAccountId,
         @PathVariable Long defendantAccountPartyId,
@@ -98,6 +103,7 @@ public class DefendantAccountController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
             @RequestBody
@@ -113,6 +119,7 @@ public class DefendantAccountController {
 
     @PostMapping(value = "/{defendantAccountId}/payment-terms")
     @Operation(summary = "Add Payment Terms to a defendant account")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPaymentTermsResponse> addPaymentTerms(
         @PathVariable Long defendantAccountId,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
@@ -133,6 +140,7 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
@@ -145,6 +153,7 @@ public class DefendantAccountController {
 
     @PostMapping("/{defendantAccountId}/payment-card-request")
     @Operation(summary = "Create a payment card request for a given defendant account")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AddPaymentCardRequestResponse> addPaymentCardRequest(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
@@ -168,6 +177,7 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/at-a-glance")
     @Operation(summary = "Get At A Glance details for a given defendant account")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId,
               @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
@@ -176,6 +186,7 @@ public class DefendantAccountController {
 
     @GetMapping("/{defendantAccountId}/fixed-penalty")
     @Operation(summary = "Retrieve Fixed Penalty Offence details for a given Defendant Account")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountFixedPenaltyResponse> getDefendantAccountFixedPenalty(
         @PathVariable Long defendantAccountId,
         @RequestHeader("Authorization") String authHeaderValue) {
@@ -188,6 +199,7 @@ public class DefendantAccountController {
     }
 
     @PostMapping(value = "/{defendantAccountId}/defendant-account-parties")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPartyResponse> addDefendantAccountParty(
         @PathVariable Long defendantAccountId,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
@@ -210,6 +222,7 @@ public class DefendantAccountController {
 
     @PutMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPartyResponse> replaceDefendantAccountParty(
         @PathVariable Long defendantAccountId,
         @PathVariable Long defendantAccountPartyId,
@@ -231,6 +244,7 @@ public class DefendantAccountController {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Delete a Defendant Account Party for the provided Defendant Account ID and Party ID")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<RemoveDefendantAccountPartyResponse> removeDefendantAccountParty(
         @PathVariable Long defendantAccountId,
         @PathVariable Long defendantAccountPartyId,
@@ -249,6 +263,7 @@ public class DefendantAccountController {
 
     @PostMapping("/{defendantAccountId}/enforcements")
     @Operation(summary = "Create an enforcement for a given defendant account")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AddEnforcementResponse> addEnforcement(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
@@ -268,6 +283,7 @@ public class DefendantAccountController {
 
     @PatchMapping(value = "/{defendantAccountId}/remove-enf-hold", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Remove an enforcement hold for a given defendant account")
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<RemoveDefendantAccountEnforcementHoldResponse> removeEnforcementHold(
         @PathVariable Long defendantAccountId,
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
@@ -287,6 +303,4 @@ public class DefendantAccountController {
             )
         );
     }
-
-
 }
