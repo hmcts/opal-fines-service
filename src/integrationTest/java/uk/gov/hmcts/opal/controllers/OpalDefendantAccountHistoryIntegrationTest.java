@@ -591,20 +591,20 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
          log.info(":getDefendantAccountHistory_responseStructure_containsOnlyDocumentedFields: Response body:\n{}",
              ToJsonString.toPrettyJson(body));
 
-         // Assert: Root level has only documented fields
-         result.andExpect(status().isOk())
-             .andExpect(jsonPath("$.historyItems").isArray())
-             // Verify each history item has only documented fields
-             .andExpect(jsonPath("$.historyItems[0].postedDetails").exists())
-             .andExpect(jsonPath("$.historyItems[0].postedDetails.postedDate").exists())
-             .andExpect(jsonPath("$.historyItems[0].postedDetails.postedBy").exists())
-             .andExpect(jsonPath("$.historyItems[0].type").exists())
-             .andExpect(jsonPath("$.historyItems[0].details").exists())
-             // Amount field should exist for Financial items only
-             .andExpect(jsonPath("$.historyItems[1].amount").exists())
-             // Verify no generated orders/notices type is returned (only Amendment, Enforcement, Financial, Note, Payment terms)
-             .andExpect(jsonPath("$.historyItems[*].type",
-                 contains("Note", "Financial", "Payment terms", "Enforcement", "Amendment")));
+          // Assert: Root level has only documented fields
+          result.andExpect(status().isOk())
+              .andExpect(jsonPath("$.historyItems").isArray())
+              // Verify each history item has only documented fields
+              .andExpect(jsonPath("$.historyItems[0].postedDetails").exists())
+              .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").exists())
+              .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").exists())
+              .andExpect(jsonPath("$.historyItems[0].type").exists())
+              .andExpect(jsonPath("$.historyItems[0].details").exists())
+              // Amount field should exist for Financial items only
+              .andExpect(jsonPath("$.historyItems[1].amount").exists())
+              // Verify no generated orders/notices type is returned (only Amendment, Enforcement, Financial, Note, Payment terms)
+              .andExpect(jsonPath("$.historyItems[*].type",
+                  contains("Note", "Financial", "Payment terms", "Enforcement", "Amendment")));
      }
 
      @Test
