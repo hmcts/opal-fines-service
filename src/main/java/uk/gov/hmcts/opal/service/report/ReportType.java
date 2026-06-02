@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 @Getter
 public enum ReportType {
 
+    CASH_LIST("cash_list"),
     FP_REGISTER("fp_register");
 
     public final String reportId;
