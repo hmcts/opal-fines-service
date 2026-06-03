@@ -1,15 +1,12 @@
 package uk.gov.hmcts.opal.service.opal.history.source;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -33,7 +30,7 @@ import uk.gov.hmcts.opal.repository.ImpositionRepository;
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.DefendantTransactionHistorySourceService")
-public class DefendantTransactionHistorySourceService {
+public class DefendantTransactionHistorySourceService extends HistorySourceSpecificationSupport {
 
     private final DefendantTransactionRepository defendantTransactionRepository;
     private final DefendantAccountRepository defendantAccountRepository;
@@ -152,22 +149,6 @@ public class DefendantTransactionHistorySourceService {
         return dateTo == null ? null
             : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
     }
-
-    private LocalDateTime atStartOfDay(LocalDate date) {
-        return date.atStartOfDay();
-    }
-
-    private LocalDateTime dayAfterStart(LocalDate date) {
-        return date.plusDays(1).atStartOfDay();
-    }
-
-    @SafeVarargs
-    private final <T> Specification<T> allOf(Specification<T>... specifications) {
-        return Specification.allOf(Stream.of(specifications)
-            .filter(Objects::nonNull)
-            .toList());
-    }
-
     @Value
     @Builder
     private static class DefendantTransactionHistoryAssociations {
