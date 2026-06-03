@@ -551,31 +551,31 @@ paths:
         400:
           description: Bad request
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         401:
           description: Unauthorized
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         403:
           description: Forbidden
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         500:
           description: Internal server error
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         503:
           description: Service unavailable
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:

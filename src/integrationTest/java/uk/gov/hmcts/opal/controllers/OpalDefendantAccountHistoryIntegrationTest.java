@@ -523,7 +523,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
         // Assert
         result.andExpect(status().isUnauthorized())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json+problem")))
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.detail").value("Unauthorized"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
@@ -545,7 +545,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
         // Assert
         result.andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json+problem")))
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.retriable").value(false));
     }
@@ -566,7 +566,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
         // Assert
         result.andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json+problem")))
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
             .andExpect(jsonPath("$.status").value(404));
     }
