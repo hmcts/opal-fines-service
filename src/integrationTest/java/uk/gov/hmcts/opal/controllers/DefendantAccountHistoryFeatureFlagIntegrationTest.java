@@ -38,7 +38,7 @@ class DefendantAccountHistoryFeatureFlagIntegrationTest extends AbstractFeatureT
 
         // Assert
         result.andExpect(status().isMethodNotAllowed())
-            .andExpect(content().contentType(MediaType.valueOf("application/json+problem")))
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
     }
