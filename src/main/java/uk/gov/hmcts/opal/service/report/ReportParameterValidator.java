@@ -22,8 +22,10 @@ public class ReportParameterValidator {
 
     private final ObjectMapper mapper;
 
-    public boolean validateReportInstanceParameterValues(Map<String, Object> reportInstanceParameters, ReportEntity report) {
-        List<ReportParameterData> reportParameterDataList = report.getReportParameters() == null ? List.of() : report.getReportParameters();
+    public boolean validateReportInstanceParameterValues(Map<String, Object> reportInstanceParameters,
+                                                         ReportEntity report) {
+        List<ReportParameterData> reportParameterDataList = report.getReportParameters() == null ?
+            List.of() : report.getReportParameters();
         Set<String> mandatoryReportParameters = reportParameterDataList.stream()
             .filter(ReportParameterData::mandatory)
             .map(ReportParameterData::name)

@@ -101,7 +101,8 @@ public class GenericReportService implements GenericReportServiceInterface {
             throw new AccessDeniedException("You cannot generate reports for other business units");
         }
 
-        if (!reportParameterValidator.validateReportInstanceParameterValues(request.getReportParameters(), reportEntity)) {
+        if (!reportParameterValidator.validateReportInstanceParameterValues(
+                request.getReportParameters(), reportEntity)) {
             throw new UnprocessableException("Validation failed for report instance parameters", true);
         }
 
