@@ -96,7 +96,9 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
     private AccountHistoryItem toTransactionHistoryItem(DefendantTransactionEntity transaction,
                                                         DefendantTransactionHistoryAssociations associations) {
         AccountHistoryItem historyItem =
-            DefendantAccountHistoryModelAdapter.toCoreItem(defendantTransactionEntityHistoryMapper.toHistoryItem(transaction));
+            DefendantAccountHistoryModelAdapter.toCoreItem(
+                defendantTransactionEntityHistoryMapper.toHistoryItem(transaction)
+            );
 
         if (historyItem.getDetails() instanceof DefendantTransactionDetails details) {
             enrichTransactionDetails(transaction, details, associations);
