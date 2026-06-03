@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.opal.history.defendant;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Comparator;
@@ -14,15 +14,15 @@ import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 import uk.gov.hmcts.opal.service.opal.history.core.AbstractAccountHistoryService;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
-import uk.gov.hmcts.opal.service.opal.history.source.AmendmentHistorySourceService;
-import uk.gov.hmcts.opal.service.opal.history.source.DefendantTransactionHistorySourceService;
-import uk.gov.hmcts.opal.service.opal.history.source.EnforcementHistorySourceService;
-import uk.gov.hmcts.opal.service.opal.history.source.NoteHistorySourceService;
-import uk.gov.hmcts.opal.service.opal.history.source.PaymentTermsHistorySourceService;
+import uk.gov.hmcts.opal.service.opal.history.defendant.sources.AmendmentHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.defendant.sources.DefendantTransactionHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.defendant.sources.EnforcementHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.defendant.sources.NoteHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.defendant.sources.PaymentTermsHistorySource;
 
 @Service
-@Slf4j(topic = "opal.OpalDefendantAccountHistoryService")
-public class OpalDefendantAccountHistoryService extends AbstractAccountHistoryService {
+@Slf4j(topic = "opal.DefendantAccountHistoryService")
+public class DefendantAccountHistoryService extends AbstractAccountHistoryService {
 
     private static final String DEFENDANT_ACCOUNT_NOT_FOUND = "Defendant Account not found with id: ";
 
@@ -30,13 +30,13 @@ public class OpalDefendantAccountHistoryService extends AbstractAccountHistorySe
 
     private final HistoryItemOrderingService historyItemOrderingService;
 
-    public OpalDefendantAccountHistoryService(DefendantAccountRepository defendantAccountRepository,
-                                              HistoryItemOrderingService historyItemOrderingService,
-                                              AmendmentHistorySourceService amendmentSource,
-                                              EnforcementHistorySourceService enforcementSource,
-                                              NoteHistorySourceService noteSource,
-                                              PaymentTermsHistorySourceService paymentTermsSource,
-                                              DefendantTransactionHistorySourceService transactionSource) {
+    public DefendantAccountHistoryService(DefendantAccountRepository defendantAccountRepository,
+                                         HistoryItemOrderingService historyItemOrderingService,
+                                         AmendmentHistorySource amendmentSource,
+                                         EnforcementHistorySource enforcementSource,
+                                         NoteHistorySource noteSource,
+                                         PaymentTermsHistorySource paymentTermsSource,
+                                         DefendantTransactionHistorySource transactionSource) {
         super(List.of(
             amendmentSource,
             enforcementSource,

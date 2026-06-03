@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal.history.source;
+package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

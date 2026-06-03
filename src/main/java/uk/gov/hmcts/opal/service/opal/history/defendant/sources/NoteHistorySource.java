@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal.history.source;
+package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class NoteHistorySourceService implements AccountHistorySource {
+public class NoteHistorySource implements AccountHistorySource {
 
     private final NoteRepository noteRepository;
     private final NoteEntityHistoryMapper noteEntityHistoryMapper;

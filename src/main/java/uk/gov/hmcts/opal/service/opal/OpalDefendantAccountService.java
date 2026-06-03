@@ -118,6 +118,7 @@ import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -179,7 +180,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final ReportEntryServiceInterface reportEntryService;
 
-    private final OpalDefendantAccountHistoryService opalDefendantAccountHistoryService;
+    private final DefendantAccountHistoryService defendantAccountHistoryService;
 
     // Mappers
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
@@ -218,7 +219,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        return opalDefendantAccountHistoryService.getHistory(defendantAccountId, filter);
+        return defendantAccountHistoryService.getHistory(defendantAccountId, filter);
     }
 
     @Override

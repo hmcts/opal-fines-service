@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal.history.source;
+package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class AmendmentHistorySourceService extends HistorySourceSpecificationSupport
+public class AmendmentHistorySource extends HistorySourceSpecificationSupport
     implements AccountHistorySource {
 
     private final AmendmentRepository amendmentRepository;

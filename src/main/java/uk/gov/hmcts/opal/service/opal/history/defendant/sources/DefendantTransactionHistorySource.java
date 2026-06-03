@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal.history.source;
+package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,8 +32,8 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "opal.DefendantTransactionHistorySourceService")
-public class DefendantTransactionHistorySourceService extends HistorySourceSpecificationSupport
+@Slf4j(topic = "opal.DefendantTransactionHistorySource")
+public class DefendantTransactionHistorySource extends HistorySourceSpecificationSupport
     implements AccountHistorySource {
 
     private final DefendantTransactionRepository defendantTransactionRepository;
