@@ -86,7 +86,7 @@ class NotesServiceTest {
     @Test
     void addNote_success_savesFields_returnsId_andLocksManagedEntity() {
         when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
-        when(user.getUserName()).thenReturn("USER1");
+        when(user.getDisplayName()).thenReturn("Normal User");
 
         // repository.save returns an entity with generated id
         NoteEntity persisted = new NoteEntity();
@@ -108,7 +108,7 @@ class NotesServiceTest {
         assertEquals("77", toSave.getAssociatedRecordId());
         assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, toSave.getAssociatedRecordType());
         assertEquals("1", toSave.getBusinessUnitUserId()); // short -> "1"
-        assertEquals("USER1", toSave.getPostedByUsername());
+        assertEquals("Normal User", toSave.getPostedByUsername());
         assertNotNull(toSave.getPostedDate(), "postedDate should be set");
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), toSave.getPostedDate());
 

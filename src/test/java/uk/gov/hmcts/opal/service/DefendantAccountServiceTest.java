@@ -276,7 +276,7 @@ class DefendantAccountServiceTest {
         PostedDetails postedDetails = captor.getValue().getPaymentTerms().getPostedDetails();
         assertNotNull(postedDetails);
         assertEquals("USER01", postedDetails.getPostedBy());
-        assertEquals("normal@users.com", postedDetails.getPostedByName());
+        assertEquals("Normal User", postedDetails.getPostedByName());
     }
 
     @Test
