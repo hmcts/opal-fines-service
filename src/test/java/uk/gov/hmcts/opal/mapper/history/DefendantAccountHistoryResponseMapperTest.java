@@ -144,13 +144,25 @@ class DefendantAccountHistoryResponseMapperTest {
                     .defendantTransactionStatusDisplayName("Cancelled")
                     .build())
                 .getDefendantTransactionStatus());
+        assertEquals(DefendantTransactionStatusEnum.CAN,
+            mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
+                    .defendantTransactionStatus("D")
+                    .defendantTransactionStatusDisplayName("Dishonoured")
+                    .build())
+                .getDefendantTransactionStatus());
+        assertEquals(DefendantTransactionStatusEnum.CAN,
+            mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
+                    .defendantTransactionStatus("R")
+                    .defendantTransactionStatusDisplayName("Reversed")
+                    .build())
+                .getDefendantTransactionStatus());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
             () -> mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
-                .defendantTransactionStatus("D")
-                .defendantTransactionStatusDisplayName("Dormant")
+                .defendantTransactionStatus("Z")
+                .defendantTransactionStatusDisplayName("Unknown")
                 .build()));
-        assertEquals("Unsupported defendant transaction status: D", exception.getMessage());
+        assertEquals("Unsupported defendant transaction status: Z", exception.getMessage());
     }
 
     private DefendantAccountHistoryItem buildAmendmentItem() {

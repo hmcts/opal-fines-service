@@ -89,7 +89,7 @@ public interface DefendantAccountHistoryResponseMapper {
         DefendantTransactionStatusEnum generatedStatus = switch (statusCode) {
             case "P" -> DefendantTransactionStatusEnum.PND;
             case "C" -> DefendantTransactionStatusEnum.COMP;
-            case "X" -> DefendantTransactionStatusEnum.CAN;
+            case "D", "R", "X" -> DefendantTransactionStatusEnum.CAN;
             default -> throw new IllegalArgumentException(
                 "Unsupported defendant transaction status: " + statusCode);
         };
