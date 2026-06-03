@@ -32,7 +32,8 @@ public class NoteHistorySourceService implements AccountHistorySource {
     }
 
     @Override
-    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context,
+                                                   DefendantAccountHistoryFilter filter) {
         return noteRepository.findDefendantAccountHistoryNotes(
                 context.getAccountId().toString(),
                 filter.getDateFrom(),

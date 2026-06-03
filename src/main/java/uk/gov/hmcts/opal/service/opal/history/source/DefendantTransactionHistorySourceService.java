@@ -53,7 +53,8 @@ public class DefendantTransactionHistorySourceService extends HistorySourceSpeci
     }
 
     @Override
-    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context,
+                                                   DefendantAccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
         List<DefendantTransactionEntity> transactions = defendantTransactionRepository.findAll(allOf(
             transactionForDefendantAccount(defendantAccountId),

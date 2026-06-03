@@ -18,7 +18,8 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentTermsHistorySourceService extends HistorySourceSpecificationSupport implements AccountHistorySource {
+public class PaymentTermsHistorySourceService extends HistorySourceSpecificationSupport
+    implements AccountHistorySource {
 
     private final PaymentTermsRepository paymentTermsRepository;
     private final PaymentTermsEntityHistoryMapper paymentTermsEntityHistoryMapper;
@@ -35,7 +36,8 @@ public class PaymentTermsHistorySourceService extends HistorySourceSpecification
     }
 
     @Override
-    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context,
+                                                   DefendantAccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
         return paymentTermsRepository.findAll(allOf(
                 paymentTermsForDefendantAccount(defendantAccountId),

@@ -18,7 +18,8 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class EnforcementHistorySourceService extends HistorySourceSpecificationSupport implements AccountHistorySource {
+public class EnforcementHistorySourceService extends HistorySourceSpecificationSupport
+    implements AccountHistorySource {
 
     private final EnforcementRepository enforcementRepository;
     private final EnforcementEntityHistoryMapper enforcementEntityHistoryMapper;
@@ -35,7 +36,8 @@ public class EnforcementHistorySourceService extends HistorySourceSpecificationS
     }
 
     @Override
-    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context,
+                                                   DefendantAccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
         return enforcementRepository.findAll(allOf(
                 enforcementForDefendantAccount(defendantAccountId),
