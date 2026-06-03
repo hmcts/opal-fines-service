@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.service.opal.OpalMajorCreditorAccountService;
 import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
 @Service
@@ -17,6 +19,7 @@ public class MajorCreditorAccountService {
 
     private final UserStateService userStateService;
     private final MajorCreditorAccountProxy majorCreditorAccountProxy;
+    private final OpalMajorCreditorAccountService opalMajorCreditorAccountService;
 
     public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId) {
         log.debug(":getHeaderSummary: id={}", majorCreditorAccountId);
@@ -36,6 +39,18 @@ public class MajorCreditorAccountService {
         }
 
         return response;
+    }
+
+    public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long creditorAccountId, String authHeaderValue) {
+        log.debug(":getAtAGlance: creditorAccountId={}", creditorAccountId);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        return opalMajorCreditorAccountService.getAtAGlance(creditorAccountId);
     }
 
     private static Short getBusinessUnitId(BusinessUnitSummaryCommon businessUnitDetails) {

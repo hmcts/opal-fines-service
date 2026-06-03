@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "major_creditor"
+  ],
+  "properties": {
+    "major_creditor": {
+      "type": "object",
+      "required": [
+        "creditor_account_id",
+        "name"
+      ],
+      "properties": {
+        "creditor_account_id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "address": {
+          "type": "object",
+          "properties": {
+            "address_line_1": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "address_line_2": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "address_line_3": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "address_line_4": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "address_line_5": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "postcode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "pay_by_bacs": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

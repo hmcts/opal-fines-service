@@ -19,6 +19,7 @@ public final class Release1bFeatureToggleRequestUtil {
     private static final String IF_MATCH = "\"0\"";
     private static final String DEFENDANT_ACCOUNT_ID = "999999";
     private static final String DEFENDANT_ACCOUNT_PARTY_ID = "999999";
+    private static final String MAJOR_CREDITOR_ACCOUNT_ID = "999999";
     private static final String MINOR_CREDITOR_ACCOUNT_ID = "999999";
 
     private Release1bFeatureToggleRequestUtil() {
@@ -256,6 +257,10 @@ public final class Release1bFeatureToggleRequestUtil {
                       "account_number": "12345678"
                     }
                     """)
+            ),
+            Arguments.of(
+                "Get Major Creditor Account At A Glance",
+                getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/at-a-glance")
             ),
             Arguments.of(
                 "Get Minor Creditor Account Header Summary",
