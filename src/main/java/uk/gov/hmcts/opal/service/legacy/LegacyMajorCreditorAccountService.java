@@ -17,11 +17,12 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyMajorCreditorAccountService")
-public class LegacyMajorCreditorAccountService {
+public class LegacyMajorCreditorAccountService implements MajorCreditorAccountServiceInterface {
 
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
         "LIBRA.get_major_creditor_account_header_summary";
@@ -29,6 +30,7 @@ public class LegacyMajorCreditorAccountService {
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
 
+    @Override
     public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId) {
         Response<GetMajorCreditorAccountHeaderSummaryLegacyResponse> response =
             gatewayService.postToGateway(
