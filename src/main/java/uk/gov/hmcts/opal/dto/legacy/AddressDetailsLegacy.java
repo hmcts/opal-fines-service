@@ -39,6 +39,7 @@ public class AddressDetailsLegacy {
     @XmlElement(name = "address_line_5")
     private String addressLine5;
 
+    @JsonProperty("postcode")
     @XmlElement(name = "postcode")
     private String postcode;
 }

@@ -7,10 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -52,6 +48,16 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @JiraTestKey("PO-5955")
     void testGetMinorCreditorAtAGlance_500Error() throws Exception {
         super.legacyGetMinorCreditorAtAGlanceImpl_500Error(log);
+    }
+
+    @Test
+    void testUpdateMinorCreditor_Success() throws Exception {
+        super.legacyPatchMinorCreditor_payoutHold_success(log);
+    }
+
+    @Test
+    void testUpdateMinorCreditor_500Error() throws Exception {
+        super.legacyPatchMinorCreditor_500Error(log);
     }
 
     @Test

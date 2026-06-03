@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -22,17 +23,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.Defendant;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.UpdateMinorCreditorAccountLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
@@ -46,6 +51,8 @@ import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.PatchMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
@@ -72,6 +79,10 @@ class LegacyMinorCreditorServiceTest {
     private CreditorAccountRepository creditorAccountRepository;
 
     @Mock
+    private PatchMinorCreditorAccountRequestMapper updateRequestMapper;
+
+    @Mock
+    private GetMinorCreditorAccountLegacyResponseMapper updateResponseMapper;
     private UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
 
     @Mock
@@ -467,6 +478,179 @@ class LegacyMinorCreditorServiceTest {
     }
 
     @Test
+    void updateMinorCreditorAccount_happyPath_mapsRequestCallsGatewayAndMapsResponse() {
+        Long minorCreditorAccountId = 1L;
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest();
+        BigInteger etag = BigInteger.valueOf(2);
+        String businessUnitUserId = "BU_USER_1";
+        Short businessUnitId = 77;
+
+        UpdateMinorCreditorAccountLegacyRequest legacyRequest = UpdateMinorCreditorAccountLegacyRequest.builder()
+            .creditorAccountId("1")
+            .accountVersion(2)
+            .businessUnitId("77")
+            .businessUnitUserId(businessUnitUserId)
+            .build();
+
+        when(updateRequestMapper.toLegacyRequest(
+            minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId))
+            .thenReturn(legacyRequest);
+
+        GetMinorCreditorAccountLegacyResponse legacyResponse = GetMinorCreditorAccountLegacyResponse.builder()
+            .creditorAccountId(1L)
+            .accountVersion(3)
+            .build();
+
+        GatewayService.Response<GetMinorCreditorAccountLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
+        when(gatewayService.postToGateway(
+            eq("LIBRA.update_minor_creditor"),
+            eq(GetMinorCreditorAccountLegacyResponse.class),
+            eq(legacyRequest),
+            isNull())
+        ).thenReturn(gatewayResponse);
+
+        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
+        mappedResponse.setCreditorAccountId(1L);
+
+        when(updateResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        MinorCreditorAccountResponse result = legacyMinorCreditorService.updateMinorCreditorAccount(
+            minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId
+        );
+
+        assertSame(mappedResponse, result);
+        assertEquals(BigInteger.valueOf(3), result.getVersion());
+
+        verify(updateRequestMapper).toLegacyRequest(
+            minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId);
+        verify(gatewayService).postToGateway(
+            eq("LIBRA.update_minor_creditor"),
+            eq(GetMinorCreditorAccountLegacyResponse.class),
+            eq(legacyRequest),
+            isNull()
+        );
+        verify(updateResponseMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void updateMinorCreditorAccount_shouldHandleGatewayException() {
+        Long minorCreditorAccountId = 1L;
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest();
+        BigInteger etag = BigInteger.valueOf(2);
+        String businessUnitUserId = "BU_USER_1";
+        Short businessUnitId = 77;
+
+        UpdateMinorCreditorAccountLegacyRequest legacyRequest = UpdateMinorCreditorAccountLegacyRequest.builder()
+            .creditorAccountId("1")
+            .accountVersion(2)
+            .businessUnitId("77")
+            .businessUnitUserId(businessUnitUserId)
+            .build();
+
+        when(updateRequestMapper.toLegacyRequest(
+            minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId))
+            .thenReturn(legacyRequest);
+
+        GetMinorCreditorAccountLegacyResponse legacyResponse = GetMinorCreditorAccountLegacyResponse.builder()
+            .creditorAccountId(1L)
+            .accountVersion(3)
+            .build();
+
+        GatewayService.Response<GetMinorCreditorAccountLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
+                legacyResponse, null, new RuntimeException("Gateway error"));
+
+        when(gatewayService.postToGateway(
+            eq("LIBRA.update_minor_creditor"),
+            eq(GetMinorCreditorAccountLegacyResponse.class),
+            eq(legacyRequest),
+            isNull())
+        ).thenReturn(gatewayResponse);
+
+        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
+        mappedResponse.setCreditorAccountId(1L);
+
+        when(updateResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        MinorCreditorAccountResponse result = assertDoesNotThrow(
+            () -> legacyMinorCreditorService.updateMinorCreditorAccount(
+                minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId)
+        );
+
+        assertSame(mappedResponse, result);
+        assertEquals(BigInteger.valueOf(3), result.getVersion());
+
+        verify(updateRequestMapper).toLegacyRequest(
+            minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId);
+        verify(gatewayService).postToGateway(
+            eq("LIBRA.update_minor_creditor"),
+            eq(GetMinorCreditorAccountLegacyResponse.class),
+            eq(legacyRequest),
+            isNull()
+        );
+        verify(updateResponseMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void updateMinorCreditorAccount_shouldHandleLegacyFailure() {
+        Long minorCreditorAccountId = 1L;
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest();
+        BigInteger etag = BigInteger.valueOf(2);
+        String businessUnitUserId = "BU_USER_1";
+        Short businessUnitId = 77;
+
+        UpdateMinorCreditorAccountLegacyRequest legacyRequest = UpdateMinorCreditorAccountLegacyRequest.builder()
+            .creditorAccountId("1")
+            .accountVersion(2)
+            .businessUnitId("77")
+            .businessUnitUserId(businessUnitUserId)
+            .build();
+
+        when(updateRequestMapper.toLegacyRequest(
+            minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId))
+            .thenReturn(legacyRequest);
+
+        GetMinorCreditorAccountLegacyResponse legacyResponse = GetMinorCreditorAccountLegacyResponse.builder()
+            .creditorAccountId(1L)
+            .accountVersion(3)
+            .build();
+
+        GatewayService.Response<GetMinorCreditorAccountLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, legacyResponse, "legacy failure", null);
+
+        when(gatewayService.postToGateway(
+            eq("LIBRA.update_minor_creditor"),
+            eq(GetMinorCreditorAccountLegacyResponse.class),
+            eq(legacyRequest),
+            isNull())
+        ).thenReturn(gatewayResponse);
+
+        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
+        mappedResponse.setCreditorAccountId(1L);
+
+        when(updateResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        MinorCreditorAccountResponse result = assertDoesNotThrow(
+            () -> legacyMinorCreditorService.updateMinorCreditorAccount(
+                minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId)
+        );
+
+        assertSame(mappedResponse, result);
+        assertEquals(BigInteger.valueOf(3), result.getVersion());
+
+        verify(updateRequestMapper).toLegacyRequest(
+            minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId);
+        verify(gatewayService).postToGateway(
+            eq("LIBRA.update_minor_creditor"),
+            eq(GetMinorCreditorAccountLegacyResponse.class),
+            eq(legacyRequest),
+            isNull()
+        );
+        verify(updateResponseMapper).toOpal(legacyResponse);
+    }
+  
     void getMinorCreditorAccount_shouldReturnMappedResponseWhenBusinessUnitNotFound() {
         LegacyGetMinorCreditorAccountResponse legacyResponse = LegacyGetMinorCreditorAccountResponse.builder()
             .creditorAccountId(1L)

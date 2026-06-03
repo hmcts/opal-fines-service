@@ -366,7 +366,59 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         assertEquals(currentVersion + 2, updatedVersion);
     }
 
-    void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(Logger log) throws Exception {
+    void legacyPatchMinorCreditor_payoutHold_success(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", AUTH_HEADER)
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":legacyPatchMinorCreditor_payoutHold_success body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.party_id").value("99008"))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Updated"))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Creditor"))
+            .andExpect(jsonPath("$.address.postcode").value("NW1 1AA"))
+            .andExpect(jsonPath("$.payment.account_name").value("Hold Test"))
+            .andExpect(jsonPath("$.payment.sort_code").value("123456"))
+            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
+            .andExpect(jsonPath("$.payment.account_reference").value("HOLDREF"))
+            .andExpect(jsonPath("$.payment.hold_payment").value(true))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
+    }
+
+    void legacyPatchMinorCreditor_500Error(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
+            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+                FinesPermission.ACCOUNT_MAINTENANCE));
+
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/500")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", AUTH_HEADER)
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":legacyPatchMinorCreditor_500Error body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.title").value("Downstream Server Error"));
+    }
+
+    void patchMinorCreditor_success_createsAmendments(Logger log) throws Exception {
         // Arrange
         Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
         Map<String, Object> currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);

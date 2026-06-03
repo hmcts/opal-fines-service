@@ -12,17 +12,23 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.UpdateMinorCreditorAccountLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
+import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.PatchMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
@@ -43,10 +49,25 @@ import java.util.Optional;
 @Slf4j(topic = "opal.LegacyMinorCreditorService")
 public class LegacyMinorCreditorService implements MinorCreditorServiceInterface {
 
+    private final GatewayService gatewayService;
+
+    private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private final LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
+    private final CreditorAccountRepository creditorAccountRepository;
+
+    private final PatchMinorCreditorAccountRequestMapper updateRequestMapper;
+
+    private final GetMinorCreditorAccountLegacyResponseMapper updateResponseMapper;
+
+    private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+
     private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
     private static final String GET_MINOR_CREDITOR_ACCOUNT_PARTY = "GET_MINOR_CREDITOR_ACCOUNT_PARTY";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE =
         "LIBRA.get_minor_creditors_account_at_a_glance";
+
+    private static final String UPDATE_MINOR_CREDITOR =  "LIBRA.update_minor_creditor";
+
     private static final String GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY =
         "LIBRA.get_minor_creditors_account_header_summary";
     private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
@@ -227,6 +248,56 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .count(legacyResponse.getCount())
             .creditorAccounts(mappedAccounts)
             .build();
+    }
+
+    @Override
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
+
+        Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
+            gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE,
+                LegacyGetMinorCreditorAccountAtAGlanceResponse.class,
+                LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId(
+                    String.valueOf(minorCreditorId)).build(),
+                null
+            );
+
+        checkResponseForError(response, "getMinorCreditorAtAGlance");
+
+        GetMinorCreditorAccountAtAGlanceResponse mapped = atAGlanceResponseMapper.toDto(response.responseEntity);
+        mapped.setVersion(response.responseEntity.getCreditorAccountVersion());
+        return mapped;
+    }
+
+    private LegacyMinorCreditorSearchResultsRequest createRequest(MinorCreditorSearch request) {
+        return LegacyMinorCreditorSearchResultsRequest.builder()
+            .businessUnitIds(request.getBusinessUnitIds())
+            .creditor(request.getCreditor())
+            .accountNumber(request.getAccountNumber()).activeAccountsOnly(request.getActiveAccountsOnly()).build();
+    }
+
+    @Override
+    public MinorCreditorAccountResponse updateMinorCreditorAccount(
+        Long minorCreditorAccountId,
+        PatchMinorCreditorAccountRequest request,
+        BigInteger etag,
+        String businessUnitUserId,
+        Short businessUnitId
+    ) {
+        UpdateMinorCreditorAccountLegacyRequest legacyRequest = updateRequestMapper
+            .toLegacyRequest(minorCreditorAccountId, request, etag, businessUnitUserId, businessUnitId);
+
+        Response<GetMinorCreditorAccountLegacyResponse> response =
+            gatewayService.postToGateway(UPDATE_MINOR_CREDITOR,
+                GetMinorCreditorAccountLegacyResponse.class,
+                legacyRequest,
+                null);
+
+        checkResponseForError(response, "updateMinorCreditorAccount");
+
+        MinorCreditorAccountResponse mapped = updateResponseMapper.toOpal(response.responseEntity);
+        mapped.setVersion(BigInteger.valueOf(response.responseEntity.getAccountVersion()));
+
+        return mapped;
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {

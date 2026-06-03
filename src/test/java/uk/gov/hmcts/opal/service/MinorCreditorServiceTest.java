@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -17,17 +17,17 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
@@ -396,14 +396,13 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
+    void updateMinorCreditorAccount_blankBusinessUnitUserId_throwsInternalServerErrorException() {
         // Arrange
         UserState userState = mock(UserState.class);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
-        when(userState.getUserName()).thenReturn("test.user@hmcts.net");
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
             BusinessUnitUser.builder()
                 .businessUnitUserId(" ")
@@ -412,20 +411,16 @@ class MinorCreditorServiceTest {
         ));
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-        when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any(),
-            anyShort()))
-            .thenReturn(new MinorCreditorAccountResponse());
 
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
-        // Act
-        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10");
+        // Act & Assert
+        assertThrows(
+            InternalServerErrorException.class,
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10")
+        );
 
-        // Assert
-        ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
-        verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE),
-            postedByCaptor.capture(), eq(Short.valueOf("10")));
-        assertEquals("test.user@hmcts.net", postedByCaptor.getValue());
+        verify(minorCreditorSearchProxy, never()).updateMinorCreditorAccount(any(), any(), any(), any(), any());
     }
 
     @Test
