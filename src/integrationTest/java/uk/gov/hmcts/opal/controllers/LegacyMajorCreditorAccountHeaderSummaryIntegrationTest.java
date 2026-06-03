@@ -137,6 +137,21 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     }
 
     @Test
+    @DisplayName("PO-2136 INT.07 - permission in non-matching business unit returns 403")
+    @JiraStory("PO-2136")
+    @JiraEpic("FAE: View Major Creditor Account Summary")
+    void getHeaderSummary_permissionInDifferentBusinessUnitReturns403() throws Exception {
+        when(userStateService.checkForAuthorisedUser())
+            .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+
+        mockMvc.perform(get(URL, 99000000000800L)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
     @DisplayName("PO-2136 INT.08 - missing token returns 401 and does not invoke gateway")
     @JiraStory("PO-2136")
     @JiraEpic("FAE: View Major Creditor Account Summary")

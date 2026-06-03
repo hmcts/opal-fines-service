@@ -1,7 +1,8 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
@@ -65,8 +67,6 @@ class LegacyMajorCreditorAccountServiceTest {
     @Test
     void getHeaderSummary_handlesGatewayExceptionResponse() {
         GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse = legacyResponse();
-        GetMajorCreditorAccountHeaderSummaryResponse mappedResponse =
-            new GetMajorCreditorAccountHeaderSummaryResponse();
         GetMajorCreditorAccountHeaderSummaryLegacyRequest expectedRequest = legacyRequest();
 
         when(gatewayService.postToGateway(
@@ -80,21 +80,19 @@ class LegacyMajorCreditorAccountServiceTest {
             null,
             new RuntimeException("Gateway error")
         ));
-        when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
 
-        GetMajorCreditorAccountHeaderSummaryResponse result =
-            legacyMajorCreditorAccountService.getHeaderSummary(123L);
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
+        );
 
-        assertSame(mappedResponse, result);
-        assertEquals(BigInteger.valueOf(7), result.getVersion());
-        verify(headerSummaryResponseMapper).toOpal(legacyResponse);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        verifyNoInteractions(headerSummaryResponseMapper);
     }
 
     @Test
     void getHeaderSummary_handlesLegacyFailureResponse() {
         GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse = legacyResponse();
-        GetMajorCreditorAccountHeaderSummaryResponse mappedResponse =
-            new GetMajorCreditorAccountHeaderSummaryResponse();
         GetMajorCreditorAccountHeaderSummaryLegacyRequest expectedRequest = legacyRequest();
 
         when(gatewayService.postToGateway(
@@ -108,14 +106,14 @@ class LegacyMajorCreditorAccountServiceTest {
             "<legacyFailure/>",
             null
         ));
-        when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
 
-        GetMajorCreditorAccountHeaderSummaryResponse result =
-            legacyMajorCreditorAccountService.getHeaderSummary(123L);
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
+        );
 
-        assertSame(mappedResponse, result);
-        assertEquals(BigInteger.valueOf(7), result.getVersion());
-        verify(headerSummaryResponseMapper).toOpal(legacyResponse);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        verifyNoInteractions(headerSummaryResponseMapper);
     }
 
     private GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse() {
