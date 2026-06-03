@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal.history.defendant;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Comparator;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +49,6 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
         this.historyItemOrderingService = historyItemOrderingService;
     }
 
-    @Override
     @Transactional(readOnly = true)
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         log.debug(":getHistorySources: Opal mode - ID: {}", defendantAccountId);

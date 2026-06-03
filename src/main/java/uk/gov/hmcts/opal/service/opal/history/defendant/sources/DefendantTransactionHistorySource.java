@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
+import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
 
 @Service
 @RequiredArgsConstructor
