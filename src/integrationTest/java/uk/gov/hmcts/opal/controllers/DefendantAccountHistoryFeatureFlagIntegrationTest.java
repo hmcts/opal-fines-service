@@ -34,7 +34,6 @@ class DefendantAccountHistoryFeatureFlagIntegrationTest extends AbstractFeatureT
         ResultActions result = mockMvc.perform(
             get("/defendant-accounts/262200/history")
                 .header("Authorization", "Bearer test-token")
-                .accept(MediaType.APPLICATION_PROBLEM_JSON)
         );
 
         // Assert
