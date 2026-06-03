@@ -49,7 +49,8 @@ public class DefendantTransactionHistorySourceService extends HistorySourceSpeci
             transactionDateTo(filter.getDateTo())
         ));
 
-        DefendantTransactionHistoryAssociations transactionAssociations = getTransactionHistoryAssociations(transactions);
+        DefendantTransactionHistoryAssociations transactionAssociations =
+            getTransactionHistoryAssociations(transactions);
 
         return transactions.stream()
             .map(transaction -> toTransactionHistoryItem(transaction, transactionAssociations))
