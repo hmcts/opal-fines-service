@@ -45,6 +45,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
+// Using a non-web context here to avoid starting MVC and reduce CI memory pressure
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
