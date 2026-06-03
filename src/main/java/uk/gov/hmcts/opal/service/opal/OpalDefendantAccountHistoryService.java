@@ -1,19 +1,19 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Comparator;
 import java.util.List;
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
+import uk.gov.hmcts.opal.service.opal.history.core.AbstractAccountHistoryService;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.source.AmendmentHistorySourceService;
 import uk.gov.hmcts.opal.service.opal.history.source.DefendantTransactionHistorySourceService;
 import uk.gov.hmcts.opal.service.opal.history.source.EnforcementHistorySourceService;
@@ -21,9 +21,8 @@ import uk.gov.hmcts.opal.service.opal.history.source.NoteHistorySourceService;
 import uk.gov.hmcts.opal.service.opal.history.source.PaymentTermsHistorySourceService;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j(topic = "opal.OpalDefendantAccountHistoryService")
-public class OpalDefendantAccountHistoryService {
+public class OpalDefendantAccountHistoryService extends AbstractAccountHistoryService {
 
     private static final String DEFENDANT_ACCOUNT_NOT_FOUND = "Defendant Account not found with id: ";
 
@@ -31,60 +30,55 @@ public class OpalDefendantAccountHistoryService {
 
     private final HistoryItemOrderingService historyItemOrderingService;
 
-    private final AmendmentHistorySourceService amendmentHistorySourceService;
+    public OpalDefendantAccountHistoryService(DefendantAccountRepository defendantAccountRepository,
+                                              HistoryItemOrderingService historyItemOrderingService,
+                                              AmendmentHistorySourceService amendmentSource,
+                                              EnforcementHistorySourceService enforcementSource,
+                                              NoteHistorySourceService noteSource,
+                                              PaymentTermsHistorySourceService paymentTermsSource,
+                                              DefendantTransactionHistorySourceService transactionSource) {
+        super(List.of(
+            amendmentSource,
+            enforcementSource,
+            noteSource,
+            paymentTermsSource,
+            transactionSource
+        ));
+        this.defendantAccountRepository = defendantAccountRepository;
+        this.historyItemOrderingService = historyItemOrderingService;
+    }
 
-    private final EnforcementHistorySourceService enforcementHistorySourceService;
-
-    private final NoteHistorySourceService noteHistorySourceService;
-
-    private final PaymentTermsHistorySourceService paymentTermsHistorySourceService;
-
-    private final DefendantTransactionHistorySourceService defendantTransactionHistorySourceService;
-
+    @Override
     @Transactional(readOnly = true)
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         log.debug(":getHistorySources: Opal mode - ID: {}", defendantAccountId);
+        return super.getHistory(defendantAccountId, filter);
+    }
 
-        DefendantAccountEntity defendantAccount = defendantAccountRepository
-            .findByDefendantAccountId(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + defendantAccountId));
+    @Override
+    protected AccountHistoryContext buildContext(Long accountId) {
+        return new AccountHistoryContext(AccountHistoryType.DEFENDANT, accountId);
+    }
 
-        DefendantAccountHistorySources sources = DefendantAccountHistorySources.builder()
-            .amendments(amendmentHistorySourceService.fetch(defendantAccountId, filter))
-            .enforcements(enforcementHistorySourceService.fetch(defendantAccountId, filter))
-            .notes(noteHistorySourceService.fetch(defendantAccountId, filter))
-            .paymentTerms(paymentTermsHistorySourceService.fetch(defendantAccountId, filter))
-            .transactions(defendantTransactionHistorySourceService.fetch(defendantAccountId, filter))
-            .build();
+    @Override
+    protected void ensureAccountExists(AccountHistoryContext context) {
+        defendantAccountRepository.findByDefendantAccountId(context.getAccountId())
+            .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + context.getAccountId()));
+    }
 
+    @Override
+    protected Comparator<DefendantAccountHistoryItem> getComparator() {
+        return historyItemOrderingService.newestFirstComparator();
+    }
+
+    @Override
+    protected DefendantAccountHistoryResponse buildResponse(AccountHistoryContext context,
+                                                           List<DefendantAccountHistoryItem> items) {
         return DefendantAccountHistoryResponse.builder()
-            .version(defendantAccount.getVersion())
-            .historyItems(toHistoryItems(sources))
+            .version(defendantAccountRepository.findByDefendantAccountId(context.getAccountId())
+                .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + context.getAccountId()))
+                .getVersion())
+            .historyItems(items)
             .build();
-    }
-
-    private List<DefendantAccountHistoryItem> toHistoryItems(DefendantAccountHistorySources sources) {
-        return historyItemOrderingService.orderNewestFirst(List.of(
-            sources.getAmendments(),
-            sources.getEnforcements(),
-            sources.getNotes(),
-            sources.getPaymentTerms(),
-            sources.getTransactions()
-        ).stream().flatMap(List::stream).toList());
-    }
-
-    @Value
-    @Builder
-    public static class DefendantAccountHistorySources {
-
-        List<DefendantAccountHistoryItem> amendments;
-
-        List<DefendantAccountHistoryItem> enforcements;
-
-        List<DefendantAccountHistoryItem> notes;
-
-        List<DefendantAccountHistoryItem> paymentTerms;
-
-        List<DefendantAccountHistoryItem> transactions;
     }
 }

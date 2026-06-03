@@ -10,11 +10,11 @@ public class HistoryItemOrderingService {
 
     public List<DefendantAccountHistoryItem> orderNewestFirst(List<DefendantAccountHistoryItem> historyItems) {
         return historyItems.stream()
-            .sorted(newestFirstHistoryItemComparator())
+            .sorted(newestFirstComparator())
             .toList();
     }
 
-    private Comparator<DefendantAccountHistoryItem> newestFirstHistoryItemComparator() {
+    public Comparator<DefendantAccountHistoryItem> newestFirstComparator() {
         return Comparator.comparing(
                 DefendantAccountHistoryItem::getEventDateTime,
                 Comparator.nullsLast(Comparator.reverseOrder())

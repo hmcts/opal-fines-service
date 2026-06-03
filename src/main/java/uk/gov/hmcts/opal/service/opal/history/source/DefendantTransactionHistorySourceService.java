@@ -26,11 +26,15 @@ import uk.gov.hmcts.opal.mapper.history.DefendantTransactionEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.DefendantTransactionHistorySourceService")
-public class DefendantTransactionHistorySourceService extends HistorySourceSpecificationSupport {
+public class DefendantTransactionHistorySourceService extends HistorySourceSpecificationSupport
+    implements AccountHistorySource {
 
     private final DefendantTransactionRepository defendantTransactionRepository;
     private final DefendantAccountRepository defendantAccountRepository;
@@ -38,11 +42,19 @@ public class DefendantTransactionHistorySourceService extends HistorySourceSpeci
     private final DefendantTransactionEntityHistoryMapper defendantTransactionEntityHistoryMapper;
 
     @Transactional(readOnly = true)
-    public List<DefendantAccountHistoryItem> fetch(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        if (!filter.includes(HistoryItemType.FINANCIAL)) {
-            return List.of();
-        }
+    @Override
+    public boolean supports(AccountHistoryContext context) {
+        return AccountHistoryType.DEFENDANT == context.getAccountType();
+    }
 
+    @Override
+    public HistoryItemType getItemType() {
+        return HistoryItemType.FINANCIAL;
+    }
+
+    @Override
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+        Long defendantAccountId = context.getAccountId();
         List<DefendantTransactionEntity> transactions = defendantTransactionRepository.findAll(allOf(
             transactionForDefendantAccount(defendantAccountId),
             transactionDateFrom(filter.getDateFrom()),

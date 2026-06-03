@@ -9,22 +9,32 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.mapper.history.NoteEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class NoteHistorySourceService {
+public class NoteHistorySourceService implements AccountHistorySource {
 
     private final NoteRepository noteRepository;
     private final NoteEntityHistoryMapper noteEntityHistoryMapper;
 
     @Transactional(readOnly = true)
-    public List<DefendantAccountHistoryItem> fetch(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        if (!filter.includes(HistoryItemType.NOTE)) {
-            return List.of();
-        }
+    @Override
+    public boolean supports(AccountHistoryContext context) {
+        return AccountHistoryType.DEFENDANT == context.getAccountType();
+    }
 
+    @Override
+    public HistoryItemType getItemType() {
+        return HistoryItemType.NOTE;
+    }
+
+    @Override
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
         return noteRepository.findDefendantAccountHistoryNotes(
-                defendantAccountId.toString(),
+                context.getAccountId().toString(),
                 filter.getDateFrom(),
                 filter.getDateTo()
             ).stream()

@@ -13,20 +13,31 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class AmendmentHistorySourceService extends HistorySourceSpecificationSupport {
+public class AmendmentHistorySourceService extends HistorySourceSpecificationSupport implements AccountHistorySource {
 
     private final AmendmentRepository amendmentRepository;
     private final AmendmentEntityHistoryMapper amendmentEntityHistoryMapper;
 
     @Transactional(readOnly = true)
-    public List<DefendantAccountHistoryItem> fetch(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        if (!filter.includes(HistoryItemType.AMENDMENT)) {
-            return List.of();
-        }
+    @Override
+    public boolean supports(AccountHistoryContext context) {
+        return AccountHistoryType.DEFENDANT == context.getAccountType();
+    }
 
+    @Override
+    public HistoryItemType getItemType() {
+        return HistoryItemType.AMENDMENT;
+    }
+
+    @Override
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+        Long defendantAccountId = context.getAccountId();
         return amendmentRepository.findAll(allOf(
                 amendmentForDefendantAccount(defendantAccountId),
                 amendmentDateFrom(filter.getDateFrom()),

@@ -12,20 +12,31 @@ import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.mapper.history.PaymentTermsEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentTermsHistorySourceService extends HistorySourceSpecificationSupport {
+public class PaymentTermsHistorySourceService extends HistorySourceSpecificationSupport implements AccountHistorySource {
 
     private final PaymentTermsRepository paymentTermsRepository;
     private final PaymentTermsEntityHistoryMapper paymentTermsEntityHistoryMapper;
 
     @Transactional(readOnly = true)
-    public List<DefendantAccountHistoryItem> fetch(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        if (!filter.includes(HistoryItemType.PAYMENT_TERMS)) {
-            return List.of();
-        }
+    @Override
+    public boolean supports(AccountHistoryContext context) {
+        return AccountHistoryType.DEFENDANT == context.getAccountType();
+    }
 
+    @Override
+    public HistoryItemType getItemType() {
+        return HistoryItemType.PAYMENT_TERMS;
+    }
+
+    @Override
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+        Long defendantAccountId = context.getAccountId();
         return paymentTermsRepository.findAll(allOf(
                 paymentTermsForDefendantAccount(defendantAccountId),
                 paymentTermsDateFrom(filter.getDateFrom()),

@@ -12,20 +12,31 @@ import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.mapper.history.EnforcementEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
 @Service
 @RequiredArgsConstructor
-public class EnforcementHistorySourceService extends HistorySourceSpecificationSupport {
+public class EnforcementHistorySourceService extends HistorySourceSpecificationSupport implements AccountHistorySource {
 
     private final EnforcementRepository enforcementRepository;
     private final EnforcementEntityHistoryMapper enforcementEntityHistoryMapper;
 
     @Transactional(readOnly = true)
-    public List<DefendantAccountHistoryItem> fetch(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        if (!filter.includes(HistoryItemType.ENFORCEMENT)) {
-            return List.of();
-        }
+    @Override
+    public boolean supports(AccountHistoryContext context) {
+        return AccountHistoryType.DEFENDANT == context.getAccountType();
+    }
 
+    @Override
+    public HistoryItemType getItemType() {
+        return HistoryItemType.ENFORCEMENT;
+    }
+
+    @Override
+    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter) {
+        Long defendantAccountId = context.getAccountId();
         return enforcementRepository.findAll(allOf(
                 enforcementForDefendantAccount(defendantAccountId),
                 enforcementDateFrom(filter.getDateFrom()),
