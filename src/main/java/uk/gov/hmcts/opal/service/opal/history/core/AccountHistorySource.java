@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.service.opal.history.core;
 
 import java.util.List;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 
 public interface AccountHistorySource {
@@ -11,5 +9,5 @@ public interface AccountHistorySource {
 
     HistoryItemType getItemType();
 
-    List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context, DefendantAccountHistoryFilter filter);
+    List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter);
 }

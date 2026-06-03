@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -26,7 +24,9 @@ import uk.gov.hmcts.opal.mapper.history.DefendantTransactionEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 
@@ -53,8 +53,7 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
     }
 
     @Override
-    public List<DefendantAccountHistoryItem> fetch(AccountHistoryContext context,
-                                                   DefendantAccountHistoryFilter filter) {
+    public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
         List<DefendantTransactionEntity> transactions = defendantTransactionRepository.findAll(allOf(
             transactionForDefendantAccount(defendantAccountId),
@@ -93,9 +92,10 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
             .collect(Collectors.toSet());
     }
 
-    private DefendantAccountHistoryItem toTransactionHistoryItem(DefendantTransactionEntity transaction,
-                                                                 DefendantTransactionHistoryAssociations associations) {
-        DefendantAccountHistoryItem historyItem = defendantTransactionEntityHistoryMapper.toHistoryItem(transaction);
+    private AccountHistoryItem toTransactionHistoryItem(DefendantTransactionEntity transaction,
+                                                        DefendantTransactionHistoryAssociations associations) {
+        AccountHistoryItem historyItem =
+            DefendantAccountHistoryModelAdapter.toCoreItem(defendantTransactionEntityHistoryMapper.toHistoryItem(transaction));
 
         if (historyItem.getDetails() instanceof DefendantTransactionDetails details) {
             enrichTransactionDetails(transaction, details, associations);

@@ -2,17 +2,17 @@ package uk.gov.hmcts.opal.service.opal.history.defendant;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Comparator;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 import uk.gov.hmcts.opal.service.opal.history.core.AbstractAccountHistoryService;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryResult;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.AmendmentHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.DefendantTransactionHistorySource;
@@ -52,7 +52,18 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
     @Transactional(readOnly = true)
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         log.debug(":getHistorySources: Opal mode - ID: {}", defendantAccountId);
-        return super.getHistory(defendantAccountId, filter);
+
+        AccountHistoryResult historyResult = super.getHistory(
+            defendantAccountId,
+            DefendantAccountHistoryModelAdapter.toCoreFilter(filter)
+        );
+
+        return DefendantAccountHistoryResponse.builder()
+            .version(historyResult.getVersion())
+            .historyItems(historyResult.getHistoryItems().stream()
+                .map(DefendantAccountHistoryModelAdapter::toDefendantItem)
+                .toList())
+            .build();
     }
 
     @Override
@@ -68,16 +79,7 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
     }
 
     @Override
-    protected Comparator<DefendantAccountHistoryItem> getComparator() {
+    protected Comparator<AccountHistoryItem> getComparator() {
         return historyItemOrderingService.newestFirstComparator();
-    }
-
-    @Override
-    protected DefendantAccountHistoryResponse buildResponse(AccountHistoryContext context,
-                                                           List<DefendantAccountHistoryItem> items) {
-        return DefendantAccountHistoryResponse.builder()
-            .version(context.getVersion())
-            .historyItems(items)
-            .build();
     }
 }
