@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService;
+import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
 @Service
 @Slf4j(topic = "opal.MajorCreditorAccountService")
@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService;
 public class MajorCreditorAccountService {
 
     private final UserStateService userStateService;
-    private final LegacyMajorCreditorAccountService legacyMajorCreditorAccountService;
+    private final MajorCreditorAccountProxy majorCreditorAccountProxy;
 
     public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId) {
         log.debug(":getHeaderSummary: id={}", majorCreditorAccountId);
@@ -28,7 +28,7 @@ public class MajorCreditorAccountService {
         }
 
         GetMajorCreditorAccountHeaderSummaryResponse response =
-            legacyMajorCreditorAccountService.getHeaderSummary(majorCreditorAccountId);
+            majorCreditorAccountProxy.getHeaderSummary(majorCreditorAccountId);
         Short businessUnitId = getBusinessUnitId(response.getBusinessUnitDetails());
 
         if (!userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {

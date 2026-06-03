@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService;
+import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorAccountServiceTest {
@@ -27,13 +27,13 @@ class MajorCreditorAccountServiceTest {
     private UserStateService userStateService;
 
     @Mock
-    private LegacyMajorCreditorAccountService legacyMajorCreditorAccountService;
+    private MajorCreditorAccountProxy majorCreditorAccountProxy;
 
     @InjectMocks
     private MajorCreditorAccountService majorCreditorAccountService;
 
     @Test
-    void getHeaderSummary_authorisedUserDelegatesToLegacyService() {
+    void getHeaderSummary_authorisedUserDelegatesToProxy() {
         UserState userState = mock(UserState.class);
         GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit("77");
 
@@ -41,7 +41,7 @@ class MajorCreditorAccountServiceTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(true);
-        when(legacyMajorCreditorAccountService.getHeaderSummary(123L)).thenReturn(response);
+        when(majorCreditorAccountProxy.getHeaderSummary(123L)).thenReturn(response);
 
         GetMajorCreditorAccountHeaderSummaryResponse result =
             majorCreditorAccountService.getHeaderSummary(123L);
@@ -49,7 +49,7 @@ class MajorCreditorAccountServiceTest {
         assertEquals(response, result);
         verify(userStateService).checkForAuthorisedUser();
         verify(userState).hasBusinessUnitUserWithPermission((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verify(legacyMajorCreditorAccountService).getHeaderSummary(123L);
+        verify(majorCreditorAccountProxy).getHeaderSummary(123L);
     }
 
     @Test
@@ -65,7 +65,7 @@ class MajorCreditorAccountServiceTest {
         );
 
         assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(legacyMajorCreditorAccountService);
+        verifyNoInteractions(majorCreditorAccountProxy);
     }
 
     @Test
@@ -77,7 +77,7 @@ class MajorCreditorAccountServiceTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
-        when(legacyMajorCreditorAccountService.getHeaderSummary(123L)).thenReturn(response);
+        when(majorCreditorAccountProxy.getHeaderSummary(123L)).thenReturn(response);
 
         PermissionNotAllowedException exception = assertThrows(
             PermissionNotAllowedException.class,
@@ -86,7 +86,7 @@ class MajorCreditorAccountServiceTest {
 
         assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         assertThat(exception.getBusinessUnitId()).isEqualTo((short) 77);
-        verify(legacyMajorCreditorAccountService).getHeaderSummary(123L);
+        verify(majorCreditorAccountProxy).getHeaderSummary(123L);
     }
 
     private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(String businessUnitId) {
