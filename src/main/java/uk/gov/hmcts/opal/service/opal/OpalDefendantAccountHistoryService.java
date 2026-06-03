@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
@@ -34,16 +33,15 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantTransactionEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.EnforcementEntityHistoryMapper;
-import uk.gov.hmcts.opal.mapper.history.NoteEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.PaymentTermsEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
-import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
+import uk.gov.hmcts.opal.service.opal.history.source.NoteHistorySourceService;
 
 @Service
 @RequiredArgsConstructor
@@ -58,8 +56,6 @@ public class OpalDefendantAccountHistoryService {
 
     private final EnforcementRepository enforcementRepository;
 
-    private final NoteRepository noteRepository;
-
     private final PaymentTermsRepository paymentTermsRepository;
 
     private final DefendantTransactionRepository defendantTransactionRepository;
@@ -70,13 +66,13 @@ public class OpalDefendantAccountHistoryService {
 
     private final EnforcementEntityHistoryMapper enforcementEntityHistoryMapper;
 
-    private final NoteEntityHistoryMapper noteEntityHistoryMapper;
-
     private final PaymentTermsEntityHistoryMapper paymentTermsEntityHistoryMapper;
 
     private final DefendantTransactionEntityHistoryMapper defendantTransactionEntityHistoryMapper;
 
     private final HistoryItemOrderingService historyItemOrderingService;
+
+    private final NoteHistorySourceService noteHistorySourceService;
 
     @Transactional(readOnly = true)
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
@@ -89,7 +85,7 @@ public class OpalDefendantAccountHistoryService {
         DefendantAccountHistorySources sources = DefendantAccountHistorySources.builder()
             .amendments(getAmendments(defendantAccountId, filter))
             .enforcements(getEnforcements(defendantAccountId, filter))
-            .notes(getNotes(defendantAccountId, filter))
+            .notes(noteHistorySourceService.fetch(defendantAccountId, filter))
             .paymentTerms(getPaymentTerms(defendantAccountId, filter))
             .transactions(getTransactions(defendantAccountId, filter))
             .build();
@@ -107,7 +103,7 @@ public class OpalDefendantAccountHistoryService {
         return historyItemOrderingService.orderNewestFirst(Stream.of(
                 sources.getAmendments().stream().map(amendmentEntityHistoryMapper::toHistoryItem),
                 sources.getEnforcements().stream().map(enforcementEntityHistoryMapper::toHistoryItem),
-                sources.getNotes().stream().map(noteEntityHistoryMapper::toHistoryItem),
+                sources.getNotes().stream(),
                 sources.getPaymentTerms().stream().map(paymentTermsEntityHistoryMapper::toHistoryItem),
                 sources.getTransactions().stream()
                     .map(transaction -> toTransactionHistoryItem(transaction, transactionAssociations))
@@ -224,18 +220,6 @@ public class OpalDefendantAccountHistoryService {
         ));
     }
 
-    private List<NoteEntity> getNotes(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        if (!filter.includes(HistoryItemType.NOTE)) {
-            return List.of();
-        }
-
-        return noteRepository.findDefendantAccountHistoryNotes(
-            defendantAccountId.toString(),
-            filter.getDateFrom(),
-            filter.getDateTo()
-        );
-    }
-
     private List<PaymentTermsEntity> getPaymentTerms(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         if (!filter.includes(HistoryItemType.PAYMENT_TERMS)) {
             return List.of();
@@ -344,7 +328,7 @@ public class OpalDefendantAccountHistoryService {
 
         List<EnforcementEntity> enforcements;
 
-        List<NoteEntity> notes;
+        List<DefendantAccountHistoryItem> notes;
 
         List<PaymentTermsEntity> paymentTerms;
 
