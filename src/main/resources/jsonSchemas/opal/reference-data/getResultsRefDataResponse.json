@@ -46,6 +46,10 @@
           "type": ["string", "null"],
           "description": "The creditor of the imposition"
         },
+        "requires_employment_data": {
+          "type": ["boolean", "null"],
+          "description": "Whether the result requires employment data to be present"
+        },
         "required": [
           "result_id",
           "result_title",

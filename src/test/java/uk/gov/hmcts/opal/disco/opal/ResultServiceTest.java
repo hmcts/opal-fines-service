@@ -68,7 +68,7 @@ class ResultServiceTest {
         // Arrange
         ResultEntity resultEntity = ResultEntity.builder().resultId("ABC").build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
-            "ABC", null, null, false, null, null, null
+            "ABC", null, null, false, null, null, null, null
         );
         when(resultRepository.findById(any())).thenReturn(Optional.of(resultEntity));
         when(resultMapper.toRefData(resultEntity)).thenReturn(expectedRefData);
@@ -92,7 +92,7 @@ class ResultServiceTest {
         // Arrange
         ResultEntity resultEntity = ResultEntity.builder().resultId("ABC").build();
         ResultReferenceData dto = new ResultReferenceData(
-            "ABC", null, null, false, null, null, null);
+            "ABC", null, null, false, null, null, null, null);
 
         @SuppressWarnings("unchecked")
         SpecificationFluentQuery<ResultEntity> sfq = (SpecificationFluentQuery<ResultEntity>)
@@ -146,7 +146,7 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("NBWIT", null, null, false, null, null, null);
+        ResultReferenceData dto = new ResultReferenceData("NBWIT", null, null, false, null, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - enforcementOverride true (others null)
@@ -198,7 +198,7 @@ class ResultServiceTest {
 
         ResultEntity entity = ResultEntity.builder().build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
-            null, null, null, false, null, null, null
+            null, null, null, false, null, null, null, null
         );
         when(resultMapper.toRefData(entity)).thenReturn(expectedRefData);
 
@@ -220,7 +220,8 @@ class ResultServiceTest {
             entity.isActive(),
             entity.getResultType(),
             entity.getImpositionCreditor(),
-            entity.getImpositionAllocationPriority()
+            entity.getImpositionAllocationPriority(),
+            entity.getRequiresEmploymentData()
         );
 
         // Assert
@@ -292,7 +293,7 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("ABC", null, null, false, null, null, null);
+        ResultReferenceData dto = new ResultReferenceData("ABC", null, null, false, null, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - pass Optional.of(ids) and null for all booleans
@@ -328,7 +329,7 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("ACT-1", null, null, false, null, null, null);
+        ResultReferenceData dto = new ResultReferenceData("ACT-1", null, null, false, null, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - active true (others null)
@@ -367,7 +368,7 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("MEF-FALSE", null, null, false, null, null, null);
+        ResultReferenceData dto = new ResultReferenceData("MEF-FALSE", null, null, false, null, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - pass explicit false
@@ -410,7 +411,7 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("MIXED", null, null, false, null, null, null);
+        ResultReferenceData dto = new ResultReferenceData("MIXED", null, null, false, null, null, null, null);
         when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act - mix of true/false/null

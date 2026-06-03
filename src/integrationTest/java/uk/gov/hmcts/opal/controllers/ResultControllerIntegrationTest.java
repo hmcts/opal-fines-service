@@ -163,8 +163,10 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"))
             .andExpect(jsonPath("$.refData[0].result_title").value("First Ever Result Entry for Testing"))
+            .andExpect(jsonPath("$.refData[0].requires_employment_data").value(nullValue()))
             .andExpect(jsonPath("$.refData[1].result_id").value("DDDDDD"))
-            .andExpect(jsonPath("$.refData[1].result_title").value("Bail Warrant - dated"));
+            .andExpect(jsonPath("$.refData[1].result_title").value("Bail Warrant - dated"))
+            .andExpect(jsonPath("$.refData[1].requires_employment_data").value(false));
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
@@ -190,7 +192,8 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].active").value(true))
             .andExpect(jsonPath("$.refData[0].result_type").value("Action"))
             .andExpect(jsonPath("$.refData[0].imposition_creditor").value(nullValue()))
-            .andExpect(jsonPath("$.refData[0].imposition_allocation_order").value(nullValue()));
+            .andExpect(jsonPath("$.refData[0].imposition_allocation_order").value(nullValue()))
+            .andExpect(jsonPath("$.refData[0].requires_employment_data").value(false));
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
