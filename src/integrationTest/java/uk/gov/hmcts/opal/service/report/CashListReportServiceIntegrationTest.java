@@ -6,8 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.TestContainerConfig.POSTGRES_CONTAINER;
-import static uk.gov.hmcts.opal.TestContainerConfig.REDIS_CONTAINER;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.ERROR;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
@@ -19,22 +17,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.IntegrationSecurityConfiguration;
-import uk.gov.hmcts.opal.TestContainerConfig;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
@@ -43,16 +33,9 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueueConsumerService;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueListener;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
-// Using a non-web context here to avoid starting MVC and reduce CI memory pressure
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("integration")
-@ContextConfiguration(classes = {TestContainerConfig.class})
-@Import(IntegrationSecurityConfiguration.class)
-@ExtendWith(ZephyrAutomationExtension.class)
 @Transactional
-class CashListReportServiceIntegrationTest {
+class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final long REPORT_INSTANCE_ID = 99000000343000L;
     private static final long TILL_ID = 99000000343100L;
@@ -70,15 +53,6 @@ class CashListReportServiceIntegrationTest {
 
     @MockitoBean
     private Clock clock;
-
-    @DynamicPropertySource
-    static void databaseProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
-        registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
-        registry.add("spring.data.redis.url", REDIS_CONTAINER::getRedisURI);
-        registry.add("legacy-gateway.url", TestContainerConfig::legacyGatewayUrl);
-    }
 
     @BeforeEach
     void setUp() {
