@@ -64,7 +64,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.draft_account_id").value(5))
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.submitted_by").value("USER01"))
-            .andExpect(jsonPath("$.submitted_by_name").value("normal@users.com"))
+            .andExpect(jsonPath("$.submitted_by_name").value("Normal User"))
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))

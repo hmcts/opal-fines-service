@@ -71,7 +71,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.validated_by").value("USER01"))
-            .andExpect(jsonPath("$.validated_by_name").value("normal@users.com"))
+            .andExpect(jsonPath("$.validated_by_name").value("Normal User"))
             .andExpect(jsonPath("$.timeline_data").isArray());
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
@@ -223,6 +223,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         UserState userState = UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
+            .name("Normal User")
             .businessUnitUser(Set.of(buUser))
             .build();
 
