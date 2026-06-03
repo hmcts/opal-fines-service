@@ -47,7 +47,7 @@ class UserStateServiceTest {
     void testCheckForAuthorisedUser_usesCurrentAuthenticatedUserStateWhenAvailable() {
         // Arrange
         final UserState expectedUserState = mock(UserState.class);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(expectedUserState));
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.of(expectedUserState));
 
         // Act
         UserState userState = userStateService.checkForAuthorisedUser("");
@@ -64,7 +64,7 @@ class UserStateServiceTest {
         UserStateV2 userStateV2 = mock(UserStateV2.class);
         final UserState expectedUserState = mock(UserState.class);
         setAuthentication(authToken);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.empty());
         when(authToken.getUserState()).thenReturn(userStateV2);
         when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
 
@@ -80,7 +80,7 @@ class UserStateServiceTest {
         // Arrange
         Authentication authentication = mock(Authentication.class);
         setAuthentication(authentication);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.empty());
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
@@ -96,7 +96,7 @@ class UserStateServiceTest {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         setAuthentication(authToken);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.empty());
         when(authToken.getUserState()).thenReturn(null);
 
         // Act

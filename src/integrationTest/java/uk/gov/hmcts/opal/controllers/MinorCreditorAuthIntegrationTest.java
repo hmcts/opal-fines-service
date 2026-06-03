@@ -86,7 +86,7 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
     void getMinorCreditorAccount_withBacsPermissionInAuthenticatedUserState_returnsBacsFields() throws Exception {
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS
@@ -112,7 +112,7 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
     void getMinorCreditorAccount_withoutBacsPermissionInAuthenticatedUserState_redactsBacsFields() throws Exception {
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
         )));

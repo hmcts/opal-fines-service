@@ -156,7 +156,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
                 .build()
         );
         UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("token_without_permission");

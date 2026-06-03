@@ -111,7 +111,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
 
         UserState userState = noFinesPermissionUser();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         Note note = new Note();
         note.setNoteText("test note");

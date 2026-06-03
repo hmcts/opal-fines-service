@@ -619,7 +619,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .thenReturn(noPermissionsUser());
 
         UserState userState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
+        when(userStateClientService.getUserStateV1ByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 

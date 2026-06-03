@@ -29,7 +29,7 @@ public class UserStateService {
     private final UserStateMapper userStateMapper;
 
     public UserState checkForAuthorisedUser() {
-        return userStateClientService.getUserStateByAuthenticatedUser()
+        return userStateClientService.getUserStateV1ByAuthenticatedUser()
             .map(userState -> {
                 log.debug(":checkForAuthorisedUser: using authenticated user state from user service: userId={}, "
                         + "userName={}, businessUnits={}",
