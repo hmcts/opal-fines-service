@@ -116,10 +116,10 @@ class DefendantAccountApiControllerTest {
         ResponseEntity<GetDefendantAccountHistory200Response> response =
             defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null, List.of(), BEARER_TOKEN);
 
-        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"1\"", response.getHeaders().getETag());
         assertSame(generatedResponse, response.getBody());
+        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
         verify(defendantAccountService).getHistory(eq(defendantId), filterCaptor.capture(), eq(BEARER_TOKEN));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
         assertTrue(filterCaptor.getValue().getItemTypes().isEmpty());
