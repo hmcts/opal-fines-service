@@ -4,10 +4,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.PaymentTermsDetails;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.TermsTypeCode;
 
@@ -28,10 +28,7 @@ public interface PaymentTermsEntityHistoryMapper {
     @Mapping(target = "lumpSumAmount", source = "instalmentLumpSum")
     @Mapping(target = "paymentTermsType.paymentTermsTypeCode", source = "termsTypeCode")
     @Mapping(target = "instalmentPeriod.instalmentPeriodCode", source = "instalmentPeriod")
-    @Mapping(target = "postedDetails.postedDate", source = "postedDate")
-    @Mapping(target = "postedDetails.postedBy", source = "postedBy")
-    @Mapping(target = "postedDetails.postedByName", source = "postedByUsername")
-    PaymentTerms toPaymentTermsDetails(PaymentTermsEntity entity);
+    PaymentTermsDetails toPaymentTermsDetails(PaymentTermsEntity entity);
 
     default PaymentTermsType.PaymentTermsTypeCode map(TermsTypeCode code) {
         return code == null ? null : PaymentTermsType.PaymentTermsTypeCode.fromValue(code.getCode());

@@ -612,6 +612,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             // Amount field should exist for Financial items only
             .andExpect(jsonPath("$.historyItems[1].amount").exists())
             .andExpect(jsonPath("$.historyItems", hasSize(5)))
+            .andExpect(jsonPath("$.historyItems[2].details.posted_details").doesNotExist())
+            .andExpect(jsonPath("$.historyItems[2].details.extension").doesNotExist())
             // Verify no generated orders/notices type is returned.
             .andExpect(jsonPath("$.historyItems[*].type",
                 contains(
