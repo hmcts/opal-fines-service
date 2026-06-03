@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.generated.model.PaymentTermsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommon;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.WriteOffTypeReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.DefendantTransactionStatusReferenceCommon.DefendantTransactionStatusEnum;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -77,8 +78,31 @@ public interface DefendantAccountHistoryResponseMapper {
 
     WriteOffTypeReferenceCommon toGeneratedWriteOffType(WriteOffTypeReference writeOffType);
 
-    DefendantTransactionStatusReferenceCommon toGeneratedTransactionStatus(
-        DefendantTransactionStatusReference status);
+    default DefendantTransactionStatusReferenceCommon toGeneratedTransactionStatus(
+        DefendantTransactionStatusReference status) {
+
+        if (status == null || status.getDefendantTransactionStatus() == null) {
+            return null;
+        }
+
+        String statusCode = status.getDefendantTransactionStatus();
+        DefendantTransactionStatusEnum generatedStatus = switch (statusCode) {
+            case "P" -> DefendantTransactionStatusEnum.PND;
+            case "C" -> DefendantTransactionStatusEnum.COMP;
+            default -> DefendantTransactionStatusEnum.CAN;
+        };
+
+        String displayName = switch (generatedStatus) {
+            case PND -> "Pending";
+            case COMP -> "Complete";
+            case CAN -> "Cancelled";
+        };
+
+        return DefendantTransactionStatusReferenceCommon.builder()
+            .defendantTransactionStatus(generatedStatus)
+            .defendantTransactionStatusDisplayName(displayName)
+            .build();
+    }
 
     default DefendantAccountHistoryItemHistory.TypeEnum mapType(HistoryItemType type) {
         return type == null ? null : DefendantAccountHistoryItemHistory.TypeEnum.fromValue(type.getResponseValue());
