@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +43,7 @@ import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 
 @Service
 @RequiredArgsConstructor
@@ -76,6 +76,8 @@ public class OpalDefendantAccountHistoryService {
 
     private final DefendantTransactionEntityHistoryMapper defendantTransactionEntityHistoryMapper;
 
+    private final HistoryItemOrderingService historyItemOrderingService;
+
     @Transactional(readOnly = true)
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         log.debug(":getHistorySources: Opal mode - ID: {}", defendantAccountId);
@@ -102,7 +104,7 @@ public class OpalDefendantAccountHistoryService {
         DefendantTransactionHistoryAssociations transactionAssociations =
             getTransactionHistoryAssociations(sources.getTransactions());
 
-        return Stream.of(
+        return historyItemOrderingService.orderNewestFirst(Stream.of(
                 sources.getAmendments().stream().map(amendmentEntityHistoryMapper::toHistoryItem),
                 sources.getEnforcements().stream().map(enforcementEntityHistoryMapper::toHistoryItem),
                 sources.getNotes().stream().map(noteEntityHistoryMapper::toHistoryItem),
@@ -111,8 +113,7 @@ public class OpalDefendantAccountHistoryService {
                     .map(transaction -> toTransactionHistoryItem(transaction, transactionAssociations))
             )
             .flatMap(stream -> stream)
-            .sorted(newestFirstHistoryItemComparator())
-            .toList();
+            .toList());
     }
 
     private DefendantTransactionHistoryAssociations getTransactionHistoryAssociations(
@@ -197,15 +198,6 @@ public class OpalDefendantAccountHistoryService {
             log.debug(":parseAssociatedRecordId: unable to parse associated record id '{}'", associatedRecordId);
             return Optional.empty();
         }
-    }
-
-    private Comparator<DefendantAccountHistoryItem> newestFirstHistoryItemComparator() {
-        return Comparator.comparing(
-                DefendantAccountHistoryItem::getEventDateTime,
-                Comparator.nullsLast(Comparator.reverseOrder())
-            )
-            .thenComparing(DefendantAccountHistoryItem::getType, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(DefendantAccountHistoryItem::getSourceId, Comparator.nullsLast(Comparator.naturalOrder()));
     }
 
     private List<AmendmentEntity> getAmendments(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
