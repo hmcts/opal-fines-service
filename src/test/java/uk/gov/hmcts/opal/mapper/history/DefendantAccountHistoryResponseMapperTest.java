@@ -116,7 +116,8 @@ class DefendantAccountHistoryResponseMapperTest {
         assertEquals("PAY123", transactionDetails.getPaymentReference());
         assertEquals("Extra transaction info", transactionDetails.getAdditionalInformation());
         assertEquals("TRNOUT", transactionDetails.getWriteOff().getWriteOffType().getValue());
-        assertEquals(DefendantTransactionStatusEnum.PND, transactionDetails.getStatus().getDefendantTransactionStatus());
+        assertEquals(DefendantTransactionStatusEnum.PND,
+            transactionDetails.getStatus().getDefendantTransactionStatus());
         assertEquals(LocalDateTime.of(2026, 1, 5, 10, 15), transactionDetails.getStatusDate());
         assertEquals("defendant_accounts", transactionDetails.getAssociatedRecordType());
         assertEquals("262200", transactionDetails.getAssociatedRecordId());

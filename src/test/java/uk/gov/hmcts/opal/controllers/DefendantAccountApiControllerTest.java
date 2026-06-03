@@ -104,7 +104,6 @@ class DefendantAccountApiControllerTest {
         Long defendantId = 1L;
         DefendantAccountHistoryResponse historyResponse = DefendantAccountHistoryResponse.builder().build();
         GetDefendantAccountHistory200Response generatedResponse = new GetDefendantAccountHistory200Response();
-        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
 
         when(defendantAccountService.getHistory(eq(defendantId), any(DefendantAccountHistoryFilter.class),
             eq(BEARER_TOKEN)))
@@ -115,6 +114,7 @@ class DefendantAccountApiControllerTest {
         ResponseEntity<GetDefendantAccountHistory200Response> response =
             defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null, List.of(), BEARER_TOKEN);
 
+        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(generatedResponse, response.getBody());
         verify(defendantAccountService).getHistory(eq(defendantId), filterCaptor.capture(), eq(BEARER_TOKEN));
@@ -132,11 +132,10 @@ class DefendantAccountApiControllerTest {
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(new GetDefendantAccountHistory200Response());
 
-        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
-
         defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null,
             List.of("note,paymentTerms", "enforcement"), BEARER_TOKEN);
 
+        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
         verify(defendantAccountService).getHistory(eq(defendantId), filterCaptor.capture(), eq(BEARER_TOKEN));
         assertEquals(List.of(HistoryItemType.NOTE, HistoryItemType.PAYMENT_TERMS, HistoryItemType.ENFORCEMENT),
             filterCaptor.getValue().getItemTypes());
