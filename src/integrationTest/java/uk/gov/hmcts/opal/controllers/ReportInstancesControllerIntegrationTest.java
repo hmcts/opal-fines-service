@@ -114,7 +114,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
 
         //verify data in db row saved correctly
-        CreateReportInstanceResponseReports dto = objectMapper.readValue(body, CreateReportInstanceResponseReports.class);
+        CreateReportInstanceResponseReports dto = objectMapper.readValue(body,
+            CreateReportInstanceResponseReports.class);
         ReportInstanceEntity reportInstanceEntity = reportInstanceRepository
             .findById(dto.getReportInstanceId()).orElseThrow();
         assertEquals(REPORT_1BU_ID, reportInstanceEntity.getReport().getReportId());
@@ -285,7 +286,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
         resultActions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.type")
+                .value("https://hmcts.gov.uk/problems/entity-not-found"))
             .andExpect(jsonPath("$.title").value("Entity Not Found"))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
@@ -336,7 +338,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
         resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/message-not-readable"))
+            .andExpect(jsonPath("$.type")
+                .value("https://hmcts.gov.uk/problems/message-not-readable"))
             .andExpect(jsonPath("$.title").value("Bad Request"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.detail").value(
@@ -347,7 +350,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
-    void createReportInstance_publishFail() throws Exception{
+    void createReportInstance_publishFail() throws Exception {
         doThrow(new IllegalArgumentException("Unable to publish report queue message"))
             .when(reportQueuePublisher).publish(anyLong());
 
@@ -418,7 +421,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
         // Assert
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail response:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail response:\n{}",
+            ToJsonString.toPrettyJson(body));
         resultActions.andExpect(status().isUnprocessableContent());
     }
 
@@ -457,7 +461,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
         // Assert
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":createReportInstance_reportParameterValidation_unknownParameterFail response:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":createReportInstance_reportParameterValidation_unknownParameterFail response:\n{}",
+            ToJsonString.toPrettyJson(body));
         resultActions.andExpect(status().isUnprocessableContent())
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -497,7 +502,8 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
         // Assert
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":createReportInstance_reportParameterValidation_parameterTypeMismatchFail response:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":createReportInstance_reportParameterValidation_parameterTypeMismatchFail response:\n{}",
+            ToJsonString.toPrettyJson(body));
         resultActions.andExpect(status().isUnprocessableContent())
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -548,15 +554,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         //verify data in db row saved correctly
-        CreateReportInstanceResponseReports dto1 = objectMapper.readValue(body1, CreateReportInstanceResponseReports.class);
-        CreateReportInstanceResponseReports dto2 = objectMapper.readValue(body2, CreateReportInstanceResponseReports.class);
+        CreateReportInstanceResponseReports dto1 = objectMapper
+            .readValue(body1, CreateReportInstanceResponseReports.class);
+        CreateReportInstanceResponseReports dto2 = objectMapper
+            .readValue(body2, CreateReportInstanceResponseReports.class);
         assertNotEquals(dto1.getReportInstanceId(), dto2.getReportInstanceId());
-    }
-
-    @Test
-    @JiraStory("PO-2252")
-    @JiraEpic("PO-2248")
-    void fakeTestFuckYouGradle() {
-
     }
 }

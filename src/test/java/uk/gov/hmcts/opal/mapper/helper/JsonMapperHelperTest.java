@@ -10,7 +10,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createComplexReportParameters;
-import static uk.gov.hmcts.opal.testdata.ReportTestData.createReportEntityWithComplexParameters;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
@@ -24,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.service.report.ReportParameterData;
 
 class JsonMapperHelperTest {

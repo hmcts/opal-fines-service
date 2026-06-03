@@ -137,7 +137,8 @@ public class ReportParameterValidatorTest {
         ));
 
         assertThrows(ReportNotFoundException.class,
-            () -> reportParameterValidator.validateReportInstanceParameterValues(Map.of("text-param", "value"), report));
+            () -> reportParameterValidator.validateReportInstanceParameterValues(
+                Map.of("text-param", "value"), report));
     }
 
     @Test
@@ -228,7 +229,8 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuHasTooManyValues_returnsFalse() {
         List<String> menuChoiceList = List.of("one", "two");
         when(objectMapper.convertValue(menuChoiceList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class))).thenReturn(menuChoiceList);
+            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class)))
+            .thenReturn(menuChoiceList);
 
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("menu-param", "menu-checkbox", false, 0, 1, List.of("one", "two"))
@@ -244,7 +246,8 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuHasTooFewValues_returnsFalse() {
         List<String> menuChoiceList = List.of();
         when(objectMapper.convertValue(menuChoiceList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class))).thenReturn(menuChoiceList);
+            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class)))
+            .thenReturn(menuChoiceList);
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("menu-param", "menu-checkbox", false, 1, 2, List.of("one", "two"))
         ));
@@ -259,7 +262,8 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuHasInvalidOption_returnsFalse() {
         List<String> menuChoiceList = List.of("three");
         when(objectMapper.convertValue(menuChoiceList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class))).thenReturn(menuChoiceList);
+            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class)))
+            .thenReturn(menuChoiceList);
 
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("menu-param", "menu-radio", false, 1, 1, List.of("one", "two"))
@@ -294,8 +298,8 @@ public class ReportParameterValidatorTest {
             parameter("text-param", "text-60", false, null, null, null)
         ));
 
-        boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of("text-param", 123L),
-                                                                                     report);
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
+            Map.of("text-param", 123L), report);
 
         assertFalse(result);
     }

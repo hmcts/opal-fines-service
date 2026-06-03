@@ -10,7 +10,6 @@ import static uk.gov.hmcts.opal.entity.report.SupportedFileType.XML;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createFullReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createMinimalReportEntity;
-import static uk.gov.hmcts.opal.testdata.ReportTestData.createReportEntityWithComplexParameters;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.defaultReportEntityBuilder;
 
 import java.time.Duration;
