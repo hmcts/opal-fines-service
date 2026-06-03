@@ -24,23 +24,21 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantTransactionEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.EnforcementEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.PaymentTermsEntityHistoryMapper;
-import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
+import uk.gov.hmcts.opal.service.opal.history.source.AmendmentHistorySourceService;
 import uk.gov.hmcts.opal.service.opal.history.source.NoteHistorySourceService;
 
 @Service
@@ -52,8 +50,6 @@ public class OpalDefendantAccountHistoryService {
 
     private final DefendantAccountRepository defendantAccountRepository;
 
-    private final AmendmentRepository amendmentRepository;
-
     private final EnforcementRepository enforcementRepository;
 
     private final PaymentTermsRepository paymentTermsRepository;
@@ -62,8 +58,6 @@ public class OpalDefendantAccountHistoryService {
 
     private final ImpositionRepository impositionRepository;
 
-    private final AmendmentEntityHistoryMapper amendmentEntityHistoryMapper;
-
     private final EnforcementEntityHistoryMapper enforcementEntityHistoryMapper;
 
     private final PaymentTermsEntityHistoryMapper paymentTermsEntityHistoryMapper;
@@ -71,6 +65,8 @@ public class OpalDefendantAccountHistoryService {
     private final DefendantTransactionEntityHistoryMapper defendantTransactionEntityHistoryMapper;
 
     private final HistoryItemOrderingService historyItemOrderingService;
+
+    private final AmendmentHistorySourceService amendmentHistorySourceService;
 
     private final NoteHistorySourceService noteHistorySourceService;
 
@@ -83,7 +79,7 @@ public class OpalDefendantAccountHistoryService {
             .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + defendantAccountId));
 
         DefendantAccountHistorySources sources = DefendantAccountHistorySources.builder()
-            .amendments(getAmendments(defendantAccountId, filter))
+            .amendments(amendmentHistorySourceService.fetch(defendantAccountId, filter))
             .enforcements(getEnforcements(defendantAccountId, filter))
             .notes(noteHistorySourceService.fetch(defendantAccountId, filter))
             .paymentTerms(getPaymentTerms(defendantAccountId, filter))
@@ -101,7 +97,7 @@ public class OpalDefendantAccountHistoryService {
             getTransactionHistoryAssociations(sources.getTransactions());
 
         return historyItemOrderingService.orderNewestFirst(Stream.of(
-                sources.getAmendments().stream().map(amendmentEntityHistoryMapper::toHistoryItem),
+                sources.getAmendments().stream(),
                 sources.getEnforcements().stream().map(enforcementEntityHistoryMapper::toHistoryItem),
                 sources.getNotes().stream(),
                 sources.getPaymentTerms().stream().map(paymentTermsEntityHistoryMapper::toHistoryItem),
@@ -196,18 +192,6 @@ public class OpalDefendantAccountHistoryService {
         }
     }
 
-    private List<AmendmentEntity> getAmendments(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        if (!filter.includes(HistoryItemType.AMENDMENT)) {
-            return List.of();
-        }
-
-        return amendmentRepository.findAll(allOf(
-            amendmentForDefendantAccount(defendantAccountId),
-            amendmentDateFrom(filter.getDateFrom()),
-            amendmentDateTo(filter.getDateTo())
-        ));
-    }
-
     private List<EnforcementEntity> getEnforcements(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
         if (!filter.includes(HistoryItemType.ENFORCEMENT)) {
             return List.of();
@@ -243,23 +227,6 @@ public class OpalDefendantAccountHistoryService {
             transactionDateFrom(filter.getDateFrom()),
             transactionDateTo(filter.getDateTo())
         ));
-    }
-
-    private Specification<AmendmentEntity> amendmentForDefendantAccount(Long defendantAccountId) {
-        return (root, query, builder) -> builder.and(
-            builder.equal(root.get("associatedRecordType"), AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel()),
-            builder.equal(root.get("associatedRecordId"), defendantAccountId.toString())
-        );
-    }
-
-    private Specification<AmendmentEntity> amendmentDateFrom(LocalDate dateFrom) {
-        return dateFrom == null ? null
-            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("amendedDate"), atStartOfDay(dateFrom));
-    }
-
-    private Specification<AmendmentEntity> amendmentDateTo(LocalDate dateTo) {
-        return dateTo == null ? null
-            : (root, query, builder) -> builder.lessThan(root.get("amendedDate"), dayAfterStart(dateTo));
     }
 
     private Specification<EnforcementEntity> enforcementForDefendantAccount(Long defendantAccountId) {
@@ -324,7 +291,7 @@ public class OpalDefendantAccountHistoryService {
     @Builder
     public static class DefendantAccountHistorySources {
 
-        List<AmendmentEntity> amendments;
+        List<DefendantAccountHistoryItem> amendments;
 
         List<EnforcementEntity> enforcements;
 
