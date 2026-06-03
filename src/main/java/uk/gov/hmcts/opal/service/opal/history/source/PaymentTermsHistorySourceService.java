@@ -1,0 +1,70 @@
+package uk.gov.hmcts.opal.service.opal.history.source;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.HistoryItemType;
+import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
+import uk.gov.hmcts.opal.mapper.history.PaymentTermsEntityHistoryMapper;
+import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+
+@Service
+@RequiredArgsConstructor
+public class PaymentTermsHistorySourceService {
+
+    private final PaymentTermsRepository paymentTermsRepository;
+    private final PaymentTermsEntityHistoryMapper paymentTermsEntityHistoryMapper;
+
+    @Transactional(readOnly = true)
+    public List<DefendantAccountHistoryItem> fetch(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
+        if (!filter.includes(HistoryItemType.PAYMENT_TERMS)) {
+            return List.of();
+        }
+
+        return paymentTermsRepository.findAll(allOf(
+                paymentTermsForDefendantAccount(defendantAccountId),
+                paymentTermsDateFrom(filter.getDateFrom()),
+                paymentTermsDateTo(filter.getDateTo())
+            )).stream()
+            .map(paymentTermsEntityHistoryMapper::toHistoryItem)
+            .toList();
+    }
+
+    private Specification<PaymentTermsEntity> paymentTermsForDefendantAccount(Long defendantAccountId) {
+        return (root, query, builder) -> builder.equal(
+            root.get("defendantAccount").get("defendantAccountId"), defendantAccountId);
+    }
+
+    private Specification<PaymentTermsEntity> paymentTermsDateFrom(LocalDate dateFrom) {
+        return dateFrom == null ? null
+            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), atStartOfDay(dateFrom));
+    }
+
+    private Specification<PaymentTermsEntity> paymentTermsDateTo(LocalDate dateTo) {
+        return dateTo == null ? null
+            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
+    }
+
+    private LocalDateTime atStartOfDay(LocalDate date) {
+        return date.atStartOfDay();
+    }
+
+    private LocalDateTime dayAfterStart(LocalDate date) {
+        return date.plusDays(1).atStartOfDay();
+    }
+
+    @SafeVarargs
+    private final <T> Specification<T> allOf(Specification<T>... specifications) {
+        return Specification.allOf(Stream.of(specifications)
+            .filter(Objects::nonNull)
+            .toList());
+    }
+}
