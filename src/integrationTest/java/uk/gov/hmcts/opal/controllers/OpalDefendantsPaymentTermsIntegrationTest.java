@@ -82,7 +82,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.payment_terms.days_in_default").value(30))
             .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("USER01"))
-            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("normal@users.com"));
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("Normal User"));
     }
 
     @Test
@@ -135,7 +135,10 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
             )
             .andExpect(status().isUnauthorized())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/response-status"))
+            .andExpect(jsonPath("$.title").value("Unauthorized"))
             .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.status").value(401))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 

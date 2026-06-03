@@ -9,21 +9,24 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
+import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
 @Component
 @RequiredArgsConstructor
 public class CashListPaymentLinkService {
 
-    private final DefendantAccountRepository defendantAccountRepository;
+    private final OpalDefendantAccountService defendantAccountService;
     private final SuspenseItemRepository suspenseItemRepository;
 
     public DefendantAccountEntity getDefendantAccount(PaymentInEntity payment) {
         Long defendantAccountId = parseAssociatedRecordId(payment, DEFENDANT_ACCOUNTS.getLabel());
-        return defendantAccountRepository.findByDefendantAccountId(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant account not found for associated_record_id: " + defendantAccountId));
+        try {
+            return defendantAccountService.getDefendantAccountById(defendantAccountId);
+        } catch (EntityNotFoundException e) {
+            throw new EntityNotFoundException(
+                "Defendant account not found for associated_record_id: " + defendantAccountId, e);
+        }
     }
 
     public SuspenseItemEntity getSuspenseItem(PaymentInEntity payment) {
