@@ -22,9 +22,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -87,6 +90,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - success")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5928")
     void testPostAddEnforcement_Success() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -106,6 +112,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - backend 500")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5932")
     void testPostAddEnforcement_500Error() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -121,6 +130,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - forbidden without ENTER_ENFORCEMENT")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5930")
     void testPostAddEnforcement_403Forbidden() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             UserState.builder()
@@ -150,6 +162,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: POST Add Enforcement - unauthorized token rejected")
+    @JiraStory("PO-1918")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5924")
     void testPostAddEnforcement_401Unauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).checkForAuthorisedUser(any());
@@ -161,7 +176,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
                     .content(ENFORCEMENT_REQUEST)
             )
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     private HttpHeaders removeEnforcementHeaders(String bearerToken) {
@@ -174,6 +191,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - success")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5926")
     void testPatchRemoveEnforcementHold_Success() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -190,6 +210,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - forbidden without ENTER_ENFORCEMENT")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5925")
     void testPatchRemoveEnforcementHold_403Forbidden() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             UserState.builder()
@@ -211,6 +234,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - unauthorized token rejected")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5929")
     void testPatchRemoveEnforcementHold_401Unauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).checkForAuthorisedUser(any());
@@ -223,11 +249,16 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
                     .content(REMOVE_ENFORCEMENT_REQUEST)
             )
             .andExpect(status().isUnauthorized())
-            .andExpect(content().string(""));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - missing If-Match rejected")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5927")
     void testPatchRemoveEnforcementHold_missingIfMatch() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -248,6 +279,9 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - invalid If-Match rejected")
+    @JiraStory("PO-1919")
+    @JiraEpic("PO-1675")
+    @JiraTestKey("PO-5931")
     void testPatchRemoveEnforcementHold_invalidIfMatch() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 

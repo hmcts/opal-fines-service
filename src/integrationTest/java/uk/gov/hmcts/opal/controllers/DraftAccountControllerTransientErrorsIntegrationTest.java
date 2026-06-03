@@ -15,14 +15,12 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.service.DraftAccountService;
 
 import java.net.ConnectException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -32,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.entity.draft.DraftAccountStatus.SUBMITTED;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 @ActiveProfiles({"integration"})
@@ -41,13 +40,17 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     private static final String URL_BASE = "/draft-accounts";
 
-    private static final Short BU_ID = (short)007;
+    private static final short BU_ID = 7;
 
     @MockitoBean
     DraftAccountService draftAccountService;
 
     @Test
     @DisplayName("Update draft account - Should return 406 Not Acceptable [@PO-973, @PO-747]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-747")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5880")
     void testUpdateDraftAccount_trap406Response() throws Exception {
         DraftAccountResponseDto dto = DraftAccountResponseDto.builder()
             .draftAccountId(1L)
@@ -66,6 +69,9 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     @Test
     @DisplayName("Update draft account - Should return 408 [@PO-2117] ")
+    @JiraStory("PO-2117")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5882")
     void testUpdateDraftAccount_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             patch(URL_BASE + "/1")
@@ -78,6 +84,9 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     @Test
     @DisplayName("Update draft account - Should return 503 [@PO-2117] ")
+    @JiraStory("PO-2117")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5879")
     void testUpdateDraftAccount_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             patch(URL_BASE + "/1")
@@ -90,6 +99,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     @Test
     @DisplayName("Post draft account - Should return 406 Not Acceptable [@PO-973, @PO-691]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5876")
     void testPostDraftAccount_trap406Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn406WhenResponseContentTypeNotSupported(
@@ -97,6 +110,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @JiraStory("PO-973")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5878")
     void testPostDraftAccount_trap408Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn408WhenTimeout(
@@ -105,6 +122,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @JiraStory("PO-973")
+    @JiraStory("PO-691")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5886")
     void testPostDraftAccount_trap503Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn503WhenDownstreamServiceIsUnavailable(
@@ -115,6 +136,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @JiraStory("PO-973")
+    @JiraStory("PO-690")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5877")
     void testGetDraftAccountById_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             get(URL_BASE + "/1"), when(
@@ -122,6 +147,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @JiraStory("PO-973")
+    @JiraStory("PO-690")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5885")
     void testGetDraftAccountById_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             get(URL_BASE + "/1"), when(
@@ -132,11 +161,19 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     @Test
     @DisplayName("Get draft account summaries - Should return 406 Not Acceptable [@PO-973, @PO-647]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-647")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5883")
     void testGetDraftAccountsSummaries_trap406Response() throws Exception {
         shouldReturn406WhenResponseContentTypeNotSupported(get(URL_BASE));
     }
 
     @Test
+    @JiraStory("PO-973")
+    @JiraStory("PO-647")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5884")
     void testGetDraftAccountsSummaries_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             get(URL_BASE), when(draftAccountService
@@ -144,6 +181,10 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @JiraStory("PO-973")
+    @JiraStory("PO-647")
+    @JiraEpic("PO-2219")
+    @JiraTestKey("PO-5881")
     void testGetDraftAccountsSummaries_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             get(URL_BASE), when(draftAccountService
@@ -194,7 +235,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             .andExpect(content().json("""
             {
                 "title": "Service Unavailable",
-                "detail": "Opal Fines Database is currently unavailable",
+                "detail": "Opal database is currently unavailable",
                 "status": 503,
                 "type": "https://hmcts.gov.uk/problems/database-unavailable"
             }"""));
@@ -279,57 +320,15 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             }
             ,
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "timeline_data": [
-                    {
-                        "username": "johndoe123",
-                        "status": "Active",
-                        "status_date": "2023-11-01",
-                        "reason_text": "Account successfully activated after review."
-                    },
-                    {
-                        "username": "janedoe456",
-                        "status": "Pending",
-                        "status_date": "2023-12-05",
-                        "reason_text": "Awaiting additional documentation for verification."
-                    },
-                    {
-                        "username": "mikebrown789",
-                        "status": "Suspended",
-                        "status_date": "2023-10-15",
-                        "reason_text": "Violation of terms of service."
-                    }
-                ]
+              "account_status": "Submitted"
             }""";
-    }
-
-    private static String invalidCreateRequestBody() {
-        return """
-{
-    "invalid_field": "This field shouldn't be here",
-    "account": {
-        "account_create_request": {
-            "defendant": {
-                "company_name": "Company ABC",
-                "surname": "LNAME",
-                "fornames": "FNAME",
-                "dob": "2000-01-01"
-            },
-            "account": {
-                "account_type": "Invalid"
-            }
-        }
-    },
-    "business_unit_id": 1
-}""";
     }
 
     private static String validUpdateRequestBody() {
         return "{\n"
             + "    \"account_status\": \"Publishing Pending\",\n"
             + "    \"validated_by\": \"BUUID1\",\n"
-            + "    \"business_unit_id\": 5,\n"
-            + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
+            + "    \"business_unit_id\": 5\n"
             + "}";
     }
 
@@ -357,7 +356,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             ]""";
     }
 
-    private final String validAccountJson() {
+    private static String validAccountJson() {
         return """
             {
               "account_type": "Fine",
@@ -426,21 +425,5 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                 }
               ]
             }""";
-    }
-
-    private DraftAccountEntity createDraftAccountEntity(String submittedBy, short businessUnit) {
-        return DraftAccountEntity.builder()
-            .draftAccountId(1L)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnit).build())
-            .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
-            .submittedBy(submittedBy)
-            .accountType(DraftAccountType.FINE)
-            .accountStatus(SUBMITTED)
-            .statusMessage("Status is OK")
-            .accountStatusDate(LocalDateTime.of(2024, 11, 11, 11, 11))
-            .account(validAccountJson())
-            .accountSnapshot("{ \"data\": \"something snappy\"}")
-            .timelineData(validTimelineDataJson())
-            .build();
     }
 }

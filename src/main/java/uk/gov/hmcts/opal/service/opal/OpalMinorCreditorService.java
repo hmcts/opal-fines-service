@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -53,6 +55,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
     @Override
@@ -63,8 +66,27 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
-        throw new UnsupportedOperationException("Getting a minor creditor account is not yet supported in Opal");
+        log.debug(":getMinorCreditorAccount (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
+
+        CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Minor creditor account not found: " + minorCreditorAccountId
+            ));
+
+        if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
+            .isMinorCreditor()) {
+            throw new EntityNotFoundException("Account is not a minor creditor account: " + minorCreditorAccountId);
+        }
+
+        PartyEntity party = partyRepository.findById(creditorAccount.getMinorCreditorPartyId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Party not found for minor creditor account: " + creditorAccount.getCreditorAccountId()));
+
+        MinorCreditorAccountResponse response = responseMapper.toMinorCreditorAccountResponse(creditorAccount, party);
+        response.setVersion(creditorAccount.getVersion());
+        return response;
     }
 
     @Override
@@ -156,7 +178,10 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         creditorAccount.setLastChangedDate(LocalDateTime.now());
 
         partyRepository.save(party);
-        creditorAccountRepository.saveAndFlush(creditorAccount);
+        creditorAccountRepository.save(creditorAccount);
+
+        em.lock(creditorAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        em.flush();
 
         amendmentService.auditFinaliseStoredProc(
             minorCreditorAccountId,

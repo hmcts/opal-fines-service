@@ -17,6 +17,17 @@ spring:
       - org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
       - org.springframework.boot.security.autoconfigure.actuate.web.servlet.ManagementWebSecurityAutoConfiguration
       - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
+      -
+launchdarkly:
+  enabled: true
+  sdk-key: integration-test-key
+  file:
+    - src/integrationTest/resources/launchdarkly-flags.json
+  default-flag-values:
+    release-1a: true
+    release-1b: true
+    release-1c-enforcement-operational-reporting: true
+
 logging:
   level:
     org:

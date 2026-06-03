@@ -19,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser.ConnectionDetails;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
  * Manual helper that publishes a report message to a queue for developer testing.
@@ -60,6 +62,8 @@ class ReportQueueConnectivityIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2257")
+    @JiraEpic("PO-2627")
     void sendsReportMessageToQueue() throws Exception {
 
         BlobServiceClient blobService = new BlobServiceClientBuilder()
@@ -82,6 +86,8 @@ class ReportQueueConnectivityIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2257")
+    @JiraEpic("PO-2627")
     void peekAtQueue() throws Exception {
         try (JMSContext context = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
             Queue queue = context.createQueue(queueName);

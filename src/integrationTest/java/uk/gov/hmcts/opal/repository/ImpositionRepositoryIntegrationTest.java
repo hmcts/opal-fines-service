@@ -21,6 +21,9 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Imposition Repository Integration Tests")
@@ -49,6 +52,9 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     private EntityManager entityManager;
 
     @Test
+    @JiraStory("PO-2884")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6304")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
         entityManager.clear();
 
@@ -59,6 +65,9 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2884")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6307")
     void shouldLoadFullEntityGraphForDirectFetch() {
         entityManager.clear();
 
@@ -74,6 +83,9 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2884")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6305")
     void shouldKeepLiteEntityGraphAssociationsLazyForDefendantAccountFetch() {
         entityManager.clear();
 
@@ -86,6 +98,9 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2884")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6306")
     void shouldKeepLiteEntityGraphAssociationsLazyForSpecificationFetch() {
         entityManager.clear();
 

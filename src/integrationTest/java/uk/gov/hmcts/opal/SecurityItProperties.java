@@ -18,4 +18,16 @@ public class SecurityItProperties {
 
     @Value("${spring.security.oauth2.client.registration.internal-azure-ad.issuer-uri}")
     private String issuerUri;
+
+    public String getWireMockJwksUri() {
+        return wireMockJwksUri;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getIssuerUri() {
+        return issuerUri;
+    }
 }

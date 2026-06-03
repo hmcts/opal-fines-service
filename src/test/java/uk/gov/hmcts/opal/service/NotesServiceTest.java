@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,13 +13,17 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -45,7 +48,11 @@ class NotesServiceTest {
     @Mock private EntityManager em;
     @Mock private UserState user;
 
-    @InjectMocks private OpalNotesService service;
+    @InjectMocks
+    private OpalNotesService service;
+
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
     // common test data objects (no stubbing here to keep STRICT_STUBS happy)
     private AddNoteRequest request;
@@ -79,7 +86,7 @@ class NotesServiceTest {
     @Test
     void addNote_success_savesFields_returnsId_andLocksManagedEntity() {
         when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
-        when(user.getUserName()).thenReturn("USER1");
+        when(user.getDisplayName()).thenReturn("Normal User");
 
         // repository.save returns an entity with generated id
         NoteEntity persisted = new NoteEntity();
@@ -101,9 +108,9 @@ class NotesServiceTest {
         assertEquals("77", toSave.getAssociatedRecordId());
         assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, toSave.getAssociatedRecordType());
         assertEquals("1", toSave.getBusinessUnitUserId()); // short -> "1"
-        assertEquals("USER1", toSave.getPostedByUsername());
+        assertEquals("Normal User", toSave.getPostedByUsername());
         assertNotNull(toSave.getPostedDate(), "postedDate should be set");
-        assertFalse(toSave.getPostedDate().isAfter(LocalDateTime.now()));
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), toSave.getPostedDate());
 
         // Lock is called on the MANAGED instance
         verify(em).lock(eq(managedInEm), eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));

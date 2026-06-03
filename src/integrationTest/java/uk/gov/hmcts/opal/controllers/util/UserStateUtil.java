@@ -29,6 +29,7 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(999L)
             .userName("no-permissions@users.com")
+            .name("No Permissions User")
             .businessUnitUser(emptySet())
             .build();
     }
@@ -49,6 +50,7 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
+            .name("Normal User")
             .businessUnitUser(Set.of(permissions(buid, permissionsFor(permissions))))
             .build();
     }
@@ -57,6 +59,7 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
+            .name("Normal User")
             .businessUnitUser(
                 Arrays
                     .stream(buids)
@@ -69,6 +72,7 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
+            .name("Normal User")
             .businessUnitUser(Set.of(permissions(buid, permissions)))
             .build();
     }
@@ -77,6 +81,7 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
+            .name("Normal User")
             .businessUnitUser(permissions)
             .build();
     }
@@ -129,6 +134,17 @@ public class UserStateUtil {
 
         DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
             .businessUnitUsers(Collections.emptyList()).build();
+        domainsMap.put(FINES, domainBusinessUnitUsers);
+
+        UserStateV2 userState = getUserStateV2(domainsMap);
+
+        return new OpalJwtAuthenticationToken(userState, FINES, getJwt(), emptySet(), null);
+    }
+
+    public static OpalJwtAuthenticationToken permissionsToken(Short buid, FinesPermission... permissions) {
+        Map<Domain, DomainBusinessUnitUsers> domainsMap = new HashMap<>();
+        DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(permissions(buid, permissionsFor(permissions)))).build();
         domainsMap.put(FINES, domainBusinessUnitUsers);
 
         UserStateV2 userState = getUserStateV2(domainsMap);

@@ -22,6 +22,10 @@
     {
       "name": "Draft Account API",
       "path": "./collections/DraftAccount"
+    },
+    {
+      "name": "Release 1A API",
+      "path": "./collections/Release1A"
     }
   ]
 }

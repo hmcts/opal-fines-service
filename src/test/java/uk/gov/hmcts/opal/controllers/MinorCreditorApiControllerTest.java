@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,21 +29,37 @@ class MinorCreditorApiControllerTest {
 
     @Test
     void given_validRequest_when_getMinorCreditorAccount_then_returnsOkResponse() {
-        // Arrange
+        Long minorCreditorAccountId = 1L;
+        MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
+
+        when(minorCreditorService.getMinorCreditorAccount(minorCreditorAccountId)).thenReturn(response);
+
+        ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
+            minorCreditorApiController.getMinorCreditorAccount(minorCreditorAccountId);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertSame(response, result.getBody());
+        verify(minorCreditorService).getMinorCreditorAccount(minorCreditorAccountId);
+    }
+
+    @Test
+    void given_validRequest_when_patchMinorCreditorAccount_then_returnsOkResponse() {
         MinorCreditorAccountResponse response = new MinorCreditorAccountResponse();
         response.setCreditorAccountId(101L);
-        response.setVersion(BigInteger.valueOf(7));
+        response.setVersion(BigInteger.valueOf(2));
 
-        when(minorCreditorService.getMinorCreditorAccount(101L)).thenReturn(response);
+        PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest();
 
-        // Act
+        when(minorCreditorService.updateMinorCreditorAccount(101L, request, BigInteger.ONE,
+            "Bearer token", "77")).thenReturn(response);
+
         ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
-            minorCreditorApiController.getMinorCreditorAccount(101L);
+            minorCreditorApiController.patchMinorCreditorAccount(101L, "77", "\"1\"", "Bearer token", request);
 
-        // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals("\"7\"", result.getHeaders().getETag());
+        assertEquals("\"2\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());
-        verify(minorCreditorService).getMinorCreditorAccount(101L);
+        verify(minorCreditorService).updateMinorCreditorAccount(101L, request, BigInteger.ONE,
+            "Bearer token", "77");
     }
 }

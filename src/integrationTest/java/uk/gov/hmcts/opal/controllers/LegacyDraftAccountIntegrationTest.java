@@ -14,16 +14,27 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"legacy"})
 @Slf4j(topic = "opal.LegacyDraftAccountIntegrationTest")
 @DisplayName("DraftAccountController Integration Tests (LEGACY)")
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=true",
+    "launchdarkly.default-flag-values.release-1a=true"
+})
 public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
     @Test
     @DisplayName("Publish draft account does not return legacy server error in response [@PO-2819]")
+    @JiraStory("PO-2819")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5945")
     void testPublishDraftAccountGobServerErrorIsNotReturnedInResponse() throws Exception {
 
         long draftAccountId = 3L;

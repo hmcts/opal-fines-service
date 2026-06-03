@@ -15,6 +15,8 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Court Repository Integration Tests")
@@ -62,6 +65,9 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6295")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
         CourtEntity court = entityManager.find(CourtEntity.class, COURT_ID);
 
@@ -74,6 +80,9 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6296")
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForDirectFetch() {
         CourtEntity court = courtLiteRepository.findById(COURT_ID).orElseThrow();
 
@@ -81,6 +90,9 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6293")
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForSpecificationFetch() {
         Page<CourtEntity> page = courtLiteRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),
@@ -93,6 +105,9 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6297")
     void shouldLoadFullEntityGraphForDirectFetch() {
         CourtEntity court = courtRepository.findById(COURT_ID).orElseThrow();
 
@@ -107,6 +122,9 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2885")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-6294")
     void shouldLoadFullEntityGraphForSpecificationFetch() {
         Page<CourtEntity> page = courtRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),

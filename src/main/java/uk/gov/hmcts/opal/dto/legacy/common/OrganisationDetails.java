@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -16,6 +18,7 @@ import lombok.extern.jackson.Jacksonized;
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,6 +35,7 @@ public class OrganisationDetails {
     @NoArgsConstructor
     @AllArgsConstructor
     @Jacksonized
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class OrganisationAlias {

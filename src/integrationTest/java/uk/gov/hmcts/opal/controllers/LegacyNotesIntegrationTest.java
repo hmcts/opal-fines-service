@@ -7,6 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -15,11 +18,17 @@ import org.springframework.test.context.jdbc.Sql;
 public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
 
     @Test
+    @JiraStory("PO-1566")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5958")
     void testPostAddNotesSuccess() throws Exception {
         super.legacyTestAddNoteSuccess(log);
     }
 
     @Test
+    @JiraStory("PO-1566")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5957")
     void testSearchDefendantAccount_NoAccountsFound() throws Exception {
         super.legacyTestAddNote500Error(log);
     }

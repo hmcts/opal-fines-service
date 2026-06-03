@@ -1,5 +1,15 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,10 +23,12 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -24,16 +36,6 @@ import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -125,6 +127,35 @@ class DefendantAccountControllerTest {
 
         verify(defendantAccountEnforcementService).addEnforcement(defendantAccountId, businessUnitId, ifMatch,
             BEARER_TOKEN, request);
+    }
+
+    @Test
+    void testRemoveDefendantAccountParty_Success() {
+        // Arrange
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 10L;
+        Short businessUnitId = 10;
+        String businessUserId = "20";
+        String ifMatch = "1";
+
+        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
+        RemoveDefendantAccountPartyResponse mockResponse = new RemoveDefendantAccountPartyResponse();
+
+        when(defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyId, businessUnitId, businessUserId, ifMatch, request
+        )).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<RemoveDefendantAccountPartyResponse> response =
+            defendantAccountController.removeDefendantAccountParty(defendantAccountId,
+                defendantAccountPartyId, businessUnitId, businessUserId, ifMatch, request);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockResponse, response.getBody());
+
+        verify(defendantAccountPartyService).removeDefendantAccountParty(defendantAccountId,
+            defendantAccountPartyId, businessUnitId, businessUserId, ifMatch, request);
     }
 
     @Test

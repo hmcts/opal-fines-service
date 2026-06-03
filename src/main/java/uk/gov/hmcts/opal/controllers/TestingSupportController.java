@@ -12,11 +12,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 
@@ -29,7 +30,7 @@ import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 public class TestingSupportController {
 
     private final DynamicConfigService dynamicConfigService;
-    private final FeatureToggleService featureToggleService;
+    private final FeatureToggleApi featureToggleApi;
     private final AccessTokenService accessTokenService;
     private final DefendantAccountDeletionService defendantAccountDeletionService;
     private final UserStateClientService userStateClientService;
@@ -42,12 +43,12 @@ public class TestingSupportController {
 
     @GetMapping("/launchdarkly/bool/{featureKey}")
     public ResponseEntity<Boolean> isFeatureEnabled(@PathVariable String featureKey) {
-        return ResponseEntity.ok(this.featureToggleService.isFeatureEnabled(featureKey));
+        return ResponseEntity.ok(this.featureToggleApi.isFeatureEnabled(featureKey));
     }
 
     @GetMapping("/launchdarkly/string/{featureKey}")
     public ResponseEntity<String> getFeatureValue(@PathVariable String featureKey) {
-        return ResponseEntity.ok(this.featureToggleService.getFeatureValue(featureKey));
+        return ResponseEntity.ok(this.featureToggleApi.getFeatureValue(featureKey, ""));
     }
 
     @GetMapping("/token/parse")

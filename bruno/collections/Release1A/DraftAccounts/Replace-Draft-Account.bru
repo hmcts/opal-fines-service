@@ -1,0 +1,124 @@
+meta {
+  name: Replace Draft Account
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseURL}}/draft-accounts/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+  If-Match: 2
+}
+
+body:json {
+  {
+    "business_unit_id": 77,
+    "submitted_by": "L077JG",
+    "submitted_by_name": "opal-test",
+    "account_type": "Fine",
+    "account_status": "Submitted",
+    "account": {
+      "originator_type": "NEW",
+      "account_type": "Fine",
+      "defendant_type": "adultOrYouthOnly",
+      "originator_name": "Aberdare County Court",
+      "originator_id": 101,
+      "enforcement_court_id": 770000000021,
+      "collection_order_made": true,
+      "collection_order_made_today": false,
+      "collection_order_date": "2023-02-22",
+      "account_sentence_date": "2023-02-15",
+      "suspended_committal_date": null,
+      "prosecutor_case_reference": "21MET409283",
+      "fp_ticket_detail": null,
+      "payment_card_request": null,
+      "defendant": {
+        "company_flag": false,
+        "title": "Mr",
+        "surname": "MORGAN",
+        "forenames": "Liam James",
+        "dob": "2008-09-14",
+        "national_insurance_number": "QQ654321D",
+        "address_line_1": "Flat 5B",
+        "address_line_2": "221B Baker Street",
+        "address_line_3": "Marylebone",
+        "address_line_4": null,
+        "address_line_5": null,
+        "post_code": "NW1 6XE",
+        "telephone_number_home": "020 7123 9876",
+        "telephone_number_mobile": "07700 900456",
+        "telephone_number_business": "0161 496 2001",
+        "email_address_1": "liam.morgan@example.com",
+        "email_address_2": "liam.j.morgan@gmail.com"
+      },
+      "offences": [
+        {
+          "offence_id": 33369,
+          "date_of_sentence": "15/02/2023",
+          "imposing_court_id": 770000000021,
+          "impositions": [
+            {
+              "result_id": "FVS",
+              "amount_imposed": 125,
+              "amount_paid": 50,
+              "minor_creditor": null,
+              "major_creditor_id": null
+            },
+            {
+              "result_id": "FCPC",
+              "amount_imposed": 80,
+              "amount_paid": 0,
+              "minor_creditor": null,
+              "major_creditor_id": null
+            },
+            {
+              "result_id": "FO",
+              "amount_imposed": 45,
+              "amount_paid": 0,
+              "minor_creditor": null,
+              "major_creditor_id": null
+            }
+          ]
+        }
+      ],
+      "payment_terms": {
+        "payment_terms_type_code": "I",
+        "effective_date": "2023-03-22",
+        "instalment_period": "W",
+        "lump_sum_amount": 50,
+        "instalment_amount": 25,
+        "default_days_in_jail": null,
+        "enforcements": null
+      },
+      "account_notes": [
+        {
+          "note_type": "AA",
+          "account_note_text": "Youth defendant. Collection order issued 22/02/2023.",
+          "account_note_serial": 1
+        }
+      ]
+    },
+    "timeline_data": [
+      {
+        "username": "opal-test",
+        "status": "Submitted",
+        "status_date": "2026-05-12",
+        "reason_text": null
+      }
+    ]
+  }
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
