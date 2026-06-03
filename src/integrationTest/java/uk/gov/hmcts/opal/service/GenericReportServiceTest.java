@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
@@ -60,7 +59,6 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private Clock clock;
-
     static class TestBeans {
 
         @Bean
