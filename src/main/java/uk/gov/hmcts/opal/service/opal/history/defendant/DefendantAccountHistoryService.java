@@ -61,8 +61,9 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
     }
 
     @Override
-    protected void ensureAccountExists(AccountHistoryContext context) {
-        defendantAccountRepository.findByDefendantAccountId(context.getAccountId())
+    protected AccountHistoryContext ensureAccountExists(AccountHistoryContext context) {
+        return defendantAccountRepository.findByDefendantAccountId(context.getAccountId())
+            .map(defendantAccount -> context.withVersion(defendantAccount.getVersion()))
             .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + context.getAccountId()));
     }
 
@@ -75,9 +76,7 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
     protected DefendantAccountHistoryResponse buildResponse(AccountHistoryContext context,
                                                            List<DefendantAccountHistoryItem> items) {
         return DefendantAccountHistoryResponse.builder()
-            .version(defendantAccountRepository.findByDefendantAccountId(context.getAccountId())
-                .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + context.getAccountId()))
-                .getVersion())
+            .version(context.getVersion())
             .historyItems(items)
             .build();
     }

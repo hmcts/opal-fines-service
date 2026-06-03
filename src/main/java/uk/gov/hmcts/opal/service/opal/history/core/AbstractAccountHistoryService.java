@@ -17,21 +17,21 @@ public abstract class AbstractAccountHistoryService {
     public DefendantAccountHistoryResponse getHistory(Long accountId, DefendantAccountHistoryFilter filter) {
         AccountHistoryContext context = buildContext(accountId);
 
-        ensureAccountExists(context);
+        AccountHistoryContext loadedContext = ensureAccountExists(context);
 
         List<DefendantAccountHistoryItem> items = sources.stream()
-            .filter(source -> source.supports(context))
+            .filter(source -> source.supports(loadedContext))
             .filter(source -> filter.includes(source.getItemType()))
-            .flatMap(source -> source.fetch(context, filter).stream())
+            .flatMap(source -> source.fetch(loadedContext, filter).stream())
             .sorted(getComparator())
             .toList();
 
-        return buildResponse(context, items);
+        return buildResponse(loadedContext, items);
     }
 
     protected abstract AccountHistoryContext buildContext(Long accountId);
 
-    protected abstract void ensureAccountExists(AccountHistoryContext context);
+    protected abstract AccountHistoryContext ensureAccountExists(AccountHistoryContext context);
 
     protected abstract Comparator<DefendantAccountHistoryItem> getComparator();
 
