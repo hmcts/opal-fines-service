@@ -12,6 +12,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import java.time.Instant;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -36,6 +37,10 @@ class UserStateClientServiceIT extends AbstractIntegrationTest {
     @Autowired
     UserStateClientService userStateClientService;
 
+    @BeforeEach
+    void setUp() {
+        redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
+    }
 
     @SneakyThrows
     @Test
@@ -44,7 +49,6 @@ class UserStateClientServiceIT extends AbstractIntegrationTest {
     @JiraTestKey("PO-6321")
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
 
-        WireMock.configureFor("localhost", 4553);
         stubFor(get("/opal/v2/users/0/state")
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
