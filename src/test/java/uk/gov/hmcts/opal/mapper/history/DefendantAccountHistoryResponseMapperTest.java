@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.mapper.history;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -133,6 +134,23 @@ class DefendantAccountHistoryResponseMapperTest {
         assertNull(mapper.toGeneratedTransactionStatus(null));
         assertEquals(DefendantAccountHistoryItemHistory.TypeEnum.NOTE, mapper.mapType(HistoryItemType.NOTE));
         assertNull(mapper.mapType(null));
+    }
+
+    @Test
+    void mapsCancelledStatusExplicitlyAndRejectsUnsupportedSourceStatuses() {
+        assertEquals(DefendantTransactionStatusEnum.CAN,
+            mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
+                    .defendantTransactionStatus("X")
+                    .defendantTransactionStatusDisplayName("Cancelled")
+                    .build())
+                .getDefendantTransactionStatus());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
+                .defendantTransactionStatus("D")
+                .defendantTransactionStatusDisplayName("Dormant")
+                .build()));
+        assertEquals("Unsupported defendant transaction status: D", exception.getMessage());
     }
 
     private DefendantAccountHistoryItem buildAmendmentItem() {
