@@ -150,6 +150,7 @@ public class DefendantTransactionHistorySourceService extends HistorySourceSpeci
         return dateTo == null ? null
             : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
     }
+
     @Value
     @Builder
     private static class DefendantTransactionHistoryAssociations {
