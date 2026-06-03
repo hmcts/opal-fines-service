@@ -381,7 +381,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.historyItems[0].details.paymentReference").value("PAY262201"))
             .andExpect(jsonPath("$.historyItems[0].details.additionalInformation")
                 .value("Second history payment"))
-            .andExpect(jsonPath("$.historyItems[0].details.status.defendantTransactionStatus").value("P"))
+            .andExpect(jsonPath("$.historyItems[0].details.status.defendantTransactionStatus").value("PND"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordType").value("impositions"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordId").value("26220012"))
             .andExpect(jsonPath("$.historyItems[0].details.impositionDate").value("2026-01-06"))
@@ -519,7 +519,6 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                .accept(MediaType.APPLICATION_PROBLEM_JSON)
         );
 
         // Assert
@@ -542,7 +541,6 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .header("Authorization", "Bearer test-token")
-                .accept(MediaType.APPLICATION_PROBLEM_JSON)
         );
 
         // Assert
@@ -564,7 +562,6 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/999999999/history")
                 .header("Authorization", "Bearer test-token")
-                .accept(MediaType.APPLICATION_PROBLEM_JSON)
         );
 
         // Assert

@@ -87,7 +87,12 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         DefendantAccountHistoryResponse response =
             defendantAccountService.getHistory(id, filter, authorization);
 
-        return buildResponse(defendantAccountHistoryResponseMapper.toGeneratedResponse(response));
+        GetDefendantAccountHistory200Response generatedResponse =
+            defendantAccountHistoryResponseMapper.toGeneratedResponse(response);
+
+        return ResponseEntity.ok()
+            .eTag(VersionUtils.createETag(response))
+            .body(generatedResponse);
     }
 
     private List<HistoryItemType> toHistoryItemTypes(List<String> itemTypes) {
