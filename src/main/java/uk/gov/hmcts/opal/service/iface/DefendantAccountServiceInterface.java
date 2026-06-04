@@ -33,7 +33,15 @@ public interface DefendantAccountServiceInterface {
     UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                     String businessUnitId,
                                                     UpdateDefendantAccountRequest request,
-                                                    String postedBy);
+                                                    String postedBy,
+                                                    String postedByName);
+
+    default UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+                                                    String businessUnitId,
+                                                    UpdateDefendantAccountRequest request,
+                                                    String postedBy) {
+        return updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, postedBy);
+    }
                                                    
 
     AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
@@ -50,7 +58,19 @@ public interface DefendantAccountServiceInterface {
                                            String ifMatch,
                                            String businessUnitId,
                                            String postedBy,
+                                           String postedByName,
                                            String businessUserId);
+
+    default GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+                                           Long defendantAccountPartyId,
+                                           DefendantAccountParty defendantAccountParty,
+                                           String ifMatch,
+                                           String businessUnitId,
+                                           String postedBy,
+                                           String businessUserId) {
+        return replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId, defendantAccountParty,
+                                            ifMatch, businessUnitId, postedBy, postedBy, businessUserId);
+    }
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 

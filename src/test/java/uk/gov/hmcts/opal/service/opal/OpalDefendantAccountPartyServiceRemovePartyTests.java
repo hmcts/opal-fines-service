@@ -73,7 +73,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         doNothing().when(amendmentRepositoryService)
             .auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         doNothing().when(amendmentRepositoryService)
-            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "CASE-REF",
+            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "posted", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
 
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
@@ -93,7 +93,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         assertEquals(BigInteger.valueOf(2L), response.getVersion());
         verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentRepositoryService).auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10,
-            "posted", "CASE-REF", "ACCOUNT_ENQUIRY");
+            "posted", "posted", "CASE-REF", "ACCOUNT_ENQUIRY");
         verify(defendantAccountRepositoryService).findById(1L);
         verify(defendantAccountRepositoryService).saveAndFlush(account);
         assertEquals(0, account.getParties().size());
@@ -143,7 +143,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         verify(defendantAccountRepositoryService).findById(1L);
         verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentRepositoryService, never())
-            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "CASE-REF",
+            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "posted", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
     }

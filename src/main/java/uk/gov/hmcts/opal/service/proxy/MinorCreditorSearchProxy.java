@@ -51,9 +51,10 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         PatchMinorCreditorAccountRequest request,
         BigInteger ifMatch,
         String postedBy,
+        String postedByName,
         Short businessUnitId) {
         return getCurrentModeService().updateMinorCreditorAccount(minorCreditorAccountId, request, ifMatch, postedBy,
-            businessUnitId);
+            postedByName, businessUnitId);
     }
 
     @Override

@@ -166,7 +166,7 @@ public class DefendantAccountService {
                 .build();
 
             return defendantAccountServiceProxy.updateDefendantAccount(
-                defendantAccountId, businessUnitId, updateRequest, postedBy
+                defendantAccountId, businessUnitId, updateRequest, postedBy, userState.getUserName()
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
@@ -203,7 +203,7 @@ public class DefendantAccountService {
         if (userState.hasBusinessUnitUserWithPermission(buId,
                 FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
+                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, userState.getUserName(),
                 getBusinessUnitUserIdForBusinessUnit(userState, buId));
         } else {
             throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
@@ -285,7 +285,7 @@ public class DefendantAccountService {
         if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
             addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
                 .postedBy(businessUnitUserId)
-                .postedByName(userState.getUserName())
+                .postedByName(userState.getDisplayName())
                 .build());
         }
 

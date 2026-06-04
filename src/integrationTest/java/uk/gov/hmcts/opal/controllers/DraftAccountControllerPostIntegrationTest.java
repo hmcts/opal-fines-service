@@ -170,7 +170,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         resultActions.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.submitted_by").value("USER01"))
-            .andExpect(jsonPath("$.submitted_by_name").value("normal@users.com"))
+            .andExpect(jsonPath("$.submitted_by_name").value("Normal User"))
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")

@@ -141,6 +141,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         PatchMinorCreditorAccountRequest request,
         BigInteger ifMatch,
         String postedBy,
+        String postedByName,
         Short businessUnitId) {
         log.debug(":updateMinorCreditorAccount (Opal): id={}", minorCreditorAccountId);
 
@@ -188,6 +189,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             RecordType.CREDITOR_ACCOUNTS,
             creditorAccount.getBusinessUnitId(),
             postedBy,
+            postedByName,
             null,
             "ACCOUNT_ENQUIRY"
         );
