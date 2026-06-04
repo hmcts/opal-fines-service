@@ -17,7 +17,7 @@ public class AccountHistoryItem {
 
     private AccountHistoryItemType type;
 
-    private Object details;
+    private AccountHistoryDetails details;
 
     private BigDecimal amount;
 

@@ -13,9 +13,11 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.history.NoteDetails;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryDetails;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryNoteDetails;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryPostedDetails;
 
 class DefendantAccountHistoryModelAdapterTest {
@@ -66,7 +68,8 @@ class DefendantAccountHistoryModelAdapterTest {
         assertEquals(defendantItem.getPostedDetails().getPostedDate(), coreItem.getPostedDetails().getPostedDate());
         assertEquals(defendantItem.getPostedDetails().getPostedBy(), coreItem.getPostedDetails().getPostedBy());
         assertEquals(defendantItem.getPostedDetails().getPostedByName(), coreItem.getPostedDetails().getPostedByName());
-        assertEquals(defendantItem.getDetails(), coreItem.getDetails());
+        assertEquals(AccountHistoryNoteDetails.class, coreItem.getDetails().getClass());
+        assertEquals("History note", ((AccountHistoryNoteDetails) coreItem.getDetails()).getNoteText());
         assertEquals(defendantItem.getAmount(), coreItem.getAmount());
         assertEquals(defendantItem.getEventDateTime(), coreItem.getEventDateTime());
         assertEquals(defendantItem.getSourceId(), coreItem.getSourceId());
@@ -104,5 +107,16 @@ class DefendantAccountHistoryModelAdapterTest {
         assertEquals(defendantPostedDetails.getPostedByName(), corePostedDetails.getPostedByName());
         assertEquals(defendantPostedDetails,
             DefendantAccountHistoryModelAdapter.toDefendantPostedDetails(corePostedDetails));
+    }
+
+    @Test
+    void mapsDetailsBetweenDefendantAndCoreModels() {
+        AccountHistoryDetails coreDetails =
+            DefendantAccountHistoryModelAdapter.toCoreDetails(NoteDetails.builder().noteText("Core note").build());
+
+        assertEquals(AccountHistoryNoteDetails.class, coreDetails.getClass());
+        assertEquals("Core note", ((AccountHistoryNoteDetails) coreDetails).getNoteText());
+        assertEquals(NoteDetails.builder().noteText("Core note").build(),
+            DefendantAccountHistoryModelAdapter.toDefendantDetails(coreDetails));
     }
 }
