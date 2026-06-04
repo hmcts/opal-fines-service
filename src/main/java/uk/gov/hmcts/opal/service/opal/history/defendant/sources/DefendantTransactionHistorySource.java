@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
@@ -25,6 +24,7 @@ import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryDefendantTransactionDetails;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
@@ -100,14 +100,15 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
                 defendantTransactionEntityHistoryMapper.toHistoryItem(transaction)
             );
 
-        if (historyItem.getDetails() instanceof DefendantTransactionDetails details) {
+        if (historyItem.getDetails() instanceof AccountHistoryDefendantTransactionDetails details) {
             enrichTransactionDetails(transaction, details, associations);
         }
 
         return historyItem;
     }
 
-    private void enrichTransactionDetails(DefendantTransactionEntity transaction, DefendantTransactionDetails details,
+    private void enrichTransactionDetails(DefendantTransactionEntity transaction,
+                                          AccountHistoryDefendantTransactionDetails details,
                                           DefendantTransactionHistoryAssociations associations) {
         AssociatedRecordType associatedRecordType = transaction.getAssociatedRecordType();
         Optional<Long> associatedRecordId = parseAssociatedRecordId(transaction.getAssociatedRecordId());
@@ -127,7 +128,7 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
     }
 
     private void enrichDefendantAccountTransactionDetails(Long defendantAccountId,
-                                                          DefendantTransactionDetails details,
+                                                          AccountHistoryDefendantTransactionDetails details,
                                                           Map<Long, DefendantAccountEntity> defendantAccounts) {
         Optional.ofNullable(defendantAccounts.get(defendantAccountId)).ifPresent(defendantAccount -> {
             details.setAccountNumber(defendantAccount.getAccountNumber());
@@ -135,7 +136,8 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
         });
     }
 
-    private void enrichImpositionTransactionDetails(Long impositionId, DefendantTransactionDetails details,
+    private void enrichImpositionTransactionDetails(Long impositionId,
+                                                    AccountHistoryDefendantTransactionDetails details,
                                                     Map<Long, ImpositionEntity> impositions) {
         Optional.ofNullable(impositions.get(impositionId)).ifPresent(imposition -> {
             details.setImpositionDate(imposition.getPostedDate().toLocalDate());
