@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
@@ -14,6 +13,7 @@ import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
@@ -33,8 +33,8 @@ public class AmendmentHistorySource extends HistorySourceSpecificationSupport
     }
 
     @Override
-    public HistoryItemType getItemType() {
-        return HistoryItemType.AMENDMENT;
+    public AccountHistoryItemType getItemType() {
+        return AccountHistoryItemType.AMENDMENT;
     }
 
     @Override

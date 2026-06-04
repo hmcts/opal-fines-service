@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
 import lombok.Value;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 
 @Value
 @Builder
@@ -14,9 +13,9 @@ public class AccountHistoryFilter {
 
     LocalDate dateTo;
 
-    List<HistoryItemType> itemTypes;
+    List<AccountHistoryItemType> itemTypes;
 
-    public boolean includes(HistoryItemType itemType) {
+    public boolean includes(AccountHistoryItemType itemType) {
         return itemTypes == null || itemTypes.isEmpty() || itemTypes.contains(itemType);
     }
 }

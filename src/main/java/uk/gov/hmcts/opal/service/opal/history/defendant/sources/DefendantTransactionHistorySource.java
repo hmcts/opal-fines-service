@@ -15,7 +15,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
@@ -27,6 +26,7 @@ import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
@@ -49,8 +49,8 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
     }
 
     @Override
-    public HistoryItemType getItemType() {
-        return HistoryItemType.FINANCIAL;
+    public AccountHistoryItemType getItemType() {
+        return AccountHistoryItemType.FINANCIAL;
     }
 
     @Override

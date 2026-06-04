@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 
 @Data
 @Builder
@@ -17,7 +16,7 @@ public class AccountHistoryItem {
 
     private PostedDetails postedDetails;
 
-    private HistoryItemType type;
+    private AccountHistoryItemType type;
 
     private Object details;
 
