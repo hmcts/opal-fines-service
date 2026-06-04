@@ -25,11 +25,12 @@ public class UserStateService {
     private final UserStateMapper userStateMapper;
 
     /**
-     * Returns the authorised user state from the current security context.
+0     * Returns the authorised user state from the current security context.
      *
      * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
      */
     @Deprecated(since = "2")
+    @SuppressWarnings("java:S1133")
     public UserState checkForAuthorisedUser() {
         return checkForAuthorisedUser("");
     }
@@ -40,11 +41,13 @@ public class UserStateService {
      * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
      */
     @Deprecated(since = "2")
+    @SuppressWarnings("java:S1133")
     public UserState checkForAuthorisedUser(String authorization) {
         return getUserStateV1FromSecurityContext();
     }
 
     // Stop gap solution until all permissions are resolved directly in service-layer auth checks.
+    @SuppressWarnings({"java:S1874", "java:S1133"})
     private UserState getUserStateV1FromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
