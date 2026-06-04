@@ -100,7 +100,6 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
                 .userName("no-permission")
                 .businessUnitUser(Collections.emptySet())
                 .build());
-        UserState dummyUserState = UserState.builder().userId(123L).build();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("token_without_permission");
