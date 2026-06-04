@@ -25,6 +25,8 @@ public class UserStateService {
     private final UserStateMapper userStateMapper;
 
     /**
+     * Returns the authorised user state from the current security context.
+     *
      * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
      */
     @Deprecated(since = "2")
@@ -33,6 +35,8 @@ public class UserStateService {
     }
 
     /**
+     * Returns the authorised user state from the current security context.
+     *
      * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
      */
     @Deprecated(since = "2")
