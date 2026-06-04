@@ -37,6 +37,7 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
                                                                          String businessUnitId,
                                                                          String businessUserId,
                                                                          String postedBy,
+                                                                         String postedByName,
                                                                          String ifMatch,
                                                                      AddDefendantAccountPartyRequest request) {
 
@@ -44,6 +45,7 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
                                                                 businessUnitId,
                                                                 businessUserId,
                                                                 postedBy,
+                                                                postedByName,
                                                                 ifMatch,
                                                                 request);
     }
@@ -52,20 +54,20 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
         DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
-        String businessUserId) {
+        String postedByName, String businessUserId) {
 
         return getCurrentModeService().replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
-            defendantAccountParty, ifMatch, businessUnitId, postedBy, businessUserId);
+            defendantAccountParty, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
 
     }
 
     @Override
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId,
-        String postedBy, String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String postedBy, String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request) {
 
         return getCurrentModeService().removeDefendantAccountParty(defendantAccountId,
             defendantAccountPartyId, businessUnitId, businessUserId,
-            postedBy, ifMatch, request);
+            postedBy, postedByName, ifMatch, request);
     }
 }

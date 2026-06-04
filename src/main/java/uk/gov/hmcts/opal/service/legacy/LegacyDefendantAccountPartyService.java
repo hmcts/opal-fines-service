@@ -288,7 +288,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
         DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
-        String businessUnitUserId) {
+        String postedByName, String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch).longValue())
@@ -324,6 +324,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
                                                                      String businessUnitId,
                                                                      String businessUnitUserId,
                                                                      String postedBy,
+                                                                     String postedByName,
                                                                      String ifMatch,
                                                                      AddDefendantAccountPartyRequest request) {
 
@@ -494,7 +495,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     @Override
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUnitUserId, String postedBy,
-        String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request) {
         RemoveDefendantAccountPartyLegacyRequest req = RemoveDefendantAccountPartyLegacyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch))
             .defendantAccountId(defendantAccountId)
