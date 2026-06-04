@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +19,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -109,32 +104,6 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").value("testUser"));
     }
-
-//    @Test
-//    @JiraStory("PO-256")
-//    @JiraEpic("PO-2233")
-//    @JiraTestKey("PO-6282")
-//    void testGetUserState() throws Exception {
-//        UserState userState = UserStateUtil.permissionUser((short) 5, FinesPermission.ACCOUNT_ENQUIRY);
-//        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
-//
-//        mockMvc.perform(get("/testing-support/user-client/1"))
-//            .andExpect(status().isOk())
-//            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//            .andExpect(jsonPath("$.user_name").value(userState.getUserName()))
-//            .andExpect(jsonPath("$.user_id").value(userState.getUserId()));
-//    }
-//
-//    @Test
-//    @JiraStory("PO-256")
-//    @JiraEpic("PO-2233")
-//    @JiraTestKey("PO-6280")
-//    void testGetUserStateNotFound() throws Exception {
-//        when(userStateClientService.getUserState(999L)).thenReturn(Optional.empty());
-//
-//        mockMvc.perform(get("/testing-support/user-client/999"))
-//            .andExpect(status().isNotFound());
-//    }
 
     @Sql(
         scripts = "classpath:db/insertData/insert_into_defendants_for_deletion_test.sql",

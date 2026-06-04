@@ -1,8 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
