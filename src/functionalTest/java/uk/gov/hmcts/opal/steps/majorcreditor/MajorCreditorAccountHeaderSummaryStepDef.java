@@ -105,6 +105,14 @@ public class MajorCreditorAccountHeaderSummaryStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts the successful response matches the documented API contract.
+     */
+    @Then("the major creditor account header summary response is returned as documented")
+    public void majorCreditorAccountHeaderSummaryResponseIsReturnedAsDocumented() {
+        assertHeaderSummaryResponseIsReturnedAsDocumented();
+    }
+
+    /**
      * Asserts the request returned HTTP 200.
      */
     @Then("the major creditor account header summary request succeeds")
@@ -179,5 +187,12 @@ public class MajorCreditorAccountHeaderSummaryStepDef extends BaseStepDef {
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
             .when()
             .get(getTestUrl() + HEADER_SUMMARY_PATH.formatted(accountId));
+    }
+
+    private void assertHeaderSummaryResponseIsReturnedAsDocumented() {
+        majorCreditorAccountHeaderSummaryRequestSucceeds();
+        majorCreditorAccountHeaderSummaryMatchesDocumentedContract();
+        majorCreditorAccountHeaderSummaryResponseContainsOnlyDocumentedFields();
+        majorCreditorAccountHeaderSummaryEtagIs("1");
     }
 }
