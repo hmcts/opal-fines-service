@@ -8,6 +8,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -74,7 +75,12 @@ import uk.gov.hmcts.opal.service.UserStateService;
             .header("authorization", userStateStub.getBearerToken());
     }
 @ActiveProfiles({"integration"})
-@Sql(scripts = "classpath:db/insertData/insert_into_report_instances_entity_graph.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(
+    scripts = "classpath:db/insertData/insert_into_report_instances_entity_graph.sql",
+    executionPhase = BEFORE_TEST_CLASS)
+@Sql(
+    scripts = "classpath:db/deleteData/delete_from_report_instances_entity_graph.sql",
+    executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.ReportInstanceIntegrationTests")
 @DisplayName("ReportInstancesApiController Integration Tests")
 public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTest {

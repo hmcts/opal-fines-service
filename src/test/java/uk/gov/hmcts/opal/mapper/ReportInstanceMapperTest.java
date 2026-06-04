@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Nested;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -40,13 +39,11 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
-import uk.gov.hmcts.opal.entity.report.ReportSupportedFileType;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports.SupportedFileTypesEnum;
 import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
-import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
-import uk.gov.hmcts.opal.mapper.common.JsonMapper;
 import uk.gov.hmcts.opal.service.report.ReportError;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
@@ -162,30 +159,34 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
 
         }
 
-        @Test
-        public void test_completedReportInstanceNoErrors() {
-            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
-                .reportInstanceId(REPORT_INSTANCE_ID)
-                .requestedAt(REQUESTED_AT)
-                .createdTimestamp(GENERATED_AT)
-                .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(List.of(
-                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV,
-                ReportSupportedFileType.PDF, ReportSupportedFileType.JSON)).build())
-                .reportName(null)
-                .businessUnit(List.of(1L,2L))
-                .generationStatus(ReportInstanceGenerationStatus.READY)
-                .noOfRecords(NO_OF_RECORDS)
-                .errors(null)
-                .reportParameters("{\"report_param_1\":\"param_value\"}")
-                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
-                .build();
+    @Test
+    public void test_completedReportInstanceNoErrors() {
+        ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+            .reportInstanceId(REPORT_INSTANCE_ID)
+            .requestedAt(REQUESTED_AT)
+            .createdTimestamp(GENERATED_AT)
+            .report(ReportEntity.builder()
+                .reportId(REPORT_ID)
+                .reportTitle(REPORT_TITLE)
+                .supportedFileTypes(List.of(
+                    SupportedFileType.XML, SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.JSON))
+                .build())
+            .reportName(null)
+            .businessUnit(List.of(1L, 2L))
+            .generationStatus(ReportInstanceGenerationStatus.READY)
+            .noOfRecords(NO_OF_RECORDS)
+            .errors(null)
+            .reportParameters("{\"report_param_1\":\"param_value\"}")
+            .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+            .build();
 
             List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
                 BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1").welshLanguage(true).build(),
                 BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2").welshLanguage(false).build()
             );
 
-            ReportInstanceReports response = reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            ReportInstanceReports response =
+            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
 
             //asserts
             assertNotNull(response);
@@ -222,60 +223,73 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             assertEquals(SCHEDULED_DELETION, response.getRetainUntil());
 
             assertEquals(REPORT_ID, response.getReport().getId());
-            MatcherAssert.assertThat(response.getReport().getSupportedFileTypes(), Matchers.containsInAnyOrder(
-                SupportedFileTypesEnum.XML, SupportedFileTypesEnum.CSV, SupportedFileTypesEnum.PDF, SupportedFileTypesEnum.JSON));
+            MatcherAssert.assertThat(
+            response.getReport().getSupportedFileTypes(),
+            Matchers.containsInAnyOrder(
+                SupportedFileTypesEnum.XML,
+                SupportedFileTypesEnum.CSV,
+                SupportedFileTypesEnum.PDF,
+                SupportedFileTypesEnum.JSON));
         }
 
-        @Test
-        public void test_customReportInstanceNameOverridesReportTitle() {
-            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
-                .reportInstanceId(REPORT_INSTANCE_ID)
-                .requestedAt(REQUESTED_AT)
-                .createdTimestamp(GENERATED_AT)
-                .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(List.of(
-                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV)).build())
-                .reportName("Custom Name")
-                .businessUnit(List.of(1L,2L))
-                .generationStatus(ReportInstanceGenerationStatus.READY)
-                .noOfRecords(NO_OF_RECORDS)
-                .errors(null)
-                .reportParameters("{\"report_param_1\":\"param_value\"}")
-                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
-                .build();
+    @Test
+    public void test_customReportInstanceNameOverridesReportTitle() {
+        ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+            .reportInstanceId(REPORT_INSTANCE_ID)
+            .requestedAt(REQUESTED_AT)
+            .createdTimestamp(GENERATED_AT)
+            .report(ReportEntity.builder()
+                .reportId(REPORT_ID)
+                .reportTitle(REPORT_TITLE)
+                .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
+                .build())
+            .reportName("Custom Name")
+            .businessUnit(List.of(1L, 2L))
+            .generationStatus(ReportInstanceGenerationStatus.READY)
+            .noOfRecords(NO_OF_RECORDS)
+            .errors(null)
+            .reportParameters("{\"report_param_1\":\"param_value\"}")
+            .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+            .build();
 
             List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
                 BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1").welshLanguage(true).build(),
                 BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2").welshLanguage(false).build()
             );
 
-            ReportInstanceReports response = reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            ReportInstanceReports response =
+            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
 
             assertNotNull(response);
             assertEquals("Custom Name", response.getName());
         }
 
-        @Test
-        public void test_errors() {
-            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
-                .reportInstanceId(REPORT_INSTANCE_ID)
-                .requestedAt(REQUESTED_AT)
-                .createdTimestamp(GENERATED_AT)
-                .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(List.of(
-                    ReportSupportedFileType.XML, ReportSupportedFileType.CSV)).build())
-                .reportName(null)
-                .businessUnit(List.of(1L,2L))
-                .generationStatus(ReportInstanceGenerationStatus.ERROR)
-                .noOfRecords(NO_OF_RECORDS)
-                .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
-                .reportParameters(null)
-                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
-                .build();
-            List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
-                BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1").welshLanguage(true).build(),
-                BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2").welshLanguage(false).build()
-            );
+    @Test
+    public void test_errors() {
+        ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+            .reportInstanceId(REPORT_INSTANCE_ID)
+            .requestedAt(REQUESTED_AT)
+            .createdTimestamp(GENERATED_AT)
+            .report(ReportEntity.builder()
+                .reportId(REPORT_ID)
+                .reportTitle(REPORT_TITLE)
+                .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
+                .build())
+            .reportName(null)
+            .businessUnit(List.of(1L, 2L))
+            .generationStatus(ReportInstanceGenerationStatus.ERROR)
+            .noOfRecords(NO_OF_RECORDS)
+            .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
+            .reportParameters(null)
+            .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+            .build();
+        List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
+            BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1").welshLanguage(true).build(),
+            BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2").welshLanguage(false).build()
+        );
 
-            ReportInstanceReports response = reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            ReportInstanceReports response =
+            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
 
             assertNotNull(response);
             assertEquals(CodeEnum.ERROR, response.getStatus().getCode());
@@ -297,9 +311,13 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
                 .createdTimestamp(GENERATED_AT)
-                .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(null).build())
+                .report(ReportEntity.builder()
+                .reportId(REPORT_ID)
+                .reportTitle(REPORT_TITLE)
+                .supportedFileTypes(null)
+                .build())
                 .reportName(null)
-                .businessUnit(List.of(1L,2L))
+                .businessUnit(List.of(1L, 2L))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
@@ -311,7 +329,8 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2").welshLanguage(false).build()
             );
 
-            ReportInstanceReports response = reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            ReportInstanceReports response =
+            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
             assertNotNull(response);
             assertEquals(CodeEnum.READY, response.getStatus().getCode());
             assertEquals(CodeEnum.READY.getValue(), response.getStatus().getDisplayName());
@@ -324,9 +343,13 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
                 .createdTimestamp(GENERATED_AT)
-                .report(ReportEntity.builder().reportId(REPORT_ID).reportTitle(REPORT_TITLE).supportedFileTypes(Collections.emptyList()).build())
+                .report(ReportEntity.builder()
+                .reportId(REPORT_ID)
+                .reportTitle(REPORT_TITLE)
+                .supportedFileTypes(Collections.emptyList())
+                .build())
                 .reportName(null)
-                .businessUnit(List.of(1L,2L))
+                .businessUnit(List.of(1L, 2L))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
@@ -338,7 +361,8 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2").welshLanguage(false).build()
             );
 
-            ReportInstanceReports response = reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            ReportInstanceReports response =
+            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
             assertNotNull(response);
             assertEquals(CodeEnum.READY, response.getStatus().getCode());
             assertEquals(CodeEnum.READY.getValue(), response.getStatus().getDisplayName());

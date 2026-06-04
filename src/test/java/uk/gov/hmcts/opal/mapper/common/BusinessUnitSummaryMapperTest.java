@@ -4,10 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import org.testcontainers.shaded.org.hamcrest.MatcherAssert;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
@@ -60,17 +58,25 @@ class BusinessUnitSummaryMapperTest {
     @Test
     void toBusinessUnitSummaryCommonList() {
         List<BusinessUnitEntity> bus = List.of(
-            BusinessUnitEntity.builder().businessUnitId((short)13).businessUnitName("BU_13").welshLanguage(true).build(),
-            BusinessUnitEntity.builder().businessUnitId((short)41).businessUnitName("BU_41").welshLanguage(false).build());
+            BusinessUnitEntity.builder()
+                .businessUnitId((short) 13)
+                .businessUnitName("BU_13")
+                .welshLanguage(true)
+                .build(),
+            BusinessUnitEntity.builder()
+                .businessUnitId((short) 41)
+                .businessUnitName("BU_41")
+                .welshLanguage(false)
+                .build());
 
         List<BusinessUnitSummaryCommon> businessUnitSummaryCommonList = mapper.toBusinessUnitSummaryCommonList(bus);
 
         assertNotNull(businessUnitSummaryCommonList);
         assertEquals(2, businessUnitSummaryCommonList.size());
 
-        assertEquals("13", businessUnitSummaryCommonList.get(0).getBusinessUnitId());
-        assertEquals("BU_13", businessUnitSummaryCommonList.get(0).getBusinessUnitName());
-        assertEquals("Y", businessUnitSummaryCommonList.get(0).getWelshSpeaking());
+        assertEquals("13", businessUnitSummaryCommonList.getFirst().getBusinessUnitId());
+        assertEquals("BU_13", businessUnitSummaryCommonList.getFirst().getBusinessUnitName());
+        assertEquals("Y", businessUnitSummaryCommonList.getFirst().getWelshSpeaking());
 
         assertEquals("41", businessUnitSummaryCommonList.get(1).getBusinessUnitId());
         assertEquals("BU_41", businessUnitSummaryCommonList.get(1).getBusinessUnitName());

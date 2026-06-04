@@ -1,8 +1,6 @@
 /**
 * OPAL Program
 *
-* MODULE      : insert_into_report_instances_entity_graph.sql
-*
 * DESCRIPTION : Inserts rows of data into the REPORT_INSTANCES table for Integration Tests.
 *
 * VERSION HISTORY:
@@ -33,7 +31,7 @@ INSERT INTO reports (
           FALSE,
           FALSE,
           FALSE,
-          '14',
+          'P14D',
           ARRAY['CSV', 'PDF','XML', 'JSON']::r_supported_file_type_enum[],
           TRUE
       ),
@@ -46,7 +44,7 @@ INSERT INTO reports (
           TRUE,
           FALSE,
           FALSE,
-          '14',
+          'P14D',
           ARRAY['CSV', 'PDF','XML', 'JSON']::r_supported_file_type_enum[],
           TRUE
       ),
@@ -59,7 +57,7 @@ INSERT INTO reports (
           FALSE,
           FALSE,
           FALSE,
-          '14',
+          'P14D',
           ARRAY[]::r_supported_file_type_enum[],
           TRUE
       );

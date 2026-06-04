@@ -114,8 +114,8 @@ public class GenericReportService implements GenericReportServiceInterface {
 
         UserState userState = userStateService.checkForAuthorisedUser("");
 
-        List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit() == null ?
-            Collections.emptyList() : reportInstanceEntity.getBusinessUnit().stream().map(Long::shortValue).toList();
+        List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit() == null
+            ? Collections.emptyList() : reportInstanceEntity.getBusinessUnit().stream().map(Long::shortValue).toList();
         if (!userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
             .collect(Collectors.toSet()).containsAll(businessUnitIdsForReportInstance)) {
             throw new AccessDeniedException("You cannot request report instances associated with other business units");

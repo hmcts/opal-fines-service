@@ -93,7 +93,8 @@ public interface ReportInstanceMapper {
     @Mapping(target = "numberOfRecords", source = "reportInstanceEntity.noOfRecords")
     @Mapping(target = "isDownloadable", expression = "java(findIsDownloadable(reportInstanceEntity))")
     @Mapping(target = "errors", expression = "java(getErrors(reportInstanceEntity))")
-    @Mapping(target = "reportParameters", source = "reportInstanceEntity.reportParameters", qualifiedByName = "jsonStringToMap")
+    @Mapping(target = "reportParameters", source = "reportInstanceEntity.reportParameters",
+        qualifiedByName = "jsonStringToMap")
     @Mapping(target = "retainUntil", source = "reportInstanceEntity.scheduledDeletionTimestamp")
     @Mapping(target = "businessUnits", source = "businessUnitEntities")
     ReportInstanceReports toReportInstanceReportsDto(ReportInstanceEntity reportInstanceEntity,
@@ -103,7 +104,8 @@ public interface ReportInstanceMapper {
     ReportReferenceReports reportToReportReferenceReport(ReportEntity reportEntity);
 
     default String getReportName(ReportInstanceEntity reportInstanceEntity) {
-        return reportInstanceEntity.getReportName() != null ? reportInstanceEntity.getReportName() : reportInstanceEntity.getReport().getReportTitle();
+        return reportInstanceEntity.getReportName() != null ? reportInstanceEntity.getReportName() :
+            reportInstanceEntity.getReport().getReportTitle();
     }
 
     default Boolean findIsDownloadable(ReportInstanceEntity reportInstanceEntity) {
@@ -123,7 +125,7 @@ public interface ReportInstanceMapper {
 
 
     @AfterMapping
-    default void fillStatusDisplayName(@MappingTarget ReportInstanceReports responseDto, ReportInstanceEntity reportInstanceEntity) {
+    default void fillStatusDisplayName(@MappingTarget ReportInstanceReports responseDto) {
         responseDto.getStatus().setDisplayName(responseDto.getStatus().getCode().name());
     }
 }
