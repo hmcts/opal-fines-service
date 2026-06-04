@@ -24,13 +24,18 @@ public class UserStateService {
 
     private final UserStateMapper userStateMapper;
 
-    @Deprecated // Use getUserStateFromSecurityContext for V2 user state
+    /**
+     * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
+     */
+    @Deprecated(since = "2")
     public UserState checkForAuthorisedUser() {
         return checkForAuthorisedUser("");
     }
 
-    //
-    @Deprecated // Use getUserStateFromSecurityContext for V2 user state
+    /**
+     * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
+     */
+    @Deprecated(since = "2")
     public UserState checkForAuthorisedUser(String authorization) {
         return getUserStateV1FromSecurityContext();
     }
