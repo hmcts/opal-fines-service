@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -45,11 +44,7 @@ public class UserStateService {
         if (userStateV2 == null) {
             throw new AccessDeniedException("User state not found in token");
         }
-        UserState userState = userStateMapper.toUserState(userStateV2, Domain.FINES);
-        log.debug(":checkForAuthorisedUser: using user state from security context token: userId={}, userName={}, "
-                + "businessUnits={}",
-            userState.getUserId(), userState.getUserName(), summariseBusinessUnits(userState));
-        return userState;
+        return userStateMapper.toUserState(userStateV2, Domain.FINES);
     }
 
     public UserStateV2 getUserStateFromSecurityContext() {
@@ -66,16 +61,5 @@ public class UserStateService {
 
     public String getPreferredUsername(String authorization) {
         return extractPreferredUsername(authorization, tokenService);
-    }
-
-    private String summariseBusinessUnits(UserState userState) {
-        if (userState.getBusinessUnitUser() == null || userState.getBusinessUnitUser().isEmpty()) {
-            return "[]";
-        }
-
-        return userState.getBusinessUnitUser().stream()
-            .map(businessUnitUser -> String.valueOf(businessUnitUser.getBusinessUnitId()))
-            .sorted()
-            .collect(Collectors.joining(",", "[", "]"));
     }
 }
