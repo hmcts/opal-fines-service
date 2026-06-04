@@ -20,7 +20,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,6 +80,54 @@ class UserStateServiceTest {
 
         // Assert
         assertEquals("User state not found in token", ade.getMessage());
+    }
+
+    @Test
+    void testCheckForAuthorisedUser_mapsV2StateToV1FinesDomain() {
+        // Arrange
+        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
+        UserStateV2 userStateV2 = mock(UserStateV2.class);
+        UserState userState = mock(UserState.class);
+        setAuthentication(authToken);
+        when(authToken.getUserState()).thenReturn(userStateV2);
+        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(userState);
+
+        // Act
+        UserState result = userStateService.checkForAuthorisedUser();
+
+        // Assert
+        assertSame(userState, result);
+    }
+
+    @Test
+    void testCheckForAuthorisedUser_unexpectedTokenType() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        setAuthentication(authentication);
+
+        // Act
+        AccessDeniedException ade = assertThrows(AccessDeniedException.class,
+                                                 () -> userStateService.checkForAuthorisedUser("ignored"));
+
+        // Assert
+        assertEquals("Unexpected token type", ade.getMessage());
+        verifyNoInteractions(userStateMapper);
+    }
+
+    @Test
+    void testCheckForAuthorisedUser_userStateMissingFromToken() {
+        // Arrange
+        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
+        setAuthentication(authToken);
+        when(authToken.getUserState()).thenReturn(null);
+
+        // Act
+        AccessDeniedException ade = assertThrows(AccessDeniedException.class,
+                                                 () -> userStateService.checkForAuthorisedUser("ignored"));
+
+        // Assert
+        assertEquals("User state not found in token", ade.getMessage());
+        verifyNoInteractions(userStateMapper);
     }
 
     @Test
