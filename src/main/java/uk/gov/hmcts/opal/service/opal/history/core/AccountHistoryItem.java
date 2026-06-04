@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.PostedDetails;
 
 @Data
 @Builder
@@ -14,7 +13,7 @@ import uk.gov.hmcts.opal.dto.PostedDetails;
 @AllArgsConstructor
 public class AccountHistoryItem {
 
-    private PostedDetails postedDetails;
+    private AccountHistoryPostedDetails postedDetails;
 
     private AccountHistoryItemType type;
 

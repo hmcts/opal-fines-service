@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.PostedDetails;
 
 class AbstractAccountHistoryServiceTest {
 
@@ -17,13 +16,13 @@ class AbstractAccountHistoryServiceTest {
     void getHistory_filtersBySupportedSourcesAndItemTypesAndReturnsSortedItems() {
         AccountHistoryItem amendmentItem = AccountHistoryItem.builder()
             .type(AccountHistoryItemType.AMENDMENT)
-            .postedDetails(PostedDetails.builder().postedBy("a").build())
+            .postedDetails(AccountHistoryPostedDetails.builder().postedBy("a").build())
             .eventDateTime(LocalDateTime.of(2026, 1, 1, 10, 0))
             .sourceId(10L)
             .build();
         AccountHistoryItem noteItem = AccountHistoryItem.builder()
             .type(AccountHistoryItemType.NOTE)
-            .postedDetails(PostedDetails.builder().postedBy("b").build())
+            .postedDetails(AccountHistoryPostedDetails.builder().postedBy("b").build())
             .eventDateTime(LocalDateTime.of(2026, 1, 2, 10, 0))
             .sourceId(11L)
             .build();

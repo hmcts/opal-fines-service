@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.history.NoteDetails;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryPostedDetails;
 
 class DefendantAccountHistoryModelAdapterTest {
 
@@ -62,7 +63,9 @@ class DefendantAccountHistoryModelAdapterTest {
         AccountHistoryItem coreItem = DefendantAccountHistoryModelAdapter.toCoreItem(defendantItem);
 
         assertEquals(AccountHistoryItemType.NOTE, coreItem.getType());
-        assertEquals(defendantItem.getPostedDetails(), coreItem.getPostedDetails());
+        assertEquals(defendantItem.getPostedDetails().getPostedDate(), coreItem.getPostedDetails().getPostedDate());
+        assertEquals(defendantItem.getPostedDetails().getPostedBy(), coreItem.getPostedDetails().getPostedBy());
+        assertEquals(defendantItem.getPostedDetails().getPostedByName(), coreItem.getPostedDetails().getPostedByName());
         assertEquals(defendantItem.getDetails(), coreItem.getDetails());
         assertEquals(defendantItem.getAmount(), coreItem.getAmount());
         assertEquals(defendantItem.getEventDateTime(), coreItem.getEventDateTime());
@@ -83,5 +86,23 @@ class DefendantAccountHistoryModelAdapterTest {
             DefendantAccountHistoryModelAdapter.toCoreItemType(HistoryItemType.AMENDMENT));
         assertEquals(HistoryItemType.FINANCIAL,
             DefendantAccountHistoryModelAdapter.toDefendantItemType(AccountHistoryItemType.FINANCIAL));
+    }
+
+    @Test
+    void mapsPostedDetailsBetweenDefendantAndCoreModels() {
+        PostedDetails defendantPostedDetails = PostedDetails.builder()
+            .postedDate(LocalDateTime.of(2026, 2, 1, 8, 30))
+            .postedBy("tester")
+            .postedByName("Test User")
+            .build();
+
+        AccountHistoryPostedDetails corePostedDetails =
+            DefendantAccountHistoryModelAdapter.toCorePostedDetails(defendantPostedDetails);
+
+        assertEquals(defendantPostedDetails.getPostedDate(), corePostedDetails.getPostedDate());
+        assertEquals(defendantPostedDetails.getPostedBy(), corePostedDetails.getPostedBy());
+        assertEquals(defendantPostedDetails.getPostedByName(), corePostedDetails.getPostedByName());
+        assertEquals(defendantPostedDetails,
+            DefendantAccountHistoryModelAdapter.toDefendantPostedDetails(corePostedDetails));
     }
 }

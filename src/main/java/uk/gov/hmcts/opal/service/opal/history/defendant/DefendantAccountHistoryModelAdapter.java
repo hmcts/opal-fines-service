@@ -6,6 +6,7 @@ import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
+import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryPostedDetails;
 
 public final class DefendantAccountHistoryModelAdapter {
 
@@ -24,7 +25,7 @@ public final class DefendantAccountHistoryModelAdapter {
 
     public static AccountHistoryItem toCoreItem(DefendantAccountHistoryItem item) {
         return AccountHistoryItem.builder()
-            .postedDetails(item.getPostedDetails())
+            .postedDetails(toCorePostedDetails(item.getPostedDetails()))
             .type(toCoreItemType(item.getType()))
             .details(item.getDetails())
             .amount(item.getAmount())
@@ -35,12 +36,38 @@ public final class DefendantAccountHistoryModelAdapter {
 
     public static DefendantAccountHistoryItem toDefendantItem(AccountHistoryItem item) {
         return DefendantAccountHistoryItem.builder()
-            .postedDetails(item.getPostedDetails())
+            .postedDetails(toDefendantPostedDetails(item.getPostedDetails()))
             .type(toDefendantItemType(item.getType()))
             .details(item.getDetails())
             .amount(item.getAmount())
             .eventDateTime(item.getEventDateTime())
             .sourceId(item.getSourceId())
+            .build();
+    }
+
+    public static AccountHistoryPostedDetails toCorePostedDetails(uk.gov.hmcts.opal.dto.PostedDetails postedDetails) {
+        if (postedDetails == null) {
+            return null;
+        }
+
+        return AccountHistoryPostedDetails.builder()
+            .postedDate(postedDetails.getPostedDate())
+            .postedBy(postedDetails.getPostedBy())
+            .postedByName(postedDetails.getPostedByName())
+            .build();
+    }
+
+    public static uk.gov.hmcts.opal.dto.PostedDetails toDefendantPostedDetails(
+        AccountHistoryPostedDetails postedDetails
+    ) {
+        if (postedDetails == null) {
+            return null;
+        }
+
+        return uk.gov.hmcts.opal.dto.PostedDetails.builder()
+            .postedDate(postedDetails.getPostedDate())
+            .postedBy(postedDetails.getPostedBy())
+            .postedByName(postedDetails.getPostedByName())
             .build();
     }
 
