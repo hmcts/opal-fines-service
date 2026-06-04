@@ -21,5 +21,5 @@ Feature: Draft Account Snapshot Identity
       | account_snapshot.date_of_birth      | 2000-01-01                       |
       | account_snapshot.account_type       | Fine                             |
       | account_snapshot.submitted_by       | L073JG                           |
-      | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net |
+      | account_snapshot.submitted_by_name  | opal-test                        |
       | account_snapshot.business_unit_name | West London                      |
