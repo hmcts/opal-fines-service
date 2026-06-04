@@ -19,7 +19,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -28,7 +28,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.UserStateClientServiceIT")
-class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
+class UserStateClientServiceIT extends AbstractIntegrationTest {
 
     @Autowired
     StringRedisTemplate redisTemplate;
@@ -38,6 +38,7 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
 
     @BeforeEach
     void setUp() {
+        WireMock.configureFor("localhost", 4553);
         redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
     }
 
@@ -48,7 +49,6 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     @JiraTestKey("PO-6321")
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
 
-        WireMock.configureFor("localhost", 4553);
         stubFor(get("/opal/v2/users/0/state")
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
