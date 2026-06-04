@@ -110,31 +110,31 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$").value("testUser"));
     }
 
-    @Test
-    @JiraStory("PO-256")
-    @JiraEpic("PO-2233")
-    @JiraTestKey("PO-6282")
-    void testGetUserState() throws Exception {
-        UserState userState = UserStateUtil.permissionUser((short) 5, FinesPermission.ACCOUNT_ENQUIRY);
-        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
-
-        mockMvc.perform(get("/testing-support/user-client/1"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.user_name").value(userState.getUserName()))
-            .andExpect(jsonPath("$.user_id").value(userState.getUserId()));
-    }
-
-    @Test
-    @JiraStory("PO-256")
-    @JiraEpic("PO-2233")
-    @JiraTestKey("PO-6280")
-    void testGetUserStateNotFound() throws Exception {
-        when(userStateClientService.getUserState(999L)).thenReturn(Optional.empty());
-
-        mockMvc.perform(get("/testing-support/user-client/999"))
-            .andExpect(status().isNotFound());
-    }
+//    @Test
+//    @JiraStory("PO-256")
+//    @JiraEpic("PO-2233")
+//    @JiraTestKey("PO-6282")
+//    void testGetUserState() throws Exception {
+//        UserState userState = UserStateUtil.permissionUser((short) 5, FinesPermission.ACCOUNT_ENQUIRY);
+//        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
+//
+//        mockMvc.perform(get("/testing-support/user-client/1"))
+//            .andExpect(status().isOk())
+//            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//            .andExpect(jsonPath("$.user_name").value(userState.getUserName()))
+//            .andExpect(jsonPath("$.user_id").value(userState.getUserId()));
+//    }
+//
+//    @Test
+//    @JiraStory("PO-256")
+//    @JiraEpic("PO-2233")
+//    @JiraTestKey("PO-6280")
+//    void testGetUserStateNotFound() throws Exception {
+//        when(userStateClientService.getUserState(999L)).thenReturn(Optional.empty());
+//
+//        mockMvc.perform(get("/testing-support/user-client/999"))
+//            .andExpect(status().isNotFound());
+//    }
 
     @Sql(
         scripts = "classpath:db/insertData/insert_into_defendants_for_deletion_test.sql",

@@ -98,24 +98,24 @@ class TestingSupportControllerTest {
         assertEquals("my@email.com", response.getBody());
     }
 
-    @Test
-    void getUserState_shouldReturnResponse() {
-        UserState userState = UserStateUtil.permissionUser((short) 1, FinesPermission.ACCOUNT_ENQUIRY);
-        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
-
-        ResponseEntity<UserState> response = controller.getUserState(1L);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(userState, response.getBody());
-    }
-
-    @Test
-    void getUserState_shouldReturnNotFound() {
-        when(userStateClientService.getUserState(99L)).thenReturn(Optional.empty());
-
-        ResponseEntity<UserState> response = controller.getUserState(99L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertFalse(response.hasBody());
-    }
+//    @Test
+//    void getUserState_shouldReturnResponse() {
+//        UserState userState = UserStateUtil.permissionUser((short) 1, FinesPermission.ACCOUNT_ENQUIRY);
+//        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
+//
+//        ResponseEntity<UserState> response = controller.getUserState(1L);
+//
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertEquals(userState, response.getBody());
+//    }
+//
+//    @Test
+//    void getUserState_shouldReturnNotFound() {
+//        when(userStateClientService.getUserState(99L)).thenReturn(Optional.empty());
+//
+//        ResponseEntity<UserState> response = controller.getUserState(99L);
+//
+//        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+//        assertFalse(response.hasBody());
+//    }
 }

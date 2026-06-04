@@ -408,8 +408,6 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
     @DisplayName("Get enforcement status - forbidden without permission")
     void testGetEnforcementStatus_forbidden() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-        UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
 

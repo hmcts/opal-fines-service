@@ -45,7 +45,6 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
     void setupUserState() {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
     }
 
     protected static String commentAndNotesPayload(String accountComment, String note1, String note2, String note3) {

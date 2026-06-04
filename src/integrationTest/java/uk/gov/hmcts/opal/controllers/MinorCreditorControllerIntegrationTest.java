@@ -618,9 +618,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(noPermissionsUser());
 
-        UserState userState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
-
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
         mockMvc.perform(patch(URL_BASE + "/606")

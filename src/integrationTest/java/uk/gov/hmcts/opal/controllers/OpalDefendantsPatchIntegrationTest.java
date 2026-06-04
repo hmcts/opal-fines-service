@@ -119,9 +119,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             UserState.builder().userId(999L).userName("no-perm-user").businessUnitUser(Collections.emptySet()).build());
 
-        UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
-
         HttpHeaders headers = authorisedHeaders("token_without_perm", "78", "\"0\"");
 
         mockMvc.perform(

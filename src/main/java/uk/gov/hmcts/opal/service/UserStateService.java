@@ -9,7 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -24,27 +23,20 @@ public class UserStateService {
 
     private final AccessTokenService tokenService;
 
-    private final UserStateClientService userStateClientService;
-
     private final UserStateMapper userStateMapper;
 
+    @Deprecated
     public UserState checkForAuthorisedUser() {
-        return userStateClientService.getUserStateByAuthenticatedUser()
-            .map(userState -> {
-                log.debug(":checkForAuthorisedUser: using authenticated user state from user service: userId={}, "
-                        + "userName={}, businessUnits={}",
-                    userState.getUserId(), userState.getUserName(), summariseBusinessUnits(userState));
-                return userState;
-            })
-            .orElseGet(this::getUserStateFromSecurityContext);
+        return checkForAuthorisedUser("");
     }
 
+    @Deprecated
     public UserState checkForAuthorisedUser(String authorization) {
-        return checkForAuthorisedUser();
+        return getUserStateV1FromSecurityContext();
     }
 
     // Stop gap solution until all permissions are resolved directly in service-layer auth checks.
-    private UserState getUserStateFromSecurityContext() {
+    private UserState getUserStateV1FromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
             throw new AccessDeniedException("Unexpected token type");
@@ -57,6 +49,18 @@ public class UserStateService {
         log.debug(":checkForAuthorisedUser: using user state from security context token: userId={}, userName={}, "
                 + "businessUnits={}",
             userState.getUserId(), userState.getUserName(), summariseBusinessUnits(userState));
+        return userState;
+    }
+
+    public UserStateV2 getUserStateFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
+            throw new AccessDeniedException("Unexpected token type");
+        }
+        UserStateV2 userState = authToken.getUserState();
+        if (userState == null) {
+            throw new AccessDeniedException("User state not found in token");
+        }
         return userState;
     }
 

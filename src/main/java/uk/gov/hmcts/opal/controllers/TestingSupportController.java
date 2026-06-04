@@ -56,13 +56,13 @@ public class TestingSupportController {
         return ResponseEntity.ok(this.accessTokenService.extractPreferredUsername(authorization));
     }
 
-    @GetMapping("/user-client/{userId}")
-    @Operation(summary = "Retrieves user state via User Service client")
-    public ResponseEntity<UserState> getUserState(@PathVariable Long userId) {
-        return userStateClientService.getUserState(userId)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+//    @GetMapping("/user-client/{userId}")
+//    @Operation(summary = "Retrieves user state via User Service client")
+//    public ResponseEntity<UserState> getUserState(@PathVariable Long userId) {
+//        return userStateClientService.getUserState(userId)
+//            .map(ResponseEntity::ok)
+//            .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
 
     @DeleteMapping("/defendant-accounts/{defendantAccountId}")
     @Operation(summary = "Deletes a defendant account and ALL associated data. FOR TESTING ONLY!")

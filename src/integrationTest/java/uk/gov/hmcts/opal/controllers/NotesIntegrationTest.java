@@ -35,9 +35,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     UserStateClientService userStateClientService;
 
-    @MockitoBean
-    private UserState userState;
-
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     @JiraStory("PO-1566")
     void postNotesImpl(Logger log) throws Exception {
@@ -109,9 +106,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes - user without permission [PO-1566]")
     @JiraStory("PO-1566")
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
-
-        UserState userState = noFinesPermissionUser();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         Note note = new Note();
         note.setNoteText("test note");
