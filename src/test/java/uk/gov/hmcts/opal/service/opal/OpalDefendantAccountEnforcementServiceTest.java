@@ -70,7 +70,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private static final String BUSINESS_UNIT_USER_ID = "bu-user-123";
     private static final String IF_MATCH = "7";
     private static final String AUTH_HEADER = "Bearer token";
-    private static final String USER_NAME = "test.user";
+    private static final String USER_DISPLAY_NAME = "Test User";
     private static final String PROSECUTOR_CASE_REFERENCE = "PCR-12345";
     private static final Long ENFORCEMENT_ID = 9876L;
     private static final String RESULT_ID_AS_STRING = "ABDC";
@@ -146,7 +146,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq((Integer) 14),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
+            eq(USER_DISPLAY_NAME),
             eq("test reason"),
             eq(55L),
             eq(responsesJson),
@@ -160,7 +160,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
-        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -212,7 +212,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
+            eq(USER_DISPLAY_NAME),
             eq("test reason"),
             eq(null),
             eq(responsesJson),
@@ -226,7 +226,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
-        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -278,7 +278,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq((Integer) 14),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
+            eq(USER_DISPLAY_NAME),
             eq(null),
             eq(null),
             eq(responsesJson),
@@ -292,7 +292,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
-        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -344,7 +344,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
+            eq(USER_DISPLAY_NAME),
             eq(null),
             eq(55L),
             eq(responsesJson),
@@ -358,7 +358,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
-        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -410,7 +410,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
+            eq(USER_DISPLAY_NAME),
             eq(null),
             eq(null),
             eq(responsesJson),
@@ -424,7 +424,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JsonProcessingException {
         UserState userState = mock(UserState.class);
-        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -487,7 +487,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
+            eq(USER_DISPLAY_NAME),
             eq(null),
             eq(null),
             eq("[]"),
@@ -781,7 +781,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     private void mockAuthorisedUser() {
         UserState userState = mock(UserState.class);
-        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
     }
 

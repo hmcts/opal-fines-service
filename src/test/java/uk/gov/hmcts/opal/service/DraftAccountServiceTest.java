@@ -191,7 +191,7 @@ class DraftAccountServiceTest {
         ArgumentCaptor<AddDraftAccountRequestDto> captor = ArgumentCaptor.forClass(AddDraftAccountRequestDto.class);
         verify(draftAccountTransactional, times(1)).submitDraftAccount(captor.capture());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
-        assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
+        assertEquals("Normal User", captor.getValue().getSubmittedByName());
         assertEquals(null, captor.getValue().getValidatedBy());
         verify(pdplLoggingService).pdplForDraftAccount(draftAccountEntity, Action.SUBMIT, userState);
     }
@@ -276,7 +276,7 @@ class DraftAccountServiceTest {
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .submittedBy("USER01")
-            .submittedByName("normal@users.com")
+            .submittedByName("Normal User")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
             .accountStatus(DraftAccountStatus.RESUBMITTED)
@@ -287,7 +287,7 @@ class DraftAccountServiceTest {
             DraftAccountResponseDto.builder()
                 .draftAccountId(draftAccountId)
                 .submittedBy("USER01")
-                .submittedByName("normal@users.com")
+                .submittedByName("Normal User")
                 .account(createAccountString())
                 .accountType(DraftAccountType.FINE)
                 .accountStatus(DraftAccountStatus.RESUBMITTED)
@@ -313,7 +313,7 @@ class DraftAccountServiceTest {
         assertNotNull(result);
         assertEquals(draftAccountId, result.getDraftAccountId());
         assertEquals("USER01", result.getSubmittedBy());
-        assertEquals("normal@users.com", result.getSubmittedByName());
+        assertEquals("Normal User", result.getSubmittedByName());
         assertEquals(createAccountString(), result.getAccount());
         assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
@@ -323,7 +323,7 @@ class DraftAccountServiceTest {
             ArgumentCaptor.forClass(ReplaceDraftAccountRequestDto.class);
         verify(draftAccountTransactional).replaceDraftAccount(any(), captor.capture(), any(), any());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
-        assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
+        assertEquals("Normal User", captor.getValue().getSubmittedByName());
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.REPLACE, userState);
@@ -419,7 +419,7 @@ class DraftAccountServiceTest {
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("USER01")
-            .validatedByName("normal@users.com")
+            .validatedByName("Normal User")
             .validatedDate(LocalDateTime.now())
             .submittedBy("Pablo")
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
@@ -438,7 +438,7 @@ class DraftAccountServiceTest {
             ArgumentCaptor.forClass(UpdateDraftAccountRequestDto.class);
         verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any(), any());
         assertEquals("USER01", captor.getValue().getValidatedBy());
-        assertEquals("normal@users.com", captor.getValue().getValidatedByName());
+        assertEquals("Normal User", captor.getValue().getValidatedByName());
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(securityEventLoggingService, times(1)).logEvent(
@@ -515,7 +515,7 @@ class DraftAccountServiceTest {
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.PUBLISHED)
             .validatedBy("USER01")
-            .validatedByName("normal@users.com")
+            .validatedByName("Normal User")
             .validatedDate(updatedAccount.getValidatedDate())
             .submittedBy(updatedAccount.getSubmittedBy())
             .accountSnapshot(updatedAccount.getAccountSnapshot())
@@ -529,7 +529,7 @@ class DraftAccountServiceTest {
                 .draftAccountId(draftAccountId)
                 .accountStatus(DraftAccountStatus.PUBLISHED)
                 .validatedBy("USER01")
-                .validatedByName("normal@users.com")
+                .validatedByName("Normal User")
                 .validatedDate(updatedAccount.getValidatedDate().atOffset(java.time.ZoneOffset.UTC))
                 .accountSnapshot(updatedAccount.getAccountSnapshot())
                 .timelineData(updatedAccount.getTimelineData())
@@ -545,7 +545,7 @@ class DraftAccountServiceTest {
         assertEquals(draftAccountId, result.getDraftAccountId());
         assertEquals(DraftAccountStatus.PUBLISHED, result.getAccountStatus());
         assertEquals("USER01", result.getValidatedBy());
-        assertEquals("normal@users.com", result.getValidatedByName());
+        assertEquals("Normal User", result.getValidatedByName());
         assertNotNull(result.getValidatedDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertEquals(createTimelineDataString(), result.getTimelineData());
