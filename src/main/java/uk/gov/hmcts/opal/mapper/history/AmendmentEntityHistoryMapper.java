@@ -21,6 +21,7 @@ public interface AmendmentEntityHistoryMapper {
 
     @Mapping(target = "postedDate", source = "amendedDate")
     @Mapping(target = "postedBy", source = "amendedBy")
+    @Mapping(target = "postedByName", source = "amendedByName")
     PostedDetails toPostedDetails(AmendmentEntity entity);
 
     @Named("toAmendmentDetails")
