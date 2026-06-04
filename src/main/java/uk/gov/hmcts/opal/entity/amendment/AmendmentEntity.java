@@ -56,6 +56,10 @@ public class AmendmentEntity {
     @JsonProperty("amended_by")
     private String amendedBy;
 
+    @Column(name = "amended_by_name", length = 100)
+    @JsonProperty("amended_by_name")
+    private String amendedByName;
+
     @Column(name = "field_code", nullable = false)
     @JsonProperty("field_code")
     private Short fieldCode;

@@ -157,11 +157,13 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.searchData[0].amendment_id").value(70000000000001L))
             .andExpect(jsonPath("$.searchData[0].amended_by").value("Tester_A"))
+            .andExpect(jsonPath("$.searchData[0].amended_by_name").value("Tester Name"))
             .andExpect(jsonPath("$.searchData[0].field_code").value(9))
             .andExpect(jsonPath("$.searchData[0].old_value").value(14))
             .andExpect(jsonPath("$.searchData[0].new_value").value(400))
             .andExpect(jsonPath("$.searchData[1].amendment_id").value(70000000000002L))
             .andExpect(jsonPath("$.searchData[1].amended_by").value("Tester_A"))
+            .andExpect(jsonPath("$.searchData[1].amended_by_name").value("Tester Name"))
             .andExpect(jsonPath("$.searchData[1].field_code").value(11))
             .andExpect(jsonPath("$.searchData[1].old_value").value(21))
             .andExpect(jsonPath("$.searchData[1].new_value").value(500))
@@ -194,7 +196,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
             // Finalize after making a change to defendant_accounts table
             amendmentService.auditFinaliseStoredProc(
                 defAccId, RecordType.DEFENDANT_ACCOUNTS, busUnitId,
-                "Tester_A", "Case_Ref", "Func_Code");
+                "Tester_A", "Tester Name", "Case_Ref", "Func_Code");
         }
     }
 

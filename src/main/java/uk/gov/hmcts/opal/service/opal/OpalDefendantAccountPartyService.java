@@ -107,7 +107,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Transactional
     public GetDefendantAccountPartyResponse addDefendantAccountParty(
         Long accountId, String businessUnitId,
-        String businessUserId, String postedBy, String ifMatch, AddDefendantAccountPartyRequest request) {
+        String businessUserId, String postedBy, String postedByName, String ifMatch,
+        AddDefendantAccountPartyRequest request) {
 
         if (request == null || request.getDefendantAccountParty() == null) {
             throw new IllegalArgumentException("Request body is required");
@@ -176,6 +177,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             postedBy,
+            postedByName,
             account.getProsecutorCaseReference(),
             FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
@@ -222,7 +224,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
-        String postedBy, String businessUserId) {
+        String postedBy, String postedByName, String businessUserId) {
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
 
@@ -318,6 +320,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             postedBy,
+            postedByName,
             account.getProsecutorCaseReference(),
             FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
@@ -336,7 +339,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Transactional
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
-        String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request) {
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
@@ -369,6 +372,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             RecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             postedBy,
+            postedByName,
             account.getProsecutorCaseReference(),
             FUNCTION_CODE_ACCOUNT_ENQUIRY
         );
