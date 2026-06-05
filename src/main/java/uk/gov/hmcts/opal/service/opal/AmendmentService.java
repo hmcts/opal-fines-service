@@ -53,9 +53,11 @@ public class AmendmentService {
     //TODO remove in favour of repository service method
     @Transactional
     public void auditFinaliseStoredProc(Long accountId, RecordType recordType,
-                                        Short businessUnitId, String postedBy, String caseRef, String functionCode) {
+                                        Short businessUnitId, String postedBy, String postedByName,
+                                        String caseRef, String functionCode) {
         amendmentRepository
-            .auditFinalise(accountId, recordType.toString(), businessUnitId, postedBy, caseRef, functionCode);
+            .auditFinalise(accountId, recordType.toString(), businessUnitId, postedBy, postedByName, caseRef,
+                           functionCode);
     }
 
 }

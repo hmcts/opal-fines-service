@@ -25,5 +25,15 @@ public interface MinorCreditorServiceInterface {
         PatchMinorCreditorAccountRequest request,
         BigInteger etag,
         String postedBy,
+        String postedByName,
         Short businessUnitId);
+
+    default MinorCreditorAccountResponse updateMinorCreditorAccount(
+        Long minorCreditorAccountId,
+        PatchMinorCreditorAccountRequest request,
+        BigInteger etag,
+        String postedBy,
+        Short businessUnitId) {
+        return updateMinorCreditorAccount(minorCreditorAccountId, request, etag, postedBy, postedBy, businessUnitId);
+    }
 }

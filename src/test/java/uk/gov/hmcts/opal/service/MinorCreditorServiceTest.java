@@ -413,7 +413,7 @@ class MinorCreditorServiceTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
         when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any(),
-            anyShort()))
+            any(), anyShort()))
             .thenReturn(new MinorCreditorAccountResponse());
 
         PatchMinorCreditorAccountRequest request = validPatchRequest();
@@ -423,9 +423,11 @@ class MinorCreditorServiceTest {
 
         // Assert
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByNameCaptor = ArgumentCaptor.forClass(String.class);
         verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE),
-            postedByCaptor.capture(), eq(Short.valueOf("10")));
+            postedByCaptor.capture(), postedByNameCaptor.capture(), eq(Short.valueOf("10")));
         assertEquals("test.user@hmcts.net", postedByCaptor.getValue());
+        assertEquals("test.user@hmcts.net", postedByNameCaptor.getValue());
     }
 
     @Test
