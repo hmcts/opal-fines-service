@@ -546,8 +546,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Single name change creates one amendment.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_singleNameChangeCreatesOneAmendment() throws Exception {
         authoriseAllPermissions();
 
@@ -573,8 +579,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "1990-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -615,8 +631,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Company name change creates one amendment.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_companyNameChangeCreatesOneAmendment() throws Exception {
         authoriseAllPermissions();
 
@@ -677,8 +699,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Company name and address changes creates multiple amendments.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_companyNameAddressChangeCreatesManyAmendments() throws Exception {
         authoriseAllPermissions();
 
@@ -738,8 +766,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Multiple alias changes creates multiple amendments.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_manyAliasChangesCreatesManyAmendments() throws Exception {
         authoriseAllPermissions();
 
@@ -765,8 +799,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "1990-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "Changed Forename", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "Changed Forename", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -810,8 +854,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – multiple address changes creates multiple amendments.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_manyAddressChangesCreatesManyAmendments() throws Exception {
         authoriseAllPermissions();
 
@@ -837,8 +887,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "1990-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -879,8 +939,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Postcode changes creates single amendment.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_postcodeChangeCreatesSingleAmendment() throws Exception {
         authoriseAllPermissions();
 
@@ -906,8 +972,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "1990-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -948,8 +1024,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Date of birth change creates single amendment.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_dobChangeCreatesSingleAmendment() throws Exception {
         authoriseAllPermissions();
 
@@ -975,8 +1057,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "2000-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -1017,8 +1109,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Name and date of birth change creates two amendments.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_nameAndDOBChangeCreatesTwoAmendments() throws Exception {
         authoriseAllPermissions();
 
@@ -1044,8 +1142,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "2000-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -1088,8 +1196,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Name plus alias changes creates multiple amendments.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_nameAndAliasChangeCreatesManyAmendments() throws Exception {
         authoriseAllPermissions();
 
@@ -1115,8 +1229,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "1990-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "Changed ForenamesAlias", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "Changed SurnameAlias" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -1161,8 +1285,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – Name and address changes creates multiple amendments.")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_nameAddressChangeCreatesManyAmendments() throws Exception {
         authoriseAllPermissions();
 
@@ -1188,8 +1318,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "1990-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
@@ -1234,8 +1374,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @DisplayName("OPAL: PUT Replace DAP – No field changes creates no amendments")
     @JiraStory("PO-2471")
     @JiraEpic("PO-1970")
-    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendant_accounts_put_methods.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_defendant_accounts_put_methods.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
     void put_noChangeCreatesNoAmendment() throws Exception {
         authoriseAllPermissions();
 
@@ -1261,8 +1407,18 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                   "date_of_birth": "1990-01-01",
                   "national_insurance_number": "SNI22005",
                   "individual_aliases": [
-                    { "alias_id": "2200501", "sequence_number": 1, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" },
-                    { "alias_id": "2200502", "sequence_number": 2, "forenames": "AliasForenamesSeed", "surname": "AliasSurnameSeed" }
+                    {
+                        "alias_id": "2200501",
+                        "sequence_number": 1,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    },
+                    {
+                        "alias_id": "2200502",
+                        "sequence_number": 2,
+                        "forenames": "AliasForenamesSeed",
+                        "surname": "AliasSurnameSeed"
+                    }
                   ]
                 }
               },
