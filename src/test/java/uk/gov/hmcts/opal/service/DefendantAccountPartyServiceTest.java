@@ -115,11 +115,13 @@ class DefendantAccountPartyServiceTest {
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
+        when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.replaceDefendantAccountParty(
-            anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString()))
+            anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString(),
+            anyString()))
             .thenReturn(expectedResponse);
 
         // Act
@@ -130,8 +132,8 @@ class DefendantAccountPartyServiceTest {
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
 
-        // Capture the last two String arguments (postedBy and businessUnitUserId)
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByNameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(defendantAccountPartyServiceProxy).replaceDefendantAccountParty(
@@ -141,11 +143,13 @@ class DefendantAccountPartyServiceTest {
             eq(ifMatch),
             eq(businessUnitId),
             postedByCaptor.capture(),
+            postedByNameCaptor.capture(),
             buUserIdCaptor.capture()
         );
 
         // When BusinessUnitUser present and has a non-blank id, postedBy should be that id and businessUnitUserId same
         assertThat(postedByCaptor.getValue()).isEqualTo("b-user-id");
+        assertThat(postedByNameCaptor.getValue()).isEqualTo("theUserName");
         assertThat(buUserIdCaptor.getValue()).isEqualTo("b-user-id");
     }
 
@@ -167,11 +171,13 @@ class DefendantAccountPartyServiceTest {
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
+        when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
-            anyLong(), anyString(), anyString(), anyString(), anyString(), any(AddDefendantAccountPartyRequest.class)))
+            anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(),
+            any(AddDefendantAccountPartyRequest.class)))
             .thenReturn(expectedResponse);
 
         // Act
@@ -182,8 +188,8 @@ class DefendantAccountPartyServiceTest {
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
 
-        // Capture the last two String arguments (postedBy and businessUnitUserId)
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByNameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(defendantAccountPartyServiceProxy).addDefendantAccountParty(
@@ -191,12 +197,14 @@ class DefendantAccountPartyServiceTest {
             eq(businessUnitId),
             buUserIdCaptor.capture(),
             postedByCaptor.capture(),
+            postedByNameCaptor.capture(),
             eq(ifMatch),
             eq(request)
         );
 
         // When BusinessUnitUser present and has a non-blank id, postedBy should be that id and businessUnitUserId same
         assertThat(postedByCaptor.getValue()).isEqualTo("b-user-id");
+        assertThat(postedByNameCaptor.getValue()).isEqualTo("theUserName");
         assertThat(buUserIdCaptor.getValue()).isEqualTo("b-user-id");
     }
 
@@ -222,7 +230,8 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.replaceDefendantAccountParty(
-            anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString()))
+            anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString(),
+            anyString()))
             .thenReturn(expectedResponse);
 
         // Act
@@ -234,6 +243,7 @@ class DefendantAccountPartyServiceTest {
         assertThat(actual).isSameAs(expectedResponse);
 
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByNameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(defendantAccountPartyServiceProxy).replaceDefendantAccountParty(
@@ -243,10 +253,12 @@ class DefendantAccountPartyServiceTest {
             eq(ifMatch),
             eq(businessUnitId),
             postedByCaptor.capture(),
+            postedByNameCaptor.capture(),
             buUserIdCaptor.capture()
         );
 
         assertThat(postedByCaptor.getValue()).isEqualTo("theUserName");
+        assertThat(postedByNameCaptor.getValue()).isEqualTo("theUserName");
         // when no business unit user present, the helper returns empty string
         assertThat(buUserIdCaptor.getValue()).isEqualTo("");
     }
@@ -272,7 +284,8 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
-            anyLong(), anyString(), anyString(), anyString(), anyString(), any(AddDefendantAccountPartyRequest.class)))
+            anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(),
+            any(AddDefendantAccountPartyRequest.class)))
             .thenReturn(expectedResponse);
 
         // Act
@@ -284,6 +297,7 @@ class DefendantAccountPartyServiceTest {
         assertThat(actual).isSameAs(expectedResponse);
 
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByNameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(defendantAccountPartyServiceProxy).addDefendantAccountParty(
@@ -291,11 +305,13 @@ class DefendantAccountPartyServiceTest {
             eq(businessUnitId),
             buUserIdCaptor.capture(),
             postedByCaptor.capture(),
+            postedByNameCaptor.capture(),
             eq(ifMatch),
             eq(request)
         );
 
         assertThat(postedByCaptor.getValue()).isEqualTo("theUserName");
+        assertThat(postedByNameCaptor.getValue()).isEqualTo("theUserName");
         // when no business unit user present, the helper returns empty string
         assertThat(buUserIdCaptor.getValue()).isEqualTo("");
     }
@@ -376,6 +392,7 @@ class DefendantAccountPartyServiceTest {
         when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
+        when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
         when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
@@ -384,6 +401,7 @@ class DefendantAccountPartyServiceTest {
             businessUnitId,
             "bu-user-id",
             "bu-user-id",
+            "theUserName",
             ifMatch,
             request
         )).thenReturn(expectedResponse);
@@ -395,9 +413,9 @@ class DefendantAccountPartyServiceTest {
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
 
-        // Capture the postedBy and businessUnitUserId arguments for verification
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByNameCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(defendantAccountPartyServiceProxy).removeDefendantAccountParty(
             eq(defendantAccountId),
@@ -405,6 +423,7 @@ class DefendantAccountPartyServiceTest {
             eq(businessUnitId),
             buUserIdCaptor.capture(),
             postedByCaptor.capture(),
+            postedByNameCaptor.capture(),
             eq(ifMatch),
             eq(request)
         );
@@ -413,6 +432,7 @@ class DefendantAccountPartyServiceTest {
         // token
         assertThat(buUserIdCaptor.getValue()).isEqualTo("bu-user-id");
         assertThat(postedByCaptor.getValue()).isEqualTo("bu-user-id");
+        assertThat(postedByNameCaptor.getValue()).isEqualTo("theUserName");
     }
 
     @Test
@@ -438,6 +458,7 @@ class DefendantAccountPartyServiceTest {
             businessUnitId,
             "",
             "fallback-user",
+            "fallback-user",
             ifMatch,
             request
         )).thenReturn(expectedResponse);
@@ -451,6 +472,7 @@ class DefendantAccountPartyServiceTest {
 
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> postedByNameCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(defendantAccountPartyServiceProxy).removeDefendantAccountParty(
             eq(defendantAccountId),
@@ -458,6 +480,7 @@ class DefendantAccountPartyServiceTest {
             eq(businessUnitId),
             buUserIdCaptor.capture(),
             postedByCaptor.capture(),
+            postedByNameCaptor.capture(),
             eq(ifMatch),
             eq(request)
         );
@@ -465,6 +488,7 @@ class DefendantAccountPartyServiceTest {
         // When BusinessUnitUser is not provided the helper returns an empty string
         assertThat(buUserIdCaptor.getValue()).isEmpty();
         assertThat(postedByCaptor.getValue()).isEqualTo("fallback-user");
+        assertThat(postedByNameCaptor.getValue()).isEqualTo("fallback-user");
     }
 
     @Test

@@ -18,6 +18,7 @@ public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long
     String RECORD_TYPE = "pi_record_type";
     String BUSINESS_UNIT_ID = "pi_business_unit_id";
     String POSTED_BY = "pi_posted_by";
+    String POSTED_BY_NAME = "pi_posted_by_name";
     String CASE_REFERENCE = "pi_case_reference";
     String FUNCTION_CODE = "pi_function_code";
 
@@ -28,6 +29,7 @@ public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long
     @Procedure(procedureName = DB_PROC_FINALISE_NAME)
     void auditFinalise(@Param(ASSOC_ACCOUNT_ID) Long accountId, @Param(RECORD_TYPE) String recordType,
                        @Param(BUSINESS_UNIT_ID) Short businessUnitId, @Param(POSTED_BY) String postedBy,
+                       @Param(POSTED_BY_NAME) String postedByName,
                        @Param(CASE_REFERENCE) String caseRef, @Param(FUNCTION_CODE) String functionCode);
 
     void deleteByAssociatedRecordId(String defendantAccountId);
