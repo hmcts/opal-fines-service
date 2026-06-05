@@ -17,7 +17,10 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -60,7 +63,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .submittedBy("BUUID1")
             .submittedByName("John")
             .account(validAccountJsonStringWithDebtorLanguages()
-                .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
+                         .replace(
+                             "\"%s\": \"EN\"".formatted(languageField),
+                             "\"%s\": \"English\"".formatted(languageField)
+                         ))
             .accountType(DraftAccountType.FINE)
             .build();
 
@@ -160,9 +166,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(validRequestBody));
+                                                          .header("authorization", "Bearer some_value")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validRequestBody));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -174,7 +180,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
-                .value("LNAME"))
+                           .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("USER01"))
             .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
@@ -196,9 +202,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isCreated());
     }
 
@@ -215,9 +221,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isCreated());
     }
 
@@ -234,9 +240,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -252,9 +258,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -273,9 +279,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -291,9 +297,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -309,9 +315,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isBadRequest());
     }
 
@@ -327,9 +333,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
@@ -349,9 +355,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
@@ -375,9 +381,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(invalidCreateRequestBody()));
+                                                          .header("authorization", "Bearer some_value")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(invalidCreateRequestBody()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDraftAccount_trap400Response: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -402,14 +408,14 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(validRequestBody));
+                                                          .header("authorization", "Bearer some_value")
+                                                          .header("If-Match", "0")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validRequestBody));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDraftAccount_trap403Response_noPermission: Response body:\n"
-            + ToJsonString.toPrettyJson(body));
+                     + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -431,17 +437,17 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         String validRequestBody = validCreateRequestBody();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)5, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS, FinesPermission.ACCOUNT_ENQUIRY));
+            permissionUser((short) 5, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS, FinesPermission.ACCOUNT_ENQUIRY));
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(validRequestBody));
+                                                          .header("authorization", "Bearer some_value")
+                                                          .header("If-Match", "0")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validRequestBody));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDraftAccount_trap403Response_wrongPermission: Response body:\n"
-            + ToJsonString.toPrettyJson(body));
+                     + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -463,17 +469,17 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         String validRequestBody = validCreateRequestBody();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)5, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+            permissionUser((short) 5, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(validRequestBody));
+                                                          .header("authorization", "Bearer some_value")
+                                                          .header("If-Match", "0")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validRequestBody));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDraftAccount_trap403Response_wrongPermission: Response body:\n"
-            + ToJsonString.toPrettyJson(body));
+                     + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -498,11 +504,11 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
         // act: perform POST
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
-            .header("If-Match", "0")
-            .header("X-User-IP", "192.168.1.100")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(validRequestBody));
+                                                          .header("authorization", "Bearer some_value")
+                                                          .header("If-Match", "0")
+                                                          .header("X-User-IP", "192.168.1.100")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validRequestBody));
 
         // assert response (controller returned 201 in your run)
         resultActions.andExpect(status().isCreated())
@@ -533,6 +539,53 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         assertNotNull(individuals);
         assertEquals(1, individuals.size());
         assertEquals("202", individuals.getFirst().getIdentifier());
+    }
+
+    @Test
+    @DisplayName("Create draft fixed penalty account - Should create when time of issue is null")
+    @JiraStory("PO-6451")
+    @JiraEpic("PO-855")
+    void testPostDraftFPAccount_time_of_issue_null() throws Exception {
+        JSONObject body = new JSONObject(validFPPostRequestBody());
+
+        String validRequestBody = body.toString();
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+                                                          .header("authorization", "Bearer some_value")
+                                                          .header("If-Match", "0")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validRequestBody));
+        log.info(":testPostDraftFPAccount_time_of_issue_null: Response body:\n" + resultActions.andReturn().getResponse().getContentAsString());
+
+        resultActions.andExpect(status().isCreated());
+        resultActions.andExpect(jsonPath("$.account_type").value("Fixed Penalty"))
+            .andExpect(jsonPath("$.account.fp_ticket_details.time_of_issue").doesNotExist());
+
+    }
+
+    @Test
+    @DisplayName("Create draft fixed penalty account - Should not create when time of issue is invalid")
+    @JiraStory("PO-6451")
+    @JiraEpic("PO-855")
+    void testPostDraftFPAccount_time_of_issue_invalid() throws Exception {
+        JSONObject body = new JSONObject(validFPPostRequestBody());
+
+        body.getJSONObject("account")
+            .getJSONObject("fp_ticket_detail")
+            .put("time_of_issue", "invalid-date-time-format");
+
+        String validRequestBody = body.toString();
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
+
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+                                                          .header("authorization", "Bearer some_value")
+                                                          .header("If-Match", "0")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validRequestBody));
+        log.info(":testPostDraftFPAccount_time_of_issue_invalid Response body:\n" + resultActions.andReturn().getResponse().getContentAsString());
+        resultActions.andExpect(status().isBadRequest());
+
     }
 
     private static String validCreateRequestBody() {
@@ -749,6 +802,120 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "submitted_by_name": "Business User 1"
             }
 
+            """;
+    }
+
+    private String validFPPostRequestBody() {
+        return """
+            {
+               "draft_account_id":null,
+               "created_at":null,
+               "account_snapshot":null,
+               "account_status_date":null,
+               "business_unit_id":77,
+               "submitted_by":"L077JG",
+               "submitted_by_name":"opal-test",
+               "account":{
+                  "account_type":"Fixed Penalty",
+                  "defendant_type":"adultOrYouthOnly",
+                  "originator_name":"undefined",
+                  "originator_id":4,
+                  "originator_type":"FP",
+                  "prosecutor_case_reference":null,
+                  "enforcement_court_id":770000000021,
+                  "collection_order_made":null,
+                  "collection_order_made_today":null,
+                  "collection_order_date":null,
+                  "suspended_committal_date":null,
+                  "payment_card_request":null,
+                  "account_sentence_date":"2026-06-02",
+                  "defendant":{
+                     "company_flag":false,
+                     "title":"Mr",
+                     "surname":"LNAME",
+                     "forenames":"fname",
+                     "company_name":null,
+                     "dob":null,
+                     "address_line_1":"addr",
+                     "address_line_2":null,
+                     "address_line_3":null,
+                     "address_line_4":null,
+                     "address_line_5":null,
+                     "post_code":null,
+                     "telephone_number_home":null,
+                     "telephone_number_business":null,
+                     "telephone_number_mobile":null,
+                     "email_address_1":null,
+                     "email_address_2":null,
+                     "national_insurance_number":null,
+                     "driving_licence_number":null,
+                     "pnc_id":null,
+                     "nationality_1":null,
+                     "nationality_2":null,
+                     "ethnicity_self_defined":null,
+                     "ethnicity_observed":null,
+                     "cro_number":null,
+                     "occupation":null,
+                     "gender":null,
+                     "custody_status":null,
+                     "prison_number":null,
+                     "interpreter_lang":null,
+                     "debtor_detail":{
+                        "vehicle_make":null,
+                        "vehicle_registration_mark":null,
+                        "document_language":null,
+                        "hearing_language":null,
+                        "employee_reference":null,
+                        "employer_company_name":null,
+                        "employer_address_line_1":null,
+                        "employer_address_line_2":null,
+                        "employer_address_line_3":null,
+                        "employer_address_line_4":null,
+                        "employer_address_line_5":null,
+                        "employer_post_code":null,
+                        "employer_telephone_number":null,
+                        "employer_email_address":null,
+                        "aliases":null
+                     },
+                     "parent_guardian":null
+                  },
+                  "offences":[
+                     {
+                        "date_of_sentence":"2026-06-02",
+                        "imposing_court_id":null,
+                        "offence_id":33369,
+                        "impositions":[
+                           {
+                              "result_id":"FO",
+                              "amount_imposed":1000,
+                              "amount_paid":0,
+                              "major_creditor_id":null,
+                              "minor_creditor":null
+                           }
+                        ]
+                     }
+                  ],
+                  "fp_ticket_detail":{
+                     "notice_number":"TEST123",
+                     "time_of_issue":null,
+                     "place_of_offence":"town 123"
+                  },
+                  "payment_terms":{
+                     "payment_terms_type_code":"B",
+                     "effective_date":null,
+                     "instalment_period":null,
+                     "lump_sum_amount":null,
+                     "instalment_amount":null,
+                     "default_days_in_jail":null,
+                     "enforcements":null
+                  },
+                  "account_notes":null
+               },
+               "account_type":"Fixed Penalty",
+               "account_status":"Submitted",
+               "account_status_message":null,
+               "version":"0"
+            }
             """;
     }
 
