@@ -43,8 +43,8 @@ public interface DefendantTransactionEntityHistoryMapper {
             return null;
         }
         return DefendantTransactionTypeReference.builder()
-            .transactionType(transactionType.getLabel())
-            .transactionTypeDisplayName(transactionType.getLabel())
+            .transactionType(transactionType.getApiCode())
+            .transactionTypeDisplayName(transactionType.getDisplayName())
             .build();
     }
 
@@ -54,7 +54,7 @@ public interface DefendantTransactionEntityHistoryMapper {
         }
         return PaymentMethodReference.builder()
             .paymentMethod(paymentMethod.name())
-            .paymentMethodDisplayName(paymentMethod.name())
+            .paymentMethodDisplayName(paymentMethod.getDisplayName())
             .build();
     }
 
@@ -74,7 +74,7 @@ public interface DefendantTransactionEntityHistoryMapper {
         }
         return DefendantTransactionStatusReference.builder()
             .defendantTransactionStatus(status.name())
-            .defendantTransactionStatusDisplayName(status.name())
+            .defendantTransactionStatusDisplayName(status.getDisplayName())
             .build();
     }
 
