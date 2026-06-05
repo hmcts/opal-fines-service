@@ -254,7 +254,13 @@ tasks.withType(JavaExec).configureEach {
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
 
-  systemProperty 'spring.test.context.cache.maxSize', 4
+  tasks.withType(Test).configureEach {
+    systemProperty "spring.test.context.cache.maxSize", "1"
+
+    doFirst {
+      println "Test JVM spring.test.context.cache.maxSize = " +
+              systemProperties["spring.test.context.cache.maxSize"]
+    }
 
   testLogging {
     exceptionFormat = 'full'
