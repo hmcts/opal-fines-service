@@ -59,16 +59,22 @@
     Reviewed 2026-05-27.
     Fines-service uses Azure Blob Storage via BlobServiceClientBuilder.connectionString(...),
     then obtains a BlobContainerClient and BlobClient to upload generated report content.
-    Current runtime artifacts flagged for CVE-2026-33117 are:
+    Current Azure SDK artifacts in this repo's storage/reporting chain include:
     - com.azure:azure-core:1.58.0
     - com.azure:azure-core-http-netty:1.16.4
     - com.azure:azure-json:1.5.1
+    - com.azure:azure-storage-blob:12.34.0
+    - com.azure:azure-storage-common:12.33.0
+    - com.azure:azure-storage-internal-avro:12.19.0
+    - com.azure:azure-xml:1.2.1
+    Dependency-Check can attach CVE-2026-33117 to different artifacts across that chain depending on the
+    NVD/CPE matching outcome, so the suppression must cover the full set rather than just azure-core modules.
     Maven metadata review found these are already the latest stable GA releases available in the
     current Azure Storage SDK chain used by this repo, with no newer non-beta upgrade path.
     This suppression expires in two weeks so the dependency-check failure returns unless an
     upstream GA fix or a better remediation path is available.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core|azure\-core\-http\-netty|azure\-json)@.*$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core|azure\-core\-http\-netty|azure\-json|azure\-storage\-blob|azure\-storage\-common|azure\-storage\-internal\-avro|azure\-xml)@.*$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
   <suppress until="2026-06-10Z">
