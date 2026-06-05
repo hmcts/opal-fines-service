@@ -64,7 +64,7 @@ public interface DefendantTransactionEntityHistoryMapper {
         }
         return WriteOffTypeReference.builder()
             .writeOffType(writeOffCode.getLabel())
-            .writeOffTypeDisplayName(writeOffCode.getLabel())
+            .writeOffTypeDisplayName(writeOffCode.getDisplayName())
             .build();
     }
 

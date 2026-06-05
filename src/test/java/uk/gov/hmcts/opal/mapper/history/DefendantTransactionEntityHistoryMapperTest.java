@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionPaymentMethod;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionStatus;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionType;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionWriteOffCode;
 
 class DefendantTransactionEntityHistoryMapperTest {
 
@@ -29,6 +30,7 @@ class DefendantTransactionEntityHistoryMapperTest {
             .paymentMethod(DefendantTransactionPaymentMethod.NC)
             .status(DefendantTransactionStatus.P)
             .statusDate(LocalDateTime.of(2026, 1, 7, 11, 0))
+            .writeOffCode(DefendantTransactionWriteOffCode.TRNOUT)
             .text("detail")
             .build();
 
@@ -39,6 +41,8 @@ class DefendantTransactionEntityHistoryMapperTest {
         assertThat(details.getTransactionType().getTransactionTypeDisplayName()).isEqualTo("Payments");
         assertThat(details.getPaymentMethod().getPaymentMethod()).isEqualTo("NC");
         assertThat(details.getPaymentMethod().getPaymentMethodDisplayName()).isEqualTo("Notes & Coins");
+        assertThat(details.getWriteOff().getWriteOffType()).isEqualTo("TRNOUT");
+        assertThat(details.getWriteOff().getWriteOffTypeDisplayName()).isEqualTo("Write off");
         assertThat(details.getStatus().getDefendantTransactionStatus()).isEqualTo("P");
         assertThat(details.getStatus().getDefendantTransactionStatusDisplayName()).isEqualTo("Partially-reversed");
     }
