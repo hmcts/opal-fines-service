@@ -1,9 +1,14 @@
 package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.mapper.history.NoteEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
@@ -16,7 +21,7 @@ import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryM
 
 @Service
 @RequiredArgsConstructor
-public class NoteHistorySource implements AccountHistorySource {
+public class NoteHistorySource extends HistorySourceSpecificationSupport implements AccountHistorySource {
 
     private final NoteRepository noteRepository;
     private final NoteEntityHistoryMapper noteEntityHistoryMapper;
@@ -34,13 +39,35 @@ public class NoteHistorySource implements AccountHistorySource {
 
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
-        return noteRepository.findDefendantAccountHistoryNotes(
-                context.getAccountId().toString(),
-                filter.getDateFrom(),
-                filter.getDateTo()
-            ).stream()
+        return noteRepository.findAll(allOf(
+                noteForDefendantAccount(context.getAccountId()),
+                noteTypeAa(),
+                noteDateFrom(filter.getDateFrom()),
+                noteDateTo(filter.getDateTo())
+            )).stream()
             .map(noteEntityHistoryMapper::toHistoryItem)
             .map(DefendantAccountHistoryModelAdapter::toCoreItem)
             .toList();
+    }
+
+    private Specification<NoteEntity> noteForDefendantAccount(Long defendantAccountId) {
+        return (root, query, builder) -> builder.and(
+            builder.equal(root.get("associatedRecordType"), AssociatedRecordType.DEFENDANT_ACCOUNTS),
+            builder.equal(root.get("associatedRecordId"), defendantAccountId.toString())
+        );
+    }
+
+    private Specification<NoteEntity> noteTypeAa() {
+        return (root, query, builder) -> builder.equal(root.get("noteType"), NoteType.AA);
+    }
+
+    private Specification<NoteEntity> noteDateFrom(LocalDate dateFrom) {
+        return dateFrom == null ? null
+            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), atStartOfDay(dateFrom));
+    }
+
+    private Specification<NoteEntity> noteDateTo(LocalDate dateTo) {
+        return dateTo == null ? null
+            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
     }
 }
