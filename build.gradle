@@ -254,7 +254,6 @@ tasks.withType(JavaExec).configureEach {
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
 
-  tasks.withType(Test).configureEach {
     systemProperty "spring.test.context.cache.maxSize", "1"
 
     doFirst {
