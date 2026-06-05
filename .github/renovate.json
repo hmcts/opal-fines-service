@@ -175,26 +175,6 @@
       ]
     },
     {
-      "description": "Group all HMCTS dependencies - Minor/Patch",
-      "matchManagers": ["gradle"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "HMCTS Dependencies - Minor/Patch",
-      "matchPackageNames": [
-        "/^uk\\.gov\\.hmcts.*/",
-        "/.*hmcts.*/"
-      ]
-    },
-    {
-      "description": "Group all HMCTS dependencies - Major",
-      "matchManagers": ["gradle"],
-      "matchUpdateTypes": ["major"],
-      "groupName": "HMCTS Dependencies - Major",
-      "matchPackageNames": [
-        "/^uk\\.gov\\.hmcts.*/",
-        "/.*hmcts.*/"
-      ]
-    },
-    {
       "description": "Group all logging dependencies - Minor/Patch",
       "matchManagers": ["gradle"],
       "matchUpdateTypes": ["minor", "patch"],
