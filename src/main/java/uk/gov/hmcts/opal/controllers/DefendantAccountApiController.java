@@ -5,7 +5,6 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistory200Response;
@@ -78,14 +75,8 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
         log.debug(":GET:getDefendantAccountHistory: for defendant id: {}", id);
 
-        DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
-            .dateFrom(dateFrom)
-            .dateTo(dateTo)
-            .itemTypes(toHistoryItemTypes(itemTypes))
-            .build();
-
         DefendantAccountHistoryResponse response =
-            defendantAccountService.getHistory(id, filter, authorization);
+            defendantAccountService.getHistory(id, dateFrom, dateTo, itemTypes, authorization);
 
         GetDefendantAccountHistory200Response generatedResponse =
             defendantAccountHistoryResponseMapper.toGeneratedResponse(response);
@@ -95,12 +86,4 @@ public class DefendantAccountApiController implements DefendantAccountApi {
             .body(generatedResponse);
     }
 
-    private List<HistoryItemType> toHistoryItemTypes(List<String> itemTypes) {
-        return itemTypes == null ? List.of() : itemTypes.stream()
-            .flatMap(itemType -> Arrays.stream(itemType.split(",")))
-            .map(String::trim)
-            .filter(itemType -> !itemType.isEmpty())
-            .map(HistoryItemType::fromValue)
-            .toList();
-    }
 }

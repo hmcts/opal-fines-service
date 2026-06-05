@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -13,6 +12,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,9 +25,7 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistory200Response;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
@@ -107,8 +105,7 @@ class DefendantAccountApiControllerTest {
             .build();
         GetDefendantAccountHistory200Response generatedResponse = new GetDefendantAccountHistory200Response();
 
-        when(defendantAccountService.getHistory(eq(defendantId), any(DefendantAccountHistoryFilter.class),
-            eq(BEARER_TOKEN)))
+        when(defendantAccountService.getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()), eq(BEARER_TOKEN)))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(generatedResponse);
@@ -119,29 +116,29 @@ class DefendantAccountApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"1\"", response.getHeaders().getETag());
         assertSame(generatedResponse, response.getBody());
-        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
-        verify(defendantAccountService).getHistory(eq(defendantId), filterCaptor.capture(), eq(BEARER_TOKEN));
+        verify(defendantAccountService).getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()),
+            eq(BEARER_TOKEN));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
-        assertTrue(filterCaptor.getValue().getItemTypes().isEmpty());
     }
 
     @Test
-    void given_itemTypesQueryValues_when_getDefendantAccountHistory_then_parsesCommaSeparatedAndRepeatedValues() {
+    void given_queryValues_when_getDefendantAccountHistory_then_delegatesRawValuesToService() {
         Long defendantId = 1L;
+        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
+        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        List<String> itemTypes = List.of("note,paymentTerms", "enforcement");
         DefendantAccountHistoryResponse historyResponse = DefendantAccountHistoryResponse.builder().build();
-        when(defendantAccountService.getHistory(eq(defendantId), any(DefendantAccountHistoryFilter.class),
+        when(defendantAccountService.getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes),
             eq(BEARER_TOKEN)))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(new GetDefendantAccountHistory200Response());
 
-        defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null,
-            List.of("note,paymentTerms", "enforcement"), BEARER_TOKEN);
+        defendantAccountApiController.getDefendantAccountHistory(defendantId, dateFrom, dateTo, itemTypes,
+            BEARER_TOKEN);
 
-        var filterCaptor = org.mockito.ArgumentCaptor.forClass(DefendantAccountHistoryFilter.class);
-        verify(defendantAccountService).getHistory(eq(defendantId), filterCaptor.capture(), eq(BEARER_TOKEN));
-        assertEquals(List.of(HistoryItemType.NOTE, HistoryItemType.PAYMENT_TERMS, HistoryItemType.ENFORCEMENT),
-            filterCaptor.getValue().getItemTypes());
+        verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes),
+            eq(BEARER_TOKEN));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
     }
 
