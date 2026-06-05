@@ -18,7 +18,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
@@ -556,7 +555,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                                                           .header("If-Match", "0")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(validRequestBody));
-        log.info(":testPostDraftFPAccount_time_of_issue_null: Response body:\n" + resultActions.andReturn().getResponse().getContentAsString());
+        log.info(":testPostDraftFPAccount_time_of_issue_null: Response body:\n" + resultActions
+            .andReturn().getResponse().getContentAsString());
 
         resultActions.andExpect(status().isCreated());
         resultActions.andExpect(jsonPath("$.account_type").value("Fixed Penalty"))
@@ -583,7 +583,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                                                           .header("If-Match", "0")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(validRequestBody));
-        log.info(":testPostDraftFPAccount_time_of_issue_invalid Response body:\n" + resultActions.andReturn().getResponse().getContentAsString());
+        log.info(":testPostDraftFPAccount_time_of_issue_invalid Response body:\n" + resultActions
+            .andReturn()
+            .getResponse()
+            .getContentAsString());
         resultActions.andExpect(status().isBadRequest());
 
     }
