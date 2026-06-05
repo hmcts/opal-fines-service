@@ -52,8 +52,9 @@ public abstract class AbstractIntegrationTest {
             }
         });
     }
+
     @BeforeEach
-    public void beforeEach(){
+    public void beforeEach() {
         clearCaches();
     }
 
