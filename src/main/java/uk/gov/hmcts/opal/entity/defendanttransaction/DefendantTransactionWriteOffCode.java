@@ -5,26 +5,26 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.stream.Stream;
 
 public enum DefendantTransactionWriteOffCode {
-    JCAM_A("JCAM-A", "JCAM-A"),
-    JCAM_B("JCAM-B", "JCAM-B"),
-    JCAM_C("JCAM-C", "JCAM-C"),
-    JCAM_D("JCAM-D", "JCAM-D"),
-    JCAM_E("JCAM-E", "JCAM-E"),
-    JCAM_F("JCAM-F", "JCAM-F"),
-    JCAM_G("JCAM-G", "JCAM-G"),
-    JCAM_H("JCAM-H", "JCAM-H"),
-    JCAM_I("JCAM-I", "JCAM-I"),
-    JCAM_K("JCAM-K", "JCAM-K"),
-    REMITT("REMITT", "REMITT"),
-    IMPRIS("IMPRIS", "IMPRIS"),
-    APPEAL("APPEAL", "APPEAL"),
-    CTPROC("CTPROC", "CTPROC"),
-    FIXPEN("FIXPEN", "FIXPEN"),
-    REVIEW("REVIEW", "REVIEW"),
-    INPERR("INPERR", "INPERR"),
-    OTHERS("OTHERS", "OTHERS"),
-    AMTCON("AMTCON", "AMTCON"),
-    TRNOUT("TRNOUT", "Write off");
+    JCAM_A("JCAM-A", "Unknown Whereabouts"),
+    JCAM_B("JCAM-B", "Emigrated / Gone Abroad"),
+    JCAM_C("JCAM-C", "Deceased"),
+    JCAM_D("JCAM-D", "Sent to Mental Health Institution"),
+    JCAM_E("JCAM-E", "Sum Less Than £10"),
+    JCAM_F("JCAM-F", "Imprisonment 12 Months"),
+    JCAM_G("JCAM-G", "Limited Company Wound Up"),
+    JCAM_H("JCAM-H", "Serviceman – Military Correctional Training"),
+    JCAM_I("JCAM-I", "Local Authority Moved to Scotland"),
+    JCAM_K("JCAM-K", "Other"),
+    REMITT("REMITT", "Remitted"),
+    IMPRIS("IMPRIS", "Satisfied by Imprisonment"),
+    APPEAL("APPEAL", "Appeals"),
+    CTPROC("CTPROC", "Statutory Declarations (Court Proceedings)"),
+    FIXPEN("FIXPEN", "Statutory Declarations (Fixed Penalty)"),
+    REVIEW("REVIEW", "Compensation No Longer Payable (Criminal Courts Act)"),
+    INPERR("INPERR", "Input Error"),
+    OTHERS("OTHERS", "Others"),
+    AMTCON("AMTCON", "Consolidated"),
+    TRNOUT("TRNOUT", "Transferred Out");
 
     private final String label;
     private final String displayName;
