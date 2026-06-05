@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.stream.Stream;
 
 public enum DefendantTransactionWriteOffCode {
-    JCAM_A("JCAM-A", "Unknown Whereabouts"),
+    JCAM_A("JCAM-A", "Unknown whereabouts"),
     JCAM_B("JCAM-B", "Emigrated / Gone Abroad"),
     JCAM_C("JCAM-C", "Deceased"),
     JCAM_D("JCAM-D", "Sent to Mental Health Institution"),
@@ -22,9 +22,9 @@ public enum DefendantTransactionWriteOffCode {
     FIXPEN("FIXPEN", "Statutory Declarations (Fixed Penalty)"),
     REVIEW("REVIEW", "Compensation No Longer Payable (Criminal Courts Act)"),
     INPERR("INPERR", "Input Error"),
-    OTHERS("OTHERS", "Others"),
+    OTHERS("OTHERS", "Others (non-specified)"),
     AMTCON("AMTCON", "Consolidated"),
-    TRNOUT("TRNOUT", "Transferred Out");
+    TRNOUT("TRNOUT", "Transferred out");
 
     private final String label;
     private final String displayName;

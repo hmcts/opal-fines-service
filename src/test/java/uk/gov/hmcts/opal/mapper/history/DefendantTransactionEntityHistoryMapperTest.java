@@ -42,7 +42,7 @@ class DefendantTransactionEntityHistoryMapperTest {
         assertThat(details.getPaymentMethod().getPaymentMethod()).isEqualTo("NC");
         assertThat(details.getPaymentMethod().getPaymentMethodDisplayName()).isEqualTo("Notes & Coins");
         assertThat(details.getWriteOff().getWriteOffType()).isEqualTo("TRNOUT");
-        assertThat(details.getWriteOff().getWriteOffTypeDisplayName()).isEqualTo("Transferred Out");
+        assertThat(details.getWriteOff().getWriteOffTypeDisplayName()).isEqualTo("Transferred out");
         assertThat(details.getStatus().getDefendantTransactionStatus()).isEqualTo("P");
         assertThat(details.getStatus().getDefendantTransactionStatusDisplayName()).isEqualTo("Partially-reversed");
     }

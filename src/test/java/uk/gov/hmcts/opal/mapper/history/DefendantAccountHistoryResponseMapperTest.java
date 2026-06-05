@@ -264,7 +264,7 @@ class DefendantAccountHistoryResponseMapperTest {
                 .additionalInformation("Extra transaction info")
                 .writeOff(WriteOffTypeReference.builder()
                     .writeOffType("TRNOUT")
-                    .writeOffTypeDisplayName("Transferred Out")
+                    .writeOffTypeDisplayName("Transferred out")
                     .build())
                 .status(DefendantTransactionStatusReference.builder()
                     .defendantTransactionStatus("P")
