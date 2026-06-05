@@ -35,6 +35,7 @@ public interface EnforcementEntityHistoryMapper {
     EnforcementDetails toEnforcementDetails(EnforcementEntity entity);
 
     @Mapping(target = "courtId", source = "courtId")
+    @Mapping(target = "courtName", source = "name")
     CourtReferenceDto toCourtReference(CourtEntity entity);
 
     @Named("toLocalDate")
