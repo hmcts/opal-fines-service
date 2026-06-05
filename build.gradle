@@ -259,6 +259,7 @@ tasks.withType(Test).configureEach {
   testLogging {
     exceptionFormat = 'full'
   }
+  maxHeapSize = "2g"
   if (failFast) {
     failFast = true
   }
