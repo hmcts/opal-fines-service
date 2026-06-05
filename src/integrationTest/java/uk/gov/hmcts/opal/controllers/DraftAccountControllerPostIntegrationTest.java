@@ -513,6 +513,16 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         resultActions.andExpect(status().isCreated())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
+        String responseBody = resultActions.andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        JSONObject responseJson = new JSONObject(responseBody);
+
+        String draftAccountID = responseJson.getString("draft_account_id");
+        assertNotNull(draftAccountID);
+        log.info("Draft account created successfully with id: " + draftAccountID);
+
         // verify PDPLLoggingService was called with a DraftAccountEntity
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
             PersonalDataProcessingLogDetails.class);
@@ -537,7 +547,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         List<ParticipantIdentifier> individuals = pdpl.getIndividuals();
         assertNotNull(individuals);
         assertEquals(1, individuals.size());
-        assertEquals("202", individuals.getFirst().getIdentifier());
+        assertEquals(draftAccountID, individuals.getFirst().getIdentifier());
     }
 
     @Test
