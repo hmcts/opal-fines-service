@@ -68,16 +68,16 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void shouldUseOpalServiceWhenModeIsNotLegacy() {
-        // Given: app mode is set
-        setMode(OPAL);
+        // Given: legacy mode flag is set
+        setLegacyMode(false);
         // Then: the target service is called, but the other service is not
         testMode(opalService, legacyService);
     }
 
     @Test
     void shouldUseLegacyServiceWhenModeIsLegacy() {
-        // Given: app mode is set
-        setMode(LEGACY);
+        // Given: legacy mode flag is set
+        setLegacyMode(true);
         // Then: the target service is called, but the other service is not
         testMode(legacyService, opalService);
     }
@@ -85,7 +85,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
     @Test
     void shouldDelegateAddEnforcementToLegacyServiceWhenInLegacyMode() throws JacksonException {
         // arrange
-        setMode(LEGACY);
+        setLegacyMode(true);
 
         long defendantAccountId = 77L;
         Short businessUnitId = 10;
@@ -120,7 +120,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
     @Test
     void shouldDelegateAddEnforcementToOpalServiceWhenInOpalMode() throws JacksonException {
         // arrange
-        setMode(OPAL);
+        setLegacyMode(false);
 
         long defendantAccountId = 77L;
         Short businessUnitId = 10;
@@ -154,7 +154,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void shouldDelegateRemoveEnforcementHoldToLegacyServiceWhenInLegacyMode() {
-        setMode(LEGACY);
+        setLegacyMode(true);
 
         long defendantAccountId = 77L;
         Short businessUnitId = (short) 10;
