@@ -7,7 +7,7 @@ Feature: Defendant Account Search Feature Toggles
   @R1BOff @JIRA-STORY:PO-3768 @JIRA-STORY:PO-3762 @JIRA-EPIC:PO-3685
   Scenario: Search endpoint is unavailable when release 1b is disabled
     When I search defendant accounts using prosecutor case reference "R1B-OFF-CHECK" without consolidation
-    Then the request is rejected with status 405
+    Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
   @R1B @R1COff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
@@ -20,7 +20,7 @@ Feature: Defendant Account Search Feature Toggles
   Scenario: Consolidated search is unavailable when release 1c is disabled
     Given a searchable defendant account exists for feature-toggle search
     When I search the created defendant account with consolidation
-    Then the request is rejected with status 405
+    Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
   @R1B @R1C @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
