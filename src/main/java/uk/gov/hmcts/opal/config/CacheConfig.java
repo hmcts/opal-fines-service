@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.config;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,8 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
@@ -48,8 +51,7 @@ public class CacheConfig {
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public RedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisUrl);
-        return new LettuceConnectionFactory(config);
+        return new LettuceConnectionFactory(LettuceConnectionFactory.createRedisConfiguration(redisUrl));
     }
 
     @Bean
