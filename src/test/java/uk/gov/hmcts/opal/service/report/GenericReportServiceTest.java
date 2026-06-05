@@ -303,8 +303,6 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_multiBU_notAllowed_throwsException() {
         //setup
-        //when(userStateService.checkForAuthorisedUserInSecurityContextHolder()).thenReturn(userState);
-        //when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
 
