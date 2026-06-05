@@ -22,7 +22,7 @@ public class DefendantAccountHistoryItem implements ToJsonString {
 
     private HistoryItemType type;
 
-    private Object details;
+    private DefendantAccountHistoryDetails details;
 
     private BigDecimal amount;
 

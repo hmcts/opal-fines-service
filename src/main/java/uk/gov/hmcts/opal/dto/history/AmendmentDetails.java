@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AmendmentDetails {
+public class AmendmentDetails implements DefendantAccountHistoryDetails {
 
     private String attributeName;
 

@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PaymentTermsDetails {
+public class PaymentTermsDetails implements DefendantAccountHistoryDetails {
 
     @JsonProperty("days_in_default")
     private Integer daysInDefault;

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EnforcementDetails {
+public class EnforcementDetails implements DefendantAccountHistoryDetails {
 
     private String enforcementAction;
 

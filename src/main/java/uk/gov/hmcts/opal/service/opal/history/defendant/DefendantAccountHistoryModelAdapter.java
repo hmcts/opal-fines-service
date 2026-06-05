@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal.history.defendant;
 
 import uk.gov.hmcts.opal.dto.history.AmendmentDetails;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
@@ -56,7 +57,7 @@ public final class DefendantAccountHistoryModelAdapter {
             .build();
     }
 
-    public static AccountHistoryDetails toCoreDetails(Object details) {
+    public static AccountHistoryDetails toCoreDetails(DefendantAccountHistoryDetails details) {
         if (details == null) {
             return null;
         }
@@ -121,7 +122,7 @@ public final class DefendantAccountHistoryModelAdapter {
         );
     }
 
-    public static Object toDefendantDetails(AccountHistoryDetails details) {
+    public static DefendantAccountHistoryDetails toDefendantDetails(AccountHistoryDetails details) {
         if (details == null) {
             return null;
         }

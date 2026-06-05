@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DefendantTransactionDetails {
+public class DefendantTransactionDetails implements DefendantAccountHistoryDetails {
 
     private DefendantTransactionTypeReference transactionType;
 

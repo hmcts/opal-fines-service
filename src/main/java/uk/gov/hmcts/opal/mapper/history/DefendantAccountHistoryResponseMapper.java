@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.history.AmendmentDetails;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
@@ -115,7 +116,7 @@ public interface DefendantAccountHistoryResponseMapper {
         return value == null ? null : value.toLocalDate();
     }
 
-    default DefendantAccountHistoryItemHistoryDetails mapDetails(Object details) {
+    default DefendantAccountHistoryItemHistoryDetails mapDetails(DefendantAccountHistoryDetails details) {
         if (details == null) {
             return null;
         }
