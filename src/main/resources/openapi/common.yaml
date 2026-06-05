@@ -908,9 +908,11 @@ components:
         defendantTransactionStatus:
           type: string
           enum:
-            - PND
-            - COMP
-            - CAN
+            - R
+            - P
+            - D
+            - X
+            - C
         defendantTransactionStatusDisplayName:
           type: string
     amendmentType:

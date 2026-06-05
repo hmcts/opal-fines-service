@@ -87,23 +87,16 @@ public interface DefendantAccountHistoryResponseMapper {
         }
 
         String statusCode = status.getDefendantTransactionStatus();
-        DefendantTransactionStatusEnum generatedStatus = switch (statusCode) {
-            case "P" -> DefendantTransactionStatusEnum.PND;
-            case "C" -> DefendantTransactionStatusEnum.COMP;
-            case "D", "R", "X" -> DefendantTransactionStatusEnum.CAN;
-            default -> throw new IllegalArgumentException(
-                "Unsupported defendant transaction status: " + statusCode);
-        };
-
-        String displayName = switch (generatedStatus) {
-            case PND -> "Pending";
-            case COMP -> "Complete";
-            case CAN -> "Cancelled";
-        };
+        final DefendantTransactionStatusEnum generatedStatus;
+        try {
+            generatedStatus = DefendantTransactionStatusEnum.fromValue(statusCode);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Unsupported defendant transaction status: " + statusCode);
+        }
 
         return DefendantTransactionStatusReferenceCommon.builder()
             .defendantTransactionStatus(generatedStatus)
-            .defendantTransactionStatusDisplayName(displayName)
+            .defendantTransactionStatusDisplayName(status.getDefendantTransactionStatusDisplayName())
             .build();
     }
 

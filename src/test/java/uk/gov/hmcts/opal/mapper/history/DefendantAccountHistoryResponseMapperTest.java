@@ -117,8 +117,9 @@ class DefendantAccountHistoryResponseMapperTest {
         assertEquals("PAY123", transactionDetails.getPaymentReference());
         assertEquals("Extra transaction info", transactionDetails.getAdditionalInformation());
         assertEquals("TRNOUT", transactionDetails.getWriteOff().getWriteOffType().getValue());
-        assertEquals(DefendantTransactionStatusEnum.PND,
+        assertEquals(DefendantTransactionStatusEnum.P,
             transactionDetails.getStatus().getDefendantTransactionStatus());
+        assertEquals("Partially-reversed", transactionDetails.getStatus().getDefendantTransactionStatusDisplayName());
         assertEquals(LocalDateTime.of(2026, 1, 5, 10, 15), transactionDetails.getStatusDate());
         assertEquals("defendant_accounts", transactionDetails.getAssociatedRecordType());
         assertEquals("262200", transactionDetails.getAssociatedRecordId());
@@ -137,23 +138,29 @@ class DefendantAccountHistoryResponseMapperTest {
     }
 
     @Test
-    void mapsCancelledStatusExplicitlyAndRejectsUnsupportedSourceStatuses() {
-        assertEquals(DefendantTransactionStatusEnum.CAN,
+    void mapsRawTransactionStatusesAndRejectsUnsupportedSourceStatuses() {
+        assertEquals(DefendantTransactionStatusEnum.X,
             mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
                     .defendantTransactionStatus("X")
                     .defendantTransactionStatusDisplayName("Cancelled")
                     .build())
                 .getDefendantTransactionStatus());
-        assertEquals(DefendantTransactionStatusEnum.CAN,
+        assertEquals(DefendantTransactionStatusEnum.D,
             mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
                     .defendantTransactionStatus("D")
                     .defendantTransactionStatusDisplayName("Dishonoured")
                     .build())
                 .getDefendantTransactionStatus());
-        assertEquals(DefendantTransactionStatusEnum.CAN,
+        assertEquals(DefendantTransactionStatusEnum.R,
             mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
                     .defendantTransactionStatus("R")
                     .defendantTransactionStatusDisplayName("Reversed")
+                    .build())
+                .getDefendantTransactionStatus());
+        assertEquals(DefendantTransactionStatusEnum.C,
+            mapper.toGeneratedTransactionStatus(DefendantTransactionStatusReference.builder()
+                    .defendantTransactionStatus("C")
+                    .defendantTransactionStatusDisplayName("Cleared/presented")
                     .build())
                 .getDefendantTransactionStatus());
 
@@ -257,11 +264,11 @@ class DefendantAccountHistoryResponseMapperTest {
                 .additionalInformation("Extra transaction info")
                 .writeOff(WriteOffTypeReference.builder()
                     .writeOffType("TRNOUT")
-                    .writeOffTypeDisplayName("Write off")
+                    .writeOffTypeDisplayName("Transferred Out")
                     .build())
                 .status(DefendantTransactionStatusReference.builder()
                     .defendantTransactionStatus("P")
-                    .defendantTransactionStatusDisplayName("Pending")
+                    .defendantTransactionStatusDisplayName("Partially-reversed")
                     .build())
                 .statusDate(LocalDateTime.of(2026, 1, 5, 10, 15))
                 .associatedRecordType("defendant_accounts")
