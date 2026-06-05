@@ -25,10 +25,6 @@ public interface AmendmentEntityHistoryMapper {
     PostedDetails toPostedDetails(AmendmentEntity entity);
 
     @Named("toAmendmentDetails")
-    @Mapping(target = "attributeName", source = "fieldCode")
+    @Mapping(target = "attributeName", ignore = true)
     AmendmentDetails toAmendmentDetails(AmendmentEntity entity);
-
-    default String map(Short fieldCode) {
-        return fieldCode == null ? null : fieldCode.toString();
-    }
 }

@@ -2,14 +2,19 @@ package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.dto.history.AmendmentDetails;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
+import uk.gov.hmcts.opal.repository.AuditAmendmentFieldRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
@@ -24,6 +29,7 @@ public class AmendmentHistorySource extends HistorySourceSpecificationSupport
     implements AccountHistorySource {
 
     private final AmendmentRepository amendmentRepository;
+    private final AuditAmendmentFieldRepository auditAmendmentFieldRepository;
     private final AmendmentEntityHistoryMapper amendmentEntityHistoryMapper;
 
     @Transactional(readOnly = true)
@@ -40,14 +46,39 @@ public class AmendmentHistorySource extends HistorySourceSpecificationSupport
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
-        return amendmentRepository.findAll(allOf(
-                amendmentForDefendantAccount(defendantAccountId),
-                amendmentDateFrom(filter.getDateFrom()),
-                amendmentDateTo(filter.getDateTo())
-            )).stream()
-            .map(amendmentEntityHistoryMapper::toHistoryItem)
+        List<AmendmentEntity> amendments = amendmentRepository.findAll(allOf(
+            amendmentForDefendantAccount(defendantAccountId),
+            amendmentDateFrom(filter.getDateFrom()),
+            amendmentDateTo(filter.getDateTo())
+        ));
+        Map<Short, String> attributeNamesByFieldCode = auditAmendmentFieldRepository.findAllById(
+            amendments.stream()
+                .map(AmendmentEntity::getFieldCode)
+                .distinct()
+                .toList()
+        ).stream().collect(Collectors.toMap(
+            amendmentField -> amendmentField.getFieldCode(),
+            amendmentField -> amendmentField.getDataItem()
+        ));
+
+        return amendments.stream()
+            .map(amendment -> toHistoryItem(amendment, attributeNamesByFieldCode))
             .map(DefendantAccountHistoryModelAdapter::toCoreItem)
             .toList();
+    }
+
+    private DefendantAccountHistoryItem toHistoryItem(
+        AmendmentEntity amendment,
+        Map<Short, String> attributeNamesByFieldCode
+    ) {
+        DefendantAccountHistoryItem historyItem = amendmentEntityHistoryMapper.toHistoryItem(amendment);
+        if (historyItem.getDetails() instanceof AmendmentDetails details) {
+            details.setAttributeName(attributeNamesByFieldCode.getOrDefault(
+                amendment.getFieldCode(),
+                amendment.getFieldCode() == null ? null : amendment.getFieldCode().toString()
+            ));
+        }
+        return historyItem;
     }
 
     private Specification<AmendmentEntity> amendmentForDefendantAccount(Long defendantAccountId) {
