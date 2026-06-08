@@ -23,6 +23,14 @@ public interface EnforcementRepository extends JpaRepository<EnforcementEntity, 
         Long defendantAccountId, String resultId);
 
     @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
-    List<EnforcementEntity> findAllByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+    Optional<EnforcementEntity> findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(
+        Long defendantAccountId
+    );
+
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    List<EnforcementEntity> findByDefendantAccountIdAndResultId(Long accountId, String regf);
+
+    @EntityGraph(value = EnforcementEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    EnforcementEntity findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(
         Long defendantAccountId, String resultId);
 }

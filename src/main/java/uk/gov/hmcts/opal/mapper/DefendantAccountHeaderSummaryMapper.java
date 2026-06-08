@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.mapper;
 
+import static uk.gov.hmcts.opal.util.AgeUtil.calculateAge;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -101,7 +103,4 @@ public interface DefendantAccountHeaderSummaryMapper {
         return version == null ? null : BigInteger.valueOf(version);
     }
 
-    default int calculateAge(LocalDate dateOfBirth) {
-        return dateOfBirth == null ? 0 : Period.between(dateOfBirth, LocalDate.now()).getYears();
-    }
 }

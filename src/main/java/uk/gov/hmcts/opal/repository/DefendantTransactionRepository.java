@@ -19,4 +19,6 @@ public interface DefendantTransactionRepository extends JpaRepository<DefendantT
         + "WHERE dt.defendantAccountId = :accountId")
     List<Long> findDefendantAccountTransactionIdsByDefendantAccountId(@Param("accountId")long defendantAccountId);
 
+    List<DefendantTransactionEntity> findByDefendantAccountId(long defendantAccountId);
+
 }
