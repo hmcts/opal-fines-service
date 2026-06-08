@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.config;
 
-import tools.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -42,8 +41,6 @@ public class CacheConfig {
     @Value("${opal.redis.ttl-duration}")
     private Duration redisTtlDuration;
 
-    private CacheManager cacheManager;
-
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public RedisConnectionFactory redisConnectionFactory() {
@@ -77,15 +74,13 @@ public class CacheConfig {
             .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
             .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
 
-        this.cacheManager = RedisCacheManager.builder(redisConnectionFactory)
+        return logCacheDetails(RedisCacheManager.builder(redisConnectionFactory)
             .cacheDefaults(cacheConfig)
-            .build();
-        logCacheDetails(cacheManager);
-        return cacheManager;
+            .build());
     }
 
     private RedisSerializer<Object> redisValueSerializer() {
-        return new GenericJacksonJsonRedisSerializer(new ObjectMapper());
+        return GenericJacksonJsonRedisSerializer.builder().build();
     }
 
     private RedisSerializer<String> redisKeySerializer() {
@@ -102,12 +97,10 @@ public class CacheConfig {
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "false", matchIfMissing = true)
     public CacheManager simpleCacheManager() {
-        this.cacheManager = new ConcurrentMapCacheManager();
-        logCacheDetails(cacheManager);
-        return cacheManager;
+        return logCacheDetails(new ConcurrentMapCacheManager());
     }
 
-    public void logCacheDetails(CacheManager cacheManager) {
+    public CacheManager logCacheDetails(CacheManager cacheManager) {
         log.info("------------------------------");
         log.info("Cache Configuration Details:");
         log.info("Redis Enabled: {}", redisEnabled);
@@ -129,6 +122,7 @@ public class CacheConfig {
             cacheManager.getCacheNames().forEach(cacheName -> log.debug("- {}", cacheName));
         }
         log.info("------------------------------");
+        return cacheManager;
     }
 
     @Bean("KeyGeneratorForOptionalList")
