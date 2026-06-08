@@ -13,12 +13,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class OffenceSearchData {
-    @JsonProperty("offence_id") Long offenceId;
-    @JsonProperty("cjs_code") String cjsCode;
-    @JsonProperty("offence_title") String offenceTitle;
-    @JsonProperty("offence_title_cy") String offenceTitleCy;
-    @JsonProperty("date_used_from") OffsetDateTime dateUsedFrom;
-    @JsonProperty("date_used_to") OffsetDateTime dateUsedTo;
-    @JsonProperty("offence_oas") String offenceOas;
-    @JsonProperty("offence_oas_cy") String offenceOasC;
+
+    @JsonProperty("offence_id")
+    Long offenceId;
+    @JsonProperty("cjs_code")
+    String cjsCode;
+    @JsonProperty("offence_title")
+    String offenceTitle;
+    @JsonProperty("offence_title_cy")
+    String offenceTitleCy;
+    @JsonProperty("date_used_from")
+    OffsetDateTime dateUsedFrom;
+    @JsonProperty("date_used_to")
+    OffsetDateTime dateUsedTo;
+    @JsonProperty("offence_oas")
+    String offenceOas;
+    @JsonProperty("offence_oas_cy")
+    String offenceOasCy;
 }
