@@ -52,13 +52,16 @@ public class NoteHistorySource extends HistorySourceSpecificationSupport impleme
 
     private Specification<NoteEntity> noteForDefendantAccount(Long defendantAccountId) {
         return (root, query, builder) -> builder.and(
-            builder.equal(root.get("associatedRecordType"), AssociatedRecordType.DEFENDANT_ACCOUNTS),
+            builder.equal(
+                root.get("associatedRecordType").as(String.class),
+                AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel()
+            ),
             builder.equal(root.get("associatedRecordId"), defendantAccountId.toString())
         );
     }
 
     private Specification<NoteEntity> noteTypeAa() {
-        return (root, query, builder) -> builder.equal(root.get("noteType"), NoteType.AA);
+        return (root, query, builder) -> builder.equal(root.get("noteType").as(String.class), NoteType.AA.name());
     }
 
     private Specification<NoteEntity> noteDateFrom(LocalDate dateFrom) {

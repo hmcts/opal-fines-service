@@ -220,12 +220,12 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
             .andExpect(jsonPath("$.historyItems[*].type",
                 contains("Amendment", "Amendment", "Amendment")))
-            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("1"))
+            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("Major Creditor Code"))
             .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("Old three"))
             .andExpect(jsonPath("$.historyItems[0].details.newValue").value("New three"))
-            .andExpect(jsonPath("$.historyItems[1].details.attributeName").value("2"))
+            .andExpect(jsonPath("$.historyItems[1].details.attributeName").value("Name"))
             .andExpect(jsonPath("$.historyItems[1].details.oldValue").value("Old two"))
-            .andExpect(jsonPath("$.historyItems[2].details.attributeName").value("1"))
+            .andExpect(jsonPath("$.historyItems[2].details.attributeName").value("Major Creditor Code"))
             .andExpect(jsonPath("$.historyItems[2].details.oldValue").value("Old value"));
     }
 
@@ -381,7 +381,9 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.historyItems[0].details.paymentReference").value("PAY262201"))
             .andExpect(jsonPath("$.historyItems[0].details.additionalInformation")
                 .value("Second history payment"))
-            .andExpect(jsonPath("$.historyItems[0].details.status.defendantTransactionStatus").value("PND"))
+            .andExpect(jsonPath("$.historyItems[0].details.status.defendantTransactionStatus").value("P"))
+            .andExpect(jsonPath("$.historyItems[0].details.status.defendantTransactionStatusDisplayName")
+                .value("Partially-reversed"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordType").value("impositions"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordId").value("26220012"))
             .andExpect(jsonPath("$.historyItems[0].details.impositionDate").value("2026-01-06"))
