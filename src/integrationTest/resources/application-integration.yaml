@@ -57,6 +57,8 @@ opal:
   report:
     consumer:
       enabled: false
+  redis:
+      enabled: true
 user:
   service:
     url: http://localhost:4553/opal
