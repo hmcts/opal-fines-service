@@ -62,7 +62,7 @@ java:
     DEFAULT_APP_MODE: ${APP_MODE}
     SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
-    SERVICEBUS_REPORT_PROTOCOL: amqps
+    SERVICEBUS_PROTOCOL: amqps
   postgresql:
     enabled: true
     primary:

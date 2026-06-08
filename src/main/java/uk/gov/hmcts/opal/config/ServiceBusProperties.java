@@ -4,16 +4,14 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuration for the asynchronous report instance publisher.
- * Values are injected from {@code opal.report.publisher.*}.
+ * Configuration for the asynchronous common instance publisher queue.
+ * Values are injected from {@code opal.common.service-bus.*}.
  */
-@ConfigurationProperties(prefix = "opal.report.publisher")
+@ConfigurationProperties(prefix = "opal.common.service-bus")
 @Data
-public class ReportQueuePublisherProperties {
+public class ServiceBusProperties {
 
-    private boolean enabled = true;
     private String connectionString;
-    private String queueName;
     private String protocol = "amqp";
     private long idleTimeoutMs = 30000;
     private long sendTimeoutMs = 10000;

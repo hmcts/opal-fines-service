@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jms.core.JmsTemplate;
-import uk.gov.hmcts.opal.config.ReportQueuePublisherProperties;
+import uk.gov.hmcts.opal.config.ReportServiceBusProperties;
 
 @ExtendWith(MockitoExtension.class)
 public class ReportQueuePublisherImplTest {
@@ -21,7 +21,7 @@ public class ReportQueuePublisherImplTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private ReportQueuePublisherProperties properties;
+    private ReportServiceBusProperties properties;
 
     @InjectMocks
     private ReportQueuePublisherImpl reportQueuePublisher;

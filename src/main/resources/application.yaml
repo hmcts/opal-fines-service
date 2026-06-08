@@ -142,6 +142,11 @@ opal:
     password: ${OPAL_TEST_USER_PASSWORD}
   common:
     domain: fines
+    service-bus:
+      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
+      protocol: ${SERVICEBUS_PROTOCOL:amqp}
+      idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
+      send-timeout-ms: ${SERVICEBUS_SEND_TIMEOUT_MS:10000}
     content-digest:
       request:
         enforce: ${OPAL_COMMON_CONTENT_DIGEST_REQUEST_ENFORCE:false}
@@ -156,19 +161,10 @@ opal:
     storage:
       connection-string: ${AZURE_STORAGE_CONNECTION_STRING:UseDevelopmentStorage=true}
       container: ${REPORT_AZURE_STORAGE_CONTAINER:reports}
-    consumer:
-      enabled: ${REPORT_CONSUMER_ENABLED:true}
-      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
+    service-bus:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
-      protocol: ${SERVICEBUS_REPORT_PROTOCOL:amqp}
-      idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
-    publisher:
-      enabled: ${REPORT_PUBLISHER_ENABLED:true}
-      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
-      queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
-      protocol: ${SERVICEBUS_REPORT_PROTOCOL:amqp}
-      idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
-      send-timeout-ms: ${SERVICEBUS_REPORT_SEND_TIMEOUT_MS:10000}
+      consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
+      publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}

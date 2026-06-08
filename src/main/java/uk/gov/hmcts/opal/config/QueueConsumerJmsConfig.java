@@ -13,15 +13,15 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 
 @EnableJms
 @Configuration
-@EnableConfigurationProperties(QueueConsumerProperties.class)
-@ConditionalOnProperty(prefix = "opal.report.consumer", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "opal.report.service-bus", name = "consumer-enabled", havingValue = "true")
+@EnableConfigurationProperties(ServiceBusProperties.class)
 @RequiredArgsConstructor
 public class QueueConsumerJmsConfig {
 
     private final ServiceBusConnectionStringParser serviceBusConnectionStringParser;
 
     @Bean
-    public ConnectionFactory reportConsumerConnectionFactory(QueueConsumerProperties properties) {
+    public ConnectionFactory reportConsumerConnectionFactory(ServiceBusProperties properties) {
         ServiceBusConnectionStringParser.ConnectionDetails details =
             serviceBusConnectionStringParser.parse(properties.getConnectionString());
 

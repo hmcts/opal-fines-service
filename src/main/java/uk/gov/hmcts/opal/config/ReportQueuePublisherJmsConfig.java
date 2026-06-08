@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
@@ -14,22 +13,22 @@ import org.springframework.jms.core.JmsTemplate;
 
 @EnableJms
 @Configuration
-@EnableConfigurationProperties(ReportQueuePublisherProperties.class)
-@ConditionalOnProperty(prefix = "opal.report.publisher", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "opal.report.service-bus", name = "publisher-enabled", havingValue = "true",
+    matchIfMissing = true)
 @RequiredArgsConstructor
 public class ReportQueuePublisherJmsConfig {
     private final ServiceBusConnectionStringParser serviceBusConnectionStringParser;
 
     @Bean("reportPublisherConnectionFactory")
-    public ConnectionFactory reportPublisherConnectionFactory(ReportQueuePublisherProperties properties) {
+    public ConnectionFactory reportPublisherConnectionFactory(ServiceBusProperties commonProperties) {
         ServiceBusConnectionStringParser.ConnectionDetails details =
-            serviceBusConnectionStringParser.parse(properties.getConnectionString());
+            serviceBusConnectionStringParser.parse(commonProperties.getConnectionString());
 
         String remoteUri = "%s://%s?jms.sendTimeout=%d&amqp.idleTimeout=%d".formatted(
-            properties.getProtocol(),
+            commonProperties.getProtocol(),
             details.fullyQualifiedNamespace(),
-            properties.getSendTimeoutMs(),
-            properties.getIdleTimeoutMs()
+            commonProperties.getSendTimeoutMs(),
+            commonProperties.getIdleTimeoutMs()
         );
 
         JmsConnectionFactory qpidFactory = new JmsConnectionFactory(remoteUri);
