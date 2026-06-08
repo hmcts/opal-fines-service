@@ -14,16 +14,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.ImpositionTotalsDto;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.service.proxy.ImpositionServiceProxy;
 
 @Service
 @Slf4j(topic = "opal.ImpositionService")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ImpositionService {
 
     private static final String FO_VALUE = FO.getValue();
@@ -43,14 +48,34 @@ public class ImpositionService {
     );
 
     private final ImpositionRepository impositionRepository;
+    private final ImpositionServiceProxy impositionServiceProxy;
+    private final UserStateService userStateService;
+
+    public GetDefendantAccountImpositionsResponse getImpositions(
+        Long defendantAccountId,
+        String authHeaderValue) {
+
+        log.debug(":getImpositions:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return impositionServiceProxy.getImpositions(defendantAccountId);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
 
     public ImpositionTotalsDto getAccountImpositionTotals(long defendantAccountId) {
         log.debug(":getAccountImpositionTotals:");
+
         List<ImpositionEntity> impositions =
             impositionRepository.findAllByDefendantAccountId(defendantAccountId);
+
         if (impositions.isEmpty()) {
             return ImpositionTotalsDto.builder().build();
         }
+
         Map<String, BigDecimal> totalsByResultId = impositions.stream()
             .collect(Collectors.groupingBy(
                 ImpositionEntity::getResultId,
@@ -74,11 +99,14 @@ public class ImpositionService {
 
     public LocalDate getEarliestImpositionDate(Long defendantAccountId) {
         log.debug(":getEarliestImpositionDate:");
+
         ImpositionEntity entity =
             impositionRepository.findFirstByDefendantAccountIdOrderByImposedDateAsc(defendantAccountId);
+
         if (entity == null || entity.getImposedDate() == null) {
             return null;
         }
+
         return entity.getImposedDate().toLocalDate();
     }
 

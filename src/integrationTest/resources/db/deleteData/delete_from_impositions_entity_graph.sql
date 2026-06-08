@@ -13,9 +13,10 @@
 *
 **/
 
-DELETE FROM impositions WHERE imposition_id = 551005;
-DELETE FROM defendant_accounts WHERE defendant_account_id = 551002;
-DELETE FROM creditor_accounts WHERE creditor_account_id = 551004;
+DELETE FROM impositions WHERE imposition_id IN (551005, 551009);
+DELETE FROM defendant_accounts WHERE defendant_account_id IN (551002, 551008, 551010);
+DELETE FROM creditor_accounts WHERE creditor_account_id IN (551004, 551007);
+DELETE FROM parties WHERE party_id = 551006;
 DELETE FROM major_creditors WHERE major_creditor_id = 551003;
 DELETE FROM offences WHERE offence_id = 5510;
 DELETE FROM results WHERE result_id = 'IGR001';
