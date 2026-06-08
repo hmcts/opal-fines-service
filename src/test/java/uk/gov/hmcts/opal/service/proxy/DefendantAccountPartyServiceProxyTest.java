@@ -37,6 +37,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long dapId = 5L;
         String businessUnitId = "10";
         String postedBy = "user@example.com";
+        String postedByName = "Test User";
         String businessUserId = "USER123";
         String ifMatch = "1";
 
@@ -49,17 +50,17 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
         setMode(OPAL);
         when(opalDefendantAccountPartyService.replaceDefendantAccountParty(
-            accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId))
+            accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId))
             .thenReturn(expectedResponse);
 
         // act
         GetDefendantAccountPartyResponse result = proxy.replaceDefendantAccountParty(
-            accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
+            accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
 
         // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(opalDefendantAccountPartyService).replaceDefendantAccountParty(
-            accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
+            accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
     }
 
     @Test
@@ -69,6 +70,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long dapId = 10L;
         String businessUnitId = "20";
         String postedBy = "admin@example.com";
+        String postedByName = "Admin User";
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
 
@@ -81,17 +83,17 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
         setMode(LEGACY);
         when(legacyDefendantAccountPartyService.replaceDefendantAccountParty(
-            accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId))
+            accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId))
             .thenReturn(expectedResponse);
 
         // act
         GetDefendantAccountPartyResponse result = proxy.replaceDefendantAccountParty(
-            accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
+            accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
 
         // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(legacyDefendantAccountPartyService).replaceDefendantAccountParty(
-            accountId, dapId, request, ifMatch, businessUnitId, postedBy, businessUserId);
+            accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
     }
 
     @Test
@@ -147,6 +149,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "USER123";
         String ifMatch = "1";
         String postedBy = "user@example.com";
+        String postedByName = "Test User";
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()
@@ -156,17 +159,17 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
         setMode(OPAL);
         when(opalDefendantAccountPartyService.removeDefendantAccountParty(
-            accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request))
+            accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request))
             .thenReturn(expectedResponse);
 
         // act
         RemoveDefendantAccountPartyResponse result = proxy.removeDefendantAccountParty(
-            accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
+            accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request);
 
         // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(opalDefendantAccountPartyService).removeDefendantAccountParty(
-            accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
+            accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request);
     }
 
     @Test
@@ -178,6 +181,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
         String postedBy = "admin@example.com";
+        String postedByName = "Admin User";
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()
@@ -187,16 +191,16 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
 
         setMode(LEGACY);
         when(legacyDefendantAccountPartyService.removeDefendantAccountParty(
-            accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request))
+            accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request))
             .thenReturn(expectedResponse);
 
         // act
         RemoveDefendantAccountPartyResponse result = proxy.removeDefendantAccountParty(
-            accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
+            accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request);
 
         // assert
         assertThat(result).isEqualTo(expectedResponse);
         verify(legacyDefendantAccountPartyService).removeDefendantAccountParty(
-            accountId, dapId, businessUnitId, businessUserId, ifMatch, postedBy, request);
+            accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request);
     }
 }

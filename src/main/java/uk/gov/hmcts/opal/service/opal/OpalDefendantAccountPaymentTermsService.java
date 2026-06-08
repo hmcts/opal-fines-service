@@ -69,9 +69,10 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         createPaymentCardRequest(defendantAccountId);
 
-        updateDefendantAccountWithPcr(account, businessUnitUserId, authHeader);
+        String displayName = accessTokenService.extractName(authHeader);
+        updateDefendantAccountWithPcr(account, businessUnitUserId, displayName);
 
-        auditComplete(defendantAccountId, account, businessUnitUserId);
+        auditComplete(defendantAccountId, account, businessUnitUserId, displayName);
 
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
@@ -108,9 +109,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private void updateDefendantAccountWithPcr(DefendantAccountEntity account,
         String businessUnitUserId,
-        String authHeader) {
-
-        String displayName = accessTokenService.extractName(authHeader);
+        String displayName) {
 
         account.setPaymentCardRequested(true);
         account.setPaymentCardRequestedDate(LocalDate.now());
@@ -122,7 +121,8 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private void auditComplete(Long accountId,
         DefendantAccountEntity account,
-        String businessUnitUserId) {
+        String businessUnitUserId,
+        String postedByName) {
 
         Short buId = account.getBusinessUnit().getBusinessUnitId();
 
@@ -131,6 +131,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
             RecordType.DEFENDANT_ACCOUNTS,
             buId,
             businessUnitUserId,
+            postedByName,
             account.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );

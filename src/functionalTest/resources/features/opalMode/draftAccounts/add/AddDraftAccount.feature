@@ -21,7 +21,7 @@ Feature: Create Draft Accounts
       | account_snapshot.date_of_birth      | 2000-01-01                       |
       | account_snapshot.account_type       | Fine                             |
       | account_snapshot.submitted_by       | L073JG                           |
-      | account_snapshot.submitted_by_name  | opal-test@dev.platform.hmcts.net |
+      | account_snapshot.submitted_by_name  | opal-test                        |
       | account_snapshot.business_unit_name | West London                      |
       | account.originator_type             | TFO                              |
 
@@ -46,7 +46,7 @@ Feature: Create Draft Accounts
       | account_snapshot.date_of_birth     | 2000-01-01                       |
       | account_snapshot.account_type      | Fine                             |
       | account_snapshot.submitted_by      | L077JG                           |
-      | account_snapshot.submitted_by_name | opal-test@dev.platform.hmcts.net |
+      | account_snapshot.submitted_by_name | opal-test                        |
 
     #    Then the logging service contains these PDPO logs:
     #      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
@@ -69,7 +69,7 @@ Feature: Create Draft Accounts
       | account_snapshot.defendant_name    | LNAME, FNAME                     |
       | account_snapshot.account_type      | Fine                             |
       | account_snapshot.submitted_by      | L077JG                           |
-      | account_snapshot.submitted_by_name | opal-test@dev.platform.hmcts.net |
+      | account_snapshot.submitted_by_name | opal-test                        |
 
     #    Then the logging service contains these PDPO logs:
     #      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |

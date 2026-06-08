@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.entity.PartyEntity_;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
@@ -32,7 +33,6 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity_;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
-import uk.gov.hmcts.opal.service.report.OperationReportByEnforcementFiltersDto;
 
 @AllArgsConstructor
 public final class ReportSpecs {

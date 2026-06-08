@@ -27,8 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ResultId;
-import uk.gov.hmcts.opal.dto.report.EnforcementReportRowDto;
-import uk.gov.hmcts.opal.dto.report.OperationReportByEnforcementTotalsRowDto;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementSummaryReportRowDto;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementSummaryReportTotalsRowDto;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
@@ -36,6 +36,8 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementSummaryReport;
+import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationReportByEnforcementService;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -44,7 +46,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OperationReportByEnforcementServiceTest")
 @DisplayName("OperationReportByEnforcementServiceTest")
-public class OperationReportByEnforcementServiceTest extends AbstractIntegrationTest {
+public class OperationReportByEnforcementServiceSummaryTest extends AbstractIntegrationTest {
 
     @Autowired
     private OperationReportByEnforcementService service;
@@ -72,8 +74,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             ));
     }
 
-    private static void verifyMetadata(OperationReportByEnforcementTransaction result,
-        List<EnforcementReportRowDto> transactions) {
+    private static void verifyMetadata(OperationByEnforcementSummaryReport result,
+        List<OperationByEnforcementSummaryReportRowDto> transactions) {
         ReportMetaData reportMetadata = result.getReportMetaData();
         long numberOfRecords = result.getNumberOfRecords();
         assertThat(numberOfRecords).isEqualTo(transactions.size());
@@ -93,12 +95,13 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         //Verify fields mapped
         Assertions.assertThat(transactions)
@@ -111,9 +114,10 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
                 assertThat(dto.getNationalInsuranceNo()).isEqualTo("A11111A");
                 assertThat(dto.getCollectionOrder()).isEqualTo("Y");
                 assertThat(dto.getLastMovementDate()).isEqualTo(LocalDate.of(2024, 1, 2));
+                assertThat(dto.getImposingCourt()).isEqualTo("AAA Test Court");
                 assertThat(dto.getAmountImposed()).isEqualByComparingTo("700.58");
                 assertThat(dto.getAmountPaid()).isEqualByComparingTo("200.00");
-                assertThat(dto.getBalance()).isEqualByComparingTo("500.58");
+                assertThat(dto.getBalance()).isEqualByComparingTo("-500.58");
                 assertThat(dto.getAddress1()).isEqualTo("Lumber House");
                 assertThat(dto.getAddress2()).isEqualTo("77 Gordon Road");
                 assertThat(dto.getAddress3()).isEqualTo("Maidstone, Kent");
@@ -141,25 +145,25 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
                 assertThat(dto.getProsecutorCaseReference()).isEqualTo("090A");
             });
 
-        OperationReportByEnforcementTotalsRowDto totalsRow = result.getEnforcementReport().getTotals();
+        OperationByEnforcementSummaryReportTotalsRowDto totalsRow = result.getEnforcementReport().getTotals();
         assertThat(totalsRow.getAccountsReported()).isEqualTo(transactions.size());
         int totalAccounts = (int) defendantAccountRepository.count();
         assertThat(totalAccounts).isEqualTo(totalsRow.getAccountsReported());
 
         BigDecimal expectedTotalBalance = transactions.stream()
-            .map(EnforcementReportRowDto::getBalance)
+            .map(OperationByEnforcementSummaryReportRowDto::getBalance)
             .filter(Objects::nonNull)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         assertThat(totalsRow.getTotalBalance()).isEqualByComparingTo(expectedTotalBalance);
 
         BigDecimal expectedTotalImposed = transactions.stream()
-            .map(EnforcementReportRowDto::getAmountImposed)
+            .map(OperationByEnforcementSummaryReportRowDto::getAmountImposed)
             .filter(Objects::nonNull)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         assertThat(totalsRow.getTotalImposed()).isEqualByComparingTo(expectedTotalImposed);
 
         BigDecimal expectedTotalPaid = transactions.stream()
-            .map(EnforcementReportRowDto::getAmountPaid)
+            .map(OperationByEnforcementSummaryReportRowDto::getAmountPaid)
             .filter(Objects::nonNull)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         assertThat(totalsRow.getTotalPaid()).isEqualByComparingTo(expectedTotalPaid);
@@ -179,16 +183,18 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "businessUnitIds": [77]
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .allMatch(accountNumbers::contains)
             .isSorted();
         verifyMetadata(result, transactions);
@@ -201,19 +207,21 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         //Arrange
         String json = """
             {
+              "reportType": "SUMMARY",
               "reportEnforcementMode": "ALL"
             }
             """;
         //Act
-        OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
+        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
         long totalAccounts = defendantAccountRepository.count();
-        assertThat(totalAccounts).isEqualTo(transactions.size());
+        assertThat(totalAccounts).isEqualTo(result.getNumberOfRecords());
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         assertThat(transactions).isNotNull();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         verifyMetadata(result, transactions);
     }
@@ -225,18 +233,20 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         //Arrange
         String json = """
             {
+              "reportType": "SUMMARY",
               "reportEnforcementMode": null
             }
             """;
         //Act
-        OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
+        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         long totalAccounts = defendantAccountRepository.count();
         assertThat(totalAccounts).isEqualTo(transactions.size());
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         verifyMetadata(result, transactions);
     }
@@ -249,7 +259,8 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "reportEnforcementMode": "LAST_ACTION"
+              "reportEnforcementMode": "LAST_ACTION",
+              "reportType": "SUMMARY"
             }
             """
         );
@@ -265,17 +276,19 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportEnforcementMode": "LAST_ACTION",
-              "enforcementAction": "ABDC"
+              "enforcementAction": "ABDC",
+              "reportType": "SUMMARY"
             }
             """
         );
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         Map<String, Long> accountNoToId = getAccountNoToId();
         Assertions.assertThat(transactions).allSatisfy(dto -> {
@@ -300,6 +313,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "reportEnforcementMode": "LAST_ACTION",
               "enforcementAction": "ABDC",
               "lastActionDateFrom": "%s",
@@ -311,12 +325,13 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ));
 
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         Map<String, Long> accountNoToId = getAccountNoToId();
         Assertions.assertThat(transactions).allSatisfy(dto -> {
@@ -341,20 +356,22 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         LocalDate to = LocalDate.of(2000, 2, 2);
         String json = """
             {
+              "reportType": "SUMMARY",
               "reportEnforcementMode": "REGF",
               "regfDateFrom": "%s",
               "regfDateTo": "%s"
             }
             """.formatted(from, to);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction)
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport)
                 service.generateReportData(reportWithFilters(json));
         // Assert
         assertThat(result).isNotNull();
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
 
         Map<String, Long> accountNoToId = getAccountNoToId();
@@ -380,18 +397,19 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
     void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
         String json = """
             {
-              "reportEnforcementMode": "REGF"
+              "reportEnforcementMode": "REGF",
+              "reportType": "SUMMARY"
             }
             """;
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction)
-                service.generateReportData(reportWithFilters(json));
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportWithFilters(json));
         // Assert
         assertThat(result).isNotNull();
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
 
         Map<String, Long> accountNoToId = getAccountNoToId();
@@ -414,17 +432,19 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         //Arrange
         String json = """
             {
+              "reportType": "SUMMARY",
               "enforcementDateFrom": "2000-01-01",
               "enforcementDateTo": "2000-02-02"
             }
             """;
         //Act
-        OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
+        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
 
         List<String> expectedAccountNumbers = enforcementRepository.findAll().stream()
@@ -438,7 +458,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
             .toList();
 
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers);
 
         verifyMetadata(result, transactions);
@@ -451,16 +471,18 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         //Arrange
         String json = """
             {
+              "reportType": "SUMMARY",
               "reportEnforcementMode": "NOT_UNDER_ENFORCEMENT"
             }
             """;
         //Act
-        OperationReportByEnforcementTransaction result = (OperationReportByEnforcementTransaction)
+        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
 
         Map<String, DefendantAccountEntity> accounts = defendantAccountRepository.findAll().stream()
@@ -487,19 +509,21 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "includeAdult": true
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getDateOfBirth)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getDateOfBirth)
             .filteredOn(Objects::nonNull)
             .allMatch(dob -> AgeUtil.calculateAge(dob) >= AgeUtil.ADULT_AGE)
             .isSorted();
@@ -514,19 +538,21 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "includeYouth": true
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getDateOfBirth)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getDateOfBirth)
             .filteredOn(Objects::nonNull)
             .allMatch(dob -> AgeUtil.calculateAge(dob) < AgeUtil.ADULT_AGE)
             .isSorted();
@@ -541,19 +567,21 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "includeCompany": true
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getCompany)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getCompany)
             .allMatch("Y"::equals)
             .isSorted();
         verifyMetadata(result, transactions);
@@ -567,19 +595,21 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "onlyAccountsWithParentGuardian": true
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getParentOrGuardian)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getParentOrGuardian)
             .allMatch("Y"::equals)
             .isSorted();
         verifyMetadata(result, transactions);
@@ -597,27 +627,28 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         boolean expectedValue
     ) {
         // Arrange
-        List<String> expectedAccountNumbers =
-            defendantAccountRepository.findAll().stream()
-                .filter(account ->
-                    Boolean.valueOf(expectedValue).equals(account.getCollectionOrder()))
-                .map(DefendantAccountEntity::getAccountNumber)
-                .toList();
+        List<String> expectedAccountNumbers = defendantAccountRepository.findAll().stream()
+            .filter(acc -> Boolean.valueOf(expectedValue).equals(acc.getCollectionOrder()))
+            .map(DefendantAccountEntity::getAccountNumber)
+            .distinct()
+            .toList();
 
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
 
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "collectionOrderChoice": "%s"
             }
             """.formatted(collectionOrderChoice));
         // Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         // Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers)
             .isSorted();
         verifyMetadata(result, transactions);
@@ -632,17 +663,19 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
 
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "accountStatus": "LIVE"
             }
             """);
         // Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
 
         // Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
 
         Map<String, Long> accountNoToId = getAccountNoToId();
@@ -665,17 +698,19 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
 
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "accountStatus": "CLOSED"
             }
             """);
         // Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
 
         // Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getAccountNo)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getAccountNo)
             .isSorted();
 
         Map<String, Long> accountNoToId = getAccountNoToId();
@@ -697,17 +732,19 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "minBalance": 400.00,
               "maxBalance": 600.00
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getBalance)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getBalance)
             .filteredOn(Objects::nonNull)
             .allSatisfy(balance ->
                 assertThat(balance).isBetween(BigDecimal.valueOf(400), BigDecimal.valueOf(600))
@@ -723,6 +760,7 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "firstPaymentOrPayByInNext7Days": "true"
             }
             """);
@@ -734,10 +772,11 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         paymentTermsRepository.saveAndFlush(paymentTermsForSeededData);
 
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Map<String, Long> accountNoToId = getAccountNoToId();
         Assertions.assertThat(transactions).allSatisfy(dto -> {
             Long accountId = accountNoToId.get(dto.getAccountNo());
@@ -763,17 +802,19 @@ public class OperationReportByEnforcementServiceTest extends AbstractIntegration
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "reportType": "SUMMARY",
               "lowerNameRange": "l",
               "upperNameRange": "l"
             }
             """);
         //Act
-        OperationReportByEnforcementTransaction result =
-            (OperationReportByEnforcementTransaction) service.generateReportData(reportInstance);
+        OperationByEnforcementSummaryReport result =
+            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
         //Assert
-        List<EnforcementReportRowDto> transactions = result.getEnforcementReport().getTransactionList();
+        List<OperationByEnforcementSummaryReportRowDto> transactions =
+            result.getEnforcementReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
-            .extracting(EnforcementReportRowDto::getDefendantName)
+            .extracting(OperationByEnforcementSummaryReportRowDto::getDefendantName)
             .allSatisfy(name ->
                 assertThat(name.substring(0, 1).toLowerCase()).isEqualTo("l"));
         verifyMetadata(result, transactions);

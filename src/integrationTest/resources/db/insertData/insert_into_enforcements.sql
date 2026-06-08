@@ -10,6 +10,7 @@
 * Date          Author       Version     Nature of Change
 * ----------    --------     -------     ---------------------------------------------------------------------------------------------------------
 * 01/05/2026    S WALL       1.0         PO2255 Insert test data for enforcements integration tests
+* 26/05/2026    S WALL       1.1         PO2255 Add impositions data for enforcement integration tests
 **/
 
 SET search_path TO public;
@@ -235,7 +236,8 @@ INSERT INTO defendant_accounts (
     account_note_1,
     account_note_2,
     account_note_3,
-    jail_days
+    jail_days,
+    originator_type
 )
 VALUES (
            77,
@@ -246,7 +248,7 @@ VALUES (
            1,
            700.58,
            200.00,
-           500.58,
+           -500.58,
            'L',
            1,
            1,
@@ -277,7 +279,51 @@ VALUES (
            'free_text_note_1',
            'free_text_note_2',
            'free_text_note_3',
-           101
+           101,
+           'NEW'
+       ),
+       (
+           78,
+           0,
+           78,
+           'ConsolidatedAcc',
+           '2023-11-03',
+           1,
+           700.58,
+           200.00,
+           -500.58,
+           'L',
+           1,
+           1,
+           '2024-01-04',
+           '2024-01-02',
+           '2024-01-03',
+           '10',
+           'Kingston-upon-Thames Mags Court',
+           true,
+           false,
+           14,
+           21,
+           'FWEC',
+           780000000021,
+           230,
+           'GB pound sterling',
+           700.00,
+           true,
+           '2023-12-18',
+           '2023-12-19',
+           'M',
+           true,
+           '2024-01-01',
+           '11111111A',
+           '090A',
+           'Fine',
+           'Text - Account Comment',
+           'free_text_note_1',
+           'free_text_note_2',
+           'free_text_note_3',
+           101,
+           'NEW'
        )
 ON CONFLICT (defendant_account_id) DO UPDATE
     SET version_number = EXCLUDED.version_number,
@@ -318,15 +364,16 @@ ON CONFLICT (defendant_account_id) DO UPDATE
         account_note_1 = EXCLUDED.account_note_1,
         account_note_2 = EXCLUDED.account_note_2,
         account_note_3 = EXCLUDED.account_note_3,
-        jail_days = EXCLUDED.jail_days;
+        jail_days = EXCLUDED.jail_days,
+        originator_type = EXCLUDED.originator_type;
 
 INSERT INTO payment_terms
 ( payment_terms_id, defendant_account_id, posted_date, posted_by
 , terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
-, jail_days, extension, account_balance)
+, jail_days, extension, account_balance, active)
 VALUES ( 0077, 0077, '2023-11-03 16:05:10', '01000000A'
        , 'B', '2025-10-12 00:00:00', 'W', NULL, NULL
-       , 120, 'N', 700.58)
+       , 120, 'N', 700.58, true)
 ON CONFLICT (payment_terms_id) DO UPDATE
       SET defendant_account_id = EXCLUDED.defendant_account_id,
       posted_date = EXCLUDED.posted_date,
@@ -338,7 +385,8 @@ ON CONFLICT (payment_terms_id) DO UPDATE
       instalment_lump_sum = EXCLUDED.instalment_lump_sum,
       jail_days = EXCLUDED.jail_days,
       extension = EXCLUDED.extension,
-      account_balance = EXCLUDED.account_balance;
+      account_balance = EXCLUDED.account_balance,
+      active = EXCLUDED.active;
 
 
 INSERT INTO defendant_account_parties (
@@ -360,6 +408,52 @@ ON CONFLICT (defendant_account_party_id) DO UPDATE
         party_id = EXCLUDED.party_id,
         association_type = EXCLUDED.association_type,
         debtor = EXCLUDED.debtor;
+
+INSERT INTO defendant_transactions (
+    defendant_transaction_id,
+    defendant_account_id,
+    posted_date,
+    posted_by_name,
+    transaction_type,
+    transaction_amount,
+    status_date,
+    associated_record_type,
+    associated_record_id
+)
+VALUES
+    (
+        100001,
+        77,
+        DATE '2026-05-14',
+        'enforcement.test',
+        'CONSOL',
+        123.45,
+        TIMESTAMP '2026-05-14 10:00:00',
+        'defendant_accounts',
+        '78'
+    ),
+    (
+        100002,
+        77,
+        DATE '2026-05-14',
+        'enforcement.test',
+        'PAYMNT',
+        50.00,
+        TIMESTAMP '2026-05-14 10:05:00',
+        NULL,
+        NULL
+    )
+    ON CONFLICT (defendant_transaction_id)
+DO UPDATE SET
+    defendant_account_id   = EXCLUDED.defendant_account_id,
+           posted_date            = EXCLUDED.posted_date,
+           posted_by_name         = EXCLUDED.posted_by_name,
+           transaction_type       = EXCLUDED.transaction_type,
+           transaction_amount     = EXCLUDED.transaction_amount,
+           status_date            = EXCLUDED.status_date,
+           associated_record_type = EXCLUDED.associated_record_type,
+           associated_record_id   = EXCLUDED.associated_record_id;
+
 
 
 INSERT INTO enforcements (
@@ -404,3 +498,38 @@ ON CONFLICT (enforcement_id) DO UPDATE
         warrant_reference = EXCLUDED.warrant_reference,
         hearing_court_id = EXCLUDED.hearing_court_id,
         posted_by_name = EXCLUDED.posted_by_name;
+
+INSERT INTO creditor_accounts(creditor_account_id, business_unit_id, account_number,
+                              creditor_account_type, prosecution_service, from_suspense,
+                              hold_payout, pay_by_bacs)
+VALUES (1, 77, '177A', 'MJ',
+        TRUE, FALSE, FALSE, FALSE);
+
+INSERT INTO impositions(imposition_id, defendant_account_id, result_id, imposed_amount, posted_date,
+                        paid_amount, creditor_account_id)
+VALUES (1, 77, 'FCOMP', 50.00,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (2, 77, 'FCPC', 50.00,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (3, 77, 'FCOST', 50.00,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (4, 77, 'FO', 60.00,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (5, 77, 'FO', 60.00,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (6, 77, 'FVS', 70.00,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (7, 77, 'FVS', 80.00,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (8, 77, 'FCC', 101.10,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (9, 77, 'FCC', 200.70,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (10, 77, 'DW', 101.10,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (11, 77, 'CWN', 101.10,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (12, 77, 'DW', 101.10,
+        '2023-11-03 16:05:10', 0.00, 1),
+       (13, 77, 'FCUEX', 101.10,
+        '2023-11-03 16:05:10', 0.00, 1);

@@ -1,8 +1,9 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.service.report.operationbyenforcement;
 
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.ACCOUNT_NUMBER;
 import static uk.gov.hmcts.opal.service.report.ReportEnforcementMode.ALL;
 import static uk.gov.hmcts.opal.service.report.ReportId.OP_ENFORCEMENT;
+import static uk.gov.hmcts.opal.service.report.ReportType.SUMMARY;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,15 +12,23 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.service.report.mapper.OperationReportByEnforcementResultMapper;
+import uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.CommonResultMapper;
+import uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.DetailedResultMapper;
+import uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.SummaryResultMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ReportSpecs;
+import uk.gov.hmcts.opal.service.report.FileType;
+import uk.gov.hmcts.opal.service.report.ReportDataInterface;
+import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
+import uk.gov.hmcts.opal.service.report.ReportId;
+import uk.gov.hmcts.opal.service.report.ReportInterface;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +36,8 @@ public class OperationReportByEnforcementService implements ReportInterface {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final EnforcementRepository enforcementRepository;
-    private final OperationReportByEnforcementResultMapper resultMapper;
+    private final SummaryResultMapper summaryResultMapper;
+    private final DetailedResultMapper detailedResultMapper;
     private final ObjectMapper objectMapper;
     private final OperationReportByEnforcementValidator validator;
 
@@ -43,6 +53,10 @@ public class OperationReportByEnforcementService implements ReportInterface {
         validator.validate(filters);
         Specification<DefendantAccountEntity> accountSpec = ReportSpecs.accountFiltersSpec(filters);
         List<DefendantAccountEntity> accounts;
+        CommonResultMapper resultMapper =
+            filters.getReportType() == SUMMARY
+                ? summaryResultMapper
+                : detailedResultMapper;
 
         if (isNotFilteringOnEnforcementData(filters)) {
             accounts = defendantAccountRepository.findAll(accountSpec, Sort.by(ACCOUNT_NUMBER));

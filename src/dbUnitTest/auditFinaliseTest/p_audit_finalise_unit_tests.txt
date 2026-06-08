@@ -1,0 +1,56 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+NOTICE:  table "temp_cred_ac_amendment_list" does not exist, skipping
+NOTICE:  Data cleanup before tests completed
+NOTICE:  === TEST 1: Test defendant_accounts amendment detection with changes ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90001, pi_record_type = defendant_accounts
+INFO:  p_audit_finalise: Processed defendant account with 7 amendments recorded
+INFO:  p_audit_finalise: Successfully completed with 7 total amendments recorded
+NOTICE:  TEST 1 PASSED: Defendant accounts amendment detection works correctly
+NOTICE:  === TEST 2: Test creditor_accounts amendment detection with changes ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90003, pi_record_type = creditor_accounts
+INFO:  p_audit_finalise: Processed creditor account with 7 amendments recorded
+INFO:  p_audit_finalise: Successfully completed with 7 total amendments recorded
+NOTICE:  TEST 2 PASSED: Creditor accounts amendment detection works correctly
+NOTICE:  === TEST 3: Test no amendments when no changes made ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90004, pi_record_type = defendant_accounts
+INFO:  p_audit_finalise: Processed defendant account with 0 amendments recorded
+INFO:  p_audit_finalise: Successfully completed with 0 total amendments recorded
+NOTICE:  TEST 3 PASSED: No amendments created when no changes made
+NOTICE:  === TEST 4: Test error handling - NULL associated_account_id ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = <NULL>, pi_record_type = defendant_accounts
+NOTICE:  Error in p_audit_finalise: P3005 - Associated account ID cannot be null
+NOTICE:  Expected error caught: P3005 - Associated account ID cannot be null
+NOTICE:  TEST 4 PASSED: Error handling works correctly for NULL associated_account_id
+NOTICE:  === TEST 5: Test error handling - Invalid record type ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 12345, pi_record_type = invalid_type
+NOTICE:  Error in p_audit_finalise: P3006 - Invalid record type: invalid_type. Must be defendant_accounts or creditor_accounts
+NOTICE:  Expected error caught: P3006 - Invalid record type: invalid_type. Must be defendant_accounts or creditor_accounts
+NOTICE:  TEST 5 PASSED: Error handling works correctly for invalid record type
+NOTICE:  === TEST 6: Test error handling - NULL business_unit_id ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 12345, pi_record_type = defendant_accounts
+NOTICE:  Error in p_audit_finalise: P3007 - Business unit ID cannot be null
+NOTICE:  Expected error caught: P3007 - Business unit ID cannot be null
+NOTICE:  TEST 6 PASSED: Error handling works correctly for NULL business_unit_id
+NOTICE:  === TEST 7: Test error handling - NULL posted_by ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 12345, pi_record_type = defendant_accounts
+NOTICE:  Error in p_audit_finalise: P3008 - Posted by cannot be null
+NOTICE:  Expected error caught: P3008 - Posted by cannot be null
+NOTICE:  TEST 7 PASSED: Error handling works correctly for NULL posted_by
+NOTICE:  === TEST 8: Test error handling - Missing temporary table ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90005, pi_record_type = defendant_accounts
+NOTICE:  Error in p_audit_finalise: P3009 - Temporary table temp_def_ac_amendment_list does not exist. Call p_audit_initialise first.
+NOTICE:  Expected error caught: P3009 - Temporary table temp_def_ac_amendment_list does not exist. Call p_audit_initialise first.
+NOTICE:  TEST 8 PASSED: Error handling works correctly for missing temporary table
+NOTICE:  === TEST 9: Test error handling - Non-existent defendant account ID ===
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 999999, pi_record_type = defendant_accounts
+NOTICE:  Error in p_audit_finalise: P3010 - No defendant account found with ID: 999999
+NOTICE:  Expected error caught: P3010 - No defendant account found with ID: 999999
+NOTICE:  TEST 9 PASSED: Error handling works correctly for non-existent defendant account ID
+NOTICE:  === Cleanup test data ===
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+NOTICE:  table "temp_cred_ac_amendment_list" does not exist, skipping
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 491 msec.

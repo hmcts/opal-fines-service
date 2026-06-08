@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.service.report.operationbyenforcement;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
@@ -8,6 +8,8 @@ import static uk.gov.hmcts.opal.service.report.ReportEnforcementMode.REGF;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.ResultId;
+import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
+import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 
 class OperationReportByEnforcementValidatorTest {
 
