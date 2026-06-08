@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.config;
 
+import tools.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +26,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Slf4j(topic = "opal.CacheConfig")
 @Configuration
@@ -38,8 +39,8 @@ public class CacheConfig {
     @Value("${spring.data.redis.url}")
     private String redisUrl;
 
-    @Value("${opal.redis.ttl-hours}")
-    private long redisTtlHours;
+    @Value("${opal.redis.ttl-duration}")
+    private Duration redisTtlDuration;
 
     private CacheManager cacheManager;
 
@@ -54,6 +55,15 @@ public class CacheConfig {
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
+
+        RedisSerializer<String> keySerializer = redisKeySerializer();
+        template.setKeySerializer(keySerializer);
+        template.setHashKeySerializer(keySerializer);
+
+        RedisSerializer<Object> valueSerializer = redisValueSerializer();
+        template.setValueSerializer(valueSerializer);
+        template.setHashValueSerializer(valueSerializer);
+        template.afterPropertiesSet();
         return template;
     }
 
@@ -61,17 +71,24 @@ public class CacheConfig {
     @Primary
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
+
         RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofHours(redisTtlHours))
-            .serializeValuesWith(SerializationPair.fromSerializer(
-                new GenericJacksonJsonRedisSerializer(new ObjectMapper())
-            ));
+            .entryTtl(redisTtlDuration)
+            .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
+            .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
 
         this.cacheManager = RedisCacheManager.builder(redisConnectionFactory)
             .cacheDefaults(cacheConfig)
             .build();
         logCacheDetails(cacheManager);
         return cacheManager;
+    }
+
+    private RedisSerializer<Object> redisValueSerializer() {
+        return new GenericJacksonJsonRedisSerializer(new ObjectMapper());
+    }
+    private RedisSerializer<String> redisKeySerializer() {
+        return RedisSerializer.string();
     }
 
     @Bean
@@ -94,7 +111,7 @@ public class CacheConfig {
         log.info("Cache Configuration Details:");
         log.info("Redis Enabled: {}", redisEnabled);
         log.info("Redis Url: {}", redisUrl);
-        log.info("Redis TTL (hours): {}", redisTtlHours);
+        log.info("Redis TTL (duration): {}", redisTtlDuration);
         if (cacheManager != null) {
             log.info("Cache Manager: {}", cacheManager.getClass().getName());
             if (cacheManager instanceof RedisCacheManager) {
