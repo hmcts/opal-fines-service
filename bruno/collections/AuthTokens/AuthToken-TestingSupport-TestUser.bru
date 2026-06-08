@@ -1,0 +1,51 @@
+meta {
+  name: AuthToken-TestingSupport-TestUser
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/testing-support/token/test-user
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4555
+}
+
+script:post-response {
+      // Guard against empty or non-JSON responses
+      const raw = res.body;
+      
+      if (!raw || (typeof raw === "string" && raw.trim().length === 0)) {
+          console.error("Response body is empty");
+          return;
+      }
+      
+      let json;
+      try {
+          json = typeof raw === "string" ? JSON.parse(raw) : raw;
+      } catch (e) {
+          console.error("Failed to parse JSON response:", e.message);
+          console.error("Raw response:", raw);
+          return;
+      }
+      
+      const token = json.access_token;
+      
+      if (!token) {
+          console.error("access_token not found in response");
+          return;
+      }
+      
+      console.log("access_token from response:", token);
+      
+      bru.setEnvVar("BEARER_TOKEN", token, { persist: true });
+      console.log("BEARER_TOKEN after set:", bru.getEnvVar("BEARER_TOKEN"));
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

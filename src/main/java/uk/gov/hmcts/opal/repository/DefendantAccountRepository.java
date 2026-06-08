@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData;
 
 @Repository
 public interface DefendantAccountRepository extends JpaRepository<DefendantAccountEntity, Long>,
@@ -21,6 +22,18 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
     List<DefendantAccountEntity> findAllByBusinessUnit_BusinessUnitId(Short businessUnitId);
 
     Optional<DefendantAccountEntity> findByDefendantAccountId(Long defendantAccountId);
+
+    @Query("""
+        SELECT new uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData(
+            defendantAccount.defendantAccountId,
+            defendantAccount.versionNumber
+        )
+        FROM DefendantAccountEntity defendantAccount
+        WHERE defendantAccount.defendantAccountId = :defendantAccountId
+        """)
+    Optional<DefendantAccountVersionData> findVersionDataByDefendantAccountId(
+        @Param("defendantAccountId") Long defendantAccountId
+    );
 
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     @Query("select d from DefendantAccountEntity d where d.defendantAccountId = :id")
