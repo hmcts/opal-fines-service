@@ -14,20 +14,20 @@ import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.auditamendmentfield.AuditAmendmentFieldEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapperImpl;
-import uk.gov.hmcts.opal.repository.AmendmentRepository;
-import uk.gov.hmcts.opal.repository.AuditAmendmentFieldRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.AuditAmendmentFieldRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class AmendmentHistorySourceTest {
 
     @Mock
-    private AmendmentRepository amendmentRepository;
+    private AmendmentRepositoryService amendmentRepositoryService;
 
     @Mock
-    private AuditAmendmentFieldRepository auditAmendmentFieldRepository;
+    private AuditAmendmentFieldRepositoryService auditAmendmentFieldRepositoryService;
 
     private final AmendmentEntityHistoryMapper amendmentEntityHistoryMapper = new AmendmentEntityHistoryMapperImpl();
 
@@ -45,9 +45,9 @@ class AmendmentHistorySourceTest {
             .oldValue("old")
             .newValue("new")
             .build();
-        when(amendmentRepository.findAll(org.mockito.ArgumentMatchers.<Specification<AmendmentEntity>>any()))
+        when(amendmentRepositoryService.findAll(org.mockito.ArgumentMatchers.<Specification<AmendmentEntity>>any()))
             .thenReturn(List.of(amendment));
-        when(auditAmendmentFieldRepository.findAllById(List.of((short) 1))).thenReturn(List.of(
+        when(auditAmendmentFieldRepositoryService.findAllById(List.of((short) 1))).thenReturn(List.of(
             AuditAmendmentFieldEntity.builder()
                 .fieldCode((short) 1)
                 .dataItem("Major Creditor Code")
@@ -55,8 +55,8 @@ class AmendmentHistorySourceTest {
         ));
 
         AmendmentHistorySource source = new AmendmentHistorySource(
-            amendmentRepository,
-            auditAmendmentFieldRepository,
+            amendmentRepositoryService,
+            auditAmendmentFieldRepositoryService,
             amendmentEntityHistoryMapper
         );
 

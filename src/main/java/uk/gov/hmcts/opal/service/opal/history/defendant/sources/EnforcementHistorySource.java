@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.mapper.history.EnforcementEntityHistoryMapper;
-import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
@@ -16,13 +15,14 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 
 @Service
 @RequiredArgsConstructor
 public class EnforcementHistorySource extends HistorySourceSpecificationSupport
     implements AccountHistorySource {
 
-    private final EnforcementRepository enforcementRepository;
+    private final EnforcementRepositoryService enforcementRepositoryService;
     private final EnforcementEntityHistoryMapper enforcementEntityHistoryMapper;
 
     @Transactional(readOnly = true)
@@ -39,7 +39,7 @@ public class EnforcementHistorySource extends HistorySourceSpecificationSupport
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
-        return enforcementRepository.findAll(allOf(
+        return enforcementRepositoryService.findAll(allOf(
                 enforcementForDefendantAccount(defendantAccountId),
                 enforcementDateFrom(filter.getDateFrom()),
                 enforcementDateTo(filter.getDateTo())

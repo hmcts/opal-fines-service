@@ -22,7 +22,6 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.history.NoteDetails;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.AmendmentHistorySource;
@@ -30,12 +29,13 @@ import uk.gov.hmcts.opal.service.opal.history.defendant.sources.DefendantTransac
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.EnforcementHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.NoteHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.PaymentTermsHistorySource;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountHistoryServiceTest {
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
     private HistoryItemOrderingService historyItemOrderingService;
@@ -60,7 +60,7 @@ class DefendantAccountHistoryServiceTest {
         DefendantAccountHistoryService service = buildService();
         DefendantAccountEntity defendantAccount = org.mockito.Mockito.mock(DefendantAccountEntity.class);
         when(defendantAccount.getVersion()).thenReturn(BigInteger.valueOf(3));
-        when(defendantAccountRepository.findByDefendantAccountId(262200L))
+        when(defendantAccountRepositoryService.findByDefendantAccountId(262200L))
             .thenReturn(Optional.of(defendantAccount));
         when(historyItemOrderingService.newestFirstComparator()).thenReturn(
             Comparator.comparing(AccountHistoryItem::getEventDateTime, Comparator.nullsLast(Comparator.reverseOrder()))
@@ -124,7 +124,7 @@ class DefendantAccountHistoryServiceTest {
     @Test
     void getHistory_throwsWhenDefendantAccountIsMissing() {
         DefendantAccountHistoryService service = buildService();
-        when(defendantAccountRepository.findByDefendantAccountId(999L)).thenReturn(Optional.empty());
+        when(defendantAccountRepositoryService.findByDefendantAccountId(999L)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
             () -> service.getHistory(999L, DefendantAccountHistoryFilter.builder().build()));
@@ -136,7 +136,7 @@ class DefendantAccountHistoryServiceTest {
 
     private DefendantAccountHistoryService buildService() {
         return new DefendantAccountHistoryService(
-            defendantAccountRepository,
+            defendantAccountRepositoryService,
             historyItemOrderingService,
             amendmentSource,
             enforcementSource,

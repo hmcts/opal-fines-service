@@ -19,9 +19,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.mapper.history.DefendantTransactionEntityHistoryMapper;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
-import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryDefendantTransactionDetails;
@@ -30,6 +27,9 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantTransactionRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ImpositionRepositoryService;
 
 @Service
 @RequiredArgsConstructor
@@ -37,9 +37,9 @@ import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryM
 public class DefendantTransactionHistorySource extends HistorySourceSpecificationSupport
     implements AccountHistorySource {
 
-    private final DefendantTransactionRepository defendantTransactionRepository;
-    private final DefendantAccountRepository defendantAccountRepository;
-    private final ImpositionRepository impositionRepository;
+    private final DefendantTransactionRepositoryService defendantTransactionRepositoryService;
+    private final DefendantAccountRepositoryService defendantAccountRepositoryService;
+    private final ImpositionRepositoryService impositionRepositoryService;
     private final DefendantTransactionEntityHistoryMapper defendantTransactionEntityHistoryMapper;
 
     @Transactional(readOnly = true)
@@ -56,7 +56,7 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
-        List<DefendantTransactionEntity> transactions = defendantTransactionRepository.findAll(allOf(
+        List<DefendantTransactionEntity> transactions = defendantTransactionRepositoryService.findAll(allOf(
             transactionForDefendantAccount(defendantAccountId),
             transactionDateFrom(filter.getDateFrom()),
             transactionDateTo(filter.getDateTo())
@@ -77,9 +77,9 @@ public class DefendantTransactionHistorySource extends HistorySourceSpecificatio
         Set<Long> impositionIds = getAssociatedRecordIds(transactions, AssociatedRecordType.IMPOSITIONS);
 
         return DefendantTransactionHistoryAssociations.builder()
-            .defendantAccounts(defendantAccountRepository.findAllById(defendantAccountIds).stream()
+            .defendantAccounts(defendantAccountRepositoryService.findAllById(defendantAccountIds).stream()
                 .collect(Collectors.toMap(DefendantAccountEntity::getDefendantAccountId, Function.identity())))
-            .impositions(impositionRepository.findAllById(impositionIds).stream()
+            .impositions(impositionRepositoryService.findAllById(impositionIds).stream()
                 .collect(Collectors.toMap(ImpositionEntity::getImpositionId, Function.identity())))
             .build();
     }

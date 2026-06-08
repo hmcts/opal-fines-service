@@ -13,8 +13,6 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
-import uk.gov.hmcts.opal.repository.AmendmentRepository;
-import uk.gov.hmcts.opal.repository.AuditAmendmentFieldRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
@@ -22,14 +20,16 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.AuditAmendmentFieldRepositoryService;
 
 @Service
 @RequiredArgsConstructor
 public class AmendmentHistorySource extends HistorySourceSpecificationSupport
     implements AccountHistorySource {
 
-    private final AmendmentRepository amendmentRepository;
-    private final AuditAmendmentFieldRepository auditAmendmentFieldRepository;
+    private final AmendmentRepositoryService amendmentRepositoryService;
+    private final AuditAmendmentFieldRepositoryService auditAmendmentFieldRepositoryService;
     private final AmendmentEntityHistoryMapper amendmentEntityHistoryMapper;
 
     @Transactional(readOnly = true)
@@ -46,12 +46,12 @@ public class AmendmentHistorySource extends HistorySourceSpecificationSupport
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
-        List<AmendmentEntity> amendments = amendmentRepository.findAll(allOf(
+        List<AmendmentEntity> amendments = amendmentRepositoryService.findAll(allOf(
             amendmentForDefendantAccount(defendantAccountId),
             amendmentDateFrom(filter.getDateFrom()),
             amendmentDateTo(filter.getDateTo())
         ));
-        Map<Short, String> attributeNamesByFieldCode = auditAmendmentFieldRepository.findAllById(
+        Map<Short, String> attributeNamesByFieldCode = auditAmendmentFieldRepositoryService.findAllById(
             amendments.stream()
                 .map(AmendmentEntity::getFieldCode)
                 .distinct()

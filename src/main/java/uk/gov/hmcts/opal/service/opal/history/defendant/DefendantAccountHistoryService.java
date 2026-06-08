@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 import uk.gov.hmcts.opal.service.opal.history.core.AbstractAccountHistoryService;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
@@ -20,6 +19,7 @@ import uk.gov.hmcts.opal.service.opal.history.defendant.sources.DefendantTransac
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.EnforcementHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.NoteHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.PaymentTermsHistorySource;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountHistoryService")
@@ -27,11 +27,11 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
 
     private static final String DEFENDANT_ACCOUNT_NOT_FOUND = "Defendant Account not found with id: ";
 
-    private final DefendantAccountRepository defendantAccountRepository;
+    private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     private final HistoryItemOrderingService historyItemOrderingService;
 
-    public DefendantAccountHistoryService(DefendantAccountRepository defendantAccountRepository,
+    public DefendantAccountHistoryService(DefendantAccountRepositoryService defendantAccountRepositoryService,
                                          HistoryItemOrderingService historyItemOrderingService,
                                          AmendmentHistorySource amendmentSource,
                                          EnforcementHistorySource enforcementSource,
@@ -45,7 +45,7 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
             paymentTermsSource,
             transactionSource
         ));
-        this.defendantAccountRepository = defendantAccountRepository;
+        this.defendantAccountRepositoryService = defendantAccountRepositoryService;
         this.historyItemOrderingService = historyItemOrderingService;
     }
 
@@ -73,7 +73,7 @@ public class DefendantAccountHistoryService extends AbstractAccountHistoryServic
 
     @Override
     protected AccountHistoryContext ensureAccountExists(AccountHistoryContext context) {
-        return defendantAccountRepository.findByDefendantAccountId(context.getAccountId())
+        return defendantAccountRepositoryService.findByDefendantAccountId(context.getAccountId())
             .map(defendantAccount -> context.withVersion(defendantAccount.getVersion()))
             .orElseThrow(() -> new EntityNotFoundException(DEFENDANT_ACCOUNT_NOT_FOUND + context.getAccountId()));
     }

@@ -10,7 +10,6 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.mapper.history.NoteEntityHistoryMapper;
-import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
@@ -18,12 +17,13 @@ import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
+import uk.gov.hmcts.opal.service.persistence.NoteRepositoryService;
 
 @Service
 @RequiredArgsConstructor
 public class NoteHistorySource extends HistorySourceSpecificationSupport implements AccountHistorySource {
 
-    private final NoteRepository noteRepository;
+    private final NoteRepositoryService noteRepositoryService;
     private final NoteEntityHistoryMapper noteEntityHistoryMapper;
 
     @Transactional(readOnly = true)
@@ -39,7 +39,7 @@ public class NoteHistorySource extends HistorySourceSpecificationSupport impleme
 
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
-        return noteRepository.findAll(allOf(
+        return noteRepositoryService.findAll(allOf(
                 noteForDefendantAccount(context.getAccountId()),
                 noteTypeAa(),
                 noteDateFrom(filter.getDateFrom()),
