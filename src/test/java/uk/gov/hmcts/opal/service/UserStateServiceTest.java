@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -103,21 +104,40 @@ class UserStateServiceTest {
     }
 
     @Test
-    void testGetUser_StateV1FromSecurityContext_mapsV2StateToV1FinesDomain() {
+    void testCheckForAuthorisedUser_mapsV2StateToV1FinesDomain() {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         UserStateV2 userStateV2 = mock(UserStateV2.class);
-        UserState userState = mock(UserState.class);
+        final UserState userState = mock(UserState.class);
         setAuthentication(authToken);
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
         when(authToken.getUserState()).thenReturn(userStateV2);
         when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(userState);
 
         // Act
-        UserState result = userStateService.getUserStateV1FromSecurityContext();
+        UserState result = userStateService.checkForAuthorisedUser();
 
         // Assert
         assertSame(userState, result);
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void testCheckForAuthorisedUser_fallsBackToSecurityContextWhenAuthenticatedUserStateHasUnexpectedType() {
+        // Arrange
+        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
+        UserStateV2 userStateV2 = mock(UserStateV2.class);
+        final UserState expectedUserState = mock(UserState.class);
+        setAuthentication(authToken);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn((Optional) Optional.of(Map.of()));
+        when(authToken.getUserState()).thenReturn(userStateV2);
+        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
+
+        // Act
+        UserState userState = userStateService.checkForAuthorisedUser();
+
+        // Assert
+        assertSame(expectedUserState, userState);
     }
 
     @Test

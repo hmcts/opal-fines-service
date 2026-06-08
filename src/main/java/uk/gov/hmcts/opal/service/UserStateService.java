@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
+
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +17,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClien
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +37,13 @@ public class UserStateService {
     @Deprecated(since = "2")
     @SuppressWarnings("java:S1133")
     public UserState checkForAuthorisedUser() {
-        return checkForAuthorisedUser("");
+        Optional<?> authenticatedUserState = userStateClientService.getUserStateByAuthenticatedUser();
+
+        return authenticatedUserState
+            .filter(UserStateV2.class::isInstance)
+            .map(UserStateV2.class::cast)
+            .map(this::mapAuthenticatedUserState)
+            .orElseGet(this::getUserStateV1FromSecurityContext);
     }
 
     /**
@@ -47,15 +54,7 @@ public class UserStateService {
     @Deprecated(since = "2")
     @SuppressWarnings("java:S1133")
     public UserState checkForAuthorisedUser(String authorization) {
-        return userStateClientService.getUserStateByAuthenticatedUser()
-            .map(userStateV2 -> {
-                UserState userState = userStateMapper.toUserState(userStateV2, Domain.FINES);
-                log.debug(":checkForAuthorisedUser: using authenticated user state from user service: userId={}, "
-                        + "userName={}, businessUnits={}",
-                    userState.getUserId(), userState.getUserName(), summariseBusinessUnits(userState));
-                return userState;
-            })
-            .orElseGet(this::getUserStateV1FromSecurityContext);
+        return checkForAuthorisedUser();
     }
 
     /**
@@ -88,6 +87,14 @@ public class UserStateService {
 
     public String getPreferredUsername(String authorization) {
         return extractPreferredUsername(authorization, tokenService);
+    }
+
+    private UserState mapAuthenticatedUserState(UserStateV2 userStateV2) {
+        UserState userState = userStateMapper.toUserState(userStateV2, Domain.FINES);
+        log.debug(":checkForAuthorisedUser: using authenticated user state from user service: userId={}, "
+                + "userName={}, businessUnits={}",
+            userState.getUserId(), userState.getUserName(), summariseBusinessUnits(userState));
+        return userState;
     }
 
     private String summariseBusinessUnits(UserState userState) {
