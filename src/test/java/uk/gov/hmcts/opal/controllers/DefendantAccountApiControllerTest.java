@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistory200Response;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -102,14 +102,14 @@ class DefendantAccountApiControllerTest {
         DefendantAccountHistoryResponse historyResponse = DefendantAccountHistoryResponse.builder()
             .version(BigInteger.ONE)
             .build();
-        GetDefendantAccountHistory200Response generatedResponse = new GetDefendantAccountHistory200Response();
+        GetDefendantAccountHistoryResponse generatedResponse = new GetDefendantAccountHistoryResponse();
 
         when(defendantAccountService.getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()), eq(BEARER_TOKEN)))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(generatedResponse);
 
-        ResponseEntity<GetDefendantAccountHistory200Response> response =
+        ResponseEntity<GetDefendantAccountHistoryResponse> response =
             defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null, List.of(), BEARER_TOKEN);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -131,7 +131,7 @@ class DefendantAccountApiControllerTest {
             eq(BEARER_TOKEN)))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
-            .thenReturn(new GetDefendantAccountHistory200Response());
+            .thenReturn(new GetDefendantAccountHistoryResponse());
 
         defendantAccountApiController.getDefendantAccountHistory(defendantId, dateFrom, dateTo, itemTypes,
             BEARER_TOKEN);

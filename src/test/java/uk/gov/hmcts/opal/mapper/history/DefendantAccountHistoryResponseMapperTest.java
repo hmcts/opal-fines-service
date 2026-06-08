@@ -36,7 +36,7 @@ import uk.gov.hmcts.opal.dto.history.PaymentTermsDetails;
 import uk.gov.hmcts.opal.dto.history.WriteOffTypeReference;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.DefendantTransactionStatusReferenceCommon.DefendantTransactionStatusEnum;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistory200Response;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommon.InstalmentPeriodCodeEnum;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommon.PaymentTermsTypeCodeEnum;
 
@@ -61,7 +61,7 @@ class DefendantAccountHistoryResponseMapperTest {
             ))
             .build();
 
-        GetDefendantAccountHistory200Response generated = mapper.toGeneratedResponse(response);
+        GetDefendantAccountHistoryResponse generated = mapper.toGeneratedResponse(response);
 
         assertNotNull(generated);
         assertEquals(5, generated.getHistoryItems().size());
