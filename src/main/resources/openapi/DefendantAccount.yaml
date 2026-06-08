@@ -542,6 +542,7 @@ paths:
           content:
             application/json:
               schema:
+                title: Get Defendant Account History Response
                 type: object
                 properties:
                   historyItems:
