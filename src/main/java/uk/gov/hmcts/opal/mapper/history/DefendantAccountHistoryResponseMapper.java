@@ -29,7 +29,7 @@ import uk.gov.hmcts.opal.generated.model.DefendantTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.DefendantTransactionStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantTransactionTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementDetailsHistory;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistory200Response;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommon;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.PaymentMethodReferenceCommon;
@@ -46,7 +46,7 @@ import java.time.LocalDateTime;
 public interface DefendantAccountHistoryResponseMapper {
 
     @Mapping(target = "historyItems", source = "historyItems")
-    GetDefendantAccountHistory200Response toGeneratedResponse(DefendantAccountHistoryResponse response);
+    GetDefendantAccountHistoryResponse toGeneratedResponse(DefendantAccountHistoryResponse response);
 
     @Mapping(target = "postedDetails", source = "postedDetails")
     @Mapping(target = "type", expression = "java(mapType(item.getType()))")

@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistory200Response;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
@@ -66,7 +66,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetDefendantAccountHistory200Response> getDefendantAccountHistory(
+    public ResponseEntity<GetDefendantAccountHistoryResponse> getDefendantAccountHistory(
         Long id,
         LocalDate dateFrom,
         LocalDate dateTo,
@@ -78,7 +78,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         DefendantAccountHistoryResponse response =
             defendantAccountService.getHistory(id, dateFrom, dateTo, itemTypes, authorization);
 
-        GetDefendantAccountHistory200Response generatedResponse =
+        GetDefendantAccountHistoryResponse generatedResponse =
             defendantAccountHistoryResponseMapper.toGeneratedResponse(response);
 
         return ResponseEntity.ok()
