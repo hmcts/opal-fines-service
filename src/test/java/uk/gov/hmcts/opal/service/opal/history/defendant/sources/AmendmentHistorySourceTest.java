@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
