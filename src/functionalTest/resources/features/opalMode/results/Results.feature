@@ -60,7 +60,7 @@ Feature: Results Reference Data
       | imposition_creditor         |                                         |
       | imposition_allocation_order |                                         |
 
-  @JIRA-STORY:PO-6425
+  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674
   Scenario: Result by ID includes employment data requirement flag
     When I request result with identifier "AEO"
     Then the result response contains
