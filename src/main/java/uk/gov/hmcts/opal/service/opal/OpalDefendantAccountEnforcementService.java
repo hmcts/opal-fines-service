@@ -209,6 +209,7 @@ public class OpalDefendantAccountEnforcementService
             RecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             businessUnitUserId,
+            userState.getUserName(),
             null,
             "Remove Enforcement Hold"
         );

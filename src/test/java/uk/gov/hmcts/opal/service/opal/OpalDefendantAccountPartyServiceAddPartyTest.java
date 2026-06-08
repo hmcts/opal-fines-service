@@ -182,7 +182,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
                 eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
-                eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
+                eq(Short.parseShort(bu)), eq("tester"), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
             verify(defendantAccountRepositoryService).saveAndFlush(account);
         }
     }

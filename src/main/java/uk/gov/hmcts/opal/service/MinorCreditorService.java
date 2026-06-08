@@ -128,7 +128,7 @@ public class MinorCreditorService {
             .orElse(userState.getUserName());
 
         return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, ifMatch, postedBy,
-            businessUnitIdShort);
+            userState.getUserName(), businessUnitIdShort);
     }
 
     private MinorCreditorAccountResponse redactBacsDetailsWhenNotPermitted(
