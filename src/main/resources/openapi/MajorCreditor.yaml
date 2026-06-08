@@ -122,6 +122,7 @@ paths:
                 required:
                   - business_unit_details
                   - major_creditor
+                  - awaiting_payout
                 properties:
                   major_creditor:
                     type: object
@@ -148,7 +149,7 @@ paths:
                         description: Set to 'Major creditor' or 'Central fund'
                   awaiting_payout:
                     $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
-                    description: This is the sum of all payment transactions that have been paid by the defendants which has not been paid out to the major creditor. So transaction_amount in creditor_transactions that are related to the major creditor where payment_processed is FALSE and transaction_type = 'PAYMNT'
+                    description: This is the sum of all creditor_transaction amounts since the last BACS or CHEQUE transaction.
                   business_unit_details:
                     $ref: './common.yaml#/components/schemas/businessUnitSummary'
 
