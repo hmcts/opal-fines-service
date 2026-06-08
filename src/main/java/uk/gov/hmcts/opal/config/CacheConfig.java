@@ -87,6 +87,7 @@ public class CacheConfig {
     private RedisSerializer<Object> redisValueSerializer() {
         return new GenericJacksonJsonRedisSerializer(new ObjectMapper());
     }
+
     private RedisSerializer<String> redisKeySerializer() {
         return RedisSerializer.string();
     }
