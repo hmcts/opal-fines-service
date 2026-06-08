@@ -15,6 +15,9 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,10 +27,8 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "defendant_transactions")
@@ -51,8 +52,8 @@ public class DefendantTransactionEntity {
     private Long defendantAccountId;
 
     @Column(name = "posted_date", nullable = false)
-    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-    private LocalDateTime postedDate;
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    private LocalDate postedDate;
 
     @Column(name = "posted_by")
     private String postedBy;

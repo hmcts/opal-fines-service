@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.history;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -22,7 +23,7 @@ class DefendantTransactionEntityHistoryMapperTest {
         DefendantTransactionEntity entity = DefendantTransactionEntity.builder()
             .defendantTransactionId(123L)
             .defendantAccountId(262200L)
-            .postedDate(LocalDateTime.of(2026, 1, 6, 10, 30))
+            .postedDate(LocalDate.of(2026, 1, 6))
             .postedBy("opal-user")
             .postedByUsername("Opal User")
             .transactionType(DefendantTransactionType.PAYMNT)
@@ -52,7 +53,7 @@ class DefendantTransactionEntityHistoryMapperTest {
         DefendantTransactionEntity entity = DefendantTransactionEntity.builder()
             .defendantTransactionId(124L)
             .defendantAccountId(262200L)
-            .postedDate(LocalDateTime.of(2026, 1, 6, 10, 30))
+            .postedDate(LocalDate.of(2026, 1, 6))
             .transactionType(DefendantTransactionType.TFO_IN)
             .status(DefendantTransactionStatus.C)
             .statusDate(LocalDateTime.of(2026, 1, 7, 11, 0))

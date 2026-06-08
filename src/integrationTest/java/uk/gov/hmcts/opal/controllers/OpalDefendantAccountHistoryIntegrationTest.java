@@ -688,10 +688,10 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         firstCall.andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
             .andExpect(jsonPath("$.historyItems[*].type",
-                contains("Financial", "Enforcement", "Amendment")))
-            .andExpect(jsonPath("$.historyItems[0].amount").value(-10.00))
-            .andExpect(jsonPath("$.historyItems[1].details.enforcementAction").value("HST01"))
-            .andExpect(jsonPath("$.historyItems[2].details.oldValue").value("Old"));
+                contains("Enforcement", "Amendment", "Financial")))
+            .andExpect(jsonPath("$.historyItems[0].details.enforcementAction").value("HST01"))
+            .andExpect(jsonPath("$.historyItems[1].details.oldValue").value("Old"))
+            .andExpect(jsonPath("$.historyItems[2].amount").value(-10.00));
 
         secondCall.andExpect(status().isOk())
             .andExpect(content().json(firstResponse));
