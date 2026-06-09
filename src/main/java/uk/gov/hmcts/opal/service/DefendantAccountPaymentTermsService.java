@@ -37,6 +37,7 @@ public class DefendantAccountPaymentTermsService {
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch
     ) {
         log.debug(":addPaymentCardRequest:");
@@ -48,6 +49,7 @@ public class DefendantAccountPaymentTermsService {
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                postedByName,
                 ifMatch
             );
         } else {

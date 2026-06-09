@@ -301,6 +301,7 @@ public class DefendantAccountService {
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                userState.getDisplayName(),
                 ifMatch
             );
         } else {
