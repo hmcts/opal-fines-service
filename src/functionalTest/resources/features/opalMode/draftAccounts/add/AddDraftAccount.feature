@@ -76,6 +76,29 @@ Feature: Create Draft Accounts
     #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
     #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
+  @JIRA-STORY:PO-2357 @JIRA-NFR:PO-2507 @cleanUpData @JIRA-EPIC:PO-2355
+  Scenario: Emitted PDPO logs do not expose personal details
+    When I create a draft account with the following details
+      | business_unit_id  | 77                                                     |
+      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
+      | account_type      | Fine                                                   |
+      | account_status    | Submitted                                              |
+      | submitted_by      | PG1234                                                 |
+      | submitted_by_name | opal-test                                              |
+    Then the logging service emits PDPO logs for the created draft account id
+    And the emitted PDPO logs do not contain these field names
+      | surname         |
+      | forenames       |
+      | dob             |
+      | email_address_1 |
+      | email_address_2 |
+    And the emitted PDPO logs do not contain these values
+      | LNAME              |
+      | Opal parent1       |
+      | 2000-01-01         |
+      | PGemail1@email.com |
+      | PGemail2@test.com  |
+
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5624
   Scenario: Reject draft-account creation with an invalid token
     When I attempt to create a draft account with an invalid token using created by ID "invalidToken"

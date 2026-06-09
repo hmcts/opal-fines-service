@@ -13,7 +13,7 @@ Feature: Add Draft Account Authorisation
       | submitted_by_name | Laura Clerk                                 |
     Then the request is rejected as unauthorized
 
-  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5626
+  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5626
   Scenario: Post Draft Account - No Permission
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to create a draft account with the following details
       | business_unit_id  | 73                                          |
@@ -24,7 +24,7 @@ Feature: Add Draft Account Authorisation
       | submitted_by_name | Laura Clerk                                 |
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5627
+  @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5627
   Scenario: Post Draft Account - Permission in different BU
     When the "opal-test@dev.platform.hmcts.net" user attempts to create a draft account with the following details
       | business_unit_id  | 26                                          |

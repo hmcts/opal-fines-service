@@ -13,7 +13,7 @@ Feature: Major Creditor Account Header Summary
     When I request the major creditor account header summary for account 10770000000041 twice
     Then the repeated major creditor account header summary responses are identical
 
-  @JIRA-STORY:PO-2136 @JIRA-EPIC:PO-2136
+  @JIRA-STORY:PO-2136 @JIRA-EPIC:PO-2136 @JIRA-NFR:PO-2507
   Scenario: Major creditor account header summary is forbidden when the user has no account view permission
     When the "opal-test-2@dev.platform.hmcts.net" user requests the major creditor account header summary for account 10770000000041
     Then the request is rejected as forbidden
