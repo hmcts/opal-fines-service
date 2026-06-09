@@ -151,6 +151,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         String authHeader
     ) {

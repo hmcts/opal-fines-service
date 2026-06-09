@@ -876,6 +876,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         String authHeader
     ) {
@@ -981,6 +982,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                                                                            Short businessUnitId,
                                                                            String businessUnitUserId,
                                                                            String postedBy,
+                                                                           String postedByName,
                                                                            String ifMatch,
                                                                            RemoveDefendantAccountPartyRequest request) {
         RemoveDefendantAccountPartyLegacyRequest req = RemoveDefendantAccountPartyLegacyRequest.builder()
@@ -1320,8 +1322,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
-        String postedBy,
+        String authHeader,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
         var legacyRequest = createAddPaymentTermsLegacyRequest(

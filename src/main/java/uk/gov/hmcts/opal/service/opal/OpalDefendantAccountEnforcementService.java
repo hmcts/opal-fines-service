@@ -130,6 +130,7 @@ public class OpalDefendantAccountEnforcementService
             opalDefendantAccountService.addPaymentTerms(defendantAccountId,
                                                         businessUnitId.toString(),
                                                         businessUnitUserId,
+                                                        userState.getUserName(),
                                                         defendantEntity.getVersion().toString(),
                                                         authHeader,
                                                         AddDefendantAccountPaymentTermsRequest.builder()
