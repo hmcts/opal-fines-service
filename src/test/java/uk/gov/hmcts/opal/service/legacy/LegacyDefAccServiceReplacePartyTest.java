@@ -63,7 +63,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
@@ -109,7 +109,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
@@ -131,8 +131,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.replaceDefendantAccountParty(77L, 20010L, null, "1", "78", "poster",
-                "dev_user")
+            legacyDefendantAccountService.replaceDefendantAccountParty(77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user")
         );
     }
 
@@ -171,7 +170,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
@@ -226,7 +225,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
@@ -291,7 +290,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
@@ -342,7 +341,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
@@ -398,7 +397,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
@@ -441,7 +440,7 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "dev_user"
+            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
