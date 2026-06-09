@@ -93,7 +93,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // When
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null,"4", "AUTH");
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null, "Poster Name", "4", "AUTH");
 
         // Then
         assertNotNull(out);
@@ -120,7 +120,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         // When
-        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78",null, "9", "AUTH");
+        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78",null, "Poster Name", "9", "AUTH");
 
         // Then
         AddPaymentCardLegacyRequest sent = captor.getValue();
@@ -144,7 +144,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", null,"1", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", null, "Poster Name", "1", "AUTH")
         );
     }
 
@@ -164,7 +164,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", null,"2", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", null, "Poster Name", "2", "AUTH")
         );
     }
 
@@ -182,14 +182,14 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", null, "3", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", null, "Poster Name", "3", "AUTH")
         );
     }
 
     @Test
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", null,"notANumber", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", null, "Poster Name", "notANumber", "AUTH")
         );
     }
 
