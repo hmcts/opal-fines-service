@@ -320,6 +320,7 @@ class DefendantAccountServiceTest {
         when(defendantAccountServiceProxy.addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
+            eq("normal@users.com"),
             eq(ifMatch),
             any(AddDefendantAccountPaymentTermsRequest.class)))
             .thenReturn(proxyResponse);
@@ -334,6 +335,7 @@ class DefendantAccountServiceTest {
         verify(defendantAccountServiceProxy).addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
+            eq("normal@users.com"),
             eq(ifMatch),
             captor.capture());
 
