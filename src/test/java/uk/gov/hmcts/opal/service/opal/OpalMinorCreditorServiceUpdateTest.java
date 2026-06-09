@@ -153,7 +153,8 @@ class OpalMinorCreditorServiceUpdateTest {
         // Act
         MinorCreditorAccountResponse response;
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
-            response = service.updateMinorCreditorAccount(accountId, request, etag, postedBy, "Tester Name", businessUnitId);
+            response = service.updateMinorCreditorAccount(
+                accountId, request, etag, postedBy, "Tester Name", businessUnitId);
             versionUtils.verify(() -> VersionUtils.verifyIfMatch(
                 eq(account), eq(etag), eq(accountId), eq("updateMinorCreditorAccount")));
         }
@@ -413,8 +414,8 @@ class OpalMinorCreditorServiceUpdateTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user", "Test User",
-                businessUnitId)
+            () -> service.updateMinorCreditorAccount(
+                accountId, request, BigInteger.valueOf(3L), "test.user", "Test User", businessUnitId)
         );
 
         assertEquals("party_details.party_id must be provided", exception.getMessage());
@@ -444,8 +445,8 @@ class OpalMinorCreditorServiceUpdateTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user", "Test User",
-                businessUnitId)
+            () -> service.updateMinorCreditorAccount(
+                accountId, request, BigInteger.valueOf(3L), "test.user", "Test User", businessUnitId)
         );
 
         assertEquals("Invalid party_details.party_id format", exception.getMessage());

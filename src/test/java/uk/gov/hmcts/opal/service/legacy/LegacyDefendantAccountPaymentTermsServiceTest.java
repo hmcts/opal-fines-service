@@ -93,7 +93,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // When
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null, "Poster Name", "4", "AUTH");
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(
+                123L, "78", null, "Poster Name", "4", "AUTH");
 
         // Then
         assertNotNull(out);
@@ -189,7 +190,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     @Test
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", null, "Poster Name", "notANumber", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(
+                1L, "78", null, "Poster Name", "notANumber", "AUTH")
         );
     }
 

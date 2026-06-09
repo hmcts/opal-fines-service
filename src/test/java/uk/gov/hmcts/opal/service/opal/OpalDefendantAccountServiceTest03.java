@@ -106,7 +106,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             assertThrows(IllegalArgumentException.class, () ->
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null));
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null));
 
             verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
         }
@@ -198,7 +199,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             assertNotNull(resp);
 
@@ -245,7 +247,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             assertNotNull(resp);
 
@@ -450,7 +453,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             assertNotNull(resp);
 
@@ -543,7 +547,8 @@ class OpalDefendantAccountServiceTest03 {
 
             // Act
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, defendantDapId, req, "\"1\"", "10", "tester", "Tester Name", null);
+                service.replaceDefendantAccountParty(
+                    accountId, defendantDapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             // Assert
             assertNotNull(resp);

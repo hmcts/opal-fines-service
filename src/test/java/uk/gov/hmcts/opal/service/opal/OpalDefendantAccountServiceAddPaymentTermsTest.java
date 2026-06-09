@@ -205,8 +205,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, businessUnitUserId, "Tester Name", ifMatch,
-            authHeader, request);
+        defendantAccountService.addPaymentTerms(
+            defendantAccountId, businessUnitId, businessUnitUserId, "Tester Name", ifMatch, authHeader, request);
 
         // Assert
         verify(paymentTermsService).addPaymentTerm(argThat(entity ->

@@ -131,7 +131,8 @@ class LegacyDefAccServiceReplacePartyTest extends AbstractLegacyDefAccServiceTes
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.replaceDefendantAccountParty(77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user")
+            legacyDefendantAccountService.replaceDefendantAccountParty(
+                77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user")
         );
     }
 
