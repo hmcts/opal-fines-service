@@ -153,7 +153,7 @@ class OpalMinorCreditorServiceUpdateTest {
         // Act
         MinorCreditorAccountResponse response;
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
-            response = service.updateMinorCreditorAccount(accountId, request, etag, postedBy, businessUnitId);
+            response = service.updateMinorCreditorAccount(accountId, request, etag, postedBy, "Tester Name", businessUnitId);
             versionUtils.verify(() -> VersionUtils.verifyIfMatch(
                 eq(account), eq(etag), eq(accountId), eq("updateMinorCreditorAccount")));
         }
@@ -192,7 +192,7 @@ class OpalMinorCreditorServiceUpdateTest {
         assertEquals("ZZ1 1ZZ", savedParty.getPostcode());
         verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.CREDITOR_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            accountId, RecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy, postedBy, null, "ACCOUNT_ENQUIRY");
+            accountId, RecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy, "Tester Name", null, "ACCOUNT_ENQUIRY");
     }
 
     @Test
@@ -210,7 +210,7 @@ class OpalMinorCreditorServiceUpdateTest {
         // Act + Assert
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user", "Test User",
                 (short) 77)
         );
     }
@@ -238,7 +238,7 @@ class OpalMinorCreditorServiceUpdateTest {
         // Act + Assert
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user", "Test User",
                 businessUnitId)
         );
     }
@@ -264,7 +264,7 @@ class OpalMinorCreditorServiceUpdateTest {
 
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user", "Test User",
                 businessUnitId)
         );
     }
@@ -291,7 +291,7 @@ class OpalMinorCreditorServiceUpdateTest {
 
         assertThrows(
             ResourceConflictException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.ONE, "test.user", "Test User",
                 businessUnitId)
         );
     }
@@ -322,7 +322,7 @@ class OpalMinorCreditorServiceUpdateTest {
         // Act + Assert
         assertThrows(
             EntityNotFoundException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user", "Test User",
                 businessUnitId)
         );
     }
@@ -352,7 +352,7 @@ class OpalMinorCreditorServiceUpdateTest {
 
         assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user", "Test User",
                 businessUnitId)
         );
     }
@@ -382,7 +382,7 @@ class OpalMinorCreditorServiceUpdateTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, currentVersion, "test.user", "Test User",
                 businessUnitId)
         );
 
@@ -413,7 +413,7 @@ class OpalMinorCreditorServiceUpdateTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user", "Test User",
                 businessUnitId)
         );
 
@@ -444,7 +444,7 @@ class OpalMinorCreditorServiceUpdateTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user",
+            () -> service.updateMinorCreditorAccount(accountId, request, BigInteger.valueOf(3L), "test.user", "Test User",
                 businessUnitId)
         );
 

@@ -272,7 +272,7 @@ class OpalDefendantAccountUpdateTest {
             .build();
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
-            () -> service.updateDefendantAccount(77L, "78", req, "tester"));
+            () -> service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name"));
         verify(defendantAccountRepository, never()).save(any());
     }
 
@@ -301,12 +301,12 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        service.updateDefendantAccount(77L, "78", req, "11111111A");
+        service.updateDefendantAccount(77L, "78", req, "11111111A", "Tester Name");
 
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
             eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
-            eq("11111111A"), eq("11111111A"), any(), eq("ACCOUNT_ENQUIRY"));
+            eq("11111111A"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));
     }
 
     @Test
@@ -341,7 +341,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
         assertNotNull(resp.getPayload().getEnforcementOverride());
     }
 
@@ -369,7 +369,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
         assertEquals(LocalDate.now(), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
@@ -402,7 +402,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertNull(resp.getPayload().getEnforcementOverride());
         assertNull(entity.getEnforcementOverrideResultId());
@@ -438,7 +438,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertEquals(Boolean.FALSE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
         assertNull(resp.getPayload().getCollectionOrder().getCollectionOrderDate());
@@ -477,7 +477,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertEquals(courtId, resp.getPayload().getEnforcementCourt().getCourtId());
     }
