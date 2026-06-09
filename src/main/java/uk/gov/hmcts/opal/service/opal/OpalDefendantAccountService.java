@@ -1060,6 +1060,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
         log.debug(":addPaymentTerms (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
@@ -1099,6 +1100,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         // Update defendant account with any payment term related attributes
         addPaymentTerm(defAccount, addPaymentTermsRequest);
 
+        // Clear last_enforcement on the defendant account, if applicable
         clearLastEnforcementAction(defAccount);
 
         defendantAccountRepository.save(defAccount);
