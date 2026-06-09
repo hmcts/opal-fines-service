@@ -147,7 +147,6 @@ class DefendantAccountPartyServiceTest {
             buUserIdCaptor.capture()
         );
 
-        // When BusinessUnitUser present and has a non-blank id, postedBy should be that id and businessUnitUserId same
         assertThat(postedByCaptor.getValue()).isEqualTo("b-user-id");
         assertThat(postedByNameCaptor.getValue()).isEqualTo("theUserName");
         assertThat(buUserIdCaptor.getValue()).isEqualTo("b-user-id");
@@ -202,7 +201,6 @@ class DefendantAccountPartyServiceTest {
             eq(request)
         );
 
-        // When BusinessUnitUser present and has a non-blank id, postedBy should be that id and businessUnitUserId same
         assertThat(postedByCaptor.getValue()).isEqualTo("b-user-id");
         assertThat(postedByNameCaptor.getValue()).isEqualTo("theUserName");
         assertThat(buUserIdCaptor.getValue()).isEqualTo("b-user-id");
