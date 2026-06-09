@@ -193,7 +193,9 @@ public class LoggingSteps extends BaseStepDef {
 
         if (node.isObject()) {
             for (var field : node.properties()) {
-                if (expectedFieldName.equals(field.getKey()) || containsFieldName(field.getValue(), expectedFieldName)) {
+                boolean fieldNameMatches = expectedFieldName.equals(field.getKey());
+                boolean childFieldNameMatches = containsFieldName(field.getValue(), expectedFieldName);
+                if (fieldNameMatches || childFieldNameMatches) {
                     return true;
                 }
             }
