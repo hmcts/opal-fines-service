@@ -19,7 +19,7 @@ import uk.gov.hmcts.contino.GradleBuilder
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 
-@Library("Infrastructure")
+@Library("Infrastructure@2.0.0")
 
 def type = "java"
 def product = "opal"
@@ -63,7 +63,7 @@ withNightlyPipeline(type, product, component) {
      }
    }
       def today = ZonedDateTime.now().getDayOfWeek()
-      def shouldRunWithZephyr = params.ZephyrExecution || today == DayOfWeek.FRIDAY;
+      def shouldRunWithZephyr = params.ZephyrExecution || today == DayOfWeek.FRIDAY
       if (shouldRunWithZephyr) {
           env.EXECUTION_BUILD = env.GIT_COMMIT
           env.EXECUTION_ENVIRONMENT = env.ENVIRONMENT_NAME
