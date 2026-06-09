@@ -51,14 +51,16 @@ public interface DefendantAccountServiceInterface {
                                                     String postedBy) {
         return updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, postedBy);
     }
-                                                   
+                                                    String postedBy,
+                                                    String postedByName);
+
 
     AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId,
-        String ifMatch);
+        String postedByName, String ifMatch, String authHeader);
 
     AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
-        String ifMatch, AddDefendantAccountEnforcementRequest request);
+        String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request);
 
 
     GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
@@ -87,6 +89,8 @@ public interface DefendantAccountServiceInterface {
     GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
                                             String businessUnitId,
                                             String businessUnitUserId,
+                                            String postedByName,
                                             String ifMatch,
+                                            String authHeader,
                                             AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest);
 }
