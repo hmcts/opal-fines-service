@@ -43,6 +43,7 @@ java:
         - name: reports-storage-container-name
           alias: REPORTS_AZURE_STORAGE_CONTAINER
   environment:
+    OPAL_REDIS_ENABLED: true
     REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-hmcts-redis-master:6379
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "opal-fines-db"

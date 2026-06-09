@@ -2,10 +2,9 @@ package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.en.When;
 import io.restassured.specification.RequestSpecification;
+import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * Defines feature-toggle request steps for the fines-service release-1b gated endpoints.
@@ -78,6 +77,8 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 );
             case "Get Defendant Account Enforcement Status" ->
                 callGet(DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/enforcement-status");
+            case "Get Defendant Account Impositions" ->
+                callGet(DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/impositions");
             case "Add Defendant Account Enforcement" ->
                 callPost(
                     DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/enforcements",
