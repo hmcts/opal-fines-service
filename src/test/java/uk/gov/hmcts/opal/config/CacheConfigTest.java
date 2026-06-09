@@ -1,5 +1,10 @@
 package uk.gov.hmcts.opal.config;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import java.lang.reflect.Field;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -16,11 +21,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 @SpringBootTest(classes = {CacheConfig.class, CacheConfigTest.TestConfig.class})
 @Isolated
@@ -58,6 +58,7 @@ class CacheConfigTest {
 
     @TestConfiguration
     static class TestConfig {
+
         @Bean
         @Primary
         public RedisConnectionFactory redisConnectionFactory() {
@@ -70,6 +71,7 @@ class CacheConfigTest {
             return RedisCacheManager.builder(redisConnectionFactory).build();
         }
     }
+
     @Test
     void redisConnectionFactory_shouldEnableSsl_whenUsingRedissUrl() throws Exception {
         CacheConfig config = new CacheConfig();
