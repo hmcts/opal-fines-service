@@ -49,6 +49,7 @@ public class DefendantAccountPaymentTermsService {
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                userState.getUserName(),
                 ifMatch,
                 authHeaderValue
             );

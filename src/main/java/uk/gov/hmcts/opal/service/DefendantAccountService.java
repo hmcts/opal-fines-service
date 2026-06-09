@@ -234,6 +234,7 @@ public class DefendantAccountService {
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                userState.getUserName(),
                 ifMatch,
                 authHeaderValue
             );
@@ -285,7 +286,7 @@ public class DefendantAccountService {
         if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
             addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
                 .postedBy(businessUnitUserId)
-                .postedByName(userState.getDisplayName())
+                .postedByName(userState.getUserName())
                 .build());
         }
 
@@ -294,6 +295,7 @@ public class DefendantAccountService {
             return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                userState.getUserName(),
                 ifMatch,
                 authHeaderValue,
                 addPaymentTermsRequest);
