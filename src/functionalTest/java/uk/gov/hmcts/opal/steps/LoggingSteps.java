@@ -51,7 +51,7 @@ public class LoggingSteps extends BaseStepDef {
     @Then("the logging service emits PDPO logs for the created draft account id")
     public void loggingServiceEmitsPdpoLogsForTheCreatedDraftAccountId() {
         latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
-            "individualId",
+            "individual_id",
             scenarioContext().getLastDraftAccountIdOrFail()
         ));
     }

@@ -85,7 +85,16 @@ Feature: Create Draft Accounts
       | account_status    | Submitted                                              |
       | submitted_by      | PG1234                                                 |
       | submitted_by_name | opal-test                                              |
-    Then the logging service emits PDPO logs for the created draft account id
+    Then the draft account is created successfully with the following data
+      | business_unit_id                   | 77                               |
+      | account_type                       | Fine                             |
+      | account_status                     | Submitted                        |
+      | account_snapshot.defendant_name    | LNAME, FNAME                     |
+      | account_snapshot.date_of_birth     | 2000-01-01                       |
+      | account_snapshot.account_type      | Fine                             |
+      | account_snapshot.submitted_by      | L077JG                           |
+      | account_snapshot.submitted_by_name | opal-test                        |
+    And the logging service emits PDPO logs for the created draft account id
     And the emitted PDPO logs do not contain these field names
       | surname         |
       | forenames       |
