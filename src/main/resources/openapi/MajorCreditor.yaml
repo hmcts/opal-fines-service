@@ -25,6 +25,12 @@ paths:
           schema:
             type: integer
           required: true
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
       responses:
         '200':
           description: OK
