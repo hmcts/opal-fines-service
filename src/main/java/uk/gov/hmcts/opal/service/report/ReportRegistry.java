@@ -11,18 +11,18 @@ import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 @Component
 public class ReportRegistry {
 
-    private final Map<ReportType, ReportInterface<?>> reports;
+    private final Map<ReportId, ReportInterface<?>> reports;
 
     public ReportRegistry(List<ReportInterface<?>> reports) {
         this.reports = reports.stream()
             .collect(Collectors.toMap(
-                ReportInterface::getType,
+                ReportInterface::getReportId,
                 Function.identity()
             ));
     }
 
     public ReportInterface<?> get(String reportId) {
-        return Optional.ofNullable(reports.get(ReportType.fromReportId(reportId)))
+        return Optional.ofNullable(reports.get(ReportId.fromReportId(reportId)))
             .orElseThrow(() -> new ReportNotFoundException("No implementation found for reportId: " + reportId));
 
     }

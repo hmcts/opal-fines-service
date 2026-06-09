@@ -35,6 +35,11 @@ public class EnforcementRepositoryService {
             defendantAccountId, lastEnforcement);
     }
 
+    public Optional<EnforcementEntity> getEnforcementMostRecent(Long defendantAccountId) {
+        return enforcementRepository.findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(
+            defendantAccountId);
+    }
+
     public Long addDefendantAccountEnforcement(
         String resultId,
         Long defendantAccountId,
