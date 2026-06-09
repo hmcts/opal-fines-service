@@ -276,17 +276,17 @@ public class DraftAccountService {
 
     private void applySubmittedBy(AddDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
         dto.setSubmittedBy(unitUser.getBusinessUnitUserId());
-        dto.setSubmittedByName(userState.getUserName());
+        dto.setSubmittedByName(userState.getDisplayName());
         dto.setValidatedBy(null);
     }
 
     private void applySubmittedBy(ReplaceDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
         dto.setSubmittedBy(unitUser.getBusinessUnitUserId());
-        dto.setSubmittedByName(userState.getUserName());
+        dto.setSubmittedByName(userState.getDisplayName());
     }
 
     private void applyValidatedBy(UpdateDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
         dto.setValidatedBy(unitUser.getBusinessUnitUserId());
-        dto.setValidatedByName(userState.getUserName());
+        dto.setValidatedByName(userState.getDisplayName());
     }
 }

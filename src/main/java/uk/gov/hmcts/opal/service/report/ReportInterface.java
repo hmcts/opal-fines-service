@@ -4,7 +4,7 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 
 public interface ReportInterface<T extends ReportDataInterface> {
 
-    ReportType getType();
+    ReportId getReportId();
 
     T generateReportData(ReportInstanceEntity reportInstance);
 

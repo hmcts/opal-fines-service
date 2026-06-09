@@ -2,6 +2,20 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
   <!--Please add all the false positives under the below section-->
 
+  <suppress until="2026-08-31Z">
+    <notes><![CDATA[
+    Reviewed 2026-05-27.
+    CVE-2025-21199 applies to Microsoft Azure Agent Installer products under the CPE family
+    cpe:2.3:a:microsoft:azure_agent:* and the NVD affected-software entries are for the "backup"
+    and "site_recovery" products. This repo contains the Java libraries
+    com.microsoft.azure:applicationinsights-core and com.microsoft.azure:applicationinsights-web,
+    which are being mapped to the generic azure_agent CPE by Dependency-Check.
+    Keep this suppression only for that false-positive CPE match.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/applicationinsights\-(core|web)@.*$</packageUrl>
+    <cve>CVE-2025-21199</cve>
+  </suppress>
+
   <!--End of false positives section -->
 
   <!--Please add Temporary suppression here-->
@@ -14,7 +28,7 @@
     <cve>CVE-2025-7962</cve>
   </suppress>
 
-  <suppress until="2026-06-01Z">
+  <suppress until="2026-06-10Z">
     <notes><![CDATA[
     Reviewed 2026-04-01.
     CVE-2025-15104 relates to nu.validator:validator, which is not present in this repo's runtime classpath.
@@ -27,8 +41,47 @@
     <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>
     <cve>CVE-2025-15104</cve>
   </suppress>
-  <suppress until="2026-06-01Z">
+  <suppress until="2026-06-10Z">
+    <notes><![CDATA[
+    Reviewed 2026-06-01.
+    Dependency-Check flags org.apache.pdfbox:pdfbox and org.apache.pdfbox:pdfbox-io for CVE-2026-23907.
+    Apache PDFBox documents CVE-2026-23907 as affecting the pdfbox-examples module; this repo depends on
+    the core pdfbox artifact for PDF generation and does not depend on pdfbox-examples.
+    Maven metadata review found 3.0.7 is currently the latest stable release in the 3.x line.
+    This suppression expires shortly so the dependency-check failure returns unless an upstream fixed
+    release, updated vulnerability metadata, or a better remediation path is available.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox(\-io)?@.*$</packageUrl>
     <cve>CVE-2026-23907</cve>
+  </suppress>
+  <suppress until="2026-06-10Z">
+    <notes><![CDATA[
+    Reviewed 2026-05-27.
+    Fines-service uses Azure Blob Storage via BlobServiceClientBuilder.connectionString(...),
+    then obtains a BlobContainerClient and BlobClient to upload generated report content.
+    Current runtime artifacts flagged for CVE-2026-33117 are:
+    - com.azure:azure-core:1.58.0
+    - com.azure:azure-core-http-netty:1.16.4
+    - com.azure:azure-json:1.5.1
+    Maven metadata review found these are already the latest stable GA releases available in the
+    current Azure Storage SDK chain used by this repo, with no newer non-beta upgrade path.
+    This suppression expires in two weeks so the dependency-check failure returns unless an
+    upstream GA fix or a better remediation path is available.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core|azure\-core\-http\-netty|azure\-json)@.*$</packageUrl>
+    <cve>CVE-2026-33117</cve>
+  </suppress>
+  <suppress until="2026-06-10Z">
+    <notes><![CDATA[
+    Reviewed 2026-05-27.
+    This repo directly depends on org.apache.pdfbox:pdfbox for PDF generation support and tests.
+    Maven metadata review found 3.0.7 is currently the latest stable release in the 3.x line, with
+    no newer non-beta upgrade path available for CVE-2026-33929.
+    This suppression expires in two weeks so the dependency-check failure returns unless an
+    upstream fixed release or a better remediation path is available.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox(\-io)?@.*$</packageUrl>
+    <cve>CVE-2026-33929</cve>
   </suppress>
   <!--End of Temporary suppression section -->
 

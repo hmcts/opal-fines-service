@@ -71,24 +71,24 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.AliasEntity;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
-import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
-import uk.gov.hmcts.opal.entity.debtordetail.Language;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
@@ -410,7 +410,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         Long defendantAccountId,
         String businessUnitId,
         UpdateDefendantAccountRequest request,
-        String postedBy
+        String postedBy,
+        String postedByName
     ) {
         log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
@@ -456,6 +457,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             buId,
             postedBy,
+            postedByName,
             entity.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );
@@ -528,7 +530,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
-        String postedBy, String businessUserId) {
+        String postedBy, String postedByName, String businessUserId) {
 
         log.debug(":replaceDefendantAccountParty: accountId: {}, partyId: {}", accountId, dapId);
 
@@ -598,6 +600,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             postedBy,
+            postedByName,
             account.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );
@@ -966,7 +969,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             authHeader
         );
 
-        auditComplete(defendantAccountId, account, businessUnitUserId);
+        auditComplete(defendantAccountId, account, businessUnitUserId, accessTokenService.extractName(authHeader));
 
         return paymentCardResponse;
     }
@@ -1026,7 +1029,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private void auditComplete(Long accountId,
         DefendantAccountEntity account,
-        String businessUnitUserId) {
+        String businessUnitUserId,
+        String postedByName) {
 
         Short buId = account.getBusinessUnit().getBusinessUnitId();
 
@@ -1035,6 +1039,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             buId,
             businessUnitUserId,
+            postedByName,
             account.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );
@@ -1120,6 +1125,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             businessUnitUserId,
+            savedPaymentTerms.getPostedByUsername(),
             defAccount.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );

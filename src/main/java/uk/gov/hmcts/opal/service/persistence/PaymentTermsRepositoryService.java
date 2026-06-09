@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.persistence;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,37 @@ public class PaymentTermsRepositoryService {
         return paymentTermsRepository
             .findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Payment Terms not found for Defendant Account Id: "
-                                                               + defendantAccountId));
+                + defendantAccountId));
+    }
+
+    public String getPaymentTermsAsFormattedString(Long defendantAccountId) {
+        Optional<PaymentTermsEntity> optionalAccount = paymentTermsRepository
+                .findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(
+                    defendantAccountId
+                );
+        if (optionalAccount.isEmpty()) {
+            return null;
+        }
+        PaymentTermsEntity account = optionalAccount.get();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return switch (account.getTermsTypeCode()) {
+            case PAID -> null;
+            case BY_DATE -> account.getEffectiveDate().format(formatter);
+            case INSTALMENTS -> formatInstalments(account, formatter);
+        };
+    }
+
+    private String formatInstalments(PaymentTermsEntity account, DateTimeFormatter formatter) {
+        StringBuilder sb = new StringBuilder(account.getInstalmentAmount().toPlainString())
+            .append(" per ")
+            .append(account.getInstalmentPeriod().name().toLowerCase())
+            .append(" from ")
+            .append(account.getEffectiveDate().format(formatter));
+
+        if (account.getInstalmentLumpSum() != null) {
+            sb.append(" following a lump sum of ")
+                .append(account.getInstalmentLumpSum().toPlainString());
+        }
+        return sb.toString();
     }
 }

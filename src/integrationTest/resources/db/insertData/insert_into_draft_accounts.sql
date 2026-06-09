@@ -481,8 +481,8 @@ VALUES
     '{
         "account_type": "Fixed Penalty",
         "defendant_type": "adultOrYouthOnly",
-        "originator_name": "LJS",
-        "originator_id": 12345,
+        "originator_name": "Cheshire Central Ticket Office",
+        "originator_id": 6,
         "originator_type": "NEW",
         "enforcement_court_id": 650000000045,
         "prosecutor_case_reference": "ABC123",
@@ -824,8 +824,8 @@ VALUES
     '{
             "account_type": "Fixed Penalty",
             "defendant_type": "Adult",
-            "originator_name": "LJS",
-            "originator_id": 12345,
+            "originator_name": "Cheshire Central Ticket Office",
+            "originator_id": 6,
             "originator_type": "NEW",
             "enforcement_court_id": 650000000045,
             "prosecutor_case_reference": "ABC123",
@@ -1183,8 +1183,8 @@ INSERT INTO draft_accounts (
              '{
                "account_type": "Fixed Penalty",
                "defendant_type": "Company",
-               "originator_name": "LJS",
-               "originator_id": 12345,
+               "originator_name": "Cheshire Central Ticket Office",
+               "originator_id": 6,
                "originator_type": "NEW",
                "enforcement_court_id": 650000000045,
                "prosecutor_case_reference": "ABC123",

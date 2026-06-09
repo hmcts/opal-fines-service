@@ -150,6 +150,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         PatchMinorCreditorAccountRequest request,
         BigInteger etag,
         String postedBy,
+        String postedByName,
         Short businessUnitId
     ) {
         log.info("Legacy :updateMinorCreditorAccount: id={}", minorCreditorAccountId);

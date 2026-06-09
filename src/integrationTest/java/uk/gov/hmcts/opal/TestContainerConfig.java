@@ -4,15 +4,17 @@ import com.redis.testcontainers.RedisContainer;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration
-@Slf4j
 public class TestContainerConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(TestContainerConfig.class);
 
     private static final int LEGACY_STUB_PORT = 4553;
     private static final String LOCAL_LEGACY_GATEWAY_URL = "http://localhost:%d/opal".formatted(LEGACY_STUB_PORT);

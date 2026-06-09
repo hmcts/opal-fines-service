@@ -2,10 +2,9 @@ package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.en.When;
 import io.restassured.specification.RequestSpecification;
+import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * Defines feature-toggle request steps for the fines-service release-1b gated endpoints.
@@ -34,6 +33,8 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     @When("I call the release 1b gated endpoint {string}")
     public void callRelease1bGatedEndpoint(String endpointName) {
         switch (endpointName) {
+            case "Search Defendant Accounts" ->
+                callDefendantAccountSearch(buildDefendantAccountSearchRequest());
             case "Search Minor Creditor Accounts" ->
                 callMinorCreditorSearch(buildMinorCreditorSearchRequest());
             case "Get Defendant Account Header Summary" ->
@@ -76,6 +77,8 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 );
             case "Get Defendant Account Enforcement Status" ->
                 callGet(DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/enforcement-status");
+            case "Get Defendant Account Impositions" ->
+                callGet(DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/impositions");
             case "Add Defendant Account Enforcement" ->
                 callPost(
                     DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID + "/enforcements",
@@ -134,6 +137,15 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
      */
     private void callMinorCreditorSearch(JSONObject requestBody) {
         callPost(MINOR_CREDITOR_ACCOUNTS_URI + "/search", Map.of(), requestBody);
+    }
+
+    /**
+     * Executes the defendant-account search request used by the release-1b gate scenarios.
+     *
+     * @param requestBody JSON request body to submit.
+     */
+    private void callDefendantAccountSearch(JSONObject requestBody) {
+        callPost(DEFENDANT_ACCOUNTS_URI + "/search", Map.of(), requestBody);
     }
 
     /**
@@ -248,6 +260,26 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     }
 
     /**
+     * Builds a representative defendant-account search request body.
+     *
+     * @return request body for POST /defendant-accounts/search.
+     */
+    private JSONObject buildDefendantAccountSearchRequest() {
+        return jsonObject("""
+            {
+              "active_accounts_only": false,
+              "business_unit_ids": [77],
+              "reference_number": {
+                "organisation": false,
+                "account_number": "12345678",
+                "prosecutor_case_reference": null
+              },
+              "defendant": null
+            }
+            """);
+    }
+
+    /**
      * Builds a representative defendant-account update request body.
      *
      * @return request body for PATCH /defendant-accounts/{id}.
@@ -271,7 +303,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
         return jsonObject("""
             {
               "activity_note": {
-                "record_type": "DEFENDANT_ACCOUNTS",
+                "record_type": "defendant_accounts",
                 "record_id": "77",
                 "note_text": "release-1b off-path check",
                 "note_type": "AA"

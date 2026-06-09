@@ -60,7 +60,7 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setAssociatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS);
         note.setBusinessUnitUserId(managed.getBusinessUnit().getBusinessUnitId().toString());
         note.setPostedDate(LocalDateTime.now(clock));
-        note.setPostedByUsername(user.getUserName());
+        note.setPostedByUsername(user.getDisplayName());
 
         NoteEntity entity = repository.save(note);
 

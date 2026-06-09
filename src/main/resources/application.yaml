@@ -89,7 +89,7 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-        url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
+        url: ${REDIS_CONNECTION_STRING:redis://localhost:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
@@ -124,26 +124,13 @@ launchdarkly:
   default-flag-values:
     release-1a: ${RELEASE_1A_ENABLED:true}
     release-1b: ${RELEASE_1B_ENABLED:false}
+    release-1c: ${RELEASE_1C_ENABLED:false}
+    release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
 
 opal:
   redis:
-    enabled: ${OPAL_REDIS_ENABLED:false}
-    ttl-hours: ${OPAL_REDIS_TTL_HOURS:8}
-  sftp:
-    inbound:
-      host: ${OPAL_SFTP_INBOUND_HOST:opalsftpstg.blob.core.windows.net}
-      port: ${OPAL_SFTP_INBOUND_PORT:22}
-      user: ${OPAL_SFTP_INBOUND_USER:-}
-      password: ${OPAL_SFTP_INBOUND_PASSWORD:-}
-      location: ${OPAL_SFTP_INBOUND_LOCATION:inbound}
-      create-sub-locations: ${OPAL_SFTP_INBOUND_CREATE_SUB_LOCATIONS:false}
-    outbound:
-      host: ${OPAL_SFTP_OUTBOUND_HOST:opalsftpstg.blob.core.windows.net}
-      port: ${OPAL_SFTP_OUTBOUND_PORT:22}
-      user: ${OPAL_SFTP_OUTBOUND_USER:-}
-      password: ${OPAL_SFTP_OUTBOUND_PASSWORD:-}
-      location: ${OPAL_SFTP_OUTBOUND_LOCATION:outbound}
-      create-sub-locations: ${OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS:false}
+    enabled: ${OPAL_REDIS_ENABLED:true}
+    ttl-duration: ${OPAL_REDIS_TTL_DURATION:8H}
   frontend:
     url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:

@@ -39,6 +39,7 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         return getCurrentModeService().getMinorCreditorAccount(minorCreditorAccountId);
     }
 
+    @Override
     public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
         log.debug(":getHeaderSummary: minorCreditorAccountId={}", minorCreditorAccountId);
         return getCurrentModeService().getHeaderSummary(minorCreditorAccountId);
@@ -50,9 +51,10 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         PatchMinorCreditorAccountRequest request,
         BigInteger ifMatch,
         String postedBy,
+        String postedByName,
         Short businessUnitId) {
         return getCurrentModeService().updateMinorCreditorAccount(minorCreditorAccountId, request, ifMatch, postedBy,
-            businessUnitId);
+            postedByName, businessUnitId);
     }
 
     @Override

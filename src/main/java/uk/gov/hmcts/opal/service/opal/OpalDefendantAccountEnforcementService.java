@@ -117,7 +117,7 @@ public class OpalDefendantAccountEnforcementService
             "ACCOUNT_ENQUIRY",
             jailDays,
             businessUnitUserId,
-            userState.getUserName(),
+            userState.getDisplayName(),
             reason,
             enforcerId,
             resultResponses,
@@ -209,6 +209,7 @@ public class OpalDefendantAccountEnforcementService
             RecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             businessUnitUserId,
+            userState.getUserName(),
             null,
             "Remove Enforcement Hold"
         );
