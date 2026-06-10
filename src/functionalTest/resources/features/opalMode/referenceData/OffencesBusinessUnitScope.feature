@@ -26,7 +26,7 @@ Feature: Offences Business Unit Scope
     Then the response contains the below offence data
       | business_unit_id | 12 |
 
-  @JIRA-STORY:PO-420 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5732
+  @JIRA-STORY:PO-420 @JIRA-EPIC:PO-304 @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5732
   Scenario: Offences from other business units are excluded
     When I make a request to the offence ref data api filtering by business unit 12
     Then the response does not contain the below offence data
