@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -102,7 +101,29 @@ class OpalMajorCreditorAccountServiceTest {
         assertNull(response.getMajorCreditor().getCode());
         assertNull(response.getMajorCreditor().getPayByBacs());
         assertEquals("1 HMCTS Way", response.getMajorCreditor().getAddress().getLine1());
-        assertFalse(response.getMajorCreditor().getAddress().getPostcode() != null);
+        assertNull(response.getMajorCreditor().getAddress().getPostcode());
+    }
+
+    @Test
+    void getAtAGlance_omitsAddressWhenAllAddressFieldsAreNull() {
+        Long creditorAccountId = 10770000000041L;
+        when(creditorAccountRepository.findFullByCreditorAccountId(creditorAccountId))
+            .thenReturn(Optional.of(CreditorAccountEntity.builder()
+                .creditorAccountId(creditorAccountId)
+                .creditorAccountType(CreditorAccountType.MJ)
+                .payByBacs(true)
+                .versionNumber(1L)
+                .majorCreditor(MajorCreditorEntity.builder().majorCreditorCode("TFL2").build())
+                .build()));
+        when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
+            .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()
+                .creditorAccountId(creditorAccountId)
+                .name("TFL2 ATCM Testing")
+                .build()));
+
+        GetMajorCreditorAccountAtAGlanceResponse response = service.getAtAGlance(creditorAccountId);
+
+        assertNull(response.getMajorCreditor().getAddress());
     }
 
     @Test

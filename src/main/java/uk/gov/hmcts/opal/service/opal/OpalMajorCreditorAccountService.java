@@ -21,6 +21,8 @@ import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 @RequiredArgsConstructor
 public class OpalMajorCreditorAccountService implements MajorCreditorAccountServiceInterface {
 
+    private static final String ACCOUNT_NOT_FOUND = "Major creditor account not found: ";
+
     private final CreditorAccountRepository creditorAccountRepository;
     private final MajorCreditorAccountAtAGlanceRepository majorCreditorAccountAtAGlanceRepository;
     private final MajorCreditorAccountHeaderRepository majorCreditorAccountHeaderRepository;
@@ -34,18 +36,18 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
         CreditorAccountEntity creditorAccount = creditorAccountRepository
             .findFullByCreditorAccountId(majorCreditorAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Major creditor account not found: " + majorCreditorAccountId
+                ACCOUNT_NOT_FOUND + majorCreditorAccountId
             ));
 
         if (creditorAccount.getCreditorAccountType() != CreditorAccountType.MJ
             && creditorAccount.getCreditorAccountType() != CreditorAccountType.CF) {
-            throw new EntityNotFoundException("Major creditor account not found: " + majorCreditorAccountId);
+            throw new EntityNotFoundException(ACCOUNT_NOT_FOUND + majorCreditorAccountId);
         }
 
         MajorCreditorAccountAtAGlanceEntity atAGlance = majorCreditorAccountAtAGlanceRepository.findById(
             majorCreditorAccountId
         ).orElseThrow(() -> new EntityNotFoundException(
-            "Major creditor account not found: " + majorCreditorAccountId
+            ACCOUNT_NOT_FOUND + majorCreditorAccountId
         ));
 
         GetMajorCreditorAccountAtAGlanceResponse.MajorCreditor majorCreditor =
@@ -73,7 +75,7 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
         return majorCreditorAccountHeaderRepository.findById(majorCreditorAccountId)
             .map(majorCreditorAccountHeaderEntityMapper::toResponse)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Major creditor account not found: " + majorCreditorAccountId
+                ACCOUNT_NOT_FOUND + majorCreditorAccountId
             ));
     }
 
