@@ -4,6 +4,7 @@ public class SchemaPaths {
 
     public static final String DEFENDANT_ACCOUNT = "opal/defendant-account";
     public static final String DRAFT_ACCOUNT = "opal/draft-account";
+    public static final String MAJOR_CREDITOR = "opal/major-creditor";
     public static final String PAYMENT_TERMS = "opal/payment-terms";
     public static final String REFERENCE_DATA = "opal/reference-data";
     public static final String TIMELINE = "opal/timeline";
@@ -35,6 +36,9 @@ public class SchemaPaths {
 
     public static final String GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE =
         DEFENDANT_ACCOUNT + "/getDefendantAccountImpositionsResponse.json";
+
+    public static final String GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE_RESPONSE =
+        MAJOR_CREDITOR + "/getMajorCreditorAccountAtAGlanceResponse.json";
 
     public static final String POST_DEFENDANT_ACCOUNT_ADD_PARTY = DEFENDANT_ACCOUNT
         + "/addDefendantAccountPartyRequest.json";
