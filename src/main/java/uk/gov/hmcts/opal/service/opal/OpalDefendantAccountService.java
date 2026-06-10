@@ -1209,6 +1209,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             Short.parseShort(businessUnitId),
             businessUnitUserId,
             savedPaymentTerms.getPostedByUsername(),
+            postedByName,
             defAccount.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );

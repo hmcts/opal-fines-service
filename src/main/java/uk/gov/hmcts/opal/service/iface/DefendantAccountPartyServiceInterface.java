@@ -58,5 +58,4 @@ public interface DefendantAccountPartyServiceInterface {
         return removeDefendantAccountParty(defendantAccountId, defendantAccountPartyId, businessUnitId,
                                            businessUserId, postedBy, postedBy, ifMatch, request);
     }
-        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request);
 }

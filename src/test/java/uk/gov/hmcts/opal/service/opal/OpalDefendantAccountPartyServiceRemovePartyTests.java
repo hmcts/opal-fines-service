@@ -73,7 +73,6 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         doNothing().when(amendmentRepositoryService)
             .auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         doNothing().when(amendmentRepositoryService)
-            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "posted", "CASE-REF",
             .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
 
