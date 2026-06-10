@@ -233,7 +233,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             IndividualDetails opalInd = !Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyInd != null
                 ? IndividualDetails.builder()
                 .title(legacyInd.getTitle())
-                .forenames(legacyInd.getFirstNames())
+                .forenames(legacyInd.getForenames())
                 .surname(legacyInd.getSurname())
                 .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
                 .age(legacyInd.getAge())
@@ -729,7 +729,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return IndividualDetails.builder()
             .title(src.getTitle())
-            .forenames(src.getFirstNames())
+            .forenames(src.getForenames())
             .surname(src.getSurname())
             .dateOfBirth(src.getDateOfBirth() == null ? null : src.getDateOfBirth().toString())
             .age(src.getAge())

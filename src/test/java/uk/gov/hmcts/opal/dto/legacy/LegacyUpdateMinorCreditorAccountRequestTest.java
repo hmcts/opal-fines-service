@@ -36,7 +36,7 @@ class LegacyUpdateMinorCreditorAccountRequestTest {
                     .build())
                 .individualDetails(IndividualDetails.builder()
                     .title("Ms")
-                    .firstNames("Creditor")
+                    .forenames("Creditor")
                     .surname("Updated")
                     .individualAliases(new IndividualDetails.IndividualAlias[] {
                         IndividualDetails.IndividualAlias.builder()

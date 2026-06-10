@@ -48,7 +48,7 @@ public interface LegacyUpdateMinorCreditorAccountResponseMapper {
     @Mapping(target = "sequenceNumber", source = "sequenceNumber", qualifiedByName = "shortToInteger")
     OrganisationAliasCommon map(OrganisationDetails.OrganisationAlias source);
 
-    @Mapping(target = "forenames", source = "firstNames")
+    @Mapping(target = "forenames", source = "forenames")
     @Mapping(target = "dateOfBirth", source = "dateOfBirth", qualifiedByName = "localDateToString")
     IndividualDetailsCommon map(IndividualDetails source);
 
