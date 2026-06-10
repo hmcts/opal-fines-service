@@ -33,7 +33,7 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.70'
   id 'org.flywaydb.flyway' version '12.8.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.22.0"
+  id "org.openapi.generator" version "7.23.0"
 }
 
 ext {
