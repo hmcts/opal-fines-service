@@ -9,7 +9,7 @@
 - [JDK 21](https://java.com)
 - [Docker](https://docker.com)
 
-## Building and deploying the application
+## Building and deploying the application ----
 
 ### Running the application
 
