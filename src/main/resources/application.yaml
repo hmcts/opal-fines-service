@@ -129,7 +129,7 @@ launchdarkly:
 
 opal:
   redis:
-    enabled: ${OPAL_REDIS_ENABLED:false}
+    enabled: ${OPAL_REDIS_ENABLED:true}
     ttl-duration: ${OPAL_REDIS_TTL_DURATION:8H}
   frontend:
     url: ${OPAL_FRONTEND_URL:http://localhost:4200}
