@@ -36,7 +36,7 @@ public class EnforcementAccountTypeEntity {
     private LowHighValue accountTypePath;
 
     @Column
-    private BigDecimal minimumBalance; //TODO db needs to be changed. Waiting for confirmation from Tony
+    private BigDecimal minimumBalance; //TODO db needs to be changed (there is a db ticket)
 
     @Column
     private Long versionNumber;
