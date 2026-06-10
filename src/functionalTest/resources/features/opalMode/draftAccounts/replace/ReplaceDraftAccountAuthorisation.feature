@@ -25,7 +25,7 @@ Feature: Replace Draft Account Authorisation
 
     #    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5672
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5672
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -55,7 +55,7 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5673
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5673
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -85,7 +85,7 @@ Feature: Replace Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5674
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5674
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And a draft account exists with the following details

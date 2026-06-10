@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.util.ReportIdConstants.DEFENDANT_ACCOUNTS;
-import static uk.gov.hmcts.opal.util.ReportIdConstants.TRACK_ENFORCEMENT_HOLD;
+import static uk.gov.hmcts.opal.util.RecordTypeConstants.PAYMENT_TERMS;
+import static uk.gov.hmcts.opal.util.ReportIdConstants.LIST_EXTEND_TTP;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -43,10 +43,9 @@ class ReportEntryServiceTest {
     private Clock clock = Clock.fixed(Instant.parse("2026-04-22T09:15:00Z"), ZoneOffset.UTC);
 
     @Test
-    void createRemoveEnforcementHoldReportEntry_savesExpectedReportEntry() {
-        Long defendantAccountId = 77L;
+    void createExtendTtpReportEntry_savesExpectedReportEntry() {
+        Long paymentTermsId = 77L;
         short businessUnitId = 10;
-        final LocalDateTime expectedEntryTimestamp = LocalDateTime.of(2026, 4, 22, 9, 15);
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
             .businessUnitId(businessUnitId)
             .businessUnitName("Test BU")
@@ -54,7 +53,7 @@ class ReportEntryServiceTest {
 
         when(businessUnitService.getBusinessUnit(businessUnitId)).thenReturn(businessUnit);
 
-        reportEntryService.createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
+        reportEntryService.createExtendTtpReportEntry(paymentTermsId, businessUnitId);
 
         verify(businessUnitService).getBusinessUnit(businessUnitId);
         verify(reportEntryRepository).save(reportEntryCaptor.capture());
@@ -62,10 +61,10 @@ class ReportEntryServiceTest {
         ReportEntryEntity savedEntry = reportEntryCaptor.getValue();
         assertNotNull(savedEntry);
         assertEquals(businessUnit, savedEntry.getBusinessUnit());
-        assertEquals(TRACK_ENFORCEMENT_HOLD, savedEntry.getReportId());
-        assertEquals(String.valueOf(defendantAccountId), savedEntry.getAssociatedRecordId());
-        assertEquals(DEFENDANT_ACCOUNTS, savedEntry.getAssociatedRecordType());
-        assertEquals(expectedEntryTimestamp, savedEntry.getEntryTimestamp());
+        assertEquals(LIST_EXTEND_TTP, savedEntry.getReportId());
+        assertEquals(String.valueOf(paymentTermsId), savedEntry.getAssociatedRecordId());
+        assertEquals(PAYMENT_TERMS, savedEntry.getAssociatedRecordType());
+        assertEquals(LocalDateTime.of(2026, 4, 22, 9, 15), savedEntry.getEntryTimestamp());
         assertNull(savedEntry.getReportedTimestamp());
     }
 }
