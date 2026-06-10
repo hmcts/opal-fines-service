@@ -94,7 +94,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal valid MJ request returns mapped body and ETag")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_majorCreditorSuccessReturnsMappedResponseAndEtag() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
@@ -139,7 +139,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal valid CF request returns mapped body and ETag")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_centralFundSuccessReturnsMappedResponseAndEtag() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
@@ -177,7 +177,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal repeated GET returns identical body and ETag")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_repeatedGetReturnsSamePayloadAndHeaders() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
@@ -196,7 +196,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal same BU permission returns 200")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_sameBusinessUnitPermissionReturns200() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
@@ -208,7 +208,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal different BU permission returns 200")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_differentBusinessUnitPermissionReturns200() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 73, SEARCH_AND_VIEW_ACCOUNTS));
@@ -220,7 +220,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal unknown account returns 404 problem response")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_notFoundReturns404() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
@@ -250,7 +250,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal missing auth returns 401")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_missingAuthReturns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).checkForAuthorisedUser();
@@ -265,7 +265,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal missing permission returns 403")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_missingPermissionReturns403() throws Exception {
         when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.noPermissionsUser());
 
@@ -279,7 +279,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal query timeout returns 408 retriable problem response")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_queryTimeoutReturns408() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
@@ -295,7 +295,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal data access failure returns 503 retriable problem response")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_dataAccessFailureReturns503() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
@@ -311,7 +311,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @Test
     @DisplayName("PO-2132 Opal internal server error returns 500 problem response")
     @JiraStory("PO-2132")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getAtAGlance_internalServerErrorReturns500() throws Exception {
         when(userStateService.checkForAuthorisedUser())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));

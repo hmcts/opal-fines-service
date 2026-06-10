@@ -32,7 +32,7 @@ class MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest extends Abstra
     @Test
     @DisplayName("PO-2136 feature flag disabled returns 404")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getHeaderSummary_whenRelease1bDisabledReturns404() throws Exception {
         mockMvc.perform(get("/major-creditor-accounts/{id}/header-summary", 99000000000800L)
                 .accept(MediaType.APPLICATION_JSON)
