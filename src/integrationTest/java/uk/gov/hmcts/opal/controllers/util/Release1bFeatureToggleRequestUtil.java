@@ -253,6 +253,18 @@ public final class Release1bFeatureToggleRequestUtil {
                 getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/fixed-penalty")
             ),
             Arguments.of(
+                "Get Central Fund",
+                getWithAuthorization("/central-funds/" + BUSINESS_UNIT_ID)
+            ),
+            Arguments.of(
+                "Get Major Creditor Account Header Summary",
+                getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/header-summary")
+            ),
+            Arguments.of(
+                "Get Major Creditor Account At A Glance",
+                getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/at-a-glance")
+            ),
+            Arguments.of(
                 "Search Minor Creditor Accounts",
                 postJson("/minor-creditor-accounts/search", """
                     {
