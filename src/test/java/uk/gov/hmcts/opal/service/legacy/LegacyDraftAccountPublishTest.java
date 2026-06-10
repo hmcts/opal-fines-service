@@ -314,8 +314,12 @@ class LegacyDraftAccountPublishTest {
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());
-        assertEquals("{\"defendantAccountId\":12345,\"accountNumber\":\"77-007\"}",
-                     lcdar.getDefendantAccount().toString());
+        assertEquals(
+            new ObjectMapper().createObjectNode()
+                .put("defendantAccountId", 12345)
+                .put("accountNumber", "77-007"),
+            new ObjectMapper().valueToTree(lcdar.getDefendantAccount())
+        );
     }
 
     private String emptyTimelineData() {
