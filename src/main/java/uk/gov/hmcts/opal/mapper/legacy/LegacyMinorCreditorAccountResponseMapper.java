@@ -75,7 +75,7 @@ public interface LegacyMinorCreditorAccountResponseMapper {
 
         return IndividualDetailsCommon.builder()
             .title(individualDetails.getTitle())
-            .forenames(individualDetails.getFirstNames())
+            .forenames(individualDetails.getForenames())
             .surname(individualDetails.getSurname())
             .dateOfBirth(individualDetails.getDateOfBirth() == null ? null
                 : individualDetails.getDateOfBirth().toString())
