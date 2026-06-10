@@ -33,7 +33,7 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.70'
   id 'org.flywaydb.flyway' version '12.8.1'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.22.0"
+  id "org.openapi.generator" version "7.23.0"
 }
 
 ext {
@@ -530,8 +530,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.13'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.0.0'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.0.0'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.43"
@@ -588,9 +588,9 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.0.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.1.Final'
 
-  implementation('uk.gov.hmcts:spring-exception-handler:1.0.1') {
+  implementation('uk.gov.hmcts:spring-exception-handler:1.0.2') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
   }
 
