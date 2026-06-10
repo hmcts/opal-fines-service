@@ -1127,7 +1127,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             businessUnitUserId,
-            savedPaymentTerms.getPostedByUsername(),
             postedByName,
             defAccount.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
