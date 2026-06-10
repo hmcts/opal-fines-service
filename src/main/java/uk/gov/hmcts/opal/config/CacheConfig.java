@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.config;
 
+import io.lettuce.core.RedisURI;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +21,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
@@ -44,7 +48,15 @@ public class CacheConfig {
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(LettuceConnectionFactory.createRedisConfiguration(redisUrl));
+        RedisURI redisURI = RedisURI.create(redisUrl);
+
+        RedisConfiguration redisConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+        LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder();
+        if (redisURI.isSsl()) {
+            clientConfigurationBuilder.useSsl();
+        }
+        return new LettuceConnectionFactory(redisConfiguration, clientConfigurationBuilder.build());
+
     }
 
     @Bean
