@@ -590,7 +590,7 @@ dependencies {
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.1.Final'
 
-  implementation('uk.gov.hmcts:spring-exception-handler:1.0.1') {
+  implementation('uk.gov.hmcts:spring-exception-handler:1.0.2') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
   }
 
