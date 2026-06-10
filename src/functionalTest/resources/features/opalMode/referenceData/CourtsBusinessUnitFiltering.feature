@@ -11,7 +11,7 @@ Feature: Courts Business Unit Filtering
       | name             | magistrates |
       | business_unit_id | 43          |
 
-  @JIRA-STORY:PO-424 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5708
+  @JIRA-STORY:PO-424 @JIRA-EPIC:PO-304 @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5708
   Scenario: Courts outside the requested business unit are excluded from a name search
     When I make a request to the court ref data api with a filter of "result" and a business unit of 48
     Then the response does not contain the below courts data
@@ -24,7 +24,7 @@ Feature: Courts Business Unit Filtering
     Then the response contains the below courts data
       | business_unit_id | 43 |
 
-  @JIRA-STORY:PO-424 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5710
+  @JIRA-STORY:PO-424 @JIRA-EPIC:PO-304 @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5710
   Scenario: Courts from other business units are excluded
     When I make a request to the court ref data api with a business unit of 84
     Then the response does not contain the below courts data
