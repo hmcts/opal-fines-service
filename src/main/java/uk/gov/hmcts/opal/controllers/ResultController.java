@@ -48,7 +48,8 @@ public class ResultController {
 
     @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the full ResultDto for the given resultId.")
-    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
+    //DONE
+    // @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
     @FeatureToggle(
         feature = FeatureFlags.RELEASE_1B,
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
