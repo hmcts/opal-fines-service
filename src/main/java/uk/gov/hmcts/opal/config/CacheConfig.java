@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.config;
 
+import io.lettuce.core.RedisURI;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -19,15 +21,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
-import tools.jackson.databind.ObjectMapper;
-
-import java.time.Duration;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Slf4j(topic = "opal.CacheConfig")
 @Configuration
@@ -40,16 +42,21 @@ public class CacheConfig {
     @Value("${spring.data.redis.url}")
     private String redisUrl;
 
-    @Value("${opal.redis.ttl-hours}")
-    private long redisTtlHours;
-
-    private CacheManager cacheManager;
+    @Value("${opal.redis.ttl-duration}")
+    private Duration redisTtlDuration;
 
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public RedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisUrl);
-        return new LettuceConnectionFactory(config);
+        RedisURI redisURI = RedisURI.create(redisUrl);
+
+        RedisConfiguration redisConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+        LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder();
+        if (redisURI.isSsl()) {
+            clientConfigurationBuilder.useSsl();
+        }
+        return new LettuceConnectionFactory(redisConfiguration, clientConfigurationBuilder.build());
+
     }
 
     @Bean
@@ -57,6 +64,15 @@ public class CacheConfig {
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
+
+        RedisSerializer<String> keySerializer = redisKeySerializer();
+        template.setKeySerializer(keySerializer);
+        template.setHashKeySerializer(keySerializer);
+
+        RedisSerializer<Object> valueSerializer = redisValueSerializer();
+        template.setValueSerializer(valueSerializer);
+        template.setHashValueSerializer(valueSerializer);
+        template.afterPropertiesSet();
         return template;
     }
 
@@ -64,17 +80,23 @@ public class CacheConfig {
     @Primary
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
-        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofHours(redisTtlHours))
-            .serializeValuesWith(SerializationPair.fromSerializer(
-                new GenericJacksonJsonRedisSerializer(new ObjectMapper())
-            ));
 
-        this.cacheManager = RedisCacheManager.builder(redisConnectionFactory)
+        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(redisTtlDuration)
+            .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
+            .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
+
+        return logCacheDetails(RedisCacheManager.builder(redisConnectionFactory)
             .cacheDefaults(cacheConfig)
-            .build();
-        logCacheDetails(cacheManager);
-        return cacheManager;
+            .build());
+    }
+
+    private RedisSerializer<Object> redisValueSerializer() {
+        return GenericJacksonJsonRedisSerializer.builder().build();
+    }
+
+    private RedisSerializer<String> redisKeySerializer() {
+        return RedisSerializer.string();
     }
 
     @Bean
@@ -87,17 +109,15 @@ public class CacheConfig {
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "false", matchIfMissing = true)
     public CacheManager simpleCacheManager() {
-        this.cacheManager = new ConcurrentMapCacheManager();
-        logCacheDetails(cacheManager);
-        return cacheManager;
+        return logCacheDetails(new ConcurrentMapCacheManager());
     }
 
-    public void logCacheDetails(CacheManager cacheManager) {
+    public CacheManager logCacheDetails(CacheManager cacheManager) {
         log.info("------------------------------");
         log.info("Cache Configuration Details:");
         log.info("Redis Enabled: {}", redisEnabled);
         log.info("Redis Url: {}", redisUrl);
-        log.info("Redis TTL (hours): {}", redisTtlHours);
+        log.info("Redis TTL (duration): {}", redisTtlDuration);
         if (cacheManager != null) {
             log.info("Cache Manager: {}", cacheManager.getClass().getName());
             if (cacheManager instanceof RedisCacheManager) {
@@ -114,6 +134,7 @@ public class CacheConfig {
             cacheManager.getCacheNames().forEach(cacheName -> log.debug("- {}", cacheName));
         }
         log.info("------------------------------");
+        return cacheManager;
     }
 
     @Bean("KeyGeneratorForOptionalList")

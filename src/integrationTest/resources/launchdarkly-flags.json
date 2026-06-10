@@ -24,6 +24,18 @@
         "variation": 0
       },
       "offVariation": 1
+    },
+    "release-1b": {
+      "key": "release-1b",
+      "on": true,
+      "variations": [
+        true,
+        false
+      ],
+      "fallthrough": {
+        "variation": 0
+      },
+      "offVariation": 1
     }
   }
 }

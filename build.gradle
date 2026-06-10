@@ -40,6 +40,7 @@ ext {
   log4JVersion = "2.26.0"
   serenityVersion = "5.3.10"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
+  set('spring-framework.version', "7.0.8")
 }
 
 //Should we fail fast on test failures?
@@ -254,11 +255,12 @@ tasks.withType(JavaExec).configureEach {
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
 
-  systemProperty 'spring.test.context.cache.maxSize', 5
+  systemProperty 'spring.test.context.cache.maxSize', 4
 
   testLogging {
     exceptionFormat = 'full'
   }
+  maxHeapSize = "2g"
   if (failFast) {
     failFast = true
   }
@@ -491,7 +493,7 @@ dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
     mavenBom "org.springframework.integration:spring-integration-bom:7.0.4"
-    mavenBom "com.fasterxml.jackson:jackson-bom:2.21.3"
+    mavenBom "com.fasterxml.jackson:jackson-bom:2.22.0"
     mavenBom "io.netty:netty-bom:4.2.15.Final"
   }
 

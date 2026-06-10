@@ -89,7 +89,7 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-        url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
+        url: ${REDIS_CONNECTION_STRING:redis://localhost:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
@@ -123,13 +123,14 @@ launchdarkly:
     - ${LAUNCH_DARKLY_FILE:bin/utils/launchdarkly-flags.json}
   default-flag-values:
     release-1a: ${RELEASE_1A_ENABLED:true}
-    release-1b: ${RELEASE_1B_ENABLED:true}
+    release-1b: ${RELEASE_1B_ENABLED:false}
+    release-1c: ${RELEASE_1C_ENABLED:false}
     release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
 
 opal:
   redis:
     enabled: ${OPAL_REDIS_ENABLED:false}
-    ttl-hours: ${OPAL_REDIS_TTL_HOURS:8}
+    ttl-duration: ${OPAL_REDIS_TTL_DURATION:8H}
   frontend:
     url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:

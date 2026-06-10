@@ -372,7 +372,7 @@
                     "description": "Date of issue"
                 },
                 "time_of_issue": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "maxLength": 5,
                     "description": "Time of issue in HH:mm format"
                 },

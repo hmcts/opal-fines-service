@@ -88,7 +88,7 @@ public class ReportInstanceEntity {
     private String reportName;
 
     @Column(name = "no_of_records")
-    private Short noOfRecords;
+    private Long noOfRecords;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "errors", columnDefinition = "json")
