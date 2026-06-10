@@ -24,7 +24,7 @@ Feature: Update Draft Account Authorisation
     Then the request is rejected as unauthorized
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5693
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5693
   Scenario: Update draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -54,7 +54,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5694
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5694
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -84,7 +84,7 @@ Feature: Update Draft Account Authorisation
       | account_snapshot.business_unit_name | West London |
 
 
-  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5695
+  @JIRA-STORY:PO-831 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5695
   Scenario: Update draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And a draft account exists with the following details
