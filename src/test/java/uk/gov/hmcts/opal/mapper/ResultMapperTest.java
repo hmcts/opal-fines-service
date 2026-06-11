@@ -134,6 +134,7 @@ class ResultMapperTest {
             .preventPaymentCard(true)
             .listsMonies(true)
             .resultParameters("A,B,C")
+            .requiresEmploymentData(true)
             .build();
 
         // Act
@@ -164,6 +165,7 @@ class ResultMapperTest {
         assertEquals(entity.isPreventPaymentCard(), dto.isPreventPaymentCard());
         assertEquals(entity.isListsMonies(), dto.isListsMonies());
         assertEquals(entity.getResultParameters(), dto.getResultParameters());
+        assertEquals(entity.getRequiresEmploymentData(), dto.getRequiresEmploymentData());
     }
 
 }
