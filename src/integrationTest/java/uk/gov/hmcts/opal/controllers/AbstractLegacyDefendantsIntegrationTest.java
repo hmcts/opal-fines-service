@@ -1,8 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
@@ -45,7 +42,6 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
     void setupUserState() {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
     }
 
     protected static String commentAndNotesPayload(String accountComment, String note1, String note2, String note3) {
