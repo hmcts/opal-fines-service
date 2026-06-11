@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,8 +48,7 @@ public class ResultController {
 
     @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the full ResultDto for the given resultId.")
-    //DONE
-    // @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
+    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
     @FeatureToggle(
         feature = FeatureFlags.RELEASE_1B,
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
