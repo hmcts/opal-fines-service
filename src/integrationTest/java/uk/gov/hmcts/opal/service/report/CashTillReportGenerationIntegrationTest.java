@@ -63,6 +63,7 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
             .businessUnit(businessUnit)
             .tillNumber((short) 17)
             .ownedBy("Jamie")
+            .createdDate(LocalDateTime.of(2026, 5, 1, 8, 0))
             .build());
         DefendantAccountEntity defendantAccount = defendantAccountRepository.findAll().stream().findFirst()
             .orElseThrow();
