@@ -2,13 +2,13 @@ package uk.gov.hmcts.opal.entity.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import uk.gov.hmcts.opal.entity.AccountType;
+import uk.gov.hmcts.opal.entity.PartyAccountType;
 
 @Converter(autoApply = true)
-public class AccountTypeConverter implements AttributeConverter<AccountType, String> {
+public class PartyAccountTypeConverter implements AttributeConverter<PartyAccountType, String> {
 
     @Override
-    public String convertToDatabaseColumn(AccountType attribute) {
+    public String convertToDatabaseColumn(PartyAccountType attribute) {
         if (attribute == null) {
             return null;
         }
@@ -16,10 +16,10 @@ public class AccountTypeConverter implements AttributeConverter<AccountType, Str
     }
 
     @Override
-    public AccountType convertToEntityAttribute(String dbData) {
+    public PartyAccountType convertToEntityAttribute(String dbData) {
         if (dbData == null) {
             return null;
         }
-        return AccountType.getByLabel(dbData);
+        return PartyAccountType.getByLabel(dbData);
     }
 }
