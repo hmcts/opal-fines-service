@@ -28,12 +28,16 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntit
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountBuildersTest {
@@ -59,6 +63,54 @@ class OpalDefendantAccountBuildersTest {
         assertNotNull(reference);
         assertEquals("L", reference.getAccountStatusCode());
         assertEquals("Live", reference.getAccountStatusDisplayName());
+    }
+
+    @Test
+    void buildEnforcementAction_mapsResultResponsesFromKeyedJson() {
+        ResultEntity result = ResultEntity.builder()
+            .resultId("FE")
+            .resultTitle("Further Enforcement")
+            .resultParameters("""
+                [
+                  {"name":"reason"},
+                  {"name":"collectiontype"},
+                  {"name":"reserveterms"}
+                ]
+                """)
+            .build();
+
+        EnforcementEntity enforcement = EnforcementEntity.builder()
+            .resultId("FE")
+            .result(result)
+            .reason("a")
+            .resultResponses("""
+                {
+                  "reason":"a",
+                  "collectiontype":"Wages",
+                  "reserveterms":"aa"
+                }
+                """)
+            .postedDate(LocalDateTime.of(2026, 6, 11, 10, 0))
+            .build();
+
+        EnforcementActionDefendantAccount action =
+            OpalDefendantAccountBuilders.buildEnforcementAction(enforcement, null);
+
+        assertNotNull(action);
+        assertNotNull(action.getResultResponses());
+        assertEquals(3, action.getResultResponses().size());
+
+        ResultResponsesCommon reason = action.getResultResponses().get(0);
+        assertEquals("reason", reason.getParameterName());
+        assertEquals("a", reason.getResponse());
+
+        ResultResponsesCommon collectionType = action.getResultResponses().get(1);
+        assertEquals("collectiontype", collectionType.getParameterName());
+        assertEquals("Wages", collectionType.getResponse());
+
+        ResultResponsesCommon reserveTerms = action.getResultResponses().get(2);
+        assertEquals("reserveterms", reserveTerms.getParameterName());
+        assertEquals("aa", reserveTerms.getResponse());
     }
 
     @Test

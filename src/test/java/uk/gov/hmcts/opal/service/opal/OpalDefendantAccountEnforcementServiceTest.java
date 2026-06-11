@@ -40,7 +40,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -134,7 +136,12 @@ public class OpalDefendantAccountEnforcementServiceTest {
             request
         );
 
-        String responsesJson = objectMapper.writeValueAsString(responses);
+        String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "reason", "test reason",
+            "jail_days", "14",
+            "enforcer_id", "55",
+            "earliest_release_date", "2026-05-01T00:00:00"
+        ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
             eq(RESULT_ID_AS_STRING),
@@ -199,7 +206,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
             request
         );
 
-        String responsesJson = objectMapper.writeValueAsString(responses);
+        String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "reason", "test reason"
+        ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
             eq(RESULT_ID_AS_STRING),
@@ -264,7 +273,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
             request
         );
 
-        String responsesJson = objectMapper.writeValueAsString(responses);
+        String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "jail_days", "14"
+        ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
             eq(RESULT_ID_AS_STRING),
@@ -329,7 +340,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
             request
         );
 
-        String responsesJson = objectMapper.writeValueAsString(responses);
+        String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "enforcer_id", "55"
+        ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
             eq(RESULT_ID_AS_STRING),
@@ -394,7 +407,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
             request
         );
 
-        String responsesJson = objectMapper.writeValueAsString(responses);
+        String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "earliest_release_date", "2026-05-01T00:00:00"
+        ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
             eq(RESULT_ID_AS_STRING),
@@ -483,7 +498,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(USER_DISPLAY_NAME),
             eq(null),
             eq(null),
-            eq("[]"),
+            eq("{}"),
             eq(null),
             eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
@@ -791,6 +806,14 @@ public class OpalDefendantAccountEnforcementServiceTest {
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
+    }
+
+    private Map<String, String> resultResponsesMap(String... keyValues) {
+        Map<String, String> resultResponses = new LinkedHashMap<>();
+        for (int i = 0; i < keyValues.length; i += 2) {
+            resultResponses.put(keyValues[i], keyValues[i + 1]);
+        }
+        return resultResponses;
     }
 
 }
