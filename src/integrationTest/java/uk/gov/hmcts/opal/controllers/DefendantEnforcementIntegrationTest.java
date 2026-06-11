@@ -225,10 +225,16 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .businessUnitUser(Set.of(BusinessUnitUser.builder()
                 .businessUnitUserId("testUserId")
                 .businessUnitId((short) 77)
-                .permissions(Set.of(Permission.builder()
-                    .permissionId(10L)
-                    .permissionName("Enter Enforcement")
-                    .build()))
+                .permissions(Set.of(
+                    Permission.builder()
+                        .permissionId(10L)
+                        .permissionName("Enter Enforcement")
+                        .build(),
+                    Permission.builder()
+                        .permissionId(11L)
+                        .permissionName("Search and View Accounts")
+                        .build()
+                ))
                 .build()))
             .build();
     }
