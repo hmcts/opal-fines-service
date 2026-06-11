@@ -1,14 +1,18 @@
 package uk.gov.hmcts.opal.controllers;
 
-import java.util.Set;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -18,31 +22,13 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import uk.gov.hmcts.opal.service.UserStateService;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 
 abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTest {
 
     protected static final String URL_BASE = "/defendant-accounts";
-
-    protected static final String AUTH_HEADER = "Bearer test-token";
     protected static final Long BUSINESS_UNIT_ID = 77L;
     protected static final Long DEFENDANT_ACCOUNT_ID = 99000000000006L;
     protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
-
-    @MockitoBean
-    UserStateService userStateService;
 
     protected static final List<ResultResponse> fullResponses = List.of(
         ResultResponse.builder().parameterName("reason").response("test reason").build(),
@@ -69,22 +55,6 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
         .build();
 
     void postEnforcementImpl_fullRequest_Success(Logger log) throws Exception {
-
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("testUser")
-            .businessUnitUser(Set.of(BusinessUnitUser.builder()
-                    .businessUnitUserId("testUserId")
-                .businessUnitId((short)77)
-                .permissions(Set.of(Permission.builder()
-                    .permissionId(10L)
-                    .permissionName("Enter Enforcement")
-                    .build()))
-                .build()))
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)
             .enforcementResultResponses(fullResponses)
@@ -95,7 +65,8 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
         ResultActions resultActions = mockMvc.perform(
             post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
-                .header("Authorization", AUTH_HEADER)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
                 .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
                 .header("IF-MATCH", version)
                 .content(objectMapper.writeValueAsString(request))
@@ -114,21 +85,6 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
     void postEnforcementImpl_minimumRequest_Success(Logger log) throws Exception {
 
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("testUser")
-            .businessUnitUser(Set.of(BusinessUnitUser.builder()
-                .businessUnitUserId("testUserId")
-                .businessUnitId((short)77)
-                .permissions(Set.of(Permission.builder()
-                    .permissionId(10L)
-                    .permissionName("Enter Enforcement")
-                    .build()))
-                .build()))
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)
             .enforcementResultResponses(Collections.emptyList())
@@ -139,7 +95,8 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
         ResultActions resultActions = mockMvc.perform(
             post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
-                .header("Authorization", AUTH_HEADER)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
                 .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
                 .header("IF-MATCH", version)
                 .content(objectMapper.writeValueAsString(request))
@@ -157,21 +114,6 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     void postEnforcementImpl_invalidDefendant_Failure(Logger log) throws Exception {
-
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("testUser")
-            .businessUnitUser(Set.of(BusinessUnitUser.builder()
-                .businessUnitId((short)77)
-                    .permissions(Set.of(Permission.builder()
-                        .permissionId(10L)
-                        .permissionName("Enter Enforcement")
-                        .build()))
-                .build()))
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)
             .enforcementResultResponses(Collections.emptyList())
@@ -182,7 +124,8 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
         ResultActions resultActions = mockMvc.perform(
             post(URL_BASE + "/" + INVALID_DEFENDANT_ACCOUNT_ID + "/enforcements")
-                .header("Authorization", AUTH_HEADER)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
                 .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
                 .header("IF-MATCH", version)
                 .content(objectMapper.writeValueAsString(request))

@@ -4,15 +4,12 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +17,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -35,8 +31,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6027")
     void opalUpdateDefendantAccount_Happy() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("some_value", "78", "\"" + currentVersion + "\"");
 
@@ -49,7 +43,10 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             """;
 
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(requestJson));
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson));
 
         String body = a.andReturn().getResponse().getContentAsString();
         String etag = a.andReturn().getResponse().getHeader("ETag");
@@ -70,12 +67,12 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6030")
     void patch_conflict_whenIfMatchDoesNotMatch() throws Exception {
-        authoriseAllPermissions();
-
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"999\"");
 
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
                 .content(commentAndNotesPayload("no change")));
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -92,12 +89,12 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6025")
     void patch_badRequest_whenIfMatchMissing() throws Exception {
-        authoriseAllPermissions();
-
         HttpHeaders headers = authorisedHeaders("good_token", "78", null);
 
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
                 .content(commentAndNotesPayload("hello")));
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -115,13 +112,13 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6029")
     void patch_forbidden_whenUserLacksAccountMaintenance() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            UserState.builder().userId(999L).userName("no-perm-user").businessUnitUser(Collections.emptySet()).build());
-
+        userStateStub.setupWithNoPermissions();
         HttpHeaders headers = authorisedHeaders("token_without_perm", "78", "\"0\"");
 
         mockMvc.perform(
-                patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
+                patch(URL_BASE + "/77")
+                    .headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
                     .content(commentAndNotesPayload("hello")))
             .andExpect(status().isForbidden()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
@@ -133,12 +130,12 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6033")
     void patch_notFound_whenAccountNotInHeaderBU() throws Exception {
-        authoriseAllPermissions();
-
         HttpHeaders headers = authorisedHeaders("good_token", "99", "\"0\"");
 
         ResultActions result = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
                 .content(commentAndNotesPayload("hello")));
 
         log.info(":patch_notFound_whenAccountNotInHeaderBU response:\n{}",
@@ -154,16 +151,17 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6035")
     void patch_badRequest_whenMultipleGroupsProvided() throws Exception {
-        authoriseAllPermissions();
-
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
 
-        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-              {
-                "comment_and_notes":{"account_comment":"x"},
-                "collection_order":{"collection_order_flag":true}
-              }
-            """)).andExpect(status().isBadRequest());
+        mockMvc.perform(patch(URL_BASE + "/77")
+            .headers(headers)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                  {
+                    "comment_and_notes":{"account_comment":"x"},
+                    "collection_order":{"collection_order_flag":true}
+                  }
+                """)).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -172,22 +170,23 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6037")
     void patch_badRequest_whenTypesInvalid() throws Exception {
-        authoriseAllPermissions();
-
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"0\"");
 
-        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-                  {
-                    "comment_and_notes": {
-                      "account_comment": "Account reviewed and updated per latest case information."
-                    },
-                    "enforcement_override": {
-                      "enforcement_override_result": {
-                      "enforcement_override_result_id": "FWEC"
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                      {
+                        "comment_and_notes": {
+                          "account_comment": "Account reviewed and updated per latest case information."
+                        },
+                        "enforcement_override": {
+                          "enforcement_override_result": {
+                          "enforcement_override_result_id": "FWEC"
+                          }
+                        }
                       }
-                    }
-                  }
-                """)).andExpect(status().isBadRequest())
+                    """)).andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"));
     }
 
@@ -197,8 +196,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6026")
     void patch_updatesEnforcementCourt_andValidatesResponseSchema() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
@@ -212,7 +209,10 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             """;
 
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body));
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+                .content(body));
 
         String resp = a.andReturn().getResponse().getContentAsString();
         log.info("enforcement_court update resp:\n{}", resp);
@@ -229,8 +229,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6032")
     void patch_updatesEnforcementCourt_withLongCourtId() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
@@ -243,7 +241,10 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             """;
 
         mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body))
+                patch(URL_BASE + "/77")
+                    .headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
             .andExpect(status().isOk())
             .andExpect(header().exists("ETag"))
             .andExpect(jsonPath("$.enforcement_court.court_id").value(780000000185L));
@@ -255,14 +256,15 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6022")
     void patch_updatesCollectionOrder() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
-        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-              {"collection_order":{"collection_order_flag":true,"collection_order_date":"2025-01-01"}}
-            """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
+        mockMvc.perform(patch(URL_BASE + "/77")
+            .headers(headers)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                  {"collection_order":{"collection_order_flag":true,"collection_order_date":"2025-01-01"}}
+                """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
     }
 
     @Test
@@ -271,14 +273,15 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6023")
     void patch_updatesCollectionOrder_whenDateMissing() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
-        mockMvc.perform(patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content("""
-              {"collection_order":{"collection_order_flag":true}}
-            """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
+        mockMvc.perform(patch(URL_BASE + "/77")
+            .headers(headers)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                  {"collection_order":{"collection_order_flag":true}}
+                """)).andExpect(status().isOk()).andExpect(header().exists("ETag"));
     }
 
     @Test
@@ -287,8 +290,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6024")
     void patch_updatesEnforcementOverride() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
@@ -312,7 +313,10 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             """;
 
         ResultActions a = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON).content(body));
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
+                .content(body));
 
         String resp = a.andReturn().getResponse().getContentAsString();
         log.info("enforcement_override update resp:\n{}", ToJsonString.toPrettyJson(resp));
@@ -332,19 +336,19 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-6034")
     void patch_clearsEnforcementOverrideEnforcerAndLja_whenOmitted() throws Exception {
-        authoriseAllPermissions();
-
         Integer clearVersion = versionFor(77L);
-        HttpHeaders clearHeaders = authorisedHeaders("good_token", "78", "\"" + clearVersion + "\"");
+        HttpHeaders clearHeaders = authorisedHeaders(userStateStub.getBearerToken(), "78", "\"" + clearVersion + "\"");
 
         ResultActions clearAction = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(clearHeaders).contentType(MediaType.APPLICATION_JSON).content("""
-                  {
-                    "enforcement_override": {
-                      "enforcement_override_result": { "enforcement_override_result_id": "FWEC" }
-                    }
-                  }
-                """));
+            patch(URL_BASE + "/77")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(clearHeaders).contentType(MediaType.APPLICATION_JSON).content("""
+                      {
+                        "enforcement_override": {
+                          "enforcement_override_result": { "enforcement_override_result_id": "FWEC" }
+                        }
+                      }
+                    """));
 
         String clearResponse = clearAction.andReturn().getResponse().getContentAsString();
         log.info("enforcement_override clear resp:\n{}", ToJsonString.toPrettyJson(clearResponse));
@@ -365,21 +369,22 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-6028")
     void patch_clearsEnforcementOverride_whenResultEnforcerAndLjaAreNull() throws Exception {
-        authoriseAllPermissions();
-
         Integer clearVersion = versionFor(77L);
-        HttpHeaders clearHeaders = authorisedHeaders("good_token", "78", "\"" + clearVersion + "\"");
+        HttpHeaders clearHeaders = authorisedHeaders(userStateStub.getBearerToken(), "78", "\"" + clearVersion + "\"");
 
         ResultActions clearAction = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(clearHeaders).contentType(MediaType.APPLICATION_JSON).content("""
-                  {
-                    "enforcement_override": {
-                      "enforcement_override_result": null,
-                      "enforcer": null,
-                      "lja": null
-                    }
-                  }
-                """));
+            patch(URL_BASE + "/77")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(clearHeaders)
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                      {
+                        "enforcement_override": {
+                          "enforcement_override_result": null,
+                          "enforcer": null,
+                          "lja": null
+                        }
+                      }
+                    """));
 
         String clearResponse = clearAction.andReturn().getResponse().getContentAsString();
         log.info("enforcement_override remove resp:\n{}", ToJsonString.toPrettyJson(clearResponse));
@@ -397,13 +402,13 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6031")
     void patch_returnsETag_andResponseConformsToSchema() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
         ResultActions result = mockMvc.perform(
-            patch(URL_BASE + "/77").headers(headers).contentType(MediaType.APPLICATION_JSON)
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).contentType(MediaType.APPLICATION_JSON)
                 .content(commentAndNotesPayload("etag test")));
 
         String body = result.andReturn().getResponse().getContentAsString();
@@ -425,7 +430,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6036")
     void patch_badRequest_whenMissingRequiredHeader() throws Exception {
-        authoriseAllPermissions();
         HttpHeaders headers = new HttpHeaders();
         mockMvc.perform(patch(URL_BASE + "/77")
                 .headers(headers)

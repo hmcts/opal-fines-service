@@ -1,12 +1,18 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -14,16 +20,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
@@ -39,9 +37,6 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String GET_COURTS_REF_DATA_RESPONSE =
         SchemaPaths.REFERENCE_DATA + "/getCourtsRefDataResponse.json";
 
-    @MockitoBean
-    UserStateService userStateService;
-
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
@@ -54,7 +49,8 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtById() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/7")
-                                                    .header("authorization", "Bearer some_value"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -82,7 +78,8 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
-                                                    .header("authorization", "Bearer some_value"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtById_WhenCourtDoesNotExist: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -99,9 +96,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostCourtsSearch() throws Exception {
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                                                    .header("authorization", "Bearer some_value")
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .content("{\"businessUnitId\":\"99\"}"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"businessUnitId\":\"99\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostCourtsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -128,9 +126,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5807")
     void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"courtId\":\"2\"}"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"courtId\":\"2\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostCourtsSearch_WhenCourtDoesNotExist: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -147,8 +146,8 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtRefData() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                                                    .header("authorization", "Bearer some_value")
-                                                    .param("business_unit", "99"));
+            .header("authorization", userStateStub.getBearerToken())
+            .param("business_unit", "99"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));

@@ -20,8 +20,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -42,12 +40,6 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private FeatureToggleApi featureToggleApi;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @MockitoBean
-    private UserStateClientService userStateClientService;
 
     @Test
     @JiraStory("PO-256")
@@ -95,14 +87,11 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2233")
     @JiraTestKey("PO-6277")
     void testParseToken() throws Exception {
-        String token = "Bearer testToken";
-
-        when(accessTokenService.extractPreferredUsername(token)).thenReturn("testUser");
-
         mockMvc.perform(get("/testing-support/token/parse")
-                .header("Authorization", token))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$").value("testUser"));
+            .andExpect(jsonPath("$").value("opal-test@HMCTS.NET"));
     }
 
     @Sql(

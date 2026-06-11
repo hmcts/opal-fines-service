@@ -15,7 +15,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -26,9 +25,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 })
 @DisplayName("Major Creditor Account Header Summary Feature Flag Integration Tests")
 class MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest extends AbstractIntegrationTest {
-
-    @MockitoBean
-    private UserStateService userStateService;
 
     @MockitoBean
     private GatewayService gatewayService;
@@ -46,6 +42,6 @@ class MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest extends Abstra
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
 
-        verifyNoInteractions(userStateService, gatewayService);
+        verifyNoInteractions(gatewayService);
     }
 }

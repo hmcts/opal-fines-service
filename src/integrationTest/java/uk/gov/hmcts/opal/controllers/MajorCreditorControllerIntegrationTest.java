@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.hasItem;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
@@ -82,8 +84,8 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5974")
     void testPostMajorCreditorsSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"businessUnitId\":\"78\"}"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"businessUnitId\":\"78\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostMajorCreditorsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -106,8 +108,8 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5976")
     void testPostMajorCreditorsSearch_WhenMajorCreditorDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"majorCreditorId\":\"2\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"majorCreditorId\":\"2\"}"))
             .andExpect(status().isOk());
     }
 
@@ -119,7 +121,8 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5972")
     void testGetMajorCreditorsRefData() throws Exception {
 
-        ResultActions actions = mockMvc.perform(get(URL_BASE).header("authorization", "Bearer some_value"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+            .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMajorCreditorRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -129,7 +132,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(144))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].major_creditor_code").value(hasItem("AAAA")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].name")
-                           .value(hasItem("AAAA Credit Services")))
+                .value(hasItem("AAAA Credit Services")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].postcode").value(hasItem("CR1 1CR")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].business_unit_id").value(hasItem(78)))
             .andReturn();

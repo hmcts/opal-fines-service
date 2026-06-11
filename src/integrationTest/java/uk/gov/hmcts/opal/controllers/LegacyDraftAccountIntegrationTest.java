@@ -2,12 +2,9 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -38,13 +35,12 @@ public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControl
     void testPublishDraftAccountGobServerErrorIsNotReturnedInResponse() throws Exception {
 
         long draftAccountId = 3L;
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", getIfMatchForDraftAccount(draftAccountId))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("73", "Publishing Pending","A")));
+            .content(validUpdateRequestBody("73", "Publishing Pending", "A")));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));

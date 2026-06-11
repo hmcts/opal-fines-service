@@ -51,7 +51,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .thenReturn(response);
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(searchCriteria(false)))
             .andExpect(status().isOk())
@@ -69,7 +70,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
     void postDefendantAccountsSearch_returnsFeatureDisabledForConsolidatedSearchWhenRelease1cDisabled()
         throws Exception {
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(searchCriteria(true)))
             .andExpect(status().isMethodNotAllowed())

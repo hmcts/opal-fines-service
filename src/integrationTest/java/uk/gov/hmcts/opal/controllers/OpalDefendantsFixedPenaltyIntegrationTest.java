@@ -26,10 +26,10 @@ class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIn
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6021")
     void testGetDefendantAccountFixedPenalty() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions actions = mockMvc.perform(
-            get("/defendant-accounts/77/fixed-penalty").header("authorization", "Bearer some_value"));
+            get("/defendant-accounts/77/fixed-penalty")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDefendantAccountFixedPenalty: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -56,10 +56,10 @@ class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIn
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6020")
     void testGetDefendantAccountFixedPenalty_NotFound() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions actions = mockMvc.perform(
-            get("/defendant-accounts/99999/fixed-penalty").header("authorization", "Bearer some_value"));
+            get("/defendant-accounts/99999/fixed-penalty")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDefendantAccountFixedPenalty_NotFound: Response body:\n{}", ToJsonString.toPrettyJson(body));

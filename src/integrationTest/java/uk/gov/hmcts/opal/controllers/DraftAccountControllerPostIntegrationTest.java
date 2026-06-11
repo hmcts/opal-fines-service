@@ -3,17 +3,12 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -23,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
@@ -156,11 +150,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void testPostDraftAccount_permission() throws Exception {
 
         String validRequestBody = validRawJsonCreateRequestBody();
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
+        
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
 
@@ -169,14 +162,14 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
         resultActions.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.submitted_by").value("USER01"))
-            .andExpect(jsonPath("$.submitted_by_name").value("Normal User"))
+            .andExpect(jsonPath("$.submitted_by").value("L078JG"))
+            .andExpect(jsonPath("$.submitted_by_name").value("Pablo"))
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
                 .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("USER01"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("L078JG"))
             .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
             .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
@@ -191,12 +184,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void shouldIgnoreBlankSubmittedByName() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by_name\": \"John\"", "\"submitted_by_name\": \"\"");
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isCreated());
@@ -210,12 +200,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void shouldIgnoreBlankSubmittedBy() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"submitted_by\": \"BUUID1\"", "\"submitted_by\": \"\"");
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isCreated());
@@ -229,12 +216,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void shouldReturn400WhenAccountTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"account_type\": \"Fine\"", "\"account_type\": \"\"");
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -249,10 +233,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\",", "");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -270,10 +253,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                     + ",\n              \"submitted_by\": \"BUUID1\","
             );
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -288,10 +270,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -306,10 +287,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -322,12 +302,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraTestKey("PO-5862")
     void shouldReturn400WhenDocumentLanguageIsEnglish() throws Exception {
         String request = invalidLanguageRawJsonCreateRequestBody("document_language");
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest())
@@ -344,12 +321,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraTestKey("PO-5856")
     void shouldReturn400WhenHearingLanguageIsEnglish() throws Exception {
         String request = invalidLanguageRawJsonCreateRequestBody("hearing_language");
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
         mockMvc.perform(post(URL_BASE)
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest())
@@ -370,12 +344,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
                 + " found 15 validation errors:";
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON)
             .content(invalidCreateRequestBody()));
 
@@ -399,10 +369,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void testPostDraftAccount_trap403Response_noPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
@@ -430,11 +398,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
         String validRequestBody = validCreateRequestBody();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)5, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS, FinesPermission.ACCOUNT_ENQUIRY));
-
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
@@ -462,11 +427,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
         String validRequestBody = validCreateRequestBody();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)5, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
@@ -494,11 +456,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         // arrange: request body from your helper
         String validRequestBody = validPostRequestBody(); // reuse your helper
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         // act: perform POST
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -518,7 +479,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         assertNotNull(pdpl);
 
         assertNotNull(pdpl.getCreatedBy());
-        assertEquals("0", pdpl.getCreatedBy().getIdentifier()); // adapt to your ParticipantIdentifier API
+        assertEquals("500000000", pdpl.getCreatedBy().getIdentifier()); // adapt to your ParticipantIdentifier API
 
         assertEquals("Submit Draft Account - Minor Creditor", pdpl.getBusinessIdentifier());
 
