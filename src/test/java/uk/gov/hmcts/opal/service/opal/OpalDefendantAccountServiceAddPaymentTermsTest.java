@@ -37,6 +37,8 @@ import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
 public class OpalDefendantAccountServiceAddPaymentTermsTest {
+    private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, 6, 11, 10, 0);
+
     @Mock
     private DefendantAccountPaymentTermsRepository paymentTermsRepository;
 
@@ -121,7 +123,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
             .active(Boolean.TRUE)
-            .postedDate(LocalDateTime.now())
+            .postedDate(TEST_POSTED_DATE)
             .postedBy(postedBy)
             .postedByUsername(postedBy)
             .build();
@@ -131,7 +133,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         EnforcementEntity enforcementLite = new EnforcementEntity();
         enforcementLite.setEnforcementId(300L);
         enforcementLite.setDefendantAccountId(defendantAccountId);
-        enforcementLite.setPostedDate(LocalDateTime.now());
+        enforcementLite.setPostedDate(TEST_POSTED_DATE);
         enforcementLite.setPostedBy("enf_tester");
         enforcementLite.setResultId("55");
 
@@ -241,7 +243,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
             .active(Boolean.TRUE)
-            .postedDate(LocalDateTime.now())
+            .postedDate(TEST_POSTED_DATE)
             .postedBy(businessUnitUserId)
             .postedByUsername(businessUnitUserId)
             .build();

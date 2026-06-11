@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -90,7 +91,7 @@ class OpalDefendantAccountBuildersTest {
                   "reserveterms":"aa"
                 }
                 """)
-            .postedDate(LocalDateTime.of(2026, 6, 11, 10, 0))
+            .postedDate(LocalDateTime.of(2026, Month.JUNE, 11, 10, 0))
             .build();
 
         EnforcementActionDefendantAccount action =

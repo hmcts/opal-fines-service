@@ -15,6 +15,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.ResultResponse;
@@ -25,11 +26,17 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -87,6 +94,15 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private EnforcementRepositoryService enforcementRepositoryService;
 
     @Mock
+    private ResultRepositoryService resultRepositoryService;
+
+    @Mock
+    private EnforcerRepositoryService enforcerRepositoryService;
+
+    @Mock
+    private LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
+
+    @Mock
     private NotesProxy notesProxy;
 
     @Mock
@@ -109,6 +125,45 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     @InjectMocks
     private OpalDefendantAccountEnforcementService service;
+
+    @Test
+    void buildEnforcementOverride_whenOverrideIdsPresent_buildsMappedOverride() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .enforcementOverrideResultId("FWEC")
+            .enforcementOverrideEnforcerId(55L)
+            .enforcementOverrideTfoLjaId((short) 66)
+            .build();
+
+        ResultEntity result = ResultEntity.builder()
+            .resultId("FWEC")
+            .resultTitle("Witness Expenses")
+            .build();
+
+        EnforcerEntity enforcer = EnforcerEntity.builder()
+            .enforcerId(55L)
+            .name("North East Enforcement")
+            .build();
+
+        LocalJusticeAreaEntity lja = LocalJusticeAreaEntity.builder()
+            .localJusticeAreaId((short) 66)
+            .ljaCode("L066")
+            .name("Tyne & Wear LJA")
+            .build();
+
+        when(resultRepositoryService.getResultById("FWEC")).thenReturn(java.util.Optional.of(result));
+        when(enforcerRepositoryService.findById(55L)).thenReturn(java.util.Optional.of(enforcer));
+        when(localJusticeAreaRepositoryService.getLjaById((short) 66)).thenReturn(java.util.Optional.of(lja));
+
+        EnforcementOverride override = service.buildEnforcementOverride(entity);
+
+        assertNotNull(override);
+        assertNotNull(override.getEnforcementOverrideResult());
+        assertEquals("FWEC", override.getEnforcementOverrideResult().getEnforcementOverrideId());
+        assertNotNull(override.getEnforcer());
+        assertEquals(55L, override.getEnforcer().getEnforcerId());
+        assertNotNull(override.getLja());
+        assertEquals((short) 66, override.getLja().getLjaId());
+    }
 
     @Test
     public void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
