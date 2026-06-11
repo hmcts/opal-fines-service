@@ -22,6 +22,6 @@ public enum PartyAccountType {
         return Stream.of(PartyAccountType.values())
             .filter(v -> v.getLabel().equals(label))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown AccountType: " + label));
+            .orElseThrow(() -> new IllegalArgumentException("Unknown PartyAccountType: " + label));
     }
 }
