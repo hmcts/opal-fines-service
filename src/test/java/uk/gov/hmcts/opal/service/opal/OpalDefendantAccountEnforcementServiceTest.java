@@ -508,7 +508,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void removeEnforcementHold_whenValidRequest_clearsHoldAddsNoteCreatesReportAndReturnsResponse() {
+    void removeEnforcementHold_whenValidRequest_clearsHoldAddsNoteAndReturnsResponse() {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
@@ -576,7 +576,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 eq(userState),
                 eq(defendantEntity)
             );
-            verify(reportEntryService).createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
+            verifyNoInteractions(reportEntryService);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
                 uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS,

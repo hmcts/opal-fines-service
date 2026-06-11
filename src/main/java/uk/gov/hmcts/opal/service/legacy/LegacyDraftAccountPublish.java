@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -99,11 +98,11 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
     public static LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
                                                                                     BusinessUnitUser unitUser) {
         String accountJson = entity.getAccount();
-        JsonNode account;
+        Object account;
         try {
             account = (accountJson == null || accountJson.isBlank())
                 ? null
-                : ToJsonString.toJsonNode(accountJson);
+                : ToJsonString.getObjectMapper().readValue(accountJson, Object.class);
         } catch (JsonProcessingException e) {
             throw new JsonSchemaValidationException(
                 "Failed to parse account JSON: " + e.getMessage(), e

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 @ContextConfiguration(classes = {
     DraftAccountMapperImpl.class
 })
+@Isolated
 class DraftAccountMapperTest {
 
     @Autowired
