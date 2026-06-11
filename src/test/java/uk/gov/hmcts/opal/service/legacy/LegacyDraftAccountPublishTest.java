@@ -32,12 +32,15 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -251,6 +254,117 @@ class LegacyDraftAccountPublishTest {
     }
 
     @Test
+    void testPublishDefendantAccount_exceptionResponse() throws Exception {
+
+        GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
+        injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
+
+        BusinessUnitUser buu = BusinessUnitUser.builder()
+            .businessUnitId((short)7)
+            .businessUnitUserId("Dave")
+            .build();
+        DraftAccountEntity publish = DraftAccountEntity.builder()
+            .businessUnit(
+                BusinessUnitEntity.builder()
+                    .businessUnitId((short)6)
+                    .build())
+            .timelineData(emptyTimelineData())
+            .build();
+
+        GatewayService.Response<LegacyCreateDefendantAccountResponse> response =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("boom"), null);
+        when(mockGatewayService.postToGatewayAsync(
+            eq(LegacyDraftAccountPublish.CREATE_DEFENDANT_ACCOUNT),
+            eq(LegacyCreateDefendantAccountResponse.class),
+            any(LegacyCreateDefendantAccountRequest.class),
+            eq(null)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
+            .thenReturn(publish);
+
+        DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
+
+        assertEquals(publish, published);
+    }
+
+    @Test
+    void testPublishDefendantAccount_interruptedException() throws Exception {
+
+        GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
+        injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
+
+        BusinessUnitUser buu = BusinessUnitUser.builder()
+            .businessUnitId((short)7)
+            .businessUnitUserId("Dave")
+            .build();
+        DraftAccountEntity publish = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)6).build())
+            .timelineData(emptyTimelineData())
+            .build();
+
+        CompletableFuture<GatewayService.Response<LegacyCreateDefendantAccountResponse>> future =
+            new CompletableFuture<>() {
+                @Override
+                public GatewayService.Response<LegacyCreateDefendantAccountResponse> get()
+                    throws InterruptedException {
+                    throw new InterruptedException("interrupted");
+                }
+            };
+        when(mockGatewayService.postToGatewayAsync(
+            eq(LegacyDraftAccountPublish.CREATE_DEFENDANT_ACCOUNT),
+            eq(LegacyCreateDefendantAccountResponse.class),
+            any(LegacyCreateDefendantAccountRequest.class),
+            eq(null)))
+            .thenReturn(future);
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
+            .thenReturn(publish);
+
+        DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
+
+        assertEquals(publish, published);
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        Thread.interrupted();
+    }
+
+    @Test
+    void testPublishDefendantAccount_executionException() throws Exception {
+
+        GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
+        injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
+
+        BusinessUnitUser buu = BusinessUnitUser.builder()
+            .businessUnitId((short)7)
+            .businessUnitUserId("Dave")
+            .build();
+        DraftAccountEntity publish = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)6).build())
+            .timelineData(emptyTimelineData())
+            .build();
+
+        CompletableFuture<GatewayService.Response<LegacyCreateDefendantAccountResponse>> future =
+            new CompletableFuture<>() {
+                @Override
+                public GatewayService.Response<LegacyCreateDefendantAccountResponse> get()
+                    throws ExecutionException {
+                    throw new ExecutionException(new RuntimeException("boom"));
+                }
+            };
+        when(mockGatewayService.postToGatewayAsync(
+            eq(LegacyDraftAccountPublish.CREATE_DEFENDANT_ACCOUNT),
+            eq(LegacyCreateDefendantAccountResponse.class),
+            any(LegacyCreateDefendantAccountRequest.class),
+            eq(null)))
+            .thenReturn(future);
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
+            .thenReturn(publish);
+
+        assertThrows(RuntimeException.class, () -> legacyDraftAccountPublish.publishDefendantAccount(publish, buu));
+    }
+
+    @Test
     void testcreateDefendantAccountRequest_emptyAccount() {
 
         LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
@@ -278,6 +392,24 @@ class LegacyDraftAccountPublishTest {
                         .businessUnitId((short) 6)
                         .build())
                 .account(null)
+                .build(),
+            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+        );
+
+        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals(null, lcdar.getDefendantAccount());
+    }
+
+    @Test
+    void testcreateDefendantAccountRequest_blankAccount() {
+
+        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+            DraftAccountEntity.builder()
+                .businessUnit(
+                    BusinessUnitEntity.builder()
+                        .businessUnitId((short) 6)
+                        .build())
+                .account("   ")
                 .build(),
             BusinessUnitUser.builder().businessUnitUserId("testUser").build()
         );

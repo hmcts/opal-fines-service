@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;

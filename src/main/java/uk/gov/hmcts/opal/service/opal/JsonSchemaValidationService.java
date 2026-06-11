@@ -10,7 +10,7 @@ import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 

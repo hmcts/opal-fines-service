@@ -54,10 +54,13 @@ class ReportQueueConsumerServiceTest {
     @Test
     void consume_invalidJson_throwsIllegalArgumentException() throws JacksonException {
         String payload = "{invalid";
-        when(objectMapper.readValue(payload, ReportQueueMessage.class)).thenThrow(JacksonException.class);
+        JacksonException parseException = new JacksonException("bad payload") {
+        };
+        when(objectMapper.readValue(payload, ReportQueueMessage.class)).thenThrow(parseException);
         assertThatThrownBy(() -> consumer.consume(payload))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Unable to parse");
+            .hasMessageContaining("Unable to parse")
+            .hasCause(parseException);
         verify(genericReportService, never()).generateReportInstanceContent(Mockito.any());
     }
 }
