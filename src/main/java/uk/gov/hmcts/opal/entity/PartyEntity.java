@@ -27,7 +27,7 @@ import lombok.ToString;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.PartyAccountTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Entity
@@ -83,7 +83,7 @@ public class PartyEntity implements FullNameBuilder {
 
     @Column(name = "account_type", length = 20)
     @ColumnTransformer(write = "?::t_party_account_type_enum")
-    @Convert(converter = AccountTypeConverter.class)
+    @Convert(converter = PartyAccountTypeConverter.class)
     private PartyAccountType accountType;
 
     @Column(name = "birth_date")

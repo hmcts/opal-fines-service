@@ -5,7 +5,7 @@ import jakarta.persistence.Converter;
 import uk.gov.hmcts.opal.entity.PartyAccountType;
 
 @Converter(autoApply = true)
-public class AccountTypeConverter implements AttributeConverter<PartyAccountType, String> {
+public class PartyAccountTypeConverter implements AttributeConverter<PartyAccountType, String> {
 
     @Override
     public String convertToDatabaseColumn(PartyAccountType attribute) {
