@@ -41,47 +41,50 @@
     <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>
     <cve>CVE-2025-15104</cve>
   </suppress>
-  <suppress until="2026-06-24Z">
+  <suppress until="2026-08-31Z">
     <notes><![CDATA[
-    Reviewed 2026-06-10.
-    Dependency-Check flags org.apache.pdfbox:pdfbox and org.apache.pdfbox:pdfbox-io for CVE-2026-23907.
-    Apache PDFBox documents CVE-2026-23907 as affecting the pdfbox-examples module; this repo depends on
-    the core pdfbox artifact for PDF generation and does not depend on pdfbox-examples.
-    Maven metadata review still found 3.0.7 as the latest stable release in the 3.x line.
-    This suppression expires shortly so the dependency-check failure returns unless an upstream fixed
-    release, updated vulnerability metadata, or a better remediation path is available.
+    Reviewed 2026-06-11.
+    CVE-2026-23907 and CVE-2026-33929 apply to the Apache PDFBox Examples
+    ExtractEmbeddedFiles example. This repo uses the core org.apache.pdfbox:pdfbox
+    artifact for PDF generation/test validation, does not depend on
+    org.apache.pdfbox:pdfbox-examples, and does not contain copied ExtractEmbeddedFiles code.
+    Apache's download page still lists 3.0.7 as the latest 3.0.x release, while CVE-2026-33929
+    recommends 3.0.8 once available. Keep this suppression only for Dependency-Check findings
+    against the core PDFBox artifacts currently used here.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox(\-io)?@.*$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox(\-io)?@3\.0\.7$</packageUrl>
     <cve>CVE-2026-23907</cve>
+    <cve>CVE-2026-33929</cve>
   </suppress>
-  <suppress until="2026-06-24Z">
+  <suppress until="2026-08-31Z">
     <notes><![CDATA[
-    Reviewed 2026-06-10.
-    Fines-service uses Azure Blob Storage via BlobServiceClientBuilder.connectionString(...),
-    then obtains a BlobContainerClient and BlobClient to upload generated report content.
-    Current runtime artifacts flagged for CVE-2026-33117 are:
-    - com.azure:azure-core:1.58.0
-    - com.azure:azure-core-http-netty:1.16.4
-    - com.azure:azure-json:1.5.1
-    Maven metadata review still found no newer stable GA releases in the current Azure Storage SDK chain
-    used by this repo; azure-storage-blob 12.34.0 remains the latest stable GA release, with only 12.35.0-beta.1 newer.
-    This suppression expires in two weeks so the dependency-check failure returns unless an
-    upstream GA fix or a better remediation path is available.
+    Reviewed 2026-06-11.
+    CVE-2026-33117 applies to com.azure:azure-keyvault-keys local cryptographic verification
+    and is fixed in azure-keyvault-keys 4.10.6. This repo does not depend on
+    azure-keyvault-keys; it uses Azure Blob Storage via BlobServiceClientBuilder,
+    BlobContainerClient, and BlobClient. Keep this suppression only for false-positive
+    generic Azure SDK mappings against the Blob Storage dependency chain used by this service.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core|azure\-core\-http\-netty|azure\-json)@.*$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core@1\.58\.0|azure\-core\-http\-netty@1\.16\.4|azure\-json@1\.5\.1|azure\-storage\-blob@12\.34\.0|azure\-storage\-common@12\.33\.0|azure\-storage\-internal\-avro@12\.19\.0|azure\-xml@1\.2\.1)$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
-  <suppress until="2026-06-24Z">
+  <suppress until="2026-07-31Z">
     <notes><![CDATA[
-    Reviewed 2026-06-10.
-    This repo directly depends on org.apache.pdfbox:pdfbox for PDF generation support and tests.
-    Maven metadata review still found 3.0.7 as the latest stable release in the 3.x line, with
-    no newer non-beta upgrade path available for CVE-2026-33929.
-    This suppression expires in two weeks so the dependency-check failure returns unless an
-    upstream fixed release or a better remediation path is available.
+    Reviewed 2026-06-11.
+    Spring advisories for CVE-2026-41840, CVE-2026-41841, CVE-2026-41842,
+    CVE-2026-41843, CVE-2026-41850, and CVE-2026-41851 list Spring Framework
+    7.0.0 through 7.0.7 as affected and 7.0.8 as the OSS fixed version.
+    This repo already applies that upgrade path with spring-framework.version=7.0.8
+    in build.gradle. Keep this suppression only for Dependency-Check findings
+    that still report these CVEs against already-fixed org.springframework artifacts at 7.0.8.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox(\-io)?@.*$</packageUrl>
-    <cve>CVE-2026-33929</cve>
+    <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-[^@]+@7\.0\.8$</packageUrl>
+    <cve>CVE-2026-41840</cve>
+    <cve>CVE-2026-41841</cve>
+    <cve>CVE-2026-41842</cve>
+    <cve>CVE-2026-41843</cve>
+    <cve>CVE-2026-41850</cve>
+    <cve>CVE-2026-41851</cve>
   </suppress>
   <!--End of Temporary suppression section -->
 
