@@ -14,7 +14,7 @@ Feature: Report Instances
 # @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248
 # Scenario: Create report instance with multiple business units returns 201 and a report instance id
 #   Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-#   When I create a report instance with report id "IT-report-2" for business units 73 and 1001
+#   When I create a report instance with report id "operational_report_enforcement" for business units 73 and 1001
 #   Then the request creates a resource
 #   And the report instance create response contains a report instance id
 
