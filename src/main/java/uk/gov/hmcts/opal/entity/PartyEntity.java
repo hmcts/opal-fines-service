@@ -84,7 +84,7 @@ public class PartyEntity implements FullNameBuilder {
     @Column(name = "account_type", length = 20)
     @ColumnTransformer(write = "?::t_party_account_type_enum")
     @Convert(converter = AccountTypeConverter.class)
-    private AccountType accountType;
+    private PartyAccountType accountType;
 
     @Column(name = "birth_date")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)

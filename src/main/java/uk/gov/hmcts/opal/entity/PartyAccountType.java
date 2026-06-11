@@ -3,13 +3,13 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.stream.Stream;
 
-public enum AccountType {
+public enum PartyAccountType {
     CREDITOR("Creditor"),
     DEFENDANT("Defendant");
 
     private final String label;
 
-    AccountType(String label) {
+    PartyAccountType(String label) {
         this.label = label;
     }
 
@@ -18,8 +18,8 @@ public enum AccountType {
         return label;
     }
 
-    public static AccountType getByLabel(String label) {
-        return Stream.of(AccountType.values())
+    public static PartyAccountType getByLabel(String label) {
+        return Stream.of(PartyAccountType.values())
             .filter(v -> v.getLabel().equals(label))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown AccountType: " + label));

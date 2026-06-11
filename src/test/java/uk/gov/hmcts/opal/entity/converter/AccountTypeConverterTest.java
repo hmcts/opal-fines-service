@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.entity.AccountType;
+import uk.gov.hmcts.opal.entity.PartyAccountType;
 
 public class AccountTypeConverterTest {
 
@@ -13,8 +13,8 @@ public class AccountTypeConverterTest {
 
     @Test
     void convertToDatabaseColumn_nonNull() {
-        String dbValueCreditor = converter.convertToDatabaseColumn(AccountType.CREDITOR);
-        String dbValueDefendant = converter.convertToDatabaseColumn(AccountType.DEFENDANT);
+        String dbValueCreditor = converter.convertToDatabaseColumn(PartyAccountType.CREDITOR);
+        String dbValueDefendant = converter.convertToDatabaseColumn(PartyAccountType.DEFENDANT);
 
         assertEquals("Creditor", dbValueCreditor);
         assertEquals("Defendant", dbValueDefendant);
@@ -27,11 +27,11 @@ public class AccountTypeConverterTest {
 
     @Test
     void convertToEntityAttribute_known() {
-        AccountType accountTypeCreditor = converter.convertToEntityAttribute("Creditor");
-        AccountType accountTypeDefendant = converter.convertToEntityAttribute("Defendant");
+        PartyAccountType accountTypeCreditor = converter.convertToEntityAttribute("Creditor");
+        PartyAccountType accountTypeDefendant = converter.convertToEntityAttribute("Defendant");
 
-        assertEquals(AccountType.CREDITOR, accountTypeCreditor);
-        assertEquals(AccountType.DEFENDANT, accountTypeDefendant);
+        assertEquals(PartyAccountType.CREDITOR, accountTypeCreditor);
+        assertEquals(PartyAccountType.DEFENDANT, accountTypeDefendant);
     }
 
     @Test
