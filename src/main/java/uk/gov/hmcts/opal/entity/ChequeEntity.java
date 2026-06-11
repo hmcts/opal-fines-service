@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,10 +19,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import uk.gov.hmcts.opal.entity.converter.ChequeStatusTypeConverter;
 
 @Entity
 @Table(name = "cheques")
@@ -56,13 +63,17 @@ public class ChequeEntity {
     @Column(name = "amount", precision = 18, scale = 2, nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "allocation_type", length = 10)
-    private String allocationType;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "allocation_type", length = 10, columnDefinition = "t_cheque_allocation_type_enum")
+    private ChequeAllocationType allocationType;
 
     @Column(name = "reminder_date")
     private LocalDate reminderDate;
 
-    @Column(name = "status", length = 1, nullable = false)
-    private String status;
+    @Convert(converter = ChequeStatusTypeConverter.class)
+    @ColumnTransformer(write = "?::t_cheque_status_enum")
+    @Column(name = "status", length = 1, nullable = false, columnDefinition = "t_cheque_status_enum")
+    private ChequeStatusType status;
 
 }
