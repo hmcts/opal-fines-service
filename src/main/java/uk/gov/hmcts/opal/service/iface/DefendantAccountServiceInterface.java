@@ -42,6 +42,7 @@ public interface DefendantAccountServiceInterface {
                                                     String postedBy) {
         return updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, postedBy);
     }
+
     AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId,
         String postedByName, String ifMatch, String authHeader);
