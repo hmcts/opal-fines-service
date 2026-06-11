@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -37,6 +40,9 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
 
     @BeforeEach
     void setUp() {
@@ -259,6 +265,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         void getReportById_whenUserLacksRequiredReportPermission_returns403() throws Exception {
             when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionsUser());
+            when(userStateClientService.getUserStateByAuthenticatedUser())
+                .thenReturn(Optional.of(UserStateV2.builder().build()));
 
             mockMvc.perform(get(URL_BASE + "/it_report_full"))
                 .andExpect(status().isForbidden())

@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
-import static org.mockito.Mockito.when;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,11 +13,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionsToken;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionsToken;
 
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
@@ -34,9 +30,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     UserStateClientService userStateClientService;
-
-    @MockitoBean
-    private UserState userState;
 
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     @JiraStory("PO-1566")
@@ -109,9 +102,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes - user without permission [PO-1566]")
     @JiraStory("PO-1566")
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
-
-        UserState userState = noFinesPermissionUser();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
 
         Note note = new Note();
         note.setNoteText("test note");

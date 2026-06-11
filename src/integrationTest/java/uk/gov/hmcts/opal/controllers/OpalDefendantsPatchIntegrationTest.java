@@ -13,7 +13,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,9 +117,6 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     void patch_forbidden_whenUserLacksAccountMaintenance() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             UserState.builder().userId(999L).userName("no-perm-user").businessUnitUser(Collections.emptySet()).build());
-
-        UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
 
         HttpHeaders headers = authorisedHeaders("token_without_perm", "78", "\"0\"");
 

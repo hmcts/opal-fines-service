@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
@@ -54,14 +52,6 @@ public class TestingSupportController {
     @GetMapping("/token/parse")
     public ResponseEntity<String> parseToken(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity.ok(this.accessTokenService.extractPreferredUsername(authorization));
-    }
-
-    @GetMapping("/user-client/{userId}")
-    @Operation(summary = "Retrieves user state via User Service client")
-    public ResponseEntity<UserState> getUserState(@PathVariable Long userId) {
-        return userStateClientService.getUserState(userId)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/defendant-accounts/{defendantAccountId}")
