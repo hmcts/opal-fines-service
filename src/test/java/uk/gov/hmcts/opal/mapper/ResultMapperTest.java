@@ -34,7 +34,7 @@ class ResultMapperTest {
         // Assert
         assertNotNull(result);
         assertEquals("R123", result.getResultId());
-        assertEquals("Test Result", result.getResultId());
+        assertEquals("Test Result", result.getResultTitle());
         assertEquals("Test Result Welsh", result.getResultTitleCy());
         assertEquals("FPD", result.getResultType());
         assertEquals(true, result.isActive());
