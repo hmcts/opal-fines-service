@@ -4,6 +4,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -505,12 +506,13 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
         assertCommonResponse(response);
 
-        verify(opalDefendantAccountService).addPaymentTerms(
+        verify(opalDefendantAccountService).addPaymentTermsPreservingLastEnforcement(
             eq(DEFENDANT_ACCOUNT_ID),
             eq(BUSINESS_UNIT_ID.toString()),
             eq(BUSINESS_UNIT_USER_ID),
             eq(IF_MATCH),
-            org.mockito.ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
+            isNull(),
+            ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
         );
     }
 

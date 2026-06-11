@@ -132,15 +132,17 @@ public class OpalDefendantAccountEnforcementService
 
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
-            opalDefendantAccountService.addPaymentTerms(defendantAccountId,
-                                                        businessUnitId.toString(),
-                                                        businessUnitUserId,
-                                                        defendantEntity.getVersion().toString(),
-                                                        AddDefendantAccountPaymentTermsRequest.builder()
-                                                            .paymentTerms(request.getPaymentTerms())
-                                                            .requestPaymentCard(false)
-                                                            .generatePaymentTermsChangeLetter(false)
-                                                            .build()
+            opalDefendantAccountService.addPaymentTermsPreservingLastEnforcement(
+                defendantAccountId,
+                businessUnitId.toString(),
+                businessUnitUserId,
+                defendantEntity.getVersion().toString(),
+                null,
+                AddDefendantAccountPaymentTermsRequest.builder()
+                    .paymentTerms(request.getPaymentTerms())
+                    .requestPaymentCard(false)
+                    .generatePaymentTermsChangeLetter(false)
+                    .build()
             );
         }
 

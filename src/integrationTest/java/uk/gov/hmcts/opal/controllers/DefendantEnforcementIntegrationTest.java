@@ -1,10 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -13,6 +8,7 @@ import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -22,14 +18,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import uk.gov.hmcts.opal.service.UserStateService;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -42,6 +30,8 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     protected static final String URL_BASE = "/defendant-accounts";
     protected static final Long BUSINESS_UNIT_ID = 77L;
     protected static final Long DEFENDANT_ACCOUNT_ID = 99000000000006L;
+    protected static final Long COLLO_BUSINESS_UNIT_ID = 77L;
+    protected static final Long COLLO_DEFENDANT_ACCOUNT_ID = 99000000000007L;
     protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
 
     protected static final List<ResultResponse> fullResponses = List.of(
@@ -81,7 +71,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .paymentTerms(paymentTerms)
             .build();
 
-        String version = getCurrentDefendantAccountVersion().toString();
+        String version = getCurrentDefendantAccountVersion(DEFENDANT_ACCOUNT_ID).toString();
 
         ResultActions resultActions = mockMvc.perform(
             post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
@@ -111,7 +101,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .paymentTerms(paymentTerms)
             .build();
 
-        String version = getCurrentDefendantAccountVersion().toString();
+        String version = getCurrentDefendantAccountVersion(DEFENDANT_ACCOUNT_ID).toString();
 
         ResultActions resultActions = mockMvc.perform(
             post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
@@ -140,7 +130,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .paymentTerms(paymentTerms)
             .build();
 
-        String version = getCurrentDefendantAccountVersion().toString();
+        String version = getCurrentDefendantAccountVersion(DEFENDANT_ACCOUNT_ID).toString();
 
         ResultActions resultActions = mockMvc.perform(
             post(URL_BASE + "/" + INVALID_DEFENDANT_ACCOUNT_ID + "/enforcements")
@@ -159,45 +149,57 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Entity Not Found"));
     }
 
-    void postEnforcementImpl_colloResponses_AreReturnedByEnforcementStatus(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(buildEnterEnforcementUserState());
+    void postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses(Logger log)
+        throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(
+            (short) 77,
+            FinesPermission.ENTER_ENFORCEMENT,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+        );
 
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.COLLO)
             .enforcementResultResponses(colloResponses)
+            .paymentTerms(paymentTerms)
             .build();
 
-        String version = getCurrentDefendantAccountVersion().toString();
+        String version = getCurrentDefendantAccountVersion(COLLO_DEFENDANT_ACCOUNT_ID).toString();
 
         ResultActions postResult = mockMvc.perform(
-            post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
-                .header("Authorization", AUTH_HEADER)
-                .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
+            post(URL_BASE + "/" + COLLO_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", COLLO_BUSINESS_UNIT_ID.toString())
                 .header("IF-MATCH", version)
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON)
         );
 
         String postBody = postResult.andReturn().getResponse().getContentAsString();
-        log.info(":postEnforcementImpl_colloResponses_AreReturnedByEnforcementStatus: POST response body:\n{}",
+        log.info(":postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses:"
+                + " POST response body:\n{}",
             ToJsonString.toPrettyJson(postBody));
 
         postResult.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("defendant_account_id").value(String.valueOf(DEFENDANT_ACCOUNT_ID)))
+            .andExpect(jsonPath("defendant_account_id").value(String.valueOf(COLLO_DEFENDANT_ACCOUNT_ID)))
             .andExpect(jsonPath("enforcement_id").exists());
 
         ResultActions getResult = mockMvc.perform(
-            get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcement-status")
-                .header("Authorization", AUTH_HEADER)
+            get(URL_BASE + "/" + COLLO_DEFENDANT_ACCOUNT_ID + "/enforcement-status")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         String getBody = getResult.andReturn().getResponse().getContentAsString();
-        log.info(":postEnforcementImpl_colloResponses_AreReturnedByEnforcementStatus: GET response body:\n{}",
+        log.info(":postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses:"
+                + " GET response body:\n{}",
             ToJsonString.toPrettyJson(getBody));
 
         getResult.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_flag").value(true))
             .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id").value("COLLO"))
             .andExpect(jsonPath("$.last_enforcement_action.reason").value("a"))
             .andExpect(jsonPath("$.last_enforcement_action.result_responses[0].parameter_name").value("reason"))
@@ -210,32 +212,11 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("$.last_enforcement_action.result_responses[2].response").value("aa"));
     }
 
-    private Integer getCurrentDefendantAccountVersion() {
+    private Integer getCurrentDefendantAccountVersion(Long defendantAccountId) {
         return jdbcTemplate.queryForObject(
             "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
             Integer.class,
-            DEFENDANT_ACCOUNT_ID
+            defendantAccountId
         );
-    }
-
-    private UserState buildEnterEnforcementUserState() {
-        return UserState.builder()
-            .userId(1L)
-            .userName("testUser")
-            .businessUnitUser(Set.of(BusinessUnitUser.builder()
-                .businessUnitUserId("testUserId")
-                .businessUnitId((short) 77)
-                .permissions(Set.of(
-                    Permission.builder()
-                        .permissionId(10L)
-                        .permissionName("Enter Enforcement")
-                        .build(),
-                    Permission.builder()
-                        .permissionId(11L)
-                        .permissionName("Search and View Accounts")
-                        .build()
-                ))
-                .build()))
-            .build();
     }
 }

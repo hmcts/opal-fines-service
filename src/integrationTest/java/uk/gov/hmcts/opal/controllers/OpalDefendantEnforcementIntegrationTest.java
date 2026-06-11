@@ -38,7 +38,8 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @Test
     @JiraStory("PO-7193")
     @JiraEpic("PO-1675")
-    public void testAddEnforcement_whenGivenColloResponses_enforcementStatusReturnsPersistedValues() throws Exception {
-        super.postEnforcementImpl_colloResponses_AreReturnedByEnforcementStatus(log);
+    public void testAddEnforcement_whenGivenColloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses()
+        throws Exception {
+        super.postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses(log);
     }
 }
