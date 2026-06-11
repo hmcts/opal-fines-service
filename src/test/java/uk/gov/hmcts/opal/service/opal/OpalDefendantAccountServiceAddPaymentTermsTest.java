@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +38,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
 public class OpalDefendantAccountServiceAddPaymentTermsTest {
-    private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, 6, 11, 10, 0);
+    private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, Month.JUNE, 11, 10, 0);
 
     @Mock
     private DefendantAccountPaymentTermsRepository paymentTermsRepository;

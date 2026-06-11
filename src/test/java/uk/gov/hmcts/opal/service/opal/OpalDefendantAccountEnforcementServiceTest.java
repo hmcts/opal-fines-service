@@ -2,6 +2,9 @@ package uk.gov.hmcts.opal.service.opal;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -15,6 +18,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.ResultId;
@@ -28,10 +32,16 @@ import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
@@ -47,6 +57,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,6 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -92,6 +104,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     @Mock
     private EnforcementRepositoryService enforcementRepositoryService;
+
+    @Mock
+    private DebtorDetailRepositoryService debtorDetailRepositoryService;
 
     @Mock
     private ResultRepositoryService resultRepositoryService;
@@ -163,6 +178,77 @@ public class OpalDefendantAccountEnforcementServiceTest {
         assertEquals(55L, override.getEnforcer().getEnforcerId());
         assertNotNull(override.getLja());
         assertEquals((short) 66, override.getLja().getLjaId());
+    }
+
+    @Test
+    void buildEnforcementOverride_whenAllOverrideIdsNull_returnsNull() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+
+        EnforcementOverride override = service.buildEnforcementOverride(entity);
+
+        assertNull(override);
+        verifyNoInteractions(resultRepositoryService, enforcerRepositoryService, localJusticeAreaRepositoryService);
+    }
+
+    @Test
+    void addEnforcement_whenResultResponsesAreNull_persistsEmptyResultResponses() throws JsonProcessingException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(null)
+            .paymentTerms(null)
+            .build();
+
+        AddEnforcementResponse response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AUTH_HEADER,
+            request
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            eq(RESULT_ID_AS_STRING),
+            eq(DEFENDANT_ACCOUNT_ID),
+            eq(BUSINESS_UNIT_ID),
+            eq(PROSECUTOR_CASE_REFERENCE),
+            eq("ACCOUNT_ENQUIRY"),
+            eq(null),
+            eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_DISPLAY_NAME),
+            eq(null),
+            eq(null),
+            eq("{}"),
+            eq(null),
+            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    void toResultResponsesMap_whenResponsesNull_returnsEmptyMap() throws Exception {
+        Map<String, String> result = invokeToResultResponsesMap(null);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void toResultResponsesMap_skipsNullEntriesAndEntriesWithoutParameterName() throws Exception {
+        List<ResultResponse> responses = new ArrayList<>();
+        responses.add(null);
+        responses.add(ResultResponse.builder().parameterName(null).response("ignored").build());
+        responses.add(ResultResponse.builder().parameterName("reason").response("a").build());
+
+        Map<String, String> result = invokeToResultResponsesMap(responses);
+
+        assertEquals(1, result.size());
+        assertEquals("a", result.get("reason"));
     }
 
     @Test
@@ -829,6 +915,43 @@ public class OpalDefendantAccountEnforcementServiceTest {
         }
     }
 
+    @Test
+    void getEnforcementStatus_whenNoRecentEnforcement_returnsStatusWithoutLastEnforcementAction() {
+        Long defendantAccountId = 77L;
+
+        PartyEntity party = PartyEntity.builder()
+            .partyId(88L)
+            .organisation(false)
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .build();
+
+        DefendantAccountPartiesEntity defendantParty = DefendantAccountPartiesEntity.builder()
+            .party(party)
+            .associationType(AssociationType.DEFENDANT)
+            .build();
+
+        DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .accountStatus(DefendantAccountStatus.LIVE)
+            .jailDays(12)
+            .parties(List.of(defendantParty))
+            .build();
+
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
+        when(enforcementRepositoryService.getEnforcementMostRecent(defendantAccountId, null))
+            .thenReturn(java.util.Optional.empty());
+        when(debtorDetailRepositoryService.findByPartyId(88L)).thenReturn(java.util.Optional.of(
+            DebtorDetailEntity.builder().partyId(88L).build()
+        ));
+
+        EnforcementStatus status = service.getEnforcementStatus(defendantAccountId);
+
+        assertNotNull(status);
+        assertNull(status.getLastEnforcementAction());
+        assertNull(status.getEnforcementOverride());
+        assertNull(status.getNextEnforcementActionData());
+    }
+
     private void assertCommonResponse(AddEnforcementResponse response) {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
         assertEquals(0, response.getVersion());
@@ -871,6 +994,14 @@ public class OpalDefendantAccountEnforcementServiceTest {
             resultResponses.put(keyValues[i], keyValues[i + 1]);
         }
         return resultResponses;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> invokeToResultResponsesMap(List<ResultResponse> responses) throws Exception {
+        Method method = OpalDefendantAccountEnforcementService.class
+            .getDeclaredMethod("toResultResponsesMap", List.class);
+        method.setAccessible(true);
+        return (Map<String, String>) method.invoke(service, responses);
     }
 
 }
