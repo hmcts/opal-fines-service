@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -82,7 +82,7 @@ public class OpalDefendantAccountEnforcementService
         String businessUnitUserId,
         String ifMatch,
         String authHeader,
-        AddDefendantAccountEnforcementRequest request) throws JsonProcessingException {
+        AddDefendantAccountEnforcementRequest request) throws JacksonException {
 
         String reason = null;
         Integer jailDays = null;

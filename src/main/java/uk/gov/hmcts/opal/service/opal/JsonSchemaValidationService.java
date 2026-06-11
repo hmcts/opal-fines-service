@@ -1,7 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion.VersionFlag;
@@ -45,7 +46,7 @@ public class JsonSchemaValidationService {
     public boolean isValid(JsonNode jsonNode, String jsonSchemaFileName) {
         JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
         try {
-            Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode);
+            Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode.toString(), InputFormat.JSON);
             if (!msgs.isEmpty()) {
                 log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName,
                     msgs.size());
@@ -80,7 +81,8 @@ public class JsonSchemaValidationService {
     public Set<String> validate(String body, String jsonSchemaFileName) {
         JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
         try {
-            Set<ValidationMessage> msgs =  jsonSchema.validate(getJsonNodeFromStringContent(body));
+            getJsonNodeFromStringContent(body);
+            Set<ValidationMessage> msgs = jsonSchema.validate(body, InputFormat.JSON);
             return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
         } catch (JsonSchemaValidationException jsve) {
             return Set.of(jsve.getMessage());
@@ -90,7 +92,7 @@ public class JsonSchemaValidationService {
     private JsonNode getJsonNodeFromStringContent(String content) {
         try {
             return ToJsonString.getObjectMapper().readTree(content);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             StringBuilder sb = new StringBuilder(e.getMessage().length() + content.length() + 99);
             sb.append(e.getOriginalMessage());
             appendContent(sb, content);

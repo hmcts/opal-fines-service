@@ -1,7 +1,8 @@
 package uk.gov.hmcts.opal.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -101,7 +102,7 @@ public final class TestHttpClient {
                 JsonNode root = OBJECT_MAPPER.readTree(body);
                 JsonNode node = root.path(fieldName);
                 return node.isMissingNode() || node.isNull() ? null : node.asText();
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 throw new IllegalStateException("Failed to parse JSON response body", e);
             }
         }

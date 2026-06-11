@@ -6,8 +6,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,9 +52,9 @@ class ReportQueueConsumerServiceTest {
     }
 
     @Test
-    void consume_invalidJson_throwsIllegalArgumentException() throws JsonProcessingException {
+    void consume_invalidJson_throwsIllegalArgumentException() throws JacksonException {
         String payload = "{invalid";
-        when(objectMapper.readValue(payload, ReportQueueMessage.class)).thenThrow(JsonProcessingException.class);
+        when(objectMapper.readValue(payload, ReportQueueMessage.class)).thenThrow(JacksonException.class);
         assertThatThrownBy(() -> consumer.consume(payload))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Unable to parse");

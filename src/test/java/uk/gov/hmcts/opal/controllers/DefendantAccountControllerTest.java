@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -171,7 +171,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    void testAddEnforcement_Success() throws JsonProcessingException {
+    void testAddEnforcement_Success() throws JacksonException {
         // Arrange
         Long defendantAccountId = 1L;
         Short businessUnitId = 10;
