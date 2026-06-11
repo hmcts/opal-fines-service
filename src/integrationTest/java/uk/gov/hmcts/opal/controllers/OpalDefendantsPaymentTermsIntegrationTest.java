@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -155,8 +154,6 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
                 .businessUnitUser(java.util.Collections.emptySet())
                 .build()
         );
-        UserState dummyUserState = UserState.builder().userId(123L).build();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(dummyUserState));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("token_without_permission");
