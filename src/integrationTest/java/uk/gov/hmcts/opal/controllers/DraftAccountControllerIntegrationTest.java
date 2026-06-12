@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -10,8 +8,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +19,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -42,8 +37,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void testDeleteDraftAccountById_success() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(delete(URL_BASE + "/4")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("If-Match", "0")
-            .header("authorization", "Bearer some_value"));
+            .header("authorization", userStateStub.getBearerToken()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testDeleteDraftAccountById_success: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -62,13 +58,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void methodsShouldReturn400_whenRequestPayloadIsInvalid(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78,
-                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
-
         mockMvc.perform(requestBuilder
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("Accept", "application/json")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -91,10 +83,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(requestBuilder
-            .header("Authorization", "Bearer some_value")
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
@@ -113,7 +103,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         return Stream.of(
             Arguments.of(post(URL_BASE), validCreateRequestBody()),
             Arguments.of(put(URL_BASE + "/1"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody("78", "Publishing Pending","B")),
+            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody("78", "Publishing Pending", "B")),
             Arguments.of(get(URL_BASE), "")  // GET endpoints with empty body
         );
     }
@@ -127,14 +117,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void methodsShouldReturn404_whenResourceNotFound(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        // Mock the service behavior
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78,
-                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
-
         mockMvc.perform(requestBuilder
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -145,7 +130,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         return Stream.of(
             Arguments.of(get(URL_BASE + "/999"), ""),
             Arguments.of(put(URL_BASE + "/999"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody("78", "Publishing Pending","C"))
+            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody("78", "Publishing Pending", "C"))
         );
     }
 
@@ -158,12 +143,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78,
-                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         mockMvc.perform(requestBuilder
-                .header("Authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("Accept", "application/xml")
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)

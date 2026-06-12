@@ -3,10 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -28,15 +24,11 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -54,13 +46,11 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/central-funds";
     private static final String AUTH_HEADER = "Bearer test-token";
 
-    @MockitoBean
-    private UserStateService userStateService;
 
     @BeforeEach
     void setup() {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(UserStateUtil.permissionUser((short) 73, SEARCH_AND_VIEW_ACCOUNTS));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 73, SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -71,6 +61,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
         Map<String, Object> centralFund = getCentralFundRow(73);
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/73")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
 
         actions.andExpect(status().isOk())
@@ -91,7 +82,9 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
     void getCentralFund_whenCentralFundDoesNotExist_returnsNotFound() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/999").header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/999")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
 
         actions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -113,33 +106,31 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2320: GET central fund returns 401 when auth header is missing")
+    @DisplayName("PO-2320: GET central fund returns 403 when auth header is missing")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
     void getCentralFund_whenAuthHeaderMissing_returnsUnauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
+        userStateStub.setupWithNoPermissions();
 
-        mockMvc.perform(get(URL_BASE + "/73"))
-            .andExpect(status().isUnauthorized())
+        mockMvc.perform(get(URL_BASE + "/73")
+                .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor()))
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
     @Test
-    @DisplayName("PO-2320: GET central fund returns 401 when token is invalid")
+    @DisplayName("PO-2320: GET central fund returns 403 when token is invalid")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
     void getCentralFund_whenTokenInvalid_returnsUnauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Invalid token"))
-            .when(userStateService).checkForAuthorisedUser(any());
-
         mockMvc.perform(get(URL_BASE + "/73")
+                .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer invalid_token"))
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Invalid token"))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -148,7 +139,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
     void getCentralFund_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
 
         mockMvc.perform(get(URL_BASE + "/73").header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isForbidden())
@@ -162,8 +153,10 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     void getCentralFund_whenDataUnchanged_returnsIdenticalPayloadAndHeaders() throws Exception {
         ResultActions first = mockMvc.perform(get(URL_BASE + "/73")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
         ResultActions second = mockMvc.perform(get(URL_BASE + "/73")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
 
         first.andExpect(status().isOk())

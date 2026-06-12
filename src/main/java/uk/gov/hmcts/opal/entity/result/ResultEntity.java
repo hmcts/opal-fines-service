@@ -109,6 +109,9 @@ public class ResultEntity {
     @Column(name = "result_parameters")
     private String resultParameters;
 
+    @Column(name = "requires_employment_data")
+    private Boolean requiresEmploymentData;
+
     @Column(name = "manual_enforcement", nullable = false)
     private boolean manualEnforcement;
 

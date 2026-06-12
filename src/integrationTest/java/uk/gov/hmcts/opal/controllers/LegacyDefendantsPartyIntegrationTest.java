@@ -1,15 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.matchesPattern;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -22,9 +21,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
@@ -46,7 +42,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     private HttpHeaders partyHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
         return headers;
@@ -58,10 +54,11 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-5935")
     void testGetDefendantAccountParty_Happy() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions actions = mockMvc.perform(
-            get(URL_BASE + "/77/defendant-account-parties/77").header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/77/defendant-account-parties/77")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
@@ -87,10 +84,11 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-5937")
     void testGetDefendantAccountParty_Organisation() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions actions = mockMvc.perform(
-            get(URL_BASE + "/555/defendant-account-parties/555").header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/555/defendant-account-parties/555")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         String etag = actions.andReturn().getResponse().getHeader("ETag");
@@ -115,10 +113,10 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-5934")
     void testGetDefendantAccountParty_500Error() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         ResultActions actions = mockMvc.perform(
-            get(URL_BASE + "/500/defendant-account-parties/500").header("authorization", "Bearer some_value"));
+            get(URL_BASE + "/500/defendant-account-parties/500")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":legacy_getDefendantAccountParty_500Error body:\n{}", ToJsonString.toPrettyJson(body));
@@ -134,10 +132,9 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-5933")
     void testPutReplaceDefAccParty_Success() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         var res = mockMvc.perform(
             put("/defendant-accounts/77/defendant-account-parties/77")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PUT_PARTY_REQUEST)
@@ -158,11 +155,9 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-5936")
     void testPutReplaceDefAccParty_500Error() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         var res = mockMvc.perform(
             put("/defendant-accounts/500/defendant-account-parties/500")
-                .headers(partyHeaders())
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PUT_PARTY_REQUEST)
         );

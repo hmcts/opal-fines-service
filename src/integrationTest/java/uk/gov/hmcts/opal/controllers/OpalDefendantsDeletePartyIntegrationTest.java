@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -27,7 +28,6 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6017")
     void delete_happyPath_removesAssociation_returnsResponse() throws Exception {
-        authoriseAllPermissions();
 
         long defendantAccountId = 2006L;
         long dapId = 2006L;
@@ -35,7 +35,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
         Integer currentVersion = versionFor(defendantAccountId);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -51,6 +51,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
 
         ResultActions res = mockMvc.perform(
             delete("/defendant-accounts/2006/defendant-account-parties/2006")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -77,7 +78,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     private @Nullable Integer getAssociationCountForDAP(Long defAccountId, Long dapId) {
         return jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM defendant_account_parties "
-                 + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
+                + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
             Integer.class,
             defAccountId,
             dapId
@@ -90,12 +91,11 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6019")
     void delete_notFound_whenDefendantAccountPartyNotOnAccount() throws Exception {
-        authoriseAllPermissions();
 
         Integer currentVersion = versionFor(78L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -109,6 +109,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
 
         ResultActions res = mockMvc.perform(
             delete("/defendant-accounts/78/defendant-account-parties/99999")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -127,12 +128,11 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6018")
     void delete_notFound_whenAccountNotInHeaderBU() throws Exception {
-        authoriseAllPermissions();
-
+        userStateStub.addPermissions((short) 99, FinesPermission.values());
         Integer currentVersion = versionFor(2006L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -144,6 +144,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
 
         ResultActions res = mockMvc.perform(
             delete("/defendant-accounts/2006/defendant-account-parties/2006")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -155,5 +156,5 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
     }
-    
+
 }

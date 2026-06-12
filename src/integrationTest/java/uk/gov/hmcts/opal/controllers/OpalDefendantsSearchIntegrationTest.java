@@ -5,24 +5,19 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -33,9 +28,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -55,37 +48,27 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     private static final String DEFENDANTS_SEARCH_RESP_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/postDefendantAccountsSearchResponse.json";
 
-    @MockitoBean
-    UserStateService userStateService;
-
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
 
     @MockitoBean
-    private UserState userState;
-
-    @MockitoBean
     private AccessTokenService accessTokenService;
 
-    @BeforeEach
-    void setup() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-    }
-
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Search defendant accounts – POST with valid criteria (seed id=77)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6092")
     void testPostDefendantAccountsSearch_Opal(boolean consolidated) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header(
-            "authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(searchCriteria2(consolidated)));
+            post(DEFENDANTS_SEARCH_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(searchCriteria2(consolidated)));
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
@@ -105,16 +88,16 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Search defendant accounts – POST no matches (different BU)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6084")
     void testPostDefendantAccountsSearch_Opal_NoResults(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -146,16 +129,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Search by exact name + BU = 1 match (seed id=77)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6157")
     void testPostDefendantAccountsSearch_Opal_ByNameAndBU(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                        "active_accounts_only": true,
@@ -190,16 +174,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Postcode match ignores spaces/hyphens (MA4 1AL vs MA41AL)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6105")
     void testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                             {
                                  "active_accounts_only": true,
@@ -244,10 +229,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         boolean consolidation,
         int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                             {
                                       "active_accounts_only": true,
@@ -278,16 +264,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: PCR exact (090A)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6142")
     void testPostDefendantAccountsSearch_Opal_PcrExact(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -312,16 +299,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: PCR no match -> 0 records")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6113")
     void testPostDefendantAccountsSearch_Opal_PcrNoMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -344,16 +332,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6152")
     void testPostDefendantAccountsSearch_Opal_NiStartsWith(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -388,16 +377,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Address line 1 starts-with (\"Lumber\") -> 1 record")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6090")
     void testPostDefendantAccountsSearch_Opal_AddressStartsWith(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -434,16 +424,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: DOB exact (1980-02-03) -> 1 record")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6099")
     void testPostDefendantAccountsSearch_Opal_DobExact(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -481,16 +472,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Include aliases = true still returns match on main name (no alias in DB)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6128")
     void testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -534,10 +526,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-6097")
     void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": false,
@@ -579,16 +572,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6088")
     void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -614,17 +608,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: No defendant object in payload → party still resolved")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6168")
     void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(boolean consolidation)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -650,16 +645,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Search without business_unit_ids → still returns results")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6126")
     void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -684,16 +680,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Personal party (Anna Graham) includes title, forenames, and surname")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6140")
     void testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -728,16 +725,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Organisation returns no personal fields (awaiting seeded org data)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6115")
     void testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -776,16 +774,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Alias search fallback → matches on main name when no alias exists")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6132")
     void testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -819,16 +818,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Optional fields correctly mapped or excluded when null")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6170")
     void testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -864,16 +864,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6118")
     void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -902,16 +903,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     // AC1: Multi-parameter search tests - ALL search parameters must match
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Search defendant accounts - business unit fallback when business unit row is missing")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6138")
     void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
+        mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
 
-        mockMvc.perform(post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -930,16 +932,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6082")
     void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                            "active_accounts_only": true,
@@ -971,16 +974,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Match on alias when both alias and main name exist")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6146")
     void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1012,17 +1016,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC1: Multi-parameter search - surname + postcode (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6130")
     void testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with surname "Graham" AND postcode "MA4 1AL" - should match account 77
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1054,17 +1059,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC1: Multi-parameter search - surname + wrong postcode (no matches expected) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6109")
     void testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with surname "Graham" AND wrong postcode - should return 0 results
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1097,16 +1103,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     // AC2: Business unit filtering test
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC1: Multi-parameter search - forenames + surname + DOB + NI (all must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6136")
     void testPostDefendantAccountsSearch_AC1_CompletePersonalDetails(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1140,17 +1147,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     // AC3a: Active accounts only filtering tests
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC1: Multi-parameter search - address + NI number (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6166")
     void testPostDefendantAccountsSearch_AC1_AddressAndNI(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with address line 1 starting "Lumber" AND NI starting "A111" - should match account 77
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1184,17 +1192,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     // AC5a: Forenames match filtering tests
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC1: Multi-parameter search - wrong business unit excludes otherwise matching records [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6150")
     void testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with correct surname but wrong business unit - should return 0 results
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1227,17 +1236,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     // AC9: Multi-parameter search tests for organisations - ALL search parameters must match
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC2: Only accounts within specified business units are returned [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6086")
     void testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Should find accounts 77, 88, 901, 333 but filter to only return those in business unit 78
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1281,11 +1291,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-6164")
     void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Test AC3a: active_accounts_only = false should include both active and completed accounts
         ResultActions allAccountsActions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": false,
@@ -1316,7 +1327,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists());
         if (!consolidation) {
             allAccountsActions.andExpect(
-                jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number").value("177B"))
+                    jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number").value("177B"))
                 .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
                 .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number")
                     .value("444C"));
@@ -1324,16 +1335,17 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6124")
     void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                            "active_accounts_only": true,
@@ -1366,17 +1378,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9: Company multi-parameter search - company name + address line 1 (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6162")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with company name "TechCorp Solutions Ltd" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1411,17 +1424,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9: Company multi-parameter search - company name + postcode (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6134")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with company name "TechCorp Solutions Ltd" AND postcode "B15 3TG" - should match account 555
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1457,17 +1471,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     // AC9a: Business unit filtering for company accounts
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9: Company multi-parameter search - partial company name + address (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6172")
     void testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with partial company name "TechCorp" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1502,17 +1517,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     // AC9b: Active accounts only filtering for company accounts
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9: Company multi-parameter search - correct name + wrong address (no matches expected) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6107")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with correct company name "TechCorp Solutions Ltd" BUT wrong address "Office Tower"
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1543,17 +1559,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9: Company multi-parameter search - multiple address fields (all must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6155")
     void testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with company name AND multiple address fields - all must match
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1588,17 +1605,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9a: Only company accounts within specified business units are returned [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6122")
     void testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Apply business unit filter to only BU 78 - should return only TechCorp Solutions Ltd
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1642,11 +1660,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-6144")
     void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation, int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // active_accounts_only = false should include both active and completed company accounts
         ResultActions allAccountsActions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                        "active_accounts_only": false,
@@ -1675,24 +1694,25 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         allAccountsActions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(count))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '555')]").exists());
-        if  (!consolidation) {
+        if (!consolidation) {
             allAccountsActions
                 .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '777')]").exists());
         }
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9d: Where company name or alias starts with input [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6120")
     void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with partial alias "TC Global" - should match "TC Global Ltd" alias (starts with)
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1726,17 +1746,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9di: Where company name or alias results exactly matches input [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6094")
     void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with exact alias "TechCorp Ltd" - should match exactly
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1770,17 +1791,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9e: Company address partial match - Address Line 1 starts with input value [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6159")
     void testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with partial address "Business" - should match "Business Park"
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1814,17 +1836,18 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = { false, true })
+    @ValueSource(booleans = {false, true})
     @DisplayName("AC9ei: Company postcode partial match - Postcode starts with input value [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6103")
     void testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(boolean consolidation) throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // Search with partial postcode "B15" - should match "B15 3TG"
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {
                           "active_accounts_only": true,
@@ -1870,12 +1893,13 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         boolean consolidation,
         int count)
         throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // active_accounts_only is ignored because account_number is provided.
         // When consolidation_search=true, the consolidated path also drops zero-balance matches, so only 177A remains.
         ResultActions activeTrue = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
@@ -1901,7 +1925,10 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         // Case 2: active_accounts_only = false (also ignored; set should be identical)
         ResultActions activeFalse = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": false,
@@ -1932,11 +1959,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6111")
     void testPostDefendantAccountsSearch_OrganisationFlagRespected1() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // === AC1: organisation = true → only organisation defendants (e.g. 333A) ===
         ResultActions orgTrue = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(true)));
 
         String bodyTrue = orgTrue.andReturn().getResponse().getContentAsString();
@@ -1957,11 +1985,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6112")
     void testPostDefendantAccountsSearch_OrganisationFlagRespected2() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         // === AC2: organisation = false → only individual defendants (e.g. 177A, 177B) ===
         ResultActions orgFalse = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content(searchCriteria(false)));
 
         String bodyFalse = orgFalse.andReturn().getResponse().getContentAsString();
@@ -2065,10 +2094,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6096")
     void testPostDefendantAccountsConsolidatedSearch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content(searchCriteria2(true)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -2094,10 +2124,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6161")
     void testPostDefendantAccountsConsolidatedSearch_noWarningsNoErrors() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content(consolidatedSearchCriteriaWithoutWarnings()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -2123,10 +2154,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6117")
     void testPostDefendantAccountsConsolidatedSearch_hasWarningsNoErrors() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content(
                     consolidatedSearchCriteriaByAccountNumber("1989")));
 
@@ -2153,10 +2185,11 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6154")
     void testPostDefendantAccountsConsolidatedSearch_hasWarningsHasErrors() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(
-            post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+            post(DEFENDANTS_SEARCH_URL)
+
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content(
                     consolidatedSearchCriteriaByAccountNumber("1988")));
 
