@@ -82,4 +82,7 @@ public class ResultDto {
 
     @JsonProperty("result_parameters")
     private String resultParameters;
+
+    @JsonProperty("requires_employment_data")
+    private Boolean requiresEmploymentData;
 }

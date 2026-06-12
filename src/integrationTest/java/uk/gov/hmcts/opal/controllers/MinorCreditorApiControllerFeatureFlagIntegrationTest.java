@@ -55,7 +55,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
 
         ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer some_value")
+                            .header("authorization", userStateStub.getBearerToken())
                             .header("Business-Unit-Id", String.valueOf(BUSINESS_UNIT_ID))
                             .header("If-Match", "\"1\"")
                             .content(objectMapper.writeValueAsString(request)));

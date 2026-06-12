@@ -94,14 +94,45 @@ VALUES
     'Graph Creditor', 'IG-REF-01', '1', 1, TIMESTAMP '2026-04-17 09:00:00'
     );
 
+INSERT INTO parties (
+    party_id, organisation, organisation_name, surname, forenames, title, address_line_1,
+    account_type, last_changed_date
+    )
+VALUES
+    (
+    551006, false, NULL, 'Minor', 'Creditor', 'Ms', '4 Minor Street',
+    'Creditor', TIMESTAMP '2026-04-17 09:10:00'
+    );
+
+INSERT INTO creditor_accounts (
+    creditor_account_id, business_unit_id, account_number, creditor_account_type, prosecution_service,
+    major_creditor_id, minor_creditor_party_id, from_suspense, hold_payout, pay_by_bacs,
+    bank_sort_code, bank_account_number, bank_account_name, bank_account_reference, bank_account_type,
+    version_number, last_changed_date
+    )
+VALUES
+    (
+    551007, 55, 'IG551007', 'MN', FALSE, NULL,
+    551006, FALSE, FALSE, TRUE, '112244', '12345679',
+    'Minor Creditor', 'IG-REF-02', '1', 1, TIMESTAMP '2026-04-17 09:15:00'
+    );
+
 INSERT INTO defendant_accounts (
     defendant_account_id, business_unit_id, account_number, imposing_court_id,
-    amount_imposed, amount_paid, account_balance, account_status, account_type
+    amount_imposed, amount_paid, account_balance, account_status, account_type, version_number
     )
 VALUES
     (
     551002, 55, 'IG551002', 551001, 250.00,
-    25.00, 225.00, 'L', 'Fine'
+    25.00, 225.00, 'L', 'Fine', 7
+    ),
+    (
+    551008, 55, 'IG551008', NULL, 80.00,
+    30.00, 50.00, 'L', 'Fine', 8
+    ),
+    (
+    551010, 55, 'IG551010', NULL, 0.00,
+    0.00, 0.00, 'L', 'Fine', 9
     );
 
 INSERT INTO impositions (
@@ -114,4 +145,9 @@ VALUES
     551005, 551002, TIMESTAMP '2026-04-17 10:00:00', '99999999A', 'Graph User',
     NULL, 'IGR001', 551001, TIMESTAMP '2026-04-16 09:30:00', 250.00,
     25.00, 5510, 551004, FALSE, 3, FALSE
+    ),
+    (
+    551009, 551008, TIMESTAMP '2026-04-17 11:00:00', '99999999B', 'Minor Graph User',
+    NULL, 'IGR001', NULL, TIMESTAMP '2026-04-16 10:30:00', 80.00,
+    30.00, 5510, 551007, FALSE, 1, FALSE
     );

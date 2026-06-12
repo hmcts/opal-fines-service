@@ -202,8 +202,6 @@ public class OpalDefendantAccountEnforcementService
             savedEntity
         );
 
-        reportEntryService.createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
-
         amendmentService.auditFinaliseStoredProc(
             defendantAccountId,
             RecordType.DEFENDANT_ACCOUNTS,

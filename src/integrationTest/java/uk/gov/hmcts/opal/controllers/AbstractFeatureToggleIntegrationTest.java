@@ -1,11 +1,9 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.springframework.http.MediaType;
 import org.junit.jupiter.params.provider.Arguments;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.service.UserStateService;
 
 /**
  * Base class for feature-toggle integration tests.
@@ -19,8 +17,6 @@ abstract class AbstractFeatureToggleIntegrationTest extends AbstractIntegrationT
     static final String IF_MATCH_HEADER  = "If-Match";
     static final String IF_MATCH_VALUE   = "\"0\"";
 
-    @MockitoBean
-    UserStateService userStateService;
 
     static MockHttpServletRequestBuilder withAuth(MockHttpServletRequestBuilder request) {
         return request.header(AUTH_HEADER, AUTH_VALUE).accept(MediaType.APPLICATION_JSON);

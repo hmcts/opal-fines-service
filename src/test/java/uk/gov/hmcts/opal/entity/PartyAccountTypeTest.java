@@ -5,16 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-public class AccountTypeTest {
+public class PartyAccountTypeTest {
 
     @Test
     void getByLabel_shouldReturnEnum_forKnownLabel() {
-        assertEquals(AccountType.DEFENDANT, AccountType.getByLabel("Defendant"));
-        assertEquals(AccountType.CREDITOR, AccountType.getByLabel("Creditor"));
+        assertEquals(PartyAccountType.DEFENDANT, PartyAccountType.getByLabel("Defendant"));
+        assertEquals(PartyAccountType.CREDITOR, PartyAccountType.getByLabel("Creditor"));
     }
 
     @Test
     void getByLabel_shouldThrow_forUnknownLabel() {
-        assertThrows(IllegalArgumentException.class, () -> AccountType.getByLabel("Unknown"));
+        assertThrows(IllegalArgumentException.class, () -> PartyAccountType.getByLabel("Unknown"));
     }
 }

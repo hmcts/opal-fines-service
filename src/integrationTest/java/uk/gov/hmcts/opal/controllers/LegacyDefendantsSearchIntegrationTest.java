@@ -1,35 +1,30 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
+@TestPropertySource(properties = "launchdarkly.default-flag-values.release-1b=true")
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
@@ -37,20 +32,10 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
 
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    private UserState userState;
 
     @MockitoBean
     private AccessTokenService accessTokenService;
 
-    @BeforeEach
-    void setupUserState() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-    }
 
     @Test
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
@@ -59,10 +44,9 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-704")
     @JiraTestKey("PO-5943")
     void testPostDefendantAccountsSearch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
         ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
                 {
@@ -102,9 +86,9 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-704")
     @JiraTestKey("PO-5944")
     void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(allFinesPermissionUser());
-
-        ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL).header("authorization", "Bearer some_value")
+        ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON).content("""
                 {
                    "active_accounts_only": true,

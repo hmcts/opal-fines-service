@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.config;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import java.lang.reflect.Field;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +18,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 @SpringBootTest(classes = {CacheConfig.class, CacheConfigTest.TestConfig.class})
 @Isolated
@@ -54,6 +58,7 @@ class CacheConfigTest {
 
     @TestConfiguration
     static class TestConfig {
+
         @Bean
         @Primary
         public RedisConnectionFactory redisConnectionFactory() {
@@ -65,5 +70,35 @@ class CacheConfigTest {
         public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
             return RedisCacheManager.builder(redisConnectionFactory).build();
         }
+    }
+
+    @Test
+    void redisConnectionFactory_shouldEnableSsl_whenUsingRedissUrl() throws Exception {
+        CacheConfig config = new CacheConfig();
+        setField(config, "redisUrl", "rediss://:password@opal-stg.redis.cache.windows.net:6380?tls=true");
+        setField(config, "redisEnabled", true);
+        setField(config, "redisTtlDuration", Duration.ofMinutes(5));
+
+        LettuceConnectionFactory factory = (LettuceConnectionFactory) config.redisConnectionFactory();
+
+        assertThat(factory.isUseSsl()).isTrue();
+    }
+
+    @Test
+    void redisConnectionFactory_shouldDisableSsl_whenUsingRedisUrl() throws Exception {
+        CacheConfig config = new CacheConfig();
+        setField(config, "redisUrl", "redis://localhost:6379");
+        setField(config, "redisEnabled", true);
+        setField(config, "redisTtlDuration", Duration.ofMinutes(5));
+
+        LettuceConnectionFactory factory = (LettuceConnectionFactory) config.redisConnectionFactory();
+
+        assertThat(factory.isUseSsl()).isFalse();
+    }
+
+    private static void setField(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }
