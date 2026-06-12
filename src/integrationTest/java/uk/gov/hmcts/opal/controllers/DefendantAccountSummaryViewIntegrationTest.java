@@ -26,11 +26,11 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5811")
     void int01_getAtAGlance_returnsActivePaymentTermsSummary() throws Exception {
-        authoriseAllPermissions();
 
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_MULTI_TERMS_ONE_ACTIVE)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
         );
 
         resultActions.andExpect(status().isOk())
@@ -51,11 +51,11 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5810")
     void int02_getAtAGlance_returnsNotFound_whenNoActivePaymentTermsExist() throws Exception {
-        authoriseAllPermissions();
 
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_NO_ACTIVE_TERMS)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .accept(APPLICATION_PROBLEM_JSON)
         );
 

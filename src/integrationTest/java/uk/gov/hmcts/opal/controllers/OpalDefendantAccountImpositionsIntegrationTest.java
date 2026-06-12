@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -14,21 +12,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -47,22 +39,9 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     private static final String URL_BASE = "/defendant-accounts";
 
-    @MockitoBean
-    private UserStateService userStateService;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @MockitoBean
-    private UserStateClientService userStateClientService;
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
-
-    @BeforeEach
-    void setupUserState() {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
-    }
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns major creditor imposition with schema-valid body")
@@ -166,8 +145,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
     void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
-
+        userStateStub.setupWithNoPermissions();
         performGetImpositions(551002L)
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -178,7 +156,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/impositions")
-                                   .header("Authorization", "Bearer test-token")
-                                   .accept(MediaType.APPLICATION_JSON));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("Authorization", userStateStub.getBearerToken())
+            .accept(MediaType.APPLICATION_JSON));
     }
 }

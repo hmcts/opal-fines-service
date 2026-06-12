@@ -72,7 +72,7 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-6230")
     void testGetProsecutorsRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                                                    .header("authorization", "Bearer some_value"));
+                                                    .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));

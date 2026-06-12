@@ -1,17 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,16 +15,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -38,17 +27,11 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/reports";
 
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    UserStateClientService userStateClientService;
 
     @BeforeEach
     void setUp() {
-        when(userStateService.checkForAuthorisedUser()).thenReturn(
-            permissionUser((short) 70, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)
-        );
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 70, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -57,20 +40,19 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     void getReportById_whenReportDoesNotExist_returns404() throws Exception {
 
-        mockMvc.perform(get(URL_BASE + "/non_existent_report"))
+        mockMvc.perform(get(URL_BASE + "/non_existent_report")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
             .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("Get report by ID - no token present returns 401 [@PO-2250]")
+    @DisplayName("Get report by ID - no token present returns 403 [@PO-2250]")
     @JiraStory("PO-2250")
     @JiraEpic("PO-2248")
-    void getReportById_whenNoTokenPresent_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser();
-
+    void getReportById_whenNoTokenPresent_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
         mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isForbidden());
     }
 
     @Test
@@ -79,7 +61,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     void getReportById_whenRequestNotAcceptable_returns406() throws Exception {
         mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .accept("application/xml"))
             .andExpect(status().isNotAcceptable());
     }
@@ -94,7 +77,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenAllFieldsPopulated_returns200AndMapsAllFields() throws Exception {
-            mockMvc.perform(get(URL_BASE + "/it_report_full"))
+            mockMvc.perform(get(URL_BASE + "/it_report_full")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_id").value("it_report_full"))
                 .andExpect(jsonPath("$.report_title").value("Integration Full Report"))
@@ -117,7 +101,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenOptionalFieldsNullOrEmpty_returns200() throws Exception {
-            mockMvc.perform(get(URL_BASE + "/it_report_optional"))
+            mockMvc.perform(get(URL_BASE + "/it_report_optional")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_id").value("it_report_optional"))
                 .andExpect(jsonPath("$.report_parameters").isMap())
@@ -132,7 +117,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenRetentionPeriodPresent_returnsIso8601String() throws Exception {
-            mockMvc.perform(get(URL_BASE + "/it_report_full"))
+            mockMvc.perform(get(URL_BASE + "/it_report_full")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.retention_period").value("PT720H"));
         }
@@ -142,7 +128,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenReportParametersPresent_returnsJsonObject() throws Exception {
-            mockMvc.perform(get(URL_BASE + "/it_report_full"))
+            mockMvc.perform(get(URL_BASE + "/it_report_full")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_parameters").isMap())
                 .andExpect(jsonPath("$.report_parameters.filters.status[0]").value("ACTIVE"))
@@ -155,7 +142,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenSupportedFileTypesPresent_preservesOrderAndEnums() throws Exception {
-            mockMvc.perform(get(URL_BASE + "/it_report_order"))
+            mockMvc.perform(get(URL_BASE + "/it_report_order")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.supported_file_types[0]").value("XML"))
                 .andExpect(jsonPath("$.supported_file_types[1]").value("CSV"))
@@ -168,7 +156,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenSuccessful_returnsOnlyDocumentedFields() throws Exception {
-            ResultActions actions = mockMvc.perform(get(URL_BASE + "/it_report_full"));
+            ResultActions actions = mockMvc.perform(get(URL_BASE + "/it_report_full")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()));
 
             String body = actions.andReturn().getResponse().getContentAsString();
             Set<String> actualFields = objectMapper.readTree(body).properties()
@@ -199,8 +188,10 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenCalledRepeatedly_returnsIdenticalOutput() throws Exception {
-            ResultActions first = mockMvc.perform(get(URL_BASE + "/it_report_full"));
-            ResultActions second = mockMvc.perform(get(URL_BASE + "/it_report_full"));
+            ResultActions first = mockMvc.perform(get(URL_BASE + "/it_report_full")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()));
+            ResultActions second = mockMvc.perform(get(URL_BASE + "/it_report_full")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()));
 
             String firstBody = first.andReturn().getResponse().getContentAsString();
             String secondBody = second.andReturn().getResponse().getContentAsString();
@@ -246,8 +237,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenUserLacksPermission_returns403() throws Exception {
-            when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionsUser());
-
+            userStateStub.setupWithNoPermissions();
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.title").value("Forbidden"))
@@ -264,11 +254,10 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         void getReportById_whenUserLacksRequiredReportPermission_returns403() throws Exception {
-            when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionsUser());
-            when(userStateClientService.getUserStateByAuthenticatedUser())
-                .thenReturn(Optional.of(UserStateV2.builder().build()));
+            userStateStub.setupWithNoPermissions();
 
-            mockMvc.perform(get(URL_BASE + "/it_report_full"))
+            mockMvc.perform(get(URL_BASE + "/it_report_full")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.title").value("Forbidden"))
                 .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))

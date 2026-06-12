@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -34,12 +35,11 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6063")
     void put_notFound_whenAccountNotInHeaderBU() throws Exception {
-        authoriseAllPermissions();
-
+        userStateStub.addPermissions((short) 99, FinesPermission.values());
         Integer currentVersion = versionFor(20010L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -57,6 +57,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
         ResultActions res = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -75,13 +76,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6067")
     void put_happyPath_updates_andReturnsResponse() throws Exception {
-        authoriseAllPermissions();
 
         Integer currentVersion = versionFor(20010L);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -122,6 +122,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -144,12 +145,10 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6062")
     void put_notFound_whenDapMissing() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(20010L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -166,6 +165,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
         ResultActions res = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/99999")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -184,13 +184,11 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6066")
     void put_individual_aliases_upsert_and_trim() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(22004L);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -214,7 +212,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             """;
 
         ResultActions call = mockMvc.perform(
-            put("/defendant-accounts/22004/defendant-account-parties/22004").headers(headers)
+            put("/defendant-accounts/22004/defendant-account-parties/22004")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON).content(body));
 
         String resp = call.andReturn().getResponse().getContentAsString();
@@ -255,14 +255,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6068")
     void put_org_aliases_upsert_and_trim() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(20010L);
         assertNotNull(currentVersion);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -297,7 +295,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             """;
 
         ResultActions call = mockMvc.perform(
-            put("/defendant-accounts/20010/defendant-account-parties/20010").headers(headers)
+            put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON).content(body));
 
         String resp = call.andReturn().getResponse().getContentAsString();
@@ -347,14 +347,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6065")
     void put_replace_dap_isDebtorFalse_clearsDebtorFieldsButKeepsRow() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(20010L);
         assertNotNull(currentVersion);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -383,6 +381,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
@@ -417,14 +416,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6061")
     void put_replace_dap_isDebtorTrue_upsertsDebtorDetails() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(20010L);
         assertNotNull(currentVersion);
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -459,7 +456,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             """;
 
         ResultActions call = mockMvc.perform(
-            put("/defendant-accounts/20010/defendant-account-parties/20010").headers(headers)
+            put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON).content(body));
 
         String resp = call.andReturn().getResponse().getContentAsString();
@@ -494,8 +493,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6064")
     void put_convertIndividualToOrganisation_removesParentGuardianParty() throws Exception {
-        authoriseAllPermissions();
-
         Integer parentGuardianCountBefore = jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM defendant_account_parties "
                 + "WHERE defendant_account_id = 20010 AND association_type = 'Parent/Guardian'",
@@ -506,7 +503,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -526,6 +523,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
