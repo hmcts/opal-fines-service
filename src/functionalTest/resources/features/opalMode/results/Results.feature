@@ -60,6 +60,13 @@ Feature: Results Reference Data
       | imposition_creditor         |                                         |
       | imposition_allocation_order |                                         |
 
+  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674
+  Scenario: Result by ID includes employment data requirement flag
+    When I request result with identifier "AEO"
+    Then the result response contains
+      | result_id                | AEO  |
+      | requires_employment_data | true |
+
   @JIRA-STORY:PO-3765 @Ignore @release-1b
   Scenario: Result filtering is available when release-1b is enabled
     When I request results for identifiers "NBWT,NAP" using filter "enforcement_override" with value "true"
