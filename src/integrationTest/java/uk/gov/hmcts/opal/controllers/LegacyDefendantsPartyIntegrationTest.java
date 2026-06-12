@@ -72,6 +72,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
             .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(true))
             .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").value("Alex"))
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"))
             .andExpect(header().string("ETag", matchesPattern("\"\\d+\"")));
 
