@@ -514,12 +514,11 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraEpic("PO-855")
     void testPostDraftFPAccount_time_of_issue_null() throws Exception {
         JSONObject body = new JSONObject(validFPPostRequestBody());
-
         String validRequestBody = body.toString();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-                                                          .header("authorization", "Bearer some_value")
+                                                          .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                                                          .header("authorization", userStateStub.getBearerToken())
                                                           .header("If-Match", "0")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(validRequestBody));
@@ -544,10 +543,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .put("time_of_issue", "invalid-date-time-format");
 
         String validRequestBody = body.toString();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
-                                                          .header("authorization", "Bearer some_value")
+                                                          .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                                                          .header("authorization", userStateStub.getBearerToken())
                                                           .header("If-Match", "0")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(validRequestBody));
