@@ -39,6 +39,7 @@ INSERT INTO results
     prevent_payment_card,
     lists_monies,
     result_parameters,
+    requires_employment_data,
     manual_enforcement
 )
 VALUES
@@ -67,6 +68,7 @@ VALUES
         FALSE,
         FALSE,
         NULL,
+        NULL,
         TRUE     -- manual_enforcement = true
     ),
     (
@@ -94,6 +96,7 @@ VALUES
         TRUE,
         TRUE,
         '{"param1":"value1","param2":"value2"}',
+        TRUE,
         FALSE
     ),
     (
@@ -121,6 +124,7 @@ VALUES
         FALSE,
         FALSE,
         '{"warrantDate":"2023-08-15","issuedBy":"Court A"}',
+        FALSE,
         TRUE
     ),
     (
@@ -147,6 +151,7 @@ VALUES
         FALSE,
         FALSE,
         FALSE,
+        NULL,
         NULL,
         FALSE
     );

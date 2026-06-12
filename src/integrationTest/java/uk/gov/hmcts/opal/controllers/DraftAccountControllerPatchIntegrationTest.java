@@ -8,30 +8,22 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -52,14 +44,13 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5841")
     void testUpdateDraftAccount_success() throws Exception {
         Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("65", "Publishing Pending","A")));
+            .content(validUpdateRequestBody("65", "Publishing Pending", "A")));
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testUpdateDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(response));
@@ -70,8 +61,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.validated_by").value("USER01"))
-            .andExpect(jsonPath("$.validated_by_name").value("Normal User"))
+            .andExpect(jsonPath("$.validated_by").value("L065JG"))
+            .andExpect(jsonPath("$.validated_by_name").value("Pablo"))
             .andExpect(jsonPath("$.timeline_data").isArray());
 
         jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
@@ -84,14 +75,13 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5846")
     void testUpdateDraftAccount_conflict() throws Exception {
         Long draftAccountId = 6L;
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "\"9999999\"")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("65", "Publishing Pending","A")));
+            .content(validUpdateRequestBody("65", "Publishing Pending", "A")));
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testUpdateDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(response));
@@ -114,10 +104,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
                 "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         mockMvc.perform(patch(URL_BASE + "/" + 8)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -131,11 +120,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5849")
     void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
         Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
-        UserState user = permissionUser((short)78, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
-
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
@@ -174,14 +161,13 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5850")
     void testPatchDraftAccount_withPublishPending_shouldSucceed() throws Exception {
         Long draftAccountId = 9L; // not touched by any other PATCH/PUT test
-        UserState user = permissionUser((short)65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("65", "Publishing Pending","D")));
+            .content(validUpdateRequestBody("65", "Publishing Pending", "D")));
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPatchDraftAccount_withPublishPending_shouldSucceed: PATCH Response body:\n{}",
@@ -211,29 +197,16 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5847")
     void testPatchDraftAccount_submitterCannotValidate_returns403() throws Exception {
         Long draftAccountId = 7L; // submitted_by = user_003 in seed data
-
-        BusinessUnitUser buUser = BusinessUnitUser.builder()
-            .businessUnitUserId("user_003")
-            .businessUnitId((short)78)
-            .permissions(Set.of(Permission.builder()
-                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
-                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
-                .build()))
-            .build();
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("normal@users.com")
-            .name("Normal User")
-            .businessUnitUser(Set.of(buUser))
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-
+        userStateStub.getUserState().setUsername("normal@users.com");
+        userStateStub.getUserState().getDomainBusinessUnitUsers(Domain.FINES)
+            .getBusinessUnitUserForBusinessUnit((short) 78).get()
+            .setBusinessUnitUserId("user_003");
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("78", "Publishing Pending","A")));
+            .content(validUpdateRequestBody("78", "Publishing Pending", "A")));
 
         resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -259,28 +232,16 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5848")
     void testPatchDraftAccount_submitterCannotDelete_returns403() throws Exception {
         Long draftAccountId = 7L; // submitted_by = user_003 in seed data
-
-        BusinessUnitUser buUser = BusinessUnitUser.builder()
-            .businessUnitUserId("user_003")
-            .businessUnitId((short)78)
-            .permissions(Set.of(Permission.builder()
-                .permissionId(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getId())
-                .permissionName(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS.getDescription())
-                .build()))
-            .build();
-        UserState userState = UserState.builder()
-            .userId(1L)
-            .userName("user_003")
-            .businessUnitUser(Set.of(buUser))
-            .build();
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-
+        userStateStub.getUserState().setUsername("user_003");
+        userStateStub.getUserState().getDomainBusinessUnitUsers(Domain.FINES)
+            .getBusinessUnitUserForBusinessUnit((short) 78).get()
+            .setBusinessUnitUserId("user_003");
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("78", "Deleted","A")));
+            .content(validUpdateRequestBody("78", "Deleted", "A")));
 
         resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -296,7 +257,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             eq("Deletion"),
             any(LocalDateTime.class),
             eq(Map.of(
-                "UserIdentifier", 1L,
+                "UserIdentifier", 500000000L,
                 "DraftAccountIdentifier", draftAccountId,
                 "DraftAccountSubmittedByUserIdentifier", "user_003"
             ))
@@ -311,14 +272,13 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5843")
     void testPatchDraftAccount_withCreateManagePermission_shouldFail403() throws Exception {
         Long draftAccountId = 6L;
-        UserState user = permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
-
+        userStateStub.setupWithNoPermissions();
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(validUpdateRequestBody("78", "Publishing Pending","PO1820")));
+            .content(validUpdateRequestBody("78", "Publishing Pending", "PO1820")));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPatchDraftAccount_withCreateManagePermission_shouldFail403: Response body:\n"
@@ -346,10 +306,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             + "                \"version\": 0\n"
             + "            }";
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
-
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -365,10 +324,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     void testResubmitDraftAccount_pdpl_defendantOnly() throws Exception {
         final long draftIdAccount = 105L;
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -398,7 +356,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         assertEquals(PersonalDataProcessingCategory.COLLECTION, log.getCategory());
 
         assertNotNull(log.getCreatedBy());
-        assertEquals("0", log.getCreatedBy().getIdentifier());
+        assertEquals("500000000", log.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, log.getCreatedBy().getType());
 
         assertEquals("192.168.1.100", log.getIpAddress());
@@ -420,10 +378,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     void testResubmitDraftAccount_pdpl_parentOrGuardianThenDefendant() throws Exception {
         final long draftIdAccount = 104L;
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -449,7 +406,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         PersonalDataProcessingLogDetails l0 = logs.get(0);
         assertEquals("Re-submit Draft Account - Parent or Guardian", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l0.getCategory());
-        assertEquals("0", l0.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l0.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
         assertEquals("192.168.1.100", l0.getIpAddress());
         assertNull(l0.getRecipient());
@@ -461,7 +418,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         PersonalDataProcessingLogDetails l1 = logs.get(1);
         assertEquals("Re-submit Draft Account - Defendant", l1.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l1.getCategory());
-        assertEquals("0", l1.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l1.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
         assertEquals("192.168.1.100", l1.getIpAddress());
         assertNull(l1.getRecipient());
@@ -478,12 +435,10 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5845")
     void testResubmitDraftAccount_pdpl_defendantAndMinor() throws Exception {
         final long draftIdAccount = 8L; // previously used in your suite; confirm or replace if needed
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         String ifMatch = getIfMatchForDraftAccount(draftIdAccount);
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftIdAccount)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -508,7 +463,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         PersonalDataProcessingLogDetails first = logs.get(0);
         assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
-        assertEquals("0", first.getCreatedBy().getIdentifier());
+        assertEquals("500000000", first.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
         assertEquals("127.0.0.1", first.getIpAddress());
         assertEquals(1, first.getIndividuals().size());
@@ -518,7 +473,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         PersonalDataProcessingLogDetails second = logs.get(1);
         assertEquals("Get Draft Account - Minor Creditor", second.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, second.getCategory());
-        assertEquals("0", second.getCreatedBy().getIdentifier());
+        assertEquals("500000000", second.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
         assertEquals("127.0.0.1", second.getIpAddress());
         assertEquals(1, second.getIndividuals().size());
@@ -528,7 +483,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         PersonalDataProcessingLogDetails third = logs.get(2);
         assertEquals("Re-submit Draft Account - Defendant", third.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, third.getCategory());
-        assertEquals("0", third.getCreatedBy().getIdentifier());
+        assertEquals("500000000", third.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, third.getCreatedBy().getType());
         assertEquals("192.168.1.100", third.getIpAddress());
         assertEquals(1, third.getIndividuals().size());
@@ -538,7 +493,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         PersonalDataProcessingLogDetails fourth = logs.get(3);
         assertEquals("Re-submit Draft Account - Minor Creditor", fourth.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, fourth.getCategory());
-        assertEquals("0", fourth.getCreatedBy().getIdentifier());
+        assertEquals("500000000", fourth.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, fourth.getCreatedBy().getType());
         assertEquals("192.168.1.100", fourth.getIpAddress());
         assertEquals(1, fourth.getIndividuals().size());
@@ -554,11 +509,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @JiraTestKey("PO-5842")
     void testUpdateDraftAccount_pdpl_id103_company_noPdpl() throws Exception {
         Long draftAccountId = 103L;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -572,7 +525,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value(""))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("L065JG"))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Publishing Pending"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason B"));

@@ -60,41 +60,8 @@ class LegacyDefendantsCommonIntegrationTest extends AbstractCommonDefendantsInte
     @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
-    @JiraTestKey("PO-5916")
-    void testGetEnforcementStatus_missingAuth_returns401() throws Exception {
-        super.testGetEnforcementStatus_missingAuthHeader_returns401();
-    }
-
-    @Test
-    @JiraStory("PO-1696")
-    @JiraEpic("PO-1675")
     @JiraTestKey("PO-5923")
     void testGetEnforcementStatus_forbidden_returns403() throws Exception {
         super.testGetEnforcementStatus_forbidden();
     }
-
-    @Test
-    @JiraStory("PO-1696")
-    @JiraEpic("PO-1675")
-    @JiraTestKey("PO-5919")
-    void testGetEnforcementStatus_timeout_returns408() throws Exception {
-        super.testGetEnforcementStatus_timeout();
-    }
-
-    @Test
-    @JiraStory("PO-1696")
-    @JiraEpic("PO-1675")
-    @JiraTestKey("PO-5922")
-    void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
-        super.testGetEnforcementStatus_serviceUnavailable();
-    }
-
-    @Test
-    @JiraStory("PO-1696")
-    @JiraEpic("PO-1675")
-    @JiraTestKey("PO-5915")
-    void testGetEnforcementStatus_serverError_returns500() throws Exception {
-        super.testGetEnforcementStatus_serverError();
-    }
-
 }

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal;
 import static uk.gov.hmcts.opal.TestContainerConfig.POSTGRES_CONTAINER;
 import static uk.gov.hmcts.opal.TestContainerConfig.REDIS_CONTAINER;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
 @SpringBootTest
@@ -44,6 +46,8 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     private CacheManager cacheManager;
 
+    protected UserStateStub userStateStub;
+
     public void clearCaches() {
         cacheManager.getCacheNames().forEach(name -> {
             var cache = cacheManager.getCache(name);
@@ -56,6 +60,13 @@ public abstract class AbstractIntegrationTest {
     @BeforeEach
     public void beforeEach() {
         clearCaches();
+        WireMock.configureFor("localhost", 4553);
+        WireMock.reset();
+        userStateStub = createUserStateStub();
+    }
+
+    protected UserStateStub createUserStateStub() {
+        return new UserStateStub();
     }
 
     // Dynamically register properties to configure the datasource
