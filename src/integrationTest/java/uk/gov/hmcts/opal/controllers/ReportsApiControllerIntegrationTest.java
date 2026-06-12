@@ -267,4 +267,54 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
+    @Nested
+    @Sql(
+        statements =
+            "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
+                + "WHERE report_id IN ('operational_report_enforcement', 'operational_report_payment')",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        statements =
+            "UPDATE reports SET permission = NULL "
+                + "WHERE report_id IN ('operational_report_enforcement', 'operational_report_payment')",
+        executionPhase = AFTER_TEST_METHOD
+    )
+    class GetOperationalReportThresholdCases {
+
+        @ParameterizedTest
+        @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#operationalReportCases")
+        @DisplayName("Get report by ID - operational reports include BU warning threshold [@PO-7225]")
+        @JiraStory("PO-7225")
+        @JiraEpic("PO-2248")
+        void getReportById_whenOperationalReport_returnsBuWarningThreshold(String reportId) throws Exception {
+            mockMvc.perform(get(URL_BASE + "/" + reportId)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.report_parameters").isMap())
+                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold").value(10));
+        }
+
+        @Test
+        @DisplayName("Get report by ID - non operational report does not include BU warning threshold [@PO-7225]")
+        @Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_METHOD)
+        @JiraStory("PO-7225")
+        @JiraEpic("PO-2248")
+        void getReportById_whenNonOperationalReport_returnsUnchangedParameters() throws Exception {
+            mockMvc.perform(get(URL_BASE + "/it_report_optional")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.report_parameters").isMap())
+                .andExpect(jsonPath("$.report_parameters").isEmpty())
+                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold").doesNotExist());
+        }
+    }
+
+    static Stream<Arguments> operationalReportCases() {
+        return Stream.of(
+            Arguments.of("operational_report_enforcement"),
+            Arguments.of("operational_report_payment")
+        );
+    }
 }
