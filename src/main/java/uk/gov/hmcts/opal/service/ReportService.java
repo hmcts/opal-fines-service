@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.common.service.AbstractPermissionService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
 import uk.gov.hmcts.opal.mapper.ReportEntityMapper;
 import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
@@ -58,18 +59,19 @@ public class ReportService extends AbstractPermissionService {
             enrichedParameters.putAll(reportParameters);
         }
 
-        ConfigurationItemEntity configurationItem = configurationItemRepository
-            .findByItemNameAndBusinessUnitIdIsNull(OPERATIONAL_REPORT_BU_WARNING_THRESHOLD)
-            .orElseThrow(() -> new IllegalStateException(
-                "Missing configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
-            ));
-
         try {
+            ConfigurationItemEntity configurationItem = configurationItemRepository
+                .findByItemNameAndBusinessUnitIdIsNull(OPERATIONAL_REPORT_BU_WARNING_THRESHOLD)
+                .orElseThrow(() -> new SchemaConfigurationException(
+                    "Missing configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
+                ));
+
             enrichedParameters.put(BUSINESS_UNIT_WARNING_THRESHOLD, Integer.parseInt(configurationItem.getItemValue()));
-        } catch (NumberFormatException e) {
-            throw new IllegalStateException(
-                "Invalid integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD,
-                e
+        } catch (SchemaConfigurationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new SchemaConfigurationException(
+                "Invalid integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
             );
         }
 
