@@ -10,8 +10,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.ERROR;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Clock;
 import java.time.Duration;
@@ -89,7 +89,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_happyPath() throws JsonProcessingException {
+    void generateReportInstanceContent_happyPath() throws JacksonException {
         reportInstance.setReportId(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
@@ -120,7 +120,7 @@ class GenericReportServiceTest {
 
     @Test
     void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp()
-        throws JsonProcessingException {
+        throws JacksonException {
         reportInstance.setReportId(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
@@ -151,7 +151,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() throws JsonProcessingException {
+    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() throws JacksonException {
         //Arrange
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");

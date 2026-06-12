@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.proxy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +83,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
     }
 
     @Test
-    void shouldDelegateAddEnforcementToLegacyServiceWhenInLegacyMode() throws JsonProcessingException {
+    void shouldDelegateAddEnforcementToLegacyServiceWhenInLegacyMode() throws JacksonException {
         // arrange
         setMode(LEGACY);
 
@@ -118,7 +118,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
     }
 
     @Test
-    void shouldDelegateAddEnforcementToOpalServiceWhenInOpalMode() throws JsonProcessingException {
+    void shouldDelegateAddEnforcementToOpalServiceWhenInOpalMode() throws JacksonException {
         // arrange
         setMode(OPAL);
 

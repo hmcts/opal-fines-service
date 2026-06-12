@@ -3,11 +3,17 @@ package uk.gov.hmcts.opal.disco.opal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
+import java.io.IOException;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,6 +51,23 @@ class JsonSchemaValidationServiceTest {
         // Assert
         assertEquals("No JSON Schema file found at 'jsonSchemas/nonExistentSchema.json'",
                      sce.getMessage());
+    }
+
+    @Test
+    void testIsValid_failReadSchema() {
+        try (MockedConstruction<ClassPathResource> ignored = Mockito.mockConstruction(ClassPathResource.class,
+            (mock, context) -> {
+                Mockito.when(mock.exists()).thenReturn(true);
+                Mockito.when(mock.getURI()).thenThrow(new IOException("Cannot read schema"));
+            })) {
+
+            SchemaConfigurationException sce = assertThrows(
+                SchemaConfigurationException.class,
+                () -> jsonSchemaValidationService.isValid("{}", "unreadableSchema.json")
+            );
+
+            assertEquals("Problem reading JSON Schema from 'jsonSchemas/unreadableSchema.json'", sce.getMessage());
+        }
     }
 
     @Test
@@ -119,6 +142,20 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
+    void testIsValid_validBody_shouldReturnTrue() {
+        String validJson = """
+        {
+          "test_long_id": 123456789,
+          "test_short_id": 123,
+          "test_date_time": "2025-06-09T14:00:00Z",
+          "test_text_1": "required"
+        }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(validJson, "testSchema.json"));
+    }
+
+    @Test
     void testIsValid_invalidDateTimeAndEmail_shouldFail() {
         String invalidJson = """
         {
@@ -137,5 +174,33 @@ class JsonSchemaValidationServiceTest {
             "Expected error about 'submitted_by_email'");
     }
 
+    @Test
+    void testIsValid_validJsonNode_shouldReturnTrue() throws Exception {
+        JsonNode jsonNode = new ObjectMapper().readTree("""
+            {
+              "test_long_id": 123456789,
+              "test_short_id": 123,
+              "test_date_time": "2025-06-09T14:00:00Z",
+              "test_text_1": "required"
+            }
+            """);
+
+        assertTrue(jsonSchemaValidationService.isValid(jsonNode, "testSchema.json"));
+    }
+
+    @Test
+    void testIsValid_invalidJsonNode_shouldReturnFalse() throws Exception {
+        JsonNode jsonNode = new ObjectMapper().readTree("{\"data\":7}");
+
+        assertFalse(jsonSchemaValidationService.isValid(jsonNode, "testSchema.json"));
+    }
+
+    @Test
+    void testIsValid_jsonNodeValidationException_shouldReturnFalse() {
+        JsonNode jsonNode = Mockito.mock(JsonNode.class);
+        Mockito.when(jsonNode.toString()).thenThrow(new RuntimeException("Cannot serialise node"));
+
+        assertFalse(jsonSchemaValidationService.isValid(jsonNode, "testSchema.json"));
+    }
 
 }
