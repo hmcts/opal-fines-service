@@ -49,6 +49,7 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -450,6 +451,19 @@ public class GlobalExceptionHandler {
             e
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
+    @ExceptionHandler(SchemaConfigurationException.class)
+    public ResponseEntity<ProblemDetail> handleSchemaConfigurationException(SchemaConfigurationException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            e.getMessage(),
+            "internal-server-error",
+            false,
+            e
+        );
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
