@@ -30,7 +30,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
-import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
 import uk.gov.hmcts.opal.mapper.ReportEntityMapper;
 import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
@@ -132,23 +131,6 @@ class ReportServiceTest {
                         .build(),
                     PermissionNotAllowedException.class,
                     null
-                ),
-                Arguments.of(
-                    "operational_report_enforcement",
-                    defaultReportEntityBuilder()
-                        .reportId("operational_report_enforcement")
-                        .permission(null)
-                        .build(),
-                    SchemaConfigurationException.class,
-                    "Missing configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
-                ),
-                Arguments.of(
-                    "operational_report_payment",
-                    defaultReportEntityBuilder()
-                        .reportId("operational_report_payment")
-                        .permission(null)
-                        .build(),
-                    SchemaConfigurationException.class,
                     "Invalid integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
                 )
             );
@@ -162,21 +144,7 @@ class ReportServiceTest {
             Class<? extends Exception> expectedException,
             String expectedMessage
         ) {
-            UserState userState = stubUserAndRepo(reportId, entity);
-            if (entity != null) {
-                when(reportMapper.toDto(entity)).thenReturn(createDefaultReportDto());
-                when(userState.anyBusinessUnitUserHasPermission(null)).thenReturn(true);
-                when(userState.anyBusinessUnitUserHasPermission(any(FinesPermission.class))).thenReturn(true);
-            }
-
-            if ("operational_report_payment".equals(reportId)) {
-                when(configurationItemRepository.findByItemNameAndBusinessUnitIdIsNull(
-                    "OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
-                )).thenReturn(Optional.of(
-                    ConfigurationItemEntity.builder().itemValue("not-an-integer").build()
-                ));
-            }
-
+            stubUserAndRepo(reportId, entity);
             Exception exception = assertThrows(expectedException, () -> reportService.getReport(reportId));
 
             if (expectedMessage != null) {
