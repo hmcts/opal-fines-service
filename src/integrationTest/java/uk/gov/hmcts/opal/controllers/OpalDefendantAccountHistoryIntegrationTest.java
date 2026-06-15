@@ -142,6 +142,8 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         jdbcTemplate.update("DELETE FROM impositions WHERE defendant_account_id = 262200");
         jdbcTemplate.update("DELETE FROM creditor_accounts WHERE creditor_account_id = 262200");
         jdbcTemplate.update("DELETE FROM payment_terms WHERE defendant_account_id = 262200");
+        jdbcTemplate.update("DELETE FROM enforcements WHERE defendant_account_id = 262210");
+        jdbcTemplate.update("DELETE FROM defendant_accounts WHERE defendant_account_id = 262210");
         jdbcTemplate.update("DELETE FROM enforcements WHERE defendant_account_id = 262200");
         jdbcTemplate.update("DELETE FROM amendments WHERE amendment_id = 26220001 OR associated_record_id = '262200'");
         jdbcTemplate.update("DELETE FROM defendant_accounts WHERE defendant_account_id = 262200");
@@ -274,6 +276,48 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.historyItems[1].details.reason").value("Second enforcement reason"))
             .andExpect(jsonPath("$.historyItems[2].details.enforcementAction").value("HST01"))
             .andExpect(jsonPath("$.historyItems[2].details.daysInDefault").value(14));
+    }
+
+    @Test
+    @DisplayName("PO-2622: INT.03b enforcements with null hearing court are still returned")
+    @JiraStory("PO-2622")
+    @JiraEpic("PO-812")
+    void getDefendantAccountHistory_enforcementsWithNullHearingCourt_returnsRows() throws Exception {
+        jdbcTemplate.update("""
+            INSERT INTO defendant_accounts (
+                defendant_account_id, version_number, business_unit_id, account_number, amount_paid,
+                account_balance, amount_imposed, account_status, allow_writeoffs, allow_cheques, account_type,
+                collection_order, payment_card_requested, originator_name
+            ) VALUES (
+                262210, 0, 78, '262210A', 0.00, 125.00, 125.00, 'L', 'N', 'N', 'Fine', 'N', 'N',
+                'History Sending Court'
+            ) ON CONFLICT (defendant_account_id) DO NOTHING
+            """);
+
+        jdbcTemplate.update("""
+            INSERT INTO enforcements (
+                enforcement_id, defendant_account_id, posted_date, posted_by, result_id, reason, jail_days,
+                warrant_reference, case_reference, hearing_date, hearing_court_id, posted_by_name,
+                enforcement_account_type
+            ) VALUES (
+                26221001, 262210, TIMESTAMP '2026-01-08 09:00:00', 'hist-user-null-court', 'HST01',
+                'Null hearing court enforcement', 11, 'WR262210', 'CASE-HIST-NULL',
+                TIMESTAMP '2026-02-08 10:00:00', NULL, 'History User Null Court', 'COLL'
+            ) ON CONFLICT (enforcement_id) DO NOTHING
+            """);
+
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/262210/history")
+                .queryParam("itemTypes", "enforcement")
+                .header("Authorization", "Bearer test-token")
+        );
+
+        result.andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(1)))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Enforcement"))
+            .andExpect(jsonPath("$.historyItems[0].details.enforcementAction").value("HST01"))
+            .andExpect(jsonPath("$.historyItems[0].details.reason").value("Null hearing court enforcement"))
+            .andExpect(jsonPath("$.historyItems[0].details.hearingCourt").doesNotExist());
     }
 
     @Test
