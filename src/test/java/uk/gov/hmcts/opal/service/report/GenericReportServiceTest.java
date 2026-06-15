@@ -10,8 +10,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.ERROR;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Clock;
 import java.time.Duration;
@@ -27,6 +25,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
@@ -45,72 +48,37 @@ class GenericReportServiceTest {
 
     @Mock
     ReportInstanceRepository reportInstanceRepository;
-
     @Mock
     ReportRepository reportRepository;
-
     @Mock
     ReportBlobStore reportBlobStore;
-
     @Mock
     ReportRegistry reportRegistry;
-
     @SuppressWarnings("rawtypes")
     @Mock
     ReportInterface reportInterfaceImplementation;
-
     @Mock
     Clock clock;
-
     ReportInstanceEntity reportInstance;
-
     @Mock
     ReportEntity reportEntity;
-
     @Mock
     TestData reportData;
-
     @Mock
     ObjectMapper mapper;
-
-    @Mock
-    UserStateService userStateService;
-
-    @Mock
-    UserState userState;
-
-    @Mock
-    BusinessUnitUser businessUnitUser1;
-
-    @Mock
-    BusinessUnitUser businessUnitUser2;
-
     @Mock
     ReportInstanceMapper reportInstanceMapper;
-
-    @Mock
-    CreateReportInstanceResponseReports reportInstanceResponse;
-
-    @Mock
-    Map<String, Object> reportParameters;
-
-    @Mock
-    ReportQueuePublisherImpl reportQueuePublisher;
-
-    @Mock
-    ReportParameterValidator reportParameterValidator;
-
     String reportId;
-
     Instant now;
+    @InjectMocks
+    private GenericReportService genericReportService;
 
     @BeforeEach
-    void setUp()  {
+    void setUp() {
         reportInstance = new ReportInstanceEntity();
         reportId = String.valueOf(UUID.randomUUID());
         reportInstance.setReportId(reportId);
     }
-        reportInstance.setReport(reportEntity);
 
     void mockClock() {
         now = Instant.parse("2026-01-01T10:00:00Z");
@@ -131,7 +99,6 @@ class GenericReportServiceTest {
         when(reportData.getNumberOfRecords()).thenReturn(2L);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportEntity.getRetentionPeriod()).thenReturn(Duration.ofDays(1));
         //Act
         genericReportService.generateReportInstanceContent(1L);
@@ -142,7 +109,7 @@ class GenericReportServiceTest {
         verify(reportInstanceRepository, times(2)).save(entities.capture());
 
         ReportInstanceEntity lastEntity = entities.getAllValues().getLast();
-        assertThat(lastEntity.getReport().getReportId()).isEqualTo(reportId);
+        assertThat(lastEntity.getReportId()).isEqualTo(reportId);
         assertThat(lastEntity.getGenerationStatus()).isEqualTo(READY);
         assertThat(lastEntity.getLocation()).isEqualTo(LOCATION);
         assertThat(lastEntity.getErrors()).isNull();
@@ -165,7 +132,6 @@ class GenericReportServiceTest {
         when(reportData.getNumberOfRecords()).thenReturn(2L);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportEntity.getRetentionPeriod()).thenReturn(null);
         //Act
         genericReportService.generateReportInstanceContent(1L);
@@ -199,7 +165,6 @@ class GenericReportServiceTest {
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
         when(reportBlobStore.storeReport(any())).thenThrow(RuntimeException.class);
-        when(reportEntity.getReportId()).thenReturn(reportId);
         //Act
         assertThrows(ReportGenerationException.class, () -> genericReportService.generateReportInstanceContent(1L));
         //Assert
