@@ -342,36 +342,40 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.retriable").value(false));
         }
 
-        @Test
-        @DisplayName("Get report by ID - invalid BU warning threshold config returns 500 [@PO-7225]")
-        @Sql(
-            statements = {
-                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                    + "WHERE report_id = 'operational_report_enforcement'",
-                "UPDATE configuration_items SET item_value = 'not-an-integer' "
-                    + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL"
-            },
-            executionPhase = BEFORE_TEST_METHOD
+        @ParameterizedTest(
+            name = "Get report by ID - invalid BU warning threshold ''{0}'' returns 500 [@PO-7225]"
         )
-        @Sql(
-            statements = {
-                "UPDATE configuration_items SET item_value = '10' "
-                    + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
-                "UPDATE reports SET permission = NULL WHERE report_id = 'operational_report_enforcement'"
-            },
-            executionPhase = AFTER_TEST_METHOD
-        )
+        @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#invalidThresholdValues")
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
-        void getReportById_whenThresholdConfigInvalid_returns500() throws Exception {
-            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.title").value("Internal Server Error"))
-                .andExpect(jsonPath("$.detail")
-                    .value("Invalid integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
-                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
-                .andExpect(jsonPath("$.retriable").value(false));
+        void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
+            jdbcTemplate.update(
+                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' WHERE report_id = 'operational_report_enforcement'"
+            );
+            try {
+                jdbcTemplate.update(
+                    "UPDATE configuration_items SET item_value = ? "
+                        + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
+                    invalidThresholdValue
+                );
+
+                mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
+                        .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.title").value("Internal Server Error"))
+                    .andExpect(jsonPath("$.detail")
+                        .value("Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
+                    .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
+                    .andExpect(jsonPath("$.retriable").value(false));
+            } finally {
+                jdbcTemplate.update(
+                    "UPDATE configuration_items SET item_value = '10' "
+                        + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL"
+                );
+                jdbcTemplate.update(
+                    "UPDATE reports SET permission = NULL WHERE report_id = 'operational_report_enforcement'"
+                );
+            }
         }
     }
 
@@ -379,6 +383,14 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         return Stream.of(
             Arguments.of("operational_report_enforcement"),
             Arguments.of("operational_report_payment")
+        );
+    }
+
+    static Stream<Arguments> invalidThresholdValues() {
+        return Stream.of(
+            Arguments.of("not-an-integer"),
+            Arguments.of("0"),
+            Arguments.of("-1")
         );
     }
 }
