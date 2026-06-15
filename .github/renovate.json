@@ -43,18 +43,6 @@
       "allowedVersions": "<3.0.0"
     },
     {
-      "description": "Temporary until 2026-08-01: Spring Cloud 2025.1.1 only supports Spring Boot 4.0.x, so block Boot 4.1.x upgrades for now",
-      "matchManagers": ["gradle"],
-      "matchPackageNames": ["org.springframework.boot"],
-      "allowedVersions": "<4.1.0"
-    },
-    {
-      "description": "Spring Cloud 2025.1.x requires Spring Boot 4.x; keep this repo on the 2025.0.x line until Boot 4 migration",
-      "matchManagers": ["gradle"],
-      "matchPackageNames": ["org.springframework.cloud:spring-cloud-dependencies"],
-      "allowedVersions": "<2025.1.0"
-    },
-    {
       "description": "opal-common-lib updates are coordinated manually across consuming services",
       "matchManagers": ["gradle"],
       "matchPackageNames": ["uk.gov.hmcts:opal-common-lib"],
