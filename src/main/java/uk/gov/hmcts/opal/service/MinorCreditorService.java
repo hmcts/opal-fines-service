@@ -63,7 +63,14 @@ public class MinorCreditorService {
         String authHeaderValue) {
         log.debug(":getMinorCreditorHistory: id={}", minorCreditorAccountId);
 
-        throw new UnsupportedOperationException("Minor creditor history service has not been implemented");
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return minorCreditorSearchProxy.getMinorCreditorHistory(
+                minorCreditorAccountId, dateFrom, dateTo, itemTypes);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
     }
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {

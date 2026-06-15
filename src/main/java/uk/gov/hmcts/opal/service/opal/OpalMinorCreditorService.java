@@ -1,10 +1,11 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,16 +21,18 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
@@ -87,6 +90,31 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         MinorCreditorAccountResponse response = responseMapper.toMinorCreditorAccountResponse(creditorAccount, party);
         response.setVersion(creditorAccount.getVersion());
         return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
+        Long minorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes) {
+        log.debug(":getMinorCreditorHistory (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
+
+        CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Minor creditor account not found: " + minorCreditorAccountId
+            ));
+
+        if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
+            .isMinorCreditor()) {
+            throw new EntityNotFoundException("Account is not a minor creditor account: " + minorCreditorAccountId);
+        }
+
+        return GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .version(creditorAccount.getVersion())
+            .build();
     }
 
     @Override

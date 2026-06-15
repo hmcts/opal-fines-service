@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.proxy;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +11,7 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMinorCreditorService;
@@ -37,6 +40,17 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
     public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
         log.debug(":getMinorCreditorAccount: minorCreditorAccountId={}", minorCreditorAccountId);
         return getCurrentModeService().getMinorCreditorAccount(minorCreditorAccountId);
+    }
+
+    @Override
+    public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
+        Long minorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes) {
+        log.debug(":getMinorCreditorHistory: minorCreditorAccountId={}", minorCreditorAccountId);
+        return getCurrentModeService().getMinorCreditorHistory(
+            minorCreditorAccountId, dateFrom, dateTo, itemTypes);
     }
 
     @Override
