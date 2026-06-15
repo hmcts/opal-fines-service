@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
@@ -50,6 +53,17 @@ public class MinorCreditorService {
         MinorCreditorAccountResponse response =
             minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
         return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
+    }
+
+    public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
+        Long minorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes,
+        String authHeaderValue) {
+        log.debug(":getMinorCreditorHistory: id={}", minorCreditorAccountId);
+
+        throw new UnsupportedOperationException("Minor creditor history service has not been implemented");
     }
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {

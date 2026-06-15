@@ -2,8 +2,10 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -23,9 +26,10 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
-import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.service.MinorCreditorService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -42,6 +46,9 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
 
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short BUSINESS_UNIT_ID = 10;
+
+    @MockitoBean
+    private MinorCreditorService minorCreditorService;
 
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;
@@ -71,6 +78,26 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertFalse(creditorAccount.isHoldPayout());
         assertEquals(1L, creditorAccount.getVersionNumber());
+        verifyNoInteractions(minorCreditorService);
+    }
+
+    @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-3685")
+    @JiraTestKey("PO-2642")
+    void getMinorCreditorHistory_whenLocalDefaultDisabled_returns405AndDoesNotCallService() throws Exception {
+        ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+                                                   .header("Authorization", "Bearer some_value"));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorHistory_whenLocalDefaultDisabled_returns405AndDoesNotCallService body:\n{}",
+            ToJsonString.toPrettyJson(body));
+        result.andExpect(status().isMethodNotAllowed())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.title").value("Feature Disabled"))
+            .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
+
+        verifyNoInteractions(minorCreditorService);
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {
