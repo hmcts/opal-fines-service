@@ -3,10 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -22,9 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -42,8 +36,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
 
     @BeforeEach
     void insertHistoryData() {
-        when(userStateService.checkForAuthorisedUser("Bearer test-token"))
-            .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+        authorise((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         jdbcTemplate.update("""
             INSERT INTO results (
@@ -558,10 +551,6 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @JiraStory("PO-2622")
     @JiraEpic("PO-812")
     void getDefendantAccountHistory_missingAuthentication_returnsUnauthorized() throws Exception {
-        // Arrange
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized")).when(userStateService)
-            .checkForAuthorisedUser(isNull());
-
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
@@ -580,8 +569,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     @JiraEpic("PO-812")
     void getDefendantAccountHistory_missingPermission_returnsForbidden() throws Exception {
         // Arrange
-        when(userStateService.checkForAuthorisedUser("Bearer test-token"))
-            .thenReturn(UserStateUtil.noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
 
         // Act
         ResultActions result = mockMvc.perform(
