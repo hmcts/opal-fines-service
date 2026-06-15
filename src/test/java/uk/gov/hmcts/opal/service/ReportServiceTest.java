@@ -131,7 +131,6 @@ class ReportServiceTest {
                         .build(),
                     PermissionNotAllowedException.class,
                     null
-                    "Invalid integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
                 )
             );
         }
