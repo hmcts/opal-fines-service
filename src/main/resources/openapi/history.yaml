@@ -181,3 +181,4 @@ components:
           type: string
         defendantAccountId:
           type: integer
+          format: int64
