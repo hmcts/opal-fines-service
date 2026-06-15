@@ -5,11 +5,21 @@ meta {
 }
 
 get {
-  url: GET: /defendant-accounts/{id}/history
+  url: {{baseURL}}/defendant-accounts/99000000000014/history?itemTypes=enforcement
   body: none
   auth: inherit
 }
 
+params:query {
+  itemTypes: enforcement
+}
+
+headers {
+  Business-Unit-Id: 77
+  If-Match: 1
+}
+
 settings {
   encodeUrl: true
+  timeout: 0
 }
