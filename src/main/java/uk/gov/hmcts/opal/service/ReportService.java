@@ -25,6 +25,8 @@ public class ReportService extends AbstractPermissionService {
 
     private static final String OPERATIONAL_REPORT_BU_WARNING_THRESHOLD = "OPERATIONAL_REPORT_BU_WARNING_THRESHOLD";
     private static final String BUSINESS_UNIT_WARNING_THRESHOLD = "business_unit_warning_threshold";
+    private static final String INVALID_BU_WARNING_THRESHOLD_MESSAGE =
+        "Invalid positive integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD;
     private static final Set<String> REPORTS_WITH_BU_WARNING_THRESHOLD = Set.of(
         "operational_report_enforcement",
         "operational_report_payment"
@@ -66,11 +68,13 @@ public class ReportService extends AbstractPermissionService {
             ));
 
         try {
-            enrichedParameters.put(BUSINESS_UNIT_WARNING_THRESHOLD, Integer.parseInt(configurationItem.getItemValue()));
+            int threshold = Integer.parseInt(configurationItem.getItemValue());
+            if (threshold < 1) {
+                throw new SchemaConfigurationException(INVALID_BU_WARNING_THRESHOLD_MESSAGE);
+            }
+            enrichedParameters.put(BUSINESS_UNIT_WARNING_THRESHOLD, threshold);
         } catch (NumberFormatException e) {
-            throw new SchemaConfigurationException(
-                "Invalid integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
-            );
+            throw new SchemaConfigurationException(INVALID_BU_WARNING_THRESHOLD_MESSAGE);
         }
 
         return enrichedParameters;
