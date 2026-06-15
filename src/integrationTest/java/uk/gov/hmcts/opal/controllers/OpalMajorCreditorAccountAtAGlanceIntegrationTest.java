@@ -13,11 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.SchemaPaths.GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE_RESPONSE;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
 import jakarta.persistence.QueryTimeoutException;
+import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -43,9 +46,9 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.repository.MajorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import org.yaml.snakeyaml.Yaml;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -82,9 +85,6 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
 
     @MockitoSpyBean
     private MajorCreditorAccountAtAGlanceRepository majorCreditorAccountAtAGlanceRepository;
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @AfterEach
     void resetSpies() {
@@ -133,7 +133,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
             fieldNames(json.get("major_creditor").get("address"))
         );
 
-        jsonSchemaValidationService.validateOrError(body, GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE_RESPONSE);
+        assertMatchesOpenApiSchema(json);
     }
 
     @Test
@@ -171,7 +171,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
         assertEquals(Set.of("major_creditor"), fieldNames(json));
         assertEquals(Set.of("creditor_account_id", "name", "address"), fieldNames(json.get("major_creditor")));
 
-        jsonSchemaValidationService.validateOrError(body, GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE_RESPONSE);
+        assertMatchesOpenApiSchema(json);
     }
 
     @Test
@@ -371,5 +371,53 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
         Set<String> fields = new HashSet<>();
         fields.addAll(node.propertyNames());
         return fields;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assertMatchesOpenApiSchema(JsonNode body) throws Exception {
+        ClassPathResource resource = new ClassPathResource("openapi/MajorCreditor.yaml");
+        Map<String, Object> root;
+        try (InputStream inputStream = resource.getInputStream()) {
+            root = new Yaml().load(inputStream);
+        }
+
+        Map<String, Object> paths = (Map<String, Object>) root.get("paths");
+        Map<String, Object> endpoint = (Map<String, Object>) paths.get("/major-creditor-accounts/{id}/at-a-glance");
+        Map<String, Object> get = (Map<String, Object>) endpoint.get("get");
+        Map<String, Object> responses = (Map<String, Object>) get.get("responses");
+        Map<String, Object> ok = (Map<String, Object>) responses.get("200");
+        Map<String, Object> content = (Map<String, Object>) ok.get("content");
+        Map<String, Object> applicationJson = (Map<String, Object>) content.get("application/json");
+        Map<String, Object> schema = (Map<String, Object>) applicationJson.get("schema");
+
+        assertMatchesSchema(body, schema);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assertMatchesSchema(JsonNode node, Map<String, Object> schema) {
+        assertEquals("object", schema.get("type"));
+
+        Map<String, Object> schemaProperties =
+            (Map<String, Object>) schema.getOrDefault("properties", Collections.emptyMap());
+        Set<String> allowedProperties = schemaProperties.keySet();
+        assertTrue(
+            allowedProperties.containsAll(fieldNames(node)),
+            "Unexpected properties present. Allowed: " + allowedProperties + ", actual: " + fieldNames(node)
+        );
+
+        for (String requiredField : (List<String>) schema.getOrDefault("required", List.of())) {
+            assertTrue(node.has(requiredField), "Missing required field: " + requiredField);
+        }
+
+        for (String propertyName : fieldNames(node)) {
+            Map<String, Object> propertySchema = (Map<String, Object>) schemaProperties.get(propertyName);
+            JsonNode value = node.get(propertyName);
+            if (value != null
+                && value.isObject()
+                && propertySchema != null
+                && "object".equals(propertySchema.get("type"))) {
+                assertMatchesSchema(value, propertySchema);
+            }
+        }
     }
 }
