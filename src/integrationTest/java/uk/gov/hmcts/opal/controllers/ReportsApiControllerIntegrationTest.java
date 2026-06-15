@@ -404,7 +404,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
             jdbcTemplate.update(
-                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' WHERE report_id = 'operational_report_enforcement'"
+                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
+                    + "WHERE report_id = 'operational_report_enforcement'"
             );
             try {
                 jdbcTemplate.update(
