@@ -50,7 +50,7 @@ public class EnforcementRepositoryService {
 
     @Transactional(readOnly = true)
     public List<EnforcementEntity> findHistoryByDefendantAccountId(Long defendantAccountId) {
-        return enforcementRepository.findByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(defendantAccountId);
+        return enforcementRepository.findHistoryRowsByDefendantAccountId(defendantAccountId);
     }
 
     public Long addDefendantAccountEnforcement(
