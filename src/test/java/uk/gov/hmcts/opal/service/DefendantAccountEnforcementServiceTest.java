@@ -21,7 +21,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionsFor;
 import java.math.BigInteger;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +55,7 @@ class DefendantAccountEnforcementServiceTest {
     private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @Test
-    void addEnforcement_whenUserHasPermission_callsProxyAndReturnsResult() throws JsonProcessingException {
+    void addEnforcement_whenUserHasPermission_callsProxyAndReturnsResult() throws JacksonException {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
@@ -129,7 +129,7 @@ class DefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void addEnforcement_whenBusinessUnitUserIdBlank_usesNullInProxyCall() throws JsonProcessingException {
+    void addEnforcement_whenBusinessUnitUserIdBlank_usesNullInProxyCall() throws JacksonException {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;

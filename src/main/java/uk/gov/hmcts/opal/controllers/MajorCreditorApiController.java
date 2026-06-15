@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,12 +11,15 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.generated.http.api.MajorCreditorApi;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorRefData200Response;
+import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
@@ -25,8 +29,27 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @RequiredArgsConstructor
 public class MajorCreditorApiController implements MajorCreditorApi {
 
+    private final CentralFundService centralFundService;
     private final MajorCreditorAccountService majorCreditorAccountService;
     private final MajorCreditorService majorCreditorService;
+
+    @Override
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
+    )
+    public ResponseEntity<GetCentralFundResponse> getCentralFundByBusinessUnit(
+        Integer id,
+        @Nullable String authorization) {
+
+        log.debug(":GET:getCentralFundByBusinessUnit: businessUnitId={}", id);
+
+        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(id, authorization);
+
+        return ResponseEntity.ok()
+            .eTag(createETag(response))
+            .body(response.getPayload());
+    }
 
     @Override
     @FeatureToggle(

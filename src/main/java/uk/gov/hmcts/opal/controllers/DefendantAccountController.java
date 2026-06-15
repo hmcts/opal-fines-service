@@ -4,7 +4,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -291,7 +291,7 @@ public class DefendantAccountController {
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestBody AddDefendantAccountEnforcementRequest request
 
-    ) throws JsonProcessingException {
+    ) throws JacksonException {
         log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
 
         AddEnforcementResponse response = defendantAccountEnforcementService.addEnforcement(

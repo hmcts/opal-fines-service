@@ -25,6 +25,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.AmendmentService;
@@ -88,9 +89,9 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5787")
     void testPostAmendmentsSearch() throws Exception {
-        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{}"));
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostAmendmentsSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -113,8 +114,8 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5788")
     void testPostAmendmentSearch_noMatch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .content("{\"function_code\":\"NOTREALCODE\"}"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"function_code\":\"NOTREALCODE\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostAmendmentSearch_noMatch: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -134,8 +135,9 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5786")
     void testAuditStoredProcedures() throws Exception {
         Long defAccId = 77L;
-        Short busUnitId = (short)78;
-
+        Short busUnitId = (short) 78;
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(busUnitId, FinesPermission.values());
         transactionalContext.callTheStoredProcedures(defAccId, busUnitId);
         log.info(":testAuditStoredProcedures: found defendant:{} in business unit: {}", defAccId, busUnitId);
 
@@ -145,7 +147,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
         Map<String, Object> rowData = jdbcTemplate.queryForMap(sql, defAccId);
         log.info(":testAuditStoredProcedures: defendant account: {}", rowData);
 
-        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
 
@@ -178,7 +180,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
         private final JdbcTemplate jdbcTemplate;
         private final AmendmentService amendmentService;
-        
+
         /* In order for the stored procedures to work, the initialise, update and finalise calls all need
         to be executed within the same transaction context. */
         public void callTheStoredProcedures(Long defAccId, Short busUnitId) {

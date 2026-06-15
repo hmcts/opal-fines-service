@@ -25,18 +25,18 @@ class ReportRegistryTest {
 
     @Test
     void constructor_buildsMapAccessibleWithReportId() {
-        when(report1.getType()).thenReturn(ReportType.FP_REGISTER);
+        when(report1.getReportId()).thenReturn(ReportId.FP_REGISTER);
 
         ReportRegistry registry =
             new ReportRegistry(List.of(report1));
 
-        assertSame(report1, registry.get(ReportType.FP_REGISTER.reportId));
+        assertSame(report1, registry.get(ReportId.FP_REGISTER.reportId));
     }
 
     @Test
     void constructor_throwsOnDuplicateTypes() {
-        when(report1.getType()).thenReturn(ReportType.FP_REGISTER);
-        when(report2.getType()).thenReturn(ReportType.FP_REGISTER);
+        when(report1.getReportId()).thenReturn(ReportId.FP_REGISTER);
+        when(report2.getReportId()).thenReturn(ReportId.FP_REGISTER);
 
         assertThrows(IllegalStateException.class, () -> new ReportRegistry(List.of(report1, report2)));
     }
@@ -44,6 +44,6 @@ class ReportRegistryTest {
     @Test
     void constructor_implementationNotFound_throwsReportNotFoundException() {
         ReportRegistry registry = new ReportRegistry(List.of(report1));
-        assertThrows(ReportNotFoundException.class, () -> registry.get(ReportType.FP_REGISTER.reportId));
+        assertThrows(ReportNotFoundException.class, () -> registry.get(ReportId.FP_REGISTER.reportId));
     }
 }

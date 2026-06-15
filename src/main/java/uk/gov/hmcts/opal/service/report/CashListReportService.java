@@ -1,16 +1,15 @@
 package uk.gov.hmcts.opal.service.report;
 
-import static uk.gov.hmcts.opal.service.report.ReportType.CASH_LIST;
+import static uk.gov.hmcts.opal.service.report.ReportId.CASH_LIST;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
@@ -32,7 +31,7 @@ public class CashListReportService implements ReportInterface<CashListReportData
     private final CashListReportAssembler cashListReportAssembler;
 
     @Override
-    public ReportType getType() {
+    public ReportId getReportId() {
         return CASH_LIST;
     }
 
@@ -93,9 +92,7 @@ public class CashListReportService implements ReportInterface<CashListReportData
 
         try {
             return objectMapper.readValue(reportParameters, CashListReportParameters.class);
-        } catch (JsonMappingException e) {
-            throw new IllegalArgumentException(INVALID_TILL_ID_MESSAGE, e);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("Cash List report parameters must be valid JSON", e);
         }
     }

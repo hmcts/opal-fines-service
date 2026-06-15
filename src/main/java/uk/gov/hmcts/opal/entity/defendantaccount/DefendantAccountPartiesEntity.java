@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -13,7 +14,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Convert;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -53,7 +53,7 @@ public class DefendantAccountPartiesEntity {
     @JoinColumn(name = "party_id",  nullable = false)
     private PartyEntity party;
 
-    @ColumnTransformer(write = "?::t_association_type_enum")
+    @ColumnTransformer(write = "?::t_association_type_enum", read = "association_type::text")
     @Column(name = "association_type", nullable = false, length = 30, columnDefinition = "t_association_type_enum")
     @Convert(converter = AssociationTypeConverter.class)
     private AssociationType associationType;

@@ -236,6 +236,7 @@ class ResultServiceTest {
             .resultTitleCy("Welsh Title")
             .resultType("TYPE1")
             .active(true)
+            .requiresEmploymentData(true)
             .build();
 
         uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
@@ -244,6 +245,7 @@ class ResultServiceTest {
             .resultTitleCy("Welsh Title")
             .resultType("TYPE1")
             .active(true)
+            .requiresEmploymentData(true)
             .build();
 
         when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
@@ -256,6 +258,7 @@ class ResultServiceTest {
         assertNotNull(result);
         assertEquals("ABC", result.getResultId());
         assertEquals("Result Title", result.getResultTitle());
+        assertEquals(true, result.getRequiresEmploymentData());
         verify(resultRepository).findById("ABC");
         verify(resultMapper).toDto(entity);
     }

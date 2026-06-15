@@ -20,8 +20,8 @@ public class CashListReportData implements ReportDataInterface {
 
     @Override
     @JsonIgnore
-    public short getNumberOfRecords() {
-        return (short) (entries == null ? 0 : entries.size());
+    public long getNumberOfRecords() {
+        return entries == null ? 0 : entries.size();
     }
 
     @Override

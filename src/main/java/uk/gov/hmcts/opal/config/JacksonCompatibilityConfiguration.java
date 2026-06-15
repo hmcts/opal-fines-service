@@ -1,18 +1,18 @@
 package uk.gov.hmcts.opal.config;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class JacksonCompatibilityConfiguration {
 
     @Bean
-    @Primary
+    @ConditionalOnMissingBean(ObjectMapper.class)
     public ObjectMapper jackson2ObjectMapper() {
         return JsonMapper.builder()
             .findAndAddModules()

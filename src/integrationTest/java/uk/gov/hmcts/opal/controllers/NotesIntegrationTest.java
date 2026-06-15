@@ -1,27 +1,18 @@
 package uk.gov.hmcts.opal.controllers;
 
-import java.util.Optional;
-import org.junit.jupiter.api.DisplayName;
-import static org.mockito.Mockito.when;
-import org.slf4j.Logger;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.ResultActions;
-
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
-
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionsToken;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionsToken;
 
+import org.junit.jupiter.api.DisplayName;
+import org.slf4j.Logger;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -32,11 +23,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/notes";
 
-    @MockitoBean
-    UserStateClientService userStateClientService;
-
-    @MockitoBean
-    private UserState userState;
 
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     @JiraStory("PO-1566")
@@ -64,7 +50,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(payload)
-                    .header("authorization", "Bearer some_value")
+                    .header("authorization", userStateStub.getBearerToken())
                     .header(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"")
                     .with(authentication(allFinesPermissionsToken()))
             );
@@ -94,7 +80,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .header("authorization", "Bearer some_value")
+                    .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "1")
                     .with(authentication(allFinesPermissionsToken()))
             );
@@ -110,9 +96,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_UserWithoutPermission(Logger log) throws Exception {
 
-        UserState userState = noFinesPermissionUser();
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
-
         Note note = new Note();
         note.setNoteText("test note");
         note.setRecordId("77");
@@ -126,7 +109,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             post(URL_BASE + "/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "1")
                 .with(authentication(noFinesPermissionsToken()))
         );
@@ -153,7 +137,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .header("authorization", "Bearer some_value")
+                    .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "1")
                     .with(authentication(allFinesPermissionsToken()))
             );
@@ -184,7 +168,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-                    .header("authorization", "Bearer some_value")
+                    .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "5")
                     .with(authentication(allFinesPermissionsToken()))
             );

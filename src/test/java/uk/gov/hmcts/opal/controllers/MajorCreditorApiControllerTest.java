@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,18 +13,47 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
+import uk.gov.hmcts.opal.generated.model.GetCentralFundResponseMajorCreditor;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorApiControllerTest {
+
+    private static final String AUTH_HEADER = "Bearer test-token";
+
+    @Mock
+    private CentralFundService centralFundService;
 
     @Mock
     private MajorCreditorAccountService majorCreditorAccountService;
 
     @InjectMocks
     private MajorCreditorApiController controller;
+
+    @Test
+    void getCentralFundByBusinessUnit_whenFeatureEnabled_returnsPayloadWithEtag() {
+        GetCentralFundResponse payload = centralFundPayload();
+        CentralFundResponse serviceResponse = CentralFundResponse.builder()
+            .payload(payload)
+            .version(BigInteger.valueOf(7))
+            .build();
+
+        when(centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER)).thenReturn(serviceResponse);
+
+        ResponseEntity<GetCentralFundResponse> response =
+            controller.getCentralFundByBusinessUnit(70, AUTH_HEADER);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"7\"", response.getHeaders().getETag());
+        assertSame(payload, response.getBody());
+        verify(centralFundService).getCentralFundByBusinessUnit(70, AUTH_HEADER);
+    }
 
     @Test
     void getMajorCreditorAccountHeaderSummary_success() {
@@ -39,5 +69,20 @@ class MajorCreditorApiControllerTest {
         assertEquals(response, result.getBody());
         assertEquals("\"7\"", result.getHeaders().getETag());
         verify(majorCreditorAccountService).getHeaderSummary(123L);
+    }
+
+    private GetCentralFundResponse centralFundPayload() {
+        return GetCentralFundResponse.builder()
+            .majorCreditor(GetCentralFundResponseMajorCreditor.builder()
+                .creditorAccountId(123L)
+                .accountNumber("CF123")
+                .name("Central Fund")
+                .build())
+            .businessUnitDetails(BusinessUnitSummaryCommon.builder()
+                .businessUnitId("70")
+                .businessUnitName("London Collection")
+                .welshSpeaking("N")
+                .build())
+            .build();
     }
 }
