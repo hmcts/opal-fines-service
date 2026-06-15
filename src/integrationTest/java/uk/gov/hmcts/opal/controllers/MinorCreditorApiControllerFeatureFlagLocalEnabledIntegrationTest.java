@@ -94,6 +94,48 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @JiraStory("PO-2642")
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-2642")
+    void getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
+            BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+        ));
+
+        ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+                                                   .header("Authorization", "Bearer some_value")
+                                                   .queryParam("dateFrom", "2026-01-29")
+                                                   .queryParam("dateTo", "2026-01-31"));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.historyItems.length()").value(3))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("AMENDUSR"))
+            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("Hold Pay Out"))
+            .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("false"))
+            .andExpect(jsonPath("$.historyItems[0].details.newValue").value("true"))
+            .andExpect(jsonPath("$.historyItems[1].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[1].postedDetails.posted_date").value("2026-01-30"))
+            .andExpect(jsonPath("$.historyItems[1].details.noteText").value("Review creditor"))
+            .andExpect(jsonPath("$.historyItems[2].type").value("Financial"))
+            .andExpect(jsonPath("$.historyItems[2].postedDetails.posted_date").value("2026-01-29"))
+            .andExpect(jsonPath("$.historyItems[2].amount").value(42.00))
+            .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionType").value("PAYMNT"))
+            .andExpect(jsonPath("$.historyItems[2].details.status.creditorTransactionStatus").value("C"))
+            .andExpect(jsonPath("$.historyItems[2].details.accountNumber").value("HOLD1234"))
+            .andExpect(jsonPath("$.historyItems[2].details.defendantAccountNumber").value("DEF123456"))
+            .andExpect(jsonPath("$.historyItems[2].details.defendantAccountId").value(70000000000000L));
+    }
+
+    @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-3685")
+    @JiraTestKey("PO-2642")
     void getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
