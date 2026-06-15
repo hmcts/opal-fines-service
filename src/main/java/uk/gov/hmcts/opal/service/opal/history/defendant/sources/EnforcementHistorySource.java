@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "opal.EnforcementHistorySource")
 public class EnforcementHistorySource extends HistorySourceSpecificationSupport
     implements AccountHistorySource {
 
@@ -40,12 +42,37 @@ public class EnforcementHistorySource extends HistorySourceSpecificationSupport
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
-        return enforcementRepositoryService.findHistoryByDefendantAccountId(defendantAccountId).stream()
+        List<EnforcementEntity> enforcements =
+            enforcementRepositoryService.findHistoryByDefendantAccountId(defendantAccountId);
+
+        log.info(":fetch: defendantAccountId={}, rawEnforcementCount={}, dateFrom={}, dateTo={}",
+            defendantAccountId, enforcements.size(), filter.getDateFrom(), filter.getDateTo());
+
+        enforcements.stream()
+            .limit(5)
+            .forEach(enforcement -> log.info(
+                ":fetch: enforcementId={}, defendantAccountId={}, postedDate={}, resultId={}, hearingCourtId={}, "
+                    + "reason={}",
+                enforcement.getEnforcementId(),
+                enforcement.getDefendantAccountId(),
+                enforcement.getPostedDate(),
+                enforcement.getResultId(),
+                enforcement.getHearingCourtId(),
+                enforcement.getReason()
+            ));
+
+        List<EnforcementEntity> filteredEnforcements = enforcements.stream()
             .filter(enforcement -> isOnOrAfterDateFrom(enforcement, filter.getDateFrom()))
             .filter(enforcement -> isOnOrBeforeDateTo(enforcement, filter.getDateTo()))
             .sorted(Comparator
                 .comparing(EnforcementEntity::getPostedDate, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(EnforcementEntity::getEnforcementId, Comparator.nullsLast(Comparator.reverseOrder())))
+            .toList();
+
+        log.info(":fetch: defendantAccountId={}, filteredEnforcementCount={}",
+            defendantAccountId, filteredEnforcements.size());
+
+        return filteredEnforcements.stream()
             .map(enforcementEntityHistoryMapper::toHistoryItem)
             .map(DefendantAccountHistoryModelAdapter::toCoreItem)
             .toList();
