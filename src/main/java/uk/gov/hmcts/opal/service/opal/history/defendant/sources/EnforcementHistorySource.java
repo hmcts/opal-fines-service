@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal.history.defendant.sources;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -39,27 +40,22 @@ public class EnforcementHistorySource extends HistorySourceSpecificationSupport
     @Override
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         Long defendantAccountId = context.getAccountId();
-        return enforcementRepositoryService.findAll(allOf(
-                enforcementForDefendantAccount(defendantAccountId),
-                enforcementDateFrom(filter.getDateFrom()),
-                enforcementDateTo(filter.getDateTo())
-            )).stream()
+        return enforcementRepositoryService.findHistoryByDefendantAccountId(defendantAccountId).stream()
+            .filter(enforcement -> isOnOrAfterDateFrom(enforcement, filter.getDateFrom()))
+            .filter(enforcement -> isOnOrBeforeDateTo(enforcement, filter.getDateTo()))
+            .sorted(Comparator
+                .comparing(EnforcementEntity::getPostedDate, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(EnforcementEntity::getEnforcementId, Comparator.nullsLast(Comparator.reverseOrder())))
             .map(enforcementEntityHistoryMapper::toHistoryItem)
             .map(DefendantAccountHistoryModelAdapter::toCoreItem)
             .toList();
     }
 
-    private Specification<EnforcementEntity> enforcementForDefendantAccount(Long defendantAccountId) {
-        return (root, query, builder) -> builder.equal(root.get("defendantAccountId"), defendantAccountId);
+    private boolean isOnOrAfterDateFrom(EnforcementEntity enforcement, LocalDate dateFrom) {
+        return dateFrom == null || !enforcement.getPostedDate().toLocalDate().isBefore(dateFrom);
     }
 
-    private Specification<EnforcementEntity> enforcementDateFrom(LocalDate dateFrom) {
-        return dateFrom == null ? null
-            : (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), atStartOfDay(dateFrom));
-    }
-
-    private Specification<EnforcementEntity> enforcementDateTo(LocalDate dateTo) {
-        return dateTo == null ? null
-            : (root, query, builder) -> builder.lessThan(root.get("postedDate"), dayAfterStart(dateTo));
+    private boolean isOnOrBeforeDateTo(EnforcementEntity enforcement, LocalDate dateTo) {
+        return dateTo == null || !enforcement.getPostedDate().toLocalDate().isAfter(dateTo);
     }
 }

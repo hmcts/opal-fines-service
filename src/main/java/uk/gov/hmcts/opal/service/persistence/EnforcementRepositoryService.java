@@ -48,6 +48,11 @@ public class EnforcementRepositoryService {
         return enforcementRepository.findAll(specification);
     }
 
+    @Transactional(readOnly = true)
+    public List<EnforcementEntity> findHistoryByDefendantAccountId(Long defendantAccountId) {
+        return enforcementRepository.findByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(defendantAccountId);
+    }
+
     public Long addDefendantAccountEnforcement(
         String resultId,
         Long defendantAccountId,
