@@ -20,11 +20,11 @@ public class DefendantAccountPaymentTermsService {
     private final UserStateService userStateService;
 
 
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId, String authHeaderValue) {
+    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         log.debug(":getPaymentTerms:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountPaymentTermsServiceProxy.getPaymentTerms(defendantAccountId);
@@ -37,20 +37,18 @@ public class DefendantAccountPaymentTermsService {
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        String ifMatch,
-        String authHeaderValue
+        String ifMatch
     ) {
         log.debug(":addPaymentCardRequest:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
-                ifMatch,
-                authHeaderValue
+                ifMatch
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);

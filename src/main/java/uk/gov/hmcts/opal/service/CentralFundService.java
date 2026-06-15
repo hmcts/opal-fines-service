@@ -23,10 +23,10 @@ public class CentralFundService {
     private final CentralFundMapper centralFundMapper;
 
     @Transactional(readOnly = true)
-    public CentralFundResponse getCentralFundByBusinessUnit(int businessUnitId, String authHeaderValue) {
+    public CentralFundResponse getCentralFundByBusinessUnit(int businessUnitId) {
         log.debug(":getCentralFundByBusinessUnit: businessUnitId={}", businessUnitId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }

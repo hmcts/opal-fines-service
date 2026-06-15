@@ -107,7 +107,7 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser("ignored"));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("Unexpected token type", ade.getMessage());
@@ -123,7 +123,7 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser("ignored"));
+                                                 () -> userStateService.checkForAuthorisedUser());
 
         // Assert
         assertEquals("User state not found in token", ade.getMessage());

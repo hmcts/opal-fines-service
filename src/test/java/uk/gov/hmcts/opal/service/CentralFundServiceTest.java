@@ -51,28 +51,28 @@ class CentralFundServiceTest {
             .version(BigInteger.valueOf(7))
             .build();
 
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(creditorAccountRepository.findCentralFundByBusinessUnitId((short) 70))
             .thenReturn(Optional.of(centralFund));
         when(centralFundMapper.toCentralFundResponse(centralFund)).thenReturn(mappedResponse);
 
-        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER);
+        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(70);
 
         assertSame(mappedResponse, response);
-        verify(userStateService).checkForAuthorisedUser(AUTH_HEADER);
+        verify(userStateService).checkForAuthorisedUser();
         verify(creditorAccountRepository).findCentralFundByBusinessUnitId((short) 70);
         verify(centralFundMapper).toCentralFundResponse(centralFund);
     }
 
     @Test
     void getCentralFundByBusinessUnit_whenUserLacksPermission_throwsPermissionNotAllowedException() {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         PermissionNotAllowedException exception = assertThrows(
             PermissionNotAllowedException.class,
-            () -> centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER)
+            () -> centralFundService.getCentralFundByBusinessUnit(70)
         );
 
         assertThat(exception.getPermission()).containsExactly(SEARCH_AND_VIEW_ACCOUNTS);
@@ -81,13 +81,13 @@ class CentralFundServiceTest {
 
     @Test
     void getCentralFundByBusinessUnit_whenCentralFundDoesNotExist_throwsEntityNotFoundException() {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(creditorAccountRepository.findCentralFundByBusinessUnitId((short) 70)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(
             EntityNotFoundException.class,
-            () -> centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER)
+            () -> centralFundService.getCentralFundByBusinessUnit(70)
         );
 
         assertEquals("Central fund not found for business unit: 70", exception.getMessage());
@@ -96,12 +96,12 @@ class CentralFundServiceTest {
 
     @Test
     void getCentralFundByBusinessUnit_whenBusinessUnitIdOutOfRange_throwsIllegalArgumentException() {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> centralFundService.getCentralFundByBusinessUnit(Short.MAX_VALUE + 1, AUTH_HEADER)
+            () -> centralFundService.getCentralFundByBusinessUnit(Short.MAX_VALUE + 1)
         );
 
         assertEquals("Business unit id is out of range: 32768", exception.getMessage());

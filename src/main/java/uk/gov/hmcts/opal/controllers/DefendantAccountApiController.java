@@ -36,31 +36,30 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     @Override
-    public ResponseEntity<DefendantAccountImpositionsResponseCommon> getImpositions(Long id, String authHeaderValue) {
+    public ResponseEntity<DefendantAccountImpositionsResponseCommon> getImpositions(Long id) {
         log.debug(":GET:getImpositions: for defendant account id: {}", id);
 
-        GetDefendantAccountImpositionsResponse response = impositionService.getImpositions(id, authHeaderValue);
+        GetDefendantAccountImpositionsResponse response = impositionService.getImpositions(id);
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
     }
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id, String authHeaderValue) {
+    public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id) {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);
 
-        return buildResponse(defendantAccountService.getEnforcementStatus(id, authHeaderValue));
+        return buildResponse(defendantAccountService.getEnforcementStatus(id));
     }
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<UpdateDefendantAccountResponsePayload> updateDefendantAccount(Long defendantAccountId,
-        String authHeaderValue, String businessUnitId, UpdateDefendantAccountRequestPayload request, String ifMatch) {
+        String businessUnitId, UpdateDefendantAccountRequestPayload request, String ifMatch) {
         log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);
 
         UpdateDefendantAccountResponse response =
-            defendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request, authHeaderValue,
-                ifMatch);
+            defendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request, ifMatch);
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
     }

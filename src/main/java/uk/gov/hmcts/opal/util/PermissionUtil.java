@@ -39,13 +39,12 @@ public class PermissionUtil {
     public static  List<BusinessUnitReferenceData> filterBusinessUnitsByPermission(
         UserStateService userStateService,
         List<BusinessUnitReferenceData> refData,
-        Optional<FinesPermission> optPermission,
-        String authHeaderValue) {
+        Optional<FinesPermission> optPermission) {
 
         return optPermission.map(
             permission -> {
                 UserState.UserBusinessUnits userBusinessUnits = userStateService
-                    .checkForAuthorisedUser(authHeaderValue)
+                    .checkForAuthorisedUser()
                     .allBusinessUnitUsersWithPermission(permission);
                 return refData
                     .stream()

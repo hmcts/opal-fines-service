@@ -19,10 +19,9 @@ public class DefendantAccountFixedPenaltyService {
     private final UserStateService userStateService;
 
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(
-        Long defendantAccountId,
-        String authHeaderValue) {
+        Long defendantAccountId) {
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);

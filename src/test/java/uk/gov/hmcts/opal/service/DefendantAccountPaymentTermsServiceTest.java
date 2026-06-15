@@ -40,19 +40,19 @@ class DefendantAccountPaymentTermsServiceTest {
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
         GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPaymentTermsServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
         GetDefendantAccountPaymentTermsResponse result =
-            defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId, authHeader);
+            defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId);
 
         // assert
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountPaymentTermsServiceProxy).getPaymentTerms(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountPaymentTermsServiceProxy);
@@ -63,13 +63,13 @@ class DefendantAccountPaymentTermsServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // act + assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId, authHeader)
+            () -> defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId)
         );
         assertTrue(
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
@@ -77,7 +77,7 @@ class DefendantAccountPaymentTermsServiceTest {
         );
 
         // proxy must not be called
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountPaymentTermsServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);

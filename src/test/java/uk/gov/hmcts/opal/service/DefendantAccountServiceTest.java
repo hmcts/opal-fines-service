@@ -70,9 +70,9 @@ class DefendantAccountServiceTest {
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
         // Act
-        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
+        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
         // Assert
         assertNotNull(result);
@@ -85,19 +85,19 @@ class DefendantAccountServiceTest {
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
         GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
         GetDefendantAccountPaymentTermsResponse result =
-            defendantAccountService.getPaymentTerms(defendantAccountId, authHeader);
+            defendantAccountService.getPaymentTerms(defendantAccountId);
 
         // assert
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getPaymentTerms(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
@@ -108,13 +108,13 @@ class DefendantAccountServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // act + assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> defendantAccountService.getPaymentTerms(defendantAccountId, authHeader)
+            () -> defendantAccountService.getPaymentTerms(defendantAccountId)
         );
         assertTrue(
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
@@ -122,7 +122,7 @@ class DefendantAccountServiceTest {
         );
 
         // proxy must not be called
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
@@ -136,12 +136,12 @@ class DefendantAccountServiceTest {
             .userName("noperms")
             .businessUnitUser(java.util.Collections.emptySet())
             .build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(user);
 
         // Act & Assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () ->  defendantAccountService.getHeaderSummary(1L, "authHeaderValue")
+            () ->  defendantAccountService.getHeaderSummary(1L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
@@ -167,10 +167,10 @@ class DefendantAccountServiceTest {
 
         DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder().accountNumber("X123").build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPerm);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userWithPerm);
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(expected);
 
-        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
+        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
         assertNotNull(result);
         assertEquals("X123", result.getAccountNumber());
@@ -186,14 +186,14 @@ class DefendantAccountServiceTest {
             .userName("noperms")
             .businessUnitUser(java.util.Collections.emptySet())
             .build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(user);
 
         AccountSearchDto dto = AccountSearchDto.builder().build();
 
         // Act & Assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> defendantAccountService.searchDefendantAccounts(dto, "authHeaderValue")
+            () -> defendantAccountService.searchDefendantAccounts(dto)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -220,12 +220,11 @@ class DefendantAccountServiceTest {
 
         DefendantAccountSearchResultsDto expected = DefendantAccountSearchResultsDto.builder().build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPerm);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userWithPerm);
         when(defendantAccountServiceProxy.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(expected);
 
         AccountSearchDto dto = AccountSearchDto.builder().build();
-        DefendantAccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(dto,
-            "authHeaderValue");
+        DefendantAccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(dto);
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
@@ -239,7 +238,7 @@ class DefendantAccountServiceTest {
         String authHeader = "Bearer token";
 
         UserState userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userWithPerm);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userWithPerm);
 
         AddDefendantAccountPaymentTermsRequest request = AddDefendantAccountPaymentTermsRequest.builder()
             .paymentTerms(PaymentTerms.builder()
@@ -255,12 +254,11 @@ class DefendantAccountServiceTest {
             eq(businessUnitId),
             eq("USER01"),
             eq(ifMatch),
-            eq(authHeader),
             any(AddDefendantAccountPaymentTermsRequest.class)))
             .thenReturn(proxyResponse);
 
         GetDefendantAccountPaymentTermsResponse result = defendantAccountService.addPaymentTerms(
-            defendantAccountId, businessUnitId, ifMatch, authHeader, request);
+            defendantAccountId, businessUnitId, ifMatch, request);
 
         assertSame(proxyResponse, result);
 
@@ -270,7 +268,6 @@ class DefendantAccountServiceTest {
             eq(businessUnitId),
             eq("USER01"),
             eq(ifMatch),
-            eq(authHeader),
             captor.capture());
 
         PostedDetails postedDetails = captor.getValue().getPaymentTerms().getPostedDetails();
@@ -285,19 +282,19 @@ class DefendantAccountServiceTest {
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
         DefendantAccountAtAGlanceResponse proxyResponse = new DefendantAccountAtAGlanceResponse();
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
         DefendantAccountAtAGlanceResponse result =
-            defendantAccountService.getAtAGlance(defendantAccountId, authHeader);
+            defendantAccountService.getAtAGlance(defendantAccountId);
 
         // assert
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getAtAGlance(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
@@ -308,13 +305,13 @@ class DefendantAccountServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // act + assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> defendantAccountService.getAtAGlance(defendantAccountId, authHeader)
+            () -> defendantAccountService.getAtAGlance(defendantAccountId)
         );
         assertTrue(
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
@@ -323,7 +320,7 @@ class DefendantAccountServiceTest {
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         // proxy must not be called
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
@@ -345,7 +342,7 @@ class DefendantAccountServiceTest {
             .version(3)
             .build();
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
 
         // business unit user lookup returns an Optional<BusinessUnitUser> with a non-blank ID
@@ -355,22 +352,22 @@ class DefendantAccountServiceTest {
             .thenReturn(java.util.Optional.of(buUser));
 
         when(defendantAccountServiceProxy.addEnforcement(
-            defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, authHeader, req))
+            defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, req))
             .thenReturn(proxyResponse);
 
         // act
         AddEnforcementResponse result =
-            defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, ifMatch, authHeader, req);
+            defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, ifMatch, req);
 
         // assert
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
         verify(userState).getBusinessUnitUserForBusinessUnit((short)10);
         verify(defendantAccountServiceProxy)
-            .addEnforcement(defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, authHeader, req);
+            .addEnforcement(defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, req);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
     }
 
@@ -381,14 +378,14 @@ class DefendantAccountServiceTest {
         String businessUnitId = "10";
         String authHeader = "Bearer abc";
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT))
             .thenReturn(false);
 
         // act + assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", authHeader, null)
+            () -> defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", null)
         );
         assertTrue(
             ex.getMessage() == null || ex.getMessage().contains(FinesPermission.ENTER_ENFORCEMENT.name()),
@@ -396,7 +393,7 @@ class DefendantAccountServiceTest {
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).checkForAuthorisedUser();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
         verifyNoInteractions(defendantAccountServiceProxy);
     }
@@ -410,7 +407,7 @@ class DefendantAccountServiceTest {
 
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
 
         // return Optional<BusinessUnitUser> but with blank ID -> results in null
@@ -428,13 +425,12 @@ class DefendantAccountServiceTest {
             eq(businessUnitId),
             isNull(),                   // IMPORTANT: businessUnitUserId expected to be null
             eq("\"3\""),
-            eq(authHeader),
             eq(req)
         )).thenReturn(proxyResult);
 
         // act
         AddEnforcementResponse out =
-            defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", authHeader, req);
+            defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", req);
 
         // assert
         assertNotNull(out);
@@ -443,7 +439,6 @@ class DefendantAccountServiceTest {
             eq(businessUnitId),
             isNull(),                   // verifies null is passed
             eq("\"3\""),
-            eq(authHeader),
             eq(req)
         );
     }
@@ -457,12 +452,12 @@ class DefendantAccountServiceTest {
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))
             .build();
-        when(userStateService.checkForAuthorisedUser("Bearer a_bearer_token")).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
         when(defendantAccountServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
 
         // Act
         EnforcementStatus response = defendantAccountService
-            .getEnforcementStatus(33L, "Bearer a_bearer_token");
+            .getEnforcementStatus(33L);
 
         // Assert
         assertNotNull(response);
@@ -477,13 +472,12 @@ class DefendantAccountServiceTest {
         // Arrange
         Long id = 1L;
         UpdateDefendantAccountRequestPayload req = UpdateDefendantAccountRequestPayload.builder().build();
-        when(userStateService.checkForAuthorisedUser("UNIT_TEST")).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
 
         // Act
         final String buHeader = "10";
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-            defendantAccountService.updateDefendantAccount(id, buHeader, req, "UNIT_TEST",
-                "1")
+            defendantAccountService.updateDefendantAccount(id, buHeader, req, "1")
         );
 
         // Assert

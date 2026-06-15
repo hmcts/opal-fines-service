@@ -69,12 +69,12 @@ class DefendantAccountControllerTest {
         AccountSearchDto requestEntity = AccountSearchDto.builder().build();
         DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder().build();
 
-        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN)))
+        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class)))
             .thenReturn(mockResponse);
 
         // Act
         ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
-            defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN);
+            defendantAccountController.postDefendantAccountSearch(requestEntity);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -82,7 +82,7 @@ class DefendantAccountControllerTest {
         assertEquals(mockResponse, responseEntity.getBody());
 
         verify(defendantAccountService, times(1))
-            .searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN));
+            .searchDefendantAccounts(any(AccountSearchDto.class));
         verifyNoInteractions(featureToggleApi);
     }
 
@@ -99,11 +99,11 @@ class DefendantAccountControllerTest {
             FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
             false
         )).thenReturn(true);
-        when(defendantAccountService.searchDefendantAccounts(requestEntity, BEARER_TOKEN)).thenReturn(mockResponse);
+        when(defendantAccountService.searchDefendantAccounts(requestEntity)).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
-            defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN);
+            defendantAccountController.postDefendantAccountSearch(requestEntity);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -113,7 +113,7 @@ class DefendantAccountControllerTest {
             FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
             false
         );
-        verify(defendantAccountService).searchDefendantAccounts(requestEntity, BEARER_TOKEN);
+        verify(defendantAccountService).searchDefendantAccounts(requestEntity);
     }
 
     @Test
@@ -130,7 +130,7 @@ class DefendantAccountControllerTest {
         // Act
         FeatureDisabledException exception = assertThrows(
             FeatureDisabledException.class,
-            () -> defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN));
+            () -> defendantAccountController.postDefendantAccountSearch(requestEntity));
 
         // Assert
         assertEquals("Feature release-1c is not enabled for defendant account consolidated search",
@@ -148,18 +148,18 @@ class DefendantAccountControllerTest {
         // Arrange
         DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
 
-        when(defendantAccountService.getHeaderSummary(eq(1L), any()))
+        when(defendantAccountService.getHeaderSummary(eq(1L)))
             .thenReturn(mockBody);
 
         // Act
         ResponseEntity<DefendantAccountHeaderSummary> response =
-            defendantAccountController.getHeaderSummary(1L, BEARER_TOKEN);
+            defendantAccountController.getHeaderSummary(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockBody, response.getBody());
 
-        verify(defendantAccountService).getHeaderSummary(eq(1L), any());
+        verify(defendantAccountService).getHeaderSummary(eq(1L));
     }
 
     @Test
@@ -179,20 +179,19 @@ class DefendantAccountControllerTest {
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder().build();
         AddEnforcementResponse mockResponse = AddEnforcementResponse.builder().build();
 
-        when(defendantAccountEnforcementService.addEnforcement(defendantAccountId, businessUnitId, ifMatch,
-            BEARER_TOKEN, request)).thenReturn(mockResponse);
+        when(defendantAccountEnforcementService.addEnforcement(
+            defendantAccountId, businessUnitId, ifMatch, request)).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<AddEnforcementResponse> response =
-            defendantAccountController.addEnforcement(defendantAccountId, BEARER_TOKEN, businessUnitId, ifMatch,
+            defendantAccountController.addEnforcement(defendantAccountId, businessUnitId, ifMatch,
                 request);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockResponse, response.getBody());
 
-        verify(defendantAccountEnforcementService).addEnforcement(defendantAccountId, businessUnitId, ifMatch,
-            BEARER_TOKEN, request);
+        verify(defendantAccountEnforcementService).addEnforcement(defendantAccountId, businessUnitId, ifMatch, request);
     }
 
     @Test
@@ -208,20 +207,23 @@ class DefendantAccountControllerTest {
         RemoveDefendantAccountPartyResponse mockResponse = new RemoveDefendantAccountPartyResponse();
 
         when(defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
-            defendantAccountPartyId, businessUnitId, businessUserId, ifMatch, request
+            defendantAccountPartyId, businessUnitId,
+                ifMatch, request
         )).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<RemoveDefendantAccountPartyResponse> response =
             defendantAccountController.removeDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, businessUnitId, businessUserId, ifMatch, request);
+                defendantAccountPartyId, businessUnitId,
+                ifMatch, request);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockResponse, response.getBody());
 
         verify(defendantAccountPartyService).removeDefendantAccountParty(defendantAccountId,
-            defendantAccountPartyId, businessUnitId, businessUserId, ifMatch, request);
+            defendantAccountPartyId, businessUnitId,
+                ifMatch, request);
     }
 
     @Test
@@ -242,7 +244,6 @@ class DefendantAccountControllerTest {
             defendantAccountId,
             businessUnitId,
             ifMatch,
-            BEARER_TOKEN,
             request
         )).thenReturn(expectedResponse);
 
@@ -251,7 +252,6 @@ class DefendantAccountControllerTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                BEARER_TOKEN,
                 request
             );
 
@@ -272,7 +272,6 @@ class DefendantAccountControllerTest {
 
         when(defendantAccountPartyService.addDefendantAccountParty(
             defendantAccountId,
-            BEARER_TOKEN,
             ifMatch,
             businessUnitId,
             request
@@ -284,7 +283,6 @@ class DefendantAccountControllerTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                BEARER_TOKEN,
                 request
             );
 
@@ -294,7 +292,6 @@ class DefendantAccountControllerTest {
 
         verify(defendantAccountPartyService).addDefendantAccountParty(
             defendantAccountId,
-            BEARER_TOKEN,
             ifMatch,
             businessUnitId,
             request
@@ -316,7 +313,6 @@ class DefendantAccountControllerTest {
             defendantAccountId,
             businessUnitId,
             ifMatch,
-            BEARER_TOKEN,
             request
         )).thenThrow(new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT));
 
@@ -325,7 +321,6 @@ class DefendantAccountControllerTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                BEARER_TOKEN,
                 request
             )
         );
@@ -346,7 +341,6 @@ class DefendantAccountControllerTest {
             eq(defendantAccountId),
             eq(businessUnitId),
             isNull(),
-            eq(BEARER_TOKEN),
             eq(request)
         )).thenThrow(new ResourceConflictException(
             "Defendant Account",
@@ -360,7 +354,6 @@ class DefendantAccountControllerTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                BEARER_TOKEN,
                 request
             )
         );

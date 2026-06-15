@@ -56,22 +56,22 @@ class DefendantAccountApiControllerTest {
             .payload(payload)
             .version(BigInteger.valueOf(12))
             .build();
-        when(impositionService.getImpositions(defendantId, BEARER_TOKEN))
+        when(impositionService.getImpositions(defendantId))
             .thenReturn(serviceResponse);
 
         ResponseEntity<DefendantAccountImpositionsResponseCommon> response =
-            defendantAccountApiController.getImpositions(defendantId, BEARER_TOKEN);
+            defendantAccountApiController.getImpositions(defendantId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"12\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
-        verify(impositionService).getImpositions(defendantId, BEARER_TOKEN);
+        verify(impositionService).getImpositions(defendantId);
     }
 
     @Test
     void getImpositions_isProtectedByRelease1BFeatureToggle() throws NoSuchMethodException {
         Method method = DefendantAccountApiController.class.getMethod(
-            "getImpositions", Long.class, String.class);
+            "getImpositions", Long.class);
 
         FeatureToggle featureToggle = method.getAnnotation(FeatureToggle.class);
 
@@ -85,15 +85,15 @@ class DefendantAccountApiControllerTest {
         Long defendantId = 1L;
         EnforcementStatus status = EnforcementStatus.builder()
             .build();
-        when(defendantAccountService.getEnforcementStatus(defendantId, BEARER_TOKEN))
+        when(defendantAccountService.getEnforcementStatus(defendantId))
             .thenReturn(status);
 
         ResponseEntity<GetEnforcementStatusResponse> response =
-            defendantAccountApiController.getEnforcementStatus(defendantId, BEARER_TOKEN);
+            defendantAccountApiController.getEnforcementStatus(defendantId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(status, response.getBody());
-        verify(defendantAccountService).getEnforcementStatus(defendantId, BEARER_TOKEN);
+        verify(defendantAccountService).getEnforcementStatus(defendantId);
     }
 
     @Test

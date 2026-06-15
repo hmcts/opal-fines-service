@@ -81,7 +81,6 @@ public class OpalDefendantAccountEnforcementService
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader,
         AddDefendantAccountEnforcementRequest request) throws JacksonException {
 
         String reason = null;
@@ -106,7 +105,7 @@ public class OpalDefendantAccountEnforcementService
 
         String resultResponses = objectMapper.writeValueAsString(request.getEnforcementResultResponses());
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+        UserState userState = userStateService.checkForAuthorisedUser();
         DefendantAccountEntity defendant = defendantAccountRepositoryService.findById(defendantAccountId);
 
         Long enforcementId = enforcementRepositoryService.addDefendantAccountEnforcement(
@@ -131,7 +130,6 @@ public class OpalDefendantAccountEnforcementService
                                                         businessUnitId.toString(),
                                                         businessUnitUserId,
                                                         defendantEntity.getVersion().toString(),
-                                                        authHeader,
                                                         AddDefendantAccountPaymentTermsRequest.builder()
                                                             .paymentTerms(request.getPaymentTerms())
                                                             .requestPaymentCard(false)
@@ -156,13 +154,12 @@ public class OpalDefendantAccountEnforcementService
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader,
         RemoveDefendantAccountEnforcementHoldRequest request) {
 
         log.debug(":removeEnforcementHold: defendantAccountId={}, businessUnitId={}",
             defendantAccountId, businessUnitId);
 
-        final UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+        final UserState userState = userStateService.checkForAuthorisedUser();
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
 
         if (ifMatch == null || ifMatch.isBlank()) {

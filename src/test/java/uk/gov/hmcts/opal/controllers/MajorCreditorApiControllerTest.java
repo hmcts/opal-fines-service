@@ -46,15 +46,15 @@ class MajorCreditorApiControllerTest {
             .version(BigInteger.valueOf(7))
             .build();
 
-        when(centralFundService.getCentralFundByBusinessUnit(70, AUTH_HEADER)).thenReturn(serviceResponse);
+        when(centralFundService.getCentralFundByBusinessUnit(70)).thenReturn(serviceResponse);
 
         ResponseEntity<GetCentralFundResponse> response =
-            controller.getCentralFundByBusinessUnit(70, AUTH_HEADER);
+            controller.getCentralFundByBusinessUnit(70);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"7\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
-        verify(centralFundService).getCentralFundByBusinessUnit(70, AUTH_HEADER);
+        verify(centralFundService).getCentralFundByBusinessUnit(70);
     }
 
     @Test

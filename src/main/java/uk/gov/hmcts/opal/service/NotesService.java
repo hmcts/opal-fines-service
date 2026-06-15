@@ -23,10 +23,10 @@ public class NotesService {
     private final DefendantAccountRepository defendantAccountRepository;
 
 
-    public String addNote(AddNoteRequest request, String ifMatch, String authHeaderValue) {
+    public String addNote(AddNoteRequest request, String ifMatch) {
         log.debug(":addNote:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         DefendantAccountEntity account =
             defendantAccountRepository

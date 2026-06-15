@@ -24,11 +24,11 @@ public class DefendantAccountEnforcementService {
 
     private final UserStateService userStateService;
 
-    public EnforcementStatus getEnforcementStatus(Long defendantAccountId, String authHeaderValue) {
+    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
 
         log.debug(":getEnforcementStatus:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountEnforcementServiceProxy.getEnforcementStatus(defendantAccountId);
@@ -40,12 +40,11 @@ public class DefendantAccountEnforcementService {
     public AddEnforcementResponse addEnforcement(Long defendantAccountId,
         Short businessUnitId,
         String ifMatch,
-        String authHeaderValue,
         AddDefendantAccountEnforcementRequest request) throws JacksonException {
 
         log.debug(":addEnforcement:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
@@ -55,7 +54,7 @@ public class DefendantAccountEnforcementService {
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)) {
 
             return defendantAccountEnforcementServiceProxy.addEnforcement(
-                defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeaderValue, request
+                defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, request
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
@@ -66,12 +65,11 @@ public class DefendantAccountEnforcementService {
         Long defendantAccountId,
         Short businessUnitId,
         String ifMatch,
-        String authHeaderValue,
         RemoveDefendantAccountEnforcementHoldRequest request) {
 
         log.debug(":removeEnforcementHold:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
@@ -84,7 +82,6 @@ public class DefendantAccountEnforcementService {
                 businessUnitId,
                 businessUnitUserId,
                 ifMatch,
-                authHeaderValue,
                 request
             );
         }

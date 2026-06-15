@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -19,6 +18,7 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.time.LocalDate;
 
@@ -35,7 +35,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private final PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
 
-    private final AccessTokenService accessTokenService;
+    private final UserStateService userStateService;
 
 
     @Override
@@ -55,8 +55,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        String ifMatch,
-        String authHeader) {
+        String ifMatch) {
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
@@ -69,7 +68,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         createPaymentCardRequest(defendantAccountId);
 
-        String displayName = accessTokenService.extractName(authHeader);
+        String displayName = userStateService.checkForAuthorisedUser().getDisplayName();
         updateDefendantAccountWithPcr(account, businessUnitUserId, displayName);
 
         auditComplete(defendantAccountId, account, businessUnitUserId, displayName);

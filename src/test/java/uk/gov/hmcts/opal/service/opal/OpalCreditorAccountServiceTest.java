@@ -7,8 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -24,9 +22,6 @@ class OpalCreditorAccountServiceTest {
     @Mock
     private CreditorAccountTransactional creditorAccountTransactional;
 
-    @Mock
-    private UserStateService userStateService;
-
     @InjectMocks
     private OpalCreditorAccountService service;
 
@@ -36,7 +31,7 @@ class OpalCreditorAccountServiceTest {
         when(creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(anyLong(), any())).thenReturn(true);
 
         // Act
-        String response = service.deleteCreditorAccount(555L, true, "authHeader");
+        String response = service.deleteCreditorAccount(555L, true);
 
         // Assert
         assertEquals("{ \"message\": \"Creditor Account '555' deleted\"}", response);
@@ -49,7 +44,7 @@ class OpalCreditorAccountServiceTest {
 
         // Act
         String result =
-            service.deleteCreditorAccount(777L, false, "authHeaderValue");
+            service.deleteCreditorAccount(777L, false);
 
         // Assert
         assertEquals("""
@@ -59,14 +54,13 @@ class OpalCreditorAccountServiceTest {
     @Test
     void testDeleteMinorCreditor_fail_checkExisted() {
         // Arrange
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
         when(creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(anyLong(), any()))
             .thenThrow(new EntityNotFoundException("No Creditor Account!"));
 
         // Act
         EntityNotFoundException error = assertThrows(
             EntityNotFoundException.class, () ->
-                service.deleteCreditorAccount(777L, true, "authHeaderValue")
+                service.deleteCreditorAccount(777L, true)
         );
 
         // Assert

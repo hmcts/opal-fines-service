@@ -26,11 +26,10 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
-    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
-                                                                        String authHeaderValue) {
+    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity) {
         log.debug(":searchMinorCreditor:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return minorCreditorSearchProxy.searchMinorCreditors(entity);
@@ -53,12 +52,11 @@ public class MinorCreditorService {
         return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
     }
 
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
-        String authHeaderValue) {
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
 
         log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -71,12 +69,11 @@ public class MinorCreditorService {
     }
 
     public GetMinorCreditorAccountHeaderSummaryResponse getMinorCreditorAccountHeaderSummary(
-        Long minorCreditorId,
-        String authHeaderValue) {
+        Long minorCreditorId) {
 
         log.debug(":getMinorCreditorAccountHeaderSummary: id={}", minorCreditorId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return minorCreditorSearchProxy.getHeaderSummary(minorCreditorId);
@@ -89,7 +86,6 @@ public class MinorCreditorService {
         Long minorCreditorId,
         PatchMinorCreditorAccountRequest request,
         BigInteger ifMatch,
-        String authHeaderValue,
         String businessUnitId) {
         log.debug(":updateMinorCreditorAccount:");
 
@@ -106,7 +102,7 @@ public class MinorCreditorService {
             throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
         }
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser();
         if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
                 (Short) null,
