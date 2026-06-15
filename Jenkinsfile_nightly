@@ -9,11 +9,6 @@ properties([
     booleanParam(name: 'Demo', defaultValue: true, description: 'Run R1A functional tests against demo'),
     booleanParam(name: 'RunR1AOff', defaultValue: false, description: 'Run R1AOff functional tests against demo'),
     booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
-    choice(
-      name: 'LEGACY_URL',
-      choices: ['PRE-PROD', 'DEV'],
-      description: 'Determines the URL to use for legacy tests.'
-    ),
   ])
 ])
 import uk.gov.hmcts.contino.GradleBuilder
@@ -152,9 +147,9 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
       try {
         withEnv(["TAGS=${tagFilter}"]) {
           if (shouldRunWithZephyr) {
-            builder.gradle('clearReports functionalOpalTagsWithZephyrExecution aggregate copyFunctionalReport mergeFunctionalResults generateTestSummary')
+            builder.gradle('clearReports functionalOpalTagsWithZephyrExecution')
           } else {
-            builder.gradle('clearReports functionalOpalTags aggregate copyFunctionalReport mergeFunctionalResults generateTestSummary')
+            builder.gradle('clearReports functionalOpalTags aggregate copyFunctionalReport mergeFunctionalOpalTagsResults generateTestSummary')
           }
         }
       } catch (error) {
