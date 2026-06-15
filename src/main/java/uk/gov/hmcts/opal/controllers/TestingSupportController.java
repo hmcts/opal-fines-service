@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 @Slf4j(topic = "opal.TestingSupportController")
 @Tag(name = "Testing Support Controller")
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
+@SuppressWarnings("java:S1874")
 public class TestingSupportController {
     private static final long CURRENT_USER_ID = 0L;
 

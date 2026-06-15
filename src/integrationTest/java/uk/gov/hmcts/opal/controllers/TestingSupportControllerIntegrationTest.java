@@ -38,6 +38,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.TestingSupportControllerTest")
+@SuppressWarnings("java:S1874")
 class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.

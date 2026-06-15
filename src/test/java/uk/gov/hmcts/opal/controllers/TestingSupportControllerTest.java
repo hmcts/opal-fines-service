@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
     }
 )
 @Isolated
+@SuppressWarnings("java:S1874")
 class TestingSupportControllerTest {
 
     @Autowired

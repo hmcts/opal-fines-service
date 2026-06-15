@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.UserStateService")
+@SuppressWarnings("java:S1874")
 public class UserStateService {
 
     private final AccessTokenService tokenService;
