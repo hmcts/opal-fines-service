@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.ACCOUNT_MAINTENANCE;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+import static uk.gov.hmcts.opal.testdata.CommonTestData.businessUnitUserWithPermission;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -98,9 +99,6 @@ class ReportInstanceUtilTest {
 
     @Test
     void throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted_throwsWhenAnyUnpermittedBusinessUnitExists() {
-        when(userStateService.isBusinessUnitPermittedForCurrentUser((short) 10)).thenReturn(true);
-        when(userStateService.isBusinessUnitPermittedForCurrentUser((short) 20)).thenReturn(false);
-
         AccessDeniedException exception = assertThrows(
             AccessDeniedException.class,
             () -> ReportInstanceUtil.throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(
@@ -116,8 +114,9 @@ class ReportInstanceUtilTest {
 
     @Test
     void throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted_allowsWhenAllBusinessUnitsArePermitted() {
-        when(userStateService.isBusinessUnitPermittedForCurrentUser((short) 10)).thenReturn(true);
-        when(userStateService.isBusinessUnitPermittedForCurrentUser((short) 20)).thenReturn(true);
+        when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(
+            List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
+                businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)));
 
         assertDoesNotThrow(() ->
             ReportInstanceUtil.throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(

@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,6 +64,37 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         );
     }
 
+    private void mock_reportPermission(FinesPermission permission, boolean permitted) {
+        when(userStateService.checkAnyBusinessUnitUserHasPermission(permission)).thenReturn(permitted);
+    }
+
+    private void mockUserStateWithSomeBusinessUnitsPermitted(Integer... businessUnitIds) {
+        when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(
+            Arrays.stream(businessUnitIds).sequential()
+                .map(id -> businessUnitUserWithPermission(String.valueOf(id), SEARCH_AND_VIEW_ACCOUNTS))
+                .toList());
+    }
+
+    private void mock_businessUnitPermission(int businessUnitId, boolean permitted) {
+        when(userStateService.isBusinessUnitPermittedForCurrentUser((short) businessUnitId)).thenReturn(permitted);
+    }
+
+    private void mockCurrentUserBusinessUnits(List<BusinessUnitUser> businessUnitUsers) {
+        when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(businessUnitUsers);
+    }
+
+    private void mockBusinessUnitUsersForIds(List<Long> businessUnitIds, List<BusinessUnitUser> businessUnitUsers) {
+        when(userStateService.getBusinessUnitUsersForBusinessUnitIds(businessUnitIds)).thenReturn(businessUnitUsers);
+    }
+
+    private BusinessUnitUser businessUnitUserWithPermission(String businessUnitId, FinesPermission permission) {
+        return new BusinessUnitUser(
+            "buUserId-1",
+            Short.parseShort(businessUnitId),
+            Set.of(permission.toUserPermission())
+        );
+    }
+
     @Nested
     class GetReportInstancesSadPath {
 
@@ -109,11 +142,11 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenUserLacksBusinessUnitPermission_forbiddenIsReturned_sadPath() throws Exception {
-            mock_businessUnitPermission(20, false);
+            mockUserStateWithSomeBusinessUnitsPermitted(10, 20);
 
             mockMvc.perform(get(URL_BASE)
                     .param("report_id", REPORT_ID)
-                    .param("business_units", "20"))
+                    .param("business_units", "30"))
                 .andExpectAll(
                     status().isForbidden(),
                     jsonPath("$.title").value("Forbidden"),
@@ -275,29 +308,5 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
                     jsonPath("$.length()").value(0)
                 );
         }
-    }
-
-    private void mock_reportPermission(FinesPermission permission, boolean permitted) {
-        when(userStateService.checkAnyBusinessUnitUserHasPermission(permission)).thenReturn(permitted);
-    }
-
-    private void mock_businessUnitPermission(int businessUnitId, boolean permitted) {
-        when(userStateService.isBusinessUnitPermittedForCurrentUser((short) businessUnitId)).thenReturn(permitted);
-    }
-
-    private void mockCurrentUserBusinessUnits(List<BusinessUnitUser> businessUnitUsers) {
-        when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(businessUnitUsers);
-    }
-
-    private void mockBusinessUnitUsersForIds(List<Long> businessUnitIds, List<BusinessUnitUser> businessUnitUsers) {
-        when(userStateService.getBusinessUnitUsersForBusinessUnitIds(businessUnitIds)).thenReturn(businessUnitUsers);
-    }
-
-    private BusinessUnitUser businessUnitUserWithPermission(String businessUnitId, FinesPermission permission) {
-        return new BusinessUnitUser(
-            "buUserId-1",
-            Short.parseShort(businessUnitId),
-            Set.of(permission.toUserPermission())
-        );
     }
 }

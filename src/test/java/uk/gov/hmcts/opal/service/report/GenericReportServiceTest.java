@@ -434,9 +434,6 @@ class GenericReportServiceTest {
 
         @Test
         void whenBusinessUnitsProvidedAndAnyAreNotPermitted_accessDeniedIsThrown_sadPath() {
-            when(userStateService.isBusinessUnitPermittedForCurrentUser((short) 10)).thenReturn(true);
-            when(userStateService.isBusinessUnitPermittedForCurrentUser((short) 20)).thenReturn(false);
-
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> genericReportService.searchReportInstances(FROM_DATE, TO_DATE, List.of(10, 20), USER_ID, null)
@@ -454,7 +451,7 @@ class GenericReportServiceTest {
         void whenReportIdAndBusinessUnitsProvidedAndAllPermitted_returnsData_happyPath() {
             mockReportLookup(PERMITTED_REPORT_ID, report);
             mockReportPermission(SEARCH_AND_VIEW_ACCOUNTS, true);
-            mockBusinessUnitPermissions(List.of(10), true);
+            mockUserStateWithSomeBusinessUnitsPermitted();
             mockBusinessUnitUsersForIds(
                 List.of(10L),
                 List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS))
@@ -567,6 +564,12 @@ class GenericReportServiceTest {
         private void mockBusinessUnitUsersForIds(List<Long> businessUnitIds, List<BusinessUnitUser> businessUnitUsers) {
             when(userStateService.getBusinessUnitUsersForBusinessUnitIds(businessUnitIds)).thenReturn(
                 businessUnitUsers);
+        }
+
+        private void mockUserStateWithSomeBusinessUnitsPermitted() {
+            when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(
+                List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
+                    businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)));
         }
 
         private void mockBusinessUnitPermissions(List<Integer> businessUnitIds, boolean permitted) {
