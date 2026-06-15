@@ -12,7 +12,6 @@ public class GenericExceptionPathStepDef extends BaseStepDef {
     @When("I attempt to hit an endpoint that doesn't exist")
     public void hitNonExistentEndpoint() {
         authorisedJsonRequest()
-            .contentType("application/xml")
             .body("{}")
             .when()
             .post(getTestUrl() + "/nonExistentEndpoint");

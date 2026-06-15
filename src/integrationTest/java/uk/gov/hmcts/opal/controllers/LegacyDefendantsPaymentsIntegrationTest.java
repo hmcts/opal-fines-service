@@ -1,13 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.LegacyDefendantsUtil.getPaymentTermsRequestSampleAsJson;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -17,12 +16,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
@@ -37,16 +34,14 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @JiraEpic("PO-977")
     @JiraTestKey("PO-5941")
     void testAddPaymentCardRequest_Happy() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
-
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "3");
 
         ResultActions result = mockMvc.perform(
             post("/defendant-accounts/901/payment-card-request")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
         );
@@ -65,16 +60,14 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @JiraEpic("PO-977")
     @JiraTestKey("PO-5938")
     void testAddPaymentCardRequest_500() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
-
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("some_value");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "1");
 
         ResultActions result = mockMvc.perform(
             post("/defendant-accounts/555/payment-card-request")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
         );
@@ -90,16 +83,14 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @JiraEpic("PO-977")
     @JiraTestKey("PO-5939")
     void addPaymentTerms_whenGatewayResponseWithSuccess_thenReturnMappedResponse() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
-
+        userStateStub.addPermissions((short) 69, FinesPermission.values());
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "69");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
-
         var response = mockMvc.perform(
             post("/defendant-accounts/69/payment-terms")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(getPaymentTermsRequestSampleAsJson())
@@ -119,16 +110,15 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @JiraEpic("PO-977")
     @JiraTestKey("PO-5940")
     void addPaymentTerms_whenGatewayResponseWithException_thenDoNotReturnEntity() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
-
+        userStateStub.addPermissions((short) 500, FinesPermission.values());
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "500");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
 
         var response = mockMvc.perform(
             post("/defendant-accounts/500/payment-terms")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(getPaymentTermsRequestSampleAsJson())

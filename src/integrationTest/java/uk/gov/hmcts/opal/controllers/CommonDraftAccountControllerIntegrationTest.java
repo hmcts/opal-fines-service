@@ -1,12 +1,9 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -21,9 +18,7 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
@@ -48,12 +43,6 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
         FIXED_DATE_TIME.toInstant(),
         ZoneOffset.UTC
     );
-
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    UserStateClientService userStateClientService;
 
     @MockitoBean
     LoggingService loggingService;
@@ -111,9 +100,9 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     }
 
     protected String getIfMatchForDraftAccount(long draftAccountId) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         return mockMvc.perform(get(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("Accept", "application/json"))
             .andReturn()
             .getResponse()

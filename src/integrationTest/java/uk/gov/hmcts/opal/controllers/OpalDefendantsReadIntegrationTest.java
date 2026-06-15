@@ -4,9 +4,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -18,7 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -33,10 +29,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6070")
     void getHeaderSummary_Opal_NotFound() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions ra =
-            mockMvc.perform(get(URL_BASE + "/500/header-summary").header("authorization", "Bearer some_value"));
+            mockMvc.perform(
+                get(URL_BASE + "/500/header-summary")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header("authorization", userStateStub.getBearerToken()));
 
         String body = ra.andReturn().getResponse().getContentAsString();
         log.info(":getHeaderSummary_Opal_NotFound: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -53,7 +50,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraTestKey("PO-6075")
     void opalGetDefendantAccountParty_Happy() throws Exception {
         ResultActions actions = mockMvc.perform(
-            get("/defendant-accounts/77/defendant-account-parties/77").header("Authorization", "Bearer test-token"));
+            get("/defendant-accounts/77/defendant-account-parties/77")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()));
 
         log.info("Opal happy path response:\n" + actions.andReturn().getResponse().getContentAsString());
 
@@ -143,7 +142,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraTestKey("PO-6077")
     void opalGetDefendantAccountParty_Organisation() throws Exception {
         ResultActions actions = mockMvc.perform(
-            get("/defendant-accounts/555/defendant-account-parties/555").header("Authorization", "Bearer test-token"));
+            get("/defendant-accounts/555/defendant-account-parties/555")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()));
 
         log.info("Organisation response:\n" + actions.andReturn().getResponse().getContentAsString());
 
@@ -213,7 +214,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraTestKey("PO-6069")
     void opalGetDefendantAccountParty_NullFields() throws Exception {
         ResultActions actions = mockMvc.perform(
-            get("/defendant-accounts/88/defendant-account-parties/88").header("Authorization", "Bearer test-token"));
+            get("/defendant-accounts/88/defendant-account-parties/88")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()));
         log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
@@ -226,10 +229,10 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6076")
     void opalGetAtAGlance_Individual() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions resultActions =
-            mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));
+            mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an individual. etag header: \n{}", headers);
@@ -262,10 +265,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6073")
     void opalGetAtAGlance_Individual_ParentGuardian() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions resultActions =
-            mockMvc.perform(get(URL_BASE + "/10004/at-a-glance").header("authorization", "Bearer some_value"));
+            mockMvc.perform(
+                get(URL_BASE + "/10004/at-a-glance")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header("authorization", userStateStub.getBearerToken()));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). etag header: \n" + headers);
@@ -296,10 +300,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6081")
     void opalGetAtAGlance_Organisation() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions resultActions =
-            mockMvc.perform(get(URL_BASE + "/10001/at-a-glance").header("authorization", "Bearer some_value"));
+            mockMvc.perform(
+                get(URL_BASE + "/10001/at-a-glance")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header("authorization", userStateStub.getBearerToken()));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
@@ -337,10 +342,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6078")
     void opalGetAtAGlance_Organisation_NoLanguagePrefs() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions resultActions =
-            mockMvc.perform(get(URL_BASE + "/10002/at-a-glance").header("authorization", "Bearer some_value"));
+            mockMvc.perform(
+                get(URL_BASE + "/10002/at-a-glance")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header("authorization", userStateStub.getBearerToken()));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
@@ -368,10 +374,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6071")
     void opalGetAtAGlance_Organisation_NoHearingLanguagePref() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions resultActions =
-            mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").header("authorization", "Bearer some_value"));
+            mockMvc.perform(
+                get(URL_BASE + "/10003/at-a-glance")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header("authorization", userStateStub.getBearerToken()));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
@@ -394,19 +401,20 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     }
 
     @Test
-    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 401 Unauthorized \n"
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 403 Forbidden \n"
         + "when no auth header provided \n")
     @JiraStory("PO-1564")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6072")
     void opalGetAtAGlance_missingAuthHeader_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized")).when(userStateService)
-            .checkForAuthorisedUser(any());
-
-        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").accept(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(status().isUnauthorized())
+        userStateStub.setupWithNoPermissions();
+        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+                .accept(MediaType.APPLICATION_PROBLEM_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            )
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -416,13 +424,13 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6080")
     void opalGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
-        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden")).when(
-            userStateService).checkForAuthorisedUser(any());
-
-        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance").accept(MediaType.APPLICATION_PROBLEM_JSON))
+        userStateStub.setupWithNoPermissions();
+        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .accept(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -432,10 +440,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6079")
     void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions resultActions =
-            mockMvc.perform(get(URL_BASE + "/10001/at-a-glance").header("authorization", "Bearer some_value"));
+            mockMvc.perform(
+                get(URL_BASE + "/10001/at-a-glance")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header("authorization", userStateStub.getBearerToken()));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Verify aliases array. etag header: \n{}", headers);
@@ -481,10 +490,10 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6074")
     void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
-        authoriseAllPermissions();
-
         ResultActions resultActions =
-            mockMvc.perform(get(URL_BASE + "/77/at-a-glance").header("authorization", "Bearer some_value"));
+            mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Verify individual aliases array. etag header: \n{}", headers);

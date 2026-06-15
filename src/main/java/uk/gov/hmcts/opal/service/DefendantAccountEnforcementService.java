@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class DefendantAccountEnforcementService {
         Short businessUnitId,
         String ifMatch,
         String authHeaderValue,
-        AddDefendantAccountEnforcementRequest request) throws JsonProcessingException {
+        AddDefendantAccountEnforcementRequest request) throws JacksonException {
 
         log.debug(":addEnforcement:");
 

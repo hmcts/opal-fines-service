@@ -1,16 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,14 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
@@ -94,11 +85,10 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5928")
     void testPostAddEnforcement_Success() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         var res = mockMvc.perform(
             post("/defendant-accounts/72/enforcements")
-                .headers(enforcementHeaders("good_token"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(enforcementHeaders(userStateStub.getBearerToken()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ENFORCEMENT_REQUEST)
         );
@@ -116,11 +106,10 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5932")
     void testPostAddEnforcement_500Error() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         var res = mockMvc.perform(
             post("/defendant-accounts/500/enforcements")
-                .headers(enforcementHeaders("good_token"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(enforcementHeaders(userStateStub.getBearerToken()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ENFORCEMENT_REQUEST)
         );
@@ -134,17 +123,12 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5930")
     void testPostAddEnforcement_403Forbidden() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            UserState.builder()
-                .userId(999L)
-                .userName("no-permission-user")
-                .businessUnitUser(Collections.emptySet())
-                .build()
-        );
+        userStateStub.setupWithNoPermissions();
 
         ResultActions res = mockMvc.perform(
             post("/defendant-accounts/72/enforcements")
-                .headers(enforcementHeaders("good_token"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(enforcementHeaders(userStateStub.getBearerToken()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ENFORCEMENT_REQUEST)
         );
@@ -166,18 +150,18 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5924")
     void testPostAddEnforcement_401Unauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
+        userStateStub.setupWithNoPermissions();
 
         mockMvc.perform(
                 post("/defendant-accounts/72/enforcements")
-                    .headers(enforcementHeaders("bad_token"))
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(enforcementHeaders(userStateStub.getBearerToken()))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(ENFORCEMENT_REQUEST)
             )
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -195,12 +179,11 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5926")
     void testPatchRemoveEnforcementHold_Success() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
-                    .headers(removeEnforcementHeaders("good_token"))
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(removeEnforcementHeaders(userStateStub.getBearerToken()))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REMOVE_ENFORCEMENT_REQUEST)
             )
@@ -214,18 +197,13 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5925")
     void testPatchRemoveEnforcementHold_403Forbidden() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            UserState.builder()
-                .userId(999L)
-                .userName("no-permission-user")
-                .businessUnitUser(Collections.emptySet())
-                .build()
-        );
+        userStateStub.setupWithNoPermissions();
 
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
-                    .headers(removeEnforcementHeaders("good_token"))
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(removeEnforcementHeaders(userStateStub.getBearerToken()))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REMOVE_ENFORCEMENT_REQUEST)
             )
@@ -238,19 +216,18 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5929")
     void testPatchRemoveEnforcementHold_401Unauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
-
+        userStateStub.setupWithNoPermissions();
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(removeEnforcementHeaders("bad_token"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REMOVE_ENFORCEMENT_REQUEST)
             )
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -260,15 +237,14 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5927")
     void testPatchRemoveEnforcementHold_missingIfMatch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
 
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REMOVE_ENFORCEMENT_REQUEST)
@@ -283,16 +259,15 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5931")
     void testPatchRemoveEnforcementHold_invalidIfMatch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
         headers.add(HttpHeaders.IF_MATCH, "not-a-version");
 
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REMOVE_ENFORCEMENT_REQUEST)

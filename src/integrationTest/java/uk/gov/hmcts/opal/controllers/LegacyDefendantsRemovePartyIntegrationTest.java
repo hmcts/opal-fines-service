@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -9,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +36,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
 
     private HttpHeaders partyHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
         return headers;
@@ -50,10 +47,9 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - Happy Path [@PO-1941]")
     void removeDefendantAccountParty_Happy() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/77/defendant-account-parties/77")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(DELETE_PARTY_REQUEST));
@@ -76,10 +72,9 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - 500 Error [@PO-1941]")
     void removeDefendantAccountParty_500Error() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/500/defendant-account-parties/500")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(DELETE_PARTY_REQUEST));
@@ -97,10 +92,9 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - Organisation Only [@PO-1941]")
     void removeDefendantAccountParty_Organisation() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/555/defendant-account-parties/555")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(DELETE_PARTY_REQUEST));
@@ -123,10 +117,9 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - Individual Only [@PO-1941]")
     void testRemoveDefendantAccountParty_Individual() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/666/defendant-account-parties/666")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(DELETE_PARTY_REQUEST));

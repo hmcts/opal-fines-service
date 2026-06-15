@@ -90,8 +90,8 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @JiraStory("PO-1991")
     @JiraEpic("PO-2234")
     @JiraTestKey("PO-5954")
-    void testGetMinorCreditorAccountMissingAuthHeaderReturns401() throws Exception {
-        super.getMinorCreditorAccount_missingAuthHeader_returns401();
+    void testGetMinorCreditorAccountMissingAuthHeaderReturns403() throws Exception {
+        super.getMinorCreditorAccount_missingAuthHeader_returns403();
     }
 
     @Test
@@ -134,8 +134,8 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
-    void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
-        super.patchMinorCreditor_missingAuthHeader_returns401();
+    void patchMinorCreditor_missingAuthHeader_returns403() throws Exception {
+        super.patchMinorCreditor_missingAuthHeader_returns403();
     }
 
     @Test

@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
