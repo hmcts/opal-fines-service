@@ -69,8 +69,7 @@ public class ReportService extends AbstractPermissionService {
             enrichedParameters.put(BUSINESS_UNIT_WARNING_THRESHOLD, Integer.parseInt(configurationItem.getItemValue()));
         } catch (NumberFormatException e) {
             throw new SchemaConfigurationException(
-                "Invalid integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD,
-                e
+                "Invalid integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
             );
         }
 
