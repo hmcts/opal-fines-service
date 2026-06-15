@@ -4,11 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import uk.gov.hmcts.opal.dto.EnforcementAccountType;
 import uk.gov.hmcts.opal.entity.LowHighValue;
-import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
 
 import java.math.BigDecimal;
 
 @Entity
+@Table(name = "enforcement_account_types")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
@@ -25,12 +25,12 @@ public class EnforcementAccountTypeEntity {
     @NonNull
     private EnforcementAccountType enforcementAccountType;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Convert(converter = AccountTypeConverter.class)
     @NonNull
     private AccountType accountType;
 
-    @Enumerated(EnumType.STRING) // TODO does this need a transformer/converter
+    @Enumerated(EnumType.STRING)
     @Column
     @NonNull
     private LowHighValue accountTypePath;
