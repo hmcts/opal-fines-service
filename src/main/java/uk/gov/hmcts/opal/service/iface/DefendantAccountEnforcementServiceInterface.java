@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.iface;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
@@ -14,7 +14,7 @@ public interface DefendantAccountEnforcementServiceInterface {
                                           String businessUnitUserId,
                                           String ifMatch,
                                           String authHeader,
-                                          AddDefendantAccountEnforcementRequest request) throws JsonProcessingException;
+                                          AddDefendantAccountEnforcementRequest request) throws JacksonException;
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 

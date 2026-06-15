@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.steps.refdata;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
@@ -11,7 +11,6 @@ import uk.gov.hmcts.opal.utils.TestHttpClient;
 import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 import java.time.Duration;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -222,10 +221,7 @@ public class ReportRefDataStepDef {
 
     private Set<String> collectFieldNames(JsonNode root) {
         Set<String> fieldNames = new java.util.HashSet<>();
-        Iterator<Map.Entry<String, JsonNode>> fields = root.fields();
-        while (fields.hasNext()) {
-            fieldNames.add(fields.next().getKey());
-        }
+        root.properties().forEach(field -> fieldNames.add(field.getKey()));
         return fieldNames;
     }
 

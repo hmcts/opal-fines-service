@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -103,7 +103,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
             account = (accountJson == null || accountJson.isBlank())
                 ? null
                 : ToJsonString.getObjectMapper().readValue(accountJson, Object.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new JsonSchemaValidationException(
                 "Failed to parse account JSON: " + e.getMessage(), e
             );
