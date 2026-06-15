@@ -41,6 +41,7 @@ ext {
   serenityVersion = "5.3.10"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
   set('spring-framework.version', "7.0.8")
+  set('spring-security.version', "7.1.0")
 }
 
 //Should we fail fast on test failures?
