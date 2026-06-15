@@ -27,7 +27,7 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '4.0.6'
+  id 'org.springframework.boot' version '4.1.0'
   id 'com.github.ben-manes.versions' version '0.54.0'
   id 'org.sonarqube' version '7.3.1.8318'
   id 'uk.gov.hmcts.java' version '0.12.70'
@@ -41,7 +41,6 @@ ext {
   serenityVersion = "5.3.10"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
   set('spring-framework.version', "7.0.8")
-  set('spring-security.version', "7.1.0")
 }
 
 //Should we fail fast on test failures?
