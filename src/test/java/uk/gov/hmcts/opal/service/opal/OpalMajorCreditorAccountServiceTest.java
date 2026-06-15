@@ -48,13 +48,13 @@ class OpalMajorCreditorAccountServiceTest {
             .thenReturn(Optional.of(CreditorAccountEntity.builder()
                 .creditorAccountId(creditorAccountId)
                 .creditorAccountType(CreditorAccountType.MJ)
-                .payByBacs(true)
                 .versionNumber(4L)
                 .majorCreditor(MajorCreditorEntity.builder().majorCreditorCode("TFL2").build())
                 .build()));
         when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
             .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()
                 .creditorAccountId(creditorAccountId)
+                .bacsDetails("PROVIDED")
                 .name("TFL2 ATCM Testing")
                 .addressLine1("1 ATCM Lane")
                 .addressLine2("London")
@@ -82,12 +82,12 @@ class OpalMajorCreditorAccountServiceTest {
             .thenReturn(Optional.of(CreditorAccountEntity.builder()
                 .creditorAccountId(creditorAccountId)
                 .creditorAccountType(CreditorAccountType.CF)
-                .payByBacs(false)
                 .versionNumber(1L)
                 .build()));
         when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
             .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()
                 .creditorAccountId(creditorAccountId)
+                .bacsDetails("NOT PROVIDED")
                 .name("West London Central Fund")
                 .addressLine1("1 HMCTS Way")
                 .addressLine2("London")
@@ -111,19 +111,41 @@ class OpalMajorCreditorAccountServiceTest {
             .thenReturn(Optional.of(CreditorAccountEntity.builder()
                 .creditorAccountId(creditorAccountId)
                 .creditorAccountType(CreditorAccountType.MJ)
-                .payByBacs(true)
                 .versionNumber(1L)
                 .majorCreditor(MajorCreditorEntity.builder().majorCreditorCode("TFL2").build())
                 .build()));
         when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
             .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()
                 .creditorAccountId(creditorAccountId)
+                .bacsDetails("PROVIDED")
                 .name("TFL2 ATCM Testing")
                 .build()));
 
         GetMajorCreditorAccountAtAGlanceResponse response = service.getAtAGlance(creditorAccountId);
 
         assertNull(response.getMajorCreditor().getAddress());
+    }
+
+    @Test
+    void getAtAGlance_mapsBacsFromViewWhenNotProvided() {
+        Long creditorAccountId = 10770000000041L;
+        when(creditorAccountRepository.findFullByCreditorAccountId(creditorAccountId))
+            .thenReturn(Optional.of(CreditorAccountEntity.builder()
+                .creditorAccountId(creditorAccountId)
+                .creditorAccountType(CreditorAccountType.MJ)
+                .versionNumber(2L)
+                .majorCreditor(MajorCreditorEntity.builder().majorCreditorCode("TFL2").build())
+                .build()));
+        when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
+            .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()
+                .creditorAccountId(creditorAccountId)
+                .bacsDetails("NOT PROVIDED")
+                .name("TFL2 ATCM Testing")
+                .build()));
+
+        GetMajorCreditorAccountAtAGlanceResponse response = service.getAtAGlance(creditorAccountId);
+
+        assertEquals(false, response.getMajorCreditor().getPayByBacs());
     }
 
     @Test

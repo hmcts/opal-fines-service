@@ -22,6 +22,8 @@ import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 public class OpalMajorCreditorAccountService implements MajorCreditorAccountServiceInterface {
 
     private static final String ACCOUNT_NOT_FOUND = "Major creditor account not found: ";
+    private static final String BACS_DETAILS_PROVIDED = "PROVIDED";
+    private static final String BACS_DETAILS_NOT_PROVIDED = "NOT PROVIDED";
 
     private final CreditorAccountRepository creditorAccountRepository;
     private final MajorCreditorAccountAtAGlanceRepository majorCreditorAccountAtAGlanceRepository;
@@ -58,7 +60,7 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
 
         if (creditorAccount.getCreditorAccountType() == CreditorAccountType.MJ) {
             majorCreditor.setCode(creditorAccount.getMajorCreditor().getMajorCreditorCode());
-            majorCreditor.setPayByBacs(creditorAccount.isPayByBacs());
+            majorCreditor.setPayByBacs(mapPayByBacs(atAGlance.getBacsDetails()));
         }
 
         GetMajorCreditorAccountAtAGlanceResponse response = new GetMajorCreditorAccountAtAGlanceResponse();
@@ -96,5 +98,15 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
         address.setLine3(atAGlance.getAddressLine3());
         address.setPostcode(atAGlance.getPostcode());
         return address;
+    }
+
+    private Boolean mapPayByBacs(String bacsDetails) {
+        if (BACS_DETAILS_PROVIDED.equals(bacsDetails)) {
+            return true;
+        }
+        if (BACS_DETAILS_NOT_PROVIDED.equals(bacsDetails)) {
+            return false;
+        }
+        return null;
     }
 }
