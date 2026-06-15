@@ -255,7 +255,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                .queryParam("itemTypes", "enforcement")
+                .queryParam("itemTypes", "ENFORCEMENT")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("Authorization", userStateStub.getBearerToken())
         );
