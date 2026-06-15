@@ -44,9 +44,11 @@ public class ReportParameterValidatorTest {
         List<String> checkboxList = List.of("one", "two");
         List<String> radioList = List.of("one");
         when(objectMapper.convertValue(checkboxList,
-            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class))).thenReturn(checkboxList);
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
+            .thenReturn(checkboxList);
         when(objectMapper.convertValue(radioList,
-            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class))).thenReturn(radioList);
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
+            .thenReturn(radioList);
 
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("date-param", "date", true, null, null, null),
@@ -279,7 +281,8 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuValueCannotBeConverted_returnsFalse() {
         Object notAList = new Object();
         when(objectMapper
-            .convertValue(notAList, TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
+            .convertValue(notAList,
+                TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
             .thenThrow(IllegalArgumentException.class);
 
         when(report.getReportParameters()).thenReturn(List.of(
