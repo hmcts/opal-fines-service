@@ -1,4 +1,4 @@
-@Opal @UAT-Technical @JIRA-LABEL:reference-data
+@Opal @FeatureToggle @JIRA-LABEL:reference-data
 Feature: Results Feature Toggles
 
   Background:
