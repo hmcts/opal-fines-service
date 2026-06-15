@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.core.TypedPropertyPath;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -24,7 +26,9 @@ public class EnforcementAccountTypeService {
     @Transactional(readOnly = true)
     public List<EnforcementAccountTypeCommon> getAllEnforcementAccountTypes() {
         checkPermissions();
-        List<EnforcementAccountTypeEntity> enforcementAccountTypes = repository.findAll();
+        List<EnforcementAccountTypeEntity> enforcementAccountTypes = repository.findAll(
+            Sort.by(Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId))
+        );
         return mapper.toDtos(enforcementAccountTypes);
     }
 

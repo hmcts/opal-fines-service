@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.core.TypedPropertyPath;
+import org.springframework.data.domain.Sort;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -52,7 +54,9 @@ public class EnforcementAccountTypeServiceTest {
         List<EnforcementAccountTypeEntity> eAccountTypes = List.of(
             mock(EnforcementAccountTypeEntity.class)
         );
-        when(repository.findAll()).thenReturn(eAccountTypes);
+        when(repository.findAll(
+            Sort.by(Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId)))
+        ).thenReturn(eAccountTypes);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true); //TODO see comment in service
 
         service.getAllEnforcementAccountTypes();
