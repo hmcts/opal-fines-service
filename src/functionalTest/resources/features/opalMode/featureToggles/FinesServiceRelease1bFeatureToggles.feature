@@ -1,4 +1,4 @@
-@Opal @UAT-Technical @JIRA-LABEL:account-enquiry @JIRA-LABEL:reference-data
+@Opal @FeatureToggle @JIRA-LABEL:account-enquiry @JIRA-LABEL:reference-data
 Feature: Fines Service Release 1b Feature Toggles
 
   Background:

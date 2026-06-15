@@ -322,7 +322,7 @@ tasks.register('functionalOpalTags', Test) {
 
     if (cucumberTags == null || cucumberTags.toString().trim().isEmpty()) {
       throw new GradleException(
-        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@UAT-Technical and @R1BOff'"
+        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@FeatureToggle and @R1BOff'"
       )
     }
 

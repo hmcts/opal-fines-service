@@ -1,4 +1,4 @@
-@Opal @UAT-Technical @JIRA-LABEL:account-enquiry
+@Opal @FeatureToggle @JIRA-LABEL:account-enquiry
 Feature: Defendant Account Search Feature Toggles
 
   Background:
