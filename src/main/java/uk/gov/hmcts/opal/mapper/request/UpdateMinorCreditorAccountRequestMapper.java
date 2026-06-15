@@ -52,8 +52,7 @@ public interface UpdateMinorCreditorAccountRequestMapper {
 
     @Mapping(target = "sequenceNumber", source = "sequenceNumber", qualifiedByName = "integerToShort")
     OrganisationDetails.OrganisationAlias map(OrganisationAliasCommon source);
-
-    @Mapping(target = "forenames", source = "forenames")
+    
     IndividualDetails map(IndividualDetailsCommon source);
 
     @Mapping(target = "sequenceNumber", source = "sequenceNumber", qualifiedByName = "integerToShort")

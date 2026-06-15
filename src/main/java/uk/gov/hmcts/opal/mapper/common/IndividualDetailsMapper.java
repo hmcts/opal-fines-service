@@ -15,7 +15,6 @@ import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 )
 public interface IndividualDetailsMapper {
 
-    @Mapping(source = "forenames", target = "forenames")
     @Mapping(
         target = "dateOfBirth",
         expression = "java(legacy.getDateOfBirth() == null ? null : legacy.getDateOfBirth().toString())"
