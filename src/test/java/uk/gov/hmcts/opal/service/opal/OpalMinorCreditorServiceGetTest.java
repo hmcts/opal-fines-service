@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
@@ -138,7 +139,8 @@ class OpalMinorCreditorServiceGetTest {
         when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
         // Act
-        GetMinorCreditorHistoryResponse result = service.getMinorCreditorHistory(accountId, null, null, null);
+        GetMinorCreditorHistoryResponse result = service.getMinorCreditorHistory(
+            accountId, MinorCreditorHistoryFilters.from(null, null, null));
 
         // Assert
         assertNotNull(result);
@@ -153,7 +155,8 @@ class OpalMinorCreditorServiceGetTest {
         when(creditorAccountRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(EntityNotFoundException.class, () -> service.getMinorCreditorHistory(999L, null, null, null));
+        assertThrows(EntityNotFoundException.class, () -> service.getMinorCreditorHistory(
+            999L, MinorCreditorHistoryFilters.from(null, null, null)));
     }
 
     @Test
@@ -168,6 +171,7 @@ class OpalMinorCreditorServiceGetTest {
         when(creditorAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
         // Act & Assert
-        assertThrows(EntityNotFoundException.class, () -> service.getMinorCreditorHistory(accountId, null, null, null));
+        assertThrows(EntityNotFoundException.class, () -> service.getMinorCreditorHistory(
+            accountId, MinorCreditorHistoryFilters.from(null, null, null)));
     }
 }

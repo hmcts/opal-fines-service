@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -87,6 +88,57 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertTrue(creditorAccount.isHoldPayout());
         assertEquals(3L, creditorAccount.getVersionNumber());
+    }
+
+    @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-3685")
+    @JiraTestKey("PO-2642")
+    void getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
+            BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+        ));
+
+        ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+                                                   .header("Authorization", "Bearer some_value")
+                                                   .queryParam("itemTypes", "payment"));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"))
+            .andExpect(jsonPath("$.detail").value("Invalid arguments were provided in the request"));
+    }
+
+    @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-3685")
+    @JiraTestKey("PO-2642")
+    void getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse() throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
+            BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+        ));
+
+        ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+                                                   .header("Authorization", "Bearer some_value")
+                                                   .queryParam("dateFrom", "2026-02-01")
+                                                   .queryParam("dateTo", "2026-01-31"));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"))
+            .andExpect(jsonPath("$.detail").value("Invalid arguments were provided in the request"));
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {

@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +31,7 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsReque
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
@@ -150,9 +150,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     @Override
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
         Long minorCreditorAccountId,
-        LocalDate dateFrom,
-        LocalDate dateTo,
-        List<String> itemTypes) {
+        MinorCreditorHistoryFilters filters) {
         throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Not yet implemented");
     }
 

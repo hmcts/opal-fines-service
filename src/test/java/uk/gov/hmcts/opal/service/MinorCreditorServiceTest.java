@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -34,6 +35,8 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
@@ -163,7 +166,8 @@ class MinorCreditorServiceTest {
 
         when(userStateService.checkForAuthorisedUser("authHeaderValue"))
             .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-        when(minorCreditorSearchProxy.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes)).thenReturn(response);
+        when(minorCreditorSearchProxy.getMinorCreditorHistory(eq(id), any(MinorCreditorHistoryFilters.class)))
+            .thenReturn(response);
 
         // Act
         GetMinorCreditorHistoryResponse result =
@@ -171,8 +175,16 @@ class MinorCreditorServiceTest {
 
         // Assert
         assertEquals(response, result);
+        ArgumentCaptor<MinorCreditorHistoryFilters> filtersCaptor =
+            ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
         verify(userStateService).checkForAuthorisedUser("authHeaderValue");
-        verify(minorCreditorSearchProxy).getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes);
+        verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
+        assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0), filtersCaptor.getValue().postedFromInclusive());
+        assertEquals(LocalDateTime.of(2026, 2, 1, 0, 0), filtersCaptor.getValue().postedToExclusive());
+        assertThat(filtersCaptor.getValue().itemTypes()).containsExactlyInAnyOrder(
+            MinorCreditorHistoryItemType.AMENDMENT,
+            MinorCreditorHistoryItemType.NOTE
+        );
     }
 
     @Test

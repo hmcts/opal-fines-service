@@ -5,7 +5,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +26,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
@@ -96,9 +96,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     @Transactional(readOnly = true)
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
         Long minorCreditorAccountId,
-        LocalDate dateFrom,
-        LocalDate dateTo,
-        List<String> itemTypes) {
+        MinorCreditorHistoryFilters filters) {
         log.debug(":getMinorCreditorHistory (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
 
         CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)

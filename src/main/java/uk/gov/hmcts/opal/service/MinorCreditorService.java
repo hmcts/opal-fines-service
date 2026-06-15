@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
@@ -66,8 +67,9 @@ public class MinorCreditorService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(dateFrom, dateTo, itemTypes);
             return minorCreditorSearchProxy.getMinorCreditorHistory(
-                minorCreditorAccountId, dateFrom, dateTo, itemTypes);
+                minorCreditorAccountId, filters);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }

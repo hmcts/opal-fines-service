@@ -17,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMinorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorService;
@@ -52,13 +53,14 @@ class MinorCreditorServiceProxyTest extends ProxyTestsBase {
         Long id = 123L;
         LocalDate dateFrom = LocalDate.of(2026, 1, 1);
         LocalDate dateTo = LocalDate.of(2026, 1, 31);
-        List<String> itemTypes = List.of("amendment");
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
+            dateFrom, dateTo, List.of("amendment"));
         GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder().build();
-        when(targetService.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes)).thenReturn(response);
+        when(targetService.getMinorCreditorHistory(id, filters)).thenReturn(response);
 
-        GetMinorCreditorHistoryResponse result = serviceProxy.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes);
+        GetMinorCreditorHistoryResponse result = serviceProxy.getMinorCreditorHistory(id, filters);
 
-        verify(targetService).getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes);
+        verify(targetService).getMinorCreditorHistory(id, filters);
         verifyNoInteractions(otherService);
         Assertions.assertEquals(response, result);
     }

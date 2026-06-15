@@ -43,6 +43,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
@@ -87,7 +88,8 @@ class LegacyMinorCreditorServiceTest {
         // Act
         ResponseStatusException result = assertThrows(
             ResponseStatusException.class,
-            () -> legacyMinorCreditorService.getMinorCreditorHistory(101L, null, null, null)
+            () -> legacyMinorCreditorService.getMinorCreditorHistory(
+                101L, MinorCreditorHistoryFilters.from(null, null, null))
         );
 
         // Assert
