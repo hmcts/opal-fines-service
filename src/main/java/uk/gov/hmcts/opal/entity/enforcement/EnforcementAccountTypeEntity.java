@@ -26,7 +26,7 @@ public class EnforcementAccountTypeEntity {
     private EnforcementAccountType enforcementAccountType;
 
     @Column(nullable = false)
-//    @Convert(converter = AccountTypeConverter.class) // TODO need to create a converter and deal with naming conflict
+    @Convert(converter = AccountTypeConverter.class)
     @NonNull
     private AccountType accountType;
 
