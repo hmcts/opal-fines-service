@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -75,6 +76,27 @@ class MinorCreditorApiControllerTest {
         assertSame(payload, result.getBody());
         verify(minorCreditorService).getMinorCreditorHistory(
             minorCreditorAccountId, dateFrom, dateTo, itemTypes, authorization);
+    }
+
+    @Test
+    void getMinorCreditorHistory_whenServiceThrows_propagatesException() {
+        // Arrange
+        Long minorCreditorAccountId = 1L;
+        RuntimeException expected = new RuntimeException("history failed");
+        when(minorCreditorService.getMinorCreditorHistory(
+            minorCreditorAccountId, null, null, null, "Bearer token")).thenThrow(expected);
+
+        // Act
+        RuntimeException result = assertThrows(
+            RuntimeException.class,
+            () -> minorCreditorApiController.getMinorCreditorHistory(
+                minorCreditorAccountId, null, null, null, "Bearer token")
+        );
+
+        // Assert
+        assertSame(expected, result);
+        verify(minorCreditorService).getMinorCreditorHistory(
+            minorCreditorAccountId, null, null, null, "Bearer token");
     }
 
     @Test

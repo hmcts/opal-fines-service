@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
@@ -202,6 +203,59 @@ class MinorCreditorServiceTest {
                 123L, LocalDate.of(2026, 1, 1), null, List.of("note"), "authHeaderValue")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(minorCreditorSearchProxy);
+    }
+
+    @Test
+    void getMinorCreditorHistory_authFailure_propagatesAndDoesNotDelegate() {
+        // Arrange
+        RuntimeException expected = new RuntimeException("auth failed");
+        when(userStateService.checkForAuthorisedUser("authHeaderValue")).thenThrow(expected);
+
+        // Act
+        RuntimeException result = assertThrows(
+            RuntimeException.class,
+            () -> minorCreditorService.getMinorCreditorHistory(123L, null, null, null, "authHeaderValue")
+        );
+
+        // Assert
+        assertSame(expected, result);
+        verifyNoInteractions(minorCreditorSearchProxy);
+    }
+
+    @Test
+    void getMinorCreditorHistory_invalidItemType_throwsIllegalArgumentException() {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser("authHeaderValue"))
+            .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+
+        // Act & Assert
+        IllegalArgumentException result = assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.getMinorCreditorHistory(
+                123L, null, null, List.of("payment"), "authHeaderValue")
+        );
+        assertEquals("itemTypes must contain only amendment, financial, note", result.getMessage());
+        verifyNoInteractions(minorCreditorSearchProxy);
+    }
+
+    @Test
+    void getMinorCreditorHistory_dateFromAfterDateTo_throwsIllegalArgumentException() {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser("authHeaderValue"))
+            .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+
+        // Act & Assert
+        IllegalArgumentException result = assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.getMinorCreditorHistory(
+                123L,
+                LocalDate.of(2026, 2, 1),
+                LocalDate.of(2026, 1, 31),
+                null,
+                "authHeaderValue")
+        );
+        assertEquals("dateFrom must be on or before dateTo", result.getMessage());
         verifyNoInteractions(minorCreditorSearchProxy);
     }
 
