@@ -44,7 +44,7 @@ public class PermissionUtil {
         return optPermission.map(
             permission -> {
                 UserState.UserBusinessUnits userBusinessUnits = userStateService
-                    .checkForAuthorisedUser()
+                    .getUserStateV1FromSecurityContext()
                     .allBusinessUnitUsersWithPermission(permission);
                 return refData
                     .stream()

@@ -72,7 +72,7 @@ public class DraftAccountService {
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId) {
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
@@ -98,7 +98,7 @@ public class DraftAccountService {
         Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
         Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
@@ -165,7 +165,7 @@ public class DraftAccountService {
 
     public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto) {
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
@@ -192,7 +192,7 @@ public class DraftAccountService {
     public DraftAccountResponseDto replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
                                                        String ifMatch) {
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
@@ -219,7 +219,7 @@ public class DraftAccountService {
     public DraftAccountResponseDto updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
         String ifMatch) {
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {

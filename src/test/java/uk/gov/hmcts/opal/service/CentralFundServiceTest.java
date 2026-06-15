@@ -51,7 +51,7 @@ class CentralFundServiceTest {
             .version(BigInteger.valueOf(7))
             .build();
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(creditorAccountRepository.findCentralFundByBusinessUnitId((short) 70))
             .thenReturn(Optional.of(centralFund));
@@ -60,14 +60,14 @@ class CentralFundServiceTest {
         CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(70);
 
         assertSame(mappedResponse, response);
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(creditorAccountRepository).findCentralFundByBusinessUnitId((short) 70);
         verify(centralFundMapper).toCentralFundResponse(centralFund);
     }
 
     @Test
     void getCentralFundByBusinessUnit_whenUserLacksPermission_throwsPermissionNotAllowedException() {
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         PermissionNotAllowedException exception = assertThrows(
@@ -81,7 +81,7 @@ class CentralFundServiceTest {
 
     @Test
     void getCentralFundByBusinessUnit_whenCentralFundDoesNotExist_throwsEntityNotFoundException() {
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(creditorAccountRepository.findCentralFundByBusinessUnitId((short) 70)).thenReturn(Optional.empty());
 
@@ -96,7 +96,7 @@ class CentralFundServiceTest {
 
     @Test
     void getCentralFundByBusinessUnit_whenBusinessUnitIdOutOfRange_throwsIllegalArgumentException() {
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
 
         IllegalArgumentException exception = assertThrows(

@@ -32,7 +32,7 @@ public class UserStateService {
     // Stop gap solution until all permissions are resolved directly in service-layer auth checks.
     @SuppressWarnings({"java:S1874", "java:S1133"})
     @Deprecated(since = "2")
-    public UserState checkForAuthorisedUser() {
+    public UserState getUserStateV1FromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
             throw new AccessDeniedException("Unexpected token type");

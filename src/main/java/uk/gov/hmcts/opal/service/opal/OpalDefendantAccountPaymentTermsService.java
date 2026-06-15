@@ -68,7 +68,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         createPaymentCardRequest(defendantAccountId);
 
-        String displayName = userStateService.checkForAuthorisedUser().getDisplayName();
+        String displayName = userStateService.getUserStateV1FromSecurityContext().getDisplayName();
         updateDefendantAccountWithPcr(account, businessUnitUserId, displayName);
 
         auditComplete(defendantAccountId, account, businessUnitUserId, displayName);

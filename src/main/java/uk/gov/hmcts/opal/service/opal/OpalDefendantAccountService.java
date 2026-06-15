@@ -976,11 +976,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            userStateService.checkForAuthorisedUser().getDisplayName()
+            userStateService.getUserStateV1FromSecurityContext().getDisplayName()
         );
 
         auditComplete(defendantAccountId, account, businessUnitUserId,
-            userStateService.checkForAuthorisedUser().getDisplayName());
+            userStateService.getUserStateV1FromSecurityContext().getDisplayName());
 
         return paymentCardResponse;
     }
@@ -1110,7 +1110,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
             addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
-                userStateService.checkForAuthorisedUser().getDisplayName());
+                userStateService.getUserStateV1FromSecurityContext().getDisplayName());
         }
 
         // if generate_payment_terms_change_letter is true

@@ -105,7 +105,7 @@ public class OpalDefendantAccountEnforcementService
 
         String resultResponses = objectMapper.writeValueAsString(request.getEnforcementResultResponses());
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         DefendantAccountEntity defendant = defendantAccountRepositoryService.findById(defendantAccountId);
 
         Long enforcementId = enforcementRepositoryService.addDefendantAccountEnforcement(
@@ -159,7 +159,7 @@ public class OpalDefendantAccountEnforcementService
         log.debug(":removeEnforcementHold: defendantAccountId={}, businessUnitId={}",
             defendantAccountId, businessUnitId);
 
-        final UserState userState = userStateService.checkForAuthorisedUser();
+        final UserState userState = userStateService.getUserStateV1FromSecurityContext();
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
 
         if (ifMatch == null || ifMatch.isBlank()) {

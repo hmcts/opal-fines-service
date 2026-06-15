@@ -114,7 +114,7 @@ class ImpositionServiceTest {
         GetDefendantAccountImpositionsResponse impositionsResponse = GetDefendantAccountImpositionsResponse.builder()
             .version(BigInteger.valueOf(9))
             .build();
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(impositionServiceProxy.getImpositions(defendantAccountId)).thenReturn(impositionsResponse);
 
@@ -122,7 +122,7 @@ class ImpositionServiceTest {
             impositionService.getImpositions(defendantAccountId);
 
         assertSame(impositionsResponse, result);
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(impositionServiceProxy).getImpositions(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, impositionServiceProxy);
@@ -132,7 +132,7 @@ class ImpositionServiceTest {
     void getImpositions_whenUserLacksPermission_throwsPermissionNotAllowed() {
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         assertThrows(
@@ -140,7 +140,7 @@ class ImpositionServiceTest {
             () -> impositionService.getImpositions(defendantAccountId)
         );
 
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(impositionServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);

@@ -25,7 +25,7 @@ public class ReportService extends AbstractPermissionService {
     public ReportReports getReport(String reportId) {
         log.debug(":getReport: reportId={}", reportId);
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         ReportEntity entity = reportRepository.findById(reportId)
             .orElseThrow(() -> new EntityNotFoundException("Report not found with id: " + reportId));
         checkPermission(userState, entity.getPermission());

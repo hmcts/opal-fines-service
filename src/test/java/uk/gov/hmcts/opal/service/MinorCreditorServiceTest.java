@@ -58,7 +58,7 @@ class MinorCreditorServiceTest {
             PostMinorCreditorAccountsSearchResponse.builder().build();
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
         PostMinorCreditorAccountsSearchResponse result =
@@ -77,7 +77,7 @@ class MinorCreditorServiceTest {
             GetMinorCreditorAccountHeaderSummaryResponse.builder().build();
 
         when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse result =
@@ -95,7 +95,7 @@ class MinorCreditorServiceTest {
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -117,7 +117,7 @@ class MinorCreditorServiceTest {
         );
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -136,7 +136,7 @@ class MinorCreditorServiceTest {
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -155,7 +155,7 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -183,7 +183,7 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -211,7 +211,7 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -240,7 +240,7 @@ class MinorCreditorServiceTest {
         response.setBusinessUnitId(null);
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -263,7 +263,7 @@ class MinorCreditorServiceTest {
         GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
         GetMinorCreditorAccountAtAGlanceResponse result =
@@ -281,7 +281,7 @@ class MinorCreditorServiceTest {
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -315,7 +315,7 @@ class MinorCreditorServiceTest {
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -395,7 +395,7 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_missingBusinessUnit_throwsPermissionNotAllowed() {
         // Arrange
-        when(userStateService.checkForAuthorisedUser()).thenReturn(mock(UserState.class));
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mock(UserState.class));
 
         PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
             .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(true))
@@ -431,7 +431,7 @@ class MinorCreditorServiceTest {
                 .build()
         ));
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any(),
             any(), anyShort()))
             .thenReturn(new MinorCreditorAccountResponse());
@@ -457,7 +457,7 @@ class MinorCreditorServiceTest {
         UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -504,7 +504,7 @@ class MinorCreditorServiceTest {
         UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(

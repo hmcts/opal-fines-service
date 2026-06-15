@@ -135,7 +135,7 @@ class OpalDefendantAccountServiceTest02 {
         var mockUserState = mock(UserState.class);
         var mockResponse = new GetDefendantAccountFixedPenaltyResponse();
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(mockUserState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mockUserState);
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(proxy.getDefendantAccountFixedPenalty(123L)).thenReturn(mockResponse);
 
@@ -157,7 +157,7 @@ class OpalDefendantAccountServiceTest02 {
         var userStateService = mock(UserStateService.class);
         var mockUserState = mock(UserState.class);
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(mockUserState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mockUserState);
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
 

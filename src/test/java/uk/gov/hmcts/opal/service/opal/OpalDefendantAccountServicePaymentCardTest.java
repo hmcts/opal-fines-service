@@ -70,7 +70,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId))
             .thenReturn(false);
         UserState userState = mock(UserState.class);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getDisplayName()).thenReturn("John Smith");
         when(defendantAccountRepositoryService.save(any()))
             .thenAnswer(inv -> inv.getArgument(0));
@@ -128,7 +128,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(false);
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
         UserState userState = mock(UserState.class);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getDisplayName()).thenReturn("John Smith");
 
         assertDoesNotThrow(() ->
@@ -186,7 +186,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId)).thenReturn(false);
         UserState userState = mock(UserState.class);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getDisplayName()).thenReturn("John Smith");
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -209,7 +209,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
 
         UserState userState = mock(UserState.class);
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
             .thenReturn(false);

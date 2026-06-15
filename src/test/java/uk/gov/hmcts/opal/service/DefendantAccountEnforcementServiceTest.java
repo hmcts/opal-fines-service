@@ -68,7 +68,7 @@ class DefendantAccountEnforcementServiceTest {
             .version(3)
             .build();
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
 
         // business unit user lookup returns an Optional<BusinessUnitUser> with a non-blank ID
@@ -90,7 +90,7 @@ class DefendantAccountEnforcementServiceTest {
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
         verify(userState).getBusinessUnitUserForBusinessUnit((short)10);
         verify(defendantAccountEnforcementServiceProxy)
@@ -105,7 +105,7 @@ class DefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String authHeader = "Bearer abc";
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT))
             .thenReturn(false);
 
@@ -122,7 +122,7 @@ class DefendantAccountEnforcementServiceTest {
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
         verifyNoInteractions(defendantAccountEnforcementServiceProxy);
     }
@@ -136,7 +136,7 @@ class DefendantAccountEnforcementServiceTest {
 
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
 
         // return Optional<BusinessUnitUser> but with blank ID -> results in null
@@ -182,7 +182,7 @@ class DefendantAccountEnforcementServiceTest {
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))
             .build();
-        when(userStateService.checkForAuthorisedUser()).thenReturn(allPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(allPermissionsUser());
         when(defendantAccountEnforcementServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
 
         // Act
@@ -220,7 +220,7 @@ class DefendantAccountEnforcementServiceTest {
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
@@ -242,7 +242,7 @@ class DefendantAccountEnforcementServiceTest {
         // assert
         assertSame(proxyResponse, result);
 
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
@@ -266,7 +266,7 @@ class DefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
         when(userState.getUserName()).thenReturn("user-1");
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
@@ -286,7 +286,7 @@ class DefendantAccountEnforcementServiceTest {
         // assert
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
         verify(userState).getUserName();
         verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
@@ -319,7 +319,7 @@ class DefendantAccountEnforcementServiceTest {
                 .build()))
             .build();
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
@@ -341,7 +341,7 @@ class DefendantAccountEnforcementServiceTest {
         // assert
         assertSame(proxyResponse, result);
 
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
@@ -373,7 +373,7 @@ class DefendantAccountEnforcementServiceTest {
 
         UserState userState = mock(UserState.class);
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
             .thenReturn(true);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
@@ -400,7 +400,7 @@ class DefendantAccountEnforcementServiceTest {
         // assert
         assertSame(proxyResponse, result);
 
-        verify(userStateService).checkForAuthorisedUser();
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
         verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
         verify(userState).getUserName();
@@ -438,7 +438,7 @@ class DefendantAccountEnforcementServiceTest {
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),

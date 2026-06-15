@@ -30,7 +30,7 @@ public class DefendantAccountPartyService {
 
         log.debug(":getDefendantAccountParty:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
 
@@ -47,7 +47,7 @@ public class DefendantAccountPartyService {
 
         log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request);
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         short buId = Short.parseShort(businessUnitId);
 
@@ -77,7 +77,7 @@ public class DefendantAccountPartyService {
 
         log.debug(":replaceDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         short buId = Short.parseShort(businessUnitId);
 
@@ -102,7 +102,7 @@ public class DefendantAccountPartyService {
 
         log.debug(":removeDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)

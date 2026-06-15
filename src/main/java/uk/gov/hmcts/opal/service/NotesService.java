@@ -26,7 +26,7 @@ public class NotesService {
     public String addNote(AddNoteRequest request, String ifMatch) {
         log.debug(":addNote:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         DefendantAccountEntity account =
             defendantAccountRepository

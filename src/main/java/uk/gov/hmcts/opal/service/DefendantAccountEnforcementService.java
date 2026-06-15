@@ -28,7 +28,7 @@ public class DefendantAccountEnforcementService {
 
         log.debug(":getEnforcementStatus:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountEnforcementServiceProxy.getEnforcementStatus(defendantAccountId);
@@ -44,7 +44,7 @@ public class DefendantAccountEnforcementService {
 
         log.debug(":addEnforcement:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
@@ -69,7 +69,7 @@ public class DefendantAccountEnforcementService {
 
         log.debug(":removeEnforcementHold:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)

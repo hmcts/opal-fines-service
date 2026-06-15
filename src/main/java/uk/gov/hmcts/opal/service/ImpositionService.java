@@ -56,7 +56,7 @@ public class ImpositionService {
 
         log.debug(":getImpositions:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return impositionServiceProxy.getImpositions(defendantAccountId);

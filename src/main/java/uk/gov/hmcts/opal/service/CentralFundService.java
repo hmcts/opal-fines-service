@@ -26,7 +26,7 @@ public class CentralFundService {
     public CentralFundResponse getCentralFundByBusinessUnit(int businessUnitId) {
         log.debug(":getCentralFundByBusinessUnit: businessUnitId={}", businessUnitId);
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }

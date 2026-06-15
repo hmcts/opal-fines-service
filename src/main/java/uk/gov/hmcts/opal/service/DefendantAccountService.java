@@ -46,7 +46,7 @@ public class DefendantAccountService {
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -89,7 +89,7 @@ public class DefendantAccountService {
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
 
@@ -105,7 +105,7 @@ public class DefendantAccountService {
 
         log.debug(":getDefendantAccountParty:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
 
@@ -119,7 +119,7 @@ public class DefendantAccountService {
 
         log.debug(":getPaymentTerms:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getPaymentTerms(defendantAccountId);
@@ -131,7 +131,7 @@ public class DefendantAccountService {
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getAtAGlance(defendantAccountId);
@@ -143,7 +143,7 @@ public class DefendantAccountService {
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(
         Long defendantAccountId) {
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -163,7 +163,7 @@ public class DefendantAccountService {
                 "Defendant Account", defendantAccountId, "If-Match header is required", null);
         }
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
 
@@ -211,7 +211,7 @@ public class DefendantAccountService {
 
         log.debug(":getEnforcementStatus:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getEnforcementStatus(defendantAccountId);
@@ -225,7 +225,7 @@ public class DefendantAccountService {
         String ifMatch, String businessUnitId, DefendantAccountParty request) {
         log.debug(":replaceDefendantAccountParty");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         short buId = Short.parseShort(businessUnitId);
 
@@ -260,7 +260,7 @@ public class DefendantAccountService {
     ) {
         log.debug(":addPaymentCardRequest:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
             return defendantAccountServiceProxy.addPaymentCardRequest(
@@ -281,7 +281,7 @@ public class DefendantAccountService {
 
         log.debug(":addEnforcement:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
@@ -304,7 +304,7 @@ public class DefendantAccountService {
 
         log.debug(":addPaymentTerms:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         short buId = Short.parseShort(businessUnitId);
         String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(buId)

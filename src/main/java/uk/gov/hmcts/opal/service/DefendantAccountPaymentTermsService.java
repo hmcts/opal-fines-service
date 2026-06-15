@@ -24,7 +24,7 @@ public class DefendantAccountPaymentTermsService {
 
         log.debug(":getPaymentTerms:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountPaymentTermsServiceProxy.getPaymentTerms(defendantAccountId);
@@ -41,7 +41,7 @@ public class DefendantAccountPaymentTermsService {
     ) {
         log.debug(":addPaymentCardRequest:");
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
