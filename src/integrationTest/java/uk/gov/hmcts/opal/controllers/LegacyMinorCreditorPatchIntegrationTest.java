@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -28,6 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
@@ -40,7 +40,6 @@ import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -54,7 +53,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Slf4j(topic = "opal.LegacyMinorCreditorPatchIntegrationTest")
 class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer some_value";
     private static final String URL_BASE = "/minor-creditor-accounts";
     private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
@@ -109,7 +107,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
         LegacyUpdateMinorCreditorAccountRequest legacyRequest = requestCaptor.getValue();
         org.junit.jupiter.api.Assertions.assertEquals("607", legacyRequest.getCreditorAccountId());
         org.junit.jupiter.api.Assertions.assertEquals("10", legacyRequest.getBusinessUnitId());
-        org.junit.jupiter.api.Assertions.assertEquals("USER01", legacyRequest.getBusinessUnitUserId());
+        org.junit.jupiter.api.Assertions.assertEquals("L010JG", legacyRequest.getBusinessUnitUserId());
         org.junit.jupiter.api.Assertions.assertEquals(1, legacyRequest.getAccountVersion());
         org.junit.jupiter.api.Assertions.assertEquals("99008", legacyRequest.getPartyDetails().getPartyId());
         org.junit.jupiter.api.Assertions.assertEquals("Updated Ltd",
@@ -213,8 +211,9 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     }
 
     private void authorisePatchUser() {
-        when(userStateService.checkForAuthorisedUser(AUTH_HEADER))
-            .thenReturn(permissionUser(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
                 FinesPermission.ACCOUNT_MAINTENANCE,
                 FinesPermission.VIEW_CREDITOR_BACS));
@@ -224,7 +223,8 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
         return mockMvc.perform(
             patch(URL_BASE + "/" + creditorAccountId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", AUTH_HEADER)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
                 .header("If-Match", ifMatch)
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                 .content(objectMapper.writeValueAsString(patchMinorCreditorLegacyRequest()))

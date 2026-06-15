@@ -1,9 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static uk.gov.hmcts.opal.util.RecordTypeConstants.PAYMENT_TERMS;
-import static uk.gov.hmcts.opal.util.ReportIdConstants.DEFENDANT_ACCOUNTS;
 import static uk.gov.hmcts.opal.util.ReportIdConstants.LIST_EXTEND_TTP;
-import static uk.gov.hmcts.opal.util.ReportIdConstants.TRACK_ENFORCEMENT_HOLD;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -44,20 +42,5 @@ public class ReportEntryService implements ReportEntryServiceInterface {
 
         log.debug(":createExtendTtpReportEntry: created report entry for paymentTermsId={} BU={}",
             paymentTermsId, businessUnitId);
-    }
-
-    public void createRemoveEnforcementHoldReportEntry(Long defendantAccountId, short businessUnitId) {
-        ReportEntryEntity reportEntry = ReportEntryEntity.builder()
-            .businessUnit(businessUnitService.getBusinessUnit(businessUnitId))
-            .reportId(TRACK_ENFORCEMENT_HOLD)
-            .entryTimestamp(LocalDateTime.now(clock))
-            .associatedRecordId(String.valueOf(defendantAccountId))
-            .associatedRecordType(DEFENDANT_ACCOUNTS)
-            .build();
-
-        reportEntryRepository.save(reportEntry);
-
-        log.debug(":createRemoveEnforcementHoldReportEntry: created report entry for defendantAccountId={} BU={}",
-            defendantAccountId, businessUnitId);
     }
 }

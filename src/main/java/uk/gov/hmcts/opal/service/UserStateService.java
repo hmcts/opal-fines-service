@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -9,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -24,27 +22,33 @@ public class UserStateService {
 
     private final AccessTokenService tokenService;
 
-    private final UserStateClientService userStateClientService;
-
     private final UserStateMapper userStateMapper;
 
+    /**
+0     * Returns the authorised user state from the current security context.
+     *
+     * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
+     */
+    @Deprecated(since = "2")
+    @SuppressWarnings("java:S1133")
     public UserState checkForAuthorisedUser() {
-        return userStateClientService.getUserStateByAuthenticatedUser()
-            .map(userState -> {
-                log.debug(":checkForAuthorisedUser: using authenticated user state from user service: userId={}, "
-                        + "userName={}, businessUnits={}",
-                    userState.getUserId(), userState.getUserName(), summariseBusinessUnits(userState));
-                return userState;
-            })
-            .orElseGet(this::getUserStateFromSecurityContext);
+        return checkForAuthorisedUser("");
     }
 
+    /**
+     * Returns the authorised user state from the current security context.
+     *
+     * @deprecated Use {@link #getUserStateFromSecurityContext()} for V2 user state.
+     */
+    @Deprecated(since = "2")
+    @SuppressWarnings("java:S1133")
     public UserState checkForAuthorisedUser(String authorization) {
-        return checkForAuthorisedUser();
+        return getUserStateV1FromSecurityContext();
     }
 
     // Stop gap solution until all permissions are resolved directly in service-layer auth checks.
-    private UserState getUserStateFromSecurityContext() {
+    @SuppressWarnings({"java:S1874", "java:S1133"})
+    private UserState getUserStateV1FromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
             throw new AccessDeniedException("Unexpected token type");
@@ -53,25 +57,22 @@ public class UserStateService {
         if (userStateV2 == null) {
             throw new AccessDeniedException("User state not found in token");
         }
-        UserState userState = userStateMapper.toUserState(userStateV2, Domain.FINES);
-        log.debug(":checkForAuthorisedUser: using user state from security context token: userId={}, userName={}, "
-                + "businessUnits={}",
-            userState.getUserId(), userState.getUserName(), summariseBusinessUnits(userState));
+        return userStateMapper.toUserState(userStateV2, Domain.FINES);
+    }
+
+    public UserStateV2 getUserStateFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof OpalJwtAuthenticationToken authToken)) {
+            throw new AccessDeniedException("Unexpected token type");
+        }
+        UserStateV2 userState = authToken.getUserState();
+        if (userState == null) {
+            throw new AccessDeniedException("User state not found in token");
+        }
         return userState;
     }
 
     public String getPreferredUsername(String authorization) {
         return extractPreferredUsername(authorization, tokenService);
-    }
-
-    private String summariseBusinessUnits(UserState userState) {
-        if (userState.getBusinessUnitUser() == null || userState.getBusinessUnitUser().isEmpty()) {
-            return "[]";
-        }
-
-        return userState.getBusinessUnitUser().stream()
-            .map(businessUnitUser -> String.valueOf(businessUnitUser.getBusinessUnitId()))
-            .sorted()
-            .collect(Collectors.joining(",", "[", "]"));
     }
 }

@@ -37,7 +37,8 @@ class DefendantAccountSearchRelease1bDisabledIntegrationTest extends AbstractInt
     @JiraEpic("PO-3685")
     void postDefendantAccountsSearch_returnsFeatureDisabledWhenRelease1bDisabled() throws Exception {
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(searchCriteria(true)))
             .andExpect(status().isMethodNotAllowed())

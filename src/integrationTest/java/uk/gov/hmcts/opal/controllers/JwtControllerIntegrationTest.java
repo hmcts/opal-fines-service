@@ -35,7 +35,8 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
     @JiraTestKey("PO-5906")
     void testValidJwtTokenGivesOk() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(URL)
-                .header(AUTHORIZATION, "Bearer " + validToken))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(AUTHORIZATION, userStateStub.getAuthorizationToken()))
             .andExpect(status().isOk());
     }
 

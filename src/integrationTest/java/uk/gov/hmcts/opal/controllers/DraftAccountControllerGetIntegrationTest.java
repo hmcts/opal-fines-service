@@ -13,8 +13,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,15 +24,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
-import tools.jackson.databind.JsonNode;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -51,10 +48,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5830")
     void testGetDraftAccountById_success() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/1")
-            .header("authorization", "Bearer some_value"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDraftAccountById_success: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -84,10 +80,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5822")
     void testGetDraftAccountById_publishingFailed_returnsStatusMessage() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/3")
-            .header("authorization", "Bearer some_value"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDraftAccountById_publishingFailed_returnsStatusMessage: Response body:\n"
@@ -114,13 +109,12 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2355")
     @JiraTestKey("PO-5827")
     void testGetDraftAccountById_PdplLogging() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)65, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+        userStateStub.addPermissions((short) 65, FinesPermission.values());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/104")
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -138,7 +132,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails first = logs.get(0);
         assertEquals("Get Draft Account - Parent or Guardian", first.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
-        assertEquals("1", first.getCreatedBy().getIdentifier());
+        assertEquals("500000000", first.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
         assertEquals("192.168.1.100", first.getIpAddress());
         assertEquals(1, first.getIndividuals().size());
@@ -148,7 +142,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails second = logs.get(1);
         assertEquals("Get Draft Account - Defendant", second.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, second.getCategory());
-        assertEquals("1", second.getCreatedBy().getIdentifier());
+        assertEquals("500000000", second.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
         assertEquals("192.168.1.100", second.getIpAddress());
         assertEquals(1, second.getIndividuals().size());
@@ -164,10 +158,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5831")
     void testGetDraftAccountsSummaries_noParams() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
-        ResultActions resultActions =  mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -196,13 +189,15 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2355")
     @JiraTestKey("PO-5825")
     void testGetDraftAccounts_success_and_pdplServiceCalled() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short) 65, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 65,
+            FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+            FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -227,7 +222,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails defendant =
             byBusiness.get("Get Draft Account - Defendant");
 
-        assertEquals("1", defendant.getCreatedBy().getIdentifier());
+        assertEquals("500000000", defendant.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, defendant.getCreatedBy().getType());
         assertEquals("192.168.1.100", defendant.getIpAddress());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, defendant.getCategory());
@@ -244,7 +239,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails pg =
             byBusiness.get("Get Draft Account - Parent or Guardian");
 
-        assertEquals("1", pg.getCreatedBy().getIdentifier());
+        assertEquals("500000000", pg.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pg.getCreatedBy().getType());
         assertEquals("192.168.1.100", pg.getIpAddress());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, pg.getCategory());
@@ -256,7 +251,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails minor =
             byBusiness.get("Get Draft Account - Minor Creditor");
 
-        assertEquals("1", minor.getCreatedBy().getIdentifier());
+        assertEquals("500000000", minor.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, minor.getCreatedBy().getType());
         assertEquals("192.168.1.100", minor.getIpAddress());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, minor.getCategory());
@@ -276,10 +271,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5832")
     void testGetDraftAccountsSummaries_paramBusinessUnit() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .param("business_unit", BU_ID.toString())
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -306,13 +300,12 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5821")
     void testGetDraftAccountsSummaries_paramStatusDate() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         LocalDate fromDate = LocalDate.of(2025, 02, 03);
         LocalDate toDate = LocalDate.of(2025, 02, 03);
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .param("account_status_date_from", fromDate.toString())
             .param("account_status_date_to", toDate.toString())
             .contentType(MediaType.APPLICATION_JSON));
@@ -341,10 +334,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5815")
     void testGetDraftAccountsSummaries_paramStatus() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .param("status", DraftAccountStatus.PUBLISHING_FAILED.name())
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -371,10 +363,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5816")
     void testGetDraftAccountsSummaries_paramSubmittedBy() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .param("submitted_by", "user_002")
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -401,11 +392,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5828")
     void testGetDraftAccountsSummaries_paramNotSubmittedBy() throws Exception {
 
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .param("not_submitted_by", "user_003")
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -434,13 +423,11 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5817")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits1() throws Exception {
-
-        UserState user = permissionUser(BU_ID, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
-
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BU_ID, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -462,13 +449,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5818")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits2() throws Exception {
-
-        UserState user = permissionUser(new Short[] {BU_ID, (short)77}, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
-
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .param("business_unit", "73")
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -491,13 +474,13 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5819")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits3() throws Exception {
-
-        UserState user = permissionUser(new Short[] {BU_ID, (short)77}, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BU_ID, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        userStateStub.addPermissions((short) 77, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -524,14 +507,15 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5814")
     void testGetDraftAccountById_deterministic() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         ResultActions resultActions1 = mockMvc.perform(get(URL_BASE + "/1")
-                .header("authorization", "Bearer some_value"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.account.originator_type").value("NEW"));
         String body1 = resultActions1.andReturn().getResponse().getContentAsString();
         ResultActions resultActions2 = mockMvc.perform(get(URL_BASE + "/1")
-                .header("authorization", "Bearer some_value"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.account.originator_type").value("NEW"));
         String body2 = resultActions2.andReturn().getResponse().getContentAsString();
@@ -548,7 +532,8 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     void testSearchDraftAccountsPost() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"draftAccountId\":\"1\"}"));
 
@@ -570,7 +555,8 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5824")
     void testSearchDraftAccountsPost_whenDraftAccountDoesNotExist() throws Exception {
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"draftAccountId\":\"999999\"}"));
 
@@ -590,12 +576,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5812")
     void testGetDraftAccountById_trap403Response_wrongPermission() throws Exception {
-
-        UserState userState = permissionUser(BU_ID, FinesPermission.COLLECTION_ORDER);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-
+        userStateStub.setupWithNoPermissions();
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
-            .header("authorization", "Bearer some_value"));
+            .header("authorization", userStateStub.getBearerToken()));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDraftAccountById_trap403Response_wrongPermission: Response body:\n{}",
@@ -617,13 +600,11 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5826")
     void testGetDraftAccountById_trap403Response_wrongBusinessUnit() throws Exception {
-
-        UserState userState = permissionUser((short)005, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
-
+        userStateStub.setupWithNoPermissions();
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/2")
-                .header("authorization", "Bearer some_value"));
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDraftAccountById_trap403Response_wrongBusinessUnit: Response body:\n"
@@ -645,14 +626,10 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5829")
     void testGetDraftAccountsSummaries_trap403Response_noPermission() throws Exception {
-        final Short businessId = (short)1;
-
-        UserState user = permissionUser(businessId, FinesPermission.COLLECTION_ORDER);
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        final Short businessId = (short) 1;
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .header("authorization", userStateStub.getBearerToken())
             .param("business_unit", businessId.toString())
             .contentType(MediaType.APPLICATION_JSON));
 
@@ -667,10 +644,9 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5833")
     void testGetDraftAccountById_trap404Response() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         mockMvc.perform(get(URL_BASE + "/99")
-                .header("authorization", "Bearer some_value"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
             .andExpect(status().isNotFound())
         ;
     }
@@ -695,14 +671,11 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5820")
     void testGetDraftAccountsSummaries_trap400Response() throws Exception {
-        final Short businessId = (short)1;
-
-        UserState user = permissionUser(businessId, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        final Short businessId = (short) 1;
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .param("business_unit", businessId.toString())
             .param("submitted_by", "Dave")
             .param("not_submitted_by", "Tony")

@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.CENTRAL_FUNDS_URI;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
@@ -146,8 +146,6 @@ public class CentralFundRefDataStepDef extends BaseStepDef {
     }
 
     private Set<String> fieldNames(JsonNode node) {
-        Set<String> fields = new HashSet<>();
-        node.fieldNames().forEachRemaining(fields::add);
-        return fields;
+        return new HashSet<>(node.propertyNames());
     }
 }

@@ -7,21 +7,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(
@@ -96,26 +89,5 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("my@email.com", response.getBody());
-    }
-
-    @Test
-    void getUserState_shouldReturnResponse() {
-        UserState userState = UserStateUtil.permissionUser((short) 1, FinesPermission.ACCOUNT_ENQUIRY);
-        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
-
-        ResponseEntity<UserState> response = controller.getUserState(1L);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(userState, response.getBody());
-    }
-
-    @Test
-    void getUserState_shouldReturnNotFound() {
-        when(userStateClientService.getUserState(99L)).thenReturn(Optional.empty());
-
-        ResponseEntity<UserState> response = controller.getUserState(99L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertFalse(response.hasBody());
     }
 }

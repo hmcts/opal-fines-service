@@ -4,7 +4,7 @@ Feature: Delete Draft Account
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-TEST-KEY:PO-5635
+  @cleanUpData @JIRA-TEST-KEY:PO-5635
   Scenario: A draft account can be deleted using optimistic locking
     Given a draft account exists with the following details
       | business_unit_id  | 73                                          |

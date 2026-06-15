@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -70,9 +71,8 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6055")
     void post_notFound_whenAccountNotInHeaderBU() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(ACCOUNT_ID);
+        userStateStub.addPermissions((short)99, FinesPermission.values());
 
         HttpHeaders headers = buildHttpHeaders("99", "\"" + currentVersion + "\"");
 
@@ -92,6 +92,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
         ResultActions res = mockMvc.perform(
             post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -110,8 +111,6 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6059")
     void post_happyPath_organisation_isDebtorFalse() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
@@ -133,6 +132,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
         ResultActions call = mockMvc.perform(
             post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -161,8 +161,6 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6057")
     void post_happyPath_individual_isDebtorTrue_createsDebtorDetail() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
@@ -217,6 +215,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
         ResultActions call = mockMvc.perform(
             post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -261,8 +260,6 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6058")
     void post_conflict_whenIfMatchIsStale() throws Exception {
-        authoriseAllPermissions();
-
         HttpHeaders headers = buildHttpHeaders(BU_ID, "\"9999999\"");
 
         String body = """
@@ -281,6 +278,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
         ResultActions res = mockMvc.perform(
             post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -298,8 +296,6 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6054")
     void post_twoSequentialParties_eachBumpsVersion() throws Exception {
-        authoriseAllPermissions();
-
         Integer versionBefore = versionFor(ACCOUNT_ID);
 
         for (int i = 1; i <= 2; i++) {
@@ -324,6 +320,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
             ResultActions call = mockMvc.perform(
                 post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body)
@@ -351,8 +348,6 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6056")
     void post_isDebtor_true_noDetails_createsDebtorRow_withNulls() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
@@ -371,6 +366,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
         ResultActions call = mockMvc.perform(
             post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -406,8 +402,6 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6060")
     void post_response_validatesAgainstSchema() throws Exception {
-        authoriseAllPermissions();
-
         Integer currentVersion = versionFor(ACCOUNT_ID);
         String etag = "\"" + currentVersion + "\"";
 
@@ -462,6 +456,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
 
         ResultActions call = mockMvc.perform(
             post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)

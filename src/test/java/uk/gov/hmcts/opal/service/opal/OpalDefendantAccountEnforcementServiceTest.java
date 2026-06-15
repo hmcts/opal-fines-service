@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -109,7 +109,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private OpalDefendantAccountEnforcementService service;
 
     @Test
-    public void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
@@ -158,7 +158,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -224,7 +224,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -290,7 +290,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -356,7 +356,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JsonProcessingException {
+    public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -422,7 +422,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JsonProcessingException {
+    public void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
         when(userStateService.checkForAuthorisedUser(AUTH_HEADER)).thenReturn(userState);
@@ -508,7 +508,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void removeEnforcementHold_whenValidRequest_clearsHoldAddsNoteCreatesReportAndReturnsResponse() {
+    void removeEnforcementHold_whenValidRequest_clearsHoldAddsNoteAndReturnsResponse() {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
@@ -576,7 +576,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 eq(userState),
                 eq(defendantEntity)
             );
-            verify(reportEntryService).createRemoveEnforcementHoldReportEntry(defendantAccountId, businessUnitId);
+            verifyNoInteractions(reportEntryService);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
                 uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS,

@@ -71,6 +71,18 @@ public class GetResultsStepDef extends BaseStepDef {
     }
 
     /**
+     * Requests the single-result endpoint for the supplied result identifier.
+     *
+     * @param resultId result identifier to request.
+     */
+    @When("I request result with identifier {string}")
+    public void getResultById(String resultId) {
+        authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + RESULTS_URI + "/" + resultId);
+    }
+
+    /**
      * Asserts that the results response contains the expected number of records.
      *
      * @param count expected number of matching records.
@@ -94,6 +106,22 @@ public class GetResultsStepDef extends BaseStepDef {
             String actual = then().extract().body().jsonPath().getString("refData.find { it.result_id == '"
                                                                              + resultID + "' }." + key);
             assertEquals(expected.get(key), actual, "Values are not equal");
+        }
+    }
+
+    /**
+     * Asserts that the single-result response contains the expected field values.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
+    @Then("the result response contains")
+    public void resultResponseContains(DataTable data) {
+        Map<String, String> expected = data.asMap(String.class, String.class);
+        then().assertThat().statusCode(200);
+
+        for (Map.Entry<String, String> entry : expected.entrySet()) {
+            String actual = then().extract().body().jsonPath().getString(entry.getKey());
+            assertEquals(entry.getValue(), actual, "Values are not equal");
         }
     }
 

@@ -3,8 +3,8 @@ package uk.gov.hmcts.opal.service.report;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.IN_PROGRESS;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -81,7 +81,7 @@ public class GenericReportService implements GenericReportServiceInterface {
             .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
     }
 
-    private String getDataAsJson(ReportDataInterface data) throws JsonProcessingException {
+    private String getDataAsJson(ReportDataInterface data) throws JacksonException {
         return mapper.writeValueAsString(
             Data.builder()
                 .reportData(data)

@@ -6,6 +6,8 @@ properties([
   parameters([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
+    booleanParam(name: 'Demo', defaultValue: true, description: 'Run R1A functional tests against demo'),
+    booleanParam(name: 'RunR1AOff', defaultValue: false, description: 'Run R1AOff functional tests against demo'),
     booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
     choice(
       name: 'LEGACY_URL',
@@ -19,13 +21,35 @@ import uk.gov.hmcts.contino.GradleBuilder
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 
-@Library("Infrastructure")
+@Library("Infrastructure@master")
 
 def type = "java"
 def product = "opal"
 def component = "fines-service"
 
 GradleBuilder builder = new GradleBuilder(this, product)
+
+def r1ATagFilter = '@JIRA-LABEL:manual-account-creation and not @Ignore and ' +
+        'not (@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or @R1CEnforcementOperationalReportingOff) and ' +
+        'not (@R1B or @R1C or @R1CFinance or @R1CWriteOff or @R1CEnforcementOperationalReporting or @R1CAdministration)'
+def r1AOffTagFilter = '@R1AOff and not @Ignore'
+
+def testEnvironments = [
+    staging: [
+        name                 : 'staging',
+        testUrl              : 'https://opal-fines-service.staging.platform.hmcts.net',
+        userServiceApiUrl    : 'https://opal-user-service.staging.platform.hmcts.net',
+        loggingServiceApiUrl : 'https://opal-logging-service.staging.platform.hmcts.net',
+        reportNameSuffix     : '',
+    ],
+    demo   : [
+        name                 : 'demo',
+        testUrl              : 'https://opal-fines-service.demo.platform.hmcts.net',
+        userServiceApiUrl    : 'https://opal-user-service.demo.platform.hmcts.net',
+        loggingServiceApiUrl : 'https://opal-logging-service.demo.platform.hmcts.net',
+        reportNameSuffix     : ' (Demo)',
+    ],
+]
 
 def secrets = [
     'opal-${env}': [
@@ -42,69 +66,153 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   ]
 }
 
+def configureTestEnvironment = { testEnvironment ->
+  env.ENVIRONMENT_NAME = testEnvironment.name
+  env.TEST_URL = testEnvironment.testUrl
+  env.OPAL_USER_SERVICE_API_URL = testEnvironment.userServiceApiUrl
+  env.OPAL_LOGGING_SERVICE_API_URL = testEnvironment.loggingServiceApiUrl
+
+  echo "Configured ${testEnvironment.name} test environment: TEST_URL=${env.TEST_URL}"
+}
+
+def configureZephyrExecution = { testEnvironment ->
+  env.EXECUTION_BUILD = env.GIT_COMMIT
+  env.EXECUTION_ENVIRONMENT = testEnvironment.name
+  env.EXECUTION_CYCLE_DESCRIPTION = "Nightly execution for commit ${env.GIT_COMMIT} on environment ${testEnvironment.name}.\n" +
+          "https://sds-build.hmcts.net/job/HMCTS_Nightly/job/opal-fines-service/job/master/${env.BUILD_NUMBER}/"
+  echo "Zephyr execution will be created with the following details:\n" +
+          "Build: ${env.EXECUTION_BUILD}\n" +
+          "Environment: ${env.EXECUTION_ENVIRONMENT}\n" +
+          "Description: ${env.EXECUTION_CYCLE_DESCRIPTION}"
+}
+
+def publishIntegrationResults = {
+  steps.junit '**/test-results/integration/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr-reports/**/*.json'
+}
+
+def publishFunctionalResults = { reportNameSuffix ->
+  steps.junit '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
+  publishHTML target: [
+    allowMissing         : true,
+    alwaysLinkToLastBuild: true,
+    keepAll              : true,
+    reportDir            : "functional-test-report/",
+    reportFiles          : "index.html",
+    reportName           : "Serenity Functional Test Report${reportNameSuffix}"
+  ]
+  publishHTML target: [
+    allowMissing         : true,
+    alwaysLinkToLastBuild: true,
+    keepAll              : true,
+    reportDir            : "functional-test-report/htmlReport/",
+    reportFiles          : "test-summary.html",
+    reportName           : "Test Summary Report${reportNameSuffix}"
+  ]
+}
+
+def runIntegrationStage = { stageName, gradleTask ->
+  if (params.Integration) {
+    stage(stageName) {
+      try {
+        builder.gradle(gradleTask)
+      } catch (error) {
+        steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
+      } finally {
+        publishIntegrationResults()
+      }
+    }
+  }
+}
+
+def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
+  if (params.Functional) {
+    stage(stageName) {
+      try {
+        if (shouldRunWithZephyr) {
+          builder.gradle('functionalWithZephyrExecution')
+        } else {
+          builder.gradle('functional')
+        }
+      } catch (error) {
+        steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
+      } finally {
+        publishFunctionalResults(reportNameSuffix)
+      }
+    }
+  }
+}
+
+def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, reportNameSuffix, tagFilter ->
+  if (enabled) {
+    stage(stageName) {
+      try {
+        withEnv(["TAGS=${tagFilter}"]) {
+          if (shouldRunWithZephyr) {
+            builder.gradle('clearReports functionalOpalTagsWithZephyrExecution aggregate copyFunctionalReport mergeFunctionalResults generateTestSummary')
+          } else {
+            builder.gradle('clearReports functionalOpalTags aggregate copyFunctionalReport mergeFunctionalResults generateTestSummary')
+          }
+        }
+      } catch (error) {
+        steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
+      } finally {
+        publishFunctionalResults(reportNameSuffix)
+      }
+    }
+  }
+}
+
 withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
-  env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
-  env.OPAL_USER_SERVICE_API_URL = "https://opal-user-service.staging.platform.hmcts.net"
-  env.OPAL_LOGGING_SERVICE_API_URL = "https://opal-logging-service.staging.platform.hmcts.net"
+  configureTestEnvironment(testEnvironments.staging)
   //enableFullFunctionalTest(600)
 
   afterAlways('DependencyCheckNightly') {
-   if (params.Integration) {
-     stage('Integration Tests') {
-       try {
-         builder.gradle('Integration')
-       } catch (Error) {
-         steps.echo "Integration tests failed, but continuing with the pipeline. Error" + Error.message
-       } finally {
-         steps.junit '**/test-results/integration/*.xml'
-         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
-       }
-     }
-   }
-      def today = ZonedDateTime.now().getDayOfWeek()
-      def shouldRunWithZephyr = params.ZephyrExecution || today == DayOfWeek.FRIDAY;
+    echo 'Integration:' + params.Integration
+    echo 'Functional:' + params.Functional
+    echo 'Demo:' + params.Demo
+    echo 'RunR1AOff:' + params.RunR1AOff
+
+    def today = ZonedDateTime.now().getDayOfWeek()
+    def shouldRunWithZephyr = params.ZephyrExecution || today == DayOfWeek.FRIDAY
+
+    configureTestEnvironment(testEnvironments.staging)
+    if (shouldRunWithZephyr) {
+      configureZephyrExecution(testEnvironments.staging)
+    }
+    runIntegrationStage('Integration Tests', 'Integration')
+    runFunctionalStage('Functional Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
+
+    if (params.Demo) {
+      configureTestEnvironment(testEnvironments.demo)
       if (shouldRunWithZephyr) {
-          env.EXECUTION_BUILD = env.GIT_COMMIT
-          env.EXECUTION_ENVIRONMENT = env.ENVIRONMENT_NAME
-          env.EXECUTION_CYCLE_DESCRIPTION = "Nightly execution for commit ${env.GIT_COMMIT} on environment ${env.ENVIRONMENT_NAME}.\n" +
-                  "https://sds-build.hmcts.net/job/HMCTS_Nightly/job/opal-fines-service/job/master/${env.BUILD_NUMBER}/"
-          echo "Zephyr execution will be created with the following details:\n" +
-                  "Build: ${env.EXECUTION_BUILD}\n" +
-                  "Environment: ${env.EXECUTION_ENVIRONMENT}\n" +
-                  "Description: ${env.EXECUTION_CYCLE_DESCRIPTION}"
+        configureZephyrExecution(testEnvironments.demo)
       }
-      if (params.Functional) {
-      stage('Functional Tests') {
-        try {
-            if (shouldRunWithZephyr) {
-                builder.gradle('functionalWithZephyrExecution')
-            } else {
-                builder.gradle('functional')
-            }
-        } catch (Error) {
-          steps.echo "Functional tests failed, but continuing with the pipeline. Error: " + Error.message
-        } finally {
-          steps.junit '**/test-results/functional/*.xml'
-          steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
-          publishHTML target: [
-            allowMissing         : true,
-            alwaysLinkToLastBuild: true,
-            keepAll              : true,
-            reportDir            : "functional-test-report/",
-            reportFiles          : "index.html",
-            reportName           : "Serenity Functional Test Report"
-          ]
-          publishHTML target: [
-            allowMissing         : true,
-            alwaysLinkToLastBuild: true,
-            keepAll              : true,
-            reportDir            : "functional-test-report/htmlReport/",
-            reportFiles          : "test-summary.html",
-            reportName           : "Test Summary Report"
-          ]
-        }
+      runTaggedFunctionalStage(
+        params.Functional,
+        'Demo R1A Functional Tests',
+        shouldRunWithZephyr,
+        testEnvironments.demo.reportNameSuffix,
+        r1ATagFilter
+      )
+    }
+
+    if (params.RunR1AOff) {
+      configureTestEnvironment(testEnvironments.demo)
+      if (shouldRunWithZephyr) {
+        configureZephyrExecution(testEnvironments.demo)
       }
+      runTaggedFunctionalStage(
+        params.RunR1AOff,
+        'R1AOff Demo Functional Tests',
+        shouldRunWithZephyr,
+        ' (Demo R1AOff)',
+        r1AOffTagFilter
+      )
     }
   }
 }

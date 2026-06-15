@@ -7,9 +7,9 @@ import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.Clock;
@@ -258,7 +258,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             rootNode.put("approved_date", approvedDate);
 
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException("Error processing JSON in addSnapshotApprovedDate", e);
         }
     }
