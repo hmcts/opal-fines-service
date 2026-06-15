@@ -22,7 +22,6 @@ public enum FinesPermission implements PermissionDescriptor {
     VIEW_CREDITOR_BACS(8L, "View Creditor BACS"),
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
     ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
-    VIEW_CREDITOR_BACS(11L, "View Creditor BACS"),
     CONSOLIDATE(13L, "Consolidate"),
     ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold");
 
