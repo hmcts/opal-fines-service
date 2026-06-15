@@ -212,6 +212,9 @@ paths:
             application/json:
               schema:
                 type: object
+                additionalProperties: false
+                required:
+                  - historyItems
                 properties:
                   historyItems:
                     type: array
@@ -231,6 +234,18 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         403:
           description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        408:
+          description: Request timeout
           content:
             application/json+problem:
               schema:
