@@ -162,7 +162,6 @@ class GenericReportServiceTest {
     @Test
     void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp()
         throws JacksonException {
-        reportInstance.setReportId(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
@@ -241,7 +240,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_success_singleBU() throws JsonProcessingException {
+    public void addReportInstance_success_singleBU() throws JacksonException {
         //setup
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -270,7 +269,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_success_multiBU() throws JsonProcessingException {
+    public void addReportInstance_success_multiBU() throws JacksonException {
         //setup
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
@@ -386,7 +385,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_genReportAsyncFalse_throwsException() throws JsonProcessingException {
+    public void addReportInstance_genReportAsyncFalse_throwsException() throws JacksonException {
         //setup
         when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.TypeFactory;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
@@ -115,7 +115,7 @@ public class ReportParameterValidator {
     private boolean isInvalidMenu(Map<String, Object> reportInstanceParameters, String parameterName,
         ReportParameterData reportParameterData) {
         List<String> values = mapper.convertValue(reportInstanceParameters.get(parameterName),
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class));
         int min = reportParameterData.min() != null ? (Integer) reportParameterData.min() : 0;
         int max = reportParameterData.max() != null ? (Integer) reportParameterData.max() : 1;
         return (values.size() > max || values.size() < min) || !new HashSet<>(

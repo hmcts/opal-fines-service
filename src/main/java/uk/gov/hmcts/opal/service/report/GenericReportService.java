@@ -127,7 +127,7 @@ public class GenericReportService implements GenericReportServiceInterface {
             }
 
             return reportInstanceMapper.toResponseDto(reportInstanceEntity);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("Report parameters badly formatted", e);
         }
     }

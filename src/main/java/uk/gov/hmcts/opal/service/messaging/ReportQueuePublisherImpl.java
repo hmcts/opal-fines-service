@@ -1,12 +1,12 @@
 package uk.gov.hmcts.opal.service.messaging;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.config.ReportServiceBusProperties;
 
 @Component
@@ -29,7 +29,7 @@ public class ReportQueuePublisherImpl implements ReportQueuePublisher {
             String payload = objectMapper.writeValueAsString(new ReportQueueMessage(reportInstanceId));
             jmsTemplate.convertAndSend(properties.getQueueName(), payload);
             log.info("Published report queue message for reportInstanceId={}", reportInstanceId);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             throw new IllegalArgumentException("Unable to serialize report queue message", ex);
         } catch (JmsException ex) {
             throw new IllegalStateException("Unable to publish report queue message", ex);

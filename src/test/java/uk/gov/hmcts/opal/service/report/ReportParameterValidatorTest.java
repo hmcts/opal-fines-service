@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.TypeFactory;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,9 +44,9 @@ public class ReportParameterValidatorTest {
         List<String> checkboxList = List.of("one", "two");
         List<String> radioList = List.of("one");
         when(objectMapper.convertValue(checkboxList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class))).thenReturn(checkboxList);
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class))).thenReturn(checkboxList);
         when(objectMapper.convertValue(radioList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class))).thenReturn(radioList);
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class))).thenReturn(radioList);
 
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("date-param", "date", true, null, null, null),
@@ -229,7 +229,7 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuHasTooManyValues_returnsFalse() {
         List<String> menuChoiceList = List.of("one", "two");
         when(objectMapper.convertValue(menuChoiceList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class)))
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
             .thenReturn(menuChoiceList);
 
         when(report.getReportParameters()).thenReturn(List.of(
@@ -246,7 +246,7 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuHasTooFewValues_returnsFalse() {
         List<String> menuChoiceList = List.of();
         when(objectMapper.convertValue(menuChoiceList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class)))
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
             .thenReturn(menuChoiceList);
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("menu-param", "menu-checkbox", false, 1, 2, List.of("one", "two"))
@@ -262,7 +262,7 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuHasInvalidOption_returnsFalse() {
         List<String> menuChoiceList = List.of("three");
         when(objectMapper.convertValue(menuChoiceList,
-            TypeFactory.defaultInstance().constructCollectionType(List.class, String.class)))
+            TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
             .thenReturn(menuChoiceList);
 
         when(report.getReportParameters()).thenReturn(List.of(
@@ -279,7 +279,7 @@ public class ReportParameterValidatorTest {
     void validateReportInstanceParameterValues_menuValueCannotBeConverted_returnsFalse() {
         Object notAList = new Object();
         when(objectMapper
-            .convertValue(notAList, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class)))
+            .convertValue(notAList, TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
             .thenThrow(IllegalArgumentException.class);
 
         when(report.getReportParameters()).thenReturn(List.of(
