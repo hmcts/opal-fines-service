@@ -43,6 +43,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
     }
+
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id, String authHeaderValue) {

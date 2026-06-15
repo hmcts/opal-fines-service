@@ -155,7 +155,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         String body = result.andReturn().getResponse().getContentAsString();
@@ -207,7 +207,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("itemTypes", "amendment")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -254,7 +254,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("itemTypes", "enforcement")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -302,7 +302,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/262210/history")
                 .queryParam("itemTypes", "enforcement")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         result.andExpect(status().isOk())
@@ -345,7 +345,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("itemTypes", "note,paymentTerms")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -405,7 +405,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("itemTypes", "financial")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -446,13 +446,13 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions dateFromResult = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("dateFrom", "2026-01-03")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         ResultActions dateToResult = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("dateTo", "2026-01-02")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -479,7 +479,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("itemTypes", "note")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -501,7 +501,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("itemTypes", "note", "paymentTerms")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -524,7 +524,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
                 .queryParam("dateFrom", "2026-01-02")
                 .queryParam("dateTo", "2026-01-04")
                 .queryParam("itemTypes", "financial", "enforcement", "amendment")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         String firstBody = firstResult.andReturn().getResponse().getContentAsString();
@@ -534,7 +534,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
                 .queryParam("dateFrom", "2026-01-02")
                 .queryParam("dateTo", "2026-01-04")
                 .queryParam("itemTypes", "financial", "enforcement", "amendment")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -554,6 +554,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .header("Authorization", "Bearer ")
         );
 
         // Assert
@@ -574,7 +575,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -595,7 +596,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/999999999/history")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         // Assert
@@ -624,7 +625,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         String body = result.andReturn().getResponse().getContentAsString();
@@ -701,7 +702,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("dateFrom", "2026-01-10")
                 .queryParam("dateTo", "2026-01-10")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         String firstResponse = firstCall.andReturn().getResponse().getContentAsString();
@@ -710,7 +711,7 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
                 .queryParam("dateFrom", "2026-01-10")
                 .queryParam("dateTo", "2026-01-10")
-                .header("Authorization", "Bearer test-token")
+                .header("Authorization", userStateStub.getBearerToken())
         );
 
         log.info(":getDefendantAccountHistory_sameDayMixedSources_orderedDeterministically: First call response:\n{}",
