@@ -59,19 +59,18 @@ public class ReportService extends AbstractPermissionService {
             enrichedParameters.putAll(reportParameters);
         }
 
-        try {
-            ConfigurationItemEntity configurationItem = configurationItemRepository
-                .findByItemNameAndBusinessUnitIdIsNull(OPERATIONAL_REPORT_BU_WARNING_THRESHOLD)
-                .orElseThrow(() -> new SchemaConfigurationException(
-                    "Missing configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
-                ));
+        ConfigurationItemEntity configurationItem = configurationItemRepository
+            .findByItemNameAndBusinessUnitIdIsNull(OPERATIONAL_REPORT_BU_WARNING_THRESHOLD)
+            .orElseThrow(() -> new SchemaConfigurationException(
+                "Missing configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
+            ));
 
+        try {
             enrichedParameters.put(BUSINESS_UNIT_WARNING_THRESHOLD, Integer.parseInt(configurationItem.getItemValue()));
-        } catch (SchemaConfigurationException e) {
-            throw e;
-        } catch (RuntimeException e) {
+        } catch (NumberFormatException e) {
             throw new SchemaConfigurationException(
-                "Invalid integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
+                "Invalid integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD,
+                e
             );
         }
 
