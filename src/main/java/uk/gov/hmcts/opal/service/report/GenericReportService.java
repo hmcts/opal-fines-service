@@ -3,18 +3,28 @@ package uk.gov.hmcts.opal.service.report;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.IN_PROGRESS;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQUESTED;
+import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.findPermittedReportForBusinessUnits;
+import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted;
+import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.throwErrorIfReportIsProvidedButNotPermitted;
+import static uk.gov.hmcts.opal.util.NumberUtils.toLongList;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -27,19 +37,27 @@ import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
+import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.repository.jpa.ReportInstanceSpecs;
+import uk.gov.hmcts.opal.service.ReportService;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
+
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.ReportService")
 public class GenericReportService implements GenericReportServiceInterface {
 
+    private final UserStateService userStateService;
     private final ReportInstanceRepository reportInstanceRepository;
     private final ReportRepository reportRepository;
+    private final ReportInstanceMapper reportInstanceMapper;
     private final ReportRegistry reportRegistry;
     private final ReportBlobStore blobStore;
     private final Clock clock;
@@ -48,6 +66,14 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ReportInstanceMapper reportInstanceMapper;
     private final ReportQueuePublisherImpl reportQueuePublisher;
     private final ReportParameterValidator reportParameterValidator;
+    private final ReportService reportService;
+
+    private static void processError(ReportInstanceEntity instance, Exception exception) {
+        instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
+        instance.setErrors(ReportError.builder()
+            .operationId(LogUtil.getOrCreateOpalOperationId())
+            .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
+    }
 
     @Override
     public void generateReportInstanceContent(Long id) {
@@ -55,7 +81,7 @@ public class GenericReportService implements GenericReportServiceInterface {
         ReportInstanceEntity instance =
             reportInstanceRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         try {
-            String templateId = instance.getReport().getReportId();
+            String templateId = instance.getReportId();
             final ReportInterface<?> reportTemplate = reportRegistry.get(templateId);
             instance.setGenerationStatus(IN_PROGRESS);
             instance.setErrors(null);
@@ -156,11 +182,62 @@ public class GenericReportService implements GenericReportServiceInterface {
         );
     }
 
+    @Override
+    public List<ReportInstanceListReportsInner> searchReportInstances(
+        final LocalDate fromDate,
+        final LocalDate toDate,
+        final List<Integer> businessUnits,
+        final Integer userId,
+        final String reportId) {
+        log.debug("Searching for report instances");
+
+        ReportEntity report = throwErrorIfReportIsProvidedButNotPermitted(reportRepository, userStateService, reportId);
+        throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(userStateService, businessUnits);
+
+        List<ReportEntity> selectedReports;
+        if (report != null) {
+            selectedReports = List.of(report);
+        } else {
+            selectedReports = reportRepository.findAll();
+        }
+
+        List<Long> selectedBusinessUnitUserIds;
+        if (businessUnits != null && !businessUnits.isEmpty()) {
+            selectedBusinessUnitUserIds = toLongList(businessUnits);
+        } else {
+            selectedBusinessUnitUserIds = userStateService.getAllBusinessUnitUsersForCurrentUser()
+                .stream()
+                .map(buUser -> buUser.getBusinessUnitId().longValue())
+                .distinct()
+                .toList();
+        }
+
+        Map<String, List<Long>> permittedReportForBusinessUnits =
+            findPermittedReportForBusinessUnits(userStateService, selectedReports, selectedBusinessUnitUserIds);
+
+        List<ReportInstanceEntity> reportInstances = new ArrayList<>();
+        permittedReportForBusinessUnits.forEach((reportIdKey, businessUnitIds) -> {
+            Specification<ReportInstanceEntity> spec =
+                ReportInstanceSpecs.build(fromDate, toDate, userId, reportIdKey, businessUnitIds);
+            reportInstances.addAll(reportInstanceRepository.findAll(spec));
+
+        });
+
+        log.debug("Found {} report instances", reportInstances.size());
+
+        Map<String, ReportEntity> reportIdToReport = selectedReports.stream()
+            .collect(Collectors.toMap(ReportEntity::getReportId, reportEntity -> reportEntity));
+
+        return reportInstances.stream()
+            .map(instance -> reportInstanceMapper.toDto(instance, reportIdToReport.get(instance.getReportId())))
+            .toList();
+    }
+
     @Builder
     @lombok.Data
     static class Data {
+
         private ReportDataInterface reportData;
         private ReportMetaData reportMetaData;
     }
-
 }

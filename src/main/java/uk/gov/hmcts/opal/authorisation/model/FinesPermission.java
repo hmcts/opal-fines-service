@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.authorisation.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 
 /**
@@ -44,5 +45,12 @@ public enum FinesPermission implements PermissionDescriptor {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unknown FinesPermission: " + value, e);
         }
+    }
+
+    public Permission toUserPermission() {
+        return Permission.builder()
+            .permissionId(id)
+            .permissionName(description)
+            .build();
     }
 }

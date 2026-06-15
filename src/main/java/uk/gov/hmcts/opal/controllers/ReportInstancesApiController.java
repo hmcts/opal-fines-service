@@ -1,20 +1,26 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.ReportInstancesApi;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
+@Slf4j(topic = "opal.ReportInstancesApiController")
 @Slf4j(topic = "opal.ReportInstanceApiController")
 @RequiredArgsConstructor
 public class ReportInstancesApiController implements ReportInstancesApi {
@@ -24,6 +30,17 @@ public class ReportInstancesApiController implements ReportInstancesApi {
     @FeatureToggle(feature = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING,
         defaultValueProperty = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY)
     @Override
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING,
+        defaultValueProperty = FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY
+    )
+    public ResponseEntity<List<ReportInstanceListReportsInner>> getReportInstances(
+        LocalDate fromDate, LocalDate toDate, List<Integer> businessUnits, Integer userId, String reportId) {
+        log.debug(":GET:getReportInstances: fromDate={}, toDate={}, businessUnits={}, userId={}, reportId={}",
+            fromDate, toDate, businessUnits, userId, reportId);
+
+        return buildResponse(genericReportService.searchReportInstances(fromDate, toDate, businessUnits,
+            userId, reportId));
     public ResponseEntity<CreateReportInstanceResponseReports> createReportInstance(
         CreateReportInstanceRequestReports createReportInstanceRequestReports) {
         return buildCreatedResponse(genericReportService.addReportInstance(createReportInstanceRequestReports, true));

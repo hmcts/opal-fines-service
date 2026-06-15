@@ -1,0 +1,24 @@
+meta {
+  name: Get Report Instances
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{finesUrl}}/report-instances?report_id=fp_register&business_units=77,88&from_date=2026-05-10&to_date=2026-05-30&user_id=12345678
+  body: none
+  auth: inherit
+}
+
+params:query {
+  report_id: fp_register
+  business_units: 77,88
+  from_date: 2026-05-10
+  to_date: 2026-05-30
+  user_id: 12345678
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
