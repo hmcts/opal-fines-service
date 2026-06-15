@@ -596,7 +596,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -655,7 +654,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22006/defendant-account-parties/22006").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -715,7 +713,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22006/defendant-account-parties/22006").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -728,6 +725,11 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             assertEquals(3, rows.size());
             assertEquals("Seed Org", rows.get(0).get("old_value"));
             assertEquals("Changed Org", rows.get(0).get("new_value"));
+            assertEquals("Seed Address 22006", rows.get(1).get("old_value"));
+            assertEquals("Changed Address 22006", rows.get(1).get("new_value"));
+            assertEquals("SE2 0AA", rows.get(2).get("old_value"));
+            assertEquals("SE3 0BB", rows.get(2).get("new_value"));
+
 
             List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
                 "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22006'");
@@ -782,7 +784,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -851,7 +852,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -864,6 +864,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             assertEquals(2, rows.size());
             assertEquals("Seed Address 22005", rows.get(0).get("old_value"));
             assertEquals("Changed Address 22005", rows.get(0).get("new_value"));
+            assertEquals("SE2 0AA", rows.get(1).get("old_value"));
+            assertEquals("SE3 0BB", rows.get(1).get("new_value"));
+
 
             List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
                 "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
@@ -918,7 +921,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -985,7 +987,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -1052,7 +1053,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -1121,7 +1121,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -1192,7 +1191,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -1262,8 +1260,6 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .contentType(MediaType.APPLICATION_JSON).content(body));
-
-            String resp = call.andReturn().getResponse().getContentAsString();
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))

@@ -51,7 +51,7 @@ VALUES
     NULL, NULL, NULL, NULL )
   ON CONFLICT (party_id) DO NOTHING;
 
--- Seed one individual alias we will update in the test
+-- Seed two individual aliases we will update in the test
 INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
 VALUES
   (2200501, 22005, 'AliasSurnameSeed', 'AliasForenamesSeed', 1, NULL),
