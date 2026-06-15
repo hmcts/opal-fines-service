@@ -211,21 +211,20 @@ Use the standard functional suite for normal backend functional coverage:
   ./gradlew functional
 ```
 
-This runs the default Opal and Legacy functional suites, and the Opal portion excludes
-environment-specific scenarios tagged `@UAT-Technical`, including the `@R1AOff`,
-`@R1BOff`, and `@R1COff` feature-flag suites.
+This runs the default Opal and Legacy functional suites and publishes the Serenity
+functional report under `functional-test-report/`.
 
 Use the tagged Opal functional suite when you need to run only scenarios for a specific
-environment or feature-flag configuration:
+feature-flag or business-area configuration:
 
 ```bash / zsh
-  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalOpalTags
+  TAGS='@R1BOff and not @Ignore' ./gradlew functionalOpalTags
 ```
 
 You can also pass the tags as a Gradle property instead of an environment variable:
 
 ```bash / zsh
-  ./gradlew functionalOpalTags -Ptags='@UAT-Technical and @R1B and @R1C'
+  ./gradlew functionalOpalTags -Ptags='@R1B and @R1C and not @Ignore'
 ```
 
 Use the combined tagged wrapper when you want the default Opal suite and the tagged Opal
@@ -233,24 +232,65 @@ scenarios in one run, with the same Serenity report and merged JUnit summary flo
 the standard `functional` task:
 
 ```bash / zsh
-  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalWithTags
+  TAGS='@R1BOff and not @Ignore' ./gradlew functionalWithTags
 ```
 
 Use the Zephyr variant when you want the same combined tagged run and the tagged Opal
 execution recorded through the existing cucumber-report Zephyr flow:
 
 ```bash / zsh
-  TAGS='@UAT-Technical and @R1BOff' ./gradlew functionalWithTagsWithZephyrExecution
+  TAGS='@R1BOff and not @Ignore' ./gradlew functionalWithTagsWithZephyrExecution
 ```
 
 Common examples:
 
 ```bash / zsh
-  TAGS='@UAT-Technical and @R1B and @R1COff' ./gradlew functionalOpalTags
-  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalOpalTags
-  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalWithTags
-  TAGS='@UAT-Technical and @R1B and @R1C' ./gradlew functionalWithTagsWithZephyrExecution
+  TAGS='@R1AOff and not @Ignore' ./gradlew functionalOpalTags
+  TAGS='@R1BOff and not @Ignore' ./gradlew functionalOpalTags
+  TAGS='@R1B and @R1C and not @Ignore' ./gradlew functionalWithTags
+  TAGS='@JIRA-LABEL:manual-account-creation and not @Ignore' ./gradlew functionalOpalTags
 ```
+
+### Nightly Jenkins pipeline
+
+`Jenkinsfile_nightly` runs on weekdays using `H 08 * * 1-5`. It uses the HMCTS
+nightly pipeline wrapper for `opal/fines-service` and loads the Jira auth token from
+the Opal Key Vault for optional Zephyr reporting.
+
+Nightly parameters:
+
+| Parameter | Default | Purpose |
+|-----------|---------|---------|
+| `Integration` | `true` | Runs the staging integration-test stage. |
+| `Functional` | `true` | Runs the staging functional-test stage and enables the demo R1A functional stage when `Demo` is also enabled. |
+| `Demo` | `true` | Runs the demo R1A functional stage against the demo environment. |
+| `RunR1AOff` | `false` | Runs the optional demo R1A-off functional stage. |
+| `ZephyrExecution` | `false` | Creates Zephyr executions; this also runs automatically on Fridays. |
+| `LEGACY_URL` | `PRE-PROD` | Existing legacy URL selector retained for legacy-mode test configuration. |
+
+Nightly environments:
+
+| Environment | Fines service | User service | Logging service |
+|-------------|---------------|--------------|-----------------|
+| `staging` | `https://opal-fines-service.staging.platform.hmcts.net` | `https://opal-user-service.staging.platform.hmcts.net` | `https://opal-logging-service.staging.platform.hmcts.net` |
+| `demo` | `https://opal-fines-service.demo.platform.hmcts.net` | `https://opal-user-service.demo.platform.hmcts.net` | `https://opal-logging-service.demo.platform.hmcts.net` |
+
+Nightly stages:
+
+| Stage | Environment | Controlled by | Gradle task flow |
+|-------|-------------|---------------|------------------|
+| `Integration Tests` | `staging` | `Integration` | `Integration` |
+| `Functional Tests` | `staging` | `Functional` | `functional` or `functionalWithZephyrExecution` |
+| `Demo R1A Functional Tests` | `demo` | `Demo` and `Functional` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with the R1A manual-account-creation tag filter |
+| `R1AOff Demo Functional Tests` | `demo` | `RunR1AOff` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with `@R1AOff and not @Ignore` |
+
+The demo R1A stage is intentionally limited to manual-account-creation scenarios and
+excludes R1A-off, R1B, R1B-off, R1C, and R1C-off style release-tagged scenarios. It
+does not run the full backend functional suite.
+
+All functional stages publish JUnit XML from `build/test-results/functional`, archive the
+functional test XMLs, and publish the Serenity report plus the generated test-summary
+HTML. The integration stage publishes and archives JUnit XML from `build/test-results/integration`.
 
 ### Zephyr tasks
 
