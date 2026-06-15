@@ -3,15 +3,17 @@ package uk.gov.hmcts.opal.repository.jpa;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.hibernate.query.criteria.JpaExpression;
+import org.hibernate.query.criteria.JpaPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
@@ -35,14 +37,16 @@ class AmendmentSpecsTest {
         Root<AmendmentEntity> root = mock(Root.class);
         CriteriaQuery<AmendmentEntity> query = mock(CriteriaQuery.class);
         CriteriaBuilder criteriaBuilder = mock(CriteriaBuilder.class);
-        Path<AssociatedRecordType> path = mock(Path.class);
+        JpaPath<AssociatedRecordType> path = mock(JpaPath.class);
+        JpaExpression<String> castExpression = mock(JpaExpression.class);
         Predicate predicate = mock(Predicate.class);
 
         when(root.get(AmendmentEntity_.associatedRecordType)).thenReturn(path);
+        doReturn(castExpression).when(path).cast(String.class);
         when(criteriaBuilder.equal(any(), any())).thenReturn(predicate);
 
         spec.toPredicate(root, query, criteriaBuilder);
-        verify(criteriaBuilder).equal(path, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        verify(criteriaBuilder).equal(castExpression, AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel());
     }
 
     @Test
