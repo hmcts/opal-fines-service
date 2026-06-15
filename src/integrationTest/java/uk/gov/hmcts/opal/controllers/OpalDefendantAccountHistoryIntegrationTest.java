@@ -559,10 +559,10 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
     }
 
     @Test
-    @DisplayName("PO-2622: INT.10 missing authentication returns 401")
+    @DisplayName("PO-2622: INT.10 missing authentication returns 403")
     @JiraStory("PO-2622")
     @JiraEpic("PO-812")
-    void getDefendantAccountHistory_missingAuthentication_returnsUnauthorized() throws Exception {
+    void getDefendantAccountHistory_missingAuthentication_returnsForbidden() throws Exception {
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
@@ -570,9 +570,9 @@ class OpalDefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsI
         );
 
         // Assert
-        result.andExpect(status().isUnauthorized())
+        result.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
