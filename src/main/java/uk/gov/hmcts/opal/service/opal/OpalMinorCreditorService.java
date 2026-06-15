@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,20 +28,15 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntit
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItem;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.generated.model.AmendmentTypeCommon;
-import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
-import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
-import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorHistoryItemMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -53,9 +47,6 @@ import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
-import uk.gov.hmcts.opal.repository.projection.MinorCreditorAmendmentHistoryProjection;
-import uk.gov.hmcts.opal.repository.projection.MinorCreditorNoteHistoryProjection;
-import uk.gov.hmcts.opal.repository.projection.MinorCreditorTransactionHistoryProjection;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -79,6 +70,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountHeaderEntityMapper headerSummaryMapper;
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
+    private final MinorCreditorHistoryItemMapper historyItemMapper;
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
@@ -131,23 +123,22 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             throw new EntityNotFoundException("Account is not a minor creditor account: " + minorCreditorAccountId);
         }
 
-        List<MappedMinorCreditorHistoryItem> historyItems = getMinorCreditorHistoryItems(minorCreditorAccountId,
-                                                                                        filters);
+        List<MinorCreditorHistoryItem> historyItems = getMinorCreditorHistoryItems(minorCreditorAccountId, filters);
 
         return GetMinorCreditorHistoryResponse.builder()
             .payload(new GetMinorCreditorHistory200Response().historyItems(historyItems.stream()
-                .sorted(MappedMinorCreditorHistoryItem.ORDERING)
-                .map(MappedMinorCreditorHistoryItem::historyItem)
+                .sorted(MinorCreditorHistoryItem.ORDERING)
+                .map(MinorCreditorHistoryItem::responseItem)
                 .toList()))
             .version(creditorAccount.getVersion())
             .build();
     }
 
-    private List<MappedMinorCreditorHistoryItem> getMinorCreditorHistoryItems(
+    private List<MinorCreditorHistoryItem> getMinorCreditorHistoryItems(
         Long minorCreditorAccountId,
         MinorCreditorHistoryFilters filters) {
 
-        List<MappedMinorCreditorHistoryItem> historyItems = new ArrayList<>();
+        List<MinorCreditorHistoryItem> historyItems = new ArrayList<>();
         LocalDateTime postedFromInclusive = postedFromInclusive(filters);
         LocalDateTime postedToExclusive = postedToExclusive(filters);
         if (filters.includes(MinorCreditorHistoryItemType.AMENDMENT)) {
@@ -155,21 +146,21 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
                 String.valueOf(minorCreditorAccountId),
                 postedFromInclusive,
                 postedToExclusive
-            ).stream().map(this::toAmendmentHistoryItem).forEach(historyItems::add);
+            ).stream().map(historyItemMapper::toHistoryItem).forEach(historyItems::add);
         }
         if (filters.includes(MinorCreditorHistoryItemType.NOTE)) {
             noteRepository.findMinorCreditorHistory(
                 String.valueOf(minorCreditorAccountId),
                 postedFromInclusive,
                 postedToExclusive
-            ).stream().map(this::toNoteHistoryItem).forEach(historyItems::add);
+            ).stream().map(historyItemMapper::toHistoryItem).forEach(historyItems::add);
         }
         if (filters.includes(MinorCreditorHistoryItemType.FINANCIAL)) {
             creditorTransactionRepository.findMinorCreditorHistory(
                 minorCreditorAccountId,
                 postedFromInclusive,
                 postedToExclusive
-            ).stream().map(this::toFinancialHistoryItem).forEach(historyItems::add);
+            ).stream().map(historyItemMapper::toHistoryItem).forEach(historyItems::add);
         }
         return historyItems;
     }
@@ -180,97 +171,6 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     private LocalDateTime postedToExclusive(MinorCreditorHistoryFilters filters) {
         return filters.postedToExclusive() == null ? MAX_HISTORY_POSTED_DATE : filters.postedToExclusive();
-    }
-
-    private MappedMinorCreditorHistoryItem toAmendmentHistoryItem(
-        MinorCreditorAmendmentHistoryProjection projection) {
-        return new MappedMinorCreditorHistoryItem(
-            MinorCreditorHistoryItemType.AMENDMENT,
-            projection.getAmendmentId(),
-            projection.getPostedDate(),
-            new MinorCreditorHistoryItemHistory()
-                .postedDetails(postedDetails(projection.getPostedDate(), projection.getPostedBy(),
-                                             projection.getPostedByName()))
-                .type(MinorCreditorHistoryItemHistory.TypeEnum.AMENDMENT)
-                .details(new AmendmentTypeCommon()
-                             .attributeName(projection.getAttributeName())
-                             .oldValue(projection.getOldValue())
-                             .newValue(projection.getNewValue()))
-                .amount(null)
-        );
-    }
-
-    private MappedMinorCreditorHistoryItem toNoteHistoryItem(MinorCreditorNoteHistoryProjection projection) {
-        return new MappedMinorCreditorHistoryItem(
-            MinorCreditorHistoryItemType.NOTE,
-            projection.getNoteId(),
-            projection.getPostedDate(),
-            new MinorCreditorHistoryItemHistory()
-                .postedDetails(postedDetails(projection.getPostedDate(), projection.getPostedBy(),
-                                             projection.getPostedByName()))
-                .type(MinorCreditorHistoryItemHistory.TypeEnum.NOTE)
-                .details(new NoteDetailsHistory().noteText(projection.getNoteText()))
-                .amount(null)
-        );
-    }
-
-    private MappedMinorCreditorHistoryItem toFinancialHistoryItem(
-        MinorCreditorTransactionHistoryProjection projection) {
-        return new MappedMinorCreditorHistoryItem(
-            MinorCreditorHistoryItemType.FINANCIAL,
-            projection.getCreditorTransactionId(),
-            projection.getPostedDate(),
-            new MinorCreditorHistoryItemHistory()
-                .postedDetails(postedDetails(projection.getPostedDate(), projection.getPostedBy(),
-                                             projection.getPostedByName()))
-                .type(MinorCreditorHistoryItemHistory.TypeEnum.FINANCIAL)
-                .details(new CreditorTransactionDetailsHistory()
-                             .transactionType(creditorTransactionType(projection.getTransactionType()))
-                             .paymentReference(projection.getPaymentReference())
-                             .status(creditorTransactionStatus(projection.getStatus()))
-                             .statusDate(projection.getStatusDate())
-                             .associatedRecordType(projection.getAssociatedRecordType())
-                             .associatedRecordId(projection.getAssociatedRecordId())
-                             .accountNumber(projection.getAccountNumber())
-                             .defendantAccountNumber(projection.getDefendantAccountNumber())
-                             .defendantAccountId(projection.getDefendantAccountId()))
-                .amount(projection.getTransactionAmount())
-        );
-    }
-
-    private PostedDetailsCommon postedDetails(LocalDateTime postedDate, String postedBy, String postedByName) {
-        return new PostedDetailsCommon()
-            .postedDate(postedDate.toLocalDate())
-            .postedBy(postedBy)
-            .postedByName(postedByName);
-    }
-
-    private CreditorTransactionTypeReferenceCommon creditorTransactionType(String transactionType) {
-        return new CreditorTransactionTypeReferenceCommon()
-            .transactionType(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(transactionType))
-            .transactionTypeDisplayName(transactionType);
-    }
-
-    private CreditorTransactionStatusReferenceCommon creditorTransactionStatus(String status) {
-        if (status == null) {
-            return null;
-        }
-        return new CreditorTransactionStatusReferenceCommon()
-            .creditorTransactionStatus(
-                CreditorTransactionStatusReferenceCommon.CreditorTransactionStatusEnum.fromValue(status))
-            .creditorTransactionStatusDisplayName(status);
-    }
-
-    private record MappedMinorCreditorHistoryItem(
-        MinorCreditorHistoryItemType sourceType,
-        Long sourceId,
-        LocalDateTime postedDate,
-        MinorCreditorHistoryItemHistory historyItem) {
-
-        private static final Comparator<MappedMinorCreditorHistoryItem> ORDERING =
-            Comparator.comparing(MappedMinorCreditorHistoryItem::postedDate).reversed()
-                .thenComparing(MappedMinorCreditorHistoryItem::sourceType)
-                .thenComparing(MappedMinorCreditorHistoryItem::sourceId);
     }
 
     @Override

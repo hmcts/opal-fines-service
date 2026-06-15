@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorHistoryItemMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
@@ -72,6 +74,9 @@ class OpalMinorCreditorServiceGetTest {
 
     @Mock
     private MinorCreditorAccountResponseMapper responseMapper;
+
+    @Spy
+    private MinorCreditorHistoryItemMapper historyItemMapper = new MinorCreditorHistoryItemMapper();
 
     @InjectMocks
     private OpalMinorCreditorService service;
