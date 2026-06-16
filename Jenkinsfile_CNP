@@ -1,6 +1,5 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
-#!groovy
 properties([
         parameters([
                 booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip all tests'),
