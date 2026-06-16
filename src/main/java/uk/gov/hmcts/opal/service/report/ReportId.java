@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 @Getter
 public enum ReportId {
 
+    CASH_LIST("cash_list"),
     FP_REGISTER("fp_register"),
     OP_ENFORCEMENT("operational_report_enforcement");
 
@@ -20,12 +21,12 @@ public enum ReportId {
 
     private static final Map<String, ReportId> BY_REPORT_ID =
         Stream.of(values())
-            .collect(Collectors.toMap(ReportId::getReportId, reportType -> reportType));
+            .collect(Collectors.toMap(ReportId::getReportId, reportId -> reportId));
 
     public static ReportId fromReportId(String reportId) {
         ReportId type = BY_REPORT_ID.get(reportId);
         if (type == null) {
-            throw new ReportNotFoundException("Report id is not a valid report type: " + reportId);
+            throw new ReportNotFoundException("Report id is not a valid ReportId: " + reportId);
         }
         return type;
     }
