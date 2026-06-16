@@ -60,11 +60,14 @@ public class MinorCreditorService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return minorCreditorSearchProxy.getMinorCreditorAtAGlance(minorCreditorId);
-        } else {
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.VIEW_CREDITOR_BACS)) {
+            throw new PermissionNotAllowedException(FinesPermission.VIEW_CREDITOR_BACS);
+        }
+
+        return minorCreditorSearchProxy.getMinorCreditorAtAGlance(minorCreditorId);
     }
 
     public GetMinorCreditorAccountHeaderSummaryResponse getMinorCreditorAccountHeaderSummary(
@@ -120,6 +123,11 @@ public class MinorCreditorService {
             throw new PermissionNotAllowedException(
                 businessUnitIdShort,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        }
+        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.VIEW_CREDITOR_BACS)) {
+            throw new PermissionNotAllowedException(
+                businessUnitIdShort,
+                FinesPermission.VIEW_CREDITOR_BACS);
         }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)

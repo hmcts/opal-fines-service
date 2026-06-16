@@ -14,6 +14,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.JwtControllerIntegrationTest")
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1a=true"
+})
 @DisplayName("JWT Controller Integration Tests")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
