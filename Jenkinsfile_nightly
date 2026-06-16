@@ -88,9 +88,7 @@ def publishIntegrationResults = {
 }
 
 def publishFunctionalResults = { reportNameSuffix ->
-  steps.junit '**/test-results/functional/*.xml'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
   publishHTML target: [
     allowMissing         : true,
     alwaysLinkToLastBuild: true,
@@ -107,6 +105,9 @@ def publishFunctionalResults = { reportNameSuffix ->
     reportFiles          : "test-summary.html",
     reportName           : "Test Summary Report${reportNameSuffix}"
   ]
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
 }
 
 def runIntegrationStage = { stageName, gradleTask ->
