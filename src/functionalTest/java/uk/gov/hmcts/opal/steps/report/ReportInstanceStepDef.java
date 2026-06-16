@@ -246,7 +246,7 @@ public class ReportInstanceStepDef extends BaseStepDef {
      *
      * @param expectedStatus expected HTTP status code.
      */
-    @Then("the latest report instance create error response matches the standard problem detail contract for status {int}")
+    @Then("latest report instance create error response matches the standard problem detail contract for status {int}")
     public void latestReportInstanceCreateErrorResponseMatchesProblemDetailContract(int expectedStatus)
         throws Exception {
         TestHttpResponse latestHttpResponse = latestRawReportInstanceResponse;

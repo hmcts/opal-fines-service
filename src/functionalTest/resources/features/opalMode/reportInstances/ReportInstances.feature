@@ -19,32 +19,32 @@ Feature: Report Instances
   Scenario: Create report instance with an invalid token is rejected with standard error responses
     When I call POST on the report instances api with "invalid token"
     Then the request is rejected with status 401
-    And the latest report instance create error response matches the standard problem detail contract for status 401
+    And latest report instance create error response matches the standard problem detail contract for status 401
 
   @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248
   Scenario: Create report instance with an unknown report id is rejected as not found
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "report-id-that-does-not-exist"
     Then the request is rejected as not found
-    And the latest report instance create error response matches the standard problem detail contract for status 404
+    And latest report instance create error response matches the standard problem detail contract for status 404
 
   @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248
   Scenario: Create report instance without permission in the requested business unit is rejected as forbidden
     Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement"
     Then the request is rejected as forbidden
-    And the latest report instance create error response matches the standard problem detail contract for status 403
+    And latest report instance create error response matches the standard problem detail contract for status 403
 
   @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248
   Scenario: Create report instance for a report that cannot be manually created is rejected
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "fp_register"
     Then the request is rejected with status 422
-    And the latest report instance create error response matches the standard problem detail contract for status 422
+    And latest report instance create error response matches the standard problem detail contract for status 422
 
   @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248
   Scenario: Create report instance with multiple business units for a single-BU report is rejected
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business units 73 and 1001
     Then the request is rejected with status 422
-    And the latest report instance create error response matches the standard problem detail contract for status 422
+    And latest report instance create error response matches the standard problem detail contract for status 422
