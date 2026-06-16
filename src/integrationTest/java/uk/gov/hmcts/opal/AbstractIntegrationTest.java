@@ -26,7 +26,7 @@ import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 @SpringBootTest
 @ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(webClientEnabled = false, webDriverEnabled = false)
 @Import(IntegrationSecurityConfiguration.class)
 @ExtendWith(ZephyrAutomationExtension.class)
 @SuppressWarnings({"java:S6813", "SpringJavaInjectionPointsAutowiringInspection"})
