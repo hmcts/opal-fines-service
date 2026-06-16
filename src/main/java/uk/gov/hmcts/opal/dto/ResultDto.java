@@ -85,4 +85,22 @@ public class ResultDto {
 
     @JsonProperty("requires_employment_data")
     private Boolean requiresEmploymentData;
+
+    @JsonProperty("allow_payment_terms")
+    private Boolean allowPaymentTerms;
+
+    @JsonProperty("allow_additional_action")
+    private Boolean allowAdditionalAction;
+
+    @JsonProperty("generates_warrant")
+    private boolean generatesWarrant;
+
+    @JsonProperty("requires_lja")
+    private Boolean requiresLja;
+
+    @JsonProperty("manual_enforcement")
+    private boolean manualEnforcement;
+
+    @JsonProperty("enf_next_permitted_actions")
+    private String enfNextPermittedActions;
 }
