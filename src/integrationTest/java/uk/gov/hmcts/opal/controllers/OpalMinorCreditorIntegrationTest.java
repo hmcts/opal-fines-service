@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -37,7 +37,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true"
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
@@ -45,16 +44,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @Autowired
+    @MockitoSpyBean
     private ImpositionRepository impositionRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private CreditorTransactionRepository creditorTransactionRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private PartyRepository partyRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private CreditorAccountRepository creditorAccountRepository;
 
     @Test
@@ -332,6 +331,13 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
+    }
+
+    @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
     @JiraTestKey("PO-6206")
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         super.patchMinorCreditor_missingPayload_returns400();
@@ -410,6 +416,13 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraTestKey("PO-6205")
     void getAtAGlance_creditorNotFound() throws Exception {
         super.getMinorCreditorAtAGlanceImpl_failure_creditorNotFound(log);
+    }
+
+    @Test
+    @JiraStory("PO-1914")
+    @JiraEpic("PO-812")
+    void getAtAGlance_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403();
     }
 
     @Test
