@@ -102,9 +102,9 @@ class DefendantAccountPaymentTermsServiceTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(true);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
             BusinessUnitUser.builder().businessUnitUserId(derivedBusinessUnitUserId).build()));
-        when(userState.getUserName()).thenReturn("normal@users.com");
+        when(userState.getDisplayName()).thenReturn("Normal User");
         when(defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
-            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch, authHeader))
+            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "Normal User", ifMatch, authHeader))
             .thenReturn(proxyResponse);
 
         // act
@@ -114,8 +114,8 @@ class DefendantAccountPaymentTermsServiceTest {
         // assert
         assertSame(proxyResponse, result);
         verify(defendantAccountPaymentTermsServiceProxy).addPaymentCardRequest(
-            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch, authHeader);
+            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "Normal User", ifMatch, authHeader);
         verify(defendantAccountPaymentTermsServiceProxy, never()).addPaymentCardRequest(
-            defendantAccountId, businessUnitId, headerBusinessUnitUserId, "normal@users.com", ifMatch, authHeader);
+            defendantAccountId, businessUnitId, headerBusinessUnitUserId, "Normal User", ifMatch, authHeader);
     }
 }

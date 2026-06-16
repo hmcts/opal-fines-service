@@ -51,12 +51,13 @@ public class DefendantAccountPaymentTermsService {
                 .map(BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());
+            String postedByName = userState.getDisplayName();
 
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
                 defendantAccountId,
                 businessUnitId,
                 derivedBusinessUnitUserId,
-                userState.getUserName(),
+                postedByName,
                 ifMatch,
                 authHeaderValue
             );

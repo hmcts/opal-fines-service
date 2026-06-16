@@ -254,7 +254,7 @@ class DefendantAccountServiceTest {
         when(defendantAccountServiceProxy.addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
-            eq("normal@users.com"),
+            eq("Normal User"),
             eq(ifMatch),
             eq(authHeader),
             any(AddDefendantAccountPaymentTermsRequest.class)))
@@ -270,7 +270,7 @@ class DefendantAccountServiceTest {
         verify(defendantAccountServiceProxy).addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
-            eq("normal@users.com"),
+            eq("Normal User"),
             eq(ifMatch),
             eq(authHeader),
             captor.capture());
@@ -278,7 +278,7 @@ class DefendantAccountServiceTest {
         PostedDetails postedDetails = captor.getValue().getPaymentTerms().getPostedDetails();
         assertNotNull(postedDetails);
         assertEquals("USER01", postedDetails.getPostedBy());
-        assertEquals("normal@users.com", postedDetails.getPostedByName());
+        assertEquals("Normal User", postedDetails.getPostedByName());
     }
 
     @Test
