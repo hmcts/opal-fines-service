@@ -88,9 +88,7 @@ def publishIntegrationResults = {
 }
 
 def publishFunctionalResults = { reportNameSuffix ->
-  steps.junit '**/test-results/functional/*.xml'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
   publishHTML target: [
     allowMissing         : true,
     alwaysLinkToLastBuild: true,
@@ -107,6 +105,9 @@ def publishFunctionalResults = { reportNameSuffix ->
     reportFiles          : "test-summary.html",
     reportName           : "Test Summary Report${reportNameSuffix}"
   ]
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
 }
 
 def runIntegrationStage = { stageName, gradleTask ->
@@ -135,7 +136,11 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
       } catch (error) {
         steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
       } finally {
-        publishFunctionalResults(reportNameSuffix)
+        try {
+          publishFunctionalResults(reportNameSuffix)
+        } catch (publishError) {
+          steps.echo "${stageName} result publication failed, but continuing with the pipeline. Error: " + publishError.message
+        }
       }
     }
   }
@@ -155,7 +160,11 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
       } catch (error) {
         steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
       } finally {
-        publishFunctionalResults(reportNameSuffix)
+        try {
+          publishFunctionalResults(reportNameSuffix)
+        } catch (publishError) {
+          steps.echo "${stageName} result publication failed, but continuing with the pipeline. Error: " + publishError.message
+        }
       }
     }
   }
@@ -188,7 +197,7 @@ withNightlyPipeline(type, product, component) {
         configureZephyrExecution(testEnvironments.demo)
       }
       runTaggedFunctionalStage(
-        params.Functional,
+        params.Demo,
         'Demo R1A Functional Tests',
         shouldRunWithZephyr,
         testEnvironments.demo.reportNameSuffix,
