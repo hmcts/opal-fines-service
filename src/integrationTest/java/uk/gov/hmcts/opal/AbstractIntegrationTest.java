@@ -23,7 +23,7 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
-@SpringBootTest
+@SpringBootTest(classes = Application.class)
 @ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
 @AutoConfigureMockMvc(htmlUnit = @AutoConfigureMockMvc.HtmlUnit(webClient = false, webDriver = false))
