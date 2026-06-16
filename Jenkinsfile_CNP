@@ -6,7 +6,7 @@ properties([
                 booleanParam(name: 'SKIP_SONAR', defaultValue: false, description: 'Skip sonar'),
         ])
 ])
-@Library("Infrastructure@DO-NOT-MERGE-tmp-disabled-tests-sonar-security")
+@Library("Infrastructure")
 
 def type = "java"
 def product = "opal"
