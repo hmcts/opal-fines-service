@@ -35,8 +35,6 @@ import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 @ExtendWith(MockitoExtension.class)
 class DraftAccountControllerTest {
 
-    static final String BEARER_TOKEN = "Bearer a_token_here";
-
     private static final short BU_ID = (short)1;
 
     @Mock

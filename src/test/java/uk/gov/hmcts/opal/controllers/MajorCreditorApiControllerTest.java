@@ -27,8 +27,6 @@ import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorApiControllerTest {
 
-    private static final String AUTH_HEADER = "Bearer test-token";
-
     @Mock
     private CentralFundService centralFundService;
 

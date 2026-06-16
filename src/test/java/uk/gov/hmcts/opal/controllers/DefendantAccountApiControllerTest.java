@@ -34,8 +34,6 @@ import uk.gov.hmcts.opal.service.ImpositionService;
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountApiControllerTest {
 
-    private static final String BEARER_TOKEN = "Bearer a_token_goes_here";
-
     @Mock
     private DefendantAccountService defendantAccountService;
 

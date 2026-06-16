@@ -46,8 +46,6 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountControllerTest {
 
-    static final String BEARER_TOKEN = "Bearer a_token_here";
-
     @Mock
     private DefendantAccountService defendantAccountService;
 
@@ -200,7 +198,6 @@ class DefendantAccountControllerTest {
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 10L;
         Short businessUnitId = 10;
-        String businessUserId = "20";
         String ifMatch = "1";
 
         RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();

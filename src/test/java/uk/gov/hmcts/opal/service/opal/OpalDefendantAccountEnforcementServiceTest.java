@@ -69,7 +69,6 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private static final Short BUSINESS_UNIT_ID = 2002;
     private static final String BUSINESS_UNIT_USER_ID = "bu-user-123";
     private static final String IF_MATCH = "7";
-    private static final String AUTH_HEADER = "Bearer token";
     private static final String USER_DISPLAY_NAME = "Test User";
     private static final String PROSECUTOR_CASE_REFERENCE = "PCR-12345";
     private static final Long ENFORCEMENT_ID = 9876L;
