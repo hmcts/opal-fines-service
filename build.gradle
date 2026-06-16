@@ -280,15 +280,14 @@ tasks.register('integration', Test) {
 }
 
 tasks.register('checkTestJiraAnnotations', JavaExec) {
-  if(!skipTests) {
-    description = "Checks runnable integration and functional tests have Jira story and epic annotations"
-    group = "Verification"
-    dependsOn 'testClasses'
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'uk.gov.hmcts.opal.scripts.TestJiraAnnotationChecker'
-    args = ['src/integrationTest/java', 'src/functionalTest/resources/features']
-  }
+  description = "Checks runnable integration and functional tests have Jira story and epic annotations"
+  group = "Verification"
+  dependsOn 'testClasses'
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.scripts.TestJiraAnnotationChecker'
+  args = ['src/integrationTest/java', 'src/functionalTest/resources/features']
 }
+
 
 tasks.register('functionalOpal', Test) {
 
@@ -481,7 +480,9 @@ tasks.named("sonarqube") {
   dependsOn(tasks.named("jacocoTestReport"))
 }
 tasks.named("check") {
-  dependsOn(tasks.named("checkTestJiraAnnotations"))
+  if(!skipTests) {
+    dependsOn(tasks.named("checkTestJiraAnnotations"))
+  }
   dependsOn(tasks.named("integration"))
 }
 
