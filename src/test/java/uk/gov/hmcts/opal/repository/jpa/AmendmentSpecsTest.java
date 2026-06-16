@@ -32,10 +32,10 @@ class AmendmentSpecsTest {
             .associatedRecordType("defendant_accounts")
             .build();
 
-        Specification<AmendmentEntity> spec = specs.findBySearchCriteria(criteria);
+        final Specification<AmendmentEntity> spec = specs.findBySearchCriteria(criteria);
 
         Root<AmendmentEntity> root = mock(Root.class);
-        CriteriaQuery<AmendmentEntity> query = mock(CriteriaQuery.class);
+        final CriteriaQuery<AmendmentEntity> query = mock(CriteriaQuery.class);
         CriteriaBuilder criteriaBuilder = mock(CriteriaBuilder.class);
         JpaPath<AssociatedRecordType> path = mock(JpaPath.class);
         JpaExpression<String> castExpression = mock(JpaExpression.class);
