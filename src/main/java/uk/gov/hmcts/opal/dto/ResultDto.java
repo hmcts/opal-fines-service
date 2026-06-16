@@ -90,6 +90,7 @@ public class ResultDto {
     private Boolean allowPaymentTerms;
 
     @JsonProperty("allow_additional_action")
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private Boolean allowAdditionalAction;
 
     @JsonProperty("generates_warrant")
