@@ -243,10 +243,11 @@ class DraftAccountServiceTest {
     @Test
     void testDeleteDraftAccount_success() {
         // Act
-        draftAccountService.deleteDraftAccount(1, true);
+        String result = draftAccountService.deleteDraftAccount(1, true);
 
         // Assert
-        // delete does not call PDPL logging
+        assertEquals(String.format(DraftAccountService.ACCOUNT_DELETED_MESSAGE_FORMAT, 1), result);
+        verify(draftAccountTransactional).deleteDraftAccount(1L, draftAccountTransactional);
     }
 
     @Test
@@ -436,16 +437,16 @@ class DraftAccountServiceTest {
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(securityEventLoggingService, times(1)).logEvent(
-            eq("Business Function - Approval of Draft Account"),
-            eq("Success"),
-            eq((short) 2),
-            eq("Approval"),
-            eq(LocalDateTime.of(2026, 4, 22, 0, 0)),
-            eq(Map.of(
+            "Business Function - Approval of Draft Account",
+            "Success",
+            (short) 2,
+            "Approval",
+            LocalDateTime.of(2026, 4, 22, 0, 0),
+            Map.of(
                 "UserIdentifier", 1L,
                 "DraftAccountIdentifier", draftAccountId,
                 "DraftAccountSubmittedByUserIdentifier", "Pablo"
-            ))
+            )
         );
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());

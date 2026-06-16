@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -146,7 +144,7 @@ class DefendantAccountControllerTest {
         // Arrange
         DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
 
-        when(defendantAccountService.getHeaderSummary(eq(1L)))
+        when(defendantAccountService.getHeaderSummary(1L))
             .thenReturn(mockBody);
 
         // Act
@@ -157,7 +155,7 @@ class DefendantAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockBody, response.getBody());
 
-        verify(defendantAccountService).getHeaderSummary(eq(1L));
+        verify(defendantAccountService).getHeaderSummary(1L);
     }
 
     @Test
@@ -335,10 +333,10 @@ class DefendantAccountControllerTest {
                 .build();
 
         when(defendantAccountEnforcementService.removeEnforcementHold(
-            eq(defendantAccountId),
-            eq(businessUnitId),
-            isNull(),
-            eq(request)
+            defendantAccountId,
+            businessUnitId,
+            null,
+            request
         )).thenThrow(new ResourceConflictException(
             "Defendant Account",
             defendantAccountId,
