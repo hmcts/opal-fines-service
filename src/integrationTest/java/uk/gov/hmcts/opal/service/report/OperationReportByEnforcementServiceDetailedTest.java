@@ -28,9 +28,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedAccountReportDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportAccountRowDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionType;
@@ -39,8 +39,8 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementDetailedReport;
-import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationReportByEnforcementService;
+import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
+import uk.gov.hmcts.opal.service.report.operation.OperationReportByEnforcementService;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -78,10 +78,10 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             ));
     }
 
-    private static void verifyMetadata(OperationByEnforcementDetailedReport result) {
+    private static void verifyMetadata(OperationDetailedReport result) {
         ReportMetaData reportMetadata = result.getReportMetaData();
         long numberOfRecords = result.getNumberOfRecords();
-        assertThat(numberOfRecords).isEqualTo(result.getEnforcementReport().getAccountTransactionReports().size());
+        assertThat(numberOfRecords).isEqualTo(result.getDetailedReport().getAccountTransactionReports().size());
         assertThat((long) reportMetadata.getPdpoPartyIds().size()).isGreaterThanOrEqualTo(numberOfRecords);
         Assertions.assertThat(reportMetadata.getPdpoPartyIds()).doesNotHaveDuplicates();
     }
@@ -101,11 +101,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn(json);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
 
         Assertions.assertThat(reports)
             .isSortedAccordingTo(
@@ -114,12 +114,12 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 )
             );
 
-        OperationByEnforcementDetailedAccountReportDto report = reports.stream()
+        DetailedAccountReportDto report = reports.stream()
             .filter(r -> "177A".equals(r.getAccountRow().getAccountNo()))
             .findFirst()
             .orElseThrow();
 
-        OperationByEnforcementDetailedReportAccountRowDto account = report.getAccountRow();
+        DetailedOperationReportAccountRowDto account = report.getAccountRow();
         assertAll("account row",
             () -> assertThat(account.getHeader1()).isEqualTo("ACCOUNT"),
             () -> assertThat(account.getCompany()).isEqualTo("N"),
@@ -159,7 +159,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         );
 
         Assertions.assertThat(report.getTransactionRows()).containsExactly(
-            OperationByEnforcementDetailedReportTransactionRowDto.builder()
+            DetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
                 .consolidatedAccountNo("ConsolidatedAcc")
                 .transactionDate(LocalDate.of(2026, 5, 14))
@@ -167,7 +167,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("123.45"))
                 .build(),
-            OperationByEnforcementDetailedReportTransactionRowDto.builder()
+            DetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
                 .consolidatedAccountNo(null)
                 .transactionDate(LocalDate.of(2026, 5, 14))
@@ -196,11 +196,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .allMatch(accountNumbers::contains)
@@ -220,13 +220,13 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """;
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportWithFilters(json));
+        OperationDetailedReport  result =
+            (OperationDetailedReport) service.generateReportData(reportWithFilters(json));
         //Assert
         long totalAccounts = defendantAccountRepository.count();
         assertThat(totalAccounts).isEqualTo(result.getNumberOfRecords());
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         assertThat(reports).isNotNull();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
@@ -246,11 +246,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """;
         //Act
-        OperationByEnforcementDetailedReport result = (OperationByEnforcementDetailedReport)
+        OperationDetailedReport result = (OperationDetailedReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         long totalAccounts = defendantAccountRepository.count();
         assertThat(totalAccounts).isEqualTo(reports.size());
         assertThat(reports).isNotNull();
@@ -283,11 +283,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         ));
 
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -320,13 +320,13 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """.formatted(from, to);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport)
+        OperationDetailedReport result =
+            (OperationDetailedReport)
                 service.generateReportData(reportWithFilters(json));
         // Assert
         assertThat(result).isNotNull();
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -361,11 +361,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """;
         //Act
-        OperationByEnforcementDetailedReport result = (OperationByEnforcementDetailedReport)
+        OperationDetailedReport result = (OperationDetailedReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -384,11 +384,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """;
         //Act
-        OperationByEnforcementDetailedReport result = (OperationByEnforcementDetailedReport)
+        OperationDetailedReport result = (OperationDetailedReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -408,11 +408,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -437,11 +437,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -466,11 +466,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -494,11 +494,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -538,11 +538,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """.formatted(collectionOrderChoice));
         // Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         // Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers)
@@ -564,12 +564,12 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         // Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
 
         // Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -599,12 +599,12 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         // Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
 
         // Assert
-        List<OperationByEnforcementDetailedAccountReportDto> accounts =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> accounts =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(accounts)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .isSorted();
@@ -634,11 +634,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getBalance())
             .filteredOn(Objects::nonNull)
@@ -675,11 +675,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         paymentTermsRepository.saveAndFlush(paymentTermsForSeededData);
 
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .contains(entity.getAccountNumber());
@@ -713,11 +713,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """);
         //Act
-        OperationByEnforcementDetailedReport result =
-            (OperationByEnforcementDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
-        List<OperationByEnforcementDetailedAccountReportDto> reports =
-            result.getEnforcementReport().getAccountTransactionReports();
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getDefendantName())
             .allSatisfy(name ->
