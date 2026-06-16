@@ -299,12 +299,12 @@ class MinorCreditorServiceTest {
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(noBacsPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.VIEW_CREDITOR_BACS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noBacsPermissionUser);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noBacsPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.getMinorCreditorAtAGlance(123L, "authHeaderValue")
+            () -> minorCreditorService.getMinorCreditorAtAGlance(123L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.VIEW_CREDITOR_BACS);
     }
@@ -485,14 +485,14 @@ class MinorCreditorServiceTest {
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
             .thenReturn(false);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "authHeaderValue", "10")
+            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10")
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.VIEW_CREDITOR_BACS);
         assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
