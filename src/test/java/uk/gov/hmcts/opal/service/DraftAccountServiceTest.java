@@ -19,6 +19,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,7 @@ import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
 
-    private static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);
+    private static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, Month.APRIL, 22);
     private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC);
 
     @Mock
@@ -440,7 +441,7 @@ class DraftAccountServiceTest {
             "Success",
             (short) 2,
             "Approval",
-            LocalDateTime.of(2026, 4, 22, 0, 0),
+            LocalDateTime.of(2026, Month.APRIL, 22, 0, 0),
             Map.of(
                 "UserIdentifier", 1L,
                 "DraftAccountIdentifier", draftAccountId,
