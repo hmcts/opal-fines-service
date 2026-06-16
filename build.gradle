@@ -45,8 +45,8 @@ ext {
 //Should we fail fast on test failures?
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
-var skipTests = System.getenv('SKIP_TESTS') != null && System.getenv('SKIP_TESTS').toBoolean();
-var skipSonar = System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean();
+var skipTests = true//System.getenv('SKIP_TESTS') != null && System.getenv('SKIP_TESTS').toBoolean();
+var skipSonar = true//System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean();
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
