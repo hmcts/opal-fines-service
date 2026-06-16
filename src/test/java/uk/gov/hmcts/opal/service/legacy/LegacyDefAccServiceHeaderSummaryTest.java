@@ -50,6 +50,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                                         .build())
             .businessUnitSummary(BusinessUnitSummary.builder()
                                      .businessUnitId("1")
+                                     .businessUnitCode("BU01")
                                      .businessUnitName("Test BU")
                                      .welshSpeaking("N")
                                      .build())
@@ -76,6 +77,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             actual.getAccountStatusReference().getAccountStatusCode());
         assertEquals(expected.getBusinessUnitSummary().getBusinessUnitName(),
             actual.getBusinessUnitSummary().getBusinessUnitName());
+        assertEquals(expected.getBusinessUnitSummary().getBusinessUnitCode(),
+            actual.getBusinessUnitSummary().getBusinessUnitCode());
         assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
             actual.getPaymentStateSummary().getImposedAmount());
     }
@@ -97,6 +100,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 .businessUnitSummary(
                     uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                         .businessUnitId("78")
+                        .businessUnitCode("BU78")
                         .businessUnitName("Test BU")
                         .welshSpeaking("N")
                         .build()
@@ -130,6 +134,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         assertEquals("L", published.getAccountStatusReference().getAccountStatusCode());
         assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName());
         assertEquals("78", published.getBusinessUnitSummary().getBusinessUnitId());
+        assertEquals("BU78", published.getBusinessUnitSummary().getBusinessUnitCode());
         assertEquals("Test BU", published.getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(new BigDecimal("700.58"), published.getPaymentStateSummary().getImposedAmount());
         assertEquals(BigDecimal.ZERO, published.getPaymentStateSummary().getArrearsAmount());
@@ -172,6 +177,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 .businessUnitSummary(
                     uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                         .businessUnitId("78")
+                        .businessUnitCode("BU78")
                         .businessUnitName("Test BU")
                         .welshSpeaking("N")
                         .build()
@@ -443,6 +449,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .businessUnitSummary(
                 uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                     .businessUnitId("1")
+                    .businessUnitCode("BU01")
                     .businessUnitName("Test BU")
                     .welshSpeaking("N")
                     .build()
