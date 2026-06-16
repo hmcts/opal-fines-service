@@ -136,7 +136,11 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
       } catch (error) {
         steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
       } finally {
-        publishFunctionalResults(reportNameSuffix)
+        try {
+          publishFunctionalResults(reportNameSuffix)
+        } catch (publishError) {
+          steps.echo "${stageName} result publication failed, but continuing with the pipeline. Error: " + publishError.message
+        }
       }
     }
   }
@@ -156,7 +160,11 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
       } catch (error) {
         steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
       } finally {
-        publishFunctionalResults(reportNameSuffix)
+        try {
+          publishFunctionalResults(reportNameSuffix)
+        } catch (publishError) {
+          steps.echo "${stageName} result publication failed, but continuing with the pipeline. Error: " + publishError.message
+        }
       }
     }
   }
@@ -189,7 +197,7 @@ withNightlyPipeline(type, product, component) {
         configureZephyrExecution(testEnvironments.demo)
       }
       runTaggedFunctionalStage(
-        params.Functional,
+        params.Demo,
         'Demo R1A Functional Tests',
         shouldRunWithZephyr,
         testEnvironments.demo.reportNameSuffix,
