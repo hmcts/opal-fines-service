@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -288,7 +289,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
             FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.ACCOUNT_MAINTENANCE);
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
 
         final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
         Integer currentVersion = getCurrentCreditorAccountVersion();
@@ -331,6 +333,36 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         assertEquals(true, getCurrentCreditorAccountPayByBacs());
         Integer updatedVersion = getCurrentCreditorAccountVersion();
         assertEquals(currentVersion + 2, updatedVersion);
+    }
+
+    void patchMinorCreditor_success_createsAmendments(Logger log) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+        int amendmentsBefore = getCurrentAmendmentCountForCreditorAccount();
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "\"" + currentVersion + "\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
+
+        String body = a.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
+
+        a.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
+        assertTrue(amendmentsAfter > amendmentsBefore);
+        assertEquals("ACCOUNT_ENQUIRY", getLatestAmendmentFunctionCodeForCreditorAccount());
     }
 
     void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(Logger log) throws Exception {
@@ -577,6 +609,63 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                 .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
             .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_notFound_returns404() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        mockMvc.perform(patch(URL_BASE + "/999999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_staleVersion_returns409() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "\"" + (currentVersion + 1) + "\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isConflict())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
@@ -1411,6 +1500,18 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isNotFound());
+    }
+
+    void getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     void legacyGetMinorCreditorAtAGlanceImpl_500Error(Logger log) throws Exception {

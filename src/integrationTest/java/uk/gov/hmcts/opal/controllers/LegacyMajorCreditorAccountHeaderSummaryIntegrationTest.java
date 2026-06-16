@@ -39,7 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("Major Creditor Account Header Summary Legacy Integration Tests")
 @Slf4j(topic = "opal.LegacyMajorCreditorAccountHeaderSummaryIntegrationTest")
 class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractIntegrationTest {
-    
+
     private static final String URL = "/major-creditor-accounts/{id}/header-summary";
 
     @MockitoSpyBean

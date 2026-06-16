@@ -17,6 +17,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PermissionUtilTest {
 
     @Test
+    void testViewCreditorBacsPermissionDescriptor() {
+        assertEquals(11L, FinesPermission.VIEW_CREDITOR_BACS.getId());
+        assertEquals("View Creditor BACS", FinesPermission.VIEW_CREDITOR_BACS.getDescription());
+    }
+
+    @Test
     void testCheckBusinessUnitUserHasPermission_success() {
         BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSingleFinesPermission(2L));
         FinesPermission permission = FinesPermission.ACCOUNT_ENQUIRY_NOTES;
