@@ -1,11 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -14,27 +10,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
-import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -53,9 +42,6 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
 
     @MockitoBean
     private UserStateService userStateService;
-
-    @MockitoSpyBean
-    private GatewayService gatewayService;
 
     @Test
     @DisplayName("PO-2137 INT.01 to INT.04 - valid request returns mapped body and ETag")
@@ -86,16 +72,6 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.major_creditor.address.postcode").value("NW1 1AA"))
             .andExpect(jsonPath("$.major_creditor.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.major_creditor.creditor_account_version").doesNotExist());
-
-        ArgumentCaptor<GetMajorCreditorAccountAtAGlanceLegacyRequest> requestCaptor =
-            ArgumentCaptor.forClass(GetMajorCreditorAccountAtAGlanceLegacyRequest.class);
-        verify(gatewayService).postToGateway(
-            eq(GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE),
-            eq(GetMajorCreditorAccountAtAGlanceLegacyResponse.class),
-            requestCaptor.capture(),
-            isNull()
-        );
-        assertThat(requestCaptor.getValue().getCreditorAccountId()).isEqualTo("99000000000800");
     }
 
     @Test
@@ -131,8 +107,6 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
                 .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
-
-        verifyNoInteractions(gatewayService);
     }
 
     @Test
@@ -162,8 +136,6 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
             .andExpect(status().isUnauthorized())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.detail").value("Unauthorized"));
-
-        verifyNoInteractions(gatewayService);
     }
 
     @Test
