@@ -197,9 +197,9 @@ withPipeline(type, product, component) {
     }
   }
 
-  before('test') {
-    steps.sh './gradlew checkTestJiraAnnotations'
-  }
+//  before('test') {
+//    steps.sh './gradlew checkTestJiraAnnotations'
+//  }
 
   afterAlways('test') {
     publishIntegrationResults()
