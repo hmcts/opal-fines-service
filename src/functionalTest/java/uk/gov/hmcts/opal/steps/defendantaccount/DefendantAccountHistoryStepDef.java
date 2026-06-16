@@ -34,7 +34,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/defendant-accounts/%d/history";
     private static final Set<String> HISTORY_TYPES = Set.of(
-        "Amendment",
         "Enforcement",
         "Financial",
         "Note",
@@ -372,11 +371,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private void validateDetails(String type, JsonNode details) {
         switch (type) {
-            case "Amendment" -> {
-                assertText(details.path("attributeName"), "details.attributeName");
-                assertText(details.path("oldValue"), "details.oldValue");
-                assertText(details.path("newValue"), "details.newValue");
-            }
             case "Enforcement" -> validateEnforcementDetails(details);
             case "Financial" -> validateFinancialDetails(details);
             case "Note" -> assertText(details.path("noteText"), "details.noteText");

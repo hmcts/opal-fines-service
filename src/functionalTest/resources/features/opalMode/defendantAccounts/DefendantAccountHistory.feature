@@ -7,7 +7,6 @@ Feature: Defendant Account History
     When I request defendant account history for account 99000000000001
     Then the defendant account history response is returned as documented
     And the defendant account history contains exactly the following item counts
-      | Amendment     | 1 |
       | Enforcement   | 1 |
       | Financial     | 1 |
       | Note          | 1 |
