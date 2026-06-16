@@ -300,9 +300,7 @@ tasks.withType(JavaExec).configureEach {
 
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
-  if (skipTests) {
-    exclude("uk/gov/hmcts/opal/**")
-  }
+
   systemProperty 'spring.test.context.cache.maxSize', 4
 
   testLogging {
