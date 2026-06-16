@@ -15,8 +15,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -43,6 +43,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
 @DirtiesContext
+@Import(GenericReportServiceTest.TestBeans.class)
 class GenericReportServiceTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -60,7 +61,6 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     @MockitoBean
     private Clock clock;
 
-    @TestConfiguration
     static class TestBeans {
 
         @Bean
