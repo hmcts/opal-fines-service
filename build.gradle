@@ -45,6 +45,8 @@ ext {
 //Should we fail fast on test failures?
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
+var skipTests = System.getenv('SKIP_TESTS') != null && System.getenv('SKIP_TESTS').toBoolean();
+var skipSonar = System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean();
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
@@ -253,7 +255,9 @@ tasks.withType(JavaExec).configureEach {
 
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
-
+  if (skipTests) {
+    exclude("uk/gov/hmcts/**")
+  }
   systemProperty 'spring.test.context.cache.maxSize', 4
 
   testLogging {
@@ -436,6 +440,7 @@ tasks.register('smoke') {
 
 }
 
+
 def coverageExclusions = [
   '**/uk/gov/hmcts/opal/**/model/**',
   '**/uk/gov/hmcts/opal/**/config/**',
@@ -489,6 +494,9 @@ sonarqube {
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
     property 'sonar.cpd.exclusions', "**/entity/**,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
+    if (skipSonar) {
+      property 'sonar.exclusions', "**/**"
+    }
   }
 }
 
