@@ -548,9 +548,9 @@ dependencies {
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
 
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.43"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.50"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.50"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.44"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.51"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.51"
   openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.8'
