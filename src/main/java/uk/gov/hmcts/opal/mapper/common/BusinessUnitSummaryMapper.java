@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 public interface BusinessUnitSummaryMapper {
 
     @Mapping(target = "businessUnitId", source = "entity.businessUnitId")
+    @Mapping(target = "businessUnitCode", ignore = true)
     @Mapping(target = "welshSpeaking", expression = "java(toWelshSpeaking(entity.isWelshLanguage()))")
     BusinessUnitSummary toBusinessUnitSummary(MinorCreditorAccountHeaderEntity entity);
 

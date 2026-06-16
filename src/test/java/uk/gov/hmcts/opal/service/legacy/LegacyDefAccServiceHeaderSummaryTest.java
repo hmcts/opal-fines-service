@@ -106,6 +106,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 .businessUnitSummary(
                     uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                         .businessUnitId("78")
+                        .businessUnitCode("BU78")
                         .businessUnitName("Test BU")
                         .welshSpeaking("N")
                         .build()
@@ -140,6 +141,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             published.getResponse().getAccountStatusReference().getAccountStatusCode());
         assertEquals("Live", published.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
         assertEquals((short) 78, published.getResponse().getBusinessUnitSummary().getBusinessUnitId());
+        assertEquals("BU78", published.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
         assertEquals("Test BU", published.getResponse().getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(new BigDecimal("700.58"), published.getResponse().getPaymentStateSummary().getImposedAmount());
         assertEquals(BigDecimal.ZERO, published.getResponse().getPaymentStateSummary().getArrearsAmount());
@@ -182,6 +184,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 .businessUnitSummary(
                     uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                         .businessUnitId("78")
+                        .businessUnitCode("BU78")
                         .businessUnitName("Test BU")
                         .welshSpeaking("N")
                         .build()
@@ -483,6 +486,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .businessUnitSummary(
                 uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                     .businessUnitId("1")
+                    .businessUnitCode("BU01")
                     .businessUnitName("Test BU")
                     .businessUnitCode("0046")
                     .welshSpeaking("N")
