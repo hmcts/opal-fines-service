@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
@@ -47,7 +46,6 @@ class OpalDefendantAccountServicePaymentCardTest {
     PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
     @Mock
     AmendmentRepositoryService amendmentRepositoryService;
-    @Mock AccessTokenService accessTokenService;
     @Mock UserStateService userStateService;
 
     @InjectMocks
@@ -70,14 +68,11 @@ class OpalDefendantAccountServicePaymentCardTest {
             .thenReturn(account);
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId))
             .thenReturn(false);
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getDisplayName()).thenReturn("John Smith");
         when(defendantAccountRepositoryService.save(any()))
             .thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "\"1\""
+            accountId, "10", "L080JG", "John Smith", "\"1\""
         );
 
         assertNotNull(response);
@@ -88,7 +83,8 @@ class OpalDefendantAccountServicePaymentCardTest {
 
         verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
         verify(amendmentRepositoryService).auditFinaliseStoredProc(
-            accountId, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "L080JG", "Tester Name", null, "ACCOUNT_ENQUIRY");
+            accountId, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "L080JG", "John Smith", null,
+            "ACCOUNT_ENQUIRY");
     }
 
     @Test
@@ -102,7 +98,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(true);
 
         assertThrows(PaymentCardRequestAlreadyExistsException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"")
+            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"1\"")
         );
     }
 
@@ -116,7 +112,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"")
+            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"1\"")
         );
     }
 
@@ -130,12 +126,9 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(false);
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getDisplayName()).thenReturn("John Smith");
 
         assertDoesNotThrow(() ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"")
+            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"1\"")
         );
 
         assertTrue(account.getPaymentCardRequested());
@@ -152,7 +145,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"0\"")
+            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"0\"")
         );
     }
 
@@ -166,7 +159,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "\"1\"")
+            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "John Smith", "\"1\"")
         );
 
         verify(defendantAccountRepositoryService, never()).save(any());
@@ -188,13 +181,10 @@ class OpalDefendantAccountServicePaymentCardTest {
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId)).thenReturn(false);
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getDisplayName()).thenReturn("John Smith");
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "\"1\""
+            accountId, "10", "L080JG", "John Smith", "\"1\""
         );
 
         assertNotNull(response);

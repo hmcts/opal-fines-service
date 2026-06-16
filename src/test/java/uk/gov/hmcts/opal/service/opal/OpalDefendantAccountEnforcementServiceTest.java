@@ -649,8 +649,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq(DEFENDANT_ACCOUNT_ID),
             eq(BUSINESS_UNIT_ID.toString()),
             eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_DISPLAY_NAME),
             eq(IF_MATCH),
-            isNull(),
             ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
         );
     }

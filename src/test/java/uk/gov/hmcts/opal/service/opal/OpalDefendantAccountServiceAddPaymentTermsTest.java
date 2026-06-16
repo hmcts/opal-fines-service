@@ -127,7 +127,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         // Act
         defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester", "Tester Name",
-            ifMatch, postedBy, request);
+            ifMatch, request);
 
         // Assert
         // 1) Verify PaymentTermsService.addPaymentTerm was called
@@ -241,8 +241,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
             defendantAccountId,
             businessUnitId,
             businessUnitUserId,
+            "Tester Name",
             ifMatch,
-            businessUnitUserId,
             request
         );
 

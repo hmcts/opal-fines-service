@@ -950,6 +950,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch
     ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
@@ -1393,6 +1394,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 

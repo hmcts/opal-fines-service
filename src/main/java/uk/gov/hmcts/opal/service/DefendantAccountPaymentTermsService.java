@@ -38,7 +38,6 @@ public class DefendantAccountPaymentTermsService {
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        String postedByName,
         String ifMatch
     ) {
         log.debug(":addPaymentCardRequest:");
@@ -51,11 +50,12 @@ public class DefendantAccountPaymentTermsService {
                 .map(BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());
+            String postedByName = userState.getDisplayName();
 
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
                 defendantAccountId,
                 businessUnitId,
-                businessUnitUserId,
+                derivedBusinessUnitUserId,
                 postedByName,
                 ifMatch
             );

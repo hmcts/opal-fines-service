@@ -92,28 +92,27 @@ class DefendantAccountPaymentTermsServiceTest {
         String businessUnitId = "10";
         String headerBusinessUnitUserId = "HEADER_USER";
         String derivedBusinessUnitUserId = "USER01";
-        String authHeader = "Bearer abc";
         String ifMatch = "\"1\"";
         AddPaymentCardRequestResponse proxyResponse = new AddPaymentCardRequestResponse(defendantAccountId);
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(true);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
             BusinessUnitUser.builder().businessUnitUserId(derivedBusinessUnitUserId).build()));
-        when(userState.getUserName()).thenReturn("normal@users.com");
+        when(userState.getDisplayName()).thenReturn("Normal User");
         when(defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
-            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch, authHeader))
+            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "Normal User", ifMatch))
             .thenReturn(proxyResponse);
 
         // act
         AddPaymentCardRequestResponse result = defendantAccountPaymentTermsService.addPaymentCardRequest(
-            defendantAccountId, businessUnitId, headerBusinessUnitUserId, ifMatch, authHeader);
+            defendantAccountId, businessUnitId, headerBusinessUnitUserId, ifMatch);
 
         // assert
         assertSame(proxyResponse, result);
         verify(defendantAccountPaymentTermsServiceProxy).addPaymentCardRequest(
-            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch, authHeader);
+            defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "Normal User", ifMatch);
         verify(defendantAccountPaymentTermsServiceProxy, never()).addPaymentCardRequest(
-            defendantAccountId, businessUnitId, headerBusinessUnitUserId, "normal@users.com", ifMatch, authHeader);
+            defendantAccountId, businessUnitId, headerBusinessUnitUserId, "Normal User", ifMatch);
     }
 }

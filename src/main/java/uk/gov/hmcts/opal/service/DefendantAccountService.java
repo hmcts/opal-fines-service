@@ -346,11 +346,12 @@ public class DefendantAccountService {
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
+        String postedByName = userState.getDisplayName();
 
         if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
             addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
                 .postedBy(businessUnitUserId)
-                .postedByName(userState.getDisplayName())
+                .postedByName(postedByName)
                 .build());
         }
 
@@ -359,6 +360,7 @@ public class DefendantAccountService {
             return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                postedByName,
                 ifMatch,
                 addPaymentTermsRequest);
         } else {
