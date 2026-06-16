@@ -11,6 +11,7 @@
 * ----------    --------     -------     ---------------------------------------------------------------------------------------------------------
 * 01/05/2026    S WALL       1.0         PO2255 Insert test data for enforcements integration tests
 * 26/05/2026    S WALL       1.1         PO2255 Add impositions data for enforcement integration tests
+* 16/06/2026    S WALL       1.2         PO2256 Amend enforcements data for integration tests
 **/
 
 SET search_path TO public;
@@ -255,7 +256,7 @@ VALUES (
            '2024-01-04 18:06:11',
            '2024-01-02 17:08:09',
            '2024-01-03 12:00:12',
-           '10',
+           'ABDC',
            'Kingston-upon-Thames Mags Court',
            'N',
            'N',
@@ -298,7 +299,7 @@ VALUES (
            '2024-01-04',
            '2024-01-02',
            '2024-01-03',
-           '10',
+           'ABDC',
            'Kingston-upon-Thames Mags Court',
            true,
            false,
@@ -418,7 +419,8 @@ INSERT INTO defendant_transactions (
     transaction_amount,
     status_date,
     associated_record_type,
-    associated_record_id
+    associated_record_id,
+    status
 )
 VALUES
     (
@@ -430,7 +432,8 @@ VALUES
         123.45,
         TIMESTAMP '2026-05-14 10:00:00',
         'defendant_accounts',
-        '78'
+        '78',
+        'P'
     ),
     (
         100002,
@@ -440,11 +443,12 @@ VALUES
         'PAYMNT',
         50.00,
         TIMESTAMP '2026-05-14 10:05:00',
+        'defendant_accounts',
         NULL,
-        NULL
+        'P'
     )
     ON CONFLICT (defendant_transaction_id)
-DO UPDATE SET
+    DO UPDATE SET
     defendant_account_id   = EXCLUDED.defendant_account_id,
            posted_date            = EXCLUDED.posted_date,
            posted_by_name         = EXCLUDED.posted_by_name,
@@ -481,6 +485,17 @@ VALUES (
        (
            2,
            77,
+           TIMESTAMP '2000-01-02',
+           'L080JG',
+           'ABDC',
+           'Test enforcement',
+           '001/25/00001',
+           1,
+           'opal-test'
+       ),
+       (
+           3,
+           78,
            TIMESTAMP '2000-01-02',
            'L080JG',
            'ABDC',

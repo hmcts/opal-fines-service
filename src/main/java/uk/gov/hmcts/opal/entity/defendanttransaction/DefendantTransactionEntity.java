@@ -59,6 +59,7 @@ public class DefendantTransactionEntity {
     private String postedBy;
 
     @Column(name = "transaction_type", length = 100)
+    @ColumnTransformer(read = "transaction_type::text", write = "?::t_defendant_transaction_type_enum")
     @Convert(converter = DefendantTransactionTypeConverter.class)
     private DefendantTransactionType transactionType;
 
@@ -75,8 +76,9 @@ public class DefendantTransactionEntity {
     @Column(name = "text", length = 50)
     private String text;
 
-    @Column(name = "status", length = 1)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", length = 1, columnDefinition = "t_defendant_transaction_status_enum")
     private DefendantTransactionStatus status;
 
     @Column(name = "status_date", nullable = false)
@@ -91,7 +93,7 @@ public class DefendantTransactionEntity {
     private DefendantTransactionWriteOffCode writeOffCode;
 
     @Convert(converter = AssociatedRecordTypeConverter.class)
-    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @ColumnTransformer(read = "associated_record_type::text", write = "?::t_associated_record_type_enum")
     @Column(name = "associated_record_type", length = 30, columnDefinition = "t_associated_record_type_enum")
     private AssociatedRecordType associatedRecordType;
 

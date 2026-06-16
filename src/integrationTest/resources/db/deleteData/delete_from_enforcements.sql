@@ -16,7 +16,7 @@
 SET search_path TO public;
 
 DELETE FROM enforcements
-WHERE defendant_account_id = 77;
+WHERE defendant_account_id IN (77, 78);
 
 DELETE FROM defendant_account_parties
 WHERE defendant_account_id = 77;
@@ -34,7 +34,7 @@ DELETE FROM creditor_accounts
 WHERE creditor_account_id = 1;
 
 DELETE FROM defendant_transactions
-WHERE defendant_account_id = 77;
+WHERE defendant_account_id IN (77, 78);
 
 DELETE FROM defendant_accounts
 WHERE defendant_account_id = 77;
