@@ -480,7 +480,7 @@ tasks.named("sonarqube") {
   dependsOn(tasks.named("jacocoTestReport"))
 }
 tasks.named("check") {
-  if(!skipTests) {
+  if (!skipTests) {
     dependsOn(tasks.named("checkTestJiraAnnotations"))
   }
   dependsOn(tasks.named("integration"))
