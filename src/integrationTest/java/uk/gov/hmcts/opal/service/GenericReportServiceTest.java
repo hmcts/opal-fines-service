@@ -60,6 +60,7 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private Clock clock;
+
     static class TestBeans {
 
         @Bean
