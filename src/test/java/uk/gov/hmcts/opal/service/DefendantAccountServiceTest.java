@@ -83,7 +83,6 @@ class DefendantAccountServiceTest {
     void getPaymentTerms_whenUserHasPermission_returnsProxyResult() {
         // arrange
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -107,7 +106,6 @@ class DefendantAccountServiceTest {
     void getPaymentTerms_whenUserLacksPermission_throwsPermissionNotAllowed() {
         // arrange
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
@@ -235,7 +233,6 @@ class DefendantAccountServiceTest {
         Long defendantAccountId = 77L;
         String businessUnitId = "78";
         String ifMatch = "\"1\"";
-        String authHeader = "Bearer token";
 
         UserState userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWithPerm);
@@ -280,7 +277,6 @@ class DefendantAccountServiceTest {
     void getAtAGlance_whenUserHasPermission_returnsProxyResult() {
         // arrange
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         DefendantAccountAtAGlanceResponse proxyResponse = new DefendantAccountAtAGlanceResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -304,7 +300,6 @@ class DefendantAccountServiceTest {
     void getAtAGlance_whenUserLacksPermission_throwsPermissionNotAllowed() {
         // arrange
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
@@ -333,7 +328,6 @@ class DefendantAccountServiceTest {
         Long defendantAccountId = 77L;
         String businessUnitId = "10";
         String ifMatch = "\"3\"";
-        String authHeader = "Bearer abc";
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
         AddEnforcementResponse proxyResponse = AddEnforcementResponse.builder()
@@ -376,7 +370,6 @@ class DefendantAccountServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         String businessUnitId = "10";
-        String authHeader = "Bearer abc";
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT))
@@ -403,7 +396,6 @@ class DefendantAccountServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         String businessUnitId = "10";
-        String authHeader = "Bearer abc";
 
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 

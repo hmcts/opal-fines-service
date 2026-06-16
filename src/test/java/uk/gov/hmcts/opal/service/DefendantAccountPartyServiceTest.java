@@ -52,7 +52,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void getDefendantAccountParty_whenUserHasPermission_returnsResponse() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
 
@@ -77,7 +76,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void getDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
 
@@ -101,7 +99,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void replaceDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 10L;
         Long defendantAccountPartyId = 20L;
         String ifMatch = "W/\"1\"";
@@ -156,7 +153,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 10L;
         Long defendantAccountPartyId = 20L;
         String ifMatch = "W/\"1\"";
@@ -212,7 +208,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void replaceDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 11L;
         Long defendantAccountPartyId = 22L;
         String ifMatch = "W/\"2\"";
@@ -266,7 +261,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 11L;
         Long defendantAccountPartyId = 22L;
         String ifMatch = "W/\"2\"";
@@ -320,7 +314,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void replaceDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 100L;
         Long defendantAccountPartyId = 200L;
         String ifMatch = "W/\"X\"";
@@ -350,7 +343,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 100L;
         Long defendantAccountPartyId = 200L;
         String ifMatch = "W/\"X\"";
@@ -380,7 +372,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void removeDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 33L;
         Long defendantAccountPartyId = 44L;
         short businessUnitId = 9;
@@ -438,7 +429,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void removeDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameAndEmptyBusinessUnitUserId() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 55L;
         Long defendantAccountPartyId = 66L;
         short businessUnitId = 11;
@@ -494,7 +484,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void removeDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 77L;
         Long defendantAccountPartyId = 88L;
         short businessUnitId = 13;

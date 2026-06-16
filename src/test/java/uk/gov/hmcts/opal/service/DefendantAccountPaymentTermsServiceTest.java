@@ -38,7 +38,6 @@ class DefendantAccountPaymentTermsServiceTest {
     void getPaymentTerms_whenUserHasPermission_returnsProxyResult() {
         // arrange
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -62,7 +61,6 @@ class DefendantAccountPaymentTermsServiceTest {
     void getPaymentTerms_whenUserLacksPermission_throwsPermissionNotAllowed() {
         // arrange
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 

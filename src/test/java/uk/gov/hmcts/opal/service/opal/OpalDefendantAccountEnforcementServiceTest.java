@@ -507,7 +507,6 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
         String updatedIfMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -594,7 +593,6 @@ public class OpalDefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -641,7 +639,6 @@ public class OpalDefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -697,7 +694,6 @@ public class OpalDefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()

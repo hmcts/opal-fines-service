@@ -110,7 +110,6 @@ class ImpositionServiceTest {
     @Test
     void getImpositions_whenUserHasPermission_returnsImpositionsServiceResult() {
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         GetDefendantAccountImpositionsResponse impositionsResponse = GetDefendantAccountImpositionsResponse.builder()
             .version(BigInteger.valueOf(9))
             .build();
@@ -131,7 +130,6 @@ class ImpositionServiceTest {
     @Test
     void getImpositions_whenUserLacksPermission_throwsPermissionNotAllowed() {
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 

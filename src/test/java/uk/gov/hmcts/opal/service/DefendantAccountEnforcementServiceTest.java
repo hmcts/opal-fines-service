@@ -59,7 +59,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "3";
-        String authHeader = "Bearer abc";
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
         AddEnforcementResponse proxyResponse = AddEnforcementResponse.builder()
@@ -103,7 +102,6 @@ class DefendantAccountEnforcementServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
-        String authHeader = "Bearer abc";
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT))
@@ -132,7 +130,6 @@ class DefendantAccountEnforcementServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
-        String authHeader = "Bearer abc";
 
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
@@ -203,7 +200,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -259,7 +255,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -299,7 +294,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -358,7 +352,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -418,7 +411,6 @@ class DefendantAccountEnforcementServiceTest {
     void removeEnforcementHold_whenIfMatchIsNull_passesNullToProxy() {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()

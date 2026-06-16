@@ -167,7 +167,6 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         final String businessUnitId = "10";
         final String businessUnitUserId = "userX";
         final String ifMatch = "\"1\"";
-        final String authHeader = "Bearer token";
 
         BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10)
