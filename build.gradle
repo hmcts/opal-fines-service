@@ -325,12 +325,14 @@ tasks.register('integration', Test) {
 }
 
 tasks.register('checkTestJiraAnnotations', JavaExec) {
-  description = "Checks runnable integration and functional tests have Jira story and epic annotations"
-  group = "Verification"
-  dependsOn 'testClasses'
-  classpath = sourceSets.test.runtimeClasspath
-  mainClass = 'uk.gov.hmcts.opal.scripts.TestJiraAnnotationChecker'
-  args = ['src/integrationTest/java', 'src/functionalTest/resources/features']
+  if(!skipTests) {
+    description = "Checks runnable integration and functional tests have Jira story and epic annotations"
+    group = "Verification"
+    dependsOn 'testClasses'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'uk.gov.hmcts.opal.scripts.TestJiraAnnotationChecker'
+    args = ['src/integrationTest/java', 'src/functionalTest/resources/features']
+  }
 }
 
 tasks.register('functionalOpal', Test) {
