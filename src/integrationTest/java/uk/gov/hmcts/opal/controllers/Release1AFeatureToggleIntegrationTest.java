@@ -82,14 +82,14 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("release1aEndpoints")
-    @DisplayName("should return 405 Method Not Allowed")
+    @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2833")
     @JiraEpic("PO-2352")
     @JiraTestKey("PO-6232")
     void shouldReturn405WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
-        log.debug("Testing feature-disabled 405 for: {}", description);
+        log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)
-            .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isNotFound());
     }
 }
