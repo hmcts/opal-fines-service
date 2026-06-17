@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 
@@ -45,5 +47,7 @@ class Release1bFeatureToggleLaunchDarklyEnabledFlagTrueIntegrationTest extends A
                 assertThat(result.getResponse().getContentAsString())
                     .doesNotContain("https://hmcts.gov.uk/problems/feature-disabled");
             });
+
+        verify(ldClient, times(1)).boolVariation(eq(RELEASE_1B), any(LDContext.class), anyBoolean());
     }
 }
