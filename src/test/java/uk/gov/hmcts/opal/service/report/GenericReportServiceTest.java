@@ -10,8 +10,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.ERROR;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Clock;
 import java.time.Duration;
@@ -89,14 +89,14 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_happyPath() throws JsonProcessingException {
+    void generateReportInstanceContent_happyPath() throws JacksonException {
         reportInstance.setReportId(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
-        when(reportData.getNumberOfRecords()).thenReturn((short) 2);
+        when(reportData.getNumberOfRecords()).thenReturn(2L);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.getRetentionPeriod()).thenReturn(Duration.ofDays(1));
@@ -120,14 +120,14 @@ class GenericReportServiceTest {
 
     @Test
     void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp()
-        throws JsonProcessingException {
+        throws JacksonException {
         reportInstance.setReportId(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
-        when(reportData.getNumberOfRecords()).thenReturn((short) 2);
+        when(reportData.getNumberOfRecords()).thenReturn(2L);
         when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.getRetentionPeriod()).thenReturn(null);
@@ -151,7 +151,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() throws JsonProcessingException {
+    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() throws JacksonException {
         //Arrange
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
@@ -199,7 +199,7 @@ class GenericReportServiceTest {
     static class TestData implements ReportDataInterface {
 
         @Override
-        public short getNumberOfRecords() {
+        public long getNumberOfRecords() {
             return 0;
         }
 

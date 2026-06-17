@@ -1,23 +1,16 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.service.opal.ReportEntryService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -40,12 +33,12 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5996")
     void int01_removeEnforcementHold_returnsOkAndUpdatesDatabase() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
 
         ResultActions resultActions = mockMvc.perform(
             patch(URL_BASE + "/{defendantAccountId}/remove-enf-hold", ACCOUNT_WITH_ENFORCEMENT_HOLD)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("Business-Unit-Id", BUSINESS_UNIT_ID)
                 .header("If-Match", ifMatch)
                 .contentType(APPLICATION_JSON)
@@ -70,13 +63,12 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     }
 
     @Test
-    @DisplayName("Remove enforcement hold returns 401 when access token is missing")
+    @DisplayName("Remove enforcement hold returns 403 when access token is missing")
     @JiraStory("PO-1775")
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5992")
     void int02_removeEnforcementHold_returnsUnauthorized_whenAccessTokenMissing() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
+        userStateStub.setupWithNoPermissions();
 
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
 
@@ -93,7 +85,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
                     """)
         );
 
-        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(status().isForbidden());
     }
 
     @Test
@@ -102,12 +94,13 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5993")
     void int03_removeEnforcementHold_returnsForbidden_whenUserLacksPermission() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
 
         ResultActions resultActions = mockMvc.perform(
             patch(URL_BASE + "/{defendantAccountId}/remove-enf-hold", ACCOUNT_WITH_ENFORCEMENT_HOLD)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("Business-Unit-Id", BUSINESS_UNIT_ID)
                 .header("If-Match", ifMatch)
                 .contentType(APPLICATION_JSON)
@@ -129,14 +122,14 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5994")
     void int04_removeEnforcementHold_returnsNotFound_whenAccountDoesNotExist() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
 
         long missingAccountId = 999999999L;
 
         ResultActions resultActions = mockMvc.perform(
             patch(URL_BASE + "/{defendantAccountId}/remove-enf-hold", missingAccountId)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("Business-Unit-Id", BUSINESS_UNIT_ID)
                 .header("If-Match", ifMatch)
                 .contentType(APPLICATION_JSON)
@@ -163,12 +156,12 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-5995")
     void int05_removeEnforcementHold_returnsConflict_whenIfMatchDoesNotMatch() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         int invalidVersion = versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + 1;
 
         ResultActions resultActions = mockMvc.perform(
             patch(URL_BASE + "/{defendantAccountId}/remove-enf-hold", ACCOUNT_WITH_ENFORCEMENT_HOLD)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("Business-Unit-Id", BUSINESS_UNIT_ID)
                 .header("If-Match", "\"" + invalidVersion + "\"")
                 .contentType(APPLICATION_JSON)

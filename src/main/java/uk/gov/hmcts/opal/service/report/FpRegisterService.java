@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.report;
 
-import static uk.gov.hmcts.opal.service.report.ReportType.FP_REGISTER;
+import static uk.gov.hmcts.opal.service.report.ReportId.FP_REGISTER;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 public class FpRegisterService implements ReportInterface {
 
     @Override
-    public ReportType getType() {
+    public ReportId getReportId() {
         return FP_REGISTER;
     }
 
@@ -28,7 +28,7 @@ public class FpRegisterService implements ReportInterface {
     public static class FpRegisterData implements ReportDataInterface {
 
         @Override
-        public short getNumberOfRecords() {
+        public long getNumberOfRecords() {
             return 0;
         }
 

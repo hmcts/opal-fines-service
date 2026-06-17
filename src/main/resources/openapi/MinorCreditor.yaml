@@ -16,6 +16,10 @@ paths:
       summary: Get Minor Creditor Account
       description: The Get Minor Creditor Account will be used to return the low level data associated to the minor creditor account - such as personal details for the minor creditor, and payment details.
       operationId: getMinorCreditorAccount
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+            - View Creditor BACS (in the business unit that the Minor Creditor Account belongs to)
       parameters:
         - in: path
           name: id
@@ -72,6 +76,11 @@ paths:
       summary: Update Minor Creditor Account
       description: The Update Minor Creditor Account will be used to update individual attributes of a Minor Creditor Account.
       operationId: patchMinorCreditorAccount
+      security:
+        - permissions:
+            - Add and Remove payment hold (in the business unit supplied in Business-Unit-Id)
+            - Account Maintenance (in the business unit supplied in Business-Unit-Id)
+            - View Creditor BACS (in the business unit supplied in Business-Unit-Id)
       parameters:
         - in: path
           name: id

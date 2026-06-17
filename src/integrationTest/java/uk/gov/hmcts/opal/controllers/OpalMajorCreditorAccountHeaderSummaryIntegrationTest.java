@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -14,16 +13,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.mockito.Mockito.when;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -34,23 +28,17 @@ import static org.mockito.Mockito.when;
 @Slf4j(topic = "opal.OpalMajorCreditorAccountHeaderSummaryIntegrationTest")
 class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer some_value";
     private static final String URL = "/major-creditor-accounts/{id}/header-summary";
-
-    @MockitoBean
-    private UserStateService userStateService;
 
     @Test
     @DisplayName("PO-2136 Opal valid request returns mapped body and ETag")
     @JiraStory("PO-2136")
     @JiraEpic("FAE: View Major Creditor Account Summary")
     void getHeaderSummary_successReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
-            .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-
         ResultActions resultActions = mockMvc.perform(get(URL, 10770000000041L)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":getHeaderSummary_successReturnsMappedResponseAndEtag: Response body:\n{}",
@@ -76,12 +64,10 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @JiraStory("PO-2136")
     @JiraEpic("FAE: View Major Creditor Account Summary")
     void getHeaderSummary_notFoundReturns404() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
-            .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-
         mockMvc.perform(get(URL, 999999L)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }

@@ -84,7 +84,8 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.extend_ttp_preserve_last_enf").value(true))
             .andExpect(jsonPath("$.prevent_payment_card").value(true))
             .andExpect(jsonPath("$.lists_monies").value(true))
-            .andExpect(jsonPath("$.result_parameters").value("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
+            .andExpect(jsonPath("$.result_parameters").value("{\"param1\":\"value1\",\"param2\":\"value2\"}"))
+            .andExpect(jsonPath("$.requires_employment_data").value(true));
     }
 
     @Test

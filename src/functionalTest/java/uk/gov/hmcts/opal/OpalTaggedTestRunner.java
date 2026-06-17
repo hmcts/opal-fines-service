@@ -11,9 +11,9 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
  * Runs tagged Opal functional scenarios that must be selected deliberately at execution time.
  *
  * <p>This runner exists separately from {@link OpalTestRunner} because the default Opal suite
- * excludes environment-specific scenarios such as {@code @UAT-Technical}. Those scenarios are not
- * safe to include in the normal {@code functionalOpal} run because they depend on the target
- * environment being configured with a matching feature-flag combination.
+ * excludes feature-toggle scenarios tagged {@code @FeatureToggle}. Those scenarios are not safe
+ * to include in the normal {@code functionalOpal} run because they depend on the target environment
+ * being configured with a matching feature-flag combination.
  *
  * <p>The accompanying {@code functionalOpalTags} Gradle task supplies
  * {@code cucumber.filter.tags}, allowing a caller to run only the relevant tagged scenarios

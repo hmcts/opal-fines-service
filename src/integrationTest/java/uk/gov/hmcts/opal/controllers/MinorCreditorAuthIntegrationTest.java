@@ -1,25 +1,19 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionsToken;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionsToken;
 
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -32,15 +26,10 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     private static final long ACCOUNT_ID = 99000000000801L;
     private static final short BUSINESS_UNIT_ID = 77;
 
-    @MockitoBean
-    private UserStateClientService userStateClientService;
-
     @Test
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
     void getMinorCreditorAccount_withBacsPermissionInSecurityContext_returnsBacsFields() throws Exception {
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
-
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header("authorization", AUTH_HEADER)
@@ -63,7 +52,6 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
     void getMinorCreditorAccount_withoutBacsPermissionInSecurityContext_redactsBacsFields() throws Exception {
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
 
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
@@ -86,16 +74,11 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
     void getMinorCreditorAccount_withBacsPermissionInAuthenticatedUserState_returnsBacsFields() throws Exception {
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
-            BUSINESS_UNIT_ID,
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
-            FinesPermission.VIEW_CREDITOR_BACS
-        )));
-
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header("authorization", AUTH_HEADER)
-                .with(authentication(noFinesPermissionsToken())))
+                .with(authentication(permissionsToken(BUSINESS_UNIT_ID,
+                    FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, FinesPermission.VIEW_CREDITOR_BACS))))
             .andExpect(status().isOk())
             .andExpect(header().string("ETag", "\"1\""))
             .andExpect(jsonPath("$.creditor_account_id").value(ACCOUNT_ID))
@@ -112,17 +95,12 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
     void getMinorCreditorAccount_withoutBacsPermissionInAuthenticatedUserState_redactsBacsFields() throws Exception {
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(permissionUser(
-            BUSINESS_UNIT_ID,
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
-        )));
-
+        userStateStub.setupWithNoPermissions();
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header("authorization", AUTH_HEADER)
                 .with(authentication(permissionsToken(BUSINESS_UNIT_ID,
-                    FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
-                    FinesPermission.VIEW_CREDITOR_BACS))))
+                    FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))))
             .andExpect(status().isOk())
             .andExpect(header().string("ETag", "\"1\""))
             .andExpect(jsonPath("$.creditor_account_id").value(ACCOUNT_ID))

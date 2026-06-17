@@ -15,8 +15,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -33,16 +33,17 @@ import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportError;
+import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportRegistry;
-import uk.gov.hmcts.opal.service.report.ReportType;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
 @DirtiesContext
+@Import(GenericReportServiceTest.TestBeans.class)
 class GenericReportServiceTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -60,7 +61,6 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     @MockitoBean
     private Clock clock;
 
-    @TestConfiguration
     static class TestBeans {
 
         @Bean
@@ -148,8 +148,8 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     private static class TestReportTemplate implements ReportInterface<TestReportData> {
 
         @Override
-        public ReportType getType() {
-            return ReportType.FP_REGISTER;
+        public ReportId getReportId() {
+            return ReportId.FP_REGISTER;
         }
 
         @Override
@@ -173,8 +173,8 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         }
 
         @Override
-        public short getNumberOfRecords() {
-            return (short) numberOfRecords;
+        public long getNumberOfRecords() {
+            return numberOfRecords;
         }
 
         @Override

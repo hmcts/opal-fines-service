@@ -15,7 +15,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:12.8.0")
+    classpath("org.flywaydb:flyway-database-postgresql:12.8.1")
     // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
     // Maven metadata range lookups on CI when Maven Central is rate limiting.
     classpath("io.cucumber:query:${cucumberQueryVersion}")
@@ -27,13 +27,13 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '4.0.6'
+  id 'org.springframework.boot' version '4.1.0'
   id 'com.github.ben-manes.versions' version '0.54.0'
   id 'org.sonarqube' version '7.3.1.8318'
   id 'uk.gov.hmcts.java' version '0.12.70'
-  id 'org.flywaydb.flyway' version '12.8.0'
+  id 'org.flywaydb.flyway' version '12.8.1'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.22.0"
+  id "org.openapi.generator" version "7.23.0"
 }
 
 ext {
@@ -320,7 +320,7 @@ tasks.register('functionalOpalTags', Test) {
 
     if (cucumberTags == null || cucumberTags.toString().trim().isEmpty()) {
       throw new GradleException(
-        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@UAT-Technical and @R1BOff'"
+        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@FeatureToggle and @R1BOff'"
       )
     }
 
@@ -345,20 +345,35 @@ tasks.register('functionalLegacy', Test) {
   finalizedBy 'copyLegacyCucumberJson'
 }
 tasks.register('copyFunctionalReport', Copy) {
+  dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/functional-test-report")
   logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
 }
 tasks.register('mergeFunctionalResults', Copy) {
+  dependsOn 'functionalOpal', 'functionalLegacy'
+  from layout.buildDirectory.dir("test-results/functional/opal")
+  from layout.buildDirectory.dir("test-results/functional/legacy")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalWithTagsResults', Copy) {
+  dependsOn 'functionalOpal', 'functionalOpalTags'
   from layout.buildDirectory.dir("test-results/functional/opal")
   from layout.buildDirectory.dir("test-results/functional/opal-tags")
-  from layout.buildDirectory.dir("test-results/functional/legacy")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsResults', Copy) {
+  dependsOn 'functionalOpalTags'
+  from layout.buildDirectory.dir("test-results/functional/opal-tags")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
 tasks.register('generateTestSummary', JavaExec) {
   group = "Reporting"
   description = "Generate an HTML summary from test result XMLs"
+  dependsOn 'copyFunctionalReport'
   classpath = sourceSets.functionalTest.runtimeClasspath
   mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
 }
@@ -381,10 +396,10 @@ tasks.register('functionalWithTags') {
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports', 'functionalOpal', 'functionalOpalTags', 'aggregate', 'copyFunctionalReport',
-    'mergeFunctionalResults', 'generateTestSummary')
+    'mergeFunctionalWithTagsResults', 'generateTestSummary')
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.functionalOpalTags.mustRunAfter functionalOpal
-  tasks.mergeFunctionalResults.mustRunAfter functionalOpalTags
+  tasks.mergeFunctionalWithTagsResults.mustRunAfter functionalOpalTags
   tasks.aggregate.mustRunAfter functionalOpalTags
   tasks.copyFunctionalReport.mustRunAfter aggregate
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
@@ -404,6 +419,7 @@ tasks.register('smokeOpal', Test) {
 
 }
 tasks.register('copySmokeReport', Copy) {
+  dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/smoke-test-report")
   logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
@@ -490,9 +506,8 @@ dependencyUpdates {
 
 dependencyManagement {
   imports {
-    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
-    mavenBom "org.springframework.integration:spring-integration-bom:7.0.4"
-    mavenBom "com.fasterxml.jackson:jackson-bom:2.22.0"
+    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.2'
+    mavenBom "org.springframework.integration:spring-integration-bom:7.1.0"
     mavenBom "io.netty:netty-bom:4.2.15.Final"
   }
 
@@ -527,16 +542,16 @@ ext['postgresql.version'] = '42.7.11'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.13'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.16'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.0.0'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.0.0'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
 
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.43"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.50"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.50"
-  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.44"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.51"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.51"
+  openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.8'
   implementation 'com.azure:azure-storage-blob:12.34.0'
@@ -563,7 +578,6 @@ dependencies {
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
-  implementation 'io.github.openfeign:feign-jackson'
 
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 
@@ -578,18 +592,18 @@ dependencies {
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
-  implementation 'org.flywaydb:flyway-core:12.8.0'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.8.0', {
+  implementation 'org.flywaydb:flyway-core:12.8.1'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.8.1', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.0.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.1.Final'
 
-  implementation('uk.gov.hmcts:spring-exception-handler:1.0.1') {
+  implementation('uk.gov.hmcts:spring-exception-handler:1.0.2') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
   }
 
@@ -619,7 +633,6 @@ dependencies {
       because '1.7.7.2 is vulnerable to CVE-2025-66453'
     }
   }
-  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
 
@@ -652,7 +665,7 @@ dependencies {
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
   testImplementation 'com.azure:azure-messaging-servicebus:7.17.18'
 
-  implementation('uk.gov.hmcts:opal-logging-service-integration-lib:0.0.7') {
+  implementation('uk.gov.hmcts:opal-logging-service-integration-lib:0.0.10') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
     exclude group: 'org.springframework.boot'
   }
@@ -796,7 +809,7 @@ tasks.register('functionalWithTagsWithZephyrExecution') {
   dependsOn('clearReports',
           'functionalOpal', 'copyOpalCucumberJson', 'createJiraExecutionFromOpalCucumberReport',
           'functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport',
-          'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
+          'aggregate', 'copyFunctionalReport', 'mergeFunctionalWithTagsResults', 'generateTestSummary')
 
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.copyOpalCucumberJson.mustRunAfter functionalOpal
@@ -805,7 +818,7 @@ tasks.register('functionalWithTagsWithZephyrExecution') {
   tasks.functionalOpalTags.mustRunAfter createJiraExecutionFromOpalCucumberReport
   tasks.copyOpalTagsCucumberJson.mustRunAfter functionalOpalTags
   tasks.createJiraExecutionFromOpalTagsCucumberReport.mustRunAfter copyOpalTagsCucumberJson
-  tasks.mergeFunctionalResults.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
+  tasks.mergeFunctionalWithTagsResults.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
   tasks.aggregate.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
   tasks.copyFunctionalReport.mustRunAfter aggregate
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
@@ -953,10 +966,15 @@ tasks.register('functionalOpalTagsWithZephyrExecution') {
   group = "Zephyr Reporting - Cucumber"
   description = "Runs functionalOpalTags then creates the Zephyr execution from the cucumber report"
 
-  dependsOn('functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport')
+  dependsOn('functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport',
+          'aggregate', 'copyFunctionalReport', 'mergeFunctionalOpalTagsResults', 'generateTestSummary')
 
   tasks.copyOpalTagsCucumberJson.mustRunAfter functionalOpalTags
   tasks.createJiraExecutionFromOpalTagsCucumberReport.mustRunAfter copyOpalTagsCucumberJson
+  tasks.mergeFunctionalOpalTagsResults.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
+  tasks.aggregate.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
+  tasks.copyFunctionalReport.mustRunAfter aggregate
+  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 }
 
 tasks.register('functionalLegacyWithZephyrExecution') {

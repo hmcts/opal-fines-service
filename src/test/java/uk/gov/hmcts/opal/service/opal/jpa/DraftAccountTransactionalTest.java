@@ -444,6 +444,38 @@ class DraftAccountTransactionalTest {
     }
 
     @Test
+    void testUpdateDraftAccount_invalidAccountSnapshot_throwsRuntimeException() {
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
+            .validatedBy("TestValidator")
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .submittedBy("Submitter")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .accountSnapshot("{invalid")
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .timelineData(createTimelineDataString())
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
+                BigInteger.ZERO, userState)
+        );
+
+        assertEquals("Error processing JSON in addSnapshotApprovedDate", exception.getMessage());
+        verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
     void testUpdateDraftAccount_appendsTimelineDataToExistingTimeline() {
         Long draftAccountId = 1L;
         String existingTimeline = singleTimelineDataString("original-user", "Submitted");
@@ -567,6 +599,37 @@ class DraftAccountTransactionalTest {
                 "DraftAccountSubmittedByUserIdentifier", "BUUID1"
             ))
         );
+    }
+
+    @Test
+    void testUpdateDraftAccount_deleterIsNotSubmitter_shouldSaveDeletedStatus() {
+
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.DELETED)
+            .validatedBy("Validator")
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .submittedBy("Submitter")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .timelineData(createTimelineDataString())
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserState userState = UserState.builder().userName("DifferentUser").build();
+
+        DraftAccountEntity result = draftAccountTransactional.updateDraftAccount(
+            draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
+
+        assertEquals(DraftAccountStatus.DELETED, result.getAccountStatus());
+        verify(securityEventLoggingService, never()).logEvent(any(), any(), any(), any(), any(), any());
     }
 
     @Test

@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 @SelectClasspathResource("features/opalMode")
 @ConfigurationParameter(
     key = FILTER_TAGS_PROPERTY_NAME,
-    value = "@Opal and not @Smoke and not @Ignore and not @UAT-Technical"
+    value = "@Opal and not @Smoke and not @Ignore and not @FeatureToggle"
 )
 public class OpalTestRunner {
 

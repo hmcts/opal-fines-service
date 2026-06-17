@@ -9,6 +9,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -132,7 +133,10 @@ public class DraftAccountService {
             return
                 DraftAccountsResponseDto.builder()
                     .summaries(
-                        filtered.stream().map(this::toSummaryDto).toList()
+                        filtered.stream()
+                            .map(this::toSummaryDto)
+                            .sorted(Comparator.comparing(DraftAccountSummaryDto::getDraftAccountId))
+                            .toList()
                     ).build();
         } else {
             throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);

@@ -12,9 +12,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -44,14 +40,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2220")
     @JiraTestKey("PO-5869")
     void testReplaceDraftAccount_success() throws Exception {
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(permissionUser((short) 78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "3")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
@@ -63,13 +57,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(5))
             .andExpect(jsonPath("$.business_unit_id").value(78))
-            .andExpect(jsonPath("$.submitted_by").value("USER01"))
-            .andExpect(jsonPath("$.submitted_by_name").value("Normal User"))
+            .andExpect(jsonPath("$.submitted_by").value("L078JG"))
+            .andExpect(jsonPath("$.submitted_by_name").value("Pablo"))
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray())
-            .andExpect(jsonPath("$.timeline_data[1].username").value(""))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
@@ -87,10 +81,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\",", "");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -106,10 +99,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -125,10 +117,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -147,10 +138,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             );
         String ifMatch = getIfMatchForDraftAccount(5L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
         mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", ifMatch)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
@@ -165,14 +155,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_success_and_pdplServiceCalled() throws Exception {
         String validRequestBody = validReplaceRequestBodyForPdpl(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
-                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -192,7 +180,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l0 = logs.get(0);
         assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
-        assertEquals("0", l0.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l0.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
         assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
@@ -204,7 +192,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l1 = logs.get(1);
         assertEquals("Get Draft Account - Minor Creditor", l1.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l1.getCategory());
-        assertEquals("0", l1.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l1.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
         assertEquals("127.0.0.1", l1.getIpAddress());
         assertNull(l1.getRecipient());
@@ -216,7 +204,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l2 = logs.get(2);
         assertEquals("Update Draft Account - Parent or Guardian", l2.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
-        assertEquals("0", l2.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l2.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
         assertEquals("192.168.1.100", l2.getIpAddress());
         assertNull(l2.getRecipient());
@@ -228,7 +216,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l3 = logs.get(3);
         assertEquals("Update Draft Account - Defendant", l3.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l3.getCategory());
-        assertEquals("0", l3.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l3.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l3.getCreatedBy().getType());
         assertEquals("192.168.1.100", l3.getIpAddress());
         assertNull(l3.getRecipient());
@@ -240,7 +228,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l4 = logs.get(4);
         assertEquals("Update Draft Account - Minor Creditor", l4.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l4.getCategory());
-        assertEquals("0", l4.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l4.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l4.getCreatedBy().getType());
         assertEquals("192.168.1.100", l4.getIpAddress());
         assertNull(l4.getRecipient());
@@ -258,13 +246,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_defendantOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyDefendantOnly(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -286,7 +273,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
 
         assertNotNull(pdpl.getCreatedBy());
-        assertEquals("0", pdpl.getCreatedBy().getIdentifier());
+        assertEquals("500000000", pdpl.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
 
         assertEquals(FIXED_DATE_TIME, pdpl.getCreatedAt());
@@ -300,13 +287,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_parentGuardianOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyParentGuardianOnly(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -326,7 +312,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l0 = logs.get(0);
         assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
-        assertEquals("0", l0.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l0.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
         assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
@@ -338,7 +324,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l1 = logs.get(1);
         assertEquals("Update Draft Account - Parent or Guardian", l1.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l1.getCategory());
-        assertEquals("0", l1.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l1.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
         assertEquals("192.168.1.100", l1.getIpAddress());
         assertNull(l1.getRecipient());
@@ -350,7 +336,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails l2 = logs.get(2);
         assertEquals("Update Draft Account - Defendant", l2.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
-        assertEquals("0", l2.getCreatedBy().getIdentifier());
+        assertEquals("500000000", l2.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
         assertEquals("192.168.1.100", l2.getIpAddress());
         assertNull(l2.getRecipient());
@@ -369,13 +355,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testPutDraftAccount_minorCreditorOnly_pdplLogged() throws Exception {
         String validRequestBody = validReplaceRequestBodyMinorCreditorOnly(0L);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .header("authorization", "Bearer some_value")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", ifMatch)
             .header("X-User-IP", "192.168.1.100")
             .contentType(MediaType.APPLICATION_JSON)
@@ -395,7 +380,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails first = logs.get(0);
         assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
-        assertEquals("0", first.getCreatedBy().getIdentifier());
+        assertEquals("500000000", first.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
         assertEquals("127.0.0.1", first.getIpAddress());
         assertNull(first.getRecipient());
@@ -407,7 +392,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails second = logs.get(1);
         assertEquals("Update Draft Account - Defendant", second.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
-        assertEquals("0", second.getCreatedBy().getIdentifier());
+        assertEquals("500000000", second.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
         assertEquals("192.168.1.100", second.getIpAddress());
         assertNull(second.getRecipient());
@@ -419,7 +404,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         PersonalDataProcessingLogDetails third = logs.get(2);
         assertEquals("Update Draft Account - Minor Creditor", third.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.COLLECTION, third.getCategory());
-        assertEquals("0", third.getCreatedBy().getIdentifier());
+        assertEquals("500000000", third.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, third.getCreatedBy().getType());
         assertEquals("192.168.1.100", third.getIpAddress());
         assertNull(third.getRecipient());
@@ -436,11 +421,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2220")
     @JiraTestKey("PO-5875")
     void testPutDraft_deterministic() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         String requestBody = validReplaceRequestBody(3L);
 
         String first = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -449,7 +434,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .getResponse().getContentAsString();
 
         String second = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -474,11 +460,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5870")
     void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
-
+        userStateStub.setupWithNoPermissions();
         mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validCreateRequestBody()))
@@ -650,7 +635,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             +
             """
 
-          }""";
+                }""";
     }
 
     private static String validReplaceRequestBodyForPdpl(Long version) {

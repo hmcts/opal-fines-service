@@ -3,24 +3,21 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -40,7 +37,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true"
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
@@ -48,16 +44,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @Autowired
+    @MockitoSpyBean
     private ImpositionRepository impositionRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private CreditorTransactionRepository creditorTransactionRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private PartyRepository partyRepository;
 
-    @Autowired
+    @MockitoSpyBean
     private CreditorAccountRepository creditorAccountRepository;
 
     @Test
@@ -112,16 +108,16 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraStory("PO-713")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6182")
-    void postSearch_missingAuthHeader_returns401ProblemJson() throws Exception {
-        super.postSearch_missingAuthHeader_returns401();
+    void postSearch_missingAuthHeader_returns403ProblemJson() throws Exception {
+        super.postSearch_missingAuthHeader_returns403();
     }
 
     @Test
     @JiraStory("PO-713")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6188")
-    void postSearch_invalidToken_returns401ProblemJson() throws Exception {
-        super.postSearch_invalidToken_returns401ProblemJson();
+    void postSearch_invalidToken_returns403ProblemJson() throws Exception {
+        super.postSearch_invalidToken_returns403ProblemJson();
     }
 
     @Test
@@ -328,8 +324,15 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6212")
-    void patchMinorCreditor_missingAuthHeader_returns401() throws Exception {
-        super.patchMinorCreditor_missingAuthHeader_returns401();
+    void patchMinorCreditor_missingAuthHeader_returns403() throws Exception {
+        super.patchMinorCreditor_missingAuthHeader_returns403();
+    }
+
+    @Test
+    @JiraStory("PO-1915")
+    @JiraEpic("PO-812")
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
     }
 
     @Test
@@ -344,8 +347,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraStory("PO-1911")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6190")
-    void getHeaderSummary_missingAuthHeader_returns401() throws Exception {
-        super.getHeaderSummary_missingAuthHeader_returns401();
+    void getHeaderSummary_missingAuthHeader_returns403() throws Exception {
+        super.getHeaderSummary_missingAuthHeader_returns403();
     }
 
     @Test
@@ -380,8 +383,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
-    void getMinorCreditorAccount_missingAuthHeader_returns401() throws Exception {
-        super.getMinorCreditorAccount_missingAuthHeader_returns401();
+    void getMinorCreditorAccount_missingAuthHeader_returns403() throws Exception {
+        super.getMinorCreditorAccount_missingAuthHeader_returns403();
     }
 
     @Test
@@ -398,50 +401,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         super.getMinorCreditorAccount_notFound_returns404(log);
     }
 
-    @Test
-    @JiraStory("PO-1986")
-    @JiraEpic("PO-812")
-    void getMinorCreditorAccount_timeout_returns408() throws Exception {
-        super.getMinorCreditorAccount_timeout_returns408(log);
-    }
-
-    @Test
-    @JiraStory("PO-1986")
-    @JiraEpic("PO-812")
-    void getMinorCreditorAccount_serviceUnavailable_returns503() throws Exception {
-        super.getMinorCreditorAccount_serviceUnavailable_returns503(log);
-    }
-
-    @Test
-    @JiraStory("PO-1986")
-    @JiraEpic("PO-812")
-    void getMinorCreditorAccount_serverError_returns500() throws Exception {
-        super.getMinorCreditorAccount_serverError_returns500(log);
-    }
-
-    @Test
-    @JiraStory("PO-1911")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-6194")
-    void getHeaderSummary_timeout_returns408() throws Exception {
-        super.getHeaderSummary_timeout_returns408(log);
-    }
-
-    @Test
-    @JiraStory("PO-1911")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-6204")
-    void getHeaderSummary_serviceUnavailable_returns503() throws Exception {
-        super.getHeaderSummary_serviceUnavailable_returns503(log);
-    }
-
-    @Test
-    @JiraStory("PO-1911")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-6178")
-    void getHeaderSummary_serverError_returns500() throws Exception {
-        super.getHeaderSummary_serverError_returns500(log);
-    }
 
     @Test
     @JiraStory("PO-1914")
@@ -462,9 +421,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1914")
     @JiraEpic("PO-812")
-    @JiraTestKey("PO-6202")
-    void getAtAGlance_serverError_returns500() throws Exception {
-        super.getMinorCreditorAtAGlanceImpl_serverError_throws500(log);
+    void getAtAGlance_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        super.getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403();
     }
 
     @Test
@@ -475,7 +433,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         // Arrange
         final Long creditorAccountId = 606L;
         final Long partyId = 99007L;
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         Specification<ImpositionEntity> impositionSpec = ImpositionSpecs
             .equalsCreditorAccountId(creditorAccountId);
@@ -501,6 +458,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
         // Act
         ResultActions actions = mockMvc.perform(delete(URL_BASE + "/" + creditorAccountId)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("If-Match", "0")
                             .param("ignore_missing", "false"));

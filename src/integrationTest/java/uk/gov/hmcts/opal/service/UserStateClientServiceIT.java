@@ -1,10 +1,17 @@
 package uk.gov.hmcts.opal.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.opal.support.UserStateStub.USER_STATE_MAPPER;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.time.Instant;
-import java.util.Map;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -16,13 +23,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClien
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
@@ -35,12 +35,8 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     @Autowired
     UserStateClientService userStateClientService;
 
-    @BeforeEach
-    void setUp() {
-        redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
-        WireMock.reset(); // Clears everything before each test
-    }
 
+    @SneakyThrows
     @Test
     @JiraStory("PO-2833")
     @JiraEpic("PO-2233")
@@ -51,7 +47,7 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         stubFor(get("/opal/v2/users/0/state")
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(V2_USER_STATE)));
+                .withBody(userStateStub.getUserStateAsJson())));
 
         WireMock.verify(0, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
 
@@ -70,10 +66,10 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         WireMock.verify(1, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
 
         //we have only a stub user service so need to update cache ourselves
-        @SuppressWarnings("unchecked")
-        Map<String, Object> fakeCachedUserState = objectMapper.readValue(V2_USER_STATE, Map.class);
-        fakeCachedUserState.put("name", "Pablo-CACHED");
-        String fakeCachedUserStateJson = objectMapper.writeValueAsString(fakeCachedUserState);
+        UserStateV2 userStateV2 = userStateStub.getDefaultUserStateBuilder()
+            .name("Pablo-CACHED")
+            .build();
+        String fakeCachedUserStateJson = USER_STATE_MAPPER.writeValueAsString(userStateV2);
         redisTemplate.opsForValue().set("USER_STATE_GfsHbIMt49WjQ", fakeCachedUserStateJson);
 
         // Second Call - cache should be used

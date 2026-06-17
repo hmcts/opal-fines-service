@@ -6,8 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -116,6 +121,25 @@ class JsonMapperHelperTest {
                 () -> jsonMapperHelper.parseJsonToMap(invalidJson),
                 "Expected IllegalArgumentException for invalid/malformed JSON input"
             );
+        }
+
+        @SuppressWarnings("unchecked")
+        @Test
+        void parseJsonToMap_whenObjectMapperThrowsJacksonException_shouldThrowIllegalArgumentException()
+            throws JacksonException {
+
+            ObjectMapper objectMapper = org.mockito.Mockito.mock(ObjectMapper.class);
+            JsonMapperHelper helper = new JsonMapperHelper(objectMapper);
+            String json = "{\"key\":\"value\"}";
+            JacksonException parseException = new JacksonException("bad json") {
+            };
+            when(objectMapper.readValue(eq(json), any(TypeReference.class))).thenThrow(parseException);
+
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> helper.parseJsonToMap(json));
+
+            assertEquals("Invalid JSON in report_parameters: " + json, exception.getMessage());
+            assertEquals(parseException, exception.getCause());
         }
     }
 }

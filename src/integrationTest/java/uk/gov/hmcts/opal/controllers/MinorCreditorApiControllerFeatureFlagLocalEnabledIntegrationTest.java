@@ -2,8 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -11,15 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -29,10 +25,9 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
-import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -51,9 +46,6 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short BUSINESS_UNIT_ID = 10;
 
-    @MockitoBean
-    private UserStateService userStateService;
-
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;
 
@@ -63,18 +55,21 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @JiraTestKey("PO-5978")
     void patchMinorCreditorAccount_whenLocalDefaultEnabled_returns200() throws Exception {
         PatchMinorCreditorAccountRequest request = patchMinorCreditorAccountRequest();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
-            BUSINESS_UNIT_ID,
+
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID,
             FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD
-        ));
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.VIEW_CREDITOR_BACS
+        );
 
         ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer some_value")
-                            .header("Business-Unit-Id", String.valueOf(BUSINESS_UNIT_ID))
-                            .header("If-Match", "\"1\"")
-                            .content(objectMapper.writeValueAsString(request)));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("authorization", userStateStub.getBearerToken())
+            .header("Business-Unit-Id", String.valueOf(BUSINESS_UNIT_ID))
+            .header("If-Match", "\"1\"")
+            .content(objectMapper.writeValueAsString(request)));
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditorAccount_whenLocalDefaultEnabled_returns200 body:\n{}",
@@ -97,17 +92,17 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {
         return new PatchMinorCreditorAccountRequest()
             .partyDetails(new PartyDetailsCommon()
-                              .partyId("99008")
-                              .organisationFlag(false)
-                              .individualDetails(new IndividualDetailsCommon()
-                                                     .forenames("Creditor")
-                                                     .surname("Updated")))
+                .partyId("99008")
+                .organisationFlag(false)
+                .individualDetails(new IndividualDetailsCommon()
+                    .forenames("Creditor")
+                    .surname("Updated")))
             .address(new AddressDetailsCommon()
-                         .addressLine1("99 Updated Road")
-                         .postcode("NW1 1AA"))
+                .addressLine1("99 Updated Road")
+                .postcode("NW1 1AA"))
             .payment(new CreditorAccountPaymentDetailsCommon()
-                         .holdPayment(true)
-                         .payByBacs(true));
+                .holdPayment(true)
+                .payByBacs(true));
     }
 
     private CreditorAccountEntity getCurrentCreditorAccount() {
