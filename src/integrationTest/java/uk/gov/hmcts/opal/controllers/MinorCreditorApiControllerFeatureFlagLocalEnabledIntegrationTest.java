@@ -95,15 +95,14 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-2642")
     void getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
-            BUSINESS_UNIT_ID,
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
-        ));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
-                                                   .header("Authorization", "Bearer some_value")
-                                                   .queryParam("dateFrom", "2026-01-29")
-                                                   .queryParam("dateTo", "2026-01-31"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .queryParam("dateFrom", "2026-01-29")
+            .queryParam("dateTo", "2026-01-31"));
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems body:\n{}",
@@ -137,14 +136,13 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-2642")
     void getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
-            BUSINESS_UNIT_ID,
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
-        ));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
-                                                   .header("Authorization", "Bearer some_value")
-                                                   .queryParam("itemTypes", "payment"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .queryParam("itemTypes", "payment"));
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse body:\n{}",
@@ -162,15 +160,14 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-2642")
     void getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
-            BUSINESS_UNIT_ID,
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
-        ));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
-                                                   .header("Authorization", "Bearer some_value")
-                                                   .queryParam("dateFrom", "2026-02-01")
-                                                   .queryParam("dateTo", "2026-01-31"));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .queryParam("dateFrom", "2026-02-01")
+            .queryParam("dateTo", "2026-01-31"));
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse body:\n{}",
