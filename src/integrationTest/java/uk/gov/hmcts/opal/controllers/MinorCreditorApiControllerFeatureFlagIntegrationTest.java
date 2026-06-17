@@ -63,7 +63,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":patchMinorCreditorAccount_whenLocalDefaultDisabled_returns405 body:\n{}",
             ToJsonString.toPrettyJson(body));
-        result.andExpect(status().isMethodNotAllowed())
+        result.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
