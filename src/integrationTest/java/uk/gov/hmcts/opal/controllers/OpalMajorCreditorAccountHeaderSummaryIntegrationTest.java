@@ -33,7 +33,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @Test
     @DisplayName("PO-2136 Opal valid request returns mapped body and ETag")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getHeaderSummary_successReturnsMappedResponseAndEtag() throws Exception {
         ResultActions resultActions = mockMvc.perform(get(URL, 10770000000041L)
             .accept(MediaType.APPLICATION_JSON)
@@ -62,7 +62,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @Test
     @DisplayName("PO-2136 Opal missing major creditor account returns 404")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
     void getHeaderSummary_notFoundReturns404() throws Exception {
         mockMvc.perform(get(URL, 999999L)
                 .accept(MediaType.APPLICATION_JSON)
