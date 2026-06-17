@@ -6,6 +6,7 @@ properties([
   parameters([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
+    booleanParam(name: 'Smoke', defaultValue: true, description: 'Run smoke tests'),
     booleanParam(name: 'Demo', defaultValue: true, description: 'Run R1A functional tests against demo'),
     booleanParam(name: 'RunR1AOff', defaultValue: false, description: 'Run R1AOff functional tests against demo'),
     booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
@@ -84,16 +85,16 @@ def configureZephyrExecution = { testEnvironment ->
 def publishIntegrationResults = {
   steps.junit '**/test-results/integration/*.xml'
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr-reports/**/*.json'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
 }
 
-def publishFunctionalResults = { reportNameSuffix ->
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
+def publishFunctionalResults = { reportDirectory, reportNameSuffix ->
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: "${reportDirectory}/**/*"
   publishHTML target: [
     allowMissing         : true,
     alwaysLinkToLastBuild: true,
     keepAll              : true,
-    reportDir            : "functional-test-report/",
+    reportDir            : "${reportDirectory}/report",
     reportFiles          : "index.html",
     reportName           : "Serenity Functional Test Report${reportNameSuffix}"
   ]
@@ -101,13 +102,34 @@ def publishFunctionalResults = { reportNameSuffix ->
     allowMissing         : true,
     alwaysLinkToLastBuild: true,
     keepAll              : true,
-    reportDir            : "functional-test-report/htmlReport/",
+    reportDir            : "${reportDirectory}/report/htmlReport",
     reportFiles          : "test-summary.html",
     reportName           : "Test Summary Report${reportNameSuffix}"
   ]
   steps.junit allowEmptyResults: true, testResults: '**/test-results/functional/*.xml'
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
+}
+
+def publishSmokeResults = { reportNameSuffix ->
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
+  publishHTML target: [
+    allowMissing         : true,
+    alwaysLinkToLastBuild: true,
+    keepAll              : true,
+    reportDir            : "smoke-output/report",
+    reportFiles          : "index.html",
+    reportName           : "Serenity Smoke Test Report${reportNameSuffix}"
+  ]
+  publishHTML target: [
+    allowMissing         : true,
+    alwaysLinkToLastBuild: true,
+    keepAll              : true,
+    reportDir            : "smoke-output/report/htmlReport",
+    reportFiles          : "test-summary.html",
+    reportName           : "Smoke Test Summary Report${reportNameSuffix}"
+  ]
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/smoke/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/smoke/*.xml'
 }
 
 def runIntegrationStage = { stageName, gradleTask ->
@@ -137,7 +159,25 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
         steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
       } finally {
         try {
-          publishFunctionalResults(reportNameSuffix)
+          publishFunctionalResults('functional-output', reportNameSuffix)
+        } catch (publishError) {
+          steps.echo "${stageName} result publication failed, but continuing with the pipeline. Error: " + publishError.message
+        }
+      }
+    }
+  }
+}
+
+def runSmokeStage = { stageName, reportNameSuffix ->
+  if (params.Smoke) {
+    stage(stageName) {
+      try {
+        builder.gradle('smoke')
+      } catch (error) {
+        steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
+      } finally {
+        try {
+          publishSmokeResults(reportNameSuffix)
         } catch (publishError) {
           steps.echo "${stageName} result publication failed, but continuing with the pipeline. Error: " + publishError.message
         }
@@ -154,14 +194,14 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
           if (shouldRunWithZephyr) {
             builder.gradle('clearReports functionalOpalTagsWithZephyrExecution')
           } else {
-            builder.gradle('clearReports functionalOpalTags aggregate copyFunctionalReport mergeFunctionalOpalTagsResults generateTestSummary')
+            builder.gradle('clearReports functionalOpalTags aggregate copyDemoFunctionalReport mergeFunctionalOpalTagsResults generateDemoTestSummary packageDemoFunctionalOutput')
           }
         }
       } catch (error) {
         steps.echo "${stageName} failed, but continuing with the pipeline. Error: " + error.message
       } finally {
         try {
-          publishFunctionalResults(reportNameSuffix)
+          publishFunctionalResults('functional-output-demo', reportNameSuffix)
         } catch (publishError) {
           steps.echo "${stageName} result publication failed, but continuing with the pipeline. Error: " + publishError.message
         }
@@ -178,6 +218,7 @@ withNightlyPipeline(type, product, component) {
   afterAlways('DependencyCheckNightly') {
     echo 'Integration:' + params.Integration
     echo 'Functional:' + params.Functional
+    echo 'Smoke:' + params.Smoke
     echo 'Demo:' + params.Demo
     echo 'RunR1AOff:' + params.RunR1AOff
 
@@ -190,6 +231,7 @@ withNightlyPipeline(type, product, component) {
     }
     runIntegrationStage('Integration Tests', 'Integration')
     runFunctionalStage('Functional Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
+    runSmokeStage('Smoke Tests', testEnvironments.staging.reportNameSuffix)
 
     if (params.Demo) {
       configureTestEnvironment(testEnvironments.demo)
