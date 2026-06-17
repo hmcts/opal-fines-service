@@ -358,7 +358,7 @@ tasks.register('copyDemoFunctionalReport', Copy) {
   logger.quiet("Demo Functional Test Report available at - file://${rootDir}/functional-test-report-demo/index.html")
 }
 tasks.register('packageFunctionalOutput', Sync) {
-  dependsOn 'copyFunctionalReport', 'generateTestSummary'
+  dependsOn 'copyFunctionalReport', 'generateTestSummary', 'copyOpalCucumberJson', 'copyLegacyCucumberJson'
   into("${rootDir}/functional-output")
   from("${rootDir}/functional-test-report") {
     into("report")
@@ -369,7 +369,7 @@ tasks.register('packageFunctionalOutput', Sync) {
   }
 }
 tasks.register('packageDemoFunctionalOutput', Sync) {
-  dependsOn 'copyDemoFunctionalReport', 'generateDemoTestSummary'
+  dependsOn 'copyDemoFunctionalReport', 'generateDemoTestSummary', 'copyOpalTagsCucumberJson'
   into("${rootDir}/functional-output-demo")
   from("${rootDir}/functional-test-report-demo") {
     into("report")
