@@ -22,6 +22,7 @@ class BusinessUnitSummaryMapperTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .businessUnitId((short) 77)
             .businessUnitName("Camberwell Green")
+            .businessUnitCode("CBG")
             .welshLanguage(true)
             .build();
 
@@ -31,6 +32,7 @@ class BusinessUnitSummaryMapperTest {
         //Assert
         assertNotNull(mapped);
         assertEquals("77", mapped.getBusinessUnitId());
+        assertEquals("CBG", mapped.getBusinessUnitCode());
         assertEquals("Camberwell Green", mapped.getBusinessUnitName());
         assertEquals("Y", mapped.getWelshSpeaking());
     }
@@ -42,6 +44,7 @@ class BusinessUnitSummaryMapperTest {
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .businessUnitId((short) 10)
             .businessUnitName("Derbyshire")
+            .businessUnitCode("DBY")
             .welshLanguage(false)
             .build();
 
@@ -51,6 +54,7 @@ class BusinessUnitSummaryMapperTest {
         //Assert
         assertNotNull(mapped);
         assertEquals("10", mapped.getBusinessUnitId());
+        assertEquals("DBY", mapped.getBusinessUnitCode());
         assertEquals("Derbyshire", mapped.getBusinessUnitName());
         assertEquals("N", mapped.getWelshSpeaking());
     }
