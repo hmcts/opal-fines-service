@@ -1290,6 +1290,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(header().exists("ETag"))
 
             .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))
 

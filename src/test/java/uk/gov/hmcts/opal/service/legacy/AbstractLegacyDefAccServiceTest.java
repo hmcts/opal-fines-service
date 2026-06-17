@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
+import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
@@ -35,7 +36,11 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     @Mock
     protected LocalJusticeAreaService ljaService;
 
+    @Mock
+    protected BusinessUnitRepository businessUnitRepository;
+
     protected GatewayService gatewayService;
+    protected LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @Mock protected UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     @Mock protected LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
@@ -48,11 +53,13 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     @BeforeEach
     void openMocks() {
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        legacyBusinessUnitCodeResolver = new LegacyBusinessUnitCodeResolver(businessUnitRepository);
         legacyDefendantAccountService = new LegacyDefendantAccountService(
             gatewayService,
             gatewayProperties,
             courtService,
             ljaService,
+            legacyBusinessUnitCodeResolver,
             updateDefendantAccountRequestMapper,
             legacyUpdateDefendantAccountResponseMapper
         );

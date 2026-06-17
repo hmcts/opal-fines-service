@@ -62,6 +62,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").value(false))
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
             .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
             .andExpect(jsonPath("$.payment_state_summary.paid_amount").value(200.00))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
@@ -87,6 +88,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());

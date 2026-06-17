@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTest {
 
@@ -140,6 +142,57 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         assertEquals(BigDecimal.ZERO, published.getPaymentStateSummary().getArrearsAmount());
         assertEquals(new BigDecimal("200.00"), published.getPaymentStateSummary().getPaidAmount());
         assertEquals(new BigDecimal("500.58"), published.getPaymentStateSummary().getAccountBalance());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_resolvesBusinessUnitCodeFromBusinessUnitId() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
+            LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .version("1")
+                .defendantAccountId("1")
+                .accountNumber("SAMPLE")
+                .accountType("Fine")
+                .accountStatusReference(
+                    uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                        .accountStatusCode("L")
+                        .build()
+                )
+                .businessUnitSummary(
+                    uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
+                        .businessUnitId("78")
+                        .businessUnitCode("78")
+                        .businessUnitName("Test BU")
+                        .welshSpeaking("N")
+                        .build()
+                )
+                .paymentStateSummary(
+                    uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
+                        .imposedAmount("0")
+                        .arrearsAmount("0")
+                        .paidAmount("0")
+                        .accountBalance("0")
+                        .build()
+                )
+                .partyDetails(
+                    uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+                        .organisationFlag(false)
+                        .build()
+                )
+                .build();
+
+        when(businessUnitRepository.findById((short) 78)).thenReturn(
+            Optional.of(BusinessUnitEntity.builder().businessUnitId((short) 78).businessUnitCode("NE").build())
+        );
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        assertEquals("NE", published.getBusinessUnitSummary().getBusinessUnitCode());
     }
 
     @Test

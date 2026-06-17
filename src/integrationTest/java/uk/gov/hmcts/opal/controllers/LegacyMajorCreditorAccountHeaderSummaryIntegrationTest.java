@@ -73,6 +73,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
             .andExpect(jsonPath("$.major_creditor.account_reference.display_name").value("Major Creditor"))
             .andExpect(jsonPath("$.major_creditor.account_version").doesNotExist())
             .andExpect(jsonPath("$.business_unit_details.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit_details.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit_details.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit_details.welsh_speaking").value("N"))
             .andExpect(jsonPath("$.awaiting_payout").value(123.45));
