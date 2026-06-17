@@ -1,0 +1,38 @@
+meta {
+  name: Add Report Instance
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseURL}}/report-instances
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "business_unit_ids": [77],
+    "report_id": "operational_report_payment",
+    "report_name": null,
+    "report_parameters": {
+      "text-60-param": "value",
+      "checkbox-param": ["one","two"],
+      "text-100-param": "value",
+      "decimal-param": 5.0,
+      "text-1000-param": "value",
+      "integer-param": 5,
+      "date-param": "2026-05-26",
+      "radio-param": ["one"]
+    }
+  }
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -218,7 +218,7 @@ public class GlobalExceptionHandler {
             "Unprocessable Entity",
             "The request could not be processed",
             "unprocessable-entity",
-            false,
+            ex.isRetriable(),
             ex
         );
 

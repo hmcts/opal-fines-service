@@ -10,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -44,11 +46,12 @@ public class ReportInstanceEntity {
     @Column(name = "report_instance_id", nullable = false)
     private Long reportInstanceId;
 
-    @Column(name = "report_id", nullable = false)
-    private String reportId;
+    @ManyToOne
+    @JoinColumn(name = "report_id", nullable = false)
+    private ReportEntity report;
 
     @Column(name = "business_unit_id")
-    private List<Long> businessUnit;
+    private List<Integer> businessUnit;
 
     @Column(name = "audit_sequence", nullable = false)
     private Long auditSequence;
