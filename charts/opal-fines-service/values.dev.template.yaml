@@ -181,6 +181,8 @@ servicebus:
   setup:
     queues:
       - name: "logging-pdpl"
+      - name: "report"
+
 hmcts-redis:
   enabled: true
   master:
