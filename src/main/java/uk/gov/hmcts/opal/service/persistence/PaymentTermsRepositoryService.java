@@ -2,9 +2,11 @@ package uk.gov.hmcts.opal.service.persistence;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
@@ -56,5 +58,10 @@ public class PaymentTermsRepositoryService {
                 .append(account.getInstalmentLumpSum().toPlainString());
         }
         return sb.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentTermsEntity> findAll(Specification<PaymentTermsEntity> specification) {
+        return paymentTermsRepository.findAll(specification);
     }
 }

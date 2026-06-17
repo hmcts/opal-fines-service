@@ -273,6 +273,7 @@ tasks.register('integration', Test) {
   doFirst {
     pullLatestLegacyStubImageIfLocal()
   }
+  finalizedBy 'packageIntegrationOutput'
 }
 
 tasks.register('checkTestJiraAnnotations', JavaExec) {
@@ -350,6 +351,38 @@ tasks.register('copyFunctionalReport', Copy) {
   into("${rootDir}/functional-test-report")
   logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
 }
+tasks.register('copyDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-test-report-demo")
+  logger.quiet("Demo Functional Test Report available at - file://${rootDir}/functional-test-report-demo/index.html")
+}
+tasks.register('packageFunctionalOutput', Copy) {
+  dependsOn 'copyFunctionalReport', 'generateTestSummary', 'copyOpalCucumberJson', 'copyLegacyCucumberJson'
+  into("${rootDir}/functional-output")
+  from("${rootDir}/functional-test-report") {
+    into("report")
+  }
+}
+tasks.register('packageDemoFunctionalOutput', Copy) {
+  dependsOn 'copyDemoFunctionalReport', 'generateDemoTestSummary', 'copyOpalTagsCucumberJson'
+  into("${rootDir}/functional-output-demo")
+  from("${rootDir}/functional-test-report-demo") {
+    into("report")
+  }
+}
+tasks.register('copyIntegrationJunit5Report', Copy) {
+  from("target/zephyr-reports/Junit5Report-IntegrationTest.json")
+  into("${rootDir}/integration-output/zephyr")
+  outputs.upToDateWhen { false }
+}
+tasks.register('packageIntegrationOutput', Copy) {
+  dependsOn 'copyIntegrationJunit5Report'
+  into("${rootDir}/integration-output")
+  from(layout.buildDirectory.dir("reports/tests/integration")) {
+    into("report")
+  }
+}
 tasks.register('mergeFunctionalResults', Copy) {
   dependsOn 'functionalOpal', 'functionalLegacy'
   from layout.buildDirectory.dir("test-results/functional/opal")
@@ -376,6 +409,38 @@ tasks.register('generateTestSummary', JavaExec) {
   dependsOn 'copyFunctionalReport'
   classpath = sourceSets.functionalTest.runtimeClasspath
   mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
+  args = [
+    "--integration-dir=${layout.buildDirectory.dir('test-results/integration').get().asFile.absolutePath}",
+    "--functional-dir=${layout.buildDirectory.dir('test-results/functional').get().asFile.absolutePath}",
+    "--output-dir=${file('functional-test-report').absolutePath}",
+    "--title=Test Summary Report"
+  ]
+}
+tasks.register('generateDemoTestSummary', JavaExec) {
+  group = "Reporting"
+  description = "Generate an HTML summary for the demo tagged functional run"
+  dependsOn 'copyDemoFunctionalReport'
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
+  args = [
+    "--integration-dir=${layout.buildDirectory.dir('test-results/functional-empty').get().asFile.absolutePath}",
+    "--functional-dir=${layout.buildDirectory.dir('test-results/functional').get().asFile.absolutePath}",
+    "--output-dir=${file('functional-test-report-demo').absolutePath}",
+    "--title=Test Summary Report (Demo)"
+  ]
+}
+tasks.register('generateSmokeTestSummary', JavaExec) {
+  group = "Reporting"
+  description = "Generate an HTML summary for the smoke run"
+  dependsOn 'copySmokeReport'
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
+  args = [
+    "--integration-dir=${layout.buildDirectory.dir('test-results/functional-empty').get().asFile.absolutePath}",
+    "--functional-dir=${layout.buildDirectory.dir('test-results/smoke').get().asFile.absolutePath}",
+    "--output-dir=${file('smoke-test-report').absolutePath}",
+    "--title=Smoke Test Summary Report"
+  ]
 }
 
 tasks.register('functional') {
@@ -389,20 +454,22 @@ tasks.register('functional') {
   tasks.aggregate.mustRunAfter functionalLegacy
   tasks.copyFunctionalReport.mustRunAfter aggregate
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+  finalizedBy 'packageFunctionalOutput'
 }
 
 tasks.register('functionalWithTags') {
   description = "Runs functional tests with the default Opal suite plus tagged Opal scenarios"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'functionalOpal', 'functionalOpalTags', 'aggregate', 'copyFunctionalReport',
-    'mergeFunctionalWithTagsResults', 'generateTestSummary')
+  dependsOn('clearReports', 'functionalOpal', 'functionalOpalTags', 'aggregate', 'copyDemoFunctionalReport',
+    'mergeFunctionalWithTagsResults', 'generateDemoTestSummary')
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.functionalOpalTags.mustRunAfter functionalOpal
   tasks.mergeFunctionalWithTagsResults.mustRunAfter functionalOpalTags
   tasks.aggregate.mustRunAfter functionalOpalTags
-  tasks.copyFunctionalReport.mustRunAfter aggregate
-  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+  tasks.copyDemoFunctionalReport.mustRunAfter aggregate
+  tasks.generateDemoTestSummary.mustRunAfter copyDemoFunctionalReport
+  finalizedBy 'packageDemoFunctionalOutput'
 }
 
 
@@ -416,6 +483,7 @@ tasks.register('smokeOpal', Test) {
   gradle.startParameter.continueOnFailure = true
 
   include '**/SmokeTestRunner.class'
+  finalizedBy 'copySmokeCucumberJson'
 
 }
 tasks.register('copySmokeReport', Copy) {
@@ -424,15 +492,30 @@ tasks.register('copySmokeReport', Copy) {
   into("${rootDir}/smoke-test-report")
   logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
 }
+tasks.register('copySmokeCucumberJson', Copy) {
+  from("target/cucumber.json")
+  into("${rootDir}/smoke-output/zephyr")
+  rename { "cucumber-smoke.json" }
+  outputs.upToDateWhen { false }
+}
+tasks.register('packageSmokeOutput', Copy) {
+  dependsOn 'copySmokeReport', 'generateSmokeTestSummary', 'copySmokeCucumberJson'
+  into("${rootDir}/smoke-output")
+  from("${rootDir}/smoke-test-report") {
+    into("report")
+  }
+}
 
 tasks.register('smoke') {
   description = "Runs Smoke Tests"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'smokeOpal', 'aggregate', 'copySmokeReport')
+  dependsOn('clearReports', 'smokeOpal', 'aggregate', 'copySmokeReport', 'generateSmokeTestSummary')
   tasks.smokeOpal.mustRunAfter clearReports
   tasks.aggregate.mustRunAfter smokeOpal
   tasks.copySmokeReport.mustRunAfter aggregate
+  tasks.generateSmokeTestSummary.mustRunAfter copySmokeReport
+  finalizedBy 'packageSmokeOutput'
 
 }
 
@@ -799,6 +882,7 @@ tasks.register('functionalWithZephyrExecution') {
   tasks.aggregate.mustRunAfter createJiraExecutionFromLegacyCucumberReport
   tasks.copyFunctionalReport.mustRunAfter aggregate
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+  finalizedBy 'packageFunctionalOutput'
 }
 
 tasks.register('functionalWithTagsWithZephyrExecution') {
@@ -809,7 +893,7 @@ tasks.register('functionalWithTagsWithZephyrExecution') {
   dependsOn('clearReports',
           'functionalOpal', 'copyOpalCucumberJson', 'createJiraExecutionFromOpalCucumberReport',
           'functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport',
-          'aggregate', 'copyFunctionalReport', 'mergeFunctionalWithTagsResults', 'generateTestSummary')
+          'aggregate', 'copyDemoFunctionalReport', 'mergeFunctionalWithTagsResults', 'generateDemoTestSummary')
 
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.copyOpalCucumberJson.mustRunAfter functionalOpal
@@ -820,27 +904,28 @@ tasks.register('functionalWithTagsWithZephyrExecution') {
   tasks.createJiraExecutionFromOpalTagsCucumberReport.mustRunAfter copyOpalTagsCucumberJson
   tasks.mergeFunctionalWithTagsResults.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
   tasks.aggregate.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
-  tasks.copyFunctionalReport.mustRunAfter aggregate
-  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+  tasks.copyDemoFunctionalReport.mustRunAfter aggregate
+  tasks.generateDemoTestSummary.mustRunAfter copyDemoFunctionalReport
+  finalizedBy 'packageDemoFunctionalOutput'
 }
 
 tasks.register('copyOpalCucumberJson', Copy) {
   from("target/cucumber.json")
-  into("target/zephyr")
+  into("${rootDir}/functional-output/zephyr")
   rename { "cucumber-opal.json" }
   outputs.upToDateWhen { false }
 }
 
 tasks.register('copyOpalTagsCucumberJson', Copy) {
   from("target/cucumber.json")
-  into("target/zephyr")
+  into("${rootDir}/functional-output-demo/zephyr")
   rename { "cucumber-opal-tags.json" }
   outputs.upToDateWhen { false }
 }
 
 tasks.register('copyLegacyCucumberJson', Copy) {
   from("target/cucumber.json")
-  into("target/zephyr")
+  into("${rootDir}/functional-output/zephyr")
   rename { "cucumber-legacy.json" }
   outputs.upToDateWhen { false }
 }
@@ -869,11 +954,107 @@ tasks.register('updateJiraTicketsFromCucumberReport', JavaExec) {
   args = zephyrArgs("CUCUMBER_JSON_REPORT", "UPDATE_TICKETS", "functionalTest/resources", cucumberJson.absolutePath)
 }
 
+tasks.register('createJiraTicketsFromOpalCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-opal.json to create and link Jira tickets to each test"
+  def opalCucumberJson = file("functional-output/zephyr/cucumber-opal.json")
+
+  inputs.file(opalCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_TICKETS", "functionalTest/resources", opalCucumberJson.absolutePath)
+}
+
+tasks.register('updateJiraTicketsFromOpalCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-opal.json to update Jira tickets"
+  def opalCucumberJson = file("functional-output/zephyr/cucumber-opal.json")
+
+  inputs.file(opalCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "UPDATE_TICKETS", "functionalTest/resources", opalCucumberJson.absolutePath)
+}
+
+tasks.register('createJiraTicketsFromOpalTagsCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-opal-tags.json to create and link Jira tickets to each test"
+  def opalTagsCucumberJson = file("functional-output-demo/zephyr/cucumber-opal-tags.json")
+
+  inputs.file(opalTagsCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_TICKETS", "functionalTest/resources", opalTagsCucumberJson.absolutePath)
+}
+
+tasks.register('updateJiraTicketsFromOpalTagsCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-opal-tags.json to update Jira tickets"
+  def opalTagsCucumberJson = file("functional-output-demo/zephyr/cucumber-opal-tags.json")
+
+  inputs.file(opalTagsCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "UPDATE_TICKETS", "functionalTest/resources", opalTagsCucumberJson.absolutePath)
+}
+
+tasks.register('createJiraTicketsFromLegacyCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-legacy.json to create and link Jira tickets to each test"
+  def legacyCucumberJson = file("functional-output/zephyr/cucumber-legacy.json")
+
+  inputs.file(legacyCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_TICKETS", "functionalTest/resources", legacyCucumberJson.absolutePath)
+}
+
+tasks.register('updateJiraTicketsFromLegacyCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-legacy.json to update Jira tickets"
+  def legacyCucumberJson = file("functional-output/zephyr/cucumber-legacy.json")
+
+  inputs.file(legacyCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "UPDATE_TICKETS", "functionalTest/resources", legacyCucumberJson.absolutePath)
+}
+
+tasks.register('createJiraTicketsFromSmokeCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-smoke.json to create and link Jira tickets to each test"
+  def smokeCucumberJson = file("smoke-output/zephyr/cucumber-smoke.json")
+
+  inputs.file(smokeCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_TICKETS", "functionalTest/resources", smokeCucumberJson.absolutePath)
+}
+
+tasks.register('updateJiraTicketsFromSmokeCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Processes cucumber-smoke.json to update Jira tickets"
+  def smokeCucumberJson = file("smoke-output/zephyr/cucumber-smoke.json")
+
+  inputs.file(smokeCucumberJson)
+
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "UPDATE_TICKETS", "functionalTest/resources", smokeCucumberJson.absolutePath)
+}
+
 
 tasks.register('createJiraTicketsFromJUnit5ReportIntegrationTest', JavaExec) {
   group = "Zephyr Reporting - JUnit5"
   description = "Processes Junit5Report-IntegrationTest.json to create and link Jira tickets to each test"
-  def junit5ReportJson = file("target/zephyr-reports/Junit5Report-IntegrationTest.json")
+  def junit5ReportJson = file("integration-output/zephyr/Junit5Report-IntegrationTest.json")
 
   inputs.file(junit5ReportJson)
 
@@ -886,7 +1067,7 @@ tasks.register('updateJiraTicketsFromJUnit5ReportIntegrationTest', JavaExec) {
   group = "Zephyr Reporting - JUnit5"
 
   description = "Processes Junit5Report-IntegrationTest.json to update Jira tickets"
-  def junit5ReportJson = file("target/zephyr-reports/Junit5Report-IntegrationTest.json")
+  def junit5ReportJson = file("integration-output/zephyr/Junit5Report-IntegrationTest.json")
 
   inputs.file(junit5ReportJson)
 
@@ -899,7 +1080,7 @@ tasks.register('createJiraExecutionFromJUnit5ReportIntegrationTest', JavaExec) {
   group = "Zephyr Reporting - JUnit5"
 
   description = "Processes Junit5Report-IntegrationTest.json to create Zephyr executions"
-  def junit5ReportJson = file("target/zephyr-reports/Junit5Report-IntegrationTest.json")
+  def junit5ReportJson = file("integration-output/zephyr/Junit5Report-IntegrationTest.json")
 
   inputs.file(junit5ReportJson)
 
@@ -926,7 +1107,7 @@ tasks.register('createJiraExecutionFromLegacyCucumberReport', JavaExec) {
   group = "Zephyr Reporting - Cucumber"
   classpath = configurations.zephyrCucumberReportProcessor
   mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
-  def legacyCucumberJson = file("target/zephyr/cucumber-legacy.json")
+  def legacyCucumberJson = file("functional-output/zephyr/cucumber-legacy.json")
   inputs.file(legacyCucumberJson)
 
   args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_EXECUTION", "functionalTest/resources", legacyCucumberJson.absolutePath)
@@ -936,7 +1117,7 @@ tasks.register('createJiraExecutionFromOpalCucumberReport', JavaExec) {
   group = "Zephyr Reporting - Cucumber"
   classpath = configurations.zephyrCucumberReportProcessor
   mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
-  def opalCucumberJson = file("target/zephyr/cucumber-opal.json")
+  def opalCucumberJson = file("functional-output/zephyr/cucumber-opal.json")
   inputs.file(opalCucumberJson)
 
   args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_EXECUTION", "functionalTest/resources", opalCucumberJson.absolutePath)
@@ -946,10 +1127,20 @@ tasks.register('createJiraExecutionFromOpalTagsCucumberReport', JavaExec) {
   group = "Zephyr Reporting - Cucumber"
   classpath = configurations.zephyrCucumberReportProcessor
   mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
-  def opalTagsCucumberJson = file("target/zephyr/cucumber-opal-tags.json")
+  def opalTagsCucumberJson = file("functional-output-demo/zephyr/cucumber-opal-tags.json")
   inputs.file(opalTagsCucumberJson)
 
   args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_EXECUTION", "functionalTest/resources", opalTagsCucumberJson.absolutePath)
+}
+
+tasks.register('createJiraExecutionFromSmokeCucumberReport', JavaExec) {
+  group = "Zephyr Reporting - Cucumber"
+  classpath = configurations.zephyrCucumberReportProcessor
+  mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+  def smokeCucumberJson = file("smoke-output/zephyr/cucumber-smoke.json")
+  inputs.file(smokeCucumberJson)
+
+  args = zephyrArgs("CUCUMBER_JSON_REPORT", "CREATE_EXECUTION", "functionalTest/resources", smokeCucumberJson.absolutePath)
 }
 
 tasks.register('functionalOpalWithZephyrExecution') {
@@ -967,14 +1158,15 @@ tasks.register('functionalOpalTagsWithZephyrExecution') {
   description = "Runs functionalOpalTags then creates the Zephyr execution from the cucumber report"
 
   dependsOn('functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport',
-          'aggregate', 'copyFunctionalReport', 'mergeFunctionalOpalTagsResults', 'generateTestSummary')
+          'aggregate', 'copyDemoFunctionalReport', 'mergeFunctionalOpalTagsResults', 'generateDemoTestSummary')
 
   tasks.copyOpalTagsCucumberJson.mustRunAfter functionalOpalTags
   tasks.createJiraExecutionFromOpalTagsCucumberReport.mustRunAfter copyOpalTagsCucumberJson
   tasks.mergeFunctionalOpalTagsResults.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
   tasks.aggregate.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
-  tasks.copyFunctionalReport.mustRunAfter aggregate
-  tasks.generateTestSummary.mustRunAfter copyFunctionalReport
+  tasks.copyDemoFunctionalReport.mustRunAfter aggregate
+  tasks.generateDemoTestSummary.mustRunAfter copyDemoFunctionalReport
+  finalizedBy 'packageDemoFunctionalOutput'
 }
 
 tasks.register('functionalLegacyWithZephyrExecution') {
@@ -987,6 +1179,21 @@ tasks.register('functionalLegacyWithZephyrExecution') {
   tasks.createJiraExecutionFromLegacyCucumberReport.mustRunAfter copyLegacyCucumberJson
 }
 
+tasks.register('smokeWithZephyrExecution') {
+  group = "Zephyr Reporting - Cucumber"
+  description = "Runs smoke then creates the Zephyr execution from the cucumber report"
+
+  dependsOn('smokeOpal', 'copySmokeCucumberJson', 'createJiraExecutionFromSmokeCucumberReport',
+          'aggregate', 'copySmokeReport', 'generateSmokeTestSummary')
+
+  tasks.copySmokeCucumberJson.mustRunAfter smokeOpal
+  tasks.createJiraExecutionFromSmokeCucumberReport.mustRunAfter copySmokeCucumberJson
+  tasks.aggregate.mustRunAfter createJiraExecutionFromSmokeCucumberReport
+  tasks.copySmokeReport.mustRunAfter aggregate
+  tasks.generateSmokeTestSummary.mustRunAfter copySmokeReport
+  finalizedBy 'packageSmokeOutput'
+}
+
 tasks.register('integrationTestWithZephyrExecution') {
   group = "Zephyr Reporting - JUnit5"
   description = "Runs integrationTest then creates the Zephyr execution from the JUnit5 report"
@@ -994,4 +1201,5 @@ tasks.register('integrationTestWithZephyrExecution') {
   dependsOn('integration', 'createJiraExecutionFromJUnit5ReportIntegrationTest')
 
   tasks.createJiraExecutionFromJUnit5ReportIntegrationTest.mustRunAfter integration
+  finalizedBy 'packageIntegrationOutput'
 }
