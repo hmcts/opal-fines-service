@@ -44,7 +44,6 @@ import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.repository.jpa.ReportInstanceSpecs;
 import uk.gov.hmcts.opal.service.ReportService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 
@@ -54,7 +53,6 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 @Slf4j(topic = "opal.ReportService")
 public class GenericReportService implements GenericReportServiceInterface {
 
-    private final UserStateService userStateService;
     private final ReportInstanceRepository reportInstanceRepository;
     private final ReportRepository reportRepository;
     private final ReportInstanceMapper reportInstanceMapper;
@@ -181,26 +179,21 @@ public class GenericReportService implements GenericReportServiceInterface {
         final String reportId) {
         log.debug("Searching for report instances");
 
-        ReportEntity report = reportInstanceSearchService.throwErrorIfReportIsProvidedButNotPermitted(reportId);
-        reportInstanceSearchService.throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(businessUnits);
+        List<ReportEntity> permittedReports = reportInstanceSearchService.findPermittedReports();
+        ReportEntity report = reportInstanceSearchService.findRequestedReportElseThrowError(permittedReports, reportId);
+        List<Long> permittedBusinessUnitIds = reportInstanceSearchService.findPermittedBusinessUnitIds();
 
         List<ReportEntity> selectedReports;
         if (report != null) {
             selectedReports = List.of(report);
         } else {
-            selectedReports = reportRepository.findAll();
+            selectedReports = permittedReports;
         }
 
-        List<Long> selectedBusinessUnitIds;
-        if (businessUnits != null && !businessUnits.isEmpty()) {
-            selectedBusinessUnitIds = toLongList(businessUnits);
-        } else {
-            selectedBusinessUnitIds = userStateService.getAllBusinessUnitUsersForCurrentUser()
-                .stream()
-                .map(buUser -> buUser.getBusinessUnitId().longValue())
-                .distinct()
-                .toList();
-        }
+        List<Long> selectedBusinessUnitIds = reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(
+            permittedBusinessUnitIds,
+            businessUnits
+        );
 
         Map<String, List<Long>> permittedReportForBusinessUnits =
             reportInstanceSearchService.findPermittedReportForBusinessUnits(selectedReports, selectedBusinessUnitIds);

@@ -4,7 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,33 +19,58 @@ public class ReportInstanceSearchService {
     private final ReportRepository reportRepository;
     private final UserStateService userStateService;
 
-    public ReportEntity throwErrorIfReportIsProvidedButNotPermitted(String reportId) {
+    public List<ReportEntity> findPermittedReports() {
+        return reportRepository.findAll().stream()
+            .filter(report -> userStateService.checkAnyBusinessUnitUserHasPermission(report.getPermission()))
+            .toList();
+    }
+
+    public ReportEntity findRequestedReportElseThrowError(List<ReportEntity> permittedReports, String reportId) {
         if (reportId != null && !reportId.isBlank()) {
-            ReportEntity reportEntity = reportRepository.findById(reportId).orElseThrow(EntityNotFoundException::new);
-            if (!userStateService.checkAnyBusinessUnitUserHasPermission(reportEntity.getPermission())) {
-                throw new AccessDeniedException("User does not have permission for reportId: " + reportId);
-            }
-            return reportEntity;
+            return permittedReports.stream()
+                .filter(report -> reportId.equals(report.getReportId()))
+                .findFirst()
+                .orElseThrow(() -> {
+                    if (reportRepository.existsById(reportId)) {
+                        throw new AccessDeniedException("User does not have permission for reportId: " + reportId);
+                    }
+                    throw new EntityNotFoundException();
+                });
         }
         return null;
     }
 
-    public void throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(List<Integer> businessUnitIds) {
-        if (businessUnitIds != null && !businessUnitIds.isEmpty()) {
-            Set<Integer> permittedBusinessUnitIds = userStateService.getAllBusinessUnitUsersForCurrentUser()
-                .stream()
-                .map(buUser -> buUser.getBusinessUnitId().intValue())
-                .collect(Collectors.toSet());
+    public List<Long> findPermittedBusinessUnitIds() {
+        return userStateService.getAllBusinessUnitUsersForCurrentUser()
+            .stream()
+            .map(buUser -> buUser.getBusinessUnitId().longValue())
+            .distinct()
+            .toList();
+    }
 
-            boolean hasUnpermittedBusinessUnit = businessUnitIds.stream()
-                .filter(Objects::nonNull)
-                .anyMatch(id -> !permittedBusinessUnitIds.contains(id));
-
-            if (hasUnpermittedBusinessUnit) {
-                throw new AccessDeniedException(
-                    "User does not have permission for one or more specified business units");
-            }
+    public List<Long> findSelectedBusinessUnitIdsElseThrowError(
+        List<Long> permittedBusinessUnitIds,
+        List<Integer> requestedBusinessUnitIds
+    ) {
+        if (requestedBusinessUnitIds == null || requestedBusinessUnitIds.isEmpty()) {
+            return permittedBusinessUnitIds;
         }
+
+        List<Long> requestedIds = requestedBusinessUnitIds.stream()
+            .filter(Objects::nonNull)
+            .map(Integer::longValue)
+            .distinct()
+            .toList();
+
+        List<Long> selectedBusinessUnitIds = permittedBusinessUnitIds.stream()
+            .filter(requestedIds::contains)
+            .toList();
+
+        if (selectedBusinessUnitIds.size() != requestedIds.size()) {
+            throw new AccessDeniedException("User does not have permission for one or more specified business units");
+        }
+
+        return selectedBusinessUnitIds;
     }
 
     public Map<String, List<Long>> findPermittedReportForBusinessUnits(
