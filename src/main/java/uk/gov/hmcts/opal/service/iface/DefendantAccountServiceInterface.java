@@ -11,6 +11,8 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -18,6 +20,8 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
 public interface DefendantAccountServiceInterface {
     DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId);
+
+    DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter);
 
     DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto);
 
