@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import com.azure.core.annotation.QueryParam;
+import com.azure.core.util.BinaryData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +14,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.TestService;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
 @RestController
 @RequestMapping("/testing-support")
@@ -32,6 +35,7 @@ public class TestingSupportController {
     private final AccessTokenService accessTokenService;
     private final DefendantAccountDeletionService defendantAccountDeletionService;
     private final UserStateClientService userStateClientService;
+    private final TestService testService;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -63,4 +67,11 @@ public class TestingSupportController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/run-test")
+    public ResponseEntity<BinaryData> runTest(@QueryParam("testName") String testName) {
+        log.info("Running test: {}", testName);
+        return ResponseEntity.ok(testService.runTest(testName));
+    }
+
 }
