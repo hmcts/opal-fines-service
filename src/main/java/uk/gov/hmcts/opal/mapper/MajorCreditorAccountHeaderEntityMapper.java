@@ -36,6 +36,7 @@ public class MajorCreditorAccountHeaderEntityMapper {
         BusinessUnitSummaryCommon businessUnitDetails = new BusinessUnitSummaryCommon();
         businessUnitDetails.setBusinessUnitId(String.valueOf(entity.getBusinessUnitId()));
         businessUnitDetails.setBusinessUnitName(entity.getBusinessUnitName());
+        businessUnitDetails.setBusinessUnitCode(entity.getBusinessUnitCode());
         businessUnitDetails.setWelshSpeaking("N");
         return businessUnitDetails;
     }
