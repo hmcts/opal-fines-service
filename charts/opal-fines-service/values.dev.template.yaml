@@ -170,6 +170,7 @@ opal-logging-service:
       OPAL_LOGGING_TEST_SUPPORT_ENABLED: true
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-logging-service"
       SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
+      SERVICEBUS_REPORT_QUEUE_NAME: "{{ .Release.Name}}-servicebus-report"
       SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     postgresql:
       enabled: false
@@ -182,7 +183,6 @@ servicebus:
     queues:
       - name: "logging-pdpl"
       - name: "report"
-
 hmcts-redis:
   enabled: true
   master:
