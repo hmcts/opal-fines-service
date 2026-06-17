@@ -43,7 +43,6 @@ import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.repository.jpa.ReportInstanceSpecs;
-import uk.gov.hmcts.opal.service.ReportService;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 
@@ -60,7 +59,6 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ReportBlobStore blobStore;
     private final Clock clock;
     private final ObjectMapper mapper;
-    private final ReportService reportService;
     private final ReportInstanceSearchService reportInstanceSearchService;
 
     private static void processError(ReportInstanceEntity instance, Exception exception) {
