@@ -9,16 +9,19 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyDefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 
 @ExtendWith(MockitoExtension.class)
 abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
@@ -36,6 +39,9 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     protected LocalJusticeAreaService ljaService;
 
     protected GatewayService gatewayService;
+    protected HistoryItemOrderingService historyItemOrderingService = new HistoryItemOrderingService();
+    protected LegacyDefendantAccountHistoryResponseMapper legacyDefendantAccountHistoryResponseMapper =
+        Mappers.getMapper(LegacyDefendantAccountHistoryResponseMapper.class);
 
     @Mock protected UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     @Mock protected LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
@@ -53,6 +59,8 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
             gatewayProperties,
             courtService,
             ljaService,
+            historyItemOrderingService,
+            legacyDefendantAccountHistoryResponseMapper,
             updateDefendantAccountRequestMapper,
             legacyUpdateDefendantAccountResponseMapper
         );
