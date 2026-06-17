@@ -567,8 +567,6 @@ components:
           format: int16
         business_unit_code:
           type: string
-        business_unit_code:
-          type: string
         welsh_speaking:
           type: string
       required:
