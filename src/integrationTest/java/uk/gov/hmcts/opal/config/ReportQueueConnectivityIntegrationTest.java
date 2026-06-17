@@ -50,7 +50,7 @@ class ReportQueueConnectivityIntegrationTest {
         String connectionString = optionalEnv("SERVICEBUS_CONNECTION_STRING",
             SERVICEBUS_CONNECTION_STRING);
         queueName = optionalEnv("SERVICEBUS_REPORT_QUEUE_NAME", "report");
-        String protocol = optionalEnv("SERVICEBUS_REPORT_PROTOCOL", "amqp");
+        String protocol = optionalEnv("SERVICEBUS_PROTOCOL", "amqp");
 
         ConnectionDetails details =
             new ServiceBusConnectionStringParser().parse(connectionString);

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.testdata.ReportTestData.createComplexReportParameters;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
@@ -16,11 +17,13 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import uk.gov.hmcts.opal.service.report.ReportParameterData;
 
 class JsonMapperHelperTest {
 
@@ -140,6 +143,65 @@ class JsonMapperHelperTest {
 
             assertEquals("Invalid JSON in report_parameters: " + json, exception.getMessage());
             assertEquals(parseException, exception.getCause());
+        }
+    }
+
+    @Nested
+    class ReportParametersToMapSuccessCases {
+        @Test
+        @DisplayName("Should parse complex JSON parameters correctly")
+        void reportParametersToMap_fullParameters_shouldParseCorrectly() {
+            List<ReportParameterData> reportParameters = createComplexReportParameters();
+
+            Map<?, ?> params = jsonMapperHelper.reportParametersToMap(reportParameters);
+
+            assertAll(
+                () -> assertEquals(9, params.size()),
+                () -> assertEquals("date", ((Map<?, ?>)params.get("date-param")).get("type")),
+                () -> assertEquals(true, ((Map<?, ?>)params.get("date-param")).get("mandatory")),
+                () -> assertEquals("decimal-2dp", ((Map<?, ?>)params.get("decimal-param")).get("type")),
+                () -> assertEquals(1.0, ((Map<?, ?>)params.get("decimal-param")).get("min")),
+                () -> assertEquals(10.0, ((Map<?, ?>)params.get("decimal-param")).get("max")),
+                () -> assertEquals("integer", ((Map<?, ?>)params.get("integer-param")).get("type")),
+                () -> assertEquals(1L, ((Map<?, ?>)params.get("integer-param")).get("min")),
+                () -> assertEquals(10L, ((Map<?, ?>)params.get("integer-param")).get("max")),
+                () -> assertEquals("menu-radio", ((Map<?, ?>)params.get("radio-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("radio-param")).get("min")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("radio-param")).get("max")),
+                () -> assertEquals(List.of("one", "two"), ((Map<?, ?>)params.get("radio-param")).get("options")),
+                () -> assertEquals("menu-checkbox", ((Map<?, ?>)params.get("checkbox-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("checkbox-param")).get("min")),
+                () -> assertEquals(2, ((Map<?, ?>)params.get("checkbox-param")).get("max")),
+                () -> assertEquals(List.of("one", "two"), ((Map<?, ?>)params.get("checkbox-param")).get("options")),
+                () -> assertEquals("menu-autocomplete", ((Map<?, ?>)params.get("autocomplete-param")).get("type")),
+                () -> assertEquals("text-60", ((Map<?, ?>)params.get("text-60-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("text-60-param")).get("min")),
+                () -> assertEquals(60, ((Map<?, ?>)params.get("text-60-param")).get("max")),
+                () -> assertEquals("text-100", ((Map<?, ?>)params.get("text-100-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("text-100-param")).get("min")),
+                () -> assertEquals(100, ((Map<?, ?>)params.get("text-100-param")).get("max")),
+                () -> assertEquals("text-1000", ((Map<?, ?>)params.get("text-1000-param")).get("type")),
+                () -> assertEquals(1, ((Map<?, ?>)params.get("text-1000-param")).get("min")),
+                () -> assertEquals(1000, ((Map<?, ?>)params.get("text-1000-param")).get("max"))
+            );
+        }
+
+        @Test
+        @DisplayName("Should parse empty JSON parameters correctly")
+        void reportParametersToMap_emptyParameters_shouldParseCorrectly() {
+            List<ReportParameterData> reportParameters = List.of();
+
+            Map<?, ?> params = jsonMapperHelper.reportParametersToMap(reportParameters);
+            assertEquals(0, params.size());
+        }
+
+        @Test
+        @DisplayName("Should parse null JSON parameters correctly")
+        void reportParametersToMap_nullParameters_shouldParseCorrectly() {
+            List<ReportParameterData> reportParameters = null;
+
+            Map<?, ?> params = jsonMapperHelper.reportParametersToMap(reportParameters);
+            assertEquals(0, params.size());
         }
     }
 }
