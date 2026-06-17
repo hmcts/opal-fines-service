@@ -8,8 +8,6 @@ import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.throwErro
 import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.throwErrorIfReportIsProvidedButNotPermitted;
 import static uk.gov.hmcts.opal.util.NumberUtils.toLongList;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.Clock;
@@ -26,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -62,11 +62,8 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ReportBlobStore blobStore;
     private final Clock clock;
     private final ObjectMapper mapper;
-    private final UserStateService userStateService;
-    private final ReportInstanceMapper reportInstanceMapper;
-    private final ReportQueuePublisherImpl reportQueuePublisher;
-    private final ReportParameterValidator reportParameterValidator;
     private final ReportService reportService;
+    private final ReportInstanceSearchService reportInstanceSearchService;
 
     private static void processError(ReportInstanceEntity instance, Exception exception) {
         instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
@@ -184,8 +181,8 @@ public class GenericReportService implements GenericReportServiceInterface {
         final String reportId) {
         log.debug("Searching for report instances");
 
-        ReportEntity report = throwErrorIfReportIsProvidedButNotPermitted(reportRepository, userStateService, reportId);
-        throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(userStateService, businessUnits);
+        ReportEntity report = reportInstanceSearchService.throwErrorIfReportIsProvidedButNotPermitted(reportId);
+        reportInstanceSearchService.throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(businessUnits);
 
         List<ReportEntity> selectedReports;
         if (report != null) {
@@ -194,11 +191,11 @@ public class GenericReportService implements GenericReportServiceInterface {
             selectedReports = reportRepository.findAll();
         }
 
-        List<Long> selectedBusinessUnitUserIds;
+        List<Long> selectedBusinessUnitIds;
         if (businessUnits != null && !businessUnits.isEmpty()) {
-            selectedBusinessUnitUserIds = toLongList(businessUnits);
+            selectedBusinessUnitIds = toLongList(businessUnits);
         } else {
-            selectedBusinessUnitUserIds = userStateService.getAllBusinessUnitUsersForCurrentUser()
+            selectedBusinessUnitIds = userStateService.getAllBusinessUnitUsersForCurrentUser()
                 .stream()
                 .map(buUser -> buUser.getBusinessUnitId().longValue())
                 .distinct()
@@ -206,7 +203,7 @@ public class GenericReportService implements GenericReportServiceInterface {
         }
 
         Map<String, List<Long>> permittedReportForBusinessUnits =
-            findPermittedReportForBusinessUnits(userStateService, selectedReports, selectedBusinessUnitUserIds);
+            reportInstanceSearchService.findPermittedReportForBusinessUnits(selectedReports, selectedBusinessUnitIds);
 
         List<ReportInstanceEntity> reportInstances = new ArrayList<>();
         permittedReportForBusinessUnits.forEach((reportIdKey, businessUnitIds) -> {

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.report.util;
+package uk.gov.hmcts.opal.service.report;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -6,20 +6,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 
-public class ReportInstanceUtil {
+@Service
+@RequiredArgsConstructor
+public class ReportInstanceSearchService {
 
-    private ReportInstanceUtil() {
-        // utility
-    }
+    private final ReportRepository reportRepository;
+    private final UserStateService userStateService;
 
-    public static ReportEntity throwErrorIfReportIsProvidedButNotPermitted(ReportRepository reportRepository,
-        UserStateService userStateService,
-        String reportId) {
+    public ReportEntity throwErrorIfReportIsProvidedButNotPermitted(String reportId) {
         if (reportId != null && !reportId.isBlank()) {
             ReportEntity reportEntity = reportRepository.findById(reportId).orElseThrow(EntityNotFoundException::new);
             if (!userStateService.checkAnyBusinessUnitUserHasPermission(reportEntity.getPermission())) {
@@ -30,8 +31,7 @@ public class ReportInstanceUtil {
         return null;
     }
 
-    public static void throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(UserStateService userStateService,
-        List<Integer> businessUnitIds) {
+    public void throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(List<Integer> businessUnitIds) {
         if (businessUnitIds != null && !businessUnitIds.isEmpty()) {
             Set<Integer> permittedBusinessUnitIds = userStateService.getAllBusinessUnitUsersForCurrentUser()
                 .stream()
@@ -49,10 +49,9 @@ public class ReportInstanceUtil {
         }
     }
 
-
-    public static Map<String, List<Long>> findPermittedReportForBusinessUnits(UserStateService userStateService,
-        List<ReportEntity> reports, List<Long> businessUnitIds) {
-
+    public Map<String, List<Long>> findPermittedReportForBusinessUnits(
+        List<ReportEntity> reports,
+        List<Long> businessUnitIds) {
         if (reports == null || reports.isEmpty() || businessUnitIds == null || businessUnitIds.isEmpty()) {
             return Map.of();
         }

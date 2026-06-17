@@ -4,6 +4,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +18,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +32,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
@@ -68,6 +71,8 @@ class GenericReportServiceTest {
     ObjectMapper mapper;
     @Mock
     ReportInstanceMapper reportInstanceMapper;
+    @Mock
+    ReportInstanceSearchService reportInstanceSearchService;
     String reportId;
     Instant now;
     @InjectMocks
@@ -415,8 +420,9 @@ class GenericReportServiceTest {
 
         @Test
         void whenReportIdProvidedButNoPermission_accessDeniedIsThrown_sadPath() {
-            mockReportLookup(RESTRICTED_REPORT_ID, restrictedReport);
-            mockReportPermission(ACCOUNT_MAINTENANCE, false);
+            when(reportInstanceSearchService.throwErrorIfReportIsProvidedButNotPermitted(RESTRICTED_REPORT_ID))
+                .thenThrow(new AccessDeniedException("User does not have permission for reportId: "
+                    + RESTRICTED_REPORT_ID));
 
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
@@ -427,13 +433,19 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(exception.getMessage())
                     .isEqualTo("User does not have permission for reportId: " + RESTRICTED_REPORT_ID),
-                () -> verify(reportRepository).findById(RESTRICTED_REPORT_ID),
+                () -> verify(reportInstanceSearchService)
+                    .throwErrorIfReportIsProvidedButNotPermitted(RESTRICTED_REPORT_ID),
                 () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher())
             );
         }
 
         @Test
         void whenBusinessUnitsProvidedAndAnyAreNotPermitted_accessDeniedIsThrown_sadPath() {
+            doThrow(new AccessDeniedException(
+                "User does not have permission for one or more specified business units"))
+                .when(reportInstanceSearchService)
+                .throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted(List.of(10, 20));
+
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> genericReportService.searchReportInstances(FROM_DATE, TO_DATE, List.of(10, 20), USER_ID, null)
@@ -449,13 +461,9 @@ class GenericReportServiceTest {
 
         @Test
         void whenReportIdAndBusinessUnitsProvidedAndAllPermitted_returnsData_happyPath() {
-            mockReportLookup(PERMITTED_REPORT_ID, report);
-            mockReportPermission(SEARCH_AND_VIEW_ACCOUNTS, true);
-            mockUserStateWithSomeBusinessUnitsPermitted();
-            mockBusinessUnitUsersForIds(
-                List.of(10L),
-                List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS))
-            );
+            when(reportInstanceSearchService.throwErrorIfReportIsProvidedButNotPermitted(PERMITTED_REPORT_ID))
+                .thenReturn(report);
+            mock_permittedReportForBusinessUnits(Map.of(PERMITTED_REPORT_ID, List.of(10L)));
             mockReportInstancesFound(List.of(matching));
             mockDtoMapped();
 
@@ -470,8 +478,12 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(result).hasSize(1),
                 () -> Assertions.assertThat(result).containsExactly(dto),
-                () -> verify(reportRepository).findById(PERMITTED_REPORT_ID),
-                () -> verify(userStateService).getBusinessUnitUsersForBusinessUnitIds(List.of(10L)),
+                () -> verify(reportInstanceSearchService)
+                    .throwErrorIfReportIsProvidedButNotPermitted(PERMITTED_REPORT_ID),
+                () -> verify(reportInstanceSearchService).findPermittedReportForBusinessUnits(
+                    List.of(report),
+                    List.of(10L)
+                ),
                 () -> verify(reportInstanceRepository).findAll(specificationMatcher()),
                 () -> verify(reportInstanceMapper).toDto(matching, report)
             );
@@ -481,9 +493,8 @@ class GenericReportServiceTest {
         void whenReportIdNotProvided_filtersOnlyPermittedReportIds_happyPath() {
             when(reportRepository.findAll()).thenReturn(List.of(report, restrictedReport));
             mockCurrentUserBusinessUnits(List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS)));
-            mockBusinessUnitUsersForIds(
-                List.of(10L),
-                List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS))
+            mock_permittedReportForBusinessUnits(
+                Map.of(PERMITTED_REPORT_ID, List.of(10L))
             );
             mockReportInstancesFound(List.of(matching));
             mockDtoMapped();
@@ -508,14 +519,14 @@ class GenericReportServiceTest {
 
         @Test
         void whenBusinessUnitsNotProvided_filtersOnlyAccessibleBusinessUnits_happyPath() {
-            mockReportLookup(PERMITTED_REPORT_ID, report);
-            mockReportPermission(SEARCH_AND_VIEW_ACCOUNTS, true);
+            when(reportInstanceSearchService.throwErrorIfReportIsProvidedButNotPermitted(PERMITTED_REPORT_ID))
+                .thenReturn(report);
             List<BusinessUnitUser> businessUnitUsers = List.of(
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)
             );
             mockCurrentUserBusinessUnits(businessUnitUsers);
-            mockBusinessUnitUsersForIds(List.of(10L, 20L), businessUnitUsers);
+            mock_permittedReportForBusinessUnits(Map.of(PERMITTED_REPORT_ID, List.of(10L, 20L)));
             mockReportInstancesFound(List.of(matching, secondMatching));
             mockDtoMapped();
             when(reportInstanceMapper.toDto(secondMatching, report)).thenReturn(secondDto);
@@ -526,7 +537,10 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(result).containsExactly(dto, secondDto),
                 () -> verify(userStateService).getAllBusinessUnitUsersForCurrentUser(),
-                () -> verify(userStateService).getBusinessUnitUsersForBusinessUnitIds(List.of(10L, 20L)),
+                () -> verify(reportInstanceSearchService).findPermittedReportForBusinessUnits(
+                    List.of(report),
+                    List.of(10L, 20L)
+                ),
                 () -> verify(reportInstanceRepository).findAll(specificationMatcher())
             );
         }
@@ -537,7 +551,7 @@ class GenericReportServiceTest {
             List<BusinessUnitUser> businessUnitUsers =
                 List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS));
             mockCurrentUserBusinessUnits(businessUnitUsers);
-            mockBusinessUnitUsersForIds(List.of(10L), businessUnitUsers);
+            mock_permittedReportForBusinessUnits(Map.of());
 
             List<ReportInstanceListReportsInner> result =
                 genericReportService.searchReportInstances(FROM_DATE, TO_DATE, null, USER_ID, null);
@@ -553,39 +567,18 @@ class GenericReportServiceTest {
             when(reportInstanceRepository.findAll(specificationMatcher())).thenReturn(reportInstances);
         }
 
-        private void mockReportLookup(String reportId, ReportEntity reportEntity) {
-            when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        }
-
         private void mockCurrentUserBusinessUnits(List<BusinessUnitUser> businessUnitUsers) {
             when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(businessUnitUsers);
-        }
-
-        private void mockBusinessUnitUsersForIds(List<Long> businessUnitIds, List<BusinessUnitUser> businessUnitUsers) {
-            when(userStateService.getBusinessUnitUsersForBusinessUnitIds(businessUnitIds)).thenReturn(
-                businessUnitUsers);
-        }
-
-        private void mockUserStateWithSomeBusinessUnitsPermitted() {
-            when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(
-                List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
-                    businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)));
-        }
-
-        private void mockBusinessUnitPermissions(List<Integer> businessUnitIds, boolean permitted) {
-            businessUnitIds.forEach(
-                businessUnitId -> when(
-                    userStateService.isBusinessUnitPermittedForCurrentUser(businessUnitId.shortValue()))
-                    .thenReturn(permitted)
-            );
         }
 
         private void mockDtoMapped() {
             when(reportInstanceMapper.toDto(matching, report)).thenReturn(dto);
         }
 
-        private void mockReportPermission(FinesPermission permission, boolean permitted) {
-            when(userStateService.checkAnyBusinessUnitUserHasPermission(permission)).thenReturn(permitted);
+        private void mock_permittedReportForBusinessUnits(Map<String, List<Long>> permittedReports) {
+            when(reportInstanceSearchService.findPermittedReportForBusinessUnits(any(), any())).thenReturn(
+                permittedReports
+            );
         }
 
         private Specification<ReportInstanceEntity> specificationMatcher() {

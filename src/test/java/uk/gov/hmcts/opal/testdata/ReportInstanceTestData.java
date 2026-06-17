@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
@@ -20,15 +21,11 @@ import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
  */
 public class ReportInstanceTestData {
 
-    private ReportInstanceTestData() {
-        // utility class
-    }
+    public static final Long DEFAULT_INSTANCE_ID = 1L;
 
     // -------------------------------------------------------------------------
     // Shared constants
     // -------------------------------------------------------------------------
-
-    public static final Long DEFAULT_INSTANCE_ID = 1L;
     public static final String DEFAULT_REPORT_ID = "report_001";
     public static final String DEFAULT_REPORT_NAME = "My Report";
     public static final Long DEFAULT_REQUESTED_BY = 42L;
@@ -37,11 +34,14 @@ public class ReportInstanceTestData {
     public static final LocalDateTime DEFAULT_CREATED_TIMESTAMP = LocalDateTime.of(2026, 1, 1, 11, 0);
     public static final List<Long> DEFAULT_BUSINESS_UNITS = List.of(10L, 20L);
     public static final long DEFAULT_NO_OF_RECORDS = 100;
-
     public static final LocalDate FROM_DATE = LocalDate.of(2026, 1, 1);
     public static final LocalDate TO_DATE = LocalDate.of(2026, 12, 31);
     public static final List<Integer> BUSINESS_UNITS = List.of(10, 20);
     public static final Integer USER_ID = 42;
+
+    private ReportInstanceTestData() {
+        // utility class
+    }
 
     // -------------------------------------------------------------------------
     // ReportInstanceEntity builders and factories
@@ -167,6 +167,19 @@ public class ReportInstanceTestData {
         return Arrays.stream(reportIds)
             .map(reportId -> report(reportId, permission))
             .toList();
+    }
+
+    public static BusinessUnitUser businessUnitUser(
+        String businessUnitUserId,
+        short businessUnitId,
+        FinesPermission... permissions
+    ) {
+        return BusinessUnitUser.builder()
+            .businessUnitUserId(businessUnitUserId)
+            .businessUnitId(businessUnitId)
+            .permissions(Arrays.stream(permissions).map(FinesPermission::toUserPermission).collect(
+                java.util.stream.Collectors.toSet()))
+            .build();
     }
 
     // -------------------------------------------------------------------------
