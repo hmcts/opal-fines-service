@@ -46,11 +46,12 @@ public class NoteEntity {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(read = "note_type::text", write = "?::t_note_type_enum")
     @Column(name = "note_type", length = 2, columnDefinition = "t_note_type_enum")
     private NoteType noteType;
 
     @Convert(converter = AssociatedRecordTypeConverter.class)
-    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @ColumnTransformer(read = "associated_record_type::text", write = "?::t_associated_record_type_enum")
     @Column(name = "associated_record_type", length = 30, columnDefinition = "t_associated_record_type_enum")
     private AssociatedRecordType associatedRecordType;
 

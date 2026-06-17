@@ -896,6 +896,24 @@ components:
           type: string
           enum:
             - JCAM-A
+            - JCAM-B
+            - JCAM-C
+            - JCAM-D
+            - JCAM-E
+            - JCAM-F
+            - JCAM-G
+            - JCAM-H
+            - JCAM-I
+            - JCAM-K
+            - REMITT
+            - IMPRIS
+            - APPEAL
+            - CTPROC
+            - FIXPEN
+            - REVIEW
+            - INPERR
+            - OTHERS
+            - AMTCON
             - TRNOUT
         writeOffTypeDisplayName:
           type: string
@@ -908,9 +926,11 @@ components:
         defendantTransactionStatus:
           type: string
           enum:
-            - PND
-            - COMP
-            - CAN
+            - R
+            - P
+            - D
+            - X
+            - C
         defendantTransactionStatusDisplayName:
           type: string
     amendmentType:

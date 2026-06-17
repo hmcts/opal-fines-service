@@ -4,6 +4,7 @@ package uk.gov.hmcts.opal.service.persistence;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.postgresql.util.PGobject;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
@@ -18,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -35,9 +37,20 @@ public class EnforcementRepositoryService {
             defendantAccountId, lastEnforcement);
     }
 
+    @Transactional(readOnly = true)
     public Optional<EnforcementEntity> getEnforcementMostRecent(Long defendantAccountId) {
         return enforcementRepository.findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(
             defendantAccountId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EnforcementEntity> findAll(Specification<EnforcementEntity> specification) {
+        return enforcementRepository.findAll(specification);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EnforcementEntity> findHistoryByDefendantAccountId(Long defendantAccountId) {
+        return enforcementRepository.findHistoryRowsByDefendantAccountId(defendantAccountId);
     }
 
     public Long addDefendantAccountEnforcement(
