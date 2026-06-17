@@ -23,10 +23,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 class DefendantAccountHistoryFeatureFlagIntegrationTest extends AbstractFeatureToggleIntegrationTest {
 
     @Test
-    @DisplayName("PO-2622: GET defendant account history returns 405 when release-1b is disabled")
+    @DisplayName("PO-2622: GET defendant account history returns 404 when release-1b is disabled")
     @JiraStory("PO-2622")
     @JiraEpic("PO-812")
-    void getDefendantAccountHistory_whenRelease1bDisabled_returnsMethodNotAllowed() throws Exception {
+    void getDefendantAccountHistory_whenRelease1bDisabled_returnsNotFound() throws Exception {
         // Arrange
         // release-1b is disabled by local test properties.
 
@@ -37,7 +37,7 @@ class DefendantAccountHistoryFeatureFlagIntegrationTest extends AbstractFeatureT
         );
 
         // Assert
-        result.andExpect(status().isMethodNotAllowed())
+        result.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
