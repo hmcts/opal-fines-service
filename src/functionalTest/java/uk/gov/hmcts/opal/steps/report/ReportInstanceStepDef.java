@@ -12,6 +12,9 @@ import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static uk.gov.hmcts.opal.config.Constants.REPORT_INSTANCES_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ReportInstanceStepDef extends BaseStepDef {
 
+    private static final Logger log =
+            LoggerFactory.getLogger(ReportInstanceStepDef.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String MINIMAL_CREATE_REQUEST = """
         {
@@ -148,6 +153,12 @@ public class ReportInstanceStepDef extends BaseStepDef {
             ),
             requestBody
         );
+        log.info("Base URL: {}", getTestUrl());
+        log.info("Report ID: {}", reportId);
+        log.info("Business Unit ID: {}", businessUnitId);
+        log.info("Report instance request body: {}", requestBody);
+        log.info("Report instance response status: {}", latestRawReportInstanceResponse.statusCode());
+        log.info("Report instance response body: {}", latestRawReportInstanceResponse.body());
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
     }
 
