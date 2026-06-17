@@ -32,7 +32,7 @@ public class ReportInstanceTestData {
     public static final String DEFAULT_REQUESTED_BY_NAME = "John Doe";
     public static final LocalDateTime DEFAULT_REQUESTED_AT = LocalDateTime.of(2026, 1, 1, 10, 0);
     public static final LocalDateTime DEFAULT_CREATED_TIMESTAMP = LocalDateTime.of(2026, 1, 1, 11, 0);
-    public static final List<Long> DEFAULT_BUSINESS_UNITS = List.of(10L, 20L);
+    public static final List<Integer> DEFAULT_BUSINESS_UNITS = List.of(10, 20);
     public static final long DEFAULT_NO_OF_RECORDS = 100;
     public static final LocalDate FROM_DATE = LocalDate.of(2026, 1, 1);
     public static final LocalDate TO_DATE = LocalDate.of(2026, 12, 31);
@@ -53,7 +53,7 @@ public class ReportInstanceTestData {
     public static ReportInstanceEntity.ReportInstanceEntityBuilder defaultReportInstanceEntityBuilder() {
         return ReportInstanceEntity.builder()
             .reportInstanceId(DEFAULT_INSTANCE_ID)
-            .reportId(DEFAULT_REPORT_ID)
+            .report(createDefaultReportEntityForInstance())
             .reportName(DEFAULT_REPORT_NAME)
             .requestedAt(DEFAULT_REQUESTED_AT)
             .createdTimestamp(DEFAULT_CREATED_TIMESTAMP)
@@ -120,7 +120,7 @@ public class ReportInstanceTestData {
 
     public static ReportInstanceEntity reportInstance(String reportId) {
         ReportInstanceEntity instance = new ReportInstanceEntity();
-        instance.setReportId(reportId);
+        instance.setReport(ReportEntity.builder().reportId(reportId).build());
         return instance;
     }
 

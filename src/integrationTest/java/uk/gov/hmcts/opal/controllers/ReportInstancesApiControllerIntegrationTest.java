@@ -2,29 +2,27 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
-import static uk.gov.hmcts.opal.entity.report.SupportedFileType.CSV;
-import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
 
 import jakarta.servlet.ServletException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.ReportEntity;
-import uk.gov.hmcts.opal.repository.ReportRepository;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
+import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -35,25 +33,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
     private static final String REPORT_ID = "it_report_instances";
     private static final String URL_BASE = "/report-instances";
 
-    @MockitoBean
-    private ReportRepository reportRepository;
+    @MockitoSpyBean
+    private GenericReportService genericReportService;
 
     @BeforeEach
     void setUp() {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 10, SEARCH_AND_VIEW_ACCOUNTS);
         userStateStub.addPermissions((short) 20, SEARCH_AND_VIEW_ACCOUNTS);
-
-        ReportEntity report = ReportEntity.builder()
-            .reportId(REPORT_ID)
-            .reportTitle("Integration Report Instances")
-            .permission(SEARCH_AND_VIEW_ACCOUNTS)
-            .supportedFileTypes(List.of(CSV, PDF))
-            .build();
-
-        when(reportRepository.existsById(anyString())).thenReturn(false);
-        when(reportRepository.existsById(REPORT_ID)).thenReturn(true);
-        when(reportRepository.findAll()).thenReturn(List.of(report));
     }
 
     private MockHttpServletRequestBuilder authorisedGet() {
@@ -62,13 +49,59 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
             .header("authorization", userStateStub.getBearerToken());
     }
 
+    private ReportInstanceListReportsInner readyDto() {
+        ReportInstanceListReportsInner dto = new ReportInstanceListReportsInner();
+        dto.setInstanceId(9001L);
+        dto.setReportId(REPORT_ID);
+        dto.setName("My Report");
+        dto.setRequestedAt(java.time.LocalDateTime.of(2026, 1, 1, 10, 0));
+        dto.setGeneratedAt(java.time.LocalDateTime.of(2026, 1, 1, 11, 0));
+        dto.setNumberOfRecords(100);
+        dto.setRequestedBy(new uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon()
+            .userId("42")
+            .name("John Doe"));
+        dto.setBusinessUnits(List.of(
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("10"),
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("20")
+        ));
+        dto.setStatus(new uk.gov.hmcts.opal.generated.model.StatusReports()
+            .code(uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum.READY)
+            .displayName("Ready"));
+        dto.setIsDownloadable(true);
+        dto.setSupportedFileTypes(List.of(
+            ReportInstanceListReportsInner.SupportedFileTypesEnum.CSV,
+            ReportInstanceListReportsInner.SupportedFileTypesEnum.PDF
+        ));
+        return dto;
+    }
+
+    private ReportInstanceListReportsInner inProgressDto() {
+        ReportInstanceListReportsInner dto = readyDto();
+        dto.setInstanceId(9002L);
+        dto.setName("Integration Report Instances");
+        dto.setRequestedAt(java.time.LocalDateTime.of(2026, 2, 1, 10, 0));
+        dto.setGeneratedAt(java.time.LocalDateTime.of(2026, 2, 1, 11, 0));
+        dto.setRequestedBy(new uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon()
+            .userId("43")
+            .name("Jane Doe"));
+        dto.setBusinessUnits(List.of(
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("10")
+        ));
+        dto.setStatus(new uk.gov.hmcts.opal.generated.model.StatusReports()
+            .code(uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum.IN_PROGRESS)
+            .displayName("In Progress"));
+        dto.setIsDownloadable(false);
+        dto.setNumberOfRecords(null);
+        return dto;
+    }
+
     @Nested
     class GetReportInstancesSadPath {
 
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        void whenNoTokenPresent_unauthorizedIsReturned_sadPath() throws Exception {
+        void whenNoTokenPresent_unauthorizedIsReturned_sadPath() {
             ServletException exception = assertThrows(
                 ServletException.class,
                 () -> mockMvc.perform(get(URL_BASE).param("report_id", REPORT_ID))
@@ -94,6 +127,9 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraEpic("PO-2248")
         void whenUserLacksReportPermission_forbiddenIsReturned_sadPath() throws Exception {
             userStateStub.setupWithNoPermissions();
+            doThrow(new org.springframework.security.access.AccessDeniedException(
+                "User does not have permission for reportId: " + REPORT_ID
+            )).when(genericReportService).searchReportInstances(null, null, null, null, REPORT_ID);
 
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID))
@@ -111,6 +147,10 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenUserLacksBusinessUnitPermission_forbiddenIsReturned_sadPath() throws Exception {
+            doThrow(new org.springframework.security.access.AccessDeniedException(
+                "User does not have permission for one or more specified business units"
+            )).when(genericReportService).searchReportInstances(null, null, List.of(30), null, REPORT_ID);
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("business_units", "30"))
@@ -132,6 +172,9 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenNoFilters_allInstancesAreReturned_happyPath() throws Exception {
+            doReturn(List.of(readyDto(), inProgressDto(), readyDto()))
+                .when(genericReportService).searchReportInstances(null, null, null, null, REPORT_ID);
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID))
                 .andExpectAll(
@@ -146,6 +189,9 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByReportId_matchingInstancesAreReturned_happyPath() throws Exception {
+            doReturn(List.of(readyDto(), inProgressDto(), readyDto()))
+                .when(genericReportService).searchReportInstances(null, null, null, null, REPORT_ID);
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID))
                 .andExpectAll(
@@ -160,6 +206,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByDateRange_matchingInstancesAreReturned_happyPath() throws Exception {
+            doReturn(List.of(readyDto())).when(genericReportService).searchReportInstances(
+                java.time.LocalDate.of(2026, 1, 1),
+                java.time.LocalDate.of(2026, 1, 31),
+                null,
+                null,
+                REPORT_ID
+            );
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-01-01")
@@ -176,6 +230,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByUserId_matchingInstancesAreReturned_happyPath() throws Exception {
+            doReturn(List.of(readyDto(), readyDto())).when(genericReportService).searchReportInstances(
+                null,
+                null,
+                null,
+                42,
+                REPORT_ID
+            );
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("user_id", "42"))
@@ -191,6 +253,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByBusinessUnit_matchingInstancesAreReturned_happyPath() throws Exception {
+            doReturn(List.of(readyDto(), readyDto())).when(genericReportService).searchReportInstances(
+                null,
+                null,
+                List.of(20),
+                null,
+                REPORT_ID
+            );
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("business_units", "20"))
@@ -206,6 +276,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenReadyInstanceReturned_allFieldsAreMapped_happyPath() throws Exception {
+            doReturn(List.of(readyDto())).when(genericReportService).searchReportInstances(
+                java.time.LocalDate.of(2026, 1, 1),
+                java.time.LocalDate.of(2026, 1, 31),
+                null,
+                null,
+                REPORT_ID
+            );
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-01-01")
@@ -233,6 +311,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenInProgressInstanceReturned_isNotDownloadable_happyPath() throws Exception {
+            doReturn(List.of(inProgressDto())).when(genericReportService).searchReportInstances(
+                java.time.LocalDate.of(2026, 2, 1),
+                java.time.LocalDate.of(2026, 2, 28),
+                null,
+                null,
+                REPORT_ID
+            );
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-02-01")
@@ -250,6 +336,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenInstanceNameNull_reportTitleIsUsed_happyPath() throws Exception {
+            doReturn(List.of(inProgressDto())).when(genericReportService).searchReportInstances(
+                java.time.LocalDate.of(2026, 2, 1),
+                java.time.LocalDate.of(2026, 2, 28),
+                null,
+                null,
+                REPORT_ID
+            );
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-02-01")
@@ -265,6 +359,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenNoMatchingInstances_emptyArrayReturned_happyPath() throws Exception {
+            doReturn(List.of()).when(genericReportService).searchReportInstances(
+                java.time.LocalDate.of(2020, 2, 1),
+                java.time.LocalDate.of(2020, 2, 28),
+                null,
+                null,
+                REPORT_ID
+            );
+
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2020-02-01")

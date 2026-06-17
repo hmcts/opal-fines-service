@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,6 +10,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.ACCOUNT_MAINTENANCE;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.ERROR;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.DEFAULT_REPORT_ID;
@@ -26,8 +30,11 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,24 +43,33 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
+import org.testcontainers.shaded.com.fasterxml.jackson.core.JacksonException;
+import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.ReportNotFoundException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
+import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
+import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisher;
 
 @ExtendWith(MockitoExtension.class)
 class GenericReportServiceTest {
 
     public static final String LOCATION = "location";
-    @Mock
-
-    @InjectMocks
-    private GenericReportService genericReportService;
-
+    private final Map<String, Object> reportParameters = Map.of("foo", "bar");
+    private final CreateReportInstanceResponseReports reportInstanceResponse =
+        CreateReportInstanceResponseReports.builder().reportInstanceId(123L).build();
     @Mock
     ReportInstanceRepository reportInstanceRepository;
     @Mock
@@ -80,6 +96,18 @@ class GenericReportServiceTest {
     ReportInstanceSearchService reportInstanceSearchService;
     String reportId;
     Instant now;
+    @Mock
+    private UserStateService userStateService;
+    @Mock
+    private UserState userState;
+    @Mock
+    private ReportParameterValidator reportParameterValidator;
+    @Mock
+    private ReportQueuePublisher reportQueuePublisher;
+    @Mock
+    private BusinessUnitUser businessUnitUser1;
+    @Mock
+    private BusinessUnitUser businessUnitUser2;
     @InjectMocks
     private GenericReportService genericReportService;
 
@@ -87,7 +115,7 @@ class GenericReportServiceTest {
     void setUp() {
         reportInstance = new ReportInstanceEntity();
         reportId = String.valueOf(UUID.randomUUID());
-        reportInstance.setReportId(reportId);
+        reportInstance.setReport(reportEntity);
     }
 
     void mockClock() {
@@ -97,10 +125,10 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_happyPath() throws JsonProcessingException {
+    void generateReportInstanceContent_happyPath() {
         mockClock();
 
-        reportInstance.setReportId(reportId);
+        when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
@@ -119,21 +147,22 @@ class GenericReportServiceTest {
         verify(reportInstanceRepository, times(2)).save(entities.capture());
 
         ReportInstanceEntity lastEntity = entities.getAllValues().getLast();
-        assertThat(lastEntity.getReportId()).isEqualTo(reportId);
+        assertThat(lastEntity.getReport().getReportId()).isEqualTo(reportId);
         assertThat(lastEntity.getGenerationStatus()).isEqualTo(READY);
         assertThat(lastEntity.getLocation()).isEqualTo(LOCATION);
         assertThat(lastEntity.getErrors()).isNull();
-        assertThat(lastEntity.getNoOfRecords()).isEqualTo((short) 2);
+        assertThat(lastEntity.getNoOfRecords()).isEqualTo(2L);
         assertThat(lastEntity.getCreatedTimestamp()).isEqualTo(LocalDateTime.now(clock));
         assertThat(lastEntity.getScheduledDeletionTimestamp()).isEqualTo(LocalDateTime.now(clock).plusDays(1));
     }
 
     @Test
-    void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp()
-        throws JsonProcessingException {
+    void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp() {
         mockClock();
 
-        reportInstance.setReportId(reportId);
+        ReportEntity instanceReport = new ReportEntity();
+        instanceReport.setReportId(reportId);
+        reportInstance.setReport(instanceReport);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
@@ -169,6 +198,7 @@ class GenericReportServiceTest {
         mockClock();
 
         //Arrange
+        when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         //noinspection rawtypes
@@ -189,6 +219,7 @@ class GenericReportServiceTest {
     void generateReportInstanceContent_noImplementationForReportIdFound_throwsException() {
         mockClock();
         //Arrange
+        when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenThrow(ReportNotFoundException.class);
@@ -206,11 +237,11 @@ class GenericReportServiceTest {
     void generateReportInstanceContent_unableToSaveToDb_throwsException() {
         mockClock();
         //Arrange
+        when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         //noinspection rawtypes
         when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
         when(reportInstanceRepository.save(any())).thenThrow(RuntimeException.class);
-        when(reportEntity.getReportId()).thenReturn(reportId);
         //Act + Assert
         assertThrows(ReportGenerationException.class, () -> genericReportService.generateReportInstanceContent(1L));
     }
@@ -229,7 +260,7 @@ class GenericReportServiceTest {
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
 
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         reportInstance.setReportInstanceId(123L);
 
         //test
@@ -258,8 +289,8 @@ class GenericReportServiceTest {
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
 
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
-        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short) 2);
 
         reportInstance.setReportInstanceId(123L);
 
@@ -322,7 +353,7 @@ class GenericReportServiceTest {
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         //when(mapper.writeValueAsString(any())).thenReturn("{}");
 
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         //test
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,
             () -> genericReportService.addReportInstance(
@@ -347,7 +378,7 @@ class GenericReportServiceTest {
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(false);
 
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         //test
         UnprocessableException exception = assertThrows(UnprocessableException.class,
             () -> genericReportService.addReportInstance(
@@ -373,7 +404,7 @@ class GenericReportServiceTest {
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
 
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
 
         //test
         UnprocessableException exception = assertThrows(UnprocessableException.class,
@@ -419,8 +450,8 @@ class GenericReportServiceTest {
             report.setPermission(SEARCH_AND_VIEW_ACCOUNTS);
             restrictedReport.setReportId(RESTRICTED_REPORT_ID);
             restrictedReport.setPermission(ACCOUNT_MAINTENANCE);
-            matching.setReportId(PERMITTED_REPORT_ID);
-            secondMatching.setReportId(PERMITTED_REPORT_ID);
+            matching.setReport(report);
+            secondMatching.setReport(report);
         }
 
         @Test

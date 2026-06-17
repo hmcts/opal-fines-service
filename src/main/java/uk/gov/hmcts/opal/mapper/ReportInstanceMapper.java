@@ -8,10 +8,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
-import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.generated.model.StatusReports;
 import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
@@ -20,8 +20,9 @@ import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
 public interface ReportInstanceMapper {
 
     CreateReportInstanceResponseReports toResponseDto(ReportInstanceEntity entity);
+
     @Mapping(target = "instanceId", source = "instance.reportInstanceId")
-    @Mapping(target = "reportId", source = "instance.reportId")
+    @Mapping(target = "reportId", source = "instance.report.reportId")
     @Mapping(target = "requestedAt", source = "instance.requestedAt")
     @Mapping(target = "generatedAt", source = "instance.createdTimestamp")
     @Mapping(target = "requestedBy", source = "instance")
@@ -53,7 +54,7 @@ public interface ReportInstanceMapper {
     @Mapping(target = "name", source = "requestedByName")
     UserByNameDetailsCommon mapRequestedBy(ReportInstanceEntity instance);
 
-    default List<BusinessUnitSummaryCommon> mapBusinessUnits(List<Long> businessUnitIds) {
+    default List<BusinessUnitSummaryCommon> mapBusinessUnits(List<Integer> businessUnitIds) {
         if (businessUnitIds == null) {
             return List.of();
         }

@@ -3,17 +3,12 @@ package uk.gov.hmcts.opal.service.report;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.IN_PROGRESS;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQUESTED;
-import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.findPermittedReportForBusinessUnits;
-import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.throwErrorIfAnyBusinessUnitIsProvidedButNotPermitted;
-import static uk.gov.hmcts.opal.service.report.util.ReportInstanceUtil.throwErrorIfReportIsProvidedButNotPermitted;
-import static uk.gov.hmcts.opal.util.NumberUtils.toLongList;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +16,8 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -36,15 +31,14 @@ import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
-import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.repository.jpa.ReportInstanceSpecs;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
-import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
+import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisher;
 
 
 @Service
@@ -52,6 +46,9 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 @Slf4j(topic = "opal.ReportService")
 public class GenericReportService implements GenericReportServiceInterface {
 
+    private final ReportParameterValidator reportParameterValidator;
+    private final ReportQueuePublisher reportQueuePublisher;
+    private final UserStateService userStateService;
     private final ReportInstanceRepository reportInstanceRepository;
     private final ReportRepository reportRepository;
     private final ReportInstanceMapper reportInstanceMapper;
@@ -74,7 +71,7 @@ public class GenericReportService implements GenericReportServiceInterface {
         ReportInstanceEntity instance =
             reportInstanceRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         try {
-            String templateId = instance.getReportId();
+            String templateId = instance.getReport().getReportId();
             final ReportInterface<?> reportTemplate = reportRegistry.get(templateId);
             instance.setGenerationStatus(IN_PROGRESS);
             instance.setErrors(null);
@@ -121,7 +118,7 @@ public class GenericReportService implements GenericReportServiceInterface {
         }
 
         if (!reportParameterValidator.validateReportInstanceParameterValues(
-                request.getReportParameters(), reportEntity)) {
+            request.getReportParameters(), reportEntity)) {
             throw new UnprocessableException("Validation failed for report instance parameters", true);
         }
 
@@ -210,7 +207,8 @@ public class GenericReportService implements GenericReportServiceInterface {
             .collect(Collectors.toMap(ReportEntity::getReportId, reportEntity -> reportEntity));
 
         return reportInstances.stream()
-            .map(instance -> reportInstanceMapper.toDto(instance, reportIdToReport.get(instance.getReportId())))
+            .map(instance -> reportInstanceMapper.toDto(instance,
+                reportIdToReport.get(instance.getReport().getReportId())))
             .toList();
     }
 
