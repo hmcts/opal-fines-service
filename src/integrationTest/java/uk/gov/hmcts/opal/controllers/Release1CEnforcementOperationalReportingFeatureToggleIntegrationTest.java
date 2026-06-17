@@ -38,14 +38,14 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("release1cEnforcementOperationalReportingEndpoints")
-    @DisplayName("should return 405 Method Not Allowed")
+    @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2250")
     @JiraEpic("PO-2248")
-    void shouldReturn405When1cEnforcementOperationalReportingIsDisabled(String description,
+    void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
-        log.debug("Testing feature-disabled 405 for: {}", description);
+        log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)
-            .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isNotFound());
     }
 }

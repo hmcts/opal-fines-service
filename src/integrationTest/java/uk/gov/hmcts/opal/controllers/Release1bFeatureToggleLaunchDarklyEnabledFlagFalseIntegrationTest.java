@@ -42,12 +42,12 @@ class Release1bFeatureToggleLaunchDarklyEnabledFlagFalseIntegrationTest extends 
         when(ldClient.boolVariation(eq(RELEASE_1B), any(LDContext.class), anyBoolean())).thenReturn(false);
 
         mockMvc.perform(request)
-            .andExpect(status().isMethodNotAllowed())
+            .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"))
-            .andExpect(jsonPath("$.status").value(405))
+            .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 }
