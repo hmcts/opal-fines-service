@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
+import static uk.gov.hmcts.opal.common.util.SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser;
+
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +10,10 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -20,8 +26,9 @@ public class ReportInstanceSearchService {
     private final UserStateService userStateService;
 
     public List<ReportEntity> findPermittedReports() {
+        OpalJwtAuthenticationToken authToken = getOpalJwtAuthenticationTokenForCurrentUser();
         return reportRepository.findAll().stream()
-            .filter(report -> userStateService.checkAnyBusinessUnitUserHasPermission(report.getPermission()))
+            .filter(report -> authToken.hasPermission(report.getPermission().toUserPermission()))
             .toList();
     }
 
@@ -41,8 +48,7 @@ public class ReportInstanceSearchService {
     }
 
     public List<Long> findPermittedBusinessUnitIds() {
-        return userStateService.getAllBusinessUnitUsersForCurrentUser()
-            .stream()
+        return getBusinessUnitUsers().stream()
             .map(buUser -> buUser.getBusinessUnitId().longValue())
             .distinct()
             .toList();
@@ -80,7 +86,11 @@ public class ReportInstanceSearchService {
             return Map.of();
         }
 
-        return userStateService.getBusinessUnitUsersForBusinessUnitIds(businessUnitIds).stream()
+        List<BusinessUnitUser> businessUnitUsers = getBusinessUnitUsers().stream()
+            .filter(buUser -> businessUnitIds.contains(buUser.getBusinessUnitId().longValue()))
+            .toList();
+
+        return businessUnitUsers.stream()
             .flatMap(buUser ->
                 reports.stream()
                     .filter(report -> buUser.getPermissions().contains(report.getPermission().toUserPermission()))
@@ -89,5 +99,18 @@ public class ReportInstanceSearchService {
                 Map.Entry::getKey,
                 Collectors.mapping(Map.Entry::getValue, Collectors.toList())
             ));
+    }
+
+    private List<BusinessUnitUser> getBusinessUnitUsers() {
+        DomainBusinessUnitUsers domainBusinessUnitUsers = userStateService.getUserStateFromSecurityContext()
+            .getDomainBusinessUnitUsers(Domain.FINES);
+
+        if (domainBusinessUnitUsers == null
+            || domainBusinessUnitUsers.getBusinessUnitUsers() == null
+            || domainBusinessUnitUsers.getBusinessUnitUsers().isEmpty()) {
+            return List.of();
+        }
+
+        return domainBusinessUnitUsers.getBusinessUnitUsers();
     }
 }

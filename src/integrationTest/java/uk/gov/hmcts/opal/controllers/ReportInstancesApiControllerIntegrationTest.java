@@ -1,28 +1,30 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.Mockito.doThrow;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+import static uk.gov.hmcts.opal.entity.report.SupportedFileType.CSV;
+import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
 
-import java.util.Arrays;
+import jakarta.servlet.ServletException;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.entity.ReportEntity;
+import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -34,65 +36,30 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
     private static final String URL_BASE = "/report-instances";
 
     @MockitoBean
-    private UserStateService userStateService;
+    private ReportRepository reportRepository;
 
     @BeforeEach
     void setUp() {
-        mock_reportPermission(SEARCH_AND_VIEW_ACCOUNTS, true);
-        mock_businessUnitPermission(10, true);
-        mock_businessUnitPermission(20, true);
-        mockCurrentUserBusinessUnits(
-            List.of(
-                businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
-                businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)
-            )
-        );
-        mockBusinessUnitUsersForIds(
-            List.of(10L),
-            List.of(businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS))
-        );
-        mockBusinessUnitUsersForIds(
-            List.of(20L),
-            List.of(businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS))
-        );
-        mockBusinessUnitUsersForIds(
-            List.of(10L, 20L),
-            List.of(
-                businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
-                businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)
-            )
-        );
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 10, SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.addPermissions((short) 20, SEARCH_AND_VIEW_ACCOUNTS);
+
+        ReportEntity report = ReportEntity.builder()
+            .reportId(REPORT_ID)
+            .reportTitle("Integration Report Instances")
+            .permission(SEARCH_AND_VIEW_ACCOUNTS)
+            .supportedFileTypes(List.of(CSV, PDF))
+            .build();
+
+        when(reportRepository.existsById(anyString())).thenReturn(false);
+        when(reportRepository.existsById(REPORT_ID)).thenReturn(true);
+        when(reportRepository.findAll()).thenReturn(List.of(report));
     }
 
-    private void mock_reportPermission(FinesPermission permission, boolean permitted) {
-        when(userStateService.checkAnyBusinessUnitUserHasPermission(permission)).thenReturn(permitted);
-    }
-
-    private void mockUserStateWithSomeBusinessUnitsPermitted(Integer... businessUnitIds) {
-        when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(
-            Arrays.stream(businessUnitIds).sequential()
-                .map(id -> businessUnitUserWithPermission(String.valueOf(id), SEARCH_AND_VIEW_ACCOUNTS))
-                .toList());
-    }
-
-    private void mock_businessUnitPermission(int businessUnitId, boolean permitted) {
-        when(userStateService.isBusinessUnitPermittedForCurrentUser((short) businessUnitId)).thenReturn(permitted);
-    }
-
-    private void mockCurrentUserBusinessUnits(List<BusinessUnitUser> businessUnitUsers) {
-        when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(businessUnitUsers);
-    }
-
-    private void mockBusinessUnitUsersForIds(List<Long> businessUnitIds, List<BusinessUnitUser> businessUnitUsers) {
-        when(userStateService.getBusinessUnitUsersForBusinessUnitIds(businessUnitIds)).thenReturn(businessUnitUsers);
-    }
-
-    private BusinessUnitUser businessUnitUserWithPermission(String businessUnitId, FinesPermission permission) {
-        return new BusinessUnitUser(
-            "buUserId-1",
-            Short.parseShort(businessUnitId),
-            Set.of(permission.toUserPermission())
-        );
+    private MockHttpServletRequestBuilder authorisedGet() {
+        return get(URL_BASE)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken());
     }
 
     @Nested
@@ -102,12 +69,14 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenNoTokenPresent_unauthorizedIsReturned_sadPath() throws Exception {
-            doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-                .when(userStateService).checkAnyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS);
+            ServletException exception = assertThrows(
+                ServletException.class,
+                () -> mockMvc.perform(get(URL_BASE).param("report_id", REPORT_ID))
+            );
 
-            mockMvc.perform(get(URL_BASE)
-                    .param("report_id", REPORT_ID))
-                .andExpect(status().isUnauthorized());
+            assertThat(exception.getCause())
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessage("Current user is not authenticated with OpalJwtAuthenticationToken");
         }
 
         @Test
@@ -124,9 +93,9 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenUserLacksReportPermission_forbiddenIsReturned_sadPath() throws Exception {
-            mock_reportPermission(SEARCH_AND_VIEW_ACCOUNTS, false);
+            userStateStub.setupWithNoPermissions();
 
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID))
                 .andExpectAll(
                     status().isForbidden(),
@@ -142,9 +111,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenUserLacksBusinessUnitPermission_forbiddenIsReturned_sadPath() throws Exception {
-            mockUserStateWithSomeBusinessUnitsPermitted(10, 20);
-
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("business_units", "30"))
                 .andExpectAll(
@@ -165,7 +132,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenNoFilters_allInstancesAreReturned_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID))
                 .andExpectAll(
                     status().isOk(),
@@ -179,7 +146,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByReportId_matchingInstancesAreReturned_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID))
                 .andExpectAll(
                     status().isOk(),
@@ -193,7 +160,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByDateRange_matchingInstancesAreReturned_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-01-01")
                     .param("to_date", "2026-01-31"))
@@ -209,7 +176,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByUserId_matchingInstancesAreReturned_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("user_id", "42"))
                 .andExpectAll(
@@ -224,7 +191,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenFilteredByBusinessUnit_matchingInstancesAreReturned_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("business_units", "20"))
                 .andExpectAll(
@@ -239,7 +206,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenReadyInstanceReturned_allFieldsAreMapped_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-01-01")
                     .param("to_date", "2026-01-31"))
@@ -266,7 +233,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenInProgressInstanceReturned_isNotDownloadable_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-02-01")
                     .param("to_date", "2026-02-28"))
@@ -283,7 +250,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenInstanceNameNull_reportTitleIsUsed_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2026-02-01")
                     .param("to_date", "2026-02-28"))
@@ -298,7 +265,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         void whenNoMatchingInstances_emptyArrayReturned_happyPath() throws Exception {
-            mockMvc.perform(get(URL_BASE)
+            mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
                     .param("from_date", "2020-02-01")
                     .param("to_date", "2020-02-28"))

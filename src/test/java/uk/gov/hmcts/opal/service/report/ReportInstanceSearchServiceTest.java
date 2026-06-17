@@ -18,6 +18,7 @@ import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.report;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +29,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -47,6 +54,37 @@ class ReportInstanceSearchServiceTest {
     @InjectMocks
     private ReportInstanceSearchService reportInstanceSearchService;
 
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void setAuthenticatedUserWithPermissions(
+        UserStateV2 userState,
+        uk.gov.hmcts.opal.authorisation.model.FinesPermission... permissions
+    ) {
+        OpalJwtAuthenticationToken authToken = org.mockito.Mockito.mock(OpalJwtAuthenticationToken.class);
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authToken);
+        SecurityContextHolder.setContext(securityContext);
+
+        for (uk.gov.hmcts.opal.authorisation.model.FinesPermission permission : permissions) {
+            when(authToken.hasPermission(permission.toUserPermission())).thenReturn(true);
+        }
+
+        if (userState != null) {
+            when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        }
+    }
+
+    private UserStateV2 userStateWithBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+        UserStateV2 userState = org.mockito.Mockito.mock(UserStateV2.class);
+        DomainBusinessUnitUsers domainBusinessUnitUsers = org.mockito.Mockito.mock(DomainBusinessUnitUsers.class);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.getBusinessUnitUsers()).thenReturn(List.of(businessUnitUsers));
+        return userState;
+    }
+
     @Nested
     class FindPermittedReports {
 
@@ -55,8 +93,7 @@ class ReportInstanceSearchServiceTest {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity unpermittedReport = report("R2", ACCOUNT_MAINTENANCE);
             when(reportRepository.findAll()).thenReturn(List.of(permittedReport, unpermittedReport));
-            when(userStateService.checkAnyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-            when(userStateService.checkAnyBusinessUnitUserHasPermission(ACCOUNT_MAINTENANCE)).thenReturn(false);
+            setAuthenticatedUserWithPermissions(null, SEARCH_AND_VIEW_ACCOUNTS);
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
 
@@ -126,7 +163,7 @@ class ReportInstanceSearchServiceTest {
 
         @Test
         void whenCurrentUserHasBusinessUnits_returnsDistinctIds_happyPath() {
-            when(userStateService.getAllBusinessUnitUsersForCurrentUser()).thenReturn(List.of(
+            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS)
@@ -193,9 +230,7 @@ class ReportInstanceSearchServiceTest {
                 businessUnitUser("BU1", (short) 10, SEARCH_AND_VIEW_ACCOUNTS, ACCOUNT_MAINTENANCE);
             BusinessUnitUser buUser2 = businessUnitUser("BU2", (short) 20, SEARCH_AND_VIEW_ACCOUNTS);
 
-            when(userStateService.getBusinessUnitUsersForBusinessUnitIds(List.of(10L, 20L))).thenReturn(
-                List.of(buUser1, buUser2)
-            );
+            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(buUser1, buUser2));
 
             Map<String, List<Long>> result = reportInstanceSearchService.findPermittedReportForBusinessUnits(
                 List.of(searchReport, maintenanceReport),
@@ -225,6 +260,20 @@ class ReportInstanceSearchServiceTest {
             assertThat(reportInstanceSearchService.findPermittedReportForBusinessUnits(
                 List.of(report),
                 businessUnitIds
+            )).isEmpty();
+        }
+
+        @Test
+        void whenBusinessUnitUsersAreMissing_returnsEmptyMap_happyPath() {
+            UserStateV2 userState = org.mockito.Mockito.mock(UserStateV2.class);
+            DomainBusinessUnitUsers domainBusinessUnitUsers = org.mockito.Mockito.mock(DomainBusinessUnitUsers.class);
+            when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+            when(domainBusinessUnitUsers.getBusinessUnitUsers()).thenReturn(null);
+            setAuthenticatedUserWithPermissions(userState);
+
+            assertThat(reportInstanceSearchService.findPermittedReportForBusinessUnits(
+                List.of(report("search", SEARCH_AND_VIEW_ACCOUNTS)),
+                List.of(10L)
             )).isEmpty();
         }
     }
