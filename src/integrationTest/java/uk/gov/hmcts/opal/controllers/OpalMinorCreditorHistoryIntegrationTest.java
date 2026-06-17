@@ -33,6 +33,8 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -70,6 +72,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.01/INT.05 returns all amendment history only when filtered")
     void getMinorCreditorHistory_whenFilteredToAmendments_returnsAllAmendments() throws Exception {
         ResultActions result = getHistory("itemTypes", "amendment");
@@ -81,6 +85,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.02/INT.06 returns all note history only when filtered")
     void getMinorCreditorHistory_whenFilteredToNotes_returnsAllNotes() throws Exception {
         ResultActions result = getHistory("itemTypes", "note");
@@ -91,6 +97,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.03/INT.07 returns all financial history only when filtered")
     void getMinorCreditorHistory_whenFilteredToFinancial_returnsAllFinancialItems() throws Exception {
         ResultActions result = getHistory("itemTypes", "financial");
@@ -102,6 +110,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.04 returns merged history latest-to-oldest")
     void getMinorCreditorHistory_whenNoFilters_returnsMergedLatestToOldestHistory() throws Exception {
         ResultActions result = getHistory();
@@ -118,6 +128,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.08 applies dateFrom as an inclusive lower bound")
     void getMinorCreditorHistory_whenDateFromProvided_appliesInclusiveLowerBound() throws Exception {
         ResultActions result = getHistory("dateFrom", "2026-01-15");
@@ -128,6 +140,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.09 applies dateTo as an inclusive upper bound")
     void getMinorCreditorHistory_whenDateToProvided_appliesInclusiveUpperBound() throws Exception {
         ResultActions result = getHistory("dateTo", "2026-01-10");
@@ -138,6 +152,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.10 applies an inclusive date range")
     void getMinorCreditorHistory_whenDateRangeProvided_returnsItemsWithinRange() throws Exception {
         ResultActions result = getHistory("dateFrom", "2026-01-10", "dateTo", "2026-01-25");
@@ -149,6 +165,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.11 combines date and item type filters")
     void getMinorCreditorHistory_whenDateAndTypeFiltersProvided_appliesBothFilters() throws Exception {
         ResultActions result = getHistory(
@@ -163,6 +181,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 INT.12 orders equal timestamps deterministically")
     void getMinorCreditorHistory_whenTimestampsMatch_ordersByTypeThenSourceId() throws Exception {
         ResultActions result = getHistory("dateFrom", "2026-01-31", "dateTo", "2026-01-31");
@@ -175,6 +195,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 schema assertions verify documented history item shapes")
     void getMinorCreditorHistory_whenHistoryExists_returnsDocumentedPolymorphicShapes() throws Exception {
         ResultActions result = getHistory("dateFrom", "2026-01-31", "dateTo", "2026-01-31");
@@ -213,6 +235,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 401 when the user is unauthorised")
     void getMinorCreditorHistory_whenUnauthorised_returns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
@@ -225,6 +249,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 403 when the user lacks permission")
     void getMinorCreditorHistory_whenUserLacksPermission_returns403() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
@@ -235,6 +261,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 404 when the account is missing")
     void getMinorCreditorHistory_whenAccountMissing_returns404() throws Exception {
         getHistory(MISSING_CREDITOR_ACCOUNT_ID)
@@ -243,6 +271,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 404 when the account is not a minor creditor")
     void getMinorCreditorHistory_whenAccountIsNotMinorCreditor_returns404() throws Exception {
         getHistory(NON_MINOR_CREDITOR_ACCOUNT_ID)
@@ -251,6 +281,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 408 for a timeout")
     void getMinorCreditorHistory_whenTimeoutOccurs_returns408() throws Exception {
         doThrow(new QueryTimeoutException("timeout"))
@@ -263,6 +295,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 503 for a database connectivity failure")
     void getMinorCreditorHistory_whenDatabaseUnavailable_returns503() throws Exception {
         doThrow(new DataAccessResourceFailureException("db unavailable"))
@@ -275,6 +309,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 500 for an unexpected failure")
     void getMinorCreditorHistory_whenUnexpectedFailureOccurs_returns500() throws Exception {
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))

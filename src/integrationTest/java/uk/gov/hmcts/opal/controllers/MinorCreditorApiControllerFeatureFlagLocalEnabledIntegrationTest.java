@@ -92,7 +92,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
 
     @Test
     @JiraStory("PO-2642")
-    @JiraEpic("PO-3685")
+    @JiraEpic("PO-2653")
     @JiraTestKey("PO-2642")
     void getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems() throws Exception {
         userStateStub.setupWithNoPermissions();
@@ -133,7 +133,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
 
     @Test
     @JiraStory("PO-2642")
-    @JiraEpic("PO-3685")
+    @JiraEpic("PO-2653")
     @JiraTestKey("PO-2642")
     void getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
@@ -157,7 +157,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
 
     @Test
     @JiraStory("PO-2642")
-    @JiraEpic("PO-3685")
+    @JiraEpic("PO-2653")
     @JiraTestKey("PO-2642")
     void getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
