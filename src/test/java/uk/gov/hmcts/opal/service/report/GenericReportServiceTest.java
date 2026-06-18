@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
@@ -81,8 +80,7 @@ class GenericReportServiceTest {
     @SuppressWarnings("rawtypes")
     @Mock
     ReportInterface reportInterfaceImplementation;
-    @Mock
-    Clock clock;
+    Clock clock = Clock.fixed(Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC);
     ReportInstanceEntity reportInstance;
     @Mock
     ReportEntity reportEntity;
@@ -108,7 +106,6 @@ class GenericReportServiceTest {
     private BusinessUnitUser businessUnitUser1;
     @Mock
     private BusinessUnitUser businessUnitUser2;
-    @InjectMocks
     private GenericReportService genericReportService;
 
     @BeforeEach
@@ -116,18 +113,24 @@ class GenericReportServiceTest {
         reportInstance = new ReportInstanceEntity();
         reportId = String.valueOf(UUID.randomUUID());
         reportInstance.setReport(reportEntity);
-    }
-
-    void mockClock() {
-        now = Instant.parse("2026-01-01T10:00:00Z");
-        when(clock.instant()).thenReturn(now);
-        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        now = clock.instant();
+        genericReportService = new GenericReportService(
+            reportParameterValidator,
+            reportQueuePublisher,
+            userStateService,
+            reportInstanceRepository,
+            reportRepository,
+            reportInstanceMapper,
+            reportRegistry,
+            reportBlobStore,
+            clock,
+            mapper,
+            reportInstanceSearchService
+        );
     }
 
     @Test
     void generateReportInstanceContent_happyPath() {
-        mockClock();
-
         when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
@@ -158,8 +161,6 @@ class GenericReportServiceTest {
 
     @Test
     void generateReportInstanceContent_retentionPeriodIsNull_doNotSetDeletionTimestamp() {
-        mockClock();
-
         ReportEntity instanceReport = new ReportEntity();
         instanceReport.setReportId(reportId);
         reportInstance.setReport(instanceReport);
@@ -183,8 +184,6 @@ class GenericReportServiceTest {
 
     @Test
     void generateReportInstanceContent_reportIdNotFound_throwsExceptionAndDoesNotSaveAnEmptyEntity() {
-        mockClock();
-
         //Arrange
         when(reportInstanceRepository.findById(any())).thenThrow(EntityNotFoundException.class);
         //Act
@@ -195,8 +194,6 @@ class GenericReportServiceTest {
 
     @Test
     void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() throws JsonProcessingException {
-        mockClock();
-
         //Arrange
         when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
@@ -217,7 +214,6 @@ class GenericReportServiceTest {
 
     @Test
     void generateReportInstanceContent_noImplementationForReportIdFound_throwsException() {
-        mockClock();
         //Arrange
         when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
@@ -235,7 +231,6 @@ class GenericReportServiceTest {
 
     @Test
     void generateReportInstanceContent_unableToSaveToDb_throwsException() {
-        mockClock();
         //Arrange
         when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
