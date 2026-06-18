@@ -23,7 +23,8 @@ import static org.mockito.Mockito.when;
             TestingSupportController.class,
             DynamicConfigService.class,
             FeatureToggleApi.class,
-            DefendantAccountDeletionService.class
+            DefendantAccountDeletionService.class,
+            TestService.class
         },
     properties = {
         "opal.testing-support-endpoints.enabled=true"
