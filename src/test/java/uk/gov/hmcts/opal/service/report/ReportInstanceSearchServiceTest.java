@@ -19,6 +19,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
@@ -51,38 +53,46 @@ class ReportInstanceSearchServiceTest {
     @Mock
     private UserStateService userStateService;
 
+    @Mock
+    private UserStateV2 userStateV2;
+
+    @Mock
+    private DomainBusinessUnitUsers domainBusinessUnitUsers;
+
+    @Mock
+    private OpalJwtAuthenticationToken authToken;
+
     @InjectMocks
     private ReportInstanceSearchService reportInstanceSearchService;
+
+    @BeforeEach
+    void setUp() {
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authToken);
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
     }
 
-    private void setAuthenticatedUserWithPermissions(
-        UserStateV2 userState,
-        uk.gov.hmcts.opal.authorisation.model.FinesPermission... permissions
-    ) {
-        OpalJwtAuthenticationToken authToken = org.mockito.Mockito.mock(OpalJwtAuthenticationToken.class);
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(authToken);
-        SecurityContextHolder.setContext(securityContext);
-
-        for (uk.gov.hmcts.opal.authorisation.model.FinesPermission permission : permissions) {
+    private void setAuthenticatedUserWithPermissions(FinesPermission... permissions) {
+        for (FinesPermission permission : permissions) {
             when(authToken.hasPermission(permission.toCommonPermission())).thenReturn(true);
-        }
-
-        if (userState != null) {
-            when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         }
     }
 
-    private UserStateV2 userStateWithBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
-        UserStateV2 userState = org.mockito.Mockito.mock(UserStateV2.class);
-        DomainBusinessUnitUsers domainBusinessUnitUsers = org.mockito.Mockito.mock(DomainBusinessUnitUsers.class);
-        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+    private void setBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2);
+        when(userStateV2.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
         when(domainBusinessUnitUsers.getBusinessUnitUsers()).thenReturn(List.of(businessUnitUsers));
-        return userState;
+    }
+
+    private void setNoBusinessUnitUsers() {
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2);
+        when(userStateV2.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.getBusinessUnitUsers()).thenReturn(null);
     }
 
     @Nested
@@ -93,7 +103,7 @@ class ReportInstanceSearchServiceTest {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity unpermittedReport = report("R2", ACCOUNT_MAINTENANCE);
             when(reportRepository.findAll()).thenReturn(List.of(permittedReport, unpermittedReport));
-            setAuthenticatedUserWithPermissions(null, SEARCH_AND_VIEW_ACCOUNTS);
+            setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
 
@@ -111,7 +121,7 @@ class ReportInstanceSearchServiceTest {
         void whenReportIsPermitted_returnsReport_happyPath() {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
             when(reportRepository.findById(REPORT_ID)).thenReturn(java.util.Optional.of(permittedReport));
-            setAuthenticatedUserWithPermissions(null, SEARCH_AND_VIEW_ACCOUNTS);
+            setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             ReportEntity result = reportInstanceSearchService.findRequestedReportElseThrowError(REPORT_ID);
 
@@ -123,7 +133,7 @@ class ReportInstanceSearchServiceTest {
             when(reportRepository.findById(REPORT_ID)).thenReturn(
                 java.util.Optional.of(report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS))
             );
-            setAuthenticatedUserWithPermissions(null);
+            setAuthenticatedUserWithPermissions();
 
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
@@ -165,11 +175,11 @@ class ReportInstanceSearchServiceTest {
 
         @Test
         void whenCurrentUserHasBusinessUnits_returnsDistinctIds_happyPath() {
-            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
+            setBusinessUnitUsers(
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS)
-            ));
+            );
 
             List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(null);
 
@@ -178,11 +188,11 @@ class ReportInstanceSearchServiceTest {
 
         @Test
         void whenRequestedBusinessUnitsArePermitted_returnsSelectedIds_happyPath() {
-            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
+            setBusinessUnitUsers(
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("30", SEARCH_AND_VIEW_ACCOUNTS)
-            ));
+            );
 
             List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(List.of(10, 30));
 
@@ -191,9 +201,9 @@ class ReportInstanceSearchServiceTest {
 
         @Test
         void whenRequestedBusinessUnitIsNotPermitted_accessDeniedIsThrown_sadPath() {
-            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
+            setBusinessUnitUsers(
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS)
-            ));
+            );
 
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
@@ -209,10 +219,10 @@ class ReportInstanceSearchServiceTest {
         void whenRequestedBusinessUnitsAreMissing_returnsPermittedIds_happyPath(
             List<Integer> requestedBusinessUnitIds
         ) {
-            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
+            setBusinessUnitUsers(
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)
-            ));
+            );
 
             List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(requestedBusinessUnitIds);
 
@@ -232,7 +242,7 @@ class ReportInstanceSearchServiceTest {
                 businessUnitUser("BU1", (short) 10, SEARCH_AND_VIEW_ACCOUNTS, ACCOUNT_MAINTENANCE);
             BusinessUnitUser buUser2 = businessUnitUser("BU2", (short) 20, SEARCH_AND_VIEW_ACCOUNTS);
 
-            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(buUser1, buUser2));
+            setBusinessUnitUsers(buUser1, buUser2);
 
             Map<String, List<Long>> result = reportInstanceSearchService.findPermittedReportForBusinessUnits(
                 List.of(searchReport, maintenanceReport),
@@ -267,11 +277,7 @@ class ReportInstanceSearchServiceTest {
 
         @Test
         void whenBusinessUnitUsersAreMissing_returnsEmptyMap_happyPath() {
-            UserStateV2 userState = org.mockito.Mockito.mock(UserStateV2.class);
-            DomainBusinessUnitUsers domainBusinessUnitUsers = org.mockito.Mockito.mock(DomainBusinessUnitUsers.class);
-            when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
-            when(domainBusinessUnitUsers.getBusinessUnitUsers()).thenReturn(null);
-            setAuthenticatedUserWithPermissions(userState);
+            setNoBusinessUnitUsers();
 
             assertThat(reportInstanceSearchService.findPermittedReportForBusinessUnits(
                 List.of(report("search", SEARCH_AND_VIEW_ACCOUNTS)),

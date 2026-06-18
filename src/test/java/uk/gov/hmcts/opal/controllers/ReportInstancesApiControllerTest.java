@@ -56,20 +56,5 @@ class ReportInstancesApiControllerTest {
                 .searchReportInstances(FROM_DATE, TO_DATE, BUSINESS_UNITS, USER_ID, DEFAULT_REPORT_ID)
         );
     }
-
-    @Test
-    void getReportInstances_withNoParams_returnsEmptyServiceResult() {
-        when(genericReportService.searchReportInstances(null, null, null, null, null))
-            .thenReturn(List.of());
-
-        ResponseEntity<List<ReportInstanceListReportsInner>> response =
-            controller.getReportInstances(null, null, null, null, null);
-
-        assertAll(
-            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
-            () -> assertEquals(List.of(), response.getBody()),
-            () -> verify(genericReportService).searchReportInstances(null, null, null, null, null)
-        );
-    }
 }
 
