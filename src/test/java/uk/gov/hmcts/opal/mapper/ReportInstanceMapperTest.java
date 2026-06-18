@@ -56,8 +56,8 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
     }
 
     @Nested
-    @DisplayName("toDto()")
-    class ToDto {
+    @DisplayName("toReportInstanceListReportsInnerDto()")
+    class ToReportInstanceListReportsInnerDto {
 
         @Test
         @DisplayName("Should map all fields correctly")
@@ -65,7 +65,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             ReportEntity report = buildReportEntity();
             ReportInstanceEntity instance = buildReportInstanceEntity(report);
 
-            ReportInstanceListReportsInner result = mapper.toDto(instance, report);
+            ReportInstanceListReportsInner result = mapper.toReportInstanceListReportsInnerDto(instance);
 
             assertAll(
                 () -> assertEquals(instance.getReportInstanceId(), result.getInstanceId()),
@@ -116,10 +116,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         @Test
         @DisplayName("Should use instance report name when set")
         void shouldUseInstanceReportNameWhenSet() {
-            assertEquals("My Report", mapper.mapReportName(
-                buildReportInstanceEntity(buildReportEntity()),
-                buildReportEntity()
-            ));
+            assertEquals("My Report", mapper.mapReportName(buildReportInstanceEntity(buildReportEntity())));
         }
 
         @Test
@@ -128,7 +125,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             ReportInstanceEntity instance = buildReportInstanceEntity(buildReportEntity());
             instance.setReportName(null);
 
-            assertEquals("Fallback Title", mapper.mapReportName(instance, buildReportEntity()));
+            assertEquals("Fallback Title", mapper.mapReportName(instance));
         }
 
         @Test
@@ -137,7 +134,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             ReportInstanceEntity instance = buildReportInstanceEntity(buildReportEntity());
             instance.setReportName("  ");
 
-            assertEquals("Fallback Title", mapper.mapReportName(instance, buildReportEntity()));
+            assertEquals("Fallback Title", mapper.mapReportName(instance));
         }
     }
 
@@ -193,10 +190,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         @Test
         @DisplayName("Should return true when READY and has supported file types")
         void shouldReturnTrueWhenReadyWithFileTypes() {
-            assertTrue(mapper.calculateIsDownloadable(
-                buildReportInstanceEntity(buildReportEntity()),
-                buildReportEntity()
-            ));
+            assertTrue(mapper.calculateIsDownloadable(buildReportInstanceEntity(buildReportEntity())));
         }
 
         @Test
@@ -205,7 +199,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             ReportInstanceEntity instance = buildReportInstanceEntity(buildReportEntity());
             instance.setGenerationStatus(IN_PROGRESS);
 
-            assertFalse(mapper.calculateIsDownloadable(instance, buildReportEntity()));
+            assertFalse(mapper.calculateIsDownloadable(instance));
         }
 
         @Test
@@ -217,7 +211,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(null)
                 .build();
 
-            assertFalse(mapper.calculateIsDownloadable(buildReportInstanceEntity(report), report));
+            assertFalse(mapper.calculateIsDownloadable(buildReportInstanceEntity(report)));
         }
 
         @Test
@@ -229,7 +223,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(List.of())
                 .build();
 
-            assertFalse(mapper.calculateIsDownloadable(buildReportInstanceEntity(report), report));
+            assertFalse(mapper.calculateIsDownloadable(buildReportInstanceEntity(report)));
         }
     }
 

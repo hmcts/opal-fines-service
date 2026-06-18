@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
@@ -21,33 +20,33 @@ public interface ReportInstanceMapper {
 
     CreateReportInstanceResponseReports toResponseDto(ReportInstanceEntity entity);
 
-    @Mapping(target = "instanceId", source = "instance.reportInstanceId")
-    @Mapping(target = "reportId", source = "instance.report.reportId")
-    @Mapping(target = "requestedAt", source = "instance.requestedAt")
-    @Mapping(target = "generatedAt", source = "instance.createdTimestamp")
-    @Mapping(target = "requestedBy", source = "instance")
-    @Mapping(target = "name", expression = "java(mapReportName(instance, report))")
+    @Mapping(target = "instanceId", source = "reportInstanceId")
+    @Mapping(target = "reportId", source = "report.reportId")
+    @Mapping(target = "requestedAt", source = "requestedAt")
+    @Mapping(target = "generatedAt", source = "createdTimestamp")
+    @Mapping(target = "requestedBy", source = ".")
+    @Mapping(target = "name", expression = "java(mapReportName(instance))")
     @Mapping(target = "businessUnits", expression = "java(mapBusinessUnits(instance.getBusinessUnit()))")
-    @Mapping(target = "status", source = "instance.generationStatus")
-    @Mapping(target = "numberOfRecords", source = "instance.noOfRecords")
-    @Mapping(target = "isDownloadable", expression = "java(calculateIsDownloadable(instance, report))")
+    @Mapping(target = "status", source = "generationStatus")
+    @Mapping(target = "numberOfRecords", source = "noOfRecords")
+    @Mapping(target = "isDownloadable", expression = "java(calculateIsDownloadable(instance))")
     @Mapping(target = "supportedFileTypes", source = "report.supportedFileTypes")
-    ReportInstanceListReportsInner toDto(ReportInstanceEntity instance, ReportEntity report);
+    ReportInstanceListReportsInner toReportInstanceListReportsInnerDto(ReportInstanceEntity instance);
 
-    default String mapReportName(ReportInstanceEntity instance, ReportEntity report) {
+    default String mapReportName(ReportInstanceEntity instance) {
         return Optional.ofNullable(instance.getReportName())
             .filter(name -> !name.isBlank())
-            .orElseGet(report::getReportTitle);
+            .orElseGet(() -> instance.getReport().getReportTitle());
     }
 
     @Mapping(target = "code", source = "status")
     @Mapping(target = "displayName", source = "status.displayName")
     StatusReports mapStatus(ReportInstanceGenerationStatus status);
 
-    default boolean calculateIsDownloadable(ReportInstanceEntity instance, ReportEntity report) {
+    default boolean calculateIsDownloadable(ReportInstanceEntity instance) {
         return instance.getGenerationStatus() == READY
-            && report.getSupportedFileTypes() != null
-            && !report.getSupportedFileTypes().isEmpty();
+            && instance.getReport().getSupportedFileTypes() != null
+            && !instance.getReport().getSupportedFileTypes().isEmpty();
     }
 
     @Mapping(target = "userId", source = "requestedBy")

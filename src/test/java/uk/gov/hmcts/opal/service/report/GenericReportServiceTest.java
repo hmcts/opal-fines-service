@@ -519,7 +519,7 @@ class GenericReportServiceTest {
                     List.of(10L)
                 ),
                 () -> verify(reportInstanceRepository).findAll(specificationMatcher()),
-                () -> verify(reportInstanceMapper).toDto(matching, report)
+                () -> verify(reportInstanceMapper).toReportInstanceListReportsInnerDto(matching)
             );
         }
 
@@ -546,7 +546,7 @@ class GenericReportServiceTest {
                 () -> Assertions.assertThat(result).containsExactly(dto),
                 () -> verify(reportInstanceSearchService).findPermittedReports(),
                 () -> verify(reportInstanceRepository).findAll(specificationMatcher()),
-                () -> verify(reportInstanceMapper).toDto(matching, report)
+                () -> verify(reportInstanceMapper).toReportInstanceListReportsInnerDto(matching)
             );
         }
 
@@ -558,7 +558,7 @@ class GenericReportServiceTest {
             mock_permittedReportForBusinessUnits(Map.of(PERMITTED_REPORT_ID, List.of(10L, 20L)));
             mockReportInstancesFound(List.of(matching, secondMatching));
             mockDtoMapped();
-            when(reportInstanceMapper.toDto(secondMatching, report)).thenReturn(secondDto);
+            when(reportInstanceMapper.toReportInstanceListReportsInnerDto(secondMatching)).thenReturn(secondDto);
 
             List<ReportInstanceListReportsInner> result =
                 genericReportService.searchReportInstances(FROM_DATE, TO_DATE, null, USER_ID, PERMITTED_REPORT_ID);
@@ -587,7 +587,7 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(result).isEmpty(),
                 () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher()),
-                () -> verify(reportInstanceMapper, never()).toDto(any(), any())
+                () -> verify(reportInstanceMapper, never()).toReportInstanceListReportsInnerDto(any())
             );
         }
 
@@ -596,7 +596,7 @@ class GenericReportServiceTest {
         }
 
         private void mockDtoMapped() {
-            when(reportInstanceMapper.toDto(matching, report)).thenReturn(dto);
+            when(reportInstanceMapper.toReportInstanceListReportsInnerDto(matching)).thenReturn(dto);
         }
 
         private void mock_permittedReportForBusinessUnits(Map<String, List<Long>> permittedReports) {

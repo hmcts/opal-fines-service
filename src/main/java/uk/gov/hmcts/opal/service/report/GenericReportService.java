@@ -172,12 +172,8 @@ public class GenericReportService implements GenericReportServiceInterface {
 
         log.debug("Found {} report instances", reportInstances.size());
 
-        Map<String, ReportEntity> reportIdToReport = selectedReports.stream()
-            .collect(Collectors.toMap(ReportEntity::getReportId, reportEntity -> reportEntity));
-
         return reportInstances.stream()
-            .map(instance -> reportInstanceMapper.toDto(instance,
-                reportIdToReport.get(instance.getReport().getReportId())))
+            .map(reportInstanceMapper::toReportInstanceListReportsInnerDto)
             .toList();
     }
 
