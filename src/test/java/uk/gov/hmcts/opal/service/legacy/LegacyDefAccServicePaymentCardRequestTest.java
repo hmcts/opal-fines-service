@@ -45,7 +45,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null, "4", "AUTH");
+            legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null, "Poster Name", "4", "AUTH");
 
         assertNotNull(out);
         assertEquals(123L, out.getDefendantAccountId());
@@ -65,7 +65,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
             isNull()
         );
 
-        legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null, "9", "AUTH");
+        legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null, "Poster Name", "9", "AUTH");
 
         AddPaymentCardLegacyRequest sent = captor.getValue();
         assertEquals("123", sent.getDefendantAccountId());
@@ -87,7 +87,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(99L, "78", null, "1", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(99L, "78", null, "Poster Name", "1", "AUTH")
         );
     }
 
@@ -106,7 +106,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(88L, "78", null, "2", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(88L, "78", null, "Poster Name", "2", "AUTH")
         );
     }
 
@@ -123,14 +123,14 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(55L, "78", null, "3", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(55L, "78", null, "Poster Name", "3", "AUTH")
         );
     }
 
     @Test
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(1L, "78", null, "notANumber", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(1L, "78", null, "Poster Name", "notANumber", "AUTH")
         );
     }
 
@@ -150,7 +150,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
 
         var actualResponse = legacyDefendantAccountService.addPaymentTerms(
             defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch,
+            businessUnitUserId, "Poster Name", ifMatch,
             "auth", null
         );
 
@@ -226,7 +226,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
             HttpServerErrorException.class, () ->
                 legacyDefendantAccountService.addPaymentTerms(
                     defendantAccountId, businessUnitId,
-                    businessUnitUserId, ifMatch,
+                    businessUnitUserId, "Poster Name", ifMatch,
                     "auth", null
                 )
         );
@@ -266,7 +266,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
 
         var actualResponse = legacyDefendantAccountService.addPaymentTerms(
             defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch,
+            businessUnitUserId, "Poster Name", ifMatch,
             "auth", null
         );
 

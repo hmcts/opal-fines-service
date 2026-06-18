@@ -963,6 +963,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         String authHeader) {
 
@@ -980,7 +981,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             authHeader
         );
 
-        auditComplete(defendantAccountId, account, businessUnitUserId, accessTokenService.extractName(authHeader));
+        auditComplete(defendantAccountId, account, businessUnitUserId, postedByName);
 
         return paymentCardResponse;
     }
@@ -1062,6 +1063,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         String authHeader,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
@@ -1136,7 +1138,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             businessUnitUserId,
-            savedPaymentTerms.getPostedByUsername(),
+            postedByName,
             defAccount.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );

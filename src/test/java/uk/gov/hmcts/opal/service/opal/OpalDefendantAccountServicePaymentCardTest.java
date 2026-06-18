@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
+import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -75,7 +76,7 @@ class OpalDefendantAccountServicePaymentCardTest {
             .thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "\"1\"", "AUTH"
+            accountId, "10", "L080JG", "Tester Name", "\"1\"", "AUTH"
         );
 
         assertNotNull(response);
@@ -85,6 +86,8 @@ class OpalDefendantAccountServicePaymentCardTest {
         assertEquals("John Smith", account.getPaymentCardRequestedByName());
 
         verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
+        verify(amendmentRepositoryService).auditFinaliseStoredProc(
+            accountId, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "L080JG", "Tester Name", null, "ACCOUNT_ENQUIRY");
     }
 
     @Test
@@ -98,7 +101,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(true);
 
         assertThrows(PaymentCardRequestAlreadyExistsException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null, "Tester Name", "\"1\"", "AUTH")
         );
     }
 
@@ -112,7 +115,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null, "Tester Name", "\"1\"", "AUTH")
         );
     }
 
@@ -128,7 +131,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         assertDoesNotThrow(() ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null, "Tester Name", "\"1\"", "AUTH")
         );
 
         assertTrue(account.getPaymentCardRequested());
@@ -145,7 +148,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"0\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null, "Tester Name", "\"0\"", "AUTH")
         );
     }
 
@@ -159,7 +162,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "Tester Name", "\"1\"", "AUTH")
         );
 
         verify(defendantAccountRepositoryService, never()).save(any());
@@ -185,7 +188,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "\"1\"", "AUTH"
+            accountId, "10", "L080JG", "Tester Name", "\"1\"", "AUTH"
         );
 
         assertNotNull(response);

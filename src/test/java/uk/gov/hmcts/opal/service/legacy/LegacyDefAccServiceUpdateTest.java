@@ -72,7 +72,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .thenReturn(expected);
 
         UpdateDefendantAccountResponse result = legacyDefendantAccountService
-            .updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy);
+            .updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, "Poster Name");
 
         assertThat(result).isSameAs(expected);
 
@@ -115,7 +115,8 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .thenThrow(new RuntimeException("Simulate Run Time Exception from gateway"));
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy)
+            legacyDefendantAccountService.updateDefendantAccount(
+                defendantAccountId, businessUnitId, request, postedBy, "Poster Name")
         );
 
         verify(gatewayService).postToGateway(
@@ -148,7 +149,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .build();
 
         UpdateDefendantAccountResponse response = legacyDefendantAccountService
-            .updateDefendantAccount(77L, "78", request, "postedBy");
+            .updateDefendantAccount(77L, "78", request, "postedBy", "Poster Name");
         assertNull(response);
     }
 }

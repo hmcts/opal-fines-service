@@ -117,7 +117,7 @@ public class OpalDefendantAccountEnforcementService
             "ACCOUNT_ENQUIRY",
             jailDays,
             businessUnitUserId,
-            userState.getDisplayName(),
+            userState.getUserName(),
             reason,
             enforcerId,
             resultResponses,
@@ -130,6 +130,7 @@ public class OpalDefendantAccountEnforcementService
             opalDefendantAccountService.addPaymentTerms(defendantAccountId,
                                                         businessUnitId.toString(),
                                                         businessUnitUserId,
+                                                        userState.getUserName(),
                                                         defendantEntity.getVersion().toString(),
                                                         authHeader,
                                                         AddDefendantAccountPaymentTermsRequest.builder()

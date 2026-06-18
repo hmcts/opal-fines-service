@@ -254,6 +254,7 @@ class DefendantAccountServiceTest {
         when(defendantAccountServiceProxy.addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
+            eq("Normal User"),
             eq(ifMatch),
             eq(authHeader),
             any(AddDefendantAccountPaymentTermsRequest.class)))
@@ -269,6 +270,7 @@ class DefendantAccountServiceTest {
         verify(defendantAccountServiceProxy).addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
+            eq("Normal User"),
             eq(ifMatch),
             eq(authHeader),
             captor.capture());

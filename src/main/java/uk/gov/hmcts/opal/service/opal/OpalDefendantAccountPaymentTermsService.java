@@ -55,6 +55,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         String authHeader) {
 
@@ -72,7 +73,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         String displayName = accessTokenService.extractName(authHeader);
         updateDefendantAccountWithPcr(account, businessUnitUserId, displayName);
 
-        auditComplete(defendantAccountId, account, businessUnitUserId, displayName);
+        auditComplete(defendantAccountId, account, businessUnitUserId, postedByName);
 
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }

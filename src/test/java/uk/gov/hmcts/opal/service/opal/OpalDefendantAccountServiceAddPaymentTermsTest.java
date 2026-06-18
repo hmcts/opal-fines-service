@@ -145,7 +145,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(resultService.getResultById("55")).thenReturn(resultEntityLite);
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester",
+        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester", "Tester Name",
             ifMatch, postedBy, request);
 
         // Assert
@@ -205,8 +205,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
-            authHeader, request);
+        defendantAccountService.addPaymentTerms(
+            defendantAccountId, businessUnitId, businessUnitUserId, "Tester Name", ifMatch, authHeader, request);
 
         // Assert
         verify(paymentTermsService).addPaymentTerm(argThat(entity ->
