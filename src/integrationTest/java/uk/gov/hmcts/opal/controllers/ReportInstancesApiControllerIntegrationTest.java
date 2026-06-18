@@ -379,7 +379,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             );
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-
+    @Test
     void getReportInstance_success_singleBUInstance() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -422,6 +422,8 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                     SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
@@ -587,6 +589,8 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                     SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
@@ -718,6 +722,8 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.status").value(404));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
