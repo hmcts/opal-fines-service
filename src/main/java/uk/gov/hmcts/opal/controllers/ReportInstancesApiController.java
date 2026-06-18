@@ -49,7 +49,8 @@ public class ReportInstancesApiController implements ReportInstancesApi {
         return buildCreatedResponse(genericReportService.addReportInstance(createReportInstanceRequestReports, true));
     }
 
-
+    @FeatureToggle(feature = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING,
+        defaultValueProperty = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY)
     @Override
     public ResponseEntity<ReportInstanceReports> getReportInstance(Long id) {
         return buildResponse(genericReportService.getReportInstance(id));
