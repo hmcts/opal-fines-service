@@ -106,4 +106,7 @@ public class DefendantAccountHeaderViewEntity {
 
     @Column(name = "parent_guardian_debtor_type")
     private String parentGuardianDebtorType;
+
+    @Column(name = "has_consolidated_accounts")
+    private Boolean hasConsolidatedAccounts;
 }

@@ -26,7 +26,6 @@ import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
@@ -141,25 +140,6 @@ class DefendantAccountControllerTest {
             false
         );
         verifyNoInteractions(defendantAccountService);
-    }
-
-    @Test
-    void testGetHeaderSummary_Success() {
-        // Arrange
-        DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
-
-        when(defendantAccountService.getHeaderSummary(eq(1L), any()))
-            .thenReturn(mockBody);
-
-        // Act
-        ResponseEntity<DefendantAccountHeaderSummary> response =
-            defendantAccountController.getHeaderSummary(1L, BEARER_TOKEN);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockBody, response.getBody());
-
-        verify(defendantAccountService).getHeaderSummary(eq(1L), any());
     }
 
     @Test

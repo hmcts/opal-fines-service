@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,6 +42,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
@@ -66,7 +68,14 @@ class DefendantAccountServiceTest {
     @Test
     void testGetHeaderSummary() {
         // Arrange
-        DefendantAccountHeaderSummary headerSummary = DefendantAccountHeaderSummary.builder().build();
+        DefendantAccountHeaderSummaryPayload payload = DefendantAccountHeaderSummaryPayload.builder()
+            .accountNumber("X123")
+            .hasConsolidatedAccounts(Boolean.FALSE)
+            .build();
+        DefendantAccountHeaderSummary headerSummary = DefendantAccountHeaderSummary.builder()
+            .version(BigInteger.ZERO)
+            .payload(payload)
+            .build();
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
@@ -76,6 +85,8 @@ class DefendantAccountServiceTest {
 
         // Assert
         assertNotNull(result);
+        assertEquals("X123", result.getPayload().getAccountNumber());
+        assertFalse(result.getPayload().getHasConsolidatedAccounts());
     }
 
 
@@ -165,7 +176,14 @@ class DefendantAccountServiceTest {
             ))
             .build();
 
-        DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder().accountNumber("X123").build();
+        DefendantAccountHeaderSummaryPayload payload = DefendantAccountHeaderSummaryPayload.builder()
+            .accountNumber("X123")
+            .hasConsolidatedAccounts(Boolean.TRUE)
+            .build();
+        DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder()
+            .version(BigInteger.ZERO)
+            .payload(payload)
+            .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPerm);
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(expected);
@@ -173,7 +191,8 @@ class DefendantAccountServiceTest {
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
 
         assertNotNull(result);
-        assertEquals("X123", result.getAccountNumber());
+        assertEquals("X123", result.getPayload().getAccountNumber());
+        assertTrue(result.getPayload().getHasConsolidatedAccounts());
         verify(defendantAccountServiceProxy).getHeaderSummary(1L);
     }
 
