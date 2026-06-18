@@ -76,5 +76,4 @@ public interface ImpositionRepository extends JpaRepository<ImpositionEntity, Lo
     List<DefendantAccountImpositionData> findDefendantAccountImpositionsByDefendantAccountId(
         @Param("defendantAccountId") Long defendantAccountId
     );
-
 }
