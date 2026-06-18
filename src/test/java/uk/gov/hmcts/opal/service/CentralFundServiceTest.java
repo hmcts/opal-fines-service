@@ -136,6 +136,11 @@ class CentralFundServiceTest {
             }
 
             @Override
+            public String getBusinessUnitCode() {
+                return "LOND";
+            }
+
+            @Override
             public Boolean getWelshLanguage() {
                 return true;
             }
