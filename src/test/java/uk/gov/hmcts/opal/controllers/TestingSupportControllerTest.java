@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import uk.gov.hmcts.opal.TestService;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
@@ -48,6 +49,9 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private UserStateClientService userStateClientService;
+
+    @MockitoBean
+    private TestService testService;
 
     @Test
     void getAppMode() {
