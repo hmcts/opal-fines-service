@@ -25,6 +25,8 @@ public class TestService {
 
     private static final String RUN_JSON_TEST = "runJsonTest";
     private static final String RUN_PDF_TEST = "runPdfTest";
+    private static final String SETUP_PDF_TEST_DATA = "setupPdfTestData";
+    private static final String SETUP_JSON_TEST_DATA = "setupJsonTestData";
 
     private final BlobServiceClient blobServiceClient;
     private final String containerName;
@@ -48,9 +50,23 @@ public class TestService {
             return BinaryData.fromBytes(mergeJsonBlobs(container));
         } else if (RUN_PDF_TEST.equalsIgnoreCase(testName)) {
             return BinaryData.fromBytes(mergePdfBlobs(container));
+        } else if(SETUP_PDF_TEST_DATA.equalsIgnoreCase(testName)) {
+            return BinaryData.fromBytes(setupPdfTestData(container));
+        } else if(SETUP_JSON_TEST_DATA.equalsIgnoreCase(testName)) {
+            return BinaryData.fromBytes(setupJsonTestData(container));
+        } else {
+            throw new IllegalArgumentException("Unknown test name: " + testName);
         }
+    }
 
-        throw new IllegalArgumentException("Unsupported test name: " + testName);
+    private byte[] setupJsonTestData(BlobContainerClient container) {
+        //Create and upload 100 JSONs
+        return null;
+    }
+
+    private byte[] setupPdfTestData(BlobContainerClient container) {
+        //Create and upload 100 PDFs
+        return null;
     }
 
     private byte[] mergeJsonBlobs(BlobContainerClient container) {
