@@ -379,7 +379,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             );
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
+
     void getReportInstance_success_singleBUInstance() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -422,9 +422,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                     SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_success_multiBUInstance() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
@@ -479,9 +479,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                 REPORT_ID
             );
     void getReportInstance_success_useReportInstanceNameOverride() {
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_success_useReportInstanceNameOverride() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
@@ -527,9 +527,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     //INT.04 covered 1
     //INT.05 covered 1-4
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_success_butReportInstanceDataHasErrors() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -564,9 +564,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.errors[0].error").value("Generation failed"));
     }
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_success_allSupportedTypes() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -587,9 +587,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                     SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_success_reportParameters() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -609,11 +609,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.report_parameters.param2").value(987));
     }
 
-    //INT.09 covered 1
-
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_success_notReady_notDownloadable() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -637,9 +635,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.report_parameters").value(IsNull.nullValue()));
     }
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_success_readyNoTypes_notDownloadable() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -662,11 +660,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.report.supported_file_types").value(Matchers.empty()));
     }
 
-    //INT.12 covered 1
-
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_401_noToken() throws Exception {
         Mockito.doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).checkForAuthorisedUser();
@@ -678,9 +674,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
         result.andExpect(status().isUnauthorized());
     }
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_403_incorrectBUs() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -700,9 +696,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.status").value(403));
     }
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_404_reportInstanceNotFound() throws Exception {
         Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -722,9 +718,9 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.status").value(404));
     }
 
+    @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @Test
     void getReportInstance_attempt406() throws Exception {
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + "NOT_A_NUMBER")
@@ -732,8 +728,4 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
 
         result.andExpect(status().isNotAcceptable());
     }
-
-    //INT.17
-    //INT.18
-    //INT.19
 }
