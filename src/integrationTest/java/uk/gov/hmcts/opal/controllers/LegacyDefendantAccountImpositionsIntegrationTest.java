@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -130,7 +131,7 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
             eq(requestCaptor.getValue()),
             isNull()
         );
-        org.junit.jupiter.api.Assertions.assertEquals("12345", requestCaptor.getValue().getDefendantAccountId());
+        assertEquals("12345", requestCaptor.getValue().getDefendantAccountId());
     }
 
     @Test
