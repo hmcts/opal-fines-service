@@ -293,7 +293,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
 
         DefendantAccountHeaderSummaryPayload payload = DefendantAccountHeaderSummaryPayload.builder()
-            .defendantPartyId(response.getDefendantAccountId())
+            .defendantAccountId(response.getDefendantAccountId())
+            .defendantPartyId(response.getDefendantPartyId())
             .accountNumber(response.getAccountNumber())
             .defendantPartyId(response.getDefendantPartyId())
             .parentGuardianPartyId(response.getParentGuardianPartyId())
