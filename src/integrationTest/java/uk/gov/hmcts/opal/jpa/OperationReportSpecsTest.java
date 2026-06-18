@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
@@ -61,8 +62,14 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().businessUnitIds(null).build(),
             OperationReportByEnforcementFiltersDto.builder().businessUnitIds(List.of()).build(),
-            OperationReportByPaymentFiltersDto.builder().businessUnitIds(null).build(),
-            OperationReportByPaymentFiltersDto.builder().businessUnitIds(List.of()).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .businessUnitIds(null)
+                .build(),
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .businessUnitIds(List.of())
+                .build()
         );
     }
 
@@ -83,7 +90,10 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> businessUnitFiltersList() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().businessUnitIds(List.of(78L)).build(),
-            OperationReportByPaymentFiltersDto.builder().businessUnitIds(List.of(78L)).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .businessUnitIds(List.of(78L))
+                .build()
         );
     }
 
@@ -107,7 +117,10 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> adultFilters() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().includeAdult(true).build(),
-            OperationReportByPaymentFiltersDto.builder().includeAdult(true).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .includeAdult(true)
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .build()
         );
     }
 
@@ -131,7 +144,9 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> youthFilters() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().includeYouth(true).build(),
-            OperationReportByPaymentFiltersDto.builder().includeYouth(true).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .includeYouth(true).build()
         );
     }
 
@@ -154,7 +169,10 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> companyFilters() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().includeCompany(true).build(),
-            OperationReportByPaymentFiltersDto.builder().includeCompany(true).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .includeCompany(true)
+                .build()
         );
     }
 
@@ -176,7 +194,9 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> parentGuardianFilters() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().onlyAccountsWithParentGuardian(true).build(),
-            OperationReportByPaymentFiltersDto.builder().onlyAccountsWithParentGuardian(true).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .onlyAccountsWithParentGuardian(true).build()
         );
     }
 
@@ -198,7 +218,10 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> collectionOrderFiltersWithValue() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().collectionOrderChoice(WITH).build(),
-            OperationReportByPaymentFiltersDto.builder().collectionOrderChoice(WITH).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .collectionOrderChoice(WITH)
+                .build()
         );
     }
 
@@ -220,7 +243,10 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> collectionOrderFiltersWithoutValue() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().collectionOrderChoice(WITHOUT).build(),
-            OperationReportByPaymentFiltersDto.builder().collectionOrderChoice(WITHOUT).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .collectionOrderChoice(WITHOUT)
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .build()
         );
     }
 
@@ -243,7 +269,10 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> liveStatusFilters() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().accountStatus(LIVE).build(),
-            OperationReportByPaymentFiltersDto.builder().accountStatus(LIVE).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .accountStatus(LIVE)
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .build()
         );
     }
 
@@ -266,7 +295,10 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> closedStatusFilters() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().accountStatus(CLOSED).build(),
-            OperationReportByPaymentFiltersDto.builder().accountStatus(CLOSED).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .accountStatus(CLOSED)
+                .build()
         );
     }
 
@@ -293,6 +325,7 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
                 .minBalance(BigDecimal.valueOf(400))
                 .build(),
             OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
                 .maxBalance(BigDecimal.valueOf(600))
                 .minBalance(BigDecimal.valueOf(400))
                 .build()
@@ -319,6 +352,7 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
 
     private static Stream<OperationReportFiltersDto> nameRangeFilters() {
         return Stream.of(
+
             OperationReportByEnforcementFiltersDto.builder()
                 .lowerNameRange("l")
                 .upperNameRange("l")
@@ -326,6 +360,8 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .lowerNameRange("l")
                 .upperNameRange("l")
+                .reportMode(PaymentReportMode.SINCE_DATE)
+                .sinceDate(LocalDate.of(2000, 1, 1))
                 .build()
         );
     }
@@ -362,7 +398,9 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<OperationReportFiltersDto> next7DaysFilters() {
         return Stream.of(
             OperationReportByEnforcementFiltersDto.builder().firstPaymentOrPayByInNext7Days(true).build(),
-            OperationReportByPaymentFiltersDto.builder().firstPaymentOrPayByInNext7Days(true).build()
+            OperationReportByPaymentFiltersDto.builder()
+                .reportMode(PaymentReportMode.WITH_REGF)
+                .firstPaymentOrPayByInNext7Days(true).build()
         );
     }
 
@@ -387,6 +425,7 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     void paymentSpec_isPaymentMade_true_withFutureSinceDate_returnsNoAccounts() {
         OperationReportByPaymentFiltersDto filters = OperationReportByPaymentFiltersDto.builder()
             .isPaymentMade(true)
+            .reportMode(PaymentReportMode.SINCE_DATE)
             .sinceDate(LocalDate.now().plusYears(10))
             .build();
 
@@ -404,6 +443,7 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
 
         OperationReportByPaymentFiltersDto filters = OperationReportByPaymentFiltersDto.builder()
             .isPaymentMade(false)
+            .reportMode(PaymentReportMode.SINCE_DATE)
             .sinceDate(LocalDate.now().plusYears(10))
             .build();
 
@@ -419,6 +459,7 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
     void paymentSpec_sinceLastEnforcementAction_returnsMatchingAccounts() {
         OperationReportByPaymentFiltersDto filters = OperationReportByPaymentFiltersDto.builder()
             .sinceLastEnforcementAction(ABDC)
+            .reportMode(PaymentReportMode.SINCE_LAST_ENFORCEMENT)
             .build();
 
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
@@ -427,7 +468,6 @@ class OperationReportSpecsTest extends AbstractIntegrationTest {
             assertThat(account.getLastEnforcement()).isEqualTo(ABDC.value())
         );
     }
-
 
     @JiraStory("PO-2286")
     @JiraStory("PO-2255")

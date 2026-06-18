@@ -8,14 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
-import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
@@ -28,8 +25,6 @@ import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 public class OperationReportByPaymentService implements ReportInterface {
 
     private final DefendantAccountRepository defendantAccountRepository;
-    private final DefendantTransactionRepository defendantTransactionRepository;
-    private final EnforcementRepository enforcementRepository;
     private final DetailedResultMapper detailedResultMapper;
     private final ObjectMapper objectMapper;
     private final OperationReportByPaymentValidator validator;
@@ -47,74 +42,21 @@ public class OperationReportByPaymentService implements ReportInterface {
             OperationReportSpecs.accountFiltersSpec(filters),
             Sort.by(ACCOUNT_NUMBER)
         );
-        if (filters.getSinceLastEnforcementAction() != null) {
-            return detailedResultMapper.map(filterByLatestEnforcementPayment(accounts, filters));
-        }
-        if (Boolean.TRUE.equals(filters.getIsWithRegf())) {
-            return detailedResultMapper.map(filterByRegfPayment(accounts, filters));
-        }
-        return detailedResultMapper.map(accounts);
-    }
-
-    private List<DefendantAccountEntity> filterByLatestEnforcementPayment(
-        List<DefendantAccountEntity> accounts,
-        OperationReportByPaymentFiltersDto filters
-    ) {
-        boolean paymentMade = Boolean.TRUE.equals(filters.getIsPaymentMade());
-        return accounts.stream()
-            .filter(account -> paymentMade == hasPaymentAfterLatestEnforcement(
-                account, filters.getSinceLastEnforcementAction()))
-            .toList();
-    }
-
-    private List<DefendantAccountEntity> filterByRegfPayment(
-        List<DefendantAccountEntity> accounts,
-        OperationReportByPaymentFiltersDto filters
-    ) {
-        boolean paymentMade = Boolean.TRUE.equals(filters.getIsPaymentMade());
-        return accounts.stream()
-            .filter(account -> {
-                EnforcementEntity enforcement =
-                    enforcementRepository.findTopByDefendantAccountIdAndResultIdOrderByPostedDateAsc(
-                        account.getDefendantAccountId(),
-                        ResultId.REGF.name()
-                    );
-                if (enforcement == null || enforcement.getPostedDate() == null) {
-                    return false;
-                }
-                boolean hasPaymentAfterRegf =
-                    defendantTransactionRepository.existsByDefendantAccountIdAndPostedDateGreaterThanEqual(
-                        account.getDefendantAccountId(),
-                        enforcement.getPostedDate().toLocalDate()
-                    );
-                return paymentMade == hasPaymentAfterRegf;
-            })
-            .toList();
-    }
-
-    private boolean hasPaymentAfterLatestEnforcement(
-        DefendantAccountEntity account,
-        ResultId enforcementAction
-    ) {
-        EnforcementEntity enforcement =
-            enforcementRepository.findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(
-                account.getDefendantAccountId(),
-                enforcementAction.value()
+        PaymentReportMode reportMode = filters.getReportMode();
+        return switch (reportMode) {
+            case SINCE_LAST_ENFORCEMENT -> detailedResultMapper.map(
+                defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(
+                    filters.getSinceLastEnforcementAction().name(),
+                    Boolean.TRUE.equals(filters.getIsPaymentMade())
+                )
             );
-        return hasPaymentAfterEnforcement(account, enforcement);
-    }
-
-    private boolean hasPaymentAfterEnforcement(
-        DefendantAccountEntity account,
-        EnforcementEntity enforcement
-    ) {
-        if (enforcement == null || enforcement.getPostedDate() == null) {
-            return false;
-        }
-        return defendantTransactionRepository.existsByDefendantAccountIdAndPostedDateGreaterThanEqual(
-            account.getDefendantAccountId(),
-            enforcement.getPostedDate().toLocalDate()
-        );
+            case WITH_REGF -> detailedResultMapper.map(
+                defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(
+                    Boolean.TRUE.equals(filters.getIsPaymentMade())
+                )
+            );
+            default -> detailedResultMapper.map(accounts);
+        };
     }
 
     private OperationReportByPaymentFiltersDto readFilters(ReportInstanceEntity reportInstance) {

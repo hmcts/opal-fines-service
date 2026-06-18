@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 import uk.gov.hmcts.opal.entity.PartyEntity_;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
@@ -92,7 +93,9 @@ public final class OperationReportSpecs {
     ) {
         List<Predicate> predicates = new ArrayList<>();
         addCommonFilters(root, query, cb, filters, predicates);
-        addIsPaymentMadeFilter(root, query, cb, filters, predicates);
+        if (filters.getReportMode().equals(PaymentReportMode.SINCE_DATE)) {
+            addIsPaymentMadeFilter(root, query, cb, filters, predicates);
+        }
         addLastEnforcementFilter(root, cb, filters, predicates);
         return combinePredicates(cb, predicates);
     }

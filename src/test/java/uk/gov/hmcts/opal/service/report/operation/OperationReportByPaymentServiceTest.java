@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -12,7 +11,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.dto.ResultId.ABDC;
 
-import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
@@ -60,9 +59,6 @@ class OperationReportByPaymentServiceTest {
 
     @Mock
     private OperationDetailedReport mappedDetailedReport;
-
-    @Mock
-    private EnforcementEntity enforcement;
 
     @Mock
     private DefendantAccountEntity account;
@@ -113,7 +109,8 @@ class OperationReportByPaymentServiceTest {
     void generateReportData_onlyAccountSpecs_onlyInteractsWithDefendantAccountRepository() {
         ReportInstanceEntity reportInstance = mockReportInstance("{ }");
         List<DefendantAccountEntity> accounts = List.of(mock(DefendantAccountEntity.class));
-        OperationReportByPaymentFiltersDto filters = OperationReportByPaymentFiltersDto.builder().build();
+        OperationReportByPaymentFiltersDto filters =
+            OperationReportByPaymentFiltersDto.builder().reportMode(PaymentReportMode.SINCE_DATE).build();
         when(objectMapper.readValue(any(String.class), eq(OperationReportByPaymentFiltersDto.class)))
             .thenReturn(filters);
         when(defendantAccountRepository.findAll(
@@ -129,22 +126,15 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
-        verifyNoInteractions(enforcementRepository, defendantTransactionRepository);
         Mockito.verify(detailedResultMapper).map(accounts);
     }
 
     @Test
     void generateReportData_withRegf() {
         ReportInstanceEntity reportInstance = mockReportInstance("{ }");
-        when(account.getDefendantAccountId()).thenReturn(1L);
-        when(enforcement.getPostedDate()).thenReturn(LocalDate.of(2000, 1, 1).atStartOfDay());
-        when(enforcementRepository.findTopByDefendantAccountIdAndResultIdOrderByPostedDateAsc(
-            1L, ResultId.REGF.name())).thenReturn(enforcement);
-        when(defendantTransactionRepository.existsByDefendantAccountIdAndPostedDateGreaterThanEqual(anyLong(),
-            any())).thenReturn(true);
         List<DefendantAccountEntity> accounts = List.of(account);
         OperationReportByPaymentFiltersDto filters = OperationReportByPaymentFiltersDto.builder()
-            .isWithRegf(true)
+            .reportMode(PaymentReportMode.WITH_REGF)
             .isPaymentMade(true)
             .build();
         when(objectMapper.readValue(any(String.class), eq(OperationReportByPaymentFiltersDto.class)))
@@ -153,9 +143,8 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-
-        when(enforcementRepository.findTopByDefendantAccountIdAndResultIdOrderByPostedDateAsc(1L,
-            ResultId.REGF.name())).thenReturn(enforcement);
+        when(defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(true)).thenReturn(
+            accounts);
         when(detailedResultMapper.map(any())).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
@@ -165,25 +154,17 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
-        Mockito.verify(enforcementRepository)
-            .findTopByDefendantAccountIdAndResultIdOrderByPostedDateAsc(1L, ResultId.REGF.name());
-        Mockito.verify(defendantTransactionRepository).existsByDefendantAccountIdAndPostedDateGreaterThanEqual(
-            1L, LocalDate.of(2000, 1, 1));
+        Mockito.verify(defendantAccountRepository).findAccountsWithPaymentMadeAfterFirstRegfEnforcement(true);
         Mockito.verify(detailedResultMapper).map(eq(accounts));
     }
 
     @Test
     void generateReportData_sinceLastEnforcement() {
         ReportInstanceEntity reportInstance = mockReportInstance("{ }");
-        when(account.getDefendantAccountId()).thenReturn(1L);
-        when(enforcement.getPostedDate()).thenReturn(LocalDate.of(2000, 1, 1).atStartOfDay());
-        when(enforcementRepository.findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(1L,
-            ABDC.name())).thenReturn(enforcement);
-        when(defendantTransactionRepository.existsByDefendantAccountIdAndPostedDateGreaterThanEqual(anyLong(),
-            any())).thenReturn(true);
         List<DefendantAccountEntity> accounts = List.of(account);
         OperationReportByPaymentFiltersDto filters = OperationReportByPaymentFiltersDto.builder()
             .sinceLastEnforcementAction(ABDC)
+            .reportMode(PaymentReportMode.SINCE_LAST_ENFORCEMENT)
             .isPaymentMade(true)
             .build();
         when(objectMapper.readValue(any(String.class), eq(OperationReportByPaymentFiltersDto.class)))
@@ -192,22 +173,17 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-
-        when(enforcementRepository.findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(1L,
-            ABDC.name())).thenReturn(enforcement);
+        when(defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(ABDC.name(),
+            true)).thenReturn(accounts);
         when(detailedResultMapper.map(any())).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
         assertThat(result).isSameAs(mappedDetailedReport);
         Mockito.verify(defendantAccountRepository).findAll(
-            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
-            any(Sort.class)
-        );
-        Mockito.verify(enforcementRepository)
-            .findTopByDefendantAccountIdAndResultIdOrderByPostedDateDescResultIdDesc(1L, ResultId.ABDC.name());
-        Mockito.verify(defendantTransactionRepository).existsByDefendantAccountIdAndPostedDateGreaterThanEqual(
-            1L, LocalDate.of(2000, 1, 1));
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(), any(Sort.class));
+        Mockito.verify(defendantAccountRepository)
+            .findAccountsWithPaymentMadeAfterLastEnforcementAction(ResultId.ABDC.name(), true);
         Mockito.verify(detailedResultMapper).map(eq(accounts));
     }
 

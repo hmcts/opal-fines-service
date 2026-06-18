@@ -13,6 +13,7 @@ public class OperationReportByEnforcementValidator {
 
     public void validate(OperationReportByEnforcementFiltersDto filters) {
         List<String> validationErrors = new ArrayList<>();
+        validateBusinessUnits(filters, validationErrors);
         validateLastActionFilters(filters, validationErrors);
         validateRegfFilters(filters, validationErrors);
 
@@ -20,6 +21,14 @@ public class OperationReportByEnforcementValidator {
             throw new IllegalArgumentException(
                 String.join("; ", validationErrors)
             );
+        }
+    }
+
+    private void validateBusinessUnits(OperationReportByEnforcementFiltersDto filters, List<String> validationErrors) {
+        List<Long> buIds = filters.getBusinessUnitIds();
+        if (buIds == null || buIds.isEmpty()) {
+            validationErrors.add(
+                "'businessUnitIds' must contain at least one business unit id");
         }
     }
 

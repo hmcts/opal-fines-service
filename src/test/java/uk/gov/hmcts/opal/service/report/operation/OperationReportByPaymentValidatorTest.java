@@ -1,101 +1,130 @@
 package uk.gov.hmcts.opal.service.report.operation;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.util.stream.Stream;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 
+@ExtendWith(MockitoExtension.class)
 class OperationReportByPaymentValidatorTest {
 
-    private final OperationReportByPaymentValidator validator =
-        new OperationReportByPaymentValidator();
+    private final OperationReportByPaymentValidator validator = new OperationReportByPaymentValidator();
+
+    @Mock
+    private OperationReportByPaymentFiltersDto filters;
 
     @Test
-    void validate_paymentFilterIsNull_throwsException() {
-        OperationReportByPaymentFiltersDto filter = OperationReportByPaymentFiltersDto.builder()
-            .isWithRegf(TRUE)
-            .build();
+    void validate_validFilters_doesNotThrow() {
+        when(filters.getBusinessUnitIds()).thenReturn(List.of(1L));
+        when(filters.getIsPaymentMade()).thenReturn(true);
+        when(filters.getReportMode()).thenReturn(PaymentReportMode.SINCE_DATE);
+        when(filters.getSinceDate()).thenReturn(java.time.LocalDate.now());
+        when(filters.getSinceLastEnforcementAction()).thenReturn(null);
 
-        assertThatThrownBy(() -> validator.validate(filter))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("'isPaymentMade' cannot be null");
+        assertDoesNotThrow(() -> validator.validate(filters));
     }
 
     @Test
-    void validate_multipleInvalidFilters_throwsException() {
-        OperationReportByPaymentFiltersDto filter = OperationReportByPaymentFiltersDto.builder().build();
+    void validate_whenIsPaymentMadeIsNull_throwsIllegalArgumentException() {
+        when(filters.getBusinessUnitIds()).thenReturn(List.of(1L));
+        when(filters.getIsPaymentMade()).thenReturn(null);
+        when(filters.getReportMode()).thenReturn(PaymentReportMode.SINCE_DATE);
+        when(filters.getSinceDate()).thenReturn(java.time.LocalDate.now());
+        when(filters.getSinceLastEnforcementAction()).thenReturn(null);
 
-        assertThatThrownBy(() -> validator.validate(filter))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("'isPaymentMade' cannot be null;"
-                + " Filters should contain exactly one of 'sinceLastEnforcementAction', 'sinceDate' or 'isWithRegf'");
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> validator.validate(filters));
+
+        assertEquals("'isPaymentMade' cannot be null", ex.getMessage());
+    }
+
+    @Test
+    void validate_whenReportModeIsNull_throwsIllegalArgumentException() {
+        when(filters.getBusinessUnitIds()).thenReturn(List.of(1L));
+        when(filters.getIsPaymentMade()).thenReturn(true);
+        when(filters.getReportMode()).thenReturn(null);
+        when(filters.getSinceDate()).thenReturn(null);
+        when(filters.getSinceLastEnforcementAction()).thenReturn(null);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> validator.validate(filters));
+
+        assertEquals("'reportMode' cannot be null", ex.getMessage());
+    }
+
+    @Test
+    void validate_whenSinceDateUsedWithWrongMode_throwsIllegalArgumentException() {
+        when(filters.getBusinessUnitIds()).thenReturn(List.of(1L));
+        when(filters.getIsPaymentMade()).thenReturn(true);
+        when(filters.getReportMode()).thenReturn(PaymentReportMode.WITH_REGF);
+        when(filters.getSinceDate()).thenReturn(java.time.LocalDate.now());
+        when(filters.getSinceLastEnforcementAction()).thenReturn(null);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> validator.validate(filters));
+
+        assertEquals("'sinceDate' can only be used with 'SINCE_DATE' reportMode", ex.getMessage());
+    }
+
+    @Test
+    void validate_whenSinceLastEnforcementActionUsedWithWrongMode_throwsIllegalArgumentException() {
+        when(filters.getBusinessUnitIds()).thenReturn(List.of(1L));
+        when(filters.getIsPaymentMade()).thenReturn(true);
+        when(filters.getReportMode()).thenReturn(PaymentReportMode.SINCE_DATE);
+        when(filters.getSinceDate()).thenReturn(LocalDate.now());
+        when(filters.getSinceLastEnforcementAction()).thenReturn(ResultId.ABDC);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> validator.validate(filters));
+
+        assertEquals(
+            "'sinceLastEnforcementAction' can only be used with 'SINCE_LAST_ENFORCEMENT' reportMode",
+            ex.getMessage()
+        );
     }
 
     @ParameterizedTest
-    @MethodSource("provideValidAccountFilters")
-    void validate_whenFiltersContainExactlyOneAccountFilter_doesNotThrow(OperationReportByPaymentFiltersDto filters) {
-        assertThatCode(() -> validator.validate(filters))
-            .doesNotThrowAnyException();
+    @NullAndEmptySource
+    void validate_nullOrEmptyBusinessUnitIds_throwsIllegalArgumentException(List<Long> buIds) {
+        when(filters.getBusinessUnitIds()).thenReturn(buIds);
+        when(filters.getIsPaymentMade()).thenReturn(true);
+        when(filters.getReportMode()).thenReturn(PaymentReportMode.WITH_REGF);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> validator.validate(filters));
+        assertEquals(
+            "'businessUnitIds' must contain at least one business unit id",
+            ex.getMessage()
+        );
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidAccountFilters")
-    void validate_whenFiltersContainsMoreThanOneAccountFilter_throwsException(
-        OperationReportByPaymentFiltersDto filters) {
-        assertThatThrownBy(() -> validator.validate(filters))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(
-                "Filters should contain exactly one of 'sinceLastEnforcementAction', 'sinceDate' or 'isWithRegf'");
-    }
+    @Test
+    void validate_whenMultipleFieldsInvalid_joinsAllMessages() {
+        when(filters.getIsPaymentMade()).thenReturn(null);
+        when(filters.getReportMode()).thenReturn(PaymentReportMode.SINCE_LAST_ENFORCEMENT);
+        when(filters.getSinceDate()).thenReturn(java.time.LocalDate.now());
+        when(filters.getSinceLastEnforcementAction()).thenReturn(null);
 
-    private static Stream<OperationReportByPaymentFiltersDto> provideValidAccountFilters() {
-        return Stream.of(
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(TRUE)
-                .isWithRegf(TRUE)
-                .build(),
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(FALSE)
-                .sinceLastEnforcementAction(ResultId.ABDC)
-                .build(),
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(TRUE)
-                .sinceDate(LocalDate.now())
-                .build());
-    }
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> validator.validate(filters));
 
-    private static Stream<OperationReportByPaymentFiltersDto> provideInvalidAccountFilters() {
-        return Stream.of(
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(TRUE)
-                .isWithRegf(true)
-                .sinceDate(LocalDate.now())
-                .build(),
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(TRUE)
-                .isWithRegf(true)
-                .sinceLastEnforcementAction(ResultId.ABDC)
-                .build(),
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(TRUE)
-                .sinceDate(LocalDate.now())
-                .sinceLastEnforcementAction(ResultId.ABDC)
-                .build(),
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(TRUE)
-                .sinceLastEnforcementAction(ResultId.ABDC)
-                .sinceDate(LocalDate.now())
-                .isWithRegf(TRUE).build(),
-            OperationReportByPaymentFiltersDto.builder()
-                .isPaymentMade(TRUE)
-                .build());
+        assertEquals(
+            "'businessUnitIds' must contain at least one business unit id; "
+                + "'isPaymentMade' cannot be null; "
+                + "'sinceLastEnforcementAction' cannot be null with 'SINCE_LAST_ENFORCEMENT' reportMode; "
+                + "'sinceDate' can only be used with 'SINCE_DATE' reportMode",
+            ex.getMessage()
+        );
     }
 }

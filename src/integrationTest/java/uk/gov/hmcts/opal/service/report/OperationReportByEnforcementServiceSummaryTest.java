@@ -45,8 +45,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.OperationReportByEnforcementServiceTest")
-@DisplayName("OperationReportByEnforcementServiceTest")
+@Slf4j(topic = "opal.OperationReportByEnforcementServiceSummaryTest")
+@DisplayName("OperationReportByEnforcementServiceSummaryTest")
 public class OperationReportByEnforcementServiceSummaryTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -93,7 +93,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
-              "reportType": "SUMMARY"
+              "reportType": "SUMMARY",
+              "businessUnitIds": [78]
             }
             """);
         //Act
@@ -149,7 +150,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
 
         SummaryReportTotalsRowDto totalsRow = result.getEnforcementReport().getTotals();
         assertThat(totalsRow.getAccountsReported()).isEqualTo(transactions.size());
-        int totalAccounts = (int) defendantAccountRepository.count();
+        int totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 78).size();
         assertThat(totalAccounts).isEqualTo(totalsRow.getAccountsReported());
 
         BigDecimal expectedTotalBalance = transactions.stream()
@@ -176,50 +177,21 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraStory("PO-2286")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7845")
-    void generateReportData_filterByBusinessUnitIds_returnSortedResultsOfCorrectBusinessUnitIds() {
-        //Arrange
-        List<DefendantAccountEntity> accountsInBusinessUnit =
-            defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77);
-        List<String> accountNumbers =
-            accountsInBusinessUnit.stream().map(DefendantAccountEntity::getAccountNumber).toList();
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn("""
-            {
-              "reportType": "SUMMARY",
-              "businessUnitIds": [77]
-            }
-            """);
-        //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
-        //Assert
-        List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
-        Assertions.assertThat(transactions)
-            .extracting(SummaryOperationReportRowDto::getAccountNo)
-            .allMatch(accountNumbers::contains)
-            .isSorted();
-        verifyMetadata(result, transactions);
-    }
-
-    @JiraStory("PO-2286")
-    @JiraEpic("PO-2248")
-    @Test
     @JiraTestKey("PO-7851")
     void generateReportData_filterByEnforcementModeAll_returnAllSortedResults() {
         //Arrange
         String json = """
             {
               "reportType": "SUMMARY",
-              "reportEnforcementMode": "ALL"
+              "reportEnforcementMode": "ALL",
+              "businessUnitIds": [77]
             }
             """;
         //Act
         OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
-        long totalAccounts = defendantAccountRepository.count();
+        long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();
         assertThat(totalAccounts).isEqualTo(result.getNumberOfRecords());
         List<SummaryOperationReportRowDto> transactions =
             result.getEnforcementReport().getReportSummaryRows();
@@ -239,7 +211,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         String json = """
             {
               "reportType": "SUMMARY",
-              "reportEnforcementMode": null
+              "reportEnforcementMode": null,
+              "businessUnitIds": [77]
             }
             """;
         //Act
@@ -248,7 +221,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         //Assert
         List<SummaryOperationReportRowDto> transactions =
             result.getEnforcementReport().getReportSummaryRows();
-        long totalAccounts = defendantAccountRepository.count();
+        long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();
         assertThat(totalAccounts).isEqualTo(transactions.size());
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
@@ -266,7 +239,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportEnforcementMode": "LAST_ACTION",
-              "reportType": "SUMMARY"
+              "reportType": "SUMMARY",
+              "businessUnitIds": [77, 78]
             }
             """
         );
@@ -284,7 +258,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             {
               "reportEnforcementMode": "LAST_ACTION",
               "enforcementAction": "ABDC",
-              "reportType": "SUMMARY"
+              "reportType": "SUMMARY",
+              "businessUnitIds": [77, 78]
             }
             """
         );
@@ -325,7 +300,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
               "reportEnforcementMode": "LAST_ACTION",
               "enforcementAction": "ABDC",
               "lastActionDateFrom": "%s",
-              "lastActionDateTo": "%s"
+              "lastActionDateTo": "%s",
+              "businessUnitIds": [77, 78]
             }
             """.formatted(
             start.format(fmt),
@@ -368,7 +344,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
               "reportType": "SUMMARY",
               "reportEnforcementMode": "REGF",
               "regfDateFrom": "%s",
-              "regfDateTo": "%s"
+              "regfDateTo": "%s",
+              "businessUnitIds": [77, 78]
             }
             """.formatted(from, to);
         //Act
@@ -408,7 +385,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         String json = """
             {
               "reportEnforcementMode": "REGF",
-              "reportType": "SUMMARY"
+              "reportType": "SUMMARY",
+              "businessUnitIds": [77, 78]
             }
             """;
         //Act
@@ -445,7 +423,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             {
               "reportType": "SUMMARY",
               "enforcementDateFrom": "2000-01-01",
-              "enforcementDateTo": "2000-02-02"
+              "enforcementDateTo": "2000-02-02",
+              "businessUnitIds": [77, 78]
             }
             """;
         //Act
@@ -484,7 +463,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         String json = """
             {
               "reportType": "SUMMARY",
-              "reportEnforcementMode": "NOT_UNDER_ENFORCEMENT"
+              "reportEnforcementMode": "NOT_UNDER_ENFORCEMENT",
+              "businessUnitIds": [77, 78]
             }
             """;
         //Act
@@ -523,7 +503,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "includeAdult": true
+              "includeAdult": true,
+              "businessUnitIds": [77, 78]
             }
             """);
         //Act
@@ -553,7 +534,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "includeYouth": true
+              "includeYouth": true,
+              "businessUnitIds": [77, 78]
             }
             """);
         //Act
@@ -583,7 +565,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "includeCompany": true
+              "includeCompany": true,
+              "businessUnitIds": [77, 78]
             }
             """);
         //Act
@@ -612,7 +595,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "onlyAccountsWithParentGuardian": true
+              "onlyAccountsWithParentGuardian": true,
+              "businessUnitIds": [77, 78]
             }
             """);
         //Act
@@ -636,7 +620,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @ParameterizedTest
     @CsvSource({
         "WITH, true",
-        "WITHOUT, false"
+        "WITHOUT, false",
     })
     @JiraTestKey("PO-7833")
     @JiraTestKey(value = "PO-8657", name = "[1] collectionOrderChoice = \"WITH\", expectedValue = \"true\"")
@@ -648,6 +632,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         // Arrange
         List<String> expectedAccountNumbers = defendantAccountRepository.findAll().stream()
             .filter(acc -> Boolean.valueOf(expectedValue).equals(acc.getCollectionOrder()))
+            .filter(acc -> acc.getBusinessUnit().getBusinessUnitId() == 77)
             .map(DefendantAccountEntity::getAccountNumber)
             .distinct()
             .toList();
@@ -657,7 +642,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "collectionOrderChoice": "%s"
+              "collectionOrderChoice": "%s",
+              "businessUnitIds": [77]
             }
             """.formatted(collectionOrderChoice));
         // Act
@@ -684,7 +670,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "accountStatus": "LIVE"
+              "accountStatus": "LIVE",
+              "businessUnitIds": [77, 78]
             }
             """);
         // Act
@@ -720,7 +707,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "accountStatus": "CLOSED"
+              "accountStatus": "CLOSED",
+              "businessUnitIds": [77, 78]
             }
             """);
         // Act
@@ -756,7 +744,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             {
               "reportType": "SUMMARY",
               "minBalance": 400.00,
-              "maxBalance": 600.00
+              "maxBalance": 600.00,
+              "businessUnitIds": [77, 78]
             }
             """);
         //Act
@@ -784,7 +773,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         given(reportInstance.getReportParameters()).willReturn("""
             {
               "reportType": "SUMMARY",
-              "firstPaymentOrPayByInNext7Days": "true"
+              "firstPaymentOrPayByInNext7Days": "true",
+              "businessUnitIds": [77, 78]
             }
             """);
         //Arrange
@@ -828,7 +818,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             {
               "reportType": "SUMMARY",
               "lowerNameRange": "l",
-              "upperNameRange": "l"
+              "upperNameRange": "l",
+              "businessUnitIds": [77, 78]
             }
             """);
         //Act

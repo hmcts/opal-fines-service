@@ -16,8 +16,8 @@ import uk.gov.hmcts.opal.dto.ResultId;
 public class OperationReportByPaymentFiltersDto extends OperationReportFiltersDto {
 
     private Boolean isPaymentMade;
+    private PaymentReportMode reportMode;
     private ResultId sinceLastEnforcementAction;
     private LocalDate sinceDate;
-    private Boolean isWithRegf;
 
 }
