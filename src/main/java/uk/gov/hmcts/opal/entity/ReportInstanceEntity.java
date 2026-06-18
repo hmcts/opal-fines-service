@@ -14,8 +14,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,7 +55,6 @@ public class ReportInstanceEntity {
     private Long auditSequence;
 
     @Column(name = "created_timestamp")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime createdTimestamp;
 
@@ -83,7 +80,6 @@ public class ReportInstanceEntity {
     private ReportInstanceGenerationStatus generationStatus;
 
     @Column(name = "scheduled_deletion_timestamp")
-    @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime scheduledDeletionTimestamp;
 
