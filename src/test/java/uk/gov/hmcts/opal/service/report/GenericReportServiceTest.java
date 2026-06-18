@@ -477,10 +477,8 @@ class GenericReportServiceTest {
         @Test
         void whenBusinessUnitsProvidedAndAnyAreNotPermitted_accessDeniedIsThrown_sadPath() {
             when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(report));
-            when(reportInstanceSearchService.findPermittedBusinessUnitIds()).thenReturn(List.of(10L));
-            when(reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(List.of(10L), List.of(10, 20)))
-                .thenThrow(new AccessDeniedException("User does not have permission for one or more specified "
-                    + "business units"));
+            when(reportInstanceSearchService.validateBusinessUnitIds(List.of(10, 20)))
+                .thenThrow(new AccessDeniedException("User does not have permission for business unit: 20"));
 
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
@@ -489,8 +487,8 @@ class GenericReportServiceTest {
 
             assertAll(
                 () -> Assertions.assertThat(exception.getMessage())
-                    .isEqualTo("User does not have permission for one or more specified business units"),
-                () -> verify(reportInstanceSearchService).findPermittedBusinessUnitIds(),
+                    .isEqualTo("User does not have permission for business unit: 20"),
+                () -> verify(reportInstanceSearchService).validateBusinessUnitIds(List.of(10, 20)),
                 () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher())
             );
         }
@@ -499,9 +497,7 @@ class GenericReportServiceTest {
         void whenReportIdAndBusinessUnitsProvidedAndAllPermitted_returnsData_happyPath() {
             when(reportInstanceSearchService.findRequestedReportElseThrowError(PERMITTED_REPORT_ID))
                 .thenReturn(report);
-            when(reportInstanceSearchService.findPermittedBusinessUnitIds()).thenReturn(List.of(10L, 20L));
-            when(reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(List.of(10L, 20L), List.of(10)))
-                .thenReturn(List.of(10L));
+            when(reportInstanceSearchService.validateBusinessUnitIds(List.of(10))).thenReturn(List.of(10L));
             mock_permittedReportForBusinessUnits(Map.of(PERMITTED_REPORT_ID, List.of(10L)));
             mockReportInstancesFound(List.of(matching));
             mockDtoMapped();
@@ -530,9 +526,7 @@ class GenericReportServiceTest {
         @Test
         void whenReportIdNotProvided_filtersOnlyPermittedReportIds_happyPath() {
             when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(report));
-            when(reportInstanceSearchService.findPermittedBusinessUnitIds()).thenReturn(List.of(10L));
-            when(reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(List.of(10L), null))
-                .thenReturn(List.of(10L));
+            when(reportInstanceSearchService.validateBusinessUnitIds(null)).thenReturn(List.of(10L));
             mock_permittedReportForBusinessUnits(
                 Map.of(PERMITTED_REPORT_ID, List.of(10L))
             );
@@ -560,9 +554,7 @@ class GenericReportServiceTest {
         void whenBusinessUnitsNotProvided_filtersOnlyAccessibleBusinessUnits_happyPath() {
             when(reportInstanceSearchService.findRequestedReportElseThrowError(PERMITTED_REPORT_ID))
                 .thenReturn(report);
-            when(reportInstanceSearchService.findPermittedBusinessUnitIds()).thenReturn(List.of(10L, 20L));
-            when(reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(List.of(10L, 20L), null))
-                .thenReturn(List.of(10L, 20L));
+            when(reportInstanceSearchService.validateBusinessUnitIds(null)).thenReturn(List.of(10L, 20L));
             mock_permittedReportForBusinessUnits(Map.of(PERMITTED_REPORT_ID, List.of(10L, 20L)));
             mockReportInstancesFound(List.of(matching, secondMatching));
             mockDtoMapped();
@@ -574,7 +566,7 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(result).containsExactly(dto, secondDto),
                 () -> verify(reportInstanceSearchService).findRequestedReportElseThrowError(PERMITTED_REPORT_ID),
-                () -> verify(reportInstanceSearchService).findPermittedBusinessUnitIds(),
+                () -> verify(reportInstanceSearchService).validateBusinessUnitIds(null),
                 () -> verify(reportInstanceSearchService).findPermittedReportForBusinessUnits(
                     List.of(report),
                     List.of(10L, 20L)
@@ -586,9 +578,7 @@ class GenericReportServiceTest {
         @Test
         void whenNoPermittedReportBusinessUnitMappingExists_emptyListIsReturned_happyPath() {
             when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(restrictedReport));
-            when(reportInstanceSearchService.findPermittedBusinessUnitIds()).thenReturn(List.of(10L));
-            when(reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(List.of(10L), null))
-                .thenReturn(List.of(10L));
+            when(reportInstanceSearchService.validateBusinessUnitIds(null)).thenReturn(List.of(10L));
             mock_permittedReportForBusinessUnits(Map.of());
 
             List<ReportInstanceListReportsInner> result =

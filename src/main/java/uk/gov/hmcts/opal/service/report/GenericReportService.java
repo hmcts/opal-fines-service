@@ -157,11 +157,7 @@ public class GenericReportService implements GenericReportServiceInterface {
             selectedReports = reportInstanceSearchService.findPermittedReports();
         }
 
-        List<Long> permittedBusinessUnitIds = reportInstanceSearchService.findPermittedBusinessUnitIds();
-        List<Long> selectedBusinessUnitIds = reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(
-            permittedBusinessUnitIds,
-            businessUnits
-        );
+        List<Long> selectedBusinessUnitIds = reportInstanceSearchService.validateBusinessUnitIds(businessUnits);
 
         Map<String, List<Long>> permittedReportForBusinessUnits =
             reportInstanceSearchService.findPermittedReportForBusinessUnits(selectedReports, selectedBusinessUnitIds);

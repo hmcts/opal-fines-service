@@ -45,17 +45,12 @@ public class ReportInstanceSearchService {
         return null;
     }
 
-    public List<Long> findPermittedBusinessUnitIds() {
-        return getBusinessUnitUsers().stream()
+    public List<Long> validateBusinessUnitIds(List<Integer> requestedBusinessUnitIds) {
+        List<Long> permittedBusinessUnitIds = getBusinessUnitUsers().stream()
             .map(buUser -> buUser.getBusinessUnitId().longValue())
             .distinct()
             .toList();
-    }
 
-    public List<Long> findSelectedBusinessUnitIdsElseThrowError(
-        List<Long> permittedBusinessUnitIds,
-        List<Integer> requestedBusinessUnitIds
-    ) {
         if (requestedBusinessUnitIds == null || requestedBusinessUnitIds.isEmpty()) {
             return permittedBusinessUnitIds;
         }
@@ -66,15 +61,15 @@ public class ReportInstanceSearchService {
             .distinct()
             .toList();
 
-        List<Long> selectedBusinessUnitIds = permittedBusinessUnitIds.stream()
-            .filter(requestedIds::contains)
-            .toList();
-
-        if (selectedBusinessUnitIds.size() != requestedIds.size()) {
-            throw new AccessDeniedException("User does not have permission for one or more specified business units");
+        for (Long requestedId : requestedIds) {
+            if (!permittedBusinessUnitIds.contains(requestedId)) {
+                throw new AccessDeniedException(
+                    "User does not have permission for business unit: " + requestedId
+                );
+            }
         }
 
-        return selectedBusinessUnitIds;
+        return requestedIds;
     }
 
     public Map<String, List<Long>> findPermittedReportForBusinessUnits(

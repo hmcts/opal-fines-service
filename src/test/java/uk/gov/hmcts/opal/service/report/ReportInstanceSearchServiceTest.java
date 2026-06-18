@@ -161,7 +161,7 @@ class ReportInstanceSearchServiceTest {
     }
 
     @Nested
-    class FindPermittedBusinessUnitIds {
+    class ValidateBusinessUnitIds {
 
         @Test
         void whenCurrentUserHasBusinessUnits_returnsDistinctIds_happyPath() {
@@ -171,38 +171,36 @@ class ReportInstanceSearchServiceTest {
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS)
             ));
 
-            List<Long> result = reportInstanceSearchService.findPermittedBusinessUnitIds();
+            List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(null);
 
             assertThat(result).containsExactly(10L, 20L);
         }
-    }
-
-    @Nested
-    class FindSelectedBusinessUnitIdsElseThrowError {
 
         @Test
         void whenRequestedBusinessUnitsArePermitted_returnsSelectedIds_happyPath() {
-            List<Long> result = reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(
-                List.of(10L, 20L, 30L),
-                List.of(10, 30)
-            );
+            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
+                businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
+                businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS),
+                businessUnitUserWithPermission("30", SEARCH_AND_VIEW_ACCOUNTS)
+            ));
+
+            List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(List.of(10, 30));
 
             assertThat(result).containsExactly(10L, 30L);
         }
 
         @Test
         void whenRequestedBusinessUnitIsNotPermitted_accessDeniedIsThrown_sadPath() {
+            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
+                businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS)
+            ));
+
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
-                () -> reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(
-                    List.of(10L),
-                    List.of(10, 20)
-                )
+                () -> reportInstanceSearchService.validateBusinessUnitIds(List.of(10, 20))
             );
 
-            assertThat(exception.getMessage()).isEqualTo(
-                "User does not have permission for one or more specified business units"
-            );
+            assertThat(exception.getMessage()).isEqualTo("User does not have permission for business unit: 20");
         }
 
         @ParameterizedTest
@@ -211,10 +209,12 @@ class ReportInstanceSearchServiceTest {
         void whenRequestedBusinessUnitsAreMissing_returnsPermittedIds_happyPath(
             List<Integer> requestedBusinessUnitIds
         ) {
-            List<Long> result = reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(
-                List.of(10L, 20L),
-                requestedBusinessUnitIds
-            );
+            setAuthenticatedUserWithPermissions(userStateWithBusinessUnitUsers(
+                businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
+                businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)
+            ));
+
+            List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(requestedBusinessUnitIds);
 
             assertThat(result).containsExactly(10L, 20L);
         }
