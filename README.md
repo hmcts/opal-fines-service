@@ -307,22 +307,32 @@ Run the matching functional or integration suite first if the report is not alre
 | --- | --- |
 | `functionalWithZephyrExecution` | Runs the default Opal functional suite, creates an Opal Cucumber report copy, creates an Opal Zephyr execution, then runs the Legacy functional suite and creates a Legacy Zephyr execution. |
 | `functionalWithTagsWithZephyrExecution` | Runs the default Opal functional suite and the tagged Opal functional suite selected by `TAGS` or `-Ptags`, then creates Zephyr executions for both reports. |
-| `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `target/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
-| `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `target/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
-| `functionalLegacyWithZephyrExecution` | Runs only `functionalLegacy`, copies its Cucumber report to `target/zephyr/cucumber-legacy.json`, and creates the Legacy Zephyr execution. |
+| `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `functional-output/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
+| `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `functional-output-demo/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
+| `functionalLegacyWithZephyrExecution` | Runs only `functionalLegacy`, copies its Cucumber report to `functional-output/zephyr/cucumber-legacy.json`, and creates the Legacy Zephyr execution. |
+| `smokeWithZephyrExecution` | Runs `smokeOpal`, copies its Cucumber report to `smoke-output/zephyr/cucumber-smoke.json`, and creates the smoke Zephyr execution. |
 
 | `createJiraTicketsFromCucumberReport` | Creates and links Jira test tickets from `target/cucumber.json`. |
 | `updateJiraTicketsFromCucumberReport` | Updates Jira test tickets from `target/cucumber.json`. |
+| `createJiraTicketsFromOpalCucumberReport` | Creates and links Jira test tickets from `functional-output/zephyr/cucumber-opal.json`. |
+| `updateJiraTicketsFromOpalCucumberReport` | Updates Jira test tickets from `functional-output/zephyr/cucumber-opal.json`. |
+| `createJiraTicketsFromOpalTagsCucumberReport` | Creates and links Jira test tickets from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
+| `updateJiraTicketsFromOpalTagsCucumberReport` | Updates Jira test tickets from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
+| `createJiraTicketsFromLegacyCucumberReport` | Creates and links Jira test tickets from `functional-output/zephyr/cucumber-legacy.json`. |
+| `updateJiraTicketsFromLegacyCucumberReport` | Updates Jira test tickets from `functional-output/zephyr/cucumber-legacy.json`. |
+| `createJiraTicketsFromSmokeCucumberReport` | Creates and links Jira test tickets from `smoke-output/zephyr/cucumber-smoke.json`. |
+| `updateJiraTicketsFromSmokeCucumberReport` | Updates Jira test tickets from `smoke-output/zephyr/cucumber-smoke.json`. |
 
 | `createJiraExecutionFromCucumberReport` | Creates a Zephyr execution from `target/cucumber.json`. |
-| `createJiraExecutionFromOpalCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal.json`. |
-| `createJiraExecutionFromOpalTagsCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal-tags.json`. |
-| `createJiraExecutionFromLegacyCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-legacy.json`. |
+| `createJiraExecutionFromOpalCucumberReport` | Creates a Zephyr execution from `functional-output/zephyr/cucumber-opal.json`. |
+| `createJiraExecutionFromOpalTagsCucumberReport` | Creates a Zephyr execution from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
+| `createJiraExecutionFromLegacyCucumberReport` | Creates a Zephyr execution from `functional-output/zephyr/cucumber-legacy.json`. |
+| `createJiraExecutionFromSmokeCucumberReport` | Creates a Zephyr execution from `smoke-output/zephyr/cucumber-smoke.json`. |
 
 | `integrationTestWithZephyrExecution` | Runs `integration`, then creates a Zephyr execution from the generated JUnit5 integration report. |
-| `createJiraTicketsFromJUnit5ReportIntegrationTest` | Creates and links Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
-| `updateJiraTicketsFromJUnit5ReportIntegrationTest` | Updates Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
-| `createJiraExecutionFromJUnit5ReportIntegrationTest` | Creates a Zephyr execution from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+| `createJiraTicketsFromJUnit5ReportIntegrationTest` | Creates and links Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `updateJiraTicketsFromJUnit5ReportIntegrationTest` | Updates Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `createJiraExecutionFromJUnit5ReportIntegrationTest` | Creates a Zephyr execution from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
 
 ## Manual api testing (Postman)
 

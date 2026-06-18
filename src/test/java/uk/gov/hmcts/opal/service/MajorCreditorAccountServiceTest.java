@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
@@ -31,6 +32,38 @@ class MajorCreditorAccountServiceTest {
 
     @InjectMocks
     private MajorCreditorAccountService majorCreditorAccountService;
+
+    @Test
+    void getAtAGlance_authorisedUserDelegatesToProxy() {
+        UserState userState = mock(UserState.class);
+        GetMajorCreditorAccountAtAGlanceResponse response = new GetMajorCreditorAccountAtAGlanceResponse();
+
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(majorCreditorAccountProxy.getAtAGlance(123L)).thenReturn(response);
+
+        GetMajorCreditorAccountAtAGlanceResponse result = majorCreditorAccountService.getAtAGlance(123L);
+
+        assertEquals(response, result);
+        verify(userStateService).checkForAuthorisedUser();
+        verify(majorCreditorAccountProxy).getAtAGlance(123L);
+    }
+
+    @Test
+    void getAtAGlance_withoutSearchAndViewAccountPermissionThrowsForbidden() {
+        UserState userState = mock(UserState.class);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(false);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+
+        PermissionNotAllowedException exception = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> majorCreditorAccountService.getAtAGlance(123L)
+        );
+
+        assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(majorCreditorAccountProxy);
+    }
 
     @Test
     void getHeaderSummary_authorisedUserDelegatesToProxy() {

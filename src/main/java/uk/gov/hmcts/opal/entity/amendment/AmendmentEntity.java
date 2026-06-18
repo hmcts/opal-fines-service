@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.entity.amendment;
 
-import uk.gov.hmcts.opal.util.LocalDateAdapter;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -49,8 +49,8 @@ public class AmendmentEntity {
 
     @Column(name = "amended_date", nullable = false)
     @JsonProperty("amended_date")
-    @XmlJavaTypeAdapter(LocalDateAdapter.class)
-    private LocalDate amendedDate;
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime amendedDate;
 
     @Column(name = "amended_by", length = 20, nullable = false)
     @JsonProperty("amended_by")

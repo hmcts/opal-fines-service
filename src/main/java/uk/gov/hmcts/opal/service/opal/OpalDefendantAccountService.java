@@ -66,6 +66,8 @@ import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -116,6 +118,7 @@ import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -177,6 +180,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final ReportEntryServiceInterface reportEntryService;
 
+    private final DefendantAccountHistoryService defendantAccountHistoryService;
+
     // Mappers
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
     private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
@@ -209,6 +214,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 + defendantAccountId));
 
         return defendantAccountHeaderSummaryMapper.toDto(entity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
+        return defendantAccountHistoryService.getHistory(defendantAccountId, filter);
     }
 
     @Override

@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,9 @@ import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -47,6 +53,37 @@ public class DefendantAccountService {
         }
 
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
+    }
+
+    public DefendantAccountHistoryResponse getHistory(Long defendantAccountId,
+                                                      LocalDate dateFrom,
+                                                      LocalDate dateTo,
+                                                      List<String> itemTypes,
+                                                      String authHeaderValue) {
+        log.debug(":getHistory:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
+            .dateFrom(dateFrom)
+            .dateTo(dateTo)
+            .itemTypes(toHistoryItemTypes(itemTypes))
+            .build();
+
+        return defendantAccountServiceProxy.getHistory(defendantAccountId, filter);
+    }
+
+    private List<HistoryItemType> toHistoryItemTypes(List<String> itemTypes) {
+        return itemTypes == null ? List.of() : itemTypes.stream()
+            .flatMap(itemType -> Arrays.stream(itemType.split(",")))
+            .map(String::trim)
+            .filter(itemType -> !itemType.isEmpty())
+            .map(HistoryItemType::fromValue)
+            .toList();
     }
 
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto,

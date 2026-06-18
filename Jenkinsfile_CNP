@@ -7,11 +7,6 @@ def type = "java"
 def product = "opal"
 def component = "fines-service"
 
-def archiveZephyrReports = {
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr-reports/**/*.json'
-}
-
 def determineDevEnvironmentDeployment() {
   env.TEST_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}.dev.platform.hmcts.net"
 
@@ -96,7 +91,7 @@ withPipeline(type, product, component) {
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
-    archiveZephyrReports()
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
 
     publishHTML target: [
         allowMissing         : true,
@@ -147,21 +142,20 @@ withPipeline(type, product, component) {
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "build/reports/tests/integration",
+        reportDir            : "integration-output/report",
         reportFiles          : "index.html",
         reportName           : "Integration Tests Report"
     ]
   }
 
   afterAlways('functionalTest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
-    archiveZephyrReports()
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
 
     publishHTML target: [
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "functional-test-report/",
+        reportDir            : "functional-output/report",
         reportFiles          : "index.html",
         reportName           : "Serenity Functional Test Report"
     ]
@@ -169,35 +163,33 @@ withPipeline(type, product, component) {
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "functional-test-report/htmlReport/",
+        reportDir            : "functional-output/report/htmlReport",
         reportFiles          : "test-summary.html",
         reportName           : "Test Summary Report"
     ]
   }
 
   afterAlways('smoketest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
-    archiveZephyrReports()
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
 
     publishHTML target: [
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "smoke-test-report/",
+        reportDir            : "smoke-output/report",
         reportFiles          : "index.html",
         reportName           : "Serenity Smoke Test Report"
     ]
   }
 
   afterAlways('functionalTest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
-    archiveZephyrReports()
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
 
     publishHTML target: [
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "functional-test-report/",
+        reportDir            : "functional-output/report",
         reportFiles          : "index.html",
         reportName           : "Serenity Functional Test Report"
     ]
@@ -205,20 +197,19 @@ withPipeline(type, product, component) {
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "functional-test-report/htmlReport/",
+        reportDir            : "functional-output/report/htmlReport",
         reportFiles          : "test-summary.html",
         reportName           : "Test Summary Report"
     ]
   }
   afterAlways('smoketest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
-    archiveZephyrReports()
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
 
     publishHTML target: [
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "smoke-test-report/",
+        reportDir            : "smoke-output/report",
         reportFiles          : "index.html",
         reportName           : "Serenity Smoke Test Report"
     ]

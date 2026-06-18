@@ -39,7 +39,11 @@ INSERT INTO results
     prevent_payment_card,
     lists_monies,
     result_parameters,
+    allow_payment_terms,
     requires_employment_data,
+    allow_additional_action,
+    enf_next_permitted_actions,
+    requires_lja,
     manual_enforcement
 )
 VALUES
@@ -68,7 +72,11 @@ VALUES
         FALSE,
         FALSE,
         NULL,
+        FALSE,   -- allow_payment_terms
         NULL,
+        FALSE,   -- allow_additional_action
+        NULL,    -- enf_next_permitted_actions
+        NULL,    -- requires_lja
         TRUE     -- manual_enforcement = true
     ),
     (
@@ -96,8 +104,12 @@ VALUES
         TRUE,
         TRUE,
         '{"param1":"value1","param2":"value2"}',
+        TRUE,    -- allow_payment_terms
         TRUE,
-        FALSE
+        TRUE,    -- allow_additional_action
+        'NOENF,WDN',  -- enf_next_permitted_actions
+        TRUE,    -- requires_lja
+        FALSE    -- manual_enforcement
     ),
     (
         'DDDDDD',
@@ -124,8 +136,12 @@ VALUES
         FALSE,
         FALSE,
         '{"warrantDate":"2023-08-15","issuedBy":"Court A"}',
+        NULL,    -- allow_payment_terms
         FALSE,
-        TRUE
+        NULL,    -- allow_additional_action
+        NULL,    -- enf_next_permitted_actions
+        FALSE,   -- requires_lja
+        TRUE     -- manual_enforcement
     ),
     (
         'CC0000',
@@ -152,6 +168,10 @@ VALUES
         FALSE,
         FALSE,
         NULL,
+        NULL,    -- allow_payment_terms
         NULL,
-        FALSE
+        NULL,    -- allow_additional_action
+        NULL,    -- enf_next_permitted_actions
+        NULL,    -- requires_lja
+        FALSE    -- manual_enforcement
     );

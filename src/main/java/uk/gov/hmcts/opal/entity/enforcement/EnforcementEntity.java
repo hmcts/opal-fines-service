@@ -132,7 +132,7 @@ public class EnforcementEntity {
     @JoinColumn(name = "enforcer_id", insertable = false, updatable = false)
     private EnforcerEntity enforcer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hearing_court_id", nullable = false, insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "hearing_court_id", nullable = true, insertable = false, updatable = false)
     private CourtEntity hearingCourt;
 }

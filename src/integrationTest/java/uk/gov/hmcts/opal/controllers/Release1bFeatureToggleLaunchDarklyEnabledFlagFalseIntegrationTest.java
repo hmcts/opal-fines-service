@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -49,5 +51,7 @@ class Release1bFeatureToggleLaunchDarklyEnabledFlagFalseIntegrationTest extends 
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.retriable").value(false));
+
+        verify(ldClient, times(1)).boolVariation(eq(RELEASE_1B), any(LDContext.class), anyBoolean());
     }
 }
