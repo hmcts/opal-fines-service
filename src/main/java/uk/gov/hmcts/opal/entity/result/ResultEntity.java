@@ -112,6 +112,18 @@ public class ResultEntity {
     @Column(name = "requires_employment_data")
     private Boolean requiresEmploymentData;
 
+    @Column(name = "allow_payment_terms")
+    private Boolean allowPaymentTerms;
+
+    @Column(name = "allow_additional_action")
+    private Boolean allowAdditionalAction;
+
+    @Column(name = "generates_warrant", nullable = false)
+    private boolean generatesWarrant;
+
+    @Column(name = "requires_lja")
+    private Boolean requiresLja;
+
     @Column(name = "manual_enforcement", nullable = false)
     private boolean manualEnforcement;
 

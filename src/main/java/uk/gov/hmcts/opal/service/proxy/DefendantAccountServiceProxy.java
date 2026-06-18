@@ -14,6 +14,8 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -40,6 +42,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         return getCurrentModeService().getHeaderSummary(defendantAccountId);
+    }
+
+    @Override
+    public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
+        return getCurrentModeService().getHistory(defendantAccountId, filter);
     }
 
     @Override

@@ -1,14 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opal-fines-service/LibraUserIds.json",
+  "$id": "https://opal-fines-service/LibraUserIdsRequest.json",
   "type": "object",
-  "required": [
-    "count"
-  ],
   "properties": {
-    "count": {
-      "type": "integer"
-    },
     "libra_user_ids": {
       "type": "array",
       "items": {

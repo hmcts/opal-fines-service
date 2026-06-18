@@ -12,13 +12,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.ReportQueueListener")
-@ConditionalOnProperty(prefix = "opal.report.consumer", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "opal.report.service-bus", name = "consumer-enabled", havingValue = "true")
 public class ReportQueueListener {
 
     private final ReportQueueConsumerService consumer;
 
     @JmsListener(
-        destination = "${opal.report.consumer.queue-name}",
+        destination = "${opal.report.service-bus.queue-name}",
         containerFactory = "reportListenerContainerFactory"
     )
     public void onMessage(Message message) throws JMSException {

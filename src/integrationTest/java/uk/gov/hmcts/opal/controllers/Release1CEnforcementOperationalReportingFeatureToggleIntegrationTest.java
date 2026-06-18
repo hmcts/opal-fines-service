@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.stream.Stream;
@@ -32,20 +33,23 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
     static Stream<Arguments> release1cEnforcementOperationalReportingEndpoints() {
         return Stream.of(
             // ReportsApiController
-            args("GET /reports/{id}", withAuth(get("/reports/1")))
+            args("GET /reports/{id}", withAuth(get("/reports/1"))),
+            args("POST /report-instances", withAuthAndJson(post("/report-instances")
+                .content("{\"business_unit_ids\":[1],\"report_id\":\"report-id\",\"report_parameters\":{}}")))
         );
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("release1cEnforcementOperationalReportingEndpoints")
-    @DisplayName("should return 405 Method Not Allowed")
+    @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2250")
+    @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
-    void shouldReturn405When1cEnforcementOperationalReportingIsDisabled(String description,
+    void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
-        log.debug("Testing feature-disabled 405 for: {}", description);
+        log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)
-            .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isNotFound());
     }
 }

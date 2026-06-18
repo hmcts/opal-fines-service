@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service.report;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static uk.gov.hmcts.opal.service.report.ReportId.CASH_LIST;
+import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 import static uk.gov.hmcts.opal.service.report.ReportId.FP_REGISTER;
 
 import org.junit.jupiter.api.Test;
@@ -16,10 +18,19 @@ class ReportIdTest {
     }
 
     @Test
+    void getReportId_cashListReportTypeExists_returnReportType() {
+        ReportId type = ReportId.fromReportId("cash_list");
+        assertEquals(CASH_LIST, type);
+    }
+
+    @Test
+    void getReportId_cashTillReportTypeExists_returnReportType() {
+        ReportId type = ReportId.fromReportId("cash_till");
+        assertEquals(CASH_TILL, type);
+    }
+
+    @Test
     void getReportId_reportTypeDoesNotExist_throwException() {
-        assertThrows(
-            ReportNotFoundException.class,
-            () -> ReportId.fromReportId("fake_report_type")
-        );
+        assertThrows(ReportNotFoundException.class, () -> ReportId.fromReportId("fake_report_type"));
     }
 }

@@ -58,14 +58,14 @@
   </suppress>
   <suppress until="2026-08-31Z">
     <notes><![CDATA[
-    Reviewed 2026-06-11.
+    Reviewed 2026-06-17.
     CVE-2026-33117 applies to com.azure:azure-keyvault-keys local cryptographic verification
     and is fixed in azure-keyvault-keys 4.10.6. This repo does not depend on
     azure-keyvault-keys; it uses Azure Blob Storage via BlobServiceClientBuilder,
     BlobContainerClient, and BlobClient. Keep this suppression only for false-positive
     generic Azure SDK mappings against the Blob Storage dependency chain used by this service.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core@1\.58\.0|azure\-core\-http\-netty@1\.16\.4|azure\-json@1\.5\.1|azure\-storage\-blob@12\.34\.0|azure\-storage\-common@12\.33\.0|azure\-storage\-internal\-avro@12\.19\.0|azure\-xml@1\.2\.1)$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core@1\.58\.(0|1)|azure\-core\-http\-netty@1\.16\.(4|5)|azure\-json@1\.5\.1|azure\-storage\-blob@12\.(34|35)\.0|azure\-storage\-common@12\.(33|34)\.0|azure\-storage\-internal\-avro@12\.(19|20)\.0|azure\-xml@1\.2\.1)$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
   <suppress until="2026-07-31Z">

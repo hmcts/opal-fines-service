@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService;
@@ -20,6 +21,12 @@ public class MajorCreditorAccountProxy implements MajorCreditorAccountServiceInt
 
     private MajorCreditorAccountServiceInterface getCurrentModeService() {
         return isLegacyMode(dynamicConfigService) ? legacyMajorCreditorAccountService : opalMajorCreditorAccountService;
+    }
+
+    @Override
+    public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
+        log.debug(":getAtAGlance: majorCreditorAccountId={}", majorCreditorAccountId);
+        return getCurrentModeService().getAtAGlance(majorCreditorAccountId);
     }
 
     @Override

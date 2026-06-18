@@ -135,6 +135,12 @@ class ResultMapperTest {
             .listsMonies(true)
             .resultParameters("A,B,C")
             .requiresEmploymentData(true)
+            .allowPaymentTerms(false)
+            .allowAdditionalAction(true)
+            .generatesWarrant(true)
+            .requiresLja(false)
+            .manualEnforcement(true)
+            .enfNextPermittedActions("ACTION1,ACTION2")
             .build();
 
         // Act
@@ -166,6 +172,12 @@ class ResultMapperTest {
         assertEquals(entity.isListsMonies(), dto.isListsMonies());
         assertEquals(entity.getResultParameters(), dto.getResultParameters());
         assertEquals(entity.getRequiresEmploymentData(), dto.getRequiresEmploymentData());
+        assertEquals(entity.getAllowPaymentTerms(), dto.getAllowPaymentTerms());
+        assertEquals(entity.getAllowAdditionalAction(), dto.getAllowAdditionalAction());
+        assertEquals(entity.isGeneratesWarrant(), dto.isGeneratesWarrant());
+        assertEquals(entity.getRequiresLja(), dto.getRequiresLja());
+        assertEquals(entity.isManualEnforcement(), dto.isManualEnforcement());
+        assertEquals(entity.getEnfNextPermittedActions(), dto.getEnfNextPermittedActions());
     }
 
 }

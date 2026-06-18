@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 )
 public abstract class ReportEntityMapper {
 
-    @Mapping(target = "reportParameters", source = "reportParameters", qualifiedByName = "parseJsonToMap")
+    @Mapping(target = "reportParameters", source = "reportParameters", qualifiedByName = "reportParametersToMap")
     @Mapping(target = "supportsMultipleBusinessUnits", source = "supportsMultiBu")
     @Mapping(target = "retentionPeriod", source = "retentionPeriod")
     @Mapping(target = "isBespokeJourney", source = "bespokeJourney")
