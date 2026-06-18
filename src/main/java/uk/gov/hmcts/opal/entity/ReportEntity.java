@@ -22,10 +22,6 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.service.report.ReportParameterData;
-import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-import uk.gov.hmcts.opal.entity.report.ReportSupportedFileType;
 
 @Entity
 @Table(name = "reports")
