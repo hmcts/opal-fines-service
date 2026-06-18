@@ -73,8 +73,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
@@ -100,7 +100,7 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.mapper.legacy.LegacyDefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
@@ -139,7 +139,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final HistoryItemOrderingService historyItemOrderingService;
 
     /* ---- Mappers ---- */
-    private final LegacyDefendantAccountHistoryResponseMapper legacyDefendantAccountHistoryResponseMapper;
+    private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
@@ -166,9 +166,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     @Override
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter) {
-        Response<LegacyGetDefendantAccountHistoryResponse> response = gatewayService.postToGateway(
+        Response<GetDefendantAccountHistoryLegacyResponse> response = gatewayService.postToGateway(
             GET_DEFENDANT_ACCOUNT_HISTORY,
-            LegacyGetDefendantAccountHistoryResponse.class,
+            GetDefendantAccountHistoryLegacyResponse.class,
             createGetDefendantAccountHistoryRequest(defendantAccountId, filter),
             null
         );
@@ -223,18 +223,22 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    static LegacyGetDefendantAccountHistoryRequest createGetDefendantAccountHistoryRequest(
+    static GetDefendantAccountHistoryLegacyRequest createGetDefendantAccountHistoryRequest(
         Long defendantAccountId,
         DefendantAccountHistoryFilter filter
     ) {
-        return LegacyGetDefendantAccountHistoryRequest.builder()
+        return GetDefendantAccountHistoryLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .fromDate(filter != null ? filter.getDateFrom() : null)
             .toDate(filter != null ? filter.getDateTo() : null)
             .itemTypes(filter == null || filter.getItemTypes() == null ? null : filter.getItemTypes().stream()
-                .map(HistoryItemType::getResponseValue)
+                .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
                 .toList())
             .build();
+    }
+
+    private static String toLegacyHistoryItemType(HistoryItemType itemType) {
+        return itemType == HistoryItemType.PAYMENT_TERMS ? "Payment Terms" : itemType.getResponseValue();
     }
 
     DefendantAccountHeaderSummary toHeaderSumaryDto(

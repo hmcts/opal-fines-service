@@ -25,8 +25,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -78,11 +78,11 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
             .andExpect(jsonPath("$.historyItems[4].type").value("Amendment"))
             .andExpect(jsonPath("$.historyItems[4].details.attributeName").value("Account status"));
 
-        ArgumentCaptor<LegacyGetDefendantAccountHistoryRequest> requestCaptor =
-            ArgumentCaptor.forClass(LegacyGetDefendantAccountHistoryRequest.class);
+        ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
         verify(gatewayService).postToGateway(
             eq(GET_DEFENDANT_ACCOUNT_HISTORY),
-            eq(LegacyGetDefendantAccountHistoryResponse.class),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         );
@@ -111,11 +111,11 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
             .andExpect(jsonPath("$.historyItems[1].type").value("Financial"));
 
-        ArgumentCaptor<LegacyGetDefendantAccountHistoryRequest> requestCaptor =
-            ArgumentCaptor.forClass(LegacyGetDefendantAccountHistoryRequest.class);
+        ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
         verify(gatewayService).postToGateway(
             eq(GET_DEFENDANT_ACCOUNT_HISTORY),
-            eq(LegacyGetDefendantAccountHistoryResponse.class),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         );

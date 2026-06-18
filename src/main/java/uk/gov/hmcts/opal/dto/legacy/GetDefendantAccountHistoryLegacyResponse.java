@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyGetDefendantAccountHistoryResponse implements ToXmlString {
+public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
 
     @XmlElement(name = "version")
     private Long version;

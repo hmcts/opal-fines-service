@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class LegacyGetDefendantAccountHistoryRequest {
+public class GetDefendantAccountHistoryLegacyRequest {
 
     @JsonProperty("defendant_account_id")
     private String defendantAccountId;

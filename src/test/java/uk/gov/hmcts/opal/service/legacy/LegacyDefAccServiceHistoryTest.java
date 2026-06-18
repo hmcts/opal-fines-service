@@ -24,11 +24,11 @@ import uk.gov.hmcts.opal.dto.history.EnforcementDetails;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.history.NoteDetails;
 import uk.gov.hmcts.opal.dto.history.PaymentTermsDetails;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryResponse.LegacyDefendantAccountHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryResponse.LegacyDefendantAccountHistoryItem;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryResponse.LegacyHistoryTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
@@ -41,22 +41,22 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
             .dateFrom(LocalDate.of(2026, 5, 11))
             .dateTo(LocalDate.of(2026, 5, 12))
-            .itemTypes(List.of(HistoryItemType.ENFORCEMENT, HistoryItemType.NOTE))
+            .itemTypes(List.of(HistoryItemType.ENFORCEMENT, HistoryItemType.PAYMENT_TERMS, HistoryItemType.NOTE))
             .build();
 
-        LegacyGetDefendantAccountHistoryRequest request =
+        GetDefendantAccountHistoryLegacyRequest request =
             LegacyDefendantAccountService.createGetDefendantAccountHistoryRequest(99000000000001L, filter);
 
         assertEquals("99000000000001", request.getDefendantAccountId());
         assertEquals(LocalDate.of(2026, 5, 11), request.getFromDate());
         assertEquals(LocalDate.of(2026, 5, 12), request.getToDate());
-        assertEquals(List.of("Enforcement", "Note"), request.getItemTypes());
+        assertEquals(List.of("Enforcement", "Payment Terms", "Note"), request.getItemTypes());
     }
 
     @SuppressWarnings("unchecked")
     @Test
     void getHistory_success_mapsMixedLegacyHistoryItems() {
-        LegacyGetDefendantAccountHistoryResponse responseBody = LegacyGetDefendantAccountHistoryResponse.builder()
+        GetDefendantAccountHistoryLegacyResponse responseBody = GetDefendantAccountHistoryLegacyResponse.builder()
             .version(9L)
             .historyItems(List.of(
                 amendmentItem(),
@@ -68,7 +68,7 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             .build();
 
         when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHistoryResponse>>any()
+            Mockito.<ParameterizedTypeReference<GetDefendantAccountHistoryLegacyResponse>>any()
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -98,11 +98,11 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals(LocalDateTime.of(2026, 5, 12, 10, 15), out.getHistoryItems().get(0).getEventDateTime());
         assertEquals(HistoryItemType.AMENDMENT, out.getHistoryItems().get(4).getType());
 
-        ArgumentCaptor<LegacyGetDefendantAccountHistoryRequest> requestCaptor =
-            ArgumentCaptor.forClass(LegacyGetDefendantAccountHistoryRequest.class);
+        ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
         verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_HISTORY),
-            eq(LegacyGetDefendantAccountHistoryResponse.class),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
             requestCaptor.capture(),
             eq(null)
         );
@@ -114,7 +114,7 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
     @Test
     void getHistory_success_withNullEntity_returnsDefaultEmptyResponse() {
         when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHistoryResponse>>any()
+            Mockito.<ParameterizedTypeReference<GetDefendantAccountHistoryLegacyResponse>>any()
         )).thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));

@@ -23,14 +23,14 @@ import uk.gov.hmcts.opal.dto.history.NoteDetails;
 import uk.gov.hmcts.opal.dto.history.PaymentMethodReference;
 import uk.gov.hmcts.opal.dto.history.PaymentTermsDetails;
 import uk.gov.hmcts.opal.dto.history.WriteOffTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface LegacyDefendantAccountHistoryResponseMapper {
+public interface DefendantAccountHistoryLegacyResponseMapper {
 
-    default DefendantAccountHistoryResponse toOpal(LegacyGetDefendantAccountHistoryResponse legacy) {
+    default DefendantAccountHistoryResponse toOpal(GetDefendantAccountHistoryLegacyResponse legacy) {
         if (legacy == null) {
             return DefendantAccountHistoryResponse.builder()
                 .version(BigInteger.ONE)
@@ -54,13 +54,13 @@ public interface LegacyDefendantAccountHistoryResponseMapper {
     @Mapping(target = "eventDateTime",
         expression = "java(item.getPostedDetails() == null ? null : item.getPostedDetails().getPostedDate())")
     DefendantAccountHistoryItem toHistoryItem(
-        LegacyGetDefendantAccountHistoryResponse.LegacyDefendantAccountHistoryItem item);
+        GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryItem item);
 
     PostedDetails toPostedDetails(LegacyPostedDetails postedDetails);
 
     default DefendantAccountHistoryDetails mapDetails(
         String typeValue,
-        LegacyGetDefendantAccountHistoryResponse.LegacyDefendantAccountHistoryDetails details
+        GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryDetails details
     ) {
         if (details == null || typeValue == null) {
             return null;
@@ -130,7 +130,7 @@ public interface LegacyDefendantAccountHistoryResponseMapper {
     }
 
     default DefendantTransactionTypeReference toTransactionTypeReference(
-        LegacyGetDefendantAccountHistoryResponse.LegacyHistoryTypeReference legacy
+        GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference legacy
     ) {
         if (legacy == null || legacy.getTransactionType() == null) {
             return null;
@@ -143,7 +143,7 @@ public interface LegacyDefendantAccountHistoryResponseMapper {
     }
 
     default PaymentMethodReference toPaymentMethodReference(
-        LegacyGetDefendantAccountHistoryResponse.LegacyHistoryTypeReference legacy
+        GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference legacy
     ) {
         if (legacy == null || legacy.getPaymentMethod() == null) {
             return null;
@@ -156,7 +156,7 @@ public interface LegacyDefendantAccountHistoryResponseMapper {
     }
 
     default WriteOffTypeReference toWriteOffTypeReference(
-        LegacyGetDefendantAccountHistoryResponse.LegacyHistoryTypeReference legacy
+        GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference legacy
     ) {
         if (legacy == null || legacy.getWriteOffType() == null) {
             return null;
@@ -169,7 +169,7 @@ public interface LegacyDefendantAccountHistoryResponseMapper {
     }
 
     default DefendantTransactionStatusReference toTransactionStatusReference(
-        LegacyGetDefendantAccountHistoryResponse.LegacyHistoryTypeReference legacy
+        GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference legacy
     ) {
         if (legacy == null || legacy.getDefendantTransactionStatus() == null) {
             return null;
