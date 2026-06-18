@@ -89,7 +89,7 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
         assertThat(requestCaptor.getValue().getDefendantAccountId()).isEqualTo("99000000000001");
         assertThat(requestCaptor.getValue().getFromDate()).isNull();
         assertThat(requestCaptor.getValue().getToDate()).isNull();
-        assertThat(requestCaptor.getValue().getItemTypes()).isEmpty();
+        assertThat(requestCaptor.getValue().getItemTypes()).isNull();
     }
 
     @Test

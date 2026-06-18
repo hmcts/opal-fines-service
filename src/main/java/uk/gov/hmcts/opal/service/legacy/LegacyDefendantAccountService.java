@@ -231,7 +231,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .defendantAccountId(String.valueOf(defendantAccountId))
             .fromDate(filter != null ? filter.getDateFrom() : null)
             .toDate(filter != null ? filter.getDateTo() : null)
-            .itemTypes(filter == null || filter.getItemTypes() == null ? null : filter.getItemTypes().stream()
+            .itemTypes(filter == null || filter.getItemTypes() == null || filter.getItemTypes().isEmpty() ? null
+                : filter.getItemTypes().stream()
                 .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
                 .toList())
             .build();
