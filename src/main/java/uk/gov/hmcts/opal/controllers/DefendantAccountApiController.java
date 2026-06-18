@@ -70,13 +70,12 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         Long id,
         LocalDate dateFrom,
         LocalDate dateTo,
-        List<String> itemTypes,
-        String authorization) {
+        List<String> itemTypes) {
 
         log.debug(":GET:getDefendantAccountHistory: for defendant id: {}", id);
 
         DefendantAccountHistoryResponse response =
-            defendantAccountService.getHistory(id, dateFrom, dateTo, itemTypes, authorization);
+            defendantAccountService.getHistory(id, dateFrom, dateTo, itemTypes);
 
         GetDefendantAccountHistoryResponse generatedResponse =
             defendantAccountHistoryResponseMapper.toGeneratedResponse(response);

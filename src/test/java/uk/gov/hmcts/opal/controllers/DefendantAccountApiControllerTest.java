@@ -102,19 +102,18 @@ class DefendantAccountApiControllerTest {
             .build();
         GetDefendantAccountHistoryResponse generatedResponse = new GetDefendantAccountHistoryResponse();
 
-        when(defendantAccountService.getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()), eq(BEARER_TOKEN)))
+        when(defendantAccountService.getHistory(eq(defendantId), eq(null), eq(null), eq(List.of())))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(generatedResponse);
 
         ResponseEntity<GetDefendantAccountHistoryResponse> response =
-            defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null, List.of(), BEARER_TOKEN);
+            defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null, List.of());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"1\"", response.getHeaders().getETag());
         assertSame(generatedResponse, response.getBody());
-        verify(defendantAccountService).getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()),
-            eq(BEARER_TOKEN));
+        verify(defendantAccountService).getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
     }
 
@@ -125,17 +124,14 @@ class DefendantAccountApiControllerTest {
         LocalDate dateTo = LocalDate.of(2026, 1, 31);
         List<String> itemTypes = List.of("note,paymentTerms", "enforcement");
         DefendantAccountHistoryResponse historyResponse = DefendantAccountHistoryResponse.builder().build();
-        when(defendantAccountService.getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes),
-            eq(BEARER_TOKEN)))
+        when(defendantAccountService.getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes)))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(new GetDefendantAccountHistoryResponse());
 
-        defendantAccountApiController.getDefendantAccountHistory(defendantId, dateFrom, dateTo, itemTypes,
-            BEARER_TOKEN);
+        defendantAccountApiController.getDefendantAccountHistory(defendantId, dateFrom, dateTo, itemTypes);
 
-        verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes),
-            eq(BEARER_TOKEN));
+        verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
     }
 

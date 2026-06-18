@@ -58,11 +58,10 @@ public class DefendantAccountService {
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId,
                                                       LocalDate dateFrom,
                                                       LocalDate dateTo,
-                                                      List<String> itemTypes,
-                                                      String authHeaderValue) {
+                                                      List<String> itemTypes) {
         log.debug(":getHistory:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
