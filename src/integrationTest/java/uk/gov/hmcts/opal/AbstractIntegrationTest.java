@@ -4,6 +4,7 @@ import static uk.gov.hmcts.opal.TestContainerConfig.POSTGRES_CONTAINER;
 import static uk.gov.hmcts.opal.TestContainerConfig.REDIS_CONTAINER;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -23,10 +24,10 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
-@SpringBootTest
+@SpringBootTest(classes = Application.class)
 @ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(htmlUnit = @AutoConfigureMockMvc.HtmlUnit(webClient = false, webDriver = false))
 @Import(IntegrationSecurityConfiguration.class)
 @ExtendWith(ZephyrAutomationExtension.class)
 @SuppressWarnings({"java:S6813", "SpringJavaInjectionPointsAutowiringInspection"})
@@ -60,9 +61,19 @@ public abstract class AbstractIntegrationTest {
     @BeforeEach
     public void beforeEach() {
         clearCaches();
-        WireMock.configureFor("localhost", 4553);
-        WireMock.reset();
+        resetWireMock();
         userStateStub = createUserStateStub();
+    }
+
+    private void resetWireMock() {
+        URI legacyGatewayUri = URI.create(TestContainerConfig.legacyGatewayUrl());
+        WireMock.configureFor(legacyGatewayUri.getHost(), legacyGatewayUri.getPort());
+        try {
+            WireMock.reset();
+        } catch (RuntimeException ex) {
+            log.debug("Skipping WireMock reset because legacy gateway is unavailable at {}",
+                TestContainerConfig.legacyGatewayUrl(), ex);
+        }
     }
 
     protected UserStateStub createUserStateStub() {

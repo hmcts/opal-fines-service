@@ -12,6 +12,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import java.time.Instant;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,6 +36,10 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     @Autowired
     UserStateClientService userStateClientService;
 
+    @BeforeEach
+    void setUp() {
+        redisTemplate.delete("USER_STATE_GfsHbIMt49WjQ");
+    }
 
     @SneakyThrows
     @Test

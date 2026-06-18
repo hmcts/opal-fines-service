@@ -4,8 +4,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
@@ -14,24 +16,24 @@ import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.FinancialsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
-public class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest extends AbstractMapperTest {
+@ExtendWith(MockitoExtension.class)
+class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest {
 
-    @Autowired
-    GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper mapper;
+    @InjectMocks
+    private GetMinorCreditorAccountHeaderSummaryResponseLegacyMapperImpl mapper;
 
-    @MockitoBean
-    LegacyPartyDetailsMapper partyDetailsMapper;
+    @Mock
+    private LegacyPartyDetailsMapper legacyPartyDetailsMapper;
 
-    @MockitoBean
-    FinancialsLegacyMapper financialsMapper;
+    @Mock
+    private FinancialsLegacyMapper financialsLegacyMapper;
 
-    @MockitoBean
-    BusinessUnitSummaryLegacyMapper businessUnitSummaryMapper;
+    @Mock
+    private BusinessUnitSummaryLegacyMapper businessUnitSummaryLegacyMapper;
 
-    @MockitoBean
-    CreditorHeaderLegacyMapper creditorHeaderMapper;
+    @Mock
+    private CreditorHeaderLegacyMapper creditorHeaderLegacyMapper;
 
     @Test
     void givenFullLegacyResponse_MapsExpectedFieldsAndCallsSubmappers() {
@@ -40,14 +42,11 @@ public class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest extend
         BusinessUnitSummary businessUnitSummary = BusinessUnitSummary.builder().build();
         CreditorHeaderLegacy creditorHeader = CreditorHeaderLegacy.builder().build();
         FinancialsLegacy financials = FinancialsLegacy.builder().build();
-
-
-
-        when(partyDetailsMapper.toOpal(partyDetails)).thenReturn(PartyDetails.builder().build());
-        when(businessUnitSummaryMapper.toOpal(businessUnitSummary)).thenReturn(
+        when(legacyPartyDetailsMapper.toOpal(partyDetails)).thenReturn(PartyDetails.builder().build());
+        when(businessUnitSummaryLegacyMapper.toOpal(businessUnitSummary)).thenReturn(
             uk.gov.hmcts.opal.dto.common.BusinessUnitSummary.builder().build());
-        when(creditorHeaderMapper.toOpal(creditorHeader)).thenReturn(CreditorHeader.builder().build());
-        when(financialsMapper.toOpal(financials)).thenReturn(Financials.builder().build());
+        when(creditorHeaderLegacyMapper.toOpal(creditorHeader)).thenReturn(CreditorHeader.builder().build());
+        when(financialsLegacyMapper.toOpal(financials)).thenReturn(Financials.builder().build());
 
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacy = GetMinorCreditorAccountHeaderSummaryLegacyResponse
             .builder()
@@ -61,9 +60,9 @@ public class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest extend
         mapper.toOpal(legacy);
 
         // Assert
-        verify(partyDetailsMapper).toOpal(partyDetails);
-        verify(businessUnitSummaryMapper).toOpal(businessUnitSummary);
-        verify(creditorHeaderMapper).toOpal(creditorHeader);
-        verify(financialsMapper).toOpal(financials);
+        verify(legacyPartyDetailsMapper).toOpal(partyDetails);
+        verify(businessUnitSummaryLegacyMapper).toOpal(businessUnitSummary);
+        verify(creditorHeaderLegacyMapper).toOpal(creditorHeader);
+        verify(financialsLegacyMapper).toOpal(financials);
     }
 }

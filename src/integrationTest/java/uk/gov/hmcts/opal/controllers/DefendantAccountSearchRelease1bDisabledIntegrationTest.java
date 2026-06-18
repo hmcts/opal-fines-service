@@ -41,7 +41,7 @@ class DefendantAccountSearchRelease1bDisabledIntegrationTest extends AbstractInt
                 .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(searchCriteria(true)))
-            .andExpect(status().isMethodNotAllowed())
+            .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"));
 

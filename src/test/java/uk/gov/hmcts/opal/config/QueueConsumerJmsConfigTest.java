@@ -33,10 +33,10 @@ class QueueConsumerJmsConfigTest {
 
         contextRunner
             .withPropertyValues(
-                "opal.report.consumer.enabled=true",
-                "opal.report.consumer.connection-string=Endpoint=sb://example.servicebus.windows.net/;"
+                "opal.report.service-bus.consumer-enabled=true",
+                "opal.common.service-bus.connection-string=Endpoint=sb://example.servicebus.windows.net/;"
                     + "SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=key",
-                "opal.report.consumer.queue-name=report"
+                "opal.report.service-bus.queue-name=report"
             )
             .run(context -> {
                 assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
@@ -48,7 +48,7 @@ class QueueConsumerJmsConfigTest {
     @Test
     void skipsJmsBeansWhenDisabled() {
         contextRunner
-            .withPropertyValues("opal.report.consumer.enabled=false")
+            .withPropertyValues("opal.report.service-bus.consumer-enabled=false")
             .run(context -> assertThat(context).doesNotHaveBean(ConnectionFactory.class));
     }
 
