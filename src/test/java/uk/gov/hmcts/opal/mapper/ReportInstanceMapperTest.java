@@ -15,6 +15,7 @@ import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REA
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQUESTED;
 import static uk.gov.hmcts.opal.entity.report.SupportedFileType.CSV;
 import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -142,7 +143,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         private static final LocalDateTime REQUESTED_AT = LocalDateTime.now().minusDays(1);
         private static final LocalDateTime GENERATED_AT = LocalDateTime.now();
         private static final LocalDateTime SCHEDULED_DELETION = LocalDateTime.now().plusDays(1);
-        private static final short NO_OF_RECORDS = (short) 10;
+        private static final Long NO_OF_RECORDS = 10L;
 
         @Autowired
         private ReportInstanceMapper reportInstanceMapper;
@@ -160,7 +161,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
     @Test
-    public void test_completedReportInstanceNoErrors() {
+    public void toReportInstanceReportsDto_completedReportInstanceNoErrors() {
         ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
             .reportInstanceId(REPORT_INSTANCE_ID)
             .requestedAt(REQUESTED_AT)
@@ -172,7 +173,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                     SupportedFileType.XML, SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.JSON))
                 .build())
             .reportName(null)
-            .businessUnit(List.of(1L, 2L))
+            .businessUnit(List.of(1, 2))
             .generationStatus(ReportInstanceGenerationStatus.READY)
             .noOfRecords(NO_OF_RECORDS)
             .errors(null)
@@ -190,7 +191,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
 
             //asserts
             assertNotNull(response);
-            assertEquals(REPORT_INSTANCE_ID, response.getInstanceId().longValue());
+            assertEquals(REPORT_INSTANCE_ID, response.getInstanceId());
             assertEquals(REQUESTED_AT, response.getRequestedAt());
             assertEquals(GENERATED_AT, response.getGeneratedAt());
             assertEquals(REPORT_TITLE, response.getName());
@@ -233,7 +234,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
     @Test
-    public void test_customReportInstanceNameOverridesReportTitle() {
+    public void toReportInstanceReportsDto_customReportInstanceNameOverridesReportTitle() {
         ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
             .reportInstanceId(REPORT_INSTANCE_ID)
             .requestedAt(REQUESTED_AT)
@@ -244,7 +245,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
                 .build())
             .reportName("Custom Name")
-            .businessUnit(List.of(1L, 2L))
+            .businessUnit(List.of(1, 2))
             .generationStatus(ReportInstanceGenerationStatus.READY)
             .noOfRecords(NO_OF_RECORDS)
             .errors(null)
@@ -265,7 +266,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
     @Test
-    public void test_errors() {
+    public void toReportInstanceReportsDto_errors() {
         ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
             .reportInstanceId(REPORT_INSTANCE_ID)
             .requestedAt(REQUESTED_AT)
@@ -276,7 +277,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
                 .build())
             .reportName(null)
-            .businessUnit(List.of(1L, 2L))
+            .businessUnit(List.of(1, 2))
             .generationStatus(ReportInstanceGenerationStatus.ERROR)
             .noOfRecords(NO_OF_RECORDS)
             .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
@@ -306,7 +307,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void test_reportInstanceReadyButSupportedFiletypesIsNull() {
+        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsNull() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -317,7 +318,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(null)
                 .build())
                 .reportName(null)
-                .businessUnit(List.of(1L, 2L))
+                .businessUnit(List.of(1, 2))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
@@ -338,7 +339,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void test_reportInstanceReadyButSupportedFiletypesIsEmpty() {
+        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsEmpty() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -349,7 +350,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(Collections.emptyList())
                 .build())
                 .reportName(null)
-                .businessUnit(List.of(1L, 2L))
+                .businessUnit(List.of(1, 2))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())

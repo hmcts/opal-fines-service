@@ -68,6 +68,8 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports.SupportedFileTypesEnum;
 import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
     private MockHttpServletRequestBuilder authorisedGet() {
         return get(URL_BASE)
@@ -375,9 +377,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                 null,
                 REPORT_ID
             );
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_singleBUInstance() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -418,9 +422,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                     SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_multiBUInstance() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
         Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
@@ -473,9 +479,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                 REPORT_ID
             );
     void getReportInstance_success_useReportInstanceNameOverride() {
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_useReportInstanceNameOverride() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
         Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
@@ -519,9 +527,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     //INT.04 covered 1
     //INT.05 covered 1-4
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_butReportInstanceDataHasErrors() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -554,9 +564,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.errors[0].error").value("Generation failed"));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_allSupportedTypes() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -575,9 +587,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
                     SupportedFileTypesEnum.XML.name(), SupportedFileTypesEnum.JSON.name())));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_reportParameters() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -597,9 +611,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
 
     //INT.09 covered 1
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_notReady_notDownloadable() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -621,9 +637,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.report_parameters").value(IsNull.nullValue()));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_success_readyNoTypes_notDownloadable() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -646,10 +664,12 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
 
     //INT.12 covered 1
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_401_noToken() throws Exception {
         Mockito.doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).checkForAuthorisedUser();
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_READY)
@@ -658,9 +678,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
         result.andExpect(status().isUnauthorized());
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_403_incorrectBUs() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -678,9 +700,11 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.status").value(403));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_404_reportInstanceNotFound() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -698,6 +722,8 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.status").value(404));
     }
 
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
     @Test
     void getReportInstance_attempt406() throws Exception {
         ResultActions result = mockMvc.perform(

@@ -49,13 +49,16 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
+import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -105,6 +108,23 @@ class GenericReportServiceTest {
     @Mock
     private BusinessUnitUser businessUnitUser1;
     @Mock
+    ReportParameterValidator reportParameterValidator;
+
+    @Mock
+    BusinessUnitRepository businessUnitRepository;
+
+    @Mock
+    BusinessUnitEntity businessUnitEntity1;
+
+    @Mock
+    BusinessUnitEntity businessUnitEntity2;
+
+    @Mock
+    ReportInstanceReports reportInstanceReports;
+
+    String reportId;
+
+    Instant now;
     private BusinessUnitUser businessUnitUser2;
     private GenericReportService genericReportService;
 
@@ -239,6 +259,68 @@ class GenericReportServiceTest {
         when(reportInstanceRepository.save(any())).thenThrow(RuntimeException.class);
         //Act + Assert
         assertThrows(ReportGenerationException.class, () -> genericReportService.generateReportInstanceContent(1L));
+    }
+
+    @Test
+    void getReportInstance_reportInstanceNotFound_throwsException() {
+        when(reportInstanceRepository.findById(1L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+            () -> genericReportService.getReportInstance(1L));
+
+        assertEquals("Report instance not found with id: 1", exception.getMessage());
+    }
+
+    @Test
+    void getReportInstance_withoutBusinessUnit_returnsReportInstance() {
+        when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of());
+        when(businessUnitRepository.findAllById(List.of())).thenReturn(List.of());
+        when(reportInstanceMapper.toReportInstanceReportsDto(reportInstance, List.of())).thenReturn(
+            reportInstanceReports);
+
+        ReportInstanceReports result = genericReportService.getReportInstance(1L);
+
+        assertThat(result).isEqualTo(reportInstanceReports);
+        verify(businessUnitRepository).findAllById(List.of());
+        verify(reportInstanceMapper).toReportInstanceReportsDto(reportInstance, List.of());
+    }
+
+    @Test
+    void getReportInstance_withMatchingBusinessUnits_returnsReportInstance() {
+        when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short) 2);
+        reportInstance.setBusinessUnit(List.of(1, 2));
+        when(businessUnitRepository.findAllById(List.of((short) 1, (short) 2))).thenReturn(
+            List.of(businessUnitEntity1, businessUnitEntity2));
+        when(reportInstanceMapper.toReportInstanceReportsDto(reportInstance, List.of(businessUnitEntity1,
+            businessUnitEntity2))).thenReturn(reportInstanceReports);
+
+        ReportInstanceReports result = genericReportService.getReportInstance(1L);
+
+        assertThat(result).isEqualTo(reportInstanceReports);
+        verify(businessUnitRepository).findAllById(List.of((short) 1, (short) 2));
+        verify(reportInstanceMapper).toReportInstanceReportsDto(reportInstance, List.of(businessUnitEntity1,
+            businessUnitEntity2));
+    }
+
+    @Test
+    void getReportInstance_withForeignBusinessUnits_throwsAccessDenied() {
+        when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+        reportInstance.setBusinessUnit(List.of(1, 2));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            () -> genericReportService.getReportInstance(1L));
+
+        assertEquals("You cannot request report instances associated with other business units",
+            exception.getMessage());
     }
 
     @Test
