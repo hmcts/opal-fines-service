@@ -135,6 +135,12 @@ paths:
             type: integer
             format: int64
           required: true
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: OK
@@ -144,6 +150,7 @@ paths:
           content:
             application/json:
               schema:
+                title: Defendant Account Header Summary Payload
                 type: object
                 required:
                   - defendant_account_id

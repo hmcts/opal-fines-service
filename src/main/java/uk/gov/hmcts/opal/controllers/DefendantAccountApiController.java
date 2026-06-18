@@ -9,9 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
@@ -27,6 +29,16 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     private final DefendantAccountService defendantAccountService;
     private final ImpositionService impositionService;
+
+    @Override
+    public ResponseEntity<DefendantAccountHeaderSummaryPayload> getDefendantAccountHeaderSummary(Long id,
+        String authHeaderValue) {
+        log.debug(":GET:getDefendantAccountHeaderSummary: for defendant id: {}", id);
+
+        DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(id, authHeaderValue);
+
+        return ResponseEntity.ok().eTag(VersionUtils.createETag(summary)).body(summary.getPayload());
+    }
 
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     @Override

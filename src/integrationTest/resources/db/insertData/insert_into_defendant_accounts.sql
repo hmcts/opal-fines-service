@@ -13,6 +13,7 @@
 * 18/03/2026  TMc      2.0      PO-2850 Amended insert statement for DOCUMENTS. Updated value (0) for PRIORITY column, now an ENUM, to '0'
 * 02/04/2026  Shan     3.0      PO-1897 Added additional seed data for PO-1897.
 * 07/05/2026  Shan     3.1      PO-1896 Seed a dedicated defendant account for OpalDefendantsPostPartyIntegrationTest.
+  18/06/2026  Joe      3.2      PO-2334 Seed data required for checking has_consolidated_accounts field of defendant account header summary
 **/
 
 -- Make sure we’re operating in the expected schema
@@ -1269,3 +1270,33 @@ VALUES (24010, NULL, NULL,
         NULL, NULL, NULL, NULL);
 
 -- END TEST DATA: PO-1896 - Seed data for add DAP
+
+-- ✅ TEST DATA: PO-2334 - Seed data for DefendantAccountHeaderSummary
+
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id,
+ account_number, amount_imposed, amount_paid,
+ account_balance, account_status, account_type )
+VALUES (990001, 0, 78,
+        '990001A', 100.00, 0.00,
+        100.00, 'L', 'Fine');
+
+INSERT INTO parties
+( party_id, organisation, surname, forenames )
+VALUES ( 990001, 'N', 'DefendantAccountHeaderSummary', 'Test');
+
+-- Defendant link
+INSERT INTO defendant_account_parties
+( defendant_account_party_id, defendant_account_id, party_id,
+ association_type, debtor )
+VALUES (990001, 990001, 990001,
+        'Defendant', 'Y');
+
+-- Consolidation transaction
+INSERT INTO defendant_transactions
+( defendant_transaction_id, defendant_account_id, transaction_type,
+ associated_record_type, posted_date, posted_by )
+VALUES (990001, 990001, 'CONSOL',
+        'defendant_accounts', '2023-11-03 16:05:10', '01000000A');
+
+-- END TEST DATA: PO-1896 - Seed data for DefendantAccountHeaderSummary

@@ -16,6 +16,9 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.DebtorTypeEnum;
 
 class DefendantAccountHeaderSummaryMapperTest {
 
@@ -33,8 +36,8 @@ class DefendantAccountHeaderSummaryMapperTest {
             .build();
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
-        assertEquals("Parent/Guardian", dto.getDebtorType());
-        assertTrue(dto.getIsYouth());
+        assertEquals(DebtorTypeEnum.PARENT_GUARDIAN, dto.getPayload().getDebtorType());
+        assertTrue(dto.getPayload().getIsYouth());
     }
 
     @Test
@@ -48,8 +51,34 @@ class DefendantAccountHeaderSummaryMapperTest {
             .build();
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
-        assertEquals("Defendant", dto.getDebtorType());
-        assertFalse(dto.getIsYouth());
+        assertEquals(DebtorTypeEnum.DEFENDANT, dto.getPayload().getDebtorType());
+        assertFalse(dto.getPayload().getIsYouth());
+    }
+
+    @Test
+    void mapToDto_setsHasConsolidatedAccountsReturnsTrue() {
+        DefendantAccountHeaderViewEntity entity =
+            DefendantAccountHeaderViewEntity.builder()
+                .hasConsolidatedAccounts(true)
+                .version(1L)
+                .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(entity);
+        assertNotNull(dto);
+        assertTrue(dto.getPayload().getHasConsolidatedAccounts());
+    }
+
+    @Test
+    void mapToDto_setsHasConsolidatedAccountsReturnsFalse() {
+        DefendantAccountHeaderViewEntity entity =
+            DefendantAccountHeaderViewEntity.builder()
+                .hasConsolidatedAccounts(false)
+                .version(1L)
+                .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(entity);
+        assertNotNull(dto);
+        assertFalse(dto.getPayload().getHasConsolidatedAccounts());
     }
 
     @Test
@@ -78,8 +107,8 @@ class DefendantAccountHeaderSummaryMapperTest {
             .build();
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
-        assertEquals("ACCT100", dto.getAccountNumber());
-        assertNotNull(dto.getPartyDetails());
+        assertEquals("ACCT100", dto.getPayload().getAccountNumber());
+        assertNotNull(dto.getPayload().getPartyDetails());
     }
 
     @Test
@@ -96,8 +125,8 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
         assertNotNull(dto);
-        assertEquals("77", dto.getDefendantAccountPartyId());
-        assertNotEquals("999", dto.getDefendantAccountPartyId());
+        assertEquals("77", dto.getPayload().getDefendantPartyId());
+        assertNotEquals("999", dto.getPayload().getDefendantPartyId());
     }
 
     @Test
@@ -111,7 +140,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertNull(dto.getDefendantAccountPartyId());
+        assertNull(dto.getPayload().getDefendantPartyId());
     }
 
     @Test
@@ -127,8 +156,8 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals("Fine", dto.getAccountType());
-        assertEquals("Live", dto.getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals(AccountTypeEnum.FINE, dto.getPayload().getAccountType());
+        assertEquals("Live", dto.getPayload().getAccountStatusReference().getAccountStatusDisplayName());
     }
 
     @Test
@@ -142,8 +171,9 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals("CS", dto.getAccountStatusReference().getAccountStatusCode());
-        assertEquals("Account consolidated", dto.getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals(AccountStatusCodeEnum.CS, dto.getPayload().getAccountStatusReference().getAccountStatusCode());
+        assertEquals("Account consolidated",
+            dto.getPayload().getAccountStatusReference().getAccountStatusDisplayName());
     }
 
     @Test
@@ -158,7 +188,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals("88", dto.getParentGuardianPartyId());
+        assertEquals("88", dto.getPayload().getParentGuardianPartyId());
     }
 
     @Test
@@ -173,7 +203,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertNull(dto.getAccountType());
+        assertNull(dto.getPayload().getAccountType());
     }
 
     @Test
@@ -191,10 +221,10 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getImposedAmount());
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getArrearsAmount());
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getPaidAmount());
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getAccountBalance());
+        assertEquals(BigDecimal.ZERO, dto.getPayload().getPaymentStateSummary().getImposedAmount());
+        assertEquals(BigDecimal.ZERO, dto.getPayload().getPaymentStateSummary().getArrearsAmount());
+        assertEquals(BigDecimal.ZERO, dto.getPayload().getPaymentStateSummary().getPaidAmount());
+        assertEquals(BigDecimal.ZERO, dto.getPayload().getPaymentStateSummary().getAccountBalance());
     }
 
     @Test
@@ -211,10 +241,10 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertTrue(dto.getPartyDetails().getOrganisationFlag());
-        assertEquals("101", dto.getPartyDetails().getPartyId());
-        assertEquals("Acme Ltd", dto.getPartyDetails().getOrganisationDetails().getOrganisationName());
-        assertNull(dto.getPartyDetails().getIndividualDetails());
+        assertTrue(dto.getPayload().getPartyDetails().getOrganisationFlag());
+        assertEquals("101", dto.getPayload().getPartyDetails().getPartyId());
+        assertEquals("Acme Ltd", dto.getPayload().getPartyDetails().getOrganisationDetails().getOrganisationName());
+        assertNull(dto.getPayload().getPartyDetails().getIndividualDetails());
     }
 
     @Test
@@ -234,7 +264,7 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
         String json = new ObjectMapper().writeValueAsString(dto);
 
-        assertTrue(json.contains("\"defendant_account_party_id\""));
+        assertTrue(json.contains("\"defendant_party_id\""));
         assertTrue(json.contains("\"party_details\""));
         assertTrue(json.contains("\"account_number\""));
     }

@@ -47,7 +47,7 @@ class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceT
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(123L);
 
         assertNotNull(out);
-        assertEquals("ACC", out.getAccountNumber());
+        assertEquals("ACC", out.getPayload().getAccountNumber());
     }
 
     @Test
@@ -71,7 +71,7 @@ class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceT
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(99L);
 
-        assertEquals("OKAY", out.getAccountNumber());
+        assertEquals("OKAY", out.getPayload().getAccountNumber());
     }
 
     @Test
@@ -106,8 +106,8 @@ class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceT
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(5L);
 
-        assertEquals(1, out.getPartyDetails().getOrganisationDetails().getOrganisationAliases().size());
-        assertEquals("GOOD", out.getPartyDetails().getOrganisationDetails()
+        assertEquals(1, out.getPayload().getPartyDetails().getOrganisationDetails().getOrganisationAliases().size());
+        assertEquals("GOOD", out.getPayload().getPartyDetails().getOrganisationDetails()
             .getOrganisationAliases().get(0).getAliasId());
     }
 
@@ -134,7 +134,7 @@ class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceT
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(77L);
 
-        assertEquals("1990-01-01", out.getPartyDetails().getIndividualDetails().getDateOfBirth());
+        assertEquals("1990-01-01", out.getPayload().getPartyDetails().getIndividualDetails().getDateOfBirth());
     }
 
     @Test
