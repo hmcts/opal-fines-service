@@ -150,17 +150,14 @@ public class GenericReportService implements GenericReportServiceInterface {
         final String reportId) {
         log.debug("Searching for report instances");
 
-        List<ReportEntity> permittedReports = reportInstanceSearchService.findPermittedReports();
-        ReportEntity report = reportInstanceSearchService.findRequestedReportElseThrowError(permittedReports, reportId);
-        List<Long> permittedBusinessUnitIds = reportInstanceSearchService.findPermittedBusinessUnitIds();
-
         List<ReportEntity> selectedReports;
-        if (report != null) {
-            selectedReports = List.of(report);
+        if (reportId != null && !reportId.isBlank()) {
+            selectedReports = List.of(reportInstanceSearchService.findRequestedReportElseThrowError(reportId));
         } else {
-            selectedReports = permittedReports;
+            selectedReports = reportInstanceSearchService.findPermittedReports();
         }
 
+        List<Long> permittedBusinessUnitIds = reportInstanceSearchService.findPermittedBusinessUnitIds();
         List<Long> selectedBusinessUnitIds = reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(
             permittedBusinessUnitIds,
             businessUnits

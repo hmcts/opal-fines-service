@@ -177,7 +177,7 @@ public class ReportInstanceTestData {
         return BusinessUnitUser.builder()
             .businessUnitUserId(businessUnitUserId)
             .businessUnitId(businessUnitId)
-            .permissions(Arrays.stream(permissions).map(FinesPermission::toUserPermission).collect(
+            .permissions(Arrays.stream(permissions).map(FinesPermission::toCommonPermission).collect(
                 java.util.stream.Collectors.toSet()))
             .build();
     }

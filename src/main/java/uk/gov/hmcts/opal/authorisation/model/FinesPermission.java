@@ -47,7 +47,7 @@ public enum FinesPermission implements PermissionDescriptor {
         }
     }
 
-    public Permission toUserPermission() {
+    public Permission toCommonPermission() {
         return Permission.builder()
             .permissionId(id)
             .permissionName(description)

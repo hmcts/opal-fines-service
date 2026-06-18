@@ -28,22 +28,20 @@ public class ReportInstanceSearchService {
     public List<ReportEntity> findPermittedReports() {
         OpalJwtAuthenticationToken authToken = getOpalJwtAuthenticationTokenForCurrentUser();
         return reportRepository.findAll().stream()
-            .filter(report -> authToken.hasPermission(report.getPermission().toUserPermission()))
+            .filter(report -> authToken.hasPermission(report.getPermission().toCommonPermission()))
             .toList();
     }
 
-    public ReportEntity findRequestedReportElseThrowError(List<ReportEntity> permittedReports, String reportId) {
+    public ReportEntity findRequestedReportElseThrowError(String reportId) {
         if (reportId != null && !reportId.isBlank()) {
-            return permittedReports.stream()
-                .filter(report -> reportId.equals(report.getReportId()))
-                .findFirst()
-                .orElseThrow(() -> {
-                    if (reportRepository.existsById(reportId)) {
-                        throw new AccessDeniedException("User does not have permission for reportId: " + reportId);
-                    }
-                    throw new EntityNotFoundException();
-                });
+            ReportEntity report = reportRepository.findById(reportId).orElseThrow(EntityNotFoundException::new);
+            OpalJwtAuthenticationToken authToken = getOpalJwtAuthenticationTokenForCurrentUser();
+            if (!authToken.hasPermission(report.getPermission().toCommonPermission())) {
+                throw new AccessDeniedException("User does not have permission for reportId: " + reportId);
+            }
+            return report;
         }
+
         return null;
     }
 
@@ -93,7 +91,7 @@ public class ReportInstanceSearchService {
         return businessUnitUsers.stream()
             .flatMap(buUser ->
                 reports.stream()
-                    .filter(report -> buUser.getPermissions().contains(report.getPermission().toUserPermission()))
+                    .filter(report -> buUser.getPermissions().contains(report.getPermission().toCommonPermission()))
                     .map(report -> Map.entry(report.getReportId(), buUser.getBusinessUnitId().longValue())))
             .collect(Collectors.groupingBy(
                 Map.Entry::getKey,

@@ -16,7 +16,7 @@ public class CommonTestData {
         return new BusinessUnitUser(
             "buUserId-1",
             Short.parseShort(businessUnitId),
-            Set.of(permission.toUserPermission())
+            Set.of(permission.toCommonPermission())
         );
     }
 

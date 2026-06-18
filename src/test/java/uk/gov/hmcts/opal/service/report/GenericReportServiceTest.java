@@ -456,8 +456,7 @@ class GenericReportServiceTest {
 
         @Test
         void whenReportIdProvidedButNoPermission_accessDeniedIsThrown_sadPath() {
-            when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(report));
-            when(reportInstanceSearchService.findRequestedReportElseThrowError(List.of(report), RESTRICTED_REPORT_ID))
+            when(reportInstanceSearchService.findRequestedReportElseThrowError(RESTRICTED_REPORT_ID))
                 .thenThrow(new AccessDeniedException("User does not have permission for reportId: "
                     + RESTRICTED_REPORT_ID));
 
@@ -470,8 +469,7 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(exception.getMessage())
                     .isEqualTo("User does not have permission for reportId: " + RESTRICTED_REPORT_ID),
-                () -> verify(reportInstanceSearchService)
-                    .findRequestedReportElseThrowError(List.of(report), RESTRICTED_REPORT_ID),
+                () -> verify(reportInstanceSearchService).findRequestedReportElseThrowError(RESTRICTED_REPORT_ID),
                 () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher())
             );
         }
@@ -499,8 +497,7 @@ class GenericReportServiceTest {
 
         @Test
         void whenReportIdAndBusinessUnitsProvidedAndAllPermitted_returnsData_happyPath() {
-            when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(report));
-            when(reportInstanceSearchService.findRequestedReportElseThrowError(List.of(report), PERMITTED_REPORT_ID))
+            when(reportInstanceSearchService.findRequestedReportElseThrowError(PERMITTED_REPORT_ID))
                 .thenReturn(report);
             when(reportInstanceSearchService.findPermittedBusinessUnitIds()).thenReturn(List.of(10L, 20L));
             when(reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(List.of(10L, 20L), List.of(10)))
@@ -520,8 +517,7 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(result).hasSize(1),
                 () -> Assertions.assertThat(result).containsExactly(dto),
-                () -> verify(reportInstanceSearchService)
-                    .findRequestedReportElseThrowError(List.of(report), PERMITTED_REPORT_ID),
+                () -> verify(reportInstanceSearchService).findRequestedReportElseThrowError(PERMITTED_REPORT_ID),
                 () -> verify(reportInstanceSearchService).findPermittedReportForBusinessUnits(
                     List.of(report),
                     List.of(10L)
@@ -556,15 +552,13 @@ class GenericReportServiceTest {
                 () -> Assertions.assertThat(result).containsExactly(dto),
                 () -> verify(reportInstanceSearchService).findPermittedReports(),
                 () -> verify(reportInstanceRepository).findAll(specificationMatcher()),
-                () -> verify(reportInstanceMapper).toDto(matching, report),
-                () -> verify(reportInstanceSearchService).findRequestedReportElseThrowError(List.of(report), null)
+                () -> verify(reportInstanceMapper).toDto(matching, report)
             );
         }
 
         @Test
         void whenBusinessUnitsNotProvided_filtersOnlyAccessibleBusinessUnits_happyPath() {
-            when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(report));
-            when(reportInstanceSearchService.findRequestedReportElseThrowError(List.of(report), PERMITTED_REPORT_ID))
+            when(reportInstanceSearchService.findRequestedReportElseThrowError(PERMITTED_REPORT_ID))
                 .thenReturn(report);
             when(reportInstanceSearchService.findPermittedBusinessUnitIds()).thenReturn(List.of(10L, 20L));
             when(reportInstanceSearchService.findSelectedBusinessUnitIdsElseThrowError(List.of(10L, 20L), null))
@@ -579,6 +573,7 @@ class GenericReportServiceTest {
 
             assertAll(
                 () -> Assertions.assertThat(result).containsExactly(dto, secondDto),
+                () -> verify(reportInstanceSearchService).findRequestedReportElseThrowError(PERMITTED_REPORT_ID),
                 () -> verify(reportInstanceSearchService).findPermittedBusinessUnitIds(),
                 () -> verify(reportInstanceSearchService).findPermittedReportForBusinessUnits(
                     List.of(report),

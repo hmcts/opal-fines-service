@@ -69,7 +69,7 @@ class ReportInstanceSearchServiceTest {
         SecurityContextHolder.setContext(securityContext);
 
         for (uk.gov.hmcts.opal.authorisation.model.FinesPermission permission : permissions) {
-            when(authToken.hasPermission(permission.toUserPermission())).thenReturn(true);
+            when(authToken.hasPermission(permission.toCommonPermission())).thenReturn(true);
         }
 
         if (userState != null) {
@@ -110,38 +110,40 @@ class ReportInstanceSearchServiceTest {
         @Test
         void whenReportIsPermitted_returnsReport_happyPath() {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+            when(reportRepository.findById(REPORT_ID)).thenReturn(java.util.Optional.of(permittedReport));
+            setAuthenticatedUserWithPermissions(null, SEARCH_AND_VIEW_ACCOUNTS);
 
-            ReportEntity result = reportInstanceSearchService.findRequestedReportElseThrowError(
-                List.of(permittedReport),
-                REPORT_ID
-            );
+            ReportEntity result = reportInstanceSearchService.findRequestedReportElseThrowError(REPORT_ID);
 
             assertSame(permittedReport, result);
         }
 
         @Test
         void whenReportExistsButIsNotPermitted_accessDeniedIsThrown_sadPath() {
-            when(reportRepository.existsById(REPORT_ID)).thenReturn(true);
+            when(reportRepository.findById(REPORT_ID)).thenReturn(
+                java.util.Optional.of(report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS))
+            );
+            setAuthenticatedUserWithPermissions(null);
 
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
-                () -> reportInstanceSearchService.findRequestedReportElseThrowError(List.of(), REPORT_ID)
+                () -> reportInstanceSearchService.findRequestedReportElseThrowError(REPORT_ID)
             );
 
             assertAll(
                 () -> assertThat(exception.getMessage())
                     .isEqualTo("User does not have permission for reportId: " + REPORT_ID),
-                () -> verify(reportRepository).existsById(REPORT_ID)
+                () -> verify(reportRepository).findById(REPORT_ID)
             );
         }
 
         @Test
         void whenReportDoesNotExist_entityNotFoundIsThrown_sadPath() {
-            when(reportRepository.existsById(REPORT_ID)).thenReturn(false);
+            when(reportRepository.findById(REPORT_ID)).thenReturn(java.util.Optional.empty());
 
             assertThrows(
                 EntityNotFoundException.class,
-                () -> reportInstanceSearchService.findRequestedReportElseThrowError(List.of(), REPORT_ID)
+                () -> reportInstanceSearchService.findRequestedReportElseThrowError(REPORT_ID)
             );
         }
 
@@ -149,11 +151,11 @@ class ReportInstanceSearchServiceTest {
         @NullSource
         @EmptySource
         void whenReportIdIsMissing_returnsNull_happyPath(String reportId) {
-            ReportEntity result = reportInstanceSearchService.findRequestedReportElseThrowError(List.of(), reportId);
+            ReportEntity result = reportInstanceSearchService.findRequestedReportElseThrowError(reportId);
 
             assertAll(
                 () -> assertThat(result).isNull(),
-                () -> verify(reportRepository, never()).existsById(anyString())
+                () -> verify(reportRepository, never()).findById(anyString())
             );
         }
     }
