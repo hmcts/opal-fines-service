@@ -58,13 +58,6 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ObjectMapper mapper;
     private final ReportInstanceSearchService reportInstanceSearchService;
 
-    private static void processError(ReportInstanceEntity instance, Exception exception) {
-        instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
-        instance.setErrors(ReportError.builder()
-            .operationId(LogUtil.getOrCreateOpalOperationId())
-            .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
-    }
-
     @Override
     public void generateReportInstanceContent(Long id) {
         final LocalDateTime currentTimestamp = LocalDateTime.now(clock);
@@ -148,23 +141,6 @@ public class GenericReportService implements GenericReportServiceInterface {
         }
     }
 
-    private ReportInstanceEntity saveReportInstance(ReportInstanceEntity instance) {
-        try {
-            return reportInstanceRepository.save(instance);
-        } catch (Exception e) {
-            throw new EntityNotSavedException("Unable to save report instance", e);
-        }
-    }
-
-    private String getDataAsJson(ReportDataInterface data) throws JacksonException {
-        return mapper.writeValueAsString(
-            Data.builder()
-                .reportData(data)
-                .reportMetaData(data.getReportMetaData())
-                .build()
-        );
-    }
-
     @Override
     public List<ReportInstanceListReportsInner> searchReportInstances(
         final LocalDate fromDate,
@@ -210,6 +186,30 @@ public class GenericReportService implements GenericReportServiceInterface {
             .map(instance -> reportInstanceMapper.toDto(instance,
                 reportIdToReport.get(instance.getReport().getReportId())))
             .toList();
+    }
+
+    private static void processError(ReportInstanceEntity instance, Exception exception) {
+        instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
+        instance.setErrors(ReportError.builder()
+            .operationId(LogUtil.getOrCreateOpalOperationId())
+            .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
+    }
+
+    private ReportInstanceEntity saveReportInstance(ReportInstanceEntity instance) {
+        try {
+            return reportInstanceRepository.save(instance);
+        } catch (Exception e) {
+            throw new EntityNotSavedException("Unable to save report instance", e);
+        }
+    }
+
+    private String getDataAsJson(ReportDataInterface data) throws JacksonException {
+        return mapper.writeValueAsString(
+            Data.builder()
+                .reportData(data)
+                .reportMetaData(data.getReportMetaData())
+                .build()
+        );
     }
 
     @Builder
