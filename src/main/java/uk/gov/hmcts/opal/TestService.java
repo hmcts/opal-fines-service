@@ -32,7 +32,7 @@ public class TestService {
     private final String pdfPrefix;
 
     public TestService(BlobServiceClient blobServiceClient,
-                       @Value("${opal.report.storage.container}") String containerName,
+                       @Value("${opal.report.storage.test-container:testcontainer}") String containerName,
                        @Value("${opal.report.storage.test-json-prefix:json/input/}") String jsonPrefix,
                        @Value("${opal.report.storage.test-pdf-prefix:pdf/input/}") String pdfPrefix) {
         this.blobServiceClient = blobServiceClient;
