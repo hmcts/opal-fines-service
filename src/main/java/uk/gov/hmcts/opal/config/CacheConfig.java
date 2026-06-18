@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.config;
 
 import io.lettuce.core.RedisURI;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 @Slf4j(topic = "opal.CacheConfig")
 @Configuration
@@ -92,7 +94,14 @@ public class CacheConfig {
     }
 
     private RedisSerializer<Object> redisValueSerializer() {
-        return GenericJacksonJsonRedisSerializer.builder().build();
+        return GenericJacksonJsonRedisSerializer.builder()
+            .enableDefaultTyping(BasicPolymorphicTypeValidator.builder().allowIfSubType(Object.class).build())
+            .writer((mapper, source) -> {
+                //Required to account for List types that are unmodifiable
+                Object value = source instanceof List<?> list ? new ArrayList<>(list) : source;
+                return mapper.writeValueAsBytes(value);
+            })
+            .build();
     }
 
     private RedisSerializer<String> redisKeySerializer() {

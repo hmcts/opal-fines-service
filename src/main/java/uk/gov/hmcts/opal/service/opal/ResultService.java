@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service.opal;
 
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,16 +13,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.ResultDto;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +41,7 @@ public class ResultService {
         return resultMapper.toRefData(getResultById(resultId));
     }
 
+    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
     public ResultDto getResult(String resultId) {
         ResultEntity entity = resultRepository.findById(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
@@ -74,7 +74,7 @@ public class ResultService {
         Page<ResultEntity> page = resultRepository
             .findBy(
                 resultSpecs.findBySearchCriteria(criteria),
-                    ffq -> ffq.page(Pageable.unpaged()));
+                ffq -> ffq.page(Pageable.unpaged()));
 
         return page.getContent();
     }
@@ -87,9 +87,9 @@ public class ResultService {
         Page<ResultEntity> page = resultRepository
             .findBy(
                 resultSpecs.referenceDataFilter(filter),
-                    ffq -> ffq
-                        .sortBy(nameSort)
-                        .page(Pageable.unpaged()));
+                ffq -> ffq
+                    .sortBy(nameSort)
+                    .page(Pageable.unpaged()));
 
         return page.getContent().stream().map(resultMapper::toRefData).toList();
     }
