@@ -4,7 +4,7 @@ import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.entity.BusinessUnitRef;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.List;
@@ -36,9 +36,9 @@ public class PermissionUtil {
         return true;
     }
 
-    public static  <B extends BusinessUnitRef> List<B> filterBusinessUnitsByPermission(
+    public static  List<BusinessUnitReferenceData> filterBusinessUnitsByPermission(
         UserStateService userStateService,
-        List<B> refData,
+        List<BusinessUnitReferenceData> refData,
         Optional<FinesPermission> optPermission,
         String authHeaderValue) {
 

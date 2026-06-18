@@ -68,6 +68,48 @@ def determineDevEnvironmentDeployment() {
   echo "Deploying Opal logging service (${env.OPAL_LOGGING_SERVICE_API_URL} - ${env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
 }
 
+def ensureFunctionalReportOutputExists() {
+  if (steps.fileExists('functional-output/report/index.html')
+    || steps.fileExists('functional-output/report/htmlReport/test-summary.html')) {
+    return
+  }
+
+  if (steps.fileExists('functional-test-report/index.html')
+    || steps.fileExists('functional-test-report/htmlReport/test-summary.html')) {
+    steps.sh '''
+      mkdir -p functional-output
+      rm -rf functional-output/report
+      cp -R functional-test-report functional-output/report
+    '''
+  }
+}
+
+def publishFunctionalResults(String reportNameSuffix = '') {
+  ensureFunctionalReportOutputExists()
+
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : 'functional-output/report',
+      reportFiles          : 'index.html',
+      reportName           : "Serenity Functional Test Report${reportNameSuffix}"
+  ]
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : 'functional-output/report/htmlReport',
+      reportFiles          : 'test-summary.html',
+      reportName           : "Test Summary Report${reportNameSuffix}"
+  ]
+}
+
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.STAGING_DB_SCHEMA = 'public'
@@ -149,24 +191,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-output/report",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Functional Test Report"
-    ]
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-output/report/htmlReport",
-        reportFiles          : "test-summary.html",
-        reportName           : "Test Summary Report"
-    ]
+    publishFunctionalResults()
   }
 
   afterAlways('smoketest:dev') {
@@ -183,24 +208,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-output/report",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Functional Test Report"
-    ]
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-output/report/htmlReport",
-        reportFiles          : "test-summary.html",
-        reportName           : "Test Summary Report"
-    ]
+    publishFunctionalResults()
   }
   afterAlways('smoketest:stg') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
