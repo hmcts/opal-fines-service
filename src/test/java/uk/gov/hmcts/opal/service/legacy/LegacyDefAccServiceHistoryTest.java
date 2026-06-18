@@ -38,15 +38,18 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
     void createGetDefendantAccountHistoryRequest_mapsFilterToLegacyRequest() {
+        // Arrange
         DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
             .dateFrom(LocalDate.of(2026, 5, 11))
             .dateTo(LocalDate.of(2026, 5, 12))
             .itemTypes(List.of(HistoryItemType.ENFORCEMENT, HistoryItemType.PAYMENT_TERMS, HistoryItemType.NOTE))
             .build();
 
+        // Act
         GetDefendantAccountHistoryLegacyRequest request =
             LegacyDefendantAccountService.createGetDefendantAccountHistoryRequest(99000000000001L, filter);
 
+        // Assert
         assertEquals("99000000000001", request.getDefendantAccountId());
         assertEquals(LocalDate.of(2026, 5, 11), request.getFromDate());
         assertEquals(LocalDate.of(2026, 5, 12), request.getToDate());
@@ -56,6 +59,7 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void getHistory_success_mapsMixedLegacyHistoryItems() {
+        // Arrange
         GetDefendantAccountHistoryLegacyResponse responseBody = GetDefendantAccountHistoryLegacyResponse.builder()
             .version(9L)
             .historyItems(List.of(
@@ -79,8 +83,10 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             .itemTypes(List.of(HistoryItemType.ENFORCEMENT, HistoryItemType.NOTE))
             .build();
 
+        // Act
         DefendantAccountHistoryResponse out = legacyDefendantAccountService.getHistory(99000000000001L, filter);
 
+        // Assert
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(9L), out.getVersion());
         assertEquals(5, out.getHistoryItems().size());
@@ -113,15 +119,18 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void getHistory_success_withNullEntity_returnsDefaultEmptyResponse() {
+        // Arrange
         when(restClient.responseSpec.body(
             Mockito.<ParameterizedTypeReference<GetDefendantAccountHistoryLegacyResponse>>any()
         )).thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
 
+        // Act
         DefendantAccountHistoryResponse out =
             legacyDefendantAccountService.getHistory(1L, DefendantAccountHistoryFilter.builder().build());
 
+        // Assert
         assertNotNull(out);
         assertEquals(BigInteger.ONE, out.getVersion());
         assertNotNull(out.getHistoryItems());
