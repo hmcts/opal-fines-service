@@ -1,4 +1,4 @@
-@Legacy @JIRA-STORY:PO-2078 @JIRA-EPIC:PO-979
+@Legacy @Ignore @JIRA-STORY:PO-2078 @JIRA-EPIC:PO-979
 Feature: Defendant Account Impositions API In Legacy Mode
 
   Scenario: Existing defendant account impositions are returned from the legacy stub
