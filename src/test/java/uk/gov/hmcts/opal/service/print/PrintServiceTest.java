@@ -36,8 +36,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import uk.gov.hmcts.opal.entity.print.PrintDefinition;
-import uk.gov.hmcts.opal.entity.print.PrintJob;
+import uk.gov.hmcts.opal.entity.print.PrintDefinitionEntity;
+import uk.gov.hmcts.opal.entity.print.PrintJobEntity;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
@@ -57,34 +57,34 @@ class PrintServiceTest {
     @InjectMocks
     private PrintService printService;
 
-    private PrintJob printJob1;
-    private PrintJob printJob2;
-    private PrintJob printJob;
-    private PrintDefinition printDefinition;
+    private PrintJobEntity printJobEntity1;
+    private PrintJobEntity printJobEntity2;
+    private PrintJobEntity printJobEntity;
+    private PrintDefinitionEntity printDefinitionEntity;
 
     @BeforeEach
     void setUp() {
         // Setup for savePrintJobs test
-        printJob1 = new PrintJob();
-        printJob1.setXmlData("<xml>Data1</xml>");
-        printJob1.setDocType("docType1");
-        printJob1.setDocVersion("1.0");
+        printJobEntity1 = new PrintJobEntity();
+        printJobEntity1.setXmlData("<xml>Data1</xml>");
+        printJobEntity1.setDocType("docType1");
+        printJobEntity1.setDocVersion("1.0");
 
-        printJob2 = new PrintJob();
-        printJob2.setXmlData("<xml>Data2</xml>");
-        printJob2.setDocType("docType2");
-        printJob2.setDocVersion("1.0");
+        printJobEntity2 = new PrintJobEntity();
+        printJobEntity2.setXmlData("<xml>Data2</xml>");
+        printJobEntity2.setDocType("docType2");
+        printJobEntity2.setDocVersion("1.0");
 
         // Setup for generatePdf test
-        printJob = new PrintJob();
-        printJob.setDocType("docType1");
-        printJob.setDocVersion("1.0");
-        printJob.setXmlData("<root><element>Test</element></root>");
+        printJobEntity = new PrintJobEntity();
+        printJobEntity.setDocType("docType1");
+        printJobEntity.setDocVersion("1.0");
+        printJobEntity.setXmlData("<root><element>Test</element></root>");
 
-        printDefinition = new PrintDefinition();
-        printDefinition.setDocType("docType1");
-        printDefinition.setTemplateId("1.0");
-        printDefinition.setXslt("<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+        printDefinitionEntity = new PrintDefinitionEntity();
+        printDefinitionEntity.setDocType("docType1");
+        printDefinitionEntity.setTemplateId("1.0");
+        printDefinitionEntity.setXslt("<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
                                     + "<xsl:template match=\"/\">"
                                     + "<fo:root xmlns:fo=\"http://www.w3.org/1999/XSL/Format\">"
                                     + "<fo:layout-master-set>"
@@ -108,22 +108,22 @@ class PrintServiceTest {
     @Test
     void testSavePrintJobs() {
         // Arrange
-        List<PrintJob> printJobs = Arrays.asList(printJob1, printJob2);
+        List<PrintJobEntity> printJobEntities = Arrays.asList(printJobEntity1, printJobEntity2);
 
         // Act
-        UUID batchId = printService.savePrintJobs(printJobs);
+        UUID batchId = printService.savePrintJobs(printJobEntities);
 
         // Assert
-        assertEquals(printJob1.getBatchId(), batchId);
-        assertEquals(printJob2.getBatchId(), batchId);
-        assertEquals(PrintStatus.PENDING, printJob1.getStatus());
-        assertEquals(PrintStatus.PENDING, printJob2.getStatus());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob1.getCreatedAt());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob1.getUpdatedAt());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob2.getCreatedAt());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJob2.getUpdatedAt());
+        assertEquals(printJobEntity1.getBatchId(), batchId);
+        assertEquals(printJobEntity2.getBatchId(), batchId);
+        assertEquals(PrintStatus.PENDING, printJobEntity1.getStatus());
+        assertEquals(PrintStatus.PENDING, printJobEntity2.getStatus());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity1.getCreatedAt());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity1.getUpdatedAt());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity2.getCreatedAt());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity2.getUpdatedAt());
 
-        verify(printJobRepository, times(2)).save(any(PrintJob.class));
+        verify(printJobRepository, times(2)).save(any(PrintJobEntity.class));
     }
 
     @Test
@@ -131,10 +131,10 @@ class PrintServiceTest {
 
         // Arrange
         when(printDefinitionRepository.findByDocTypeAndTemplateId("docType1", "1.0"))
-            .thenReturn(printDefinition);
+            .thenReturn(printDefinitionEntity);
 
         // Act
-        byte[] pdfBytes = printService.generatePdf(printJob);
+        byte[] pdfBytes = printService.generatePdf(printJobEntity);
 
         // Assert
         assertNotNull(pdfBytes);
@@ -152,11 +152,11 @@ class PrintServiceTest {
     void testProcessJobsWithLock() {
         // Arrange
         when(printDefinitionRepository.findByDocTypeAndTemplateId("docType1", "1.0"))
-            .thenReturn(printDefinition);
+            .thenReturn(printDefinitionEntity);
         LocalDateTime cutoffDate = LocalDateTime.now();
         Pageable pageable = PageRequest.of(0, 10);
         when(printJobRepository.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable))
-            .thenReturn(new PageImpl<>(Collections.singletonList(printJob)))
+            .thenReturn(new PageImpl<>(Collections.singletonList(printJobEntity)))
             .thenReturn(new PageImpl<>(Collections.emptyList()));
 
         //  doNothing().when(sftpOutboundService).uploadFile(any(byte[].class), anyString(), anyString());
@@ -168,7 +168,7 @@ class PrintServiceTest {
         verify(printJobRepository, atLeastOnce()).findPendingJobsForUpdate(eq(PrintStatus.PENDING), eq(cutoffDate),
                                                                            any(Pageable.class));
         // verify(sftpOutboundService, atLeastOnce()).uploadFile(any(byte[].class), anyString(), anyString());
-        verify(printJobRepository, atLeastOnce()).save(any(PrintJob.class));
+        verify(printJobRepository, atLeastOnce()).save(any(PrintJobEntity.class));
     }
 
     @Test

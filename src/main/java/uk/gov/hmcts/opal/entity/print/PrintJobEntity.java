@@ -25,7 +25,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PrintJob {
+public class PrintJobEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "print_job_id_seq")
@@ -50,9 +50,10 @@ public class PrintJob {
     @Column(name = "doc_version", nullable = false, length = 20)
     private String docVersion;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private PrintStatus status;
+    private PrintStatus status = PrintStatus.PENDING;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
