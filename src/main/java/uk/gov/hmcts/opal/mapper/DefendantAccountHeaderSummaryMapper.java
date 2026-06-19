@@ -98,7 +98,8 @@ public interface DefendantAccountHeaderSummaryMapper {
         if (entity.getDebtorType() != null) {
             return DebtorTypeEnum.fromValue(entity.getDebtorType());
         }
-        return Boolean.TRUE.equals(entity.getHasParentGuardian()) ? DebtorTypeEnum.PARENT_GUARDIAN : DebtorTypeEnum.DEFENDANT;
+        return Boolean.TRUE.equals(entity.getHasParentGuardian()) ? DebtorTypeEnum.PARENT_GUARDIAN
+            : DebtorTypeEnum.DEFENDANT;
     }
 
     default AccountTypeEnum toAccountTypeLabel(DefendantAccountType accountType) {

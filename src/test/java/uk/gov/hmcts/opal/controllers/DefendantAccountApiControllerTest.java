@@ -146,7 +146,8 @@ class DefendantAccountApiControllerTest {
     @Test
     void given_validRequest_when_getDefendantAccountHeaderSummary_then_returnsOkResponse() {
         Long defendantId = 1L;
-        GetDefendantAccountHeaderSummary200Response summaryResponse = GetDefendantAccountHeaderSummary200Response.builder().build();
+        GetDefendantAccountHeaderSummary200Response summaryResponse =
+            GetDefendantAccountHeaderSummary200Response.builder().build();
         DefendantAccountHeaderSummary summary =
             DefendantAccountHeaderSummary.builder().version(BigInteger.ONE).response(summaryResponse).build();
         when(defendantAccountService.getHeaderSummary(defendantId)).thenReturn(summary);

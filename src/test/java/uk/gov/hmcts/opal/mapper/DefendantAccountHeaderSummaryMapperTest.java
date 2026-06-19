@@ -172,7 +172,8 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
         assertEquals(AccountStatusCodeEnum.CS, dto.getResponse().getAccountStatusReference().getAccountStatusCode());
-        assertEquals("Account consolidated", dto.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals("Account consolidated",
+            dto.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
     }
 
     @Test

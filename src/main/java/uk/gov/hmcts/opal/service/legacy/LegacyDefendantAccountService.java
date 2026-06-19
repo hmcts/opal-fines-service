@@ -239,14 +239,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .collect(Collectors.toList())
                 : Collections.emptyList();
 
-            OrganisationDetailsCommon opalOrg = Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyOrg != null
+            OrganisationDetailsCommon opalOrg =
+                Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyOrg != null
                 ? OrganisationDetailsCommon.builder()
                 .organisationName(legacyOrg.getOrganisationName())
                 .organisationAliases(orgAliases)
                 .build()
                 : null;
 
-            IndividualDetailsCommon opalInd = !Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyInd != null
+            IndividualDetailsCommon opalInd =
+                !Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyInd != null
                 ? IndividualDetailsCommon.builder()
                 .title(legacyInd.getTitle())
                 .forenames(legacyInd.getFirstNames())
@@ -275,7 +277,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         AccountStatusReferenceCommon status = response.getAccountStatusReference() == null ? null
             : AccountStatusReferenceCommon.builder()
-            .accountStatusCode(AccountStatusCodeEnum.fromValue(response.getAccountStatusReference().getAccountStatusCode()))
+              .accountStatusCode(
+                  AccountStatusCodeEnum.fromValue(response.getAccountStatusReference().getAccountStatusCode()))
             .accountStatusDisplayName(
                 Optional.ofNullable(response.getAccountStatusReference().getAccountStatusDisplayName())
                     .orElse(SpecificationUtils.mapAccountStatusDisplayName(
@@ -292,7 +295,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
             .build();
 
-        GetDefendantAccountHeaderSummary200Response defendantAccHeaderSummaryResponse = GetDefendantAccountHeaderSummary200Response.builder()
+        GetDefendantAccountHeaderSummary200Response defendantAccHeaderSummaryResponse =
+            GetDefendantAccountHeaderSummary200Response.builder()
             .defendantAccountId(response.getDefendantAccountId())
             .defendantPartyId(response.getDefendantPartyId())
             .accountNumber(response.getAccountNumber())

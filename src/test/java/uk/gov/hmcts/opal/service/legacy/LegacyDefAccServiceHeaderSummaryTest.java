@@ -41,7 +41,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary actual = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        final GetDefendantAccountHeaderSummary200Response expected = GetDefendantAccountHeaderSummary200Response.builder()
+        final GetDefendantAccountHeaderSummary200Response expected =
+            GetDefendantAccountHeaderSummary200Response.builder()
             .defendantAccountId("1")
             .debtorType(DebtorTypeEnum.DEFENDANT)
             .isYouth(false)
@@ -130,7 +131,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         assertNotNull(published);
         assertEquals("SAMPLE", published.getResponse().getAccountNumber());
         assertEquals(AccountTypeEnum.FINE, published.getResponse().getAccountType());
-        assertEquals(AccountStatusCodeEnum.L, published.getResponse().getAccountStatusReference().getAccountStatusCode());
+        assertEquals(AccountStatusCodeEnum.L,
+            published.getResponse().getAccountStatusReference().getAccountStatusCode());
         assertEquals("Live", published.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
         assertEquals("78", published.getResponse().getBusinessUnitSummary().getBusinessUnitId());
         assertEquals("Test BU", published.getResponse().getBusinessUnitSummary().getBusinessUnitName());
