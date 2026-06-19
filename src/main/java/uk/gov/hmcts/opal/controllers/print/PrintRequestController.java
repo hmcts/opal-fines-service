@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.entity.print.PrintJob;
+import uk.gov.hmcts.opal.entity.print.PrintJobEntity;
 import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
 import uk.gov.hmcts.opal.service.print.PrintService;
 
@@ -38,10 +38,10 @@ public class PrintRequestController {
 
     @PostMapping(value = "/enqueue-print-jobs", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Enqueues print jobs for a batch of documents")
-    public ResponseEntity<String> enqueuePrintJobs(@RequestBody List<PrintJob> printJobs) {
-        log.debug(":POST:enqueuePrintJobs: received {} documents", printJobs.size());
+    public ResponseEntity<String> enqueuePrintJobs(@RequestBody List<PrintJobEntity> printJobEntities) {
+        log.debug(":POST:enqueuePrintJobs: received {} documents", printJobEntities.size());
 
-        UUID batchId = printService.savePrintJobs(printJobs);
+        UUID batchId = printService.savePrintJobs(printJobEntities);
 
         return ResponseEntity.ok().body(batchId.toString());
     }
@@ -49,10 +49,10 @@ public class PrintRequestController {
 
     @PostMapping(value = "/generate-pdf", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Generates a PDF from a provided print request")
-    public ResponseEntity<byte[]> generatePdf(@RequestBody PrintJob printJob) {
-        log.debug(":POST:generatePdf: query: \n{}", printJob.toString());
+    public ResponseEntity<byte[]> generatePdf(@RequestBody PrintJobEntity printJobEntity) {
+        log.debug(":POST:generatePdf: query: \n{}", printJobEntity.toString());
 
-        byte[] response = printService.generatePdf(printJob);
+        byte[] response = printService.generatePdf(printJobEntity);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDisposition(ContentDisposition.builder("attachment").filename("output.pdf").build());

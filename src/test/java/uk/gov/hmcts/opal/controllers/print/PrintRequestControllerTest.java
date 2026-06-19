@@ -15,7 +15,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.entity.print.PrintJob;
+import uk.gov.hmcts.opal.entity.print.PrintJobEntity;
 import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
 import uk.gov.hmcts.opal.service.print.PrintService;
 
@@ -45,14 +45,14 @@ public class PrintRequestControllerTest {
     @Test
     void testEnqueuePrintJobs() {
         // Arrange
-        PrintJob printJob = new PrintJob();
-        List<PrintJob> printJobList = Collections.singletonList(printJob);
+        PrintJobEntity printJobEntity = new PrintJobEntity();
+        List<PrintJobEntity> printJobEntityList = Collections.singletonList(printJobEntity);
         UUID batchId = UUID.randomUUID();
 
         when(printService.savePrintJobs(anyList())).thenReturn(batchId);
 
         // Act
-        ResponseEntity<String> response = printRequestController.enqueuePrintJobs(printJobList);
+        ResponseEntity<String> response = printRequestController.enqueuePrintJobs(printJobEntityList);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -63,19 +63,19 @@ public class PrintRequestControllerTest {
     @Test
     void testGeneratePdf() {
         // Arrange
-        PrintJob printJob = new PrintJob();
+        PrintJobEntity printJobEntity = new PrintJobEntity();
         byte[] pdfData = new byte[]{1, 2, 3, 4};
 
-        when(printService.generatePdf(any(PrintJob.class))).thenReturn(pdfData);
+        when(printService.generatePdf(any(PrintJobEntity.class))).thenReturn(pdfData);
 
         // Act
-        ResponseEntity<byte[]> response = printRequestController.generatePdf(printJob);
+        ResponseEntity<byte[]> response = printRequestController.generatePdf(printJobEntity);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("application/pdf", response.getHeaders().getContentType().toString());
         assertEquals(pdfData, response.getBody());
-        verify(printService, times(1)).generatePdf(any(PrintJob.class));
+        verify(printService, times(1)).generatePdf(any(PrintJobEntity.class));
     }
 
     @Test
