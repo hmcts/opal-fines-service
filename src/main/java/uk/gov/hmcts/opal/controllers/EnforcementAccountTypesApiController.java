@@ -20,7 +20,6 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 public class EnforcementAccountTypesApiController implements EnforcementAccountTypesApi {
     private final EnforcementAccountTypeService service;
 
-    // TODO - user must have the auto-enforcement permission in at least one BU
     // TODO add feature flag release-1d-auto-enforcement-config
     @Override
     public ResponseEntity<GetEnforcementAccountTypes200Response> getEnforcementAccountTypes() {

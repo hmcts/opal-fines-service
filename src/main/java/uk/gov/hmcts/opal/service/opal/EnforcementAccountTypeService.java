@@ -34,9 +34,8 @@ public class EnforcementAccountTypeService {
 
     private void checkPermissions() {
         UserState userState = userStateService.checkForAuthorisedUser();
-        // TODO this needs to check auto enforcement permission not enter forcement but waiting for PO-2451
-        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)) {
-            throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)) {
+            throw new PermissionNotAllowedException(FinesPermission.AUTO_ENFORCEMENT);
         }
     }
 
