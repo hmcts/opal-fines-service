@@ -88,6 +88,20 @@ def ensureFunctionalReportOutputExists() {
   }
 }
 
+def ensureIntegrationReportOutputExists() {
+  if (steps.fileExists('integration-output/report/index.html')) {
+    return
+  }
+
+  if (steps.fileExists('build/reports/tests/integration/index.html')) {
+    steps.sh '''
+      mkdir -p integration-output
+      rm -rf integration-output/report
+      cp -R build/reports/tests/integration integration-output/report
+    '''
+  }
+}
+
 def ensureSmokeReportOutputExists() {
   if (steps.fileExists('smoke-output/report/index.html')
     || steps.fileExists('smoke-output/report/htmlReport/test-summary.html')) {
@@ -115,9 +129,7 @@ def publishFunctionalResults(String reportNameSuffix = '') {
 
   steps.junit allowEmptyResults: true, testResults: '**/test-results/functional/*.xml'
   failBuildOnUnstableResults()
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
   publishHTML target: [
       allowMissing         : true,
@@ -127,14 +139,6 @@ def publishFunctionalResults(String reportNameSuffix = '') {
       reportFiles          : 'index.html',
       reportName           : "Serenity Functional Test Report${reportNameSuffix}"
   ]
-  publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : 'functional-output/report/htmlReport',
-      reportFiles          : 'test-summary.html',
-      reportName           : "Test Summary Report${reportNameSuffix}"
-  ]
 }
 
 def publishSmokeResults(String reportNameSuffix = '') {
@@ -142,9 +146,7 @@ def publishSmokeResults(String reportNameSuffix = '') {
 
   steps.junit allowEmptyResults: true, testResults: '**/test-results/smoke/*.xml'
   failBuildOnUnstableResults()
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/smoke/*.xml'
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
 
   publishHTML target: [
       allowMissing         : true,
@@ -153,14 +155,6 @@ def publishSmokeResults(String reportNameSuffix = '') {
       reportDir            : 'smoke-output/report',
       reportFiles          : 'index.html',
       reportName           : "Serenity Smoke Test Report${reportNameSuffix}"
-  ]
-  publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : 'smoke-output/report/htmlReport',
-      reportFiles          : 'test-summary.html',
-      reportName           : "Smoke Test Summary Report${reportNameSuffix}"
   ]
 }
 
@@ -194,7 +188,7 @@ withPipeline(type, product, component) {
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     failBuildOnUnstableResults()
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+    ensureIntegrationReportOutputExists()
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
 
     publishHTML target: [
