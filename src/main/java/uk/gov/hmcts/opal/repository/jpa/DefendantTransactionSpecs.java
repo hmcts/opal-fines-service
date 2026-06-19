@@ -29,7 +29,7 @@ public class DefendantTransactionSpecs extends EntitySpecs<DefendantTransactionE
             root.get(DefendantTransactionEntity_.TRANSACTION_TYPE)
                 .in(DefendantTransactionType.PAYMNT, DefendantTransactionType.CHEQUE),
             root.get(DefendantTransactionEntity_.STATUS)
-                .in(DefendantTransactionStatus.CLEARED_PRESENTED, DefendantTransactionStatus.PARTIALLY_REVERSED)
+                .in(DefendantTransactionStatus.C, DefendantTransactionStatus.P)
         );
         if (earliestDate != null) {
             return cb.and(

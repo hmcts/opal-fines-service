@@ -23,9 +23,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
-import uk.gov.hmcts.opal.entity.converter.DefendantTransactionStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
@@ -78,8 +79,8 @@ public class DefendantTransactionEntity {
     private String text;
 
     @Column(name = "status", length = 1)
-    @ColumnTransformer(read = "status::text", write = "?::t_defendant_transaction_status_enum")
-    @Convert(converter = DefendantTransactionStatusConverter.class)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private DefendantTransactionStatus status;
 
     @Column(name = "status_date", nullable = false)
