@@ -83,7 +83,7 @@ class UserStateServiceTest {
     }
 
     @Test
-    void testCheckForAuthorisedUser_mapsV2StateToV1FinesDomain() {
+    void testGetUser_StateV1FromSecurityContext_mapsV2StateToV1FinesDomain() {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         UserStateV2 userStateV2 = mock(UserStateV2.class);
@@ -93,21 +93,21 @@ class UserStateServiceTest {
         when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(userState);
 
         // Act
-        UserState result = userStateService.checkForAuthorisedUser();
+        UserState result = userStateService.getUserStateV1FromSecurityContext();
 
         // Assert
         assertSame(userState, result);
     }
 
     @Test
-    void testCheckForAuthorisedUser_unexpectedTokenType() {
+    void testGetUser_StateV1FromSecurityContext_unexpectedTokenType() {
         // Arrange
         Authentication authentication = mock(Authentication.class);
         setAuthentication(authentication);
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser("ignored"));
+                                                 () -> userStateService.getUserStateV1FromSecurityContext());
 
         // Assert
         assertEquals("Unexpected token type", ade.getMessage());
@@ -115,7 +115,7 @@ class UserStateServiceTest {
     }
 
     @Test
-    void testCheckForAuthorisedUser_userStateMissingFromToken() {
+    void testGetUser_userStateV1FromSecurityContextStateMissingFromToken() {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         setAuthentication(authToken);
@@ -123,7 +123,7 @@ class UserStateServiceTest {
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.checkForAuthorisedUser("ignored"));
+                                                 () -> userStateService.getUserStateV1FromSecurityContext());
 
         // Assert
         assertEquals("User state not found in token", ade.getMessage());

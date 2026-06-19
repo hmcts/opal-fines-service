@@ -50,16 +50,14 @@ class MinorCreditorApiControllerTest {
 
         PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest();
 
-        when(minorCreditorService.updateMinorCreditorAccount(101L, request, BigInteger.ONE,
-            "Bearer token", "77")).thenReturn(response);
+        when(minorCreditorService.updateMinorCreditorAccount(101L, request, BigInteger.ONE, "77")).thenReturn(response);
 
         ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
-            minorCreditorApiController.patchMinorCreditorAccount(101L, "77", "\"1\"", "Bearer token", request);
+            minorCreditorApiController.patchMinorCreditorAccount(101L, "77", "\"1\"", request);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("\"2\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());
-        verify(minorCreditorService).updateMinorCreditorAccount(101L, request, BigInteger.ONE,
-            "Bearer token", "77");
+        verify(minorCreditorService).updateMinorCreditorAccount(101L, request, BigInteger.ONE, "77");
     }
 }

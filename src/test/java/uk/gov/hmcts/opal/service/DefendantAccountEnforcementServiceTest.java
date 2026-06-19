@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -60,7 +59,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "3";
-        String authHeader = "Bearer abc";
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
         AddEnforcementResponse proxyResponse = AddEnforcementResponse.builder()
@@ -69,7 +67,7 @@ class DefendantAccountEnforcementServiceTest {
             .version(3)
             .build();
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
 
         // business unit user lookup returns an Optional<BusinessUnitUser> with a non-blank ID
@@ -79,23 +77,23 @@ class DefendantAccountEnforcementServiceTest {
             .thenReturn(java.util.Optional.of(buUser));
 
         when(defendantAccountEnforcementServiceProxy.addEnforcement(
-            defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, authHeader, req))
+            defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, req))
             .thenReturn(proxyResponse);
 
         // act
         AddEnforcementResponse result =
             defendantAccountEnforcementService
-                .addEnforcement(defendantAccountId, businessUnitId, ifMatch, authHeader, req);
+                .addEnforcement(defendantAccountId, businessUnitId, ifMatch, req);
 
         // assert
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
         verify(userState).getBusinessUnitUserForBusinessUnit((short)10);
         verify(defendantAccountEnforcementServiceProxy)
-            .addEnforcement(defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, authHeader, req);
+            .addEnforcement(defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, req);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountEnforcementServiceProxy);
     }
 
@@ -104,9 +102,8 @@ class DefendantAccountEnforcementServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
-        String authHeader = "Bearer abc";
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT))
             .thenReturn(false);
 
@@ -114,7 +111,7 @@ class DefendantAccountEnforcementServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountEnforcementService
-                .addEnforcement(defendantAccountId, businessUnitId, "3", authHeader, null)
+                .addEnforcement(defendantAccountId, businessUnitId, "3", null)
         );
 
         assertTrue(
@@ -123,7 +120,7 @@ class DefendantAccountEnforcementServiceTest {
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
         verifyNoInteractions(defendantAccountEnforcementServiceProxy);
     }
@@ -133,11 +130,10 @@ class DefendantAccountEnforcementServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
-        String authHeader = "Bearer abc";
 
         AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
 
         // return Optional<BusinessUnitUser> but with blank ID -> results in null
@@ -155,14 +151,13 @@ class DefendantAccountEnforcementServiceTest {
             eq(businessUnitId),
             isNull(),                   // IMPORTANT: businessUnitUserId expected to be null
             eq("3"),
-            eq(authHeader),
             eq(req)
         )).thenReturn(proxyResult);
 
         // act
         AddEnforcementResponse out =
             defendantAccountEnforcementService
-                .addEnforcement(defendantAccountId, businessUnitId, "3", authHeader, req);
+                .addEnforcement(defendantAccountId, businessUnitId, "3", req);
 
         // assert
         assertNotNull(out);
@@ -171,7 +166,6 @@ class DefendantAccountEnforcementServiceTest {
             eq(businessUnitId),
             isNull(),                   // verifies null is passed
             eq("3"),
-            eq(authHeader),
             eq(req)
         );
     }
@@ -185,12 +179,12 @@ class DefendantAccountEnforcementServiceTest {
             .isHmrcCheckEligible(true)
             .version(new BigInteger("1234567890123345678901234567890"))
             .build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(allPermissionsUser());
         when(defendantAccountEnforcementServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
 
         // Act
         EnforcementStatus response = defendantAccountEnforcementService
-            .getEnforcementStatus(33L, "Bearer a_bearer_token");
+            .getEnforcementStatus(33L);
 
         // Assert
         assertNotNull(response);
@@ -206,7 +200,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -223,14 +216,13 @@ class DefendantAccountEnforcementServiceTest {
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
             eq(businessUnitUserId),
             eq(ifMatch),
-            eq(authHeader),
             eq(request)
         )).thenReturn(proxyResponse);
 
@@ -240,20 +232,18 @@ class DefendantAccountEnforcementServiceTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                authHeader,
                 request
             );
 
         // assert
         assertSame(proxyResponse, result);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
             eq(businessUnitUserId),
             eq(ifMatch),
-            eq(authHeader),
             eq(request)
         );
         verifyNoMoreInteractions(defendantAccountEnforcementServiceProxy);
@@ -265,14 +255,13 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
                 .reason("remove hold reason")
                 .build();
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
         when(userState.getUserName()).thenReturn("user-1");
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
@@ -285,7 +274,6 @@ class DefendantAccountEnforcementServiceTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                authHeader,
                 request
             )
         );
@@ -293,7 +281,7 @@ class DefendantAccountEnforcementServiceTest {
         // assert
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
         verify(userState).getUserName();
         verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
@@ -306,7 +294,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -326,14 +313,13 @@ class DefendantAccountEnforcementServiceTest {
                 .build()))
             .build();
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
             eq("user-1"),
             eq(ifMatch),
-            eq(authHeader),
             eq(request)
         )).thenReturn(proxyResponse);
 
@@ -343,20 +329,18 @@ class DefendantAccountEnforcementServiceTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                authHeader,
                 request
             );
 
         // assert
         assertSame(proxyResponse, result);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(defendantAccountEnforcementServiceProxy).removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
             eq("user-1"),
             eq(ifMatch),
-            eq(authHeader),
             eq(request)
         );
         verifyNoMoreInteractions(defendantAccountEnforcementServiceProxy);
@@ -368,7 +352,6 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -383,7 +366,7 @@ class DefendantAccountEnforcementServiceTest {
 
         UserState userState = mock(UserState.class);
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT))
             .thenReturn(true);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
@@ -395,7 +378,6 @@ class DefendantAccountEnforcementServiceTest {
             eq(businessUnitId),
             eq("user-1"),
             eq(ifMatch),
-            eq(authHeader),
             eq(request)
         )).thenReturn(proxyResponse);
 
@@ -405,14 +387,13 @@ class DefendantAccountEnforcementServiceTest {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                authHeader,
                 request
             );
 
         // assert
         assertSame(proxyResponse, result);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ENTER_ENFORCEMENT);
         verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
         verify(userState).getUserName();
@@ -421,7 +402,6 @@ class DefendantAccountEnforcementServiceTest {
             eq(businessUnitId),
             eq("user-1"),
             eq(ifMatch),
-            eq(authHeader),
             eq(request)
         );
         verifyNoMoreInteractions(defendantAccountEnforcementServiceProxy);
@@ -431,7 +411,6 @@ class DefendantAccountEnforcementServiceTest {
     void removeEnforcementHold_whenIfMatchIsNull_passesNullToProxy() {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
-        String authHeader = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest request =
             RemoveDefendantAccountEnforcementHoldRequest.builder()
@@ -451,14 +430,13 @@ class DefendantAccountEnforcementServiceTest {
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         when(defendantAccountEnforcementServiceProxy.removeEnforcementHold(
             eq(defendantAccountId),
             eq(businessUnitId),
             eq(businessUnitUserId),
             isNull(), // key assertion
-            eq(authHeader),
             eq(request)
         )).thenReturn(proxyResponse);
 
@@ -467,7 +445,6 @@ class DefendantAccountEnforcementServiceTest {
                 defendantAccountId,
                 businessUnitId,
                 null, // key input
-                authHeader,
                 request
             );
 
@@ -478,7 +455,6 @@ class DefendantAccountEnforcementServiceTest {
             eq(businessUnitId),
             eq(businessUnitUserId),
             isNull(),
-            eq(authHeader),
             eq(request)
         );
     }

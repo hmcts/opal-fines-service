@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -71,13 +70,12 @@ public class BusinessUnitController {
     @Operation(summary = "Returns Business Units as reference data with an optional filter applied")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<BusinessUnitReferenceDataResults> getBusinessUnitRefData(
-        @RequestParam("q") Optional<String> filter, @RequestParam Optional<FinesPermission> permission,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestParam("q") Optional<String> filter, @RequestParam Optional<FinesPermission> permission) {
 
         log.debug(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
 
         List<BusinessUnitReferenceData> refData = filterBusinessUnitsByPermission(
-            userStateService, businessUnitService.getReferenceData(filter), permission, authHeaderValue);
+            userStateService, businessUnitService.getReferenceData(filter), permission);
 
         log.debug(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
         return ResponseEntity.ok(BusinessUnitReferenceDataResults.builder().refData(refData).build());

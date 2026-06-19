@@ -41,12 +41,11 @@ public class MajorCreditorApiController implements MajorCreditorApi {
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
     public ResponseEntity<GetCentralFundResponse> getCentralFundByBusinessUnit(
-        Integer id,
-        @Nullable String authorization) {
+        Integer id) {
 
         log.debug(":GET:getCentralFundByBusinessUnit: businessUnitId={}", id);
 
-        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(id, authorization);
+        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(id);
 
         return ResponseEntity.ok()
             .eTag(createETag(response))

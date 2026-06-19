@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,7 +76,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_singleBU() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(userState.getUserId()).thenReturn(USER_ID);
         when(userState.getUserName()).thenReturn(USER_NAME);
@@ -141,7 +140,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_multiBUs() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(userState.getUserId()).thenReturn(USER_ID);
         when(userState.getUserName()).thenReturn(USER_NAME);
@@ -173,7 +172,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_singleBU_fail2BUs_422() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
         when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
@@ -198,7 +197,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_cannotManuallyCreate_422() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
@@ -222,7 +221,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_wrongBU_403() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
@@ -245,7 +244,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_notAllBUs_403() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
 
@@ -354,7 +353,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         doThrow(new IllegalArgumentException("Unable to publish report queue message"))
             .when(reportQueuePublisher).publish(anyLong());
 
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(userState.getUserId()).thenReturn(USER_ID);
         when(userState.getUserName()).thenReturn(USER_NAME);
@@ -399,7 +398,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(userState.getUserId()).thenReturn(USER_ID);
         when(userState.getUserName()).thenReturn(USER_NAME);
@@ -430,7 +429,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_reportParameterValidation_unknownParameterFail() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(userState.getUserId()).thenReturn(USER_ID);
         when(userState.getUserName()).thenReturn(USER_NAME);
@@ -471,7 +470,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_reportParameterValidation_parameterTypeMismatchFail() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(userState.getUserId()).thenReturn(USER_ID);
         when(userState.getUserName()).thenReturn(USER_NAME);
@@ -512,7 +511,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
     void createReportInstance_repeatSuccess() throws Exception {
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(userState.getUserId()).thenReturn(USER_ID);
         when(userState.getUserName()).thenReturn(USER_NAME);

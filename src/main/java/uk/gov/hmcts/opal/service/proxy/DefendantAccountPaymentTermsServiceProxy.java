@@ -33,9 +33,8 @@ public class DefendantAccountPaymentTermsServiceProxy implements DefendantAccoun
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        String ifMatch,
-        String authHeader) {
+        String ifMatch) {
         return getCurrentModeService().addPaymentCardRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch, authHeader);
+            businessUnitUserId, ifMatch);
     }
 }
