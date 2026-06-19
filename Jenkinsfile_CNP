@@ -1,6 +1,10 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
-
+properties([
+        parameters([
+                booleanParam(name: 'SKIP_SONAR', defaultValue: false, description: 'Skip sonar'),
+        ])
+])
 @Library("Infrastructure@master")
 
 def type = "java"
@@ -24,7 +28,7 @@ def determineDevEnvironmentDeployment() {
   env.OPAL_LOGGING_SERVICE_API_URL = "https://opal-logging-service.staging.platform.hmcts.net"
   env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX = "latest"
 
-
+  env.SKIP_SONAR = params.SKIP_SONAR
   env.APP_MODE = "opal"
 
   def githubApi = new GithubAPI(this)
@@ -84,10 +88,33 @@ def ensureFunctionalReportOutputExists() {
   }
 }
 
+def ensureSmokeReportOutputExists() {
+  if (steps.fileExists('smoke-output/report/index.html')
+    || steps.fileExists('smoke-output/report/htmlReport/test-summary.html')) {
+    return
+  }
+
+  if (steps.fileExists('smoke-test-report/index.html')
+    || steps.fileExists('smoke-test-report/htmlReport/test-summary.html')) {
+    steps.sh '''
+      mkdir -p smoke-output
+      rm -rf smoke-output/report
+      cp -R smoke-test-report smoke-output/report
+    '''
+  }
+}
+
+def failBuildOnUnstableResults() {
+  if (currentBuild.result == 'UNSTABLE') {
+    currentBuild.result = 'FAILURE'
+  }
+}
+
 def publishFunctionalResults(String reportNameSuffix = '') {
   ensureFunctionalReportOutputExists()
 
   steps.junit allowEmptyResults: true, testResults: '**/test-results/functional/*.xml'
+  failBuildOnUnstableResults()
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
@@ -107,6 +134,33 @@ def publishFunctionalResults(String reportNameSuffix = '') {
       reportDir            : 'functional-output/report/htmlReport',
       reportFiles          : 'test-summary.html',
       reportName           : "Test Summary Report${reportNameSuffix}"
+  ]
+}
+
+def publishSmokeResults(String reportNameSuffix = '') {
+  ensureSmokeReportOutputExists()
+
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/smoke/*.xml'
+  failBuildOnUnstableResults()
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/smoke/*.xml'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : 'smoke-output/report',
+      reportFiles          : 'index.html',
+      reportName           : "Serenity Smoke Test Report${reportNameSuffix}"
+  ]
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : 'smoke-output/report/htmlReport',
+      reportFiles          : 'test-summary.html',
+      reportName           : "Smoke Test Summary Report${reportNameSuffix}"
   ]
 }
 
@@ -130,8 +184,16 @@ withPipeline(type, product, component) {
     steps.sh './gradlew checkTestJiraAnnotations'
   }
 
+  afterAlways("helmReleaseUninstall:${params.environment}") {
+    if(params.SKIP_SONAR) {
+      stage('SKIP_SONAR IS TRUE') {
+        error("Build can not fully complete when SKIP_SONAR is set to true")
+      }
+    }
+  }
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
+    failBuildOnUnstableResults()
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
 
@@ -195,31 +257,13 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('smoketest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "smoke-output/report",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Smoke Test Report"
-    ]
+    publishSmokeResults()
   }
 
   afterAlways('functionalTest:stg') {
     publishFunctionalResults()
   }
   afterAlways('smoketest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "smoke-output/report",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Smoke Test Report"
-    ]
+    publishSmokeResults()
   }
 }

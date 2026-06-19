@@ -17,12 +17,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
- * Verifies that all Release 1C Enforcement Operational Reporting endpoints guarded by @FeatureToggle return 405 when
+ * Verifies that all Release 1C Enforcement Operational Reporting endpoints guarded by @FeatureToggle return 404 when
  * the release-1c-enforcement-operational-reporting flag is disabled.
  */
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest")
-@DisplayName("Release 1C Enforcement Operational Reporting - returns 405 when flag is disabled")
+@DisplayName("Release 1C Enforcement Operational Reporting - returns 404 when flag is disabled")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=false"

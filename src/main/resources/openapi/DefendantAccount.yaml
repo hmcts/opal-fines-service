@@ -27,12 +27,6 @@ paths:
             type: integer
             format: int64
           required: true
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: OK
@@ -283,12 +277,6 @@ paths:
             type: integer
             format: int64
           required: true
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: true
       responses:
         '200':
           description: OK
@@ -366,12 +354,6 @@ paths:
           description: Version of the defendant account. DB Mapping - defendant_accounts.version
           schema:
             type: string
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: true
         - in: header
           name: Business-Unit-Id
           description: Business unit identifier
@@ -527,12 +509,6 @@ paths:
                 - paymentTerms
             style: form
             explode: false
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: OK
@@ -580,6 +556,11 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     enforcementOverview:
       type: object

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,10 +22,8 @@ import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
-
 
 @RestController
 @RequestMapping("/courts")
@@ -36,10 +33,7 @@ public class CourtController {
 
     private final CourtService courtService;
 
-    private final UserStateService userStateService;
-
-    public CourtController(UserStateService userStateService, CourtService courtService) {
-        this.userStateService = userStateService;
+    public CourtController(CourtService courtService) {
         this.courtService = courtService;
     }
 
@@ -47,11 +41,9 @@ public class CourtController {
     @Operation(summary = "Returns the court for the given courtId.")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<CourtEntity> getCourtById(
-        @PathVariable Long courtId, @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @PathVariable Long courtId) {
 
         log.debug(":GET:getCourtById: courtId: {}", courtId);
-
-        userStateService.checkForAuthorisedUser(authHeaderValue);
 
         CourtEntity response = courtService.getCourtById(courtId);
 
@@ -62,12 +54,9 @@ public class CourtController {
     @Operation(summary = "Searches courts based upon criteria in request body")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<SearchDataResponse<CourtEntity>> postCourtsSearch(
-        @RequestBody CourtSearchDto criteria,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestBody CourtSearchDto criteria) {
 
         log.debug(":POST:postCourtsSearch: query: \n{}", criteria);
-
-        userStateService.checkForAuthorisedUser(authHeaderValue);
 
         List<CourtEntity> results = courtService.searchCourts(criteria);
 

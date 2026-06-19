@@ -61,7 +61,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
             .account(validAccountJson())
             .timelineData(validTimelineDataJson())
             .build();
-        when(draftAccountService.updateDraftAccount(any(), any(), any(), any())).thenReturn(dto);
+        when(draftAccountService.updateDraftAccount(any(), any(), any())).thenReturn(dto);
         shouldReturn406WhenResponseContentTypeNotSupported(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody())
         );
@@ -78,7 +78,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validUpdateRequestBody()),
-            when(draftAccountService.updateDraftAccount(any(), any(), any(), any()))
+            when(draftAccountService.updateDraftAccount(any(), any(), any()))
         );
     }
 
@@ -93,7 +93,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validUpdateRequestBody()),
-            when(draftAccountService.updateDraftAccount(any(), any(), any(), any()))
+            when(draftAccountService.updateDraftAccount(any(), any(), any()))
         );
     }
 
@@ -118,7 +118,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         String validRequestBody = validCreateRequestBody();
         shouldReturn408WhenTimeout(
             post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(validRequestBody),
-            when(draftAccountService.submitDraftAccount(any(), any())));
+            when(draftAccountService.submitDraftAccount(any())));
     }
 
     @Test
@@ -130,7 +130,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         String validRequestBody = validCreateRequestBody();
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(validRequestBody),
-            when(draftAccountService.submitDraftAccount(any(), any()))
+            when(draftAccountService.submitDraftAccount(any()))
         );
 
     }
@@ -142,8 +142,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraTestKey("PO-5877")
     void testGetDraftAccountById_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
-            get(URL_BASE + "/1"), when(
-                draftAccountService.getDraftAccount(1L, "Bearer some_value")));
+            get(URL_BASE + "/1"), when(draftAccountService.getDraftAccount(1L)));
     }
 
     @Test
@@ -153,8 +152,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @JiraTestKey("PO-5885")
     void testGetDraftAccountById_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
-            get(URL_BASE + "/1"), when(
-                draftAccountService.getDraftAccount(1L, "Bearer some_value")));
+            get(URL_BASE + "/1"), when(draftAccountService.getDraftAccount(1L)));
     }
 
 
@@ -177,7 +175,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     void testGetDraftAccountsSummaries_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             get(URL_BASE), when(draftAccountService
-                                    .getDraftAccounts(any(), any(), any(), any(), any(), any(), any())));
+                                    .getDraftAccounts(any(), any(), any(), any(), any(), any())));
     }
 
     @Test
@@ -188,7 +186,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     void testGetDraftAccountsSummaries_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             get(URL_BASE), when(draftAccountService
-                                    .getDraftAccounts(any(), any(), any(), any(), any(), any(), any())));
+                                    .getDraftAccounts(any(), any(), any(), any(), any(), any())));
     }
 
     void shouldReturn406WhenResponseContentTypeNotSupported(MockHttpServletRequestBuilder reqBuilder) throws Exception {
