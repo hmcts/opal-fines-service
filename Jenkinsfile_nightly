@@ -182,11 +182,15 @@ def publishSmokeResults = { reportNameSuffix ->
   }
 }
 
-def runIntegrationStage = { stageName, gradleTask ->
+def runIntegrationStage = { stageName, shouldRunWithZephyr ->
   if (params.Integration) {
     stage(stageName) {
       try {
-        builder.gradle(gradleTask)
+        if (shouldRunWithZephyr) {
+          builder.gradle('integrationTestWithZephyrExecution')
+        } else {
+          builder.gradle('Integration')
+        }
       } catch (error) {
         currentBuild.result = 'FAILURE'
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
@@ -227,11 +231,15 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
   }
 }
 
-def runSmokeStage = { stageName, reportNameSuffix ->
+def runSmokeStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
   if (params.Smoke) {
     stage(stageName) {
       try {
-        builder.gradle('smoke')
+        if (shouldRunWithZephyr) {
+          builder.gradle('smokeWithZephyrExecution')
+        } else {
+          builder.gradle('smoke')
+        }
       } catch (error) {
         currentBuild.result = 'FAILURE'
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
@@ -298,9 +306,9 @@ withNightlyPipeline(type, product, component) {
     if (shouldRunWithZephyr) {
       configureZephyrExecution(testEnvironments.staging)
     }
-    runIntegrationStage('Integration Tests', 'Integration')
+    runIntegrationStage('Integration Tests', shouldRunWithZephyr)
     runFunctionalStage('Functional Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
-    runSmokeStage('Smoke Tests', testEnvironments.staging.reportNameSuffix)
+    runSmokeStage('Smoke Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
 
     if (params.RunR1AOnly) {
       configureTestEnvironment(testEnvironments.demo)

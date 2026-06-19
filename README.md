@@ -279,9 +279,9 @@ Nightly stages:
 
 | Stage | Environment | Controlled by | Gradle task flow |
 |-------|-------------|---------------|------------------|
-| `Integration Tests` | `staging` | `Integration` | `Integration` |
+| `Integration Tests` | `staging` | `Integration` | `Integration` or `integrationTestWithZephyrExecution` |
 | `Functional Tests` | `staging` | `Functional` | `functional` or `functionalWithZephyrExecution` |
-| `Smoke Tests` | `staging` | `Smoke` | `smoke` |
+| `Smoke Tests` | `staging` | `Smoke` | `smoke` or `smokeWithZephyrExecution` |
 | `Demo R1A Functional Tests` | `demo` | `RunR1AOnly` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with the R1A manual-account-creation tag filter |
 | `R1AOff Demo Functional Tests` | `demo` | `RunR1AOff` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with `@R1AOff and not @Ignore` |
 
@@ -298,6 +298,7 @@ Nightly reports and artifacts:
 - Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)`.
 - Archived output folders are `integration-output`, `functional-output`, `functional-output-r1a-only-demo`, `functional-output-r1a-off-demo`, and `smoke-output`.
 - Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
+- When `ZephyrExecution=true` or the nightly run is on Friday, integration, functional, smoke, demo R1A, and demo R1AOff all use their Zephyr-enabled Gradle flows.
 
 Failure handling:
 
