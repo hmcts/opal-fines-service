@@ -274,7 +274,7 @@ class GenericReportServiceTest {
     @Test
     void getReportInstance_withoutBusinessUnit_returnsReportInstance() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of());
         when(businessUnitRepository.findAllById(List.of())).thenReturn(List.of());
         when(reportInstanceMapper.toReportInstanceReportsDto(reportInstance, List.of())).thenReturn(
@@ -290,7 +290,7 @@ class GenericReportServiceTest {
     @Test
     void getReportInstance_withMatchingBusinessUnits_returnsReportInstance() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         when(businessUnitUser2.getBusinessUnitId()).thenReturn((short) 2);
@@ -311,7 +311,7 @@ class GenericReportServiceTest {
     @Test
     void getReportInstance_withForeignBusinessUnits_throwsAccessDenied() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         reportInstance.setBusinessUnit(List.of(1, 2));

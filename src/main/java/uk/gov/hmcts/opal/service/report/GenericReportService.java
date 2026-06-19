@@ -112,7 +112,7 @@ public class GenericReportService implements GenericReportServiceInterface {
         ReportInstanceEntity reportInstanceEntity = reportInstanceRepository.findById(reportInstanceId)
             .orElseThrow(() -> new EntityNotFoundException("Report instance not found with id: " + reportInstanceId));
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit() == null
             ? Collections.emptyList()

@@ -381,7 +381,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraEpic("PO-2248")
 
     void getReportInstance_success_singleBUInstance() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -426,7 +426,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_multiBUInstance() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
         Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
@@ -483,7 +483,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_useReportInstanceNameOverride() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
         Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
@@ -531,7 +531,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_butReportInstanceDataHasErrors() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -568,7 +568,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_allSupportedTypes() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -591,7 +591,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_reportParameters() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -613,7 +613,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_notReady_notDownloadable() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -639,7 +639,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_readyNoTypes_notDownloadable() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -665,7 +665,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraEpic("PO-2248")
     void getReportInstance_401_noToken() throws Exception {
         Mockito.doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser();
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_READY)
@@ -678,7 +678,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_403_incorrectBUs() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
@@ -700,7 +700,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_404_reportInstanceNotFound() throws Exception {
-        Mockito.when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
