@@ -36,8 +36,6 @@ import uk.gov.hmcts.opal.service.ImpositionService;
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountApiControllerTest {
 
-    private static final String BEARER_TOKEN = "Bearer a_token_goes_here";
-
     @Mock
     private DefendantAccountService defendantAccountService;
 
@@ -58,22 +56,22 @@ class DefendantAccountApiControllerTest {
             .payload(payload)
             .version(BigInteger.valueOf(12))
             .build();
-        when(impositionService.getImpositions(defendantId, BEARER_TOKEN))
+        when(impositionService.getImpositions(defendantId))
             .thenReturn(serviceResponse);
 
         ResponseEntity<DefendantAccountImpositionsResponseCommon> response =
-            defendantAccountApiController.getImpositions(defendantId, BEARER_TOKEN);
+            defendantAccountApiController.getImpositions(defendantId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"12\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
-        verify(impositionService).getImpositions(defendantId, BEARER_TOKEN);
+        verify(impositionService).getImpositions(defendantId);
     }
 
     @Test
     void getImpositions_isProtectedByRelease1BFeatureToggle() throws NoSuchMethodException {
         Method method = DefendantAccountApiController.class.getMethod(
-            "getImpositions", Long.class, String.class);
+            "getImpositions", Long.class);
 
         FeatureToggle featureToggle = method.getAnnotation(FeatureToggle.class);
 
@@ -87,15 +85,15 @@ class DefendantAccountApiControllerTest {
         Long defendantId = 1L;
         EnforcementStatus status = EnforcementStatus.builder()
             .build();
-        when(defendantAccountService.getEnforcementStatus(defendantId, BEARER_TOKEN))
+        when(defendantAccountService.getEnforcementStatus(defendantId))
             .thenReturn(status);
 
         ResponseEntity<GetEnforcementStatusResponse> response =
-            defendantAccountApiController.getEnforcementStatus(defendantId, BEARER_TOKEN);
+            defendantAccountApiController.getEnforcementStatus(defendantId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(status, response.getBody());
-        verify(defendantAccountService).getEnforcementStatus(defendantId, BEARER_TOKEN);
+        verify(defendantAccountService).getEnforcementStatus(defendantId);
     }
 
     @Test
@@ -106,19 +104,18 @@ class DefendantAccountApiControllerTest {
             .build();
         GetDefendantAccountHistoryResponse generatedResponse = new GetDefendantAccountHistoryResponse();
 
-        when(defendantAccountService.getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()), eq(BEARER_TOKEN)))
+        when(defendantAccountService.getHistory(eq(defendantId), eq(null), eq(null), eq(List.of())))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(generatedResponse);
 
         ResponseEntity<GetDefendantAccountHistoryResponse> response =
-            defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null, List.of(), BEARER_TOKEN);
+            defendantAccountApiController.getDefendantAccountHistory(defendantId, null, null, List.of());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"1\"", response.getHeaders().getETag());
         assertSame(generatedResponse, response.getBody());
-        verify(defendantAccountService).getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()),
-            eq(BEARER_TOKEN));
+        verify(defendantAccountService).getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
     }
 
@@ -129,17 +126,14 @@ class DefendantAccountApiControllerTest {
         LocalDate dateTo = LocalDate.of(2026, 1, 31);
         List<String> itemTypes = List.of("note,paymentTerms", "enforcement");
         DefendantAccountHistoryResponse historyResponse = DefendantAccountHistoryResponse.builder().build();
-        when(defendantAccountService.getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes),
-            eq(BEARER_TOKEN)))
+        when(defendantAccountService.getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes)))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(new GetDefendantAccountHistoryResponse());
 
-        defendantAccountApiController.getDefendantAccountHistory(defendantId, dateFrom, dateTo, itemTypes,
-            BEARER_TOKEN);
+        defendantAccountApiController.getDefendantAccountHistory(defendantId, dateFrom, dateTo, itemTypes);
 
-        verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes),
-            eq(BEARER_TOKEN));
+        verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
     }
 

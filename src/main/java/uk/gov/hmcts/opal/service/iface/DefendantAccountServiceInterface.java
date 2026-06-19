@@ -50,10 +50,10 @@ public interface DefendantAccountServiceInterface {
 
     AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId,
-        String ifMatch, String authHeader);
+        String ifMatch);
 
     AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
-        String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request);
+        String ifMatch, AddDefendantAccountEnforcementRequest request);
 
 
     GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
@@ -83,6 +83,5 @@ public interface DefendantAccountServiceInterface {
                                             String businessUnitId,
                                             String businessUnitUserId,
                                             String ifMatch,
-                                            String authHeader,
                                             AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest);
 }

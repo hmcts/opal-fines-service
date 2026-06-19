@@ -903,8 +903,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        String ifMatch,
-        String authHeader
+        String ifMatch
     ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
@@ -1181,7 +1180,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     @Override
     //TODO: Remove method, duplicated in refactored class
     public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
+        String businessUnitUserId, String ifMatch, AddDefendantAccountEnforcementRequest request) {
 
         // build legacy request object
         AddDefendantAccountEnforcementLegacyRequest legacyRequest =
@@ -1348,7 +1347,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
         var legacyRequest = createAddPaymentTermsLegacyRequest(

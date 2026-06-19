@@ -437,7 +437,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             ).andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"))
             .andExpect(jsonPath("$.title").value("Missing Required Header"))
-            .andExpect(jsonPath("$.detail").value("Required request header \"Authorization\" is missing"))
+            .andExpect(jsonPath("$.detail").value("Required request header \"Business-Unit-Id\" is missing"))
             .andExpect(jsonPath("$.instance").isNotEmpty())
             .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
             .andExpect(jsonPath("$.retriable").value(false));

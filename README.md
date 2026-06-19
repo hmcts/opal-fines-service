@@ -262,11 +262,11 @@ Nightly parameters:
 | Parameter | Default | Purpose |
 |-----------|---------|---------|
 | `Integration` | `true` | Runs the staging integration-test stage. |
-| `Functional` | `true` | Runs the staging functional-test stage and enables the demo R1A functional stage when `Demo` is also enabled. |
-| `Demo` | `true` | Runs the demo R1A functional stage against the demo environment. |
+| `Functional` | `true` | Runs the staging functional-test stage. |
+| `Smoke` | `true` | Runs the staging smoke-test stage. |
+| `RunR1AOnly` | `true` | Runs the demo R1A functional stage against the demo environment. |
 | `RunR1AOff` | `false` | Runs the optional demo R1A-off functional stage. |
 | `ZephyrExecution` | `false` | Creates Zephyr executions; this also runs automatically on Fridays. |
-| `LEGACY_URL` | `PRE-PROD` | Existing legacy URL selector retained for legacy-mode test configuration. |
 
 Nightly environments:
 
@@ -279,18 +279,48 @@ Nightly stages:
 
 | Stage | Environment | Controlled by | Gradle task flow |
 |-------|-------------|---------------|------------------|
-| `Integration Tests` | `staging` | `Integration` | `Integration` |
+| `Integration Tests` | `staging` | `Integration` | `Integration` or `integrationTestWithZephyrExecution` |
 | `Functional Tests` | `staging` | `Functional` | `functional` or `functionalWithZephyrExecution` |
-| `Demo R1A Functional Tests` | `demo` | `Demo` and `Functional` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with the R1A manual-account-creation tag filter |
+| `Smoke Tests` | `staging` | `Smoke` | `smoke` or `smokeWithZephyrExecution` |
+| `Demo R1A Functional Tests` | `demo` | `RunR1AOnly` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with the R1A manual-account-creation tag filter |
 | `R1AOff Demo Functional Tests` | `demo` | `RunR1AOff` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with `@R1AOff and not @Ignore` |
 
 The demo R1A stage is intentionally limited to manual-account-creation scenarios and
 excludes R1A-off, R1B, R1B-off, R1C, and R1C-off style release-tagged scenarios. It
 does not run the full backend functional suite.
 
-All functional stages publish JUnit XML from `build/test-results/functional`, archive the
-functional test XMLs, and publish the Serenity report plus the generated test-summary
-HTML. The integration stage publishes and archives JUnit XML from `build/test-results/integration`.
+Nightly reports and artifacts:
+
+- Staging integration publishes `Integration Tests Report`.
+- Staging functional publishes `Serenity Functional Test Report`.
+- Staging smoke publishes `Serenity Smoke Test Report`.
+- Demo R1A publishes `Serenity Functional Test Report (Demo R1AOn Only)`.
+- Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)`.
+- Archived output folders are `integration-output`, `functional-output`, `functional-output-r1a-only-demo`, `functional-output-r1a-off-demo`, and `smoke-output`.
+- Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
+- When `ZephyrExecution=true` or the nightly run is on Friday, integration, functional, smoke, demo R1A, and demo R1AOff all use their Zephyr-enabled Gradle flows.
+
+Failure handling:
+
+- A Gradle stage failure marks the nightly build `FAILURE`.
+- JUnit-reported test failures for integration, functional, smoke, demo R1A, and demo R1AOff are promoted from `UNSTABLE` to `FAILURE`.
+- The demo R1A and R1AOff stages publish to separate artifact directories so the later demo-tagged run cannot overwrite the earlier one.
+
+### CNP Jenkins pipeline
+
+`Jenkinsfile_CNP` uses the standard HMCTS pipeline wrapper for PR and branch builds.
+This repo-local Jenkinsfile does not declare its own job parameters.
+
+CNP outputs:
+
+- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*`, and publishes `Integration Tests Report` from `integration-output/report`.
+- Functional archives `functional-output/**/*` and publishes `Serenity Functional Test Report`.
+- Smoke archives `smoke-output/**/*` and publishes `Serenity Smoke Test Report`.
+
+CNP failure handling:
+
+- JUnit-reported failures for integration, functional, and smoke are promoted from `UNSTABLE` to `FAILURE`.
+- Functional and smoke publication rebuild `functional-output/report` and `smoke-output/report` from the raw Serenity output if the packaged report directory is missing.
 
 ### Zephyr tasks
 

@@ -138,7 +138,6 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                 (short) 1,
                 "user-1",
                 "1",
-                "auth",
                 null
             );
 
@@ -173,7 +172,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         AddEnforcementResponse out =
             legacyDefendantAccountEnforcementService.addEnforcement(
                 500L,
-                (short) 500, "user-500", "5", "auth", null
+                (short) 500, "user-500", "5", null
             );
 
         // Assert
@@ -228,7 +227,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
             legacyDefendantAccountEnforcementService
                 .addEnforcement(
                     999L, (short) 101, "user-test",
-                    "11", "auth", request
+                    "11", request
                 );
 
         // Assert - public DTO returned correctly
@@ -291,7 +290,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         AddEnforcementResponse out =
             legacyDefendantAccountEnforcementService.addEnforcement(
                 500L, (short) 500,
-                "user-500", "5", "auth", null
+                "user-500", "5", null
             );
 
         // Assert
@@ -322,7 +321,6 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                     (short) 1,
                     "U",
                     "1",
-                    "auth",
                     null
                 )
         );
@@ -623,7 +621,6 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                 (short) 10,
                 "user-1",
                 "\"7\"",
-                "auth",
                 request
             );
 
@@ -697,7 +694,6 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                     (short) 10,
                     "user-1",
                     "\"1\"",
-                    "auth",
                     request
                 )
         );
@@ -753,7 +749,6 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                     (short) 10,
                     "user-1",
                     "\"5\"",
-                    "auth",
                     request
                 )
         );
@@ -802,7 +797,6 @@ public class LegacyDefendantAccountEnforcementServiceTest {
                     (short) 10,
                     "user-2",
                     "\"2\"",
-                    "auth",
                     request
                 )
         );

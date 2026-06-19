@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -20,6 +19,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +62,7 @@ import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
 
-    private static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);
+    private static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, Month.APRIL, 22);
     private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-04-22T00:00:00Z"), ZoneOffset.UTC);
 
     @Mock
@@ -111,10 +111,10 @@ class DraftAccountServiceTest {
             .thenReturn(DraftAccountResponseDto.builder().build());
         when(draftAccountTransactional.getDraftAccount(anyLong())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.allPermissionsUser();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act
-        DraftAccountResponseDto result = draftAccountService.getDraftAccount(1, "authHeaderValue");
+        DraftAccountResponseDto result = draftAccountService.getDraftAccount(1);
 
         // Assert
         assertNotNull(result);
@@ -132,13 +132,12 @@ class DraftAccountServiceTest {
         when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any()))
             .thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         // Act
         DraftAccountsResponseDto result = draftAccountService.getDraftAccounts(
             Optional.of(List.copyOf(Set.of((short) 1))), Optional.of(List.copyOf(Set.of(DraftAccountStatus.REJECTED))),
-            Optional.of(List.of()), Optional.of(List.of()), Optional.empty(), Optional.empty(),
-            "authHeaderValue"
+            Optional.of(List.of()), Optional.of(List.of()), Optional.empty(), Optional.empty()
         );
 
         // Assert
@@ -156,11 +155,10 @@ class DraftAccountServiceTest {
             DraftAccountResponseDto.builder().account(accountText).build()
         );
         when(draftAccountTransactional.searchDraftAccounts(any())).thenReturn(List.of(draftAccountEntity));
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act
         List<DraftAccountResponseDto> result = draftAccountService.searchDraftAccounts(
-            DraftAccountSearchDto.builder().build(), "authHeaderValue");
+            DraftAccountSearchDto.builder().build());
 
         // Assert
         assertEquals(accountText, result.get(0).getAccount());
@@ -174,7 +172,7 @@ class DraftAccountServiceTest {
             .thenReturn(DraftAccountResponseDto.builder().build());
         when(draftAccountTransactional.submitDraftAccount(any())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .submittedBy("SpoofedUser")
@@ -184,7 +182,7 @@ class DraftAccountServiceTest {
             .build();
         // Act
         DraftAccountResponseDto result = draftAccountService
-            .submitDraftAccount(addDraftAccountDto, "authHeaderValue");
+            .submitDraftAccount(addDraftAccountDto);
 
         // Assert
         assertEquals(draftAccountEntity.getAccount(), result.getAccount());
@@ -207,12 +205,12 @@ class DraftAccountServiceTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
         // Act & Assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> draftAccountService.submitDraftAccount(addDraftAccountDto, "authHeaderValue")
+            () -> draftAccountService.submitDraftAccount(addDraftAccountDto)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -229,13 +227,13 @@ class DraftAccountServiceTest {
             .accountType(DraftAccountType.FINE)
             .build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(
             UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)
         );
 
         JsonSchemaValidationException ex = assertThrows(
             JsonSchemaValidationException.class,
-            () -> draftAccountService.submitDraftAccount(addDraftAccountDto, "authHeaderValue")
+            () -> draftAccountService.submitDraftAccount(addDraftAccountDto)
         );
 
         assertTrue(ex.getMessage().contains("hearing_language"));
@@ -244,14 +242,12 @@ class DraftAccountServiceTest {
 
     @Test
     void testDeleteDraftAccount_success() {
-        // Arrange
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
-
         // Act
-        draftAccountService.deleteDraftAccount(1, true, "authHeaderValue");
+        String result = draftAccountService.deleteDraftAccount(1, true);
 
         // Assert
-        // delete does not call PDPL logging
+        assertEquals(String.format(DraftAccountService.ACCOUNT_DELETED_MESSAGE_FORMAT, 1), result);
+        verify(draftAccountTransactional).deleteDraftAccount(1L, draftAccountTransactional);
     }
 
     @Test
@@ -259,12 +255,11 @@ class DraftAccountServiceTest {
         // Arrange
         when(draftAccountTransactional.deleteDraftAccount(anyLong(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: 1"));
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act & Assert
         EntityNotFoundException enfe = assertThrows(
             EntityNotFoundException.class, () -> draftAccountService
-                .deleteDraftAccount(1, true, "authHeaderValue")
+                .deleteDraftAccount(1, true)
         );
         assertEquals("Draft Account not found with id: 1", enfe.getMessage());
     }
@@ -296,7 +291,7 @@ class DraftAccountServiceTest {
         );
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .submittedBy("SpoofedUser")
@@ -307,7 +302,7 @@ class DraftAccountServiceTest {
             .build();
         // Act
         DraftAccountResponseDto result = draftAccountService
-            .replaceDraftAccount(draftAccountId, replaceDto, "authHeaderValue", "");
+            .replaceDraftAccount(draftAccountId, replaceDto, "");
 
         // Assert
         assertNotNull(result);
@@ -343,12 +338,12 @@ class DraftAccountServiceTest {
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
-        when(userStateService.checkForAuthorisedUser(any()))
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 1, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> draftAccountService
-            .replaceDraftAccount(draftAccountId, replaceDto, "authHeaderValue", "")
+            .replaceDraftAccount(draftAccountId, replaceDto, "")
         );
         assertEquals("Draft Account not found with id: 1", exception.getMessage());
     }
@@ -370,12 +365,12 @@ class DraftAccountServiceTest {
             .version(BigInteger.valueOf(0L))
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
-        when(userStateService.checkForAuthorisedUser(any()))
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService
-            .replaceDraftAccount(draftAccountId, dto, "authHeaderValue", "")
+            .replaceDraftAccount(draftAccountId, dto, "")
         );
         verify(jsonSchemaValidationService).validateOrError(any(), any());
     }
@@ -394,12 +389,12 @@ class DraftAccountServiceTest {
             .build();
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(existingAccount);
-        when(userStateService.checkForAuthorisedUser(any()))
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService
-            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0")
+            .updateDraftAccount(draftAccountId, updateDto, "0")
         );
 
         verify(securityEventLoggingService, never()).logEvent(any(), any(), any(), any(), any(), any());
@@ -429,7 +424,7 @@ class DraftAccountServiceTest {
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         publishPending_success(updatedAccount, draftAccountId, updateDto, userState);
 
@@ -442,16 +437,16 @@ class DraftAccountServiceTest {
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
         verify(securityEventLoggingService, times(1)).logEvent(
-            eq("Business Function - Approval of Draft Account"),
-            eq("Success"),
-            eq((short) 2),
-            eq("Approval"),
-            eq(LocalDateTime.of(2026, 4, 22, 0, 0)),
-            eq(Map.of(
+            "Business Function - Approval of Draft Account",
+            "Success",
+            (short) 2,
+            "Approval",
+            LocalDateTime.of(2026, Month.APRIL, 22, 0, 0),
+            Map.of(
                 "UserIdentifier", 1L,
                 "DraftAccountIdentifier", draftAccountId,
                 "DraftAccountSubmittedByUserIdentifier", "Pablo"
-            ))
+            )
         );
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
@@ -479,7 +474,7 @@ class DraftAccountServiceTest {
 
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
             DraftAccountResponseDto.builder()
                 .draftAccountId(draftAccountId)
@@ -491,7 +486,7 @@ class DraftAccountServiceTest {
         );
 
         DraftAccountResponseDto result = draftAccountService
-            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0");
+            .updateDraftAccount(draftAccountId, updateDto, "0");
 
         assertNotNull(result);
         assertEquals("PATCH002_REVIEWER", result.getValidatedBy());
@@ -538,7 +533,7 @@ class DraftAccountServiceTest {
 
         // Act
         DraftAccountResponseDto result = draftAccountService
-            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0");
+            .updateDraftAccount(draftAccountId, updateDto, "0");
 
         // Assert
         assertNotNull(result);

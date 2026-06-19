@@ -50,12 +50,11 @@ public class MinorCreditorController {
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
-        @RequestBody MinorCreditorSearch criteria,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestBody MinorCreditorSearch criteria) {
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
-            .searchMinorCreditors(criteria, authHeaderValue);
+            .searchMinorCreditors(criteria);
 
         return buildResponse(response);
     }
@@ -64,12 +63,11 @@ public class MinorCreditorController {
     @Operation(summary = "Get Minor Creditor Account At A Glance")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> getMinorCreditorsAtAGlance(
-        @PathVariable Long minorCreditorId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @PathVariable Long minorCreditorId) {
         log.debug(":GET:getMinorCreditorsAtAGlance: query: \n{}", minorCreditorId);
 
         GetMinorCreditorAccountAtAGlanceResponse response = minorCreditorService
-            .getMinorCreditorAtAGlance(minorCreditorId, authHeaderValue);
+            .getMinorCreditorAtAGlance(minorCreditorId);
 
         return buildResponse(response);
     }
@@ -80,7 +78,6 @@ public class MinorCreditorController {
     @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
     public ResponseEntity<String> deleteMinorCreditorById(
         @PathVariable Long minorCreditorId,
-        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
         @RequestHeader(value = "If-Match") String ifMatch,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
         log.warn("TEST ENDPOINT: Request to delete creditor account {} and all associated data", minorCreditorId);
@@ -91,20 +88,19 @@ public class MinorCreditorController {
                   checkExisted ? "" : ", ignore if missing");
 
         return buildResponse(opalCreditorAccountService
-                                 .deleteCreditorAccount((minorCreditorId), checkExisted, authHeaderValue));
+                                 .deleteCreditorAccount((minorCreditorId), checkExisted));
     }
 
     @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Gets Minor Creditor account header summary for the given minorCreditorId")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetMinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary(
-        @PathVariable Long minorCreditorId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @PathVariable Long minorCreditorId) {
 
         log.debug(":GET:getMinorCreditorAccountHeaderSummary: minorCreditorId: {}", minorCreditorId);
 
         GetMinorCreditorAccountHeaderSummaryResponse response =
-            minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId, authHeaderValue);
+            minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId);
 
         return buildResponse(response);
     }

@@ -242,7 +242,7 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_success_singleBU() throws JacksonException {
         //setup
-        when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
@@ -271,7 +271,7 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_success_multiBU() throws JacksonException {
         //setup
-        when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
@@ -339,7 +339,7 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_userNotAuthorizedWithBU_throwsException() {
         //setup
-        when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
@@ -362,7 +362,7 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_failsValidation_throwsException() {
         //setup
-        when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
@@ -387,7 +387,7 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_genReportAsyncFalse_throwsException() throws JacksonException {
         //setup
-        when(userStateService.checkForAuthorisedUser("")).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);

@@ -33,13 +33,13 @@ class ResultMapperTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("R123", result.resultId());
-        assertEquals("Test Result", result.resultTitle());
-        assertEquals("Test Result Welsh", result.resultTitleCy());
-        assertEquals("FPD", result.resultType());
-        assertEquals(true, result.active());
-        assertEquals((short) 1, result.impositionAllocationPriority());
-        assertEquals("HMCTS", result.impositionCreditor());
+        assertEquals("R123", result.getResultId());
+        assertEquals("Test Result", result.getResultTitle());
+        assertEquals("Test Result Welsh", result.getResultTitleCy());
+        assertEquals("FPD", result.getResultType());
+        assertEquals(true, result.isActive());
+        assertEquals((short) 1, result.getImpositionAllocationPriority());
+        assertEquals("HMCTS", result.getImpositionCreditor());
     }
 
     @Test
@@ -64,13 +64,13 @@ class ResultMapperTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("R456", result.resultId());
-        assertEquals("Full Result", result.resultTitle());
-        assertEquals("Full Result Welsh", result.resultTitleCy());
-        assertEquals("FPR", result.resultType());
-        assertEquals(true, result.active());
-        assertEquals((short) 2, result.impositionAllocationPriority());
-        assertEquals("COURT", result.impositionCreditor());
+        assertEquals("R456", result.getResultId());
+        assertEquals("Full Result", result.getResultTitle());
+        assertEquals("Full Result Welsh", result.getResultTitleCy());
+        assertEquals("FPR", result.getResultType());
+        assertEquals(true, result.isActive());
+        assertEquals((short) 2, result.getImpositionAllocationPriority());
+        assertEquals("COURT", result.getImpositionCreditor());
     }
 
     @Test
@@ -101,10 +101,10 @@ class ResultMapperTest {
         assertNotNull(response);
         assertNotNull(response.getRefData());
         assertEquals(2, response.getRefData().size());
-        assertEquals("R1", response.getRefData().get(0).resultId());
-        assertEquals("Result 1", response.getRefData().get(0).resultTitle());
-        assertEquals("R2", response.getRefData().get(1).resultId());
-        assertEquals("Result 2", response.getRefData().get(1).resultTitle());
+        assertEquals("R1", response.getRefData().get(0).getResultId());
+        assertEquals("Result 1", response.getRefData().get(0).getResultTitle());
+        assertEquals("R2", response.getRefData().get(1).getResultId());
+        assertEquals("Result 2", response.getRefData().get(1).getResultTitle());
     }
 
     @Test
