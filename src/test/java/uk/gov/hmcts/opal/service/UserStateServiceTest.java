@@ -146,7 +146,6 @@ class UserStateServiceTest {
         // Arrange
         Authentication authentication = mock(Authentication.class);
         setAuthentication(authentication);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
 
         // Act
         AccessDeniedException ade = assertThrows(AccessDeniedException.class,
@@ -162,7 +161,6 @@ class UserStateServiceTest {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         setAuthentication(authToken);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
         when(authToken.getUserState()).thenReturn(null);
 
         // Act
