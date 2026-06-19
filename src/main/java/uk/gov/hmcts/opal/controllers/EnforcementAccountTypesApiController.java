@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.EnforcementAccountTypesApi;
 import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementAccountTypes200Response;
@@ -12,6 +13,10 @@ import uk.gov.hmcts.opal.service.opal.EnforcementAccountTypeService;
 
 import java.util.List;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
@@ -20,7 +25,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 public class EnforcementAccountTypesApiController implements EnforcementAccountTypesApi {
     private final EnforcementAccountTypeService service;
 
-    // TODO add feature flag release-1d-auto-enforcement-config
+//    @FeatureToggle(feature = RELEASE_1D_AUTO_ENFORCEMENT_CONFIG, defaultValueProperty = RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY)
     @Override
     public ResponseEntity<GetEnforcementAccountTypes200Response> getEnforcementAccountTypes() {
         List<EnforcementAccountTypeCommon> enfAccountTypes = service.getAllEnforcementAccountTypes();

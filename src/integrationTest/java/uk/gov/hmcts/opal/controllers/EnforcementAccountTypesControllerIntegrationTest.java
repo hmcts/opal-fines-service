@@ -9,8 +9,10 @@ import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.core.type.TypeReference;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementAccountTypes200Response;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -31,10 +33,10 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
     @Test
     @JiraStory("PO-2434")
     @JiraEpic("PO-2433")
-//    @FeatureToggle(
-//        feature = FeatureFlags.RELEASE_1B,
-//        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
-//    )
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG,
+        defaultValueProperty = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+    )
     void returnsAllEnforcementAccountTypes_200() throws Exception {
         setupAuthorisedUser();
         ResultActions result = mockMvc.perform(
@@ -73,10 +75,10 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
     @Test
     @JiraStory("PO-2434")
     @JiraEpic("PO-2433")
-//    @FeatureToggle(
-//        feature = FeatureFlags.RELEASE_1B,
-//        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
-//    )
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG,
+        defaultValueProperty = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+    )
     void forbiddenWithoutAutoEnforcementPermission() throws Exception {
         userStateStub.setupWithNoPermissions();
         ResultActions result = mockMvc.perform(
@@ -88,28 +90,14 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
         result.andExpect(status().isForbidden());
     }
 
-//    @Test
-//    @JiraStory("PO-2434")
-//    @JiraEpic("PO-2433")
-//    @FeatureToggle(
-//        feature = FeatureFlags.RELEASE_1B,
-//        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
-//    )
-//    void unauthorisedWhenTokenIsMissing() throws Exception {
-//        mockMvc.perform(
-//            get(URL)
-//                .header(HttpHeaders.AUTHORIZATION, "")
-//            )
-//            .andExpect(status().isUnauthorized());
-//    }
 
     @Test
     @JiraStory("PO-2434")
     @JiraEpic("PO-2433")
-//    @FeatureToggle(
-//        feature = FeatureFlags.RELEASE_1B,
-//        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
-//    )
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG,
+        defaultValueProperty = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+    )
     void deterministicAndIdempotentGET() throws Exception {
         setupAuthorisedUser();
         String responseBody1 = callGetAndReturnContentAsString();

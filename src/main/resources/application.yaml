@@ -126,6 +126,7 @@ launchdarkly:
     release-1b: ${RELEASE_1B_ENABLED:false}
     release-1c: ${RELEASE_1C_ENABLED:false}
     release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
+    release-1d-auto-enforcement-config: ${RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED:true}
 
 opal:
   redis:
