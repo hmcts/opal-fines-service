@@ -15,7 +15,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Defendant Account At A Glance Payment Terms Integration Tests")
-class DefendantAccountAtAGlanceDIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+class DefendantAccountAtAGlanceIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     private static final long ACCOUNT_MULTI_TERMS_ONE_ACTIVE = 262901L;
     private static final long ACCOUNT_NO_ACTIVE_TERMS = 262902L;

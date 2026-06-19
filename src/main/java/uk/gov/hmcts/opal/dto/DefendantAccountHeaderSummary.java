@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Data
@@ -20,5 +20,5 @@ public class DefendantAccountHeaderSummary implements ToJsonString, Versioned {
 
     private BigInteger version;
 
-    private DefendantAccountHeaderSummaryPayload payload;
+    private GetDefendantAccountHeaderSummary200Response response;
 }

@@ -20,9 +20,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryRespon
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 
@@ -41,7 +41,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary actual = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        final DefendantAccountHeaderSummaryPayload expected = DefendantAccountHeaderSummaryPayload.builder()
+        final GetDefendantAccountHeaderSummary200Response expected = GetDefendantAccountHeaderSummary200Response.builder()
             .defendantAccountId("1")
             .debtorType(DebtorTypeEnum.DEFENDANT)
             .isYouth(false)
@@ -71,16 +71,16 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .build();
 
         assertNotNull(actual, "Expected non-null header summary");
-        assertEquals(expected.getDefendantAccountId(), actual.getPayload().getDefendantAccountId());
-        assertEquals(expected.getDebtorType(), actual.getPayload().getDebtorType());
-        assertEquals(expected.getIsYouth(), actual.getPayload().getIsYouth());
-        assertEquals(expected.getAccountNumber(), actual.getPayload().getAccountNumber());
+        assertEquals(expected.getDefendantAccountId(), actual.getResponse().getDefendantAccountId());
+        assertEquals(expected.getDebtorType(), actual.getResponse().getDebtorType());
+        assertEquals(expected.getIsYouth(), actual.getResponse().getIsYouth());
+        assertEquals(expected.getAccountNumber(), actual.getResponse().getAccountNumber());
         assertEquals(expected.getAccountStatusReference().getAccountStatusCode(),
-            actual.getPayload().getAccountStatusReference().getAccountStatusCode());
+            actual.getResponse().getAccountStatusReference().getAccountStatusCode());
         assertEquals(expected.getBusinessUnitSummary().getBusinessUnitName(),
-            actual.getPayload().getBusinessUnitSummary().getBusinessUnitName());
+            actual.getResponse().getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
-            actual.getPayload().getPaymentStateSummary().getImposedAmount());
+            actual.getResponse().getPaymentStateSummary().getImposedAmount());
     }
 
     @Test
@@ -128,16 +128,16 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
         assertNotNull(published);
-        assertEquals("SAMPLE", published.getPayload().getAccountNumber());
-        assertEquals(AccountTypeEnum.FINE, published.getPayload().getAccountType());
-        assertEquals(AccountStatusCodeEnum.L, published.getPayload().getAccountStatusReference().getAccountStatusCode());
-        assertEquals("Live", published.getPayload().getAccountStatusReference().getAccountStatusDisplayName());
-        assertEquals("78", published.getPayload().getBusinessUnitSummary().getBusinessUnitId());
-        assertEquals("Test BU", published.getPayload().getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals(new BigDecimal("700.58"), published.getPayload().getPaymentStateSummary().getImposedAmount());
-        assertEquals(BigDecimal.ZERO, published.getPayload().getPaymentStateSummary().getArrearsAmount());
-        assertEquals(new BigDecimal("200.00"), published.getPayload().getPaymentStateSummary().getPaidAmount());
-        assertEquals(new BigDecimal("500.58"), published.getPayload().getPaymentStateSummary().getAccountBalance());
+        assertEquals("SAMPLE", published.getResponse().getAccountNumber());
+        assertEquals(AccountTypeEnum.FINE, published.getResponse().getAccountType());
+        assertEquals(AccountStatusCodeEnum.L, published.getResponse().getAccountStatusReference().getAccountStatusCode());
+        assertEquals("Live", published.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals("78", published.getResponse().getBusinessUnitSummary().getBusinessUnitId());
+        assertEquals("Test BU", published.getResponse().getBusinessUnitSummary().getBusinessUnitName());
+        assertEquals(new BigDecimal("700.58"), published.getResponse().getPaymentStateSummary().getImposedAmount());
+        assertEquals(BigDecimal.ZERO, published.getResponse().getPaymentStateSummary().getArrearsAmount());
+        assertEquals(new BigDecimal("200.00"), published.getResponse().getPaymentStateSummary().getPaidAmount());
+        assertEquals(new BigDecimal("500.58"), published.getResponse().getPaymentStateSummary().getAccountBalance());
     }
 
     @Test
@@ -155,7 +155,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         DefendantAccountHeaderSummary result = legacyDefendantAccountService.getHeaderSummary(1L);
 
         assertNotNull(result);
-        assertEquals("77", result.getPayload().getDefendantPartyId());
+        assertEquals("77", result.getResponse().getDefendantPartyId());
     }
 
     @Test
@@ -197,7 +197,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
-        PaymentStateSummaryCommon paymentStateSummary = published.getPayload().getPaymentStateSummary();
+        PaymentStateSummaryCommon paymentStateSummary = published.getResponse().getPaymentStateSummary();
         assertEquals(BigDecimal.ZERO, paymentStateSummary.getImposedAmount());
         assertEquals(BigDecimal.ZERO, paymentStateSummary.getArrearsAmount());
         assertEquals(BigDecimal.ZERO, paymentStateSummary.getPaidAmount());
@@ -241,8 +241,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        assertEquals("SAMPLE", published.getPayload().getAccountNumber());
-        assertEquals(AccountTypeEnum.FINE, published.getPayload().getAccountType());
+        assertEquals("SAMPLE", published.getResponse().getAccountNumber());
+        assertEquals(AccountTypeEnum.FINE, published.getResponse().getAccountType());
     }
 
     @Test
@@ -264,11 +264,11 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        assertEquals("SAMPLE", published.getPayload().getAccountNumber());
-        assertEquals(AccountTypeEnum.FINE, published.getPayload().getAccountType());
-        assertNull(published.getPayload().getAccountStatusReference());
-        assertNull(published.getPayload().getBusinessUnitSummary());
-        assertNull(published.getPayload().getPaymentStateSummary());
+        assertEquals("SAMPLE", published.getResponse().getAccountNumber());
+        assertEquals(AccountTypeEnum.FINE, published.getResponse().getAccountType());
+        assertNull(published.getResponse().getAccountStatusReference());
+        assertNull(published.getResponse().getBusinessUnitSummary());
+        assertNull(published.getResponse().getPaymentStateSummary());
     }
 
     @Test
@@ -305,8 +305,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        assertEquals("SAMPLE", published.getPayload().getAccountNumber());
-        assertEquals(AccountTypeEnum.FINE, published.getPayload().getAccountType());
+        assertEquals("SAMPLE", published.getResponse().getAccountNumber());
+        assertEquals(AccountTypeEnum.FINE, published.getResponse().getAccountType());
     }
 
     @Test
@@ -322,7 +322,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
         assertNotNull(out);
-        assertEquals("SAMPLE", out.getPayload().getAccountNumber());
+        assertEquals("SAMPLE", out.getResponse().getAccountNumber());
     }
 
     @Test
@@ -367,7 +367,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        PaymentStateSummaryCommon ps = out.getPayload().getPaymentStateSummary();
+        PaymentStateSummaryCommon ps = out.getResponse().getPaymentStateSummary();
         assertEquals(0, ps.getImposedAmount().compareTo(new BigDecimal("100.0")));
         assertEquals(0, ps.getArrearsAmount().compareTo(new BigDecimal("0")));
         assertEquals(0, ps.getPaidAmount().compareTo(new BigDecimal("25")));
@@ -392,7 +392,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
-        assertEquals(BigDecimal.ZERO, out.getPayload().getPaymentStateSummary().getImposedAmount());
+        assertEquals(BigDecimal.ZERO, out.getResponse().getPaymentStateSummary().getImposedAmount());
     }
 
     @Test
@@ -428,8 +428,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
-        assertNotNull(out.getPayload().getPartyDetails().getIndividualDetails().getIndividualAliases());
-        assertEquals(1, out.getPayload().getPartyDetails().getIndividualDetails().getIndividualAliases().size());
+        assertNotNull(out.getResponse().getPartyDetails().getIndividualDetails().getIndividualAliases());
+        assertEquals(1, out.getResponse().getPartyDetails().getIndividualDetails().getIndividualAliases().size());
     }
 
     private LegacyGetDefendantAccountHeaderSummaryResponse createHeaderSummaryResponse() {

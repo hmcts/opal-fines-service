@@ -97,9 +97,9 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.IndividualAliasCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
@@ -292,7 +292,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
             .build();
 
-        DefendantAccountHeaderSummaryPayload payload = DefendantAccountHeaderSummaryPayload.builder()
+        GetDefendantAccountHeaderSummary200Response defendantAccHeaderSummaryResponse = GetDefendantAccountHeaderSummary200Response.builder()
             .defendantAccountId(response.getDefendantAccountId())
             .defendantPartyId(response.getDefendantPartyId())
             .accountNumber(response.getAccountNumber())
@@ -313,7 +313,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return DefendantAccountHeaderSummary.builder()
             .version(new BigInteger(Optional.ofNullable(response.getVersion()).orElse("1")))
-            .payload(payload)
+            .response(defendantAccHeaderSummaryResponse)
             .build();
     }
 

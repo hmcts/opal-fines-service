@@ -36,7 +36,13 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.business_unit_summary").exists())
             .andExpect(jsonPath("$.defendant_party_id").value("990001"))
             .andExpect(jsonPath("$.is_youth").value(false))
-            .andExpect(jsonPath("$.has_consolidated_accounts").value(true));
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(true))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.parent_guardian_party_id").value("990002"))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("FPN990001"))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("PCR990001"));
     }
 
     @Test
@@ -62,7 +68,13 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.business_unit_summary").exists())
             .andExpect(jsonPath("$.defendant_party_id").value("77"))
             .andExpect(jsonPath("$.is_youth").value(false))
-            .andExpect(jsonPath("$.has_consolidated_accounts").value(false));
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(false))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.parent_guardian_party_id").isEmpty())
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"));
     }
 
     @Test

@@ -17,8 +17,8 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
@@ -28,18 +28,20 @@ import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 public interface DefendantAccountHeaderSummaryMapper {
 
     @Mappings({
-        @Mapping(target = "payload.defendantAccountId"),
-        @Mapping(target = "payload.debtorType", source = "."),
-        @Mapping(target = "payload.isYouth", source = "birthDate"),
-        @Mapping(target = "payload.parentGuardianPartyId", source = "parentGuardianAccountPartyId"),
-        @Mapping(target = "payload.accountStatusReference", source = "accountStatus"),
-        @Mapping(target = "payload.businessUnitSummary", source = "."),
-        @Mapping(target = "payload.paymentStateSummary", source = "."),
-        @Mapping(target = "payload.partyDetails", source = "."),
-        @Mapping(target = "payload.accountNumber", source = "entity.accountNumber"),
-        @Mapping(target = "payload.accountType", source = "entity.accountType"),
-        @Mapping(target = "payload.defendantPartyId", source = "entity.defendantAccountPartyId"),
-        @Mapping(target = "payload.hasConsolidatedAccounts"),
+        @Mapping(target = "response.defendantAccountId"),
+        @Mapping(target = "response.debtorType", source = "."),
+        @Mapping(target = "response.isYouth", source = "birthDate"),
+        @Mapping(target = "response.parentGuardianPartyId", source = "parentGuardianAccountPartyId"),
+        @Mapping(target = "response.accountStatusReference", source = "accountStatus"),
+        @Mapping(target = "response.businessUnitSummary", source = "."),
+        @Mapping(target = "response.paymentStateSummary", source = "."),
+        @Mapping(target = "response.partyDetails", source = "."),
+        @Mapping(target = "response.accountNumber", source = "entity.accountNumber"),
+        @Mapping(target = "response.accountType", source = "entity.accountType"),
+        @Mapping(target = "response.defendantPartyId", source = "entity.defendantAccountPartyId"),
+        @Mapping(target = "response.fixedPenaltyTicketNumber", source = "entity.fixedPenaltyTicketNumber"),
+        @Mapping(target = "response.prosecutorCaseReference", source = "entity.prosecutorCaseReference"),
+        @Mapping(target = "response.hasConsolidatedAccounts"),
     })
     DefendantAccountHeaderSummary toDto(DefendantAccountHeaderViewEntity entity);
 

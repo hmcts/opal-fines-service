@@ -42,7 +42,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountHeaderSummaryPayload;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
@@ -68,25 +68,25 @@ class DefendantAccountServiceTest {
     @Test
     void testGetHeaderSummary() {
         // Arrange
-        DefendantAccountHeaderSummaryPayload payload = DefendantAccountHeaderSummaryPayload.builder()
+        GetDefendantAccountHeaderSummary200Response response = GetDefendantAccountHeaderSummary200Response.builder()
             .accountNumber("X123")
             .hasConsolidatedAccounts(Boolean.FALSE)
             .build();
         DefendantAccountHeaderSummary headerSummary = DefendantAccountHeaderSummary.builder()
             .version(BigInteger.ZERO)
-            .payload(payload)
+            .response(response)
             .build();
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.allFinesPermissionUser());
         // Act
-        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
+        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
         // Assert
         assertNotNull(result);
-        assertEquals("X123", result.getPayload().getAccountNumber());
-        assertFalse(result.getPayload().getHasConsolidatedAccounts());
+        assertEquals("X123", result.getResponse().getAccountNumber());
+        assertFalse(result.getResponse().getHasConsolidatedAccounts());
     }
 
 
@@ -147,12 +147,12 @@ class DefendantAccountServiceTest {
             .userName("noperms")
             .businessUnitUser(java.util.Collections.emptySet())
             .build();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(user);
 
         // Act & Assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () ->  defendantAccountService.getHeaderSummary(1L, "authHeaderValue")
+            () ->  defendantAccountService.getHeaderSummary(1L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
@@ -176,23 +176,23 @@ class DefendantAccountServiceTest {
             ))
             .build();
 
-        DefendantAccountHeaderSummaryPayload payload = DefendantAccountHeaderSummaryPayload.builder()
+        GetDefendantAccountHeaderSummary200Response response = GetDefendantAccountHeaderSummary200Response.builder()
             .accountNumber("X123")
             .hasConsolidatedAccounts(Boolean.TRUE)
             .build();
         DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder()
             .version(BigInteger.ZERO)
-            .payload(payload)
+            .response(response)
             .build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPerm);
+        when(userStateService.checkForAuthorisedUser()).thenReturn(userWithPerm);
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(expected);
 
-        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
+        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
         assertNotNull(result);
-        assertEquals("X123", result.getPayload().getAccountNumber());
-        assertTrue(result.getPayload().getHasConsolidatedAccounts());
+        assertEquals("X123", result.getResponse().getAccountNumber());
+        assertTrue(result.getResponse().getHasConsolidatedAccounts());
         verify(defendantAccountServiceProxy).getHeaderSummary(1L);
     }
 
