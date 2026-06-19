@@ -48,7 +48,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
     void getAtAGlance_successReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions resultActions = mockMvc.perform(get(URL, 99000000000800L)
@@ -79,7 +79,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
     void getAtAGlance_repeatedRequestReturnsConsistentResponse() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions first = mockMvc.perform(get(URL, 99000000000800L)
@@ -100,7 +100,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
     void getAtAGlance_withoutPermissionReturns403() throws Exception {
-        when(userStateService.checkForAuthorisedUser()).thenReturn(noPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
 
         mockMvc.perform(get(URL, 99000000000800L)
                 .accept(MediaType.APPLICATION_JSON)
@@ -114,7 +114,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
     void getAtAGlance_permissionInDifferentBusinessUnitReturns200() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         mockMvc.perform(get(URL, 99000000000800L)
@@ -130,7 +130,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @JiraEpic("PO-1286")
     void getAtAGlance_missingTokenReturns401() throws Exception {
         doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser();
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         mockMvc.perform(get(URL, 99000000000800L).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
@@ -143,7 +143,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
     void getAtAGlance_notFoundReturns404() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         mockMvc.perform(get(URL, 999999L)
