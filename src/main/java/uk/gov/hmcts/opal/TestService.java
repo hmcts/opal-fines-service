@@ -77,7 +77,7 @@ public class TestService {
     }
 
     private byte[] setupTestData(BlobContainerClient container, int count) {
-        TimedActivity activity = startActivity(
+        final TimedActivity activity = startActivity(
             "Setup Test Data",
             "jsonCount=" + count + ", pdfCount=" + count
         );
