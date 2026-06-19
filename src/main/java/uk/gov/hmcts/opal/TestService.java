@@ -81,8 +81,9 @@ public class TestService {
             "Setup Test Data",
             "jsonCount=" + count + ", pdfCount=" + count
         );
-        setupJsonTestData(container, count);
-        setupPdfTestData(container, count);
+        deleteRootBlobs(container);
+        uploadJsonTestBlobs(container, count);
+        uploadPdfTestBlobs(container, count);
         completeActivity(
             activity,
             "jsonCount=" + count + ", pdfCount=" + count
@@ -98,6 +99,25 @@ public class TestService {
             "count=" + count
         );
 
+        deleteRootBlobs(container);
+        uploadJsonTestBlobs(container, count);
+        completeActivity(activity, "count=" + count);
+        return setupResponse("json", count);
+    }
+
+    private byte[] setupPdfTestData(BlobContainerClient container, int count) {
+        TimedActivity activity = startActivity(
+            "Setup PDF Test Blobs",
+            "count=" + count
+        );
+
+        deleteRootBlobs(container);
+        uploadPdfTestBlobs(container, count);
+        completeActivity(activity, "count=" + count);
+        return setupResponse("pdf", count);
+    }
+
+    private static void uploadJsonTestBlobs(BlobContainerClient container, int count) {
         try {
             byte[] content = loadSampleJsonDocument();
             TimedActivity uploadActivity = startActivity(
@@ -112,17 +132,9 @@ public class TestService {
         } catch (IOException e) {
             throw new RuntimeException("Exception occurred while loading JSON test data.", e);
         }
-
-        completeActivity(activity, "count=" + count);
-        return setupResponse("json", count);
     }
 
-    private byte[] setupPdfTestData(BlobContainerClient container, int count) {
-        TimedActivity activity = startActivity(
-            "Setup PDF Test Blobs",
-            "count=" + count
-        );
-
+    private static void uploadPdfTestBlobs(BlobContainerClient container, int count) {
         try {
             byte[] content = loadSamplePdfDocument();
             TimedActivity uploadActivity = startActivity(
@@ -137,9 +149,6 @@ public class TestService {
         } catch (IOException e) {
             throw new RuntimeException("Exception occurred while loading PDF test data.", e);
         }
-
-        completeActivity(activity, "count=" + count);
-        return setupResponse("pdf", count);
     }
 
     private byte[] mergeJsonBlobs(BlobContainerClient container) {
@@ -308,6 +317,24 @@ public class TestService {
             activity,
             "name=" + fileName + ", bytes=" + content.length
         );
+    }
+
+    private static void deleteRootBlobs(BlobContainerClient container) {
+        TimedActivity activity = startActivity("Delete Root Blobs", "scope=root");
+        List<String> blobNames = StreamSupport.stream(
+                container.listBlobs().spliterator(),
+                false
+            )
+            .map(BlobItem::getName)
+            .filter(name -> !name.contains("/"))
+            .sorted()
+            .toList();
+
+        for (String blobName : blobNames) {
+            container.getBlobClient(blobName).deleteIfExists();
+        }
+
+        completeActivity(activity, "scope=root, blobCount=" + blobNames.size());
     }
 
     private static void deleteDirectory(Path directory) {
