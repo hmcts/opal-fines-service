@@ -86,7 +86,8 @@ public class ReportInstanceSearchService {
         return businessUnitUsers.stream()
             .flatMap(buUser ->
                 reports.stream()
-                    .filter(report -> buUser.getPermissions().contains(report.getPermission().toCommonPermission()))
+                    .filter(report -> buUser.getPermissions().stream()
+                        .anyMatch(permission -> permission.getPermissionId() == report.getPermission().getId()))
                     .map(report -> Map.entry(report.getReportId(), buUser.getBusinessUnitId().longValue())))
             .collect(Collectors.groupingBy(
                 Map.Entry::getKey,

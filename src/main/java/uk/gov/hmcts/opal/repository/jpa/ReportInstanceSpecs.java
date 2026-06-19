@@ -64,13 +64,11 @@ public final class ReportInstanceSpecs {
                 : cb.equal(root.get("requestedBy"), requestedBy);
     }
 
-    public static Specification<ReportInstanceEntity> reportIdEquals(
-        String reportId) {
-
+    public static Specification<ReportInstanceEntity> reportIdEquals(String reportId) {
         return (root, query, cb) ->
             reportId == null || reportId.isBlank()
                 ? null
-                : cb.equal(root.get("reportId"), reportId);
+                : cb.equal(root.get("report").get("reportId"), reportId);
     }
 
     public static Specification<ReportInstanceEntity> hasAnyBusinessUnitIn(List<Long> businessUnitIds) {

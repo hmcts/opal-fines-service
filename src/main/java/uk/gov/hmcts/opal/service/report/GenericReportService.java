@@ -58,6 +58,13 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ObjectMapper mapper;
     private final ReportInstanceSearchService reportInstanceSearchService;
 
+    private static void processError(ReportInstanceEntity instance, Exception exception) {
+        instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
+        instance.setErrors(ReportError.builder()
+            .operationId(LogUtil.getOrCreateOpalOperationId())
+            .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
+    }
+
     @Override
     public void generateReportInstanceContent(Long id) {
         final LocalDateTime currentTimestamp = LocalDateTime.now(clock);
@@ -175,13 +182,6 @@ public class GenericReportService implements GenericReportServiceInterface {
         return reportInstances.stream()
             .map(reportInstanceMapper::toReportInstanceListReportsInnerDto)
             .toList();
-    }
-
-    private static void processError(ReportInstanceEntity instance, Exception exception) {
-        instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
-        instance.setErrors(ReportError.builder()
-            .operationId(LogUtil.getOrCreateOpalOperationId())
-            .error(String.format("%s: %s", exception.getClass().getName(), exception.getMessage())).build());
     }
 
     private ReportInstanceEntity saveReportInstance(ReportInstanceEntity instance) {
