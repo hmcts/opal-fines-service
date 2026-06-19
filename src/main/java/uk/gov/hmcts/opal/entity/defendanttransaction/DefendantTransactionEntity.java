@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
@@ -67,7 +68,7 @@ public class DefendantTransactionEntity {
 
     @Column(name = "payment_method", length = 2)
     @Enumerated(EnumType.STRING)
-    private DefendantTransactionPaymentMethod paymentMethod;
+    private PaymentMethod paymentMethod;
 
     @Column(name = "payment_reference", length = 10)
     private String paymentReference;
