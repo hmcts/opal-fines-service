@@ -146,7 +146,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         // Act
         defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester",
-            ifMatch, postedBy, request);
+            ifMatch, request);
 
         // Assert
         // 1) Verify PaymentTermsService.addPaymentTerm was called
@@ -167,7 +167,6 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         final String businessUnitId = "10";
         final String businessUnitUserId = "userX";
         final String ifMatch = "\"1\"";
-        final String authHeader = "Bearer token";
 
         BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10)
@@ -205,8 +204,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
-            authHeader, request);
+        defendantAccountService.addPaymentTerms(
+            defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, request);
 
         // Assert
         verify(paymentTermsService).addPaymentTerm(argThat(entity ->

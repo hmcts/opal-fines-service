@@ -93,7 +93,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // When
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null,"4", "AUTH");
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null,"4");
 
         // Then
         assertNotNull(out);
@@ -120,7 +120,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         // When
-        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78",null, "9", "AUTH");
+        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78",null, "9");
 
         // Then
         AddPaymentCardLegacyRequest sent = captor.getValue();
@@ -144,7 +144,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", null,"1", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", null,"1")
         );
     }
 
@@ -164,7 +164,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", null,"2", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", null,"2")
         );
     }
 
@@ -182,14 +182,14 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", null, "3", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", null, "3")
         );
     }
 
     @Test
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", null,"notANumber", "AUTH")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", null,"notANumber")
         );
     }
 

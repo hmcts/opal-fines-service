@@ -15,6 +15,9 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,9 +29,6 @@ import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionWriteOffCodeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "defendant_transactions")
@@ -81,7 +81,7 @@ public class DefendantTransactionEntity {
 
     @Column(name = "status_date", nullable = false)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-    private LocalDate statusDate;
+    private LocalDateTime statusDate;
 
     @Column(name = "status_amount", precision = 18, scale = 2)
     private BigDecimal statusAmount;

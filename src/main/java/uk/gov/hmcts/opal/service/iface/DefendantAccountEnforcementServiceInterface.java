@@ -13,7 +13,6 @@ public interface DefendantAccountEnforcementServiceInterface {
                                           Short businessUnitId,
                                           String businessUnitUserId,
                                           String ifMatch,
-                                          String authHeader,
                                           AddDefendantAccountEnforcementRequest request) throws JacksonException;
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
@@ -23,6 +22,5 @@ public interface DefendantAccountEnforcementServiceInterface {
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader,
         RemoveDefendantAccountEnforcementHoldRequest request);
 }

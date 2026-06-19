@@ -65,7 +65,6 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
                                                  Short businessUnitId,
                                                  String businessUnitUserId,
                                                  String ifMatch,
-                                                 String authHeader,
                                                  AddDefendantAccountEnforcementRequest request) {
 
         // build legacy request object
@@ -110,7 +109,6 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader,
         RemoveDefendantAccountEnforcementHoldRequest request) {
 
         LegacyRemoveDefendantAccountEnforcementHoldRequest legacyRequest =

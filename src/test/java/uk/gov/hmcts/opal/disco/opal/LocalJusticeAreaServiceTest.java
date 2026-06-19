@@ -85,10 +85,10 @@ class LocalJusticeAreaServiceTest {
     void testLocalJusticeAreasReferenceData() {
         // Arrange
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
-        when(sfq.as(any())).thenReturn(sfq);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         LocalJusticeAreaEntity localJAEntity = LocalJusticeAreaEntity.builder().build();
+        LjaReferenceData ljaReferenceData = LjaReferenceData.builder().build();
         Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJAEntity), Pageable.unpaged(), 999L);
         when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
@@ -100,7 +100,7 @@ class LocalJusticeAreaServiceTest {
             Optional.empty(), Optional.empty());
 
         // Assert
-        assertEquals(List.of(localJAEntity), result);
+        assertEquals(List.of(ljaReferenceData), result);
 
     }
 

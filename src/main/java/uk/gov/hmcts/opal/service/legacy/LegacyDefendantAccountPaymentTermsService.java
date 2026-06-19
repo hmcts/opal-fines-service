@@ -151,8 +151,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        String ifMatch,
-        String authHeader
+        String ifMatch
     ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 

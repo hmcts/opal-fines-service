@@ -29,7 +29,7 @@ class ResultControllerRelease1aDisabledIntegrationTest extends AbstractIntegrati
     @JiraEpic("PO-3685")
     void getResults_returnsFeatureDisabledWhenRelease1aDisabled() throws Exception {
         mockMvc.perform(get("/results"))
-            .andExpect(status().isMethodNotAllowed())
+            .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"));
     }

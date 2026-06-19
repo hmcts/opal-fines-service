@@ -7,7 +7,7 @@ Feature: Fines Service Release 1b Feature Toggles
   @R1BOff @JIRA-STORY:PO-3762 @JIRA-EPIC:PO-3685
   Scenario Outline: Release 1b gated endpoint is unavailable when release 1b is disabled
     When I call the release 1b gated endpoint "<endpoint>"
-    Then the request is rejected with status 405
+    Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
     Examples:

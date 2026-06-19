@@ -4,6 +4,7 @@ public class SchemaPaths {
 
     public static final String DEFENDANT_ACCOUNT = "opal/defendant-account";
     public static final String DRAFT_ACCOUNT = "opal/draft-account";
+    public static final String MAJOR_CREDITOR = "opal/major-creditor";
     public static final String PAYMENT_TERMS = "opal/payment-terms";
     public static final String REFERENCE_DATA = "opal/reference-data";
     public static final String TIMELINE = "opal/timeline";
