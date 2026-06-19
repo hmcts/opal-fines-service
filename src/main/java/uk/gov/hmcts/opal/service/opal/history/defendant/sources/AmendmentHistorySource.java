@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
+import uk.gov.hmcts.opal.repository.jpa.AmendmentSpecs;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
@@ -82,9 +83,10 @@ public class AmendmentHistorySource extends HistorySourceSpecificationSupport
     }
 
     private Specification<AmendmentEntity> amendmentForDefendantAccount(Long defendantAccountId) {
-        return (root, query, builder) -> builder.and(
-            builder.equal(root.get("associatedRecordType"), AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel()),
-            builder.equal(root.get("associatedRecordId"), defendantAccountId.toString())
+        AssociatedRecordType associatedRecordType = AssociatedRecordType.DEFENDANT_ACCOUNTS;
+        return allOf(
+            AmendmentSpecs.equalsAssociatedRecordType(associatedRecordType),
+            AmendmentSpecs.equalsAssociatedRecordId(defendantAccountId.toString())
         );
     }
 
