@@ -63,6 +63,8 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private TestService testService;
+
+    @MockitoBean
     private UserStateMapper userStateMapper;
 
     @Test
