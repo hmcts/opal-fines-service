@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,7 +18,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 
 @Entity
 @Table(name = "report_entries")
@@ -48,8 +51,10 @@ public class ReportEntryEntity {
     @Column(name = "reported_timestamp")
     private LocalDateTime reportedTimestamp;
 
-    @Column(name = "associated_record_type", length = 30)
-    private String associatedRecordType;
+    @Convert(converter = AssociatedRecordTypeConverter.class)
+    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @Column(name = "associated_record_type", length = 30, columnDefinition = "t_associated_record_type_enum")
+    private AssociatedRecordType associatedRecordType;
 
     @Column(name = "associated_record_id", length = 30)
     private String associatedRecordId;

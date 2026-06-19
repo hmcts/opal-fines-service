@@ -1123,7 +1123,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         // Create report entry for the Extension of Time to Pay report
-        reportEntryService.createExtendTtpReportEntry(savedPaymentTerms.getPaymentTermsId(),
+        reportEntryService.createExtendTtpReportEntry(defAccount.getDefendantAccountId(),
             defAccount.getBusinessUnit().getBusinessUnitId());
 
         log.debug(":addPaymentTerms: saved payment terms id={} for account {}",
