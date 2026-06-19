@@ -632,7 +632,7 @@ public class ReportInstancesApiControllerIntegrationTest extends AbstractIntegra
             .andExpect(jsonPath("$.status.code").value(CodeEnum.REQUESTED.name()))
             .andExpect(jsonPath("$.status.display_name").value(CodeEnum.REQUESTED.getValue()))
             .andExpect(jsonPath("$.is_downloadable").value(false))
-            .andExpect(jsonPath("$.report_parameters").value(IsNull.nullValue()));
+            .andExpect(jsonPath("$.report_parameters").value(Matchers.anEmptyMap()));
     }
 
     @Test

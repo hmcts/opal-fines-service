@@ -295,7 +295,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             assertNotNull(response);
             assertEquals(CodeEnum.ERROR, response.getStatus().getCode());
             assertEquals(CodeEnum.ERROR.getValue(), response.getStatus().getDisplayName());
-            assertNull(response.getReportParameters());
+            assertEquals(Collections.emptyMap(), response.getReportParameters());
 
             assertNotNull(response.getErrors());
             assertEquals(1, response.getErrors().size());

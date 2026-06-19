@@ -23,10 +23,10 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
-import uk.gov.hmcts.opal.mapper.common.JsonMapper;
+import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 
 @Mapper(componentModel = "spring",
-    uses = {BusinessUnitSummaryMapper.class, JsonMapper.class},
+    uses = {BusinessUnitSummaryMapper.class, JsonMapperHelper.class},
     builder = @Builder(disableBuilder = true))
 public interface ReportInstanceMapper {
 
@@ -94,7 +94,7 @@ public interface ReportInstanceMapper {
     @Mapping(target = "isDownloadable", expression = "java(findIsDownloadable(reportInstanceEntity))")
     @Mapping(target = "errors", expression = "java(getErrors(reportInstanceEntity))")
     @Mapping(target = "reportParameters", source = "reportInstanceEntity.reportParameters",
-        qualifiedByName = "jsonStringToMap")
+        qualifiedByName = "parseJsonToMap")
     @Mapping(target = "retainUntil", source = "reportInstanceEntity.scheduledDeletionTimestamp")
     @Mapping(target = "businessUnits", source = "businessUnitEntities")
     ReportInstanceReports toReportInstanceReportsDto(ReportInstanceEntity reportInstanceEntity,
