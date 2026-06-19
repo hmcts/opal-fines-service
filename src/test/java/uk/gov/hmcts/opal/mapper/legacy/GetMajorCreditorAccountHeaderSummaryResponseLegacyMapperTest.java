@@ -35,6 +35,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
                 .businessUnitDetails(BusinessUnitSummary.builder()
                                          .businessUnitId("77")
                                          .businessUnitName("Camberwell Green")
+                                         .businessUnitCode("CBG")
                                          .welshSpeaking("N")
                                          .build())
                 .awaitingPayout(new BigDecimal("123.45"))
@@ -50,6 +51,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
                      result.getMajorCreditor().getAccountReference().getDisplayName().getValue());
         assertEquals("77", result.getBusinessUnitDetails().getBusinessUnitId());
         assertEquals("Camberwell Green", result.getBusinessUnitDetails().getBusinessUnitName());
+        assertEquals("CBG", result.getBusinessUnitDetails().getBusinessUnitCode());
         assertEquals("N", result.getBusinessUnitDetails().getWelshSpeaking());
         assertEquals(new BigDecimal("123.45"), result.getAwaitingPayout());
         assertEquals(7L, result.getVersion().longValue());

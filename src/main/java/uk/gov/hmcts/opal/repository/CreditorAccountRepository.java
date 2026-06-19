@@ -32,6 +32,7 @@ public interface CreditorAccountRepository extends JpaRepository<CreditorAccount
                ci.item_values ->> 'name' AS "name",
                bu.business_unit_id AS "businessUnitId",
                bu.business_unit_name AS "businessUnitName",
+               bu.business_unit_code AS "businessUnitCode",
                bu.welsh_language AS "welshLanguage",
                ca.version_number AS "versionNumber"
           FROM creditor_accounts ca

@@ -30,6 +30,7 @@ class CentralFundMapperTest {
         BusinessUnitSummaryCommon businessUnitDetails = payload.getBusinessUnitDetails();
         assertEquals("70", businessUnitDetails.getBusinessUnitId());
         assertEquals("London Collection", businessUnitDetails.getBusinessUnitName());
+        assertEquals("LOND", businessUnitDetails.getBusinessUnitCode());
         assertEquals("Y", businessUnitDetails.getWelshSpeaking());
         assertEquals(BigInteger.valueOf(7), response.getVersion());
     }
@@ -67,6 +68,11 @@ class CentralFundMapperTest {
             @Override
             public String getBusinessUnitName() {
                 return "London Collection";
+            }
+
+            @Override
+            public String getBusinessUnitCode() {
+                return "LOND";
             }
 
             @Override

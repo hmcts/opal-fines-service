@@ -54,6 +54,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
             .andExpect(jsonPath("$.major_creditor.account_reference.account_type").value("MJ"))
             .andExpect(jsonPath("$.major_creditor.account_reference.display_name").value("Major Creditor"))
             .andExpect(jsonPath("$.business_unit_details.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit_details.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit_details.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit_details.welsh_speaking").value("N"))
             .andExpect(jsonPath("$.awaiting_payout").value(0));

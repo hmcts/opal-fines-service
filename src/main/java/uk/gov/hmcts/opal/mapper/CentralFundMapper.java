@@ -23,6 +23,7 @@ public interface CentralFundMapper {
     @Mapping(target = "majorCreditor.name", source = "name")
     @Mapping(target = "businessUnitDetails.businessUnitId", source = "businessUnitId")
     @Mapping(target = "businessUnitDetails.businessUnitName", source = "businessUnitName")
+    @Mapping(target = "businessUnitDetails.businessUnitCode", source = "businessUnitCode")
     @Mapping(
         target = "businessUnitDetails.welshSpeaking",
         source = "welshLanguage",

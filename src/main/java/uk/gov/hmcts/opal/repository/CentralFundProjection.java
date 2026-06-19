@@ -12,6 +12,8 @@ public interface CentralFundProjection {
 
     String getBusinessUnitName();
 
+    String getBusinessUnitCode();
+
     Boolean getWelshLanguage();
 
     Long getVersionNumber();

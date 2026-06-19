@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 
@@ -30,6 +31,7 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
 
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
@@ -57,8 +59,25 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
 
         MajorCreditorLegacy majorCreditor = response.responseEntity.getMajorCreditor();
         mapped.setVersion(BigInteger.valueOf(majorCreditor.getAccountVersion()));
+        applyResolvedBusinessUnitCode(mapped, response.responseEntity.getBusinessUnitDetails());
 
         return mapped;
+    }
+
+    private void applyResolvedBusinessUnitCode(
+        GetMajorCreditorAccountHeaderSummaryResponse mapped,
+        BusinessUnitSummary legacyBusinessUnit
+    ) {
+        if (mapped.getBusinessUnitDetails() == null || legacyBusinessUnit == null) {
+            return;
+        }
+
+        mapped.getBusinessUnitDetails().setBusinessUnitCode(
+            legacyBusinessUnitCodeResolver.resolve(
+                legacyBusinessUnit.getBusinessUnitId(),
+                legacyBusinessUnit.getBusinessUnitCode()
+            )
+        );
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
