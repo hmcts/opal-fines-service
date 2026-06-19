@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.report;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import uk.gov.hmcts.opal.entity.DestinationType;
 
 public enum CashTillDestinationType {
     FA,
@@ -12,10 +13,10 @@ public enum CashTillDestinationType {
         return value == null ? null : CashTillDestinationType.valueOf(value);
     }
 
-    public static CashTillDestinationType fromPaymentDestinationType(String value) {
+    public static CashTillDestinationType fromPaymentDestinationType(DestinationType value) {
         return switch (value) {
-            case "F", "FA" -> FA;
-            case "S", "SA" -> SA;
+            case F -> FA;
+            case S -> SA;
             default -> throw new IllegalArgumentException("Unsupported Cash Till destination type: " + value);
         };
     }

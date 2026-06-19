@@ -31,12 +31,14 @@ import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
-import uk.gov.hmcts.opal.entity.PaymentInEntity;
-import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
+import uk.gov.hmcts.opal.entity.PaymentInEntity;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
@@ -471,9 +473,9 @@ class CashTillReportServiceTest {
             .paymentInId(1001L)
             .paymentDate(LocalDateTime.of(2026, 5, 3, 10, 15))
             .paymentAmount(money("12.30"))
-            .paymentMethod("NC")
-            .destinationType("F")
-            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel())
+            .paymentMethod(PaymentMethod.NC)
+            .destinationType(DestinationType.F)
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .associatedRecordId("11")
             .receipt(true)
             .autoPayment(false)
@@ -486,9 +488,9 @@ class CashTillReportServiceTest {
             .paymentInId(1002L)
             .paymentDate(LocalDateTime.of(2026, 5, 2, 9, 5))
             .paymentAmount(money("8.40"))
-            .paymentMethod("CQ")
-            .destinationType("S")
-            .associatedRecordType(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS.getLabel())
+            .paymentMethod(PaymentMethod.CQ)
+            .destinationType(DestinationType.S)
+            .associatedRecordType(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS)
             .associatedRecordId("22")
             .receipt(false)
             .autoPayment(true)
