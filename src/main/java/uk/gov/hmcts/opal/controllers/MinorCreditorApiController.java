@@ -39,7 +39,6 @@ public class MinorCreditorApiController implements MinorCreditorApi {
         Long id,
         String businessUnitId,
         String ifMatch,
-        String authHeaderValue,
         PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest) {
 
         log.debug(":PATCH:patchMinorCreditorAccount: id={}", id);
@@ -47,7 +46,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
         MinorCreditorAccountResponse result =
             minorCreditorService.updateMinorCreditorAccount(id, patchMinorCreditorAccountRequest,
                 extractOptionalBigInteger(ifMatch).orElse(null),
-                authHeaderValue, businessUnitId);
+                businessUnitId);
 
         return buildResponse(result);
     }

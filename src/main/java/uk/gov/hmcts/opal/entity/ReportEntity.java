@@ -21,6 +21,7 @@ import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.converter.DurationToStringConverter;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
+import uk.gov.hmcts.opal.service.report.ReportParameterData;
 
 @Entity
 @Table(name = "reports")
@@ -49,10 +50,6 @@ public class ReportEntity {
     @Column(name = "audited_report", nullable = false)
     private boolean auditedReport;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "report_parameters", columnDefinition = "json")
-    private String reportParameters;
-
     @Column(name = "supports_multi_bu", nullable = false)
     private boolean supportsMultiBu;
 
@@ -73,4 +70,7 @@ public class ReportEntity {
     @Column(name = "can_manually_create", nullable = false)
     private boolean canManuallyCreate;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "report_parameters", columnDefinition = "json")
+    private List<ReportParameterData> reportParameters;
 }

@@ -262,11 +262,11 @@ Nightly parameters:
 | Parameter | Default | Purpose |
 |-----------|---------|---------|
 | `Integration` | `true` | Runs the staging integration-test stage. |
-| `Functional` | `true` | Runs the staging functional-test stage and enables the demo R1A functional stage when `Demo` is also enabled. |
-| `Demo` | `true` | Runs the demo R1A functional stage against the demo environment. |
+| `Functional` | `true` | Runs the staging functional-test stage. |
+| `Smoke` | `true` | Runs the staging smoke-test stage. |
+| `RunR1AOnly` | `true` | Runs the demo R1A functional stage against the demo environment. |
 | `RunR1AOff` | `false` | Runs the optional demo R1A-off functional stage. |
 | `ZephyrExecution` | `false` | Creates Zephyr executions; this also runs automatically on Fridays. |
-| `LEGACY_URL` | `PRE-PROD` | Existing legacy URL selector retained for legacy-mode test configuration. |
 
 Nightly environments:
 
@@ -281,16 +281,44 @@ Nightly stages:
 |-------|-------------|---------------|------------------|
 | `Integration Tests` | `staging` | `Integration` | `Integration` |
 | `Functional Tests` | `staging` | `Functional` | `functional` or `functionalWithZephyrExecution` |
-| `Demo R1A Functional Tests` | `demo` | `Demo` and `Functional` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with the R1A manual-account-creation tag filter |
+| `Smoke Tests` | `staging` | `Smoke` | `smoke` |
+| `Demo R1A Functional Tests` | `demo` | `RunR1AOnly` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with the R1A manual-account-creation tag filter |
 | `R1AOff Demo Functional Tests` | `demo` | `RunR1AOff` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with `@R1AOff and not @Ignore` |
 
 The demo R1A stage is intentionally limited to manual-account-creation scenarios and
 excludes R1A-off, R1B, R1B-off, R1C, and R1C-off style release-tagged scenarios. It
 does not run the full backend functional suite.
 
-All functional stages publish JUnit XML from `build/test-results/functional`, archive the
-functional test XMLs, and publish the Serenity report plus the generated test-summary
-HTML. The integration stage publishes and archives JUnit XML from `build/test-results/integration`.
+Nightly reports and artifacts:
+
+- Staging functional publishes `Serenity Functional Test Report` and `Test Summary Report`.
+- Staging smoke publishes `Serenity Smoke Test Report` and `Smoke Test Summary Report`.
+- Demo R1A publishes `Serenity Functional Test Report (Demo)` and `Test Summary Report (Demo)`.
+- Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)` and `Test Summary Report (Demo R1AOff)`.
+- Archived output folders are `integration-output`, `functional-output`, `functional-output-demo`, and `smoke-output`.
+- Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
+
+Failure handling:
+
+- A Gradle stage failure marks the nightly build `FAILURE`.
+- JUnit-reported test failures for integration, functional, smoke, demo R1A, and demo R1AOff are promoted from `UNSTABLE` to `FAILURE`.
+- The demo R1A and R1AOff stages currently share `functional-output-demo` / `functional-test-report-demo`, so when both run in the same build the later demo-tagged run can overwrite the shared demo artifact contents even though Jenkins publishes separate report links.
+
+### CNP Jenkins pipeline
+
+`Jenkinsfile_CNP` uses the standard HMCTS pipeline wrapper for PR and branch builds.
+This repo-local Jenkinsfile does not declare its own job parameters.
+
+CNP outputs:
+
+- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*`, and publishes `Integration Tests Report` from `integration-output/report`.
+- Functional publishes JUnit XML from `build/test-results/functional`, archives both `functional-output/**/*` and `functional-test-report/**/*`, and publishes `Serenity Functional Test Report` plus `Test Summary Report`.
+- Smoke publishes JUnit XML from `build/test-results/smoke`, archives both `smoke-output/**/*` and `smoke-test-report/**/*`, and publishes `Serenity Smoke Test Report` plus `Smoke Test Summary Report`.
+
+CNP failure handling:
+
+- JUnit-reported failures for integration, functional, and smoke are promoted from `UNSTABLE` to `FAILURE`.
+- Functional and smoke publication rebuild `functional-output/report` and `smoke-output/report` from the raw Serenity output if the packaged report directory is missing.
 
 ### Zephyr tasks
 
@@ -307,22 +335,32 @@ Run the matching functional or integration suite first if the report is not alre
 | --- | --- |
 | `functionalWithZephyrExecution` | Runs the default Opal functional suite, creates an Opal Cucumber report copy, creates an Opal Zephyr execution, then runs the Legacy functional suite and creates a Legacy Zephyr execution. |
 | `functionalWithTagsWithZephyrExecution` | Runs the default Opal functional suite and the tagged Opal functional suite selected by `TAGS` or `-Ptags`, then creates Zephyr executions for both reports. |
-| `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `target/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
-| `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `target/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
-| `functionalLegacyWithZephyrExecution` | Runs only `functionalLegacy`, copies its Cucumber report to `target/zephyr/cucumber-legacy.json`, and creates the Legacy Zephyr execution. |
+| `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `functional-output/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
+| `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `functional-output-demo/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
+| `functionalLegacyWithZephyrExecution` | Runs only `functionalLegacy`, copies its Cucumber report to `functional-output/zephyr/cucumber-legacy.json`, and creates the Legacy Zephyr execution. |
+| `smokeWithZephyrExecution` | Runs `smokeOpal`, copies its Cucumber report to `smoke-output/zephyr/cucumber-smoke.json`, and creates the smoke Zephyr execution. |
 
 | `createJiraTicketsFromCucumberReport` | Creates and links Jira test tickets from `target/cucumber.json`. |
 | `updateJiraTicketsFromCucumberReport` | Updates Jira test tickets from `target/cucumber.json`. |
+| `createJiraTicketsFromOpalCucumberReport` | Creates and links Jira test tickets from `functional-output/zephyr/cucumber-opal.json`. |
+| `updateJiraTicketsFromOpalCucumberReport` | Updates Jira test tickets from `functional-output/zephyr/cucumber-opal.json`. |
+| `createJiraTicketsFromOpalTagsCucumberReport` | Creates and links Jira test tickets from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
+| `updateJiraTicketsFromOpalTagsCucumberReport` | Updates Jira test tickets from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
+| `createJiraTicketsFromLegacyCucumberReport` | Creates and links Jira test tickets from `functional-output/zephyr/cucumber-legacy.json`. |
+| `updateJiraTicketsFromLegacyCucumberReport` | Updates Jira test tickets from `functional-output/zephyr/cucumber-legacy.json`. |
+| `createJiraTicketsFromSmokeCucumberReport` | Creates and links Jira test tickets from `smoke-output/zephyr/cucumber-smoke.json`. |
+| `updateJiraTicketsFromSmokeCucumberReport` | Updates Jira test tickets from `smoke-output/zephyr/cucumber-smoke.json`. |
 
 | `createJiraExecutionFromCucumberReport` | Creates a Zephyr execution from `target/cucumber.json`. |
-| `createJiraExecutionFromOpalCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal.json`. |
-| `createJiraExecutionFromOpalTagsCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-opal-tags.json`. |
-| `createJiraExecutionFromLegacyCucumberReport` | Creates a Zephyr execution from `target/zephyr/cucumber-legacy.json`. |
+| `createJiraExecutionFromOpalCucumberReport` | Creates a Zephyr execution from `functional-output/zephyr/cucumber-opal.json`. |
+| `createJiraExecutionFromOpalTagsCucumberReport` | Creates a Zephyr execution from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
+| `createJiraExecutionFromLegacyCucumberReport` | Creates a Zephyr execution from `functional-output/zephyr/cucumber-legacy.json`. |
+| `createJiraExecutionFromSmokeCucumberReport` | Creates a Zephyr execution from `smoke-output/zephyr/cucumber-smoke.json`. |
 
 | `integrationTestWithZephyrExecution` | Runs `integration`, then creates a Zephyr execution from the generated JUnit5 integration report. |
-| `createJiraTicketsFromJUnit5ReportIntegrationTest` | Creates and links Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
-| `updateJiraTicketsFromJUnit5ReportIntegrationTest` | Updates Jira test tickets from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
-| `createJiraExecutionFromJUnit5ReportIntegrationTest` | Creates a Zephyr execution from `target/zephyr-reports/Junit5Report-IntegrationTest.json`. |
+| `createJiraTicketsFromJUnit5ReportIntegrationTest` | Creates and links Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `updateJiraTicketsFromJUnit5ReportIntegrationTest` | Updates Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `createJiraExecutionFromJUnit5ReportIntegrationTest` | Creates a Zephyr execution from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
 
 ## Manual api testing (Postman)
 

@@ -5,36 +5,42 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.stream.Stream;
 
 public enum DefendantTransactionWriteOffCode {
-    JCAM_A("JCAM-A"),
-    JCAM_B("JCAM-B"),
-    JCAM_C("JCAM-C"),
-    JCAM_D("JCAM-D"),
-    JCAM_E("JCAM-E"),
-    JCAM_F("JCAM-F"),
-    JCAM_G("JCAM-G"),
-    JCAM_H("JCAM-H"),
-    JCAM_I("JCAM-I"),
-    JCAM_K("JCAM-K"),
-    REMITT("REMITT"),
-    IMPRIS("IMPRIS"),
-    APPEAL("APPEAL"),
-    CTPROC("CTPROC"),
-    FIXPEN("FIXPEN"),
-    REVIEW("REVIEW"),
-    INPERR("INPERR"),
-    OTHERS("OTHERS"),
-    AMTCON("AMTCON"),
-    TRNOUT("TRNOUT");
+    JCAM_A("JCAM-A", "Unknown whereabouts"),
+    JCAM_B("JCAM-B", "Emigrated / Gone Abroad"),
+    JCAM_C("JCAM-C", "Deceased"),
+    JCAM_D("JCAM-D", "Sent to Mental Health Institution"),
+    JCAM_E("JCAM-E", "Sum Less Than £10"),
+    JCAM_F("JCAM-F", "Imprisonment 12 Months"),
+    JCAM_G("JCAM-G", "Limited Company Wound Up"),
+    JCAM_H("JCAM-H", "Serviceman – Military Correctional Training"),
+    JCAM_I("JCAM-I", "Local Authority Moved to Scotland"),
+    JCAM_K("JCAM-K", "Other"),
+    REMITT("REMITT", "Remitted"),
+    IMPRIS("IMPRIS", "Satisfied by Imprisonment"),
+    APPEAL("APPEAL", "Appeals"),
+    CTPROC("CTPROC", "Statutory Declarations (Court Proceedings)"),
+    FIXPEN("FIXPEN", "Statutory Declarations (Fixed Penalty)"),
+    REVIEW("REVIEW", "Compensation No Longer Payable (Criminal Courts Act)"),
+    INPERR("INPERR", "Input Error"),
+    OTHERS("OTHERS", "Others (non-specified)"),
+    AMTCON("AMTCON", "Consolidated"),
+    TRNOUT("TRNOUT", "Transferred out");
 
     private final String label;
+    private final String displayName;
 
-    DefendantTransactionWriteOffCode(String label) {
+    DefendantTransactionWriteOffCode(String label, String displayName) {
         this.label = label;
+        this.displayName = displayName;
     }
 
     @JsonValue
     public String getLabel() {
         return label;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     public static DefendantTransactionWriteOffCode getByLabel(String label) {

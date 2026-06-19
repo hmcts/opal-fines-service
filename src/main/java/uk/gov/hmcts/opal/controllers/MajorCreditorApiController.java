@@ -12,11 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
+import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.generated.http.api.MajorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
+import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountAtAGlance200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorRefData200Response;
 import uk.gov.hmcts.opal.service.CentralFundService;
@@ -39,16 +41,28 @@ public class MajorCreditorApiController implements MajorCreditorApi {
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
     public ResponseEntity<GetCentralFundResponse> getCentralFundByBusinessUnit(
-        Integer id,
-        @Nullable String authorization) {
+        Integer id) {
 
         log.debug(":GET:getCentralFundByBusinessUnit: businessUnitId={}", id);
 
-        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(id, authorization);
+        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(id);
 
         return ResponseEntity.ok()
             .eTag(createETag(response))
             .body(response.getPayload());
+    }
+
+    @Override
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
+    )
+    public ResponseEntity<GetMajorCreditorAccountAtAGlance200Response> getMajorCreditorAccountAtAGlance(Long id) {
+        log.debug(":GET:getMajorCreditorAccountAtAGlance: id={}", id);
+
+        GetMajorCreditorAccountAtAGlanceResponse response = majorCreditorAccountService.getAtAGlance(id);
+
+        return buildResponse(response);
     }
 
     @Override

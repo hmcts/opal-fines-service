@@ -26,11 +26,10 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
-    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
-                                                                        String authHeaderValue) {
+    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity) {
         log.debug(":searchMinorCreditor:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return minorCreditorSearchProxy.searchMinorCreditors(entity);
@@ -42,7 +41,7 @@ public class MinorCreditorService {
     public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
         log.debug(":getMinorCreditorAccount: id={}", minorCreditorAccountId);
 
-        UserState userState = userStateService.checkForAuthorisedUser();
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -53,27 +52,28 @@ public class MinorCreditorService {
         return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
     }
 
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId,
-        String authHeaderValue) {
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
 
         log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return minorCreditorSearchProxy.getMinorCreditorAtAGlance(minorCreditorId);
-        } else {
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.VIEW_CREDITOR_BACS)) {
+            throw new PermissionNotAllowedException(FinesPermission.VIEW_CREDITOR_BACS);
+        }
+
+        return minorCreditorSearchProxy.getMinorCreditorAtAGlance(minorCreditorId);
     }
 
     public GetMinorCreditorAccountHeaderSummaryResponse getMinorCreditorAccountHeaderSummary(
-        Long minorCreditorId,
-        String authHeaderValue) {
+        Long minorCreditorId) {
 
         log.debug(":getMinorCreditorAccountHeaderSummary: id={}", minorCreditorId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return minorCreditorSearchProxy.getHeaderSummary(minorCreditorId);
@@ -86,7 +86,6 @@ public class MinorCreditorService {
         Long minorCreditorId,
         PatchMinorCreditorAccountRequest request,
         BigInteger ifMatch,
-        String authHeaderValue,
         String businessUnitId) {
         log.debug(":updateMinorCreditorAccount:");
 
@@ -103,7 +102,7 @@ public class MinorCreditorService {
             throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
         }
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
                 (Short) null,
@@ -120,6 +119,11 @@ public class MinorCreditorService {
             throw new PermissionNotAllowedException(
                 businessUnitIdShort,
                 FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        }
+        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.VIEW_CREDITOR_BACS)) {
+            throw new PermissionNotAllowedException(
+                businessUnitIdShort,
+                FinesPermission.VIEW_CREDITOR_BACS);
         }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)

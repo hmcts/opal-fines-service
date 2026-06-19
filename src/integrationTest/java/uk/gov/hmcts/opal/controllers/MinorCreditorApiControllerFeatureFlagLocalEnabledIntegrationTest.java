@@ -59,7 +59,9 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID,
             FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.VIEW_CREDITOR_BACS
+        );
 
         ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())

@@ -26,12 +26,11 @@ public class DefendantAccountPartyService {
 
     public GetDefendantAccountPartyResponse getDefendantAccountParty(
         Long defendantAccountId,
-        Long defendantAccountPartyId,
-        String authHeaderValue) {
+        Long defendantAccountPartyId) {
 
         log.debug(":getDefendantAccountParty:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
 
@@ -43,12 +42,12 @@ public class DefendantAccountPartyService {
     }
 
     public GetDefendantAccountPartyResponse addDefendantAccountParty(
-        Long defendantAccountId, String authHeaderValue, String ifMatch,
+        Long defendantAccountId, String ifMatch,
         String businessUnitId, AddDefendantAccountPartyRequest request) {
 
         log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         short buId = Short.parseShort(businessUnitId);
 
@@ -73,12 +72,12 @@ public class DefendantAccountPartyService {
 
 
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
-        Long defendantAccountId, Long defendantAccountPartyId, String authHeaderValue, String ifMatch,
+        Long defendantAccountId, Long defendantAccountPartyId, String ifMatch,
         String businessUnitId, DefendantAccountParty request) {
 
         log.debug(":replaceDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         short buId = Short.parseShort(businessUnitId);
 
@@ -98,12 +97,12 @@ public class DefendantAccountPartyService {
     }
 
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId, Short businessUnitId, String ifMatch, String authHeaderValue,
+        Long defendantAccountPartyId, Short businessUnitId, String ifMatch,
         RemoveDefendantAccountPartyRequest request) {
 
         log.debug(":removeDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)

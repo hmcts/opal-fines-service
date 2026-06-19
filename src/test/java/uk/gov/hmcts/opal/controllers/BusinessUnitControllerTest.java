@@ -23,7 +23,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -86,9 +85,8 @@ class BusinessUnitControllerTest {
         // Act
         Optional<String> filter = Optional.empty();
         Optional<FinesPermission> permission = Optional.empty();
-        String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
-            .getBusinessUnitRefData(filter, permission, headerToken);
+            .getBusinessUnitRefData(filter, permission);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -107,15 +105,14 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
         // Act
         Optional<String> filter = Optional.empty();
         Optional<FinesPermission> permission = Optional.of(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
-            .getBusinessUnitRefData(filter, permission, headerToken);
+            .getBusinessUnitRefData(filter, permission);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -133,15 +130,14 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
         // Act
         Optional<String> filter = Optional.empty();
         Optional<FinesPermission> permission = Optional.of(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
-            .getBusinessUnitRefData(filter, permission, headerToken);
+            .getBusinessUnitRefData(filter, permission);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

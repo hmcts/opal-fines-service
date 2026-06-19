@@ -634,7 +634,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "version": """ + version
             +
             """
-                
+
                 }""";
     }
 

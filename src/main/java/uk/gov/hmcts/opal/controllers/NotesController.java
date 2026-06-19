@@ -34,13 +34,12 @@ public class NotesController {
     public ResponseEntity<String> addNote(
         @RequestBody
         AddNoteRequest request,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("If-Match") String ifMatch) {
 
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", request.toPrettyJson());
 
         String response =
-            notesService.addNote(request, ifMatch, authHeaderValue);
+            notesService.addNote(request, ifMatch);
 
         return buildCreatedResponse(response);
     }

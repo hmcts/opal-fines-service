@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.stream.Stream;
@@ -16,12 +17,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
- * Verifies that all Release 1C Enforcement Operational Reporting endpoints guarded by @FeatureToggle return 405 when
+ * Verifies that all Release 1C Enforcement Operational Reporting endpoints guarded by @FeatureToggle return 404 when
  * the release-1c-enforcement-operational-reporting flag is disabled.
  */
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest")
-@DisplayName("Release 1C Enforcement Operational Reporting - returns 405 when flag is disabled")
+@DisplayName("Release 1C Enforcement Operational Reporting - returns 404 when flag is disabled")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=false"
@@ -32,20 +33,23 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
     static Stream<Arguments> release1cEnforcementOperationalReportingEndpoints() {
         return Stream.of(
             // ReportsApiController
-            args("GET /reports/{id}", withAuth(get("/reports/1")))
+            args("GET /reports/{id}", withAuth(get("/reports/1"))),
+            args("POST /report-instances", withAuthAndJson(post("/report-instances")
+                .content("{\"business_unit_ids\":[1],\"report_id\":\"report-id\",\"report_parameters\":{}}")))
         );
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("release1cEnforcementOperationalReportingEndpoints")
-    @DisplayName("should return 405 Method Not Allowed")
+    @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2250")
+    @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
-    void shouldReturn405When1cEnforcementOperationalReportingIsDisabled(String description,
+    void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
-        log.debug("Testing feature-disabled 405 for: {}", description);
+        log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)
-            .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isNotFound());
     }
 }

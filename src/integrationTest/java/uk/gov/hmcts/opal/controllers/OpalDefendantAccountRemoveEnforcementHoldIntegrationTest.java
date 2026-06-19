@@ -69,7 +69,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
     @JiraTestKey("PO-5992")
     void int02_removeEnforcementHold_returnsUnauthorized_whenAccessTokenMissing() throws Exception {
         userStateStub.setupWithNoPermissions();
-        
+
         String ifMatch = "\"" + versionFor(ACCOUNT_WITH_ENFORCEMENT_HOLD) + "\"";
 
         ResultActions resultActions = mockMvc.perform(
