@@ -707,6 +707,31 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    void generateReportData_combinesRegfFilterAndBaseFilters_returnsExpectedResults() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": false,
+              "reportMode": "WITH_REGF",
+              "businessUnitIds": [77, 78],
+              "lowerNameRange": "l",
+              "upperNameRange": "l"
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .doesNotContain("177A") //has payment after REGF
+            .doesNotContain("ConsolidatedAcc") //no REGF enforcement
+            .doesNotContain("noPaymentsAfterEnf"); //meets all payment criteria but not name range
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
     void generateReportData_filterPaymentSinceLastEnforcement_returnsExpectedResults_whenPaymentMadeIsTrue() {
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -724,6 +749,34 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         Assertions.assertThat(reports)
             .extracting(report -> report.getAccountRow().getAccountNo())
             .contains("177A") //has payment after ABDC enforcement
+            .doesNotContain("ConsolidatedAcc") //has no payments after ABDC enforcement
+            .doesNotContain("noPaymentsAfterEnf"); //payment before but not after ABDC
+
+        verifyMetadata(result);
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    void generateReportData_combinesSinceLastEnforcementFilterAndBaseFilters_returnsExpectedResults() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": true,
+              "reportMode": "SINCE_LAST_ENFORCEMENT",
+              "sinceLastEnforcementAction": "ABDC",
+              "businessUnitIds": [77, 78],
+              "lowerNameRange": "l",
+              "upperNameRange": "l"
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .doesNotContain("177A") //meets all payment criteria but not name range
             .doesNotContain("ConsolidatedAcc") //has no payments after ABDC enforcement
             .doesNotContain("noPaymentsAfterEnf"); //payment before but not after ABDC
 

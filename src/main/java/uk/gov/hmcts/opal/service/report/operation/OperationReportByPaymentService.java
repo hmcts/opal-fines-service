@@ -4,6 +4,8 @@ import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.
 import static uk.gov.hmcts.opal.service.report.ReportId.OP_PAYMENT;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -38,25 +40,44 @@ public class OperationReportByPaymentService implements ReportInterface {
     public ReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
         OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
         validator.validate(filters);
-        List<DefendantAccountEntity> accounts = defendantAccountRepository.findAll(
+        List<DefendantAccountEntity> baseAccounts = defendantAccountRepository.findAll(
             OperationReportSpecs.accountFiltersSpec(filters),
             Sort.by(ACCOUNT_NUMBER)
         );
+        Set<String> baseAccountNumbers = baseAccounts.stream()
+            .map(DefendantAccountEntity::getAccountNumber)
+            .collect(Collectors.toSet());
+
         PaymentReportMode reportMode = filters.getReportMode();
         return switch (reportMode) {
             case SINCE_LAST_ENFORCEMENT -> detailedResultMapper.map(
-                defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(
-                    filters.getSinceLastEnforcementAction().name(),
-                    Boolean.TRUE.equals(filters.getIsPaymentMade())
+                applyBaseFilter(
+                    defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(
+                        filters.getSinceLastEnforcementAction().name(),
+                        Boolean.TRUE.equals(filters.getIsPaymentMade())
+                    ),
+                    baseAccountNumbers
                 )
             );
             case WITH_REGF -> detailedResultMapper.map(
-                defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(
-                    Boolean.TRUE.equals(filters.getIsPaymentMade())
+                applyBaseFilter(
+                    defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(
+                        Boolean.TRUE.equals(filters.getIsPaymentMade())
+                    ),
+                    baseAccountNumbers
                 )
             );
-            default -> detailedResultMapper.map(accounts);
+            default -> detailedResultMapper.map(baseAccounts);
         };
+    }
+
+    private List<DefendantAccountEntity> applyBaseFilter(
+        List<DefendantAccountEntity> accounts,
+        Set<String> baseAccountNumbers
+    ) {
+        return accounts.stream()
+            .filter(account -> baseAccountNumbers.contains(account.getAccountNumber()))
+            .toList();
     }
 
     private OperationReportByPaymentFiltersDto readFilters(ReportInstanceEntity reportInstance) {
