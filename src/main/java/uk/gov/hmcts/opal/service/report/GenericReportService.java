@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.Collections;
 import java.util.List;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -114,9 +113,8 @@ public class GenericReportService implements GenericReportServiceInterface {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit() == null
-            ? Collections.emptyList()
-            : reportInstanceEntity.getBusinessUnit().stream().map(Integer::shortValue).toList();
+        List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit().stream()
+            .map(Integer::shortValue).toList();
         if (!userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
             .collect(Collectors.toSet()).containsAll(businessUnitIdsForReportInstance)) {
             throw new AccessDeniedException("You cannot request report instances associated with other business units");

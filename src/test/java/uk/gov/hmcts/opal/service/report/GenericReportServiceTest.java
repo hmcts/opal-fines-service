@@ -272,22 +272,6 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void getReportInstance_withoutBusinessUnit_returnsReportInstance() {
-        when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of());
-        when(businessUnitRepository.findAllById(List.of())).thenReturn(List.of());
-        when(reportInstanceMapper.toReportInstanceReportsDto(reportInstance, List.of())).thenReturn(
-            reportInstanceReports);
-
-        ReportInstanceReports result = genericReportService.getReportInstance(1L);
-
-        assertThat(result).isEqualTo(reportInstanceReports);
-        verify(businessUnitRepository).findAllById(List.of());
-        verify(reportInstanceMapper).toReportInstanceReportsDto(reportInstance, List.of());
-    }
-
-    @Test
     void getReportInstance_withMatchingBusinessUnits_returnsReportInstance() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
