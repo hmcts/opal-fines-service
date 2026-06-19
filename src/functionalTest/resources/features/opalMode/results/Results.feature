@@ -75,4 +75,4 @@ Feature: Results Reference Data
   @JIRA-STORY:PO-3765 @Ignore @release-1b
   Scenario: Result filtering is rejected when release-1b is disabled
     When I request results using filter "active" with value "true"
-    Then the response status code is 405
+    Then the response status code is 404
