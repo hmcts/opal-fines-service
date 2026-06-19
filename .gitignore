@@ -22,7 +22,10 @@ target
 .springBeans
 
 ### IntelliJ IDEA ###
-.idea
+.idea/*
+!.idea/codeStyles/
+!.idea/codeStyles/Project.xml
+!.idea/codeStyles/codeStyleConfig.xml
 /out
 /.run
 *.iws
