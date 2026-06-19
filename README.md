@@ -291,18 +291,19 @@ does not run the full backend functional suite.
 
 Nightly reports and artifacts:
 
-- Staging functional publishes `Serenity Functional Test Report` and `Test Summary Report`.
-- Staging smoke publishes `Serenity Smoke Test Report` and `Smoke Test Summary Report`.
-- Demo R1A publishes `Serenity Functional Test Report (Demo)` and `Test Summary Report (Demo)`.
-- Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)` and `Test Summary Report (Demo R1AOff)`.
-- Archived output folders are `integration-output`, `functional-output`, `functional-output-demo`, and `smoke-output`.
+- Staging integration publishes `Integration Tests Report`.
+- Staging functional publishes `Serenity Functional Test Report`.
+- Staging smoke publishes `Serenity Smoke Test Report`.
+- Demo R1A publishes `Serenity Functional Test Report (Demo R1AOn Only)`.
+- Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)`.
+- Archived output folders are `integration-output`, `functional-output`, `functional-output-r1a-only-demo`, `functional-output-r1a-off-demo`, and `smoke-output`.
 - Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
 
 Failure handling:
 
 - A Gradle stage failure marks the nightly build `FAILURE`.
 - JUnit-reported test failures for integration, functional, smoke, demo R1A, and demo R1AOff are promoted from `UNSTABLE` to `FAILURE`.
-- The demo R1A and R1AOff stages currently share `functional-output-demo` / `functional-test-report-demo`, so when both run in the same build the later demo-tagged run can overwrite the shared demo artifact contents even though Jenkins publishes separate report links.
+- The demo R1A and R1AOff stages publish to separate artifact directories so the later demo-tagged run cannot overwrite the earlier one.
 
 ### CNP Jenkins pipeline
 
@@ -312,8 +313,8 @@ This repo-local Jenkinsfile does not declare its own job parameters.
 CNP outputs:
 
 - Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*`, and publishes `Integration Tests Report` from `integration-output/report`.
-- Functional publishes JUnit XML from `build/test-results/functional`, archives both `functional-output/**/*` and `functional-test-report/**/*`, and publishes `Serenity Functional Test Report` plus `Test Summary Report`.
-- Smoke publishes JUnit XML from `build/test-results/smoke`, archives both `smoke-output/**/*` and `smoke-test-report/**/*`, and publishes `Serenity Smoke Test Report` plus `Smoke Test Summary Report`.
+- Functional archives `functional-output/**/*` and publishes `Serenity Functional Test Report`.
+- Smoke archives `smoke-output/**/*` and publishes `Serenity Smoke Test Report`.
 
 CNP failure handling:
 
