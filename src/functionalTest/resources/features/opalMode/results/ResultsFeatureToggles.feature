@@ -7,7 +7,7 @@ Feature: Results Feature Toggles
   @R1AOff @JIRA-STORY:PO-3765 @JIRA-STORY:PO-3754 @JIRA-EPIC:PO-3685
   Scenario: Results endpoint is unavailable when release 1a is disabled
     When I request results for identifiers "FO,ABDC"
-    Then the request is rejected with status 405
+    Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
   @R1A @R1BOff @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685
@@ -41,7 +41,7 @@ Feature: Results Feature Toggles
       | generates_hearing       | false |
       | enforcement             | true  |
       | enforcement_override    | true  |
-    Then the request is rejected with status 405
+    Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
   @R1A @R1B @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685

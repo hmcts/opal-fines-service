@@ -59,7 +59,7 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
     void getResultsWithFilteringParameter_returnsFeatureDisabledWhenRelease1bDisabled(String parameter)
         throws Exception {
         mockMvc.perform(get("/results?" + parameter + "=true"))
-            .andExpect(status().isMethodNotAllowed())
+            .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"));
     }

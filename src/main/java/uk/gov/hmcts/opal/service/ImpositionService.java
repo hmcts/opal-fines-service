@@ -52,12 +52,11 @@ public class ImpositionService {
     private final UserStateService userStateService;
 
     public GetDefendantAccountImpositionsResponse getImpositions(
-        Long defendantAccountId,
-        String authHeaderValue) {
+        Long defendantAccountId) {
 
         log.debug(":getImpositions:");
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return impositionServiceProxy.getImpositions(defendantAccountId);

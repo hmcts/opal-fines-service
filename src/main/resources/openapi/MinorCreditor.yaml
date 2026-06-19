@@ -95,12 +95,6 @@ paths:
           schema:
             type: string
         - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
-        - in: header
           name: Business-Unit-Id
           description: Business unit identifier
           schema:
@@ -208,12 +202,6 @@ paths:
                 - note
             style: form
             explode: false
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: OK
@@ -260,6 +248,11 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     minorCreditorAccountResponse:
       additionalProperties: false

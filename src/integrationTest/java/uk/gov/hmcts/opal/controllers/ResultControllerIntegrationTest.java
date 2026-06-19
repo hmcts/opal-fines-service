@@ -85,7 +85,14 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.prevent_payment_card").value(true))
             .andExpect(jsonPath("$.lists_monies").value(true))
             .andExpect(jsonPath("$.result_parameters").value("{\"param1\":\"value1\",\"param2\":\"value2\"}"))
-            .andExpect(jsonPath("$.requires_employment_data").value(true));
+            .andExpect(jsonPath("$.requires_employment_data").value(true))
+            // New fields added for PO-7280
+            .andExpect(jsonPath("$.allow_payment_terms").value(true))
+            .andExpect(jsonPath("$.allow_additional_action").value(true))
+            .andExpect(jsonPath("$.generates_warrant").value(true))
+            .andExpect(jsonPath("$.requires_lja").value(true))
+            .andExpect(jsonPath("$.manual_enforcement").value(false))
+            .andExpect(jsonPath("$.enf_next_permitted_actions").value("NOENF,WDN"));
     }
 
     @Test

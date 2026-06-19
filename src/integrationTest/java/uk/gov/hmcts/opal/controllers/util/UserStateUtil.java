@@ -42,8 +42,16 @@ public class UserStateUtil {
         return allFinesPermissionUser();
     }
 
+    public static UserStateV2 allFinesPermissionUserStateV2() {
+        return allFinesPermissionsToken().getUserState();
+    }
+
     public static UserState noPermissionsUser() {
         return noFinesPermissionUser();
+    }
+
+    public static UserStateV2 noFinesPermissionUserStateV2() {
+        return noFinesPermissionsToken().getUserState();
     }
 
     public static UserState permissionUser(Short buid, FinesPermission... permissions) {
@@ -84,6 +92,10 @@ public class UserStateUtil {
             .name("Normal User")
             .businessUnitUser(permissions)
             .build();
+    }
+
+    public static UserStateV2 permissionUserStateV2(Short buid, FinesPermission... permissions) {
+        return permissionsToken(buid, permissions).getUserState();
     }
 
     public static BusinessUnitUser permissions(Short buid, Permission... permissions) {

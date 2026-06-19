@@ -2,25 +2,33 @@ package uk.gov.hmcts.opal.dto.reference;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public interface LjaReferenceData {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class LjaReferenceData {
 
     @JsonProperty("local_justice_area_id")
-    Short getLocalJusticeAreaId();
+    private Short localJusticeAreaId;
 
     @JsonProperty("lja_code")
-    String getLjaCode();
+    private String ljaCode;
 
     @JsonProperty("lja_type")
-    String getLjaType();
+    private String ljaType;
 
     @JsonProperty("name")
-    String getName();
+    private String name;
 
     @JsonProperty("address_line_1")
-    String getAddressLine1();
+    private String addressLine1;
 
     @JsonProperty("postcode")
-    String getPostcode();
+    private String postcode;
 }
