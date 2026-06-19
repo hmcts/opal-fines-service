@@ -45,6 +45,7 @@ ext {
 //Should we fail fast on test failures?
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
+var skipSonar = System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean();
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
@@ -270,6 +271,7 @@ tasks.register('integration', Test) {
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
+  exclude '**/ReportQueueConnectivityIntegrationTest.class'
   doFirst {
     pullLatestLegacyStubImageIfLocal()
   }
@@ -371,6 +373,13 @@ tasks.register('packageDemoFunctionalOutput', Copy) {
     into("report")
   }
 }
+tasks.register('packageTaggedDemoFunctionalOutput', Copy) {
+  dependsOn 'copyDemoFunctionalReport', 'generateTaggedDemoTestSummary', 'copyOpalTagsCucumberJson'
+  into("${rootDir}/functional-output-demo")
+  from("${rootDir}/functional-test-report-demo") {
+    into("report")
+  }
+}
 tasks.register('copyIntegrationJunit5Report', Copy) {
   from("target/zephyr-reports/Junit5Report-IntegrationTest.json")
   into("${rootDir}/integration-output/zephyr")
@@ -425,6 +434,19 @@ tasks.register('generateDemoTestSummary', JavaExec) {
   args = [
     "--integration-dir=${layout.buildDirectory.dir('test-results/functional-empty').get().asFile.absolutePath}",
     "--functional-dir=${layout.buildDirectory.dir('test-results/functional').get().asFile.absolutePath}",
+    "--output-dir=${file('functional-test-report-demo').absolutePath}",
+    "--title=Test Summary Report (Demo)"
+  ]
+}
+tasks.register('generateTaggedDemoTestSummary', JavaExec) {
+  group = "Reporting"
+  description = "Generate an HTML summary for the tagged demo functional run"
+  dependsOn 'copyDemoFunctionalReport'
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
+  args = [
+    "--integration-dir=${layout.buildDirectory.dir('test-results/functional-empty').get().asFile.absolutePath}",
+    "--functional-dir=${layout.buildDirectory.dir('test-results/functional/opal-tags').get().asFile.absolutePath}",
     "--output-dir=${file('functional-test-report-demo').absolutePath}",
     "--title=Test Summary Report (Demo)"
   ]
@@ -572,6 +594,9 @@ sonarqube {
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
     property 'sonar.cpd.exclusions', "**/entity/**,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
+    if (skipSonar) {
+      property 'sonar.exclusions', "**/**"
+    }
   }
 }
 
@@ -1158,15 +1183,14 @@ tasks.register('functionalOpalTagsWithZephyrExecution') {
   description = "Runs functionalOpalTags then creates the Zephyr execution from the cucumber report"
 
   dependsOn('functionalOpalTags', 'copyOpalTagsCucumberJson', 'createJiraExecutionFromOpalTagsCucumberReport',
-          'aggregate', 'copyDemoFunctionalReport', 'mergeFunctionalOpalTagsResults', 'generateDemoTestSummary')
+          'aggregate', 'copyDemoFunctionalReport', 'generateTaggedDemoTestSummary')
 
   tasks.copyOpalTagsCucumberJson.mustRunAfter functionalOpalTags
   tasks.createJiraExecutionFromOpalTagsCucumberReport.mustRunAfter copyOpalTagsCucumberJson
-  tasks.mergeFunctionalOpalTagsResults.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
   tasks.aggregate.mustRunAfter createJiraExecutionFromOpalTagsCucumberReport
   tasks.copyDemoFunctionalReport.mustRunAfter aggregate
-  tasks.generateDemoTestSummary.mustRunAfter copyDemoFunctionalReport
-  finalizedBy 'packageDemoFunctionalOutput'
+  tasks.generateTaggedDemoTestSummary.mustRunAfter copyDemoFunctionalReport
+  finalizedBy 'packageTaggedDemoFunctionalOutput'
 }
 
 tasks.register('functionalLegacyWithZephyrExecution') {

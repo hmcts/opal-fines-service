@@ -38,11 +38,10 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
                                                  Short businessUnitId,
                                                  String businessUnitUserId,
                                                  String ifMatch,
-                                                 String authHeader,
                                                  AddDefendantAccountEnforcementRequest request)
         throws JacksonException {
         return getCurrentModeService().addEnforcement(defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, authHeader, request);
+            ifMatch, request);
     }
 
     @Override
@@ -51,7 +50,6 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader,
         RemoveDefendantAccountEnforcementHoldRequest request) {
 
         return getCurrentModeService().removeEnforcementHold(
@@ -59,7 +57,6 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            authHeader,
             request
         );
     }

@@ -23,17 +23,17 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
 
     Optional<DefendantAccountEntity> findByDefendantAccountId(Long defendantAccountId);
 
+    List<DefendantAccountEntity> findAllByDefendantAccountIdIn(List<Long> defendantAccountIds);
+
     @Query("""
         SELECT new uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData(
             defendantAccount.defendantAccountId,
-            defendantAccount.versionNumber
-        )
+            defendantAccount.versionNumber)
         FROM DefendantAccountEntity defendantAccount
         WHERE defendantAccount.defendantAccountId = :defendantAccountId
         """)
     Optional<DefendantAccountVersionData> findVersionDataByDefendantAccountId(
-        @Param("defendantAccountId") Long defendantAccountId
-    );
+        @Param("defendantAccountId") Long defendantAccountId);
 
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     @Query("select d from DefendantAccountEntity d where d.defendantAccountId = :id")

@@ -174,7 +174,7 @@ class OpalDefendantAccountUpdateTest {
 
         // ---------- Act ----------
         final String buHeader = "10"; // near first use for Checkstyle
-        var resp = service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST");
+        var resp = service.updateDefendantAccount(id, buHeader, req, "tester");
 
         // ---------- Assert ----------
         verify(defendantAccountRepository).save(entity);
@@ -239,7 +239,7 @@ class OpalDefendantAccountUpdateTest {
             .build();
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.updateDefendantAccount(id, buHeader, req, "UNIT_TEST")
+            service.updateDefendantAccount(id, buHeader, req, "tester")
         );
         verify(defendantAccountRepository, never()).save(any());
     }
@@ -258,7 +258,7 @@ class OpalDefendantAccountUpdateTest {
             .build();
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.updateDefendantAccount(99L, "10", req, "UNIT_TEST")
+            service.updateDefendantAccount(99L, "10", req, "tester")
         );
         verify(defendantAccountRepository, never()).save(any());
     }

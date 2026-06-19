@@ -93,7 +93,7 @@ public class GenericReportService implements GenericReportServiceInterface {
             throw new UnprocessableException("This report cannot be manually created");
         }
 
-        UserState userState = userStateService.checkForAuthorisedUser("");
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (!userState.getBusinessUnitUser().stream()
             .map(buUser -> buUser.getBusinessUnitId().intValue()).collect(Collectors.toSet())

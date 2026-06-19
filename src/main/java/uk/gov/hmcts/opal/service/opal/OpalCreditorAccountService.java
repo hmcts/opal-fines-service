@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
 
 @Service
@@ -18,11 +17,7 @@ public class OpalCreditorAccountService {
 
     private final CreditorAccountTransactional creditorAccountTransactional;
 
-    private final UserStateService userStateService;
-
-    public String deleteCreditorAccount(long minorCreditorId, boolean checkExisted, String authHeaderValue) {
-        userStateService.checkForAuthorisedUser(authHeaderValue);
-
+    public String deleteCreditorAccount(long minorCreditorId, boolean checkExisted) {
         try {
             boolean deleted =  creditorAccountTransactional
                 .deleteMinorCreditorAccountAndRelatedData(minorCreditorId, creditorAccountTransactional);

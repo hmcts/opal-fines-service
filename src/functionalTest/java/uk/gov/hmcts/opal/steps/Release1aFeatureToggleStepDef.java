@@ -75,7 +75,7 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
     @Then("the response reports that the feature is disabled")
     public void theResponseReportsThatTheFeatureIsDisabled() {
         lastResponse().then()
-            .statusCode(405)
+            .statusCode(404)
             .body("title", equalTo("Feature Disabled"))
             .body("detail", equalTo("The requested feature is not currently available"))
             .body("type", equalTo("https://hmcts.gov.uk/problems/feature-disabled"))
