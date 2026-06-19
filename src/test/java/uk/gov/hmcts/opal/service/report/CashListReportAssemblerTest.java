@@ -196,6 +196,21 @@ class CashListReportAssemblerTest {
             .hasMessage("Defendant party not found for defendant_account_id: " + DEFENDANT_ACCOUNT_ID);
     }
 
+    @Test
+    void toReportData_setsNullPaymentMethodWhenPaymentMethodIsMissing() {
+        PaymentInEntity payment = payment(
+            1L, DestinationType.F, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Account payment");
+        payment.setPaymentMethod(null);
+        when(cashListPaymentLinkService.getDefendantAccount(payment)).thenReturn(defendantAccount());
+
+        CashListReportData data = assembler.toReportData(till, businessUnit, List.of(payment));
+
+        assertThat(data.getEntries()).singleElement().satisfies(entry ->
+            assertThat(entry.getPaymentMethod()).isNull());
+    }
+
     private PaymentInEntity payment(
         Long paymentInId, DestinationType destinationType, AssociatedRecordType associatedRecordType,
         String associatedRecordId,

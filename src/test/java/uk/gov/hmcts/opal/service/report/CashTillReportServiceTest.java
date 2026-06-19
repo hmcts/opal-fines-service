@@ -214,6 +214,79 @@ class CashTillReportServiceTest {
     }
 
     @Test
+    void generateReportData_whenPaymentMethodIsMissing_returnsRowWithNullPaymentMethod() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setPaymentMethod(null);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(11L)))
+            .thenReturn(List.of(defendantAccount()));
+
+        CashTillReportData reportData = service.generateReportData(reportInstance);
+
+        assertThat(reportData.getRows()).singleElement().satisfies(row ->
+            assertThat(row.getPaymentMethod()).isNull());
+    }
+
+    @Test
+    void generateReportData_whenDestinationTypeIsUnsupported_throwsException() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setDestinationType(DestinationType.C);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(11L)))
+            .thenReturn(List.of(defendantAccount()));
+
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsupported Cash Till destination type: C");
+    }
+
+    @Test
+    void generateReportData_whenAssociatedRecordTypeIsMissing_throwsException() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setAssociatedRecordType(null);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till payment 1001 is missing associated_record_type");
+    }
+
+    @Test
+    void generateReportData_whenAssociatedRecordTypeIsUnsupported_throwsException() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setAssociatedRecordType(AssociatedRecordType.SUSPENSE_ITEMS);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till payment 1001 has unsupported associated_record_type suspense_items");
+    }
+
+    @Test
     void convertReportDataToFileType_whenValidData_returnsF061Csv() {
         CashTillReportData reportData = allocatedReportData(List.of(olderRow(), newerRow()));
 
