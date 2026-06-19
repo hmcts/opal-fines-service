@@ -1,0 +1,13 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: p_insert_till populates till metadata ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: p_insert_till allocates the next till number for the same business unit ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 34 msec.
