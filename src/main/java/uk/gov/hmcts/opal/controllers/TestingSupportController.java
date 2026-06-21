@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import com.azure.core.util.BinaryData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.TestService;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
@@ -37,6 +40,7 @@ public class TestingSupportController {
     private final AccessTokenService accessTokenService;
     private final DefendantAccountDeletionService defendantAccountDeletionService;
     private final UserStateClientService userStateClientService;
+    private final TestService testService;
     private final UserStateMapper userStateMapper;
 
     @GetMapping("/app-mode")
@@ -82,4 +86,12 @@ public class TestingSupportController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/run-test")
+    public ResponseEntity<BinaryData> runTest(@RequestParam("testName") String testName,
+                                              @RequestParam(value = "count", required = false) Integer count) {
+        log.info("Running test: {}", testName);
+        return ResponseEntity.ok(testService.runTest(testName, count));
+    }
+
 }

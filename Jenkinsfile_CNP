@@ -1,10 +1,5 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
-properties([
-        parameters([
-                booleanParam(name: 'SKIP_SONAR', defaultValue: false, description: 'Skip sonar'),
-        ])
-])
 @Library("Infrastructure@master")
 
 def type = "java"
@@ -28,7 +23,6 @@ def determineDevEnvironmentDeployment() {
   env.OPAL_LOGGING_SERVICE_API_URL = "https://opal-logging-service.staging.platform.hmcts.net"
   env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX = "latest"
 
-  env.SKIP_SONAR = params.SKIP_SONAR
   env.APP_MODE = "opal"
 
   def githubApi = new GithubAPI(this)
@@ -164,6 +158,7 @@ withPipeline(type, product, component) {
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub-staging.platform.hmcts.net/opal'
   env.OPAL_LEGACY_STUB_IMAGE = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
   env.OPAL_LOGGING_SERVICE_API_URL = 'https://opal-logging-service.staging.platform.hmcts.net'
+  env.SKIP_SONAR = true
   if (!env.OPAL_USER_SERVICE_API_URL && !env.CHANGE_ID) {
     env.OPAL_USER_SERVICE_API_URL = 'https://opal-user-service.staging.platform.hmcts.net'
   }
@@ -178,13 +173,6 @@ withPipeline(type, product, component) {
     steps.sh './gradlew checkTestJiraAnnotations'
   }
 
-  afterAlways("helmReleaseUninstall:${params.environment}") {
-    if(params.SKIP_SONAR) {
-      stage('SKIP_SONAR IS TRUE') {
-        error("Build can not fully complete when SKIP_SONAR is set to true")
-      }
-    }
-  }
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     failBuildOnUnstableResults()

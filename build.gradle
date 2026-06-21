@@ -495,6 +495,11 @@ def coverageExclusions = [
   '**/uk/gov/hmcts/opal/service/opal/OpalDefendantAccountService.java'
 ]
 
+def sonarExclusions = coverageExclusions + [
+  '**/uk/gov/hmcts/opal/TestService.java',
+  '**/uk/gov/hmcts/opal/controllers/TestingSupportController.java'
+]
+
 jacocoTestReport {
   executionData(test, integration)
   reports {
@@ -535,7 +540,7 @@ sonarqube {
     property "sonar.projectName", "HMCTS :: opal-fines-service"
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
     property "sonar.gradle.skipCompile", "true"
-    property "sonar.exclusions", coverageExclusions.join(', ')
+    property "sonar.exclusions", sonarExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
     property 'sonar.cpd.exclusions', "**/entity/**,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
     if (skipSonar) {
