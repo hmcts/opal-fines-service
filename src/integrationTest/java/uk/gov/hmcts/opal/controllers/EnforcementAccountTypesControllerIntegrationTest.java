@@ -49,7 +49,9 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        GetEnforcementAccountTypes200Response response = objectMapper.readValue(body, new TypeReference<GetEnforcementAccountTypes200Response>(){});
+        GetEnforcementAccountTypes200Response response = objectMapper.readValue(
+            body, new TypeReference<GetEnforcementAccountTypes200Response>(){}
+        );
         List<EnforcementAccountTypeCommon.EnforcementAccountTypeEnum> eats = response.getEnforcementAccountTypes()
             .stream()
             .map(eat -> eat.getEnforcementAccountType())
