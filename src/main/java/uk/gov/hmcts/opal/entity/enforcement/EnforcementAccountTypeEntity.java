@@ -27,7 +27,6 @@ public class EnforcementAccountTypeEntity {
     @Column(nullable = false)
     private Long enforcementAccountTypeId;
 
-    //TODO this enum shouldn't live in the DTO folder
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NonNull
@@ -44,7 +43,7 @@ public class EnforcementAccountTypeEntity {
     private LowHighValue accountTypePath;
 
     @Column
-    private BigDecimal minimumBalance; //TODO db needs to be changed (there is a db ticket)
+    private BigDecimal minimumBalance;
 
     @Column
     private Long versionNumber;
