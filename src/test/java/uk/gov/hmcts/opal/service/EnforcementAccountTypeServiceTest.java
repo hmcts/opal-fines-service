@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,15 +22,6 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
 import uk.gov.hmcts.opal.mapper.EnforcementAccountTypeMapper;
 import uk.gov.hmcts.opal.repository.EnforcementAccountTypeRepository;
 import uk.gov.hmcts.opal.service.opal.EnforcementAccountTypeService;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class EnforcementAccountTypeServiceTest {

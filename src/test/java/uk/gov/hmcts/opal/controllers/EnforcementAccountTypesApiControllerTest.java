@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,13 +17,6 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementAccountTypes200Response;
 import uk.gov.hmcts.opal.service.opal.EnforcementAccountTypeService;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class EnforcementAccountTypesApiControllerTest {
@@ -38,6 +38,18 @@ public class EnforcementAccountTypesApiControllerTest {
         assertAll(
             () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
             () -> assertEquals(enfAccountTypes, response.getBody().getEnforcementAccountTypes())
+        );
+    }
+
+    @Test
+    void getEnforcementAccountTypes_ReturnsOkWithEmptyCollection() {
+        when(service.getAllEnforcementAccountTypes()).thenReturn(Collections.emptyList());
+
+        ResponseEntity<GetEnforcementAccountTypes200Response> response = controller.getEnforcementAccountTypes();
+
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals(0, response.getBody().getEnforcementAccountTypes().size())
         );
     }
 }
