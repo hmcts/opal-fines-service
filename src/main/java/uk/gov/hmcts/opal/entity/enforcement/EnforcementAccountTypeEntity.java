@@ -1,11 +1,19 @@
 package uk.gov.hmcts.opal.entity.enforcement;
 
-import jakarta.persistence.*;
-import lombok.*;
-import uk.gov.hmcts.opal.dto.EnforcementAccountType;
-import uk.gov.hmcts.opal.entity.LowHighValue;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import uk.gov.hmcts.opal.entity.LowHighValue;
 
 @Entity
 @Table(name = "enforcement_account_types")

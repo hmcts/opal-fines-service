@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum EnforcementAccountType {
+public enum EnforcementAccountTypeExtended {
 
     COLL("COLL"),
     COLH("COLH"),
@@ -15,13 +15,26 @@ public enum EnforcementAccountType {
     COL("COL"),
     COH("COH"),
     YL("YL"),
-    YH("YH");
+    YH("YH"),
+    CFPL("CFPL"),
+    CFPH("CFPH"),
+    TFOL("TFOL"),
+    TFOH("TFOH"),
+    CCL("CCL"),
+    CCH("CCH"),
+    FPVL("FPVL"),
+    FPVH("FPVH"),
+    FPNL("FPNL"),
+    FPNH("FPNH"),
+    LAL("LAL"),
+    LAH("LAH"),
+    COMP("COMP");
 
     private final String code;
 
 
-    public static EnforcementAccountType fromCode(String code) {
-        for (EnforcementAccountType value : values()) {
+    public static EnforcementAccountTypeExtended fromCode(String code) {
+        for (EnforcementAccountTypeExtended value : values()) {
             if (value.code.equals(code)) {
                 return value;
             }

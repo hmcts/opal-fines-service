@@ -1,16 +1,17 @@
 package uk.gov.hmcts.opal.mapper;
 
-import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.dto.EnforcementAccountType;
-import uk.gov.hmcts.opal.entity.LowHighValue;
-import uk.gov.hmcts.opal.entity.enforcement.AccountType;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
-import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
+import uk.gov.hmcts.opal.entity.LowHighValue;
+import uk.gov.hmcts.opal.entity.enforcement.AccountType;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountType;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
+import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 
 public class EnforcementAccountTypeMapperTest {
     private final EnforcementAccountTypeMapper mapper = Mappers.getMapper(EnforcementAccountTypeMapper.class);

@@ -28,7 +28,7 @@ import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.dto.EnforcementAccountType;
+import uk.gov.hmcts.opal.dto.EnforcementAccountTypeExtended;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -116,7 +116,7 @@ public class EnforcementEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "enforcement_account_type", length = 20)
-    private EnforcementAccountType enforcementAccountType;
+    private EnforcementAccountTypeExtended enforcementAccountType;
 
     @Column(name = "posted_by_name", length = 100)
     private String postedByUsername;
