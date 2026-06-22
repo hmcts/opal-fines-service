@@ -2,7 +2,7 @@
 Feature: Defendant Account Impositions API In Legacy Mode
 
   Scenario: Existing defendant account impositions are returned from the legacy stub
-    When I request legacy defendant account impositions for defendant account "12345"
+    When I request legacy defendant account impositions for defendant account "99000000000006"
 
     Then the request succeeds
     And the legacy defendant account impositions response has ETag "\"1\""
