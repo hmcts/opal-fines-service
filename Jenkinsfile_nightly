@@ -43,7 +43,7 @@ def testEnvironments = [
         testUrl              : 'https://opal-fines-service.demo.platform.hmcts.net',
         userServiceApiUrl    : 'https://opal-user-service.demo.platform.hmcts.net',
         loggingServiceApiUrl : 'https://opal-logging-service.demo.platform.hmcts.net',
-        reportNameSuffix     : ' (Demo)',
+        reportNameSuffix     : ' (Demo R1AOn Only)',
     ],
 ]
 
@@ -87,8 +87,30 @@ def publishIntegrationResults = {
   if (currentBuild.result == 'UNSTABLE') {
     currentBuild.result = 'FAILURE'
   }
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+  ensureIntegrationReportOutputExists()
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
+  publishHTML target: [
+    allowMissing         : true,
+    alwaysLinkToLastBuild: true,
+    keepAll              : true,
+    reportDir            : 'integration-output/report',
+    reportFiles          : 'index.html',
+    reportName           : 'Integration Tests Report'
+  ]
+}
+
+def ensureIntegrationReportOutputExists() {
+  if (steps.fileExists('integration-output/report/index.html')) {
+    return
+  }
+
+  if (steps.fileExists('build/reports/tests/integration/index.html')) {
+    steps.sh '''
+      mkdir -p integration-output
+      rm -rf integration-output/report
+      cp -R build/reports/tests/integration integration-output/report
+    '''
+  }
 }
 
 def ensureFunctionalReportOutputExists = { reportDirectory, rawReportDirectory ->
@@ -107,11 +129,29 @@ def ensureFunctionalReportOutputExists = { reportDirectory, rawReportDirectory -
   }
 }
 
-def publishFunctionalResults = { reportDirectory, rawReportDirectory, reportNameSuffix, junitPattern ->
-  ensureFunctionalReportOutputExists(reportDirectory, rawReportDirectory)
+def packageFunctionalReportOutput = { reportDirectory, rawReportDirectory, sourceOutputDirectory ->
+  if (reportDirectory == sourceOutputDirectory) {
+    ensureFunctionalReportOutputExists(reportDirectory, rawReportDirectory)
+    return
+  }
+
+  steps.sh """
+    mkdir -p ${reportDirectory}
+    rm -rf ${reportDirectory}/report
+    rm -rf ${reportDirectory}/zephyr
+    if [ -d "${rawReportDirectory}" ]; then
+      cp -R ${rawReportDirectory} ${reportDirectory}/report
+    fi
+    if [ -d "${sourceOutputDirectory}/zephyr" ]; then
+      cp -R ${sourceOutputDirectory}/zephyr ${reportDirectory}/zephyr
+    fi
+  """
+}
+
+def publishFunctionalResults = { reportDirectory, rawReportDirectory, sourceOutputDirectory, reportNameSuffix, junitPattern ->
+  packageFunctionalReportOutput(reportDirectory, rawReportDirectory, sourceOutputDirectory)
 
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: "${reportDirectory}/**/*"
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: "${rawReportDirectory}/**/*"
   publishHTML target: [
     allowMissing         : true,
     alwaysLinkToLastBuild: true,
@@ -120,19 +160,10 @@ def publishFunctionalResults = { reportDirectory, rawReportDirectory, reportName
     reportFiles          : "index.html",
     reportName           : "Serenity Functional Test Report${reportNameSuffix}"
   ]
-  publishHTML target: [
-    allowMissing         : true,
-    alwaysLinkToLastBuild: true,
-    keepAll              : true,
-    reportDir            : "${reportDirectory}/report/htmlReport",
-    reportFiles          : "test-summary.html",
-    reportName           : "Test Summary Report${reportNameSuffix}"
-  ]
   steps.junit allowEmptyResults: true, testResults: junitPattern
   if (currentBuild.result == 'UNSTABLE') {
     currentBuild.result = 'FAILURE'
   }
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: junitPattern
 }
 
 def publishSmokeResults = { reportNameSuffix ->
@@ -145,26 +176,21 @@ def publishSmokeResults = { reportNameSuffix ->
     reportFiles          : "index.html",
     reportName           : "Serenity Smoke Test Report${reportNameSuffix}"
   ]
-  publishHTML target: [
-    allowMissing         : true,
-    alwaysLinkToLastBuild: true,
-    keepAll              : true,
-    reportDir            : "smoke-output/report/htmlReport",
-    reportFiles          : "test-summary.html",
-    reportName           : "Smoke Test Summary Report${reportNameSuffix}"
-  ]
   steps.junit allowEmptyResults: true, testResults: '**/test-results/smoke/*.xml'
   if (currentBuild.result == 'UNSTABLE') {
     currentBuild.result = 'FAILURE'
   }
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/smoke/*.xml'
 }
 
-def runIntegrationStage = { stageName, gradleTask ->
+def runIntegrationStage = { stageName, shouldRunWithZephyr ->
   if (params.Integration) {
     stage(stageName) {
       try {
-        builder.gradle(gradleTask)
+        if (shouldRunWithZephyr) {
+          builder.gradle('integrationTestWithZephyrExecution')
+        } else {
+          builder.gradle('Integration')
+        }
       } catch (error) {
         currentBuild.result = 'FAILURE'
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
@@ -192,6 +218,7 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
           publishFunctionalResults(
             'functional-output',
             'functional-test-report',
+            'functional-output',
             reportNameSuffix,
             'build/test-results/functional/*.xml'
           )
@@ -204,11 +231,15 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
   }
 }
 
-def runSmokeStage = { stageName, reportNameSuffix ->
+def runSmokeStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
   if (params.Smoke) {
     stage(stageName) {
       try {
-        builder.gradle('smoke')
+        if (shouldRunWithZephyr) {
+          builder.gradle('smokeWithZephyrExecution')
+        } else {
+          builder.gradle('smoke')
+        }
       } catch (error) {
         currentBuild.result = 'FAILURE'
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
@@ -224,7 +255,7 @@ def runSmokeStage = { stageName, reportNameSuffix ->
   }
 }
 
-def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, reportNameSuffix, tagFilter ->
+def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, reportDirectory, reportNameSuffix, tagFilter ->
   if (enabled) {
     stage(stageName) {
       try {
@@ -232,7 +263,7 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
           if (shouldRunWithZephyr) {
             builder.gradle('clearReports functionalOpalTagsWithZephyrExecution')
           } else {
-            builder.gradle('clearReports functionalOpalTags aggregate copyDemoFunctionalReport generateTaggedDemoTestSummary copyOpalTagsCucumberJson packageTaggedDemoFunctionalOutput')
+            builder.gradle('clearReports functionalOpalTags aggregate copyDemoFunctionalReport copyOpalTagsCucumberJson packageTaggedDemoFunctionalOutput')
           }
         }
       } catch (error) {
@@ -241,8 +272,9 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
       } finally {
         try {
           publishFunctionalResults(
-            'functional-output-demo',
+            reportDirectory,
             'functional-test-report-demo',
+            'functional-output-demo',
             reportNameSuffix,
             'build/test-results/functional/opal-tags/*.xml'
           )
@@ -274,9 +306,9 @@ withNightlyPipeline(type, product, component) {
     if (shouldRunWithZephyr) {
       configureZephyrExecution(testEnvironments.staging)
     }
-    runIntegrationStage('Integration Tests', 'Integration')
+    runIntegrationStage('Integration Tests', shouldRunWithZephyr)
     runFunctionalStage('Functional Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
-    runSmokeStage('Smoke Tests', testEnvironments.staging.reportNameSuffix)
+    runSmokeStage('Smoke Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
 
     if (params.RunR1AOnly) {
       configureTestEnvironment(testEnvironments.demo)
@@ -287,6 +319,7 @@ withNightlyPipeline(type, product, component) {
         params.RunR1AOnly,
         'Demo R1A Functional Tests',
         shouldRunWithZephyr,
+        'functional-output-r1a-only-demo',
         testEnvironments.demo.reportNameSuffix,
         r1ATagFilter
       )
@@ -301,6 +334,7 @@ withNightlyPipeline(type, product, component) {
         params.RunR1AOff,
         'R1AOff Demo Functional Tests',
         shouldRunWithZephyr,
+        'functional-output-r1a-off-demo',
         ' (Demo R1AOff)',
         r1AOffTagFilter
       )
