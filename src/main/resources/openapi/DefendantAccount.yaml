@@ -334,6 +334,76 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/{id}/consolidated-accounts:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account Consolidated Accounts
+      description: Retrieves accounts that were consolidated into the defendant account identified by the path parameter.
+      operationId: getConsolidatedAccounts
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - v_consolidated_accounts.master_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/consolidatedAccount'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        408:
+          description: Request timeout
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/{id}:
     patch:
       summary: Update a defendant account (partial update)
@@ -562,6 +632,36 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    consolidatedAccount:
+      type: object
+      additionalProperties: false
+      properties:
+        account_id:
+          type: integer
+          format: int64
+          description: DB Mapping - v_consolidated_accounts.child_account_id
+        account_number:
+          type: string
+          description: DB Mapping - v_consolidated_accounts.child_account_number
+        first_name:
+          type: string
+          description: DB Mapping - v_consolidated_accounts.child_first_name
+        last_name:
+          type: string
+          description: DB Mapping - v_consolidated_accounts.child_last_name
+        date_imposed:
+          type: string
+          format: date
+          description: DB Mapping - v_consolidated_accounts.child_date_imposed
+        imposed_by:
+          type: string
+          description: DB Mapping - v_consolidated_accounts.child_imposed_by
+        reference:
+          type: string
+          description: DB Mapping - v_consolidated_accounts.child_reference
+      required:
+        - account_id
+        - account_number
     enforcementOverview:
       type: object
       additionalProperties: false
