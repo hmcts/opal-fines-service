@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.entity.enforcement;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import uk.gov.hmcts.opal.dto.EnforcementAccountTypeExtended;
 
 @RequiredArgsConstructor
 public enum EnforcementAccountType {
