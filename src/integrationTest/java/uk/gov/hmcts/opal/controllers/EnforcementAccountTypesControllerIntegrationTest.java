@@ -34,8 +34,8 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
     @JiraStory("PO-2434")
     @JiraEpic("PO-2433")
     @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG,
-        defaultValueProperty = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+        feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+        defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
     )
     void returnsAllEnforcementAccountTypes_200() throws Exception {
         setupAuthorisedUser();
@@ -76,8 +76,8 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
     @JiraStory("PO-2434")
     @JiraEpic("PO-2433")
     @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG,
-        defaultValueProperty = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+        feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+        defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
     )
     void forbiddenWithoutAutoEnforcementPermission() throws Exception {
         userStateStub.setupWithNoPermissions();
@@ -95,8 +95,8 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
     @JiraStory("PO-2434")
     @JiraEpic("PO-2433")
     @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG,
-        defaultValueProperty = FeatureFlags.RELEASE_1D_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+        feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+        defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
     )
     void deterministicAndIdempotentGET() throws Exception {
         setupAuthorisedUser();
