@@ -53,6 +53,7 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
     @DisplayName("Testing Feature-Disabled User Service Lookup")
     @JiraStory("PO-6359")
     @JiraEpic("PO-3685")
+    @JiraTestKey("PO-7581")
     void testFeatureDisabledUserStateLookupGivesServiceUnavailableProblemJson() throws Exception {
         WireMock.configureFor("localhost", 4553);
         StubMapping disabledUserStateStub = stubFor(get("/opal/v2/users/0/state")
