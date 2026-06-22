@@ -108,9 +108,9 @@ azure:
     instrumentation-key: ${opal.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 legacy-gateway:
-  url: FAIL #${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
-  username: FAIL #${OPAL_LEGACY_GATEWAY_USERNAME:username}
-  password: FAIL #${OPAL_LEGACY_GATEWAY_PASSWORD:password}
+  url: https://cloudgobgateway.test.platform.hmcts.net/opal
+  username: invalid # ${OPAL_LEGACY_GATEWAY_USERNAME:username}
+  password: invalid # ${OPAL_LEGACY_GATEWAY_PASSWORD:password}
 
 launchdarkly:
   sdk-key: ${LAUNCH_DARKLY_SDK_KEY:}
