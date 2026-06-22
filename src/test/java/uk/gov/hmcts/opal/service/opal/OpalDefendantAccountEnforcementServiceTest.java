@@ -206,7 +206,6 @@ public class OpalDefendantAccountEnforcementServiceTest {
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
             IF_MATCH,
-            AUTH_HEADER,
             request
         );
 
