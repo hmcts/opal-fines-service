@@ -22,6 +22,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -56,12 +58,14 @@ public class PaymentInEntity {
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime paymentDate;
 
-    @Column(name = "payment_method", length = 2, nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "payment_method", length = 2, nullable = false, columnDefinition = "t_payment_method_enum")
     private PaymentMethod paymentMethod;
 
-    @Column(name = "destination_type", length = 1, nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "destination_type", length = 1, nullable = false, columnDefinition = "t_pi_destination_type_enum")
     private DestinationType destinationType;
 
     @Column(name = "allocation_type", length = 20)
