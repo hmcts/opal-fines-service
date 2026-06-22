@@ -55,7 +55,7 @@ public class EnforcementAccountTypeServiceTest {
         when(repository.findAll(
             Sort.by(Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId)))
         ).thenReturn(eAccountTypes);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(true); //TODO see comment in service
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(true);
 
         service.getAllEnforcementAccountTypes();
 
@@ -64,7 +64,7 @@ public class EnforcementAccountTypeServiceTest {
 
     @Test
     public void getEnforcementAccountTypes_unauthorisedUser_shouldThrowPermissionsException() {
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(false); //TODO see comment in service
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(false);
 
         assertThrows(PermissionNotAllowedException.class, () -> service.getAllEnforcementAccountTypes());
         verifyNoInteractions(repository);
