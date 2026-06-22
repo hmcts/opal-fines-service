@@ -130,6 +130,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return 400 when timeline_data is supplied")
     @JiraStory("PO-747")
     @JiraEpic("PO-2220")
+    @JiraTestKey("PO-7579")
     void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validReplaceRequestBody(0L)
             .replace(

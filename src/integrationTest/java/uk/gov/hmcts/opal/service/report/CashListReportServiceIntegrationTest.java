@@ -33,6 +33,7 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueueConsumerService;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueListener;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
 class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
@@ -72,6 +73,7 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
         @Test
         @JiraStory("PO-3435")
         @JiraEpic("PO-2116")
+        @JiraTestKey("PO-7808")
         void onMessage_generatesCashListReportData() throws JMSException {
             when(blobStore.storeReport(any(String.class))).thenReturn("cash-list-json");
 
@@ -113,6 +115,7 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
         @Test
         @JiraStory("PO-3435")
         @JiraEpic("PO-2116")
+        @JiraTestKey("PO-7809")
         void onMessage_setsReportInstanceToErrorWhenCashListGenerationFails() {
             assertThatThrownBy(
                 () -> reportQueueListener.onMessage(textMessage("{\"instanceId\":" + REPORT_INSTANCE_ID + "}")))

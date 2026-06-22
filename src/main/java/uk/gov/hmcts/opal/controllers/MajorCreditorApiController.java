@@ -57,10 +57,13 @@ public class MajorCreditorApiController implements MajorCreditorApi {
         feature = FeatureFlags.RELEASE_1B,
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
-    public ResponseEntity<GetMajorCreditorAccountAtAGlance200Response> getMajorCreditorAccountAtAGlance(Long id) {
-        log.debug(":GET:getMajorCreditorAccountAtAGlance: id={}", id);
+    public ResponseEntity<GetMajorCreditorAccountHeaderSummary200Response> getMajorCreditorAccountHeaderSummary(
+        Long id) {
 
-        GetMajorCreditorAccountAtAGlanceResponse response = majorCreditorAccountService.getAtAGlance(id);
+        log.debug(":GET:getMajorCreditorAccountHeaderSummary: id={}", id);
+
+        GetMajorCreditorAccountHeaderSummaryResponse response =
+            majorCreditorAccountService.getHeaderSummary(id);
 
         return buildResponse(response);
     }
@@ -70,13 +73,12 @@ public class MajorCreditorApiController implements MajorCreditorApi {
         feature = FeatureFlags.RELEASE_1B,
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
-    public ResponseEntity<GetMajorCreditorAccountHeaderSummary200Response> getMajorCreditorAccountHeaderSummary(
-        Long id) {
+    public ResponseEntity<GetMajorCreditorAccountAtAGlance200Response> getMajorCreditorAccountAtAGlance(Long id) {
 
-        log.debug(":GET:getMajorCreditorAccountHeaderSummary: id={}", id);
+        log.debug(":GET:getMajorCreditorAccountAtAGlance: id={}", id);
 
-        GetMajorCreditorAccountHeaderSummaryResponse response =
-            majorCreditorAccountService.getHeaderSummary(id);
+        GetMajorCreditorAccountAtAGlanceResponse response =
+            majorCreditorAccountService.getAtAGlance(id);
 
         return buildResponse(response);
     }

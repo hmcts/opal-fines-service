@@ -13,6 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -26,6 +27,7 @@ class DefendantAccountHistoryFeatureFlagIntegrationTest extends AbstractFeatureT
     @DisplayName("PO-2622: GET defendant account history returns 404 when release-1b is disabled")
     @JiraStory("PO-2622")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7571")
     void getDefendantAccountHistory_whenRelease1bDisabled_returnsNotFound() throws Exception {
         // Arrange
         // release-1b is disabled by local test properties.
