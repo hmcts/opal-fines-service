@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.iface;
 
+import java.util.List;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -17,9 +18,12 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 
 public interface DefendantAccountServiceInterface {
     DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId);
+
+    List<ConsolidatedAccountDefendantAccount> getConsolidatedAccounts(Long defendantAccountId);
 
     DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter);
 
