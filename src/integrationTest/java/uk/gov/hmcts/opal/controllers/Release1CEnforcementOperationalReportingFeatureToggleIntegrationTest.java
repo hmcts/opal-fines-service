@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 /**
  * Verifies that all Release 1C Enforcement Operational Reporting endpoints guarded by @FeatureToggle return 404 when
@@ -45,6 +46,7 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
     @JiraStory("PO-2250")
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7661")
     void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {

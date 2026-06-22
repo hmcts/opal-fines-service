@@ -76,7 +76,7 @@ Feature: Create Draft Accounts
     #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
     #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
-  @JIRA-STORY:PO-2357 @JIRA-NFR:PO-2507 @cleanUpData @JIRA-EPIC:PO-2355
+  @JIRA-STORY:PO-2357 @JIRA-NFR:PO-2507 @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-7855
   Scenario: Emitted PDPO logs do not expose personal details
     When I create a draft account with the following details
       | business_unit_id  | 77                                                     |

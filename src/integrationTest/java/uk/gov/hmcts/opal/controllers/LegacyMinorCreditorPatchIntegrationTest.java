@@ -42,6 +42,7 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -64,6 +65,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7605")
     void patchMinorCreditor_success_returns200() throws Exception {
         authorisePatchUser();
         when(gatewayService.postToGateway(
@@ -123,6 +125,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7603")
     void patchMinorCreditor_notFound_returns404() throws Exception {
         authorisePatchUser();
         when(gatewayService.postToGateway(
@@ -141,6 +144,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7606")
     void patchMinorCreditor_timeout_returns408() throws Exception {
         authorisePatchUser();
         when(gatewayService.postToGateway(
@@ -159,6 +163,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7607")
     void patchMinorCreditor_staleVersion_returns409() throws Exception {
         authorisePatchUser();
         when(gatewayService.postToGateway(
@@ -177,6 +182,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7608")
     void patchMinorCreditor_serviceUnavailable_returns503() throws Exception {
         authorisePatchUser();
         when(gatewayService.postToGateway(
@@ -195,6 +201,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7604")
     void patchMinorCreditor_serverError_returns500() throws Exception {
         authorisePatchUser();
         when(gatewayService.postToGateway(

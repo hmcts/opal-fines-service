@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = {
@@ -35,6 +36,7 @@ class DefendantAccountSearchRelease1bDisabledIntegrationTest extends AbstractInt
     @DisplayName("POST /defendant-accounts/search is unavailable when release-1b is disabled")
     @JiraStory("PO-3768")
     @JiraEpic("PO-3685")
+    @JiraTestKey("PO-7572")
     void postDefendantAccountsSearch_returnsFeatureDisabledWhenRelease1bDisabled() throws Exception {
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())

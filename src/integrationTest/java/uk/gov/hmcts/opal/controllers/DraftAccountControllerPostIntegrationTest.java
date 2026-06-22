@@ -247,6 +247,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Should return 400 when timeline_data is supplied")
     @JiraStory("PO-691")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-7578")
     void shouldReturn400WhenTimelineDataIsSupplied() throws Exception {
         String request = validCreateRequestBody()
             .replace(
@@ -512,6 +513,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft fixed penalty account - Should create when time of issue is null")
     @JiraStory("PO-6451")
     @JiraEpic("PO-855")
+    @JiraTestKey("PO-7576")
     void testPostDraftFPAccount_time_of_issue_null() throws Exception {
         JSONObject body = new JSONObject(validFPPostRequestBody());
         String validRequestBody = body.toString();
@@ -535,6 +537,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft fixed penalty account - Should not create when time of issue is invalid")
     @JiraStory("PO-6451")
     @JiraEpic("PO-855")
+    @JiraTestKey("PO-7577")
     void testPostDraftFPAccount_time_of_issue_invalid() throws Exception {
         JSONObject body = new JSONObject(validFPPostRequestBody());
 
