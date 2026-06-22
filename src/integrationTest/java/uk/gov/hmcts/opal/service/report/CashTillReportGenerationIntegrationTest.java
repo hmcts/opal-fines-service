@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
 @DisplayName("Cash Till Report Generation Integration Tests")
@@ -57,6 +58,7 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2636")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7810")
     void generateReportData_returnsAllTillPaymentsSortedAndMapped() {
         BusinessUnitEntity businessUnit = businessUnitRepository.findAll().stream().findFirst().orElseThrow();
         TillEntity till = tillRepository.saveAndFlush(TillEntity.builder()

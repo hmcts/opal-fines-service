@@ -44,6 +44,7 @@ import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationReportBy
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
@@ -92,6 +93,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         "{\"reportType\": \"DETAILED\"}",
         "{}"
     })
+    @JiraTestKey("PO-7815")
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType(String json) {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -178,6 +180,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7825")
     void generateReportData_filterByBusinessUnitIds_returnSortedResultsOfCorrectBusinessUnitIds() {
         //Arrange
         List<DefendantAccountEntity> accountsInBusinessUnit =
@@ -206,6 +209,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7830")
     void generateReportData_filterByEnforcementModeAll_returnAllSortedResults() {
         //Arrange
         String json = """
@@ -231,6 +235,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7826")
     void generateReportData_filterByEnforcementModeNull_returnAllSortedResults() {
         //Arrange
         String json = """
@@ -256,6 +261,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7821")
     void generateReportData_filterByEnforcementModeLastAction_returnLastActionSortedResults() {
         //Arrange
         LocalDateTime start = LocalDate.now().minusDays(2).atStartOfDay();
@@ -299,6 +305,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7811")
     void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
         // Arrange
         LocalDate from = LocalDate.of(2000, 1, 1);
@@ -342,6 +349,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7818")
     void generateReportData_filterByEnforcementDate_returnSortedResults() {
         //Arrange
         String json = """
@@ -365,6 +373,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7827")
     void generateReportData_filterByNotUnderEnforcement_returnResultsNotUnderEnforcement() {
         //Arrange
         String json = """
@@ -387,6 +396,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7820")
     void generateReportData_filterByIncludeAdult_returnResultsOfAdults() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -415,6 +425,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7823")
     void generateReportData_filterByIncludeYouth_returnResultsOfYouth() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -443,6 +454,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7828")
     void generateReportData_filterByIncludeCompany_returnResultsOfCompanies() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -470,6 +482,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7829")
     void generateReportData_filterByParentOrGuardian_returnResultsWithParentOrGuardian() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -501,6 +514,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         "WITH, true",
         "WITHOUT, false"
     })
+    @JiraTestKey("PO-7813")
     void generateReportData_filterByCollectionOrderChoice_returnResults(
         String collectionOrderChoice,
         boolean expectedValue
@@ -535,6 +549,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7812")
     void generateReportData_filterByAccountStatusLive_returnResults() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -569,6 +584,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7822")
     void generateReportData_filterByAccountStatusClosed_returnResults() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -603,6 +619,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7824")
     void generateReportData_filterByMinAndMaxBalance_returnSortedWithinMinAndMaxBalance() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -630,6 +647,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7819")
     void generateReportData_filterByFirstPaymentOrPayByInNext7Days_returnsForAccountWithPaymentInNext7Days() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -680,6 +698,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7817")
     void generateReportData_filterByNameRange_returnSortedWithinNameRange() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
