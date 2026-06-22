@@ -80,7 +80,7 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
 
     @BeforeEach
     void setupUserState() {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
     }
 
     @Test
@@ -139,7 +139,7 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
     @JiraStory("PO-2078")
     @JiraEpic("PO-979")
     void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
         performGetImpositions(12345L)
             .andExpect(status().isForbidden())
