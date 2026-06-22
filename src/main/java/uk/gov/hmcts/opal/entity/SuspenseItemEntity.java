@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,6 +22,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
@@ -50,15 +54,19 @@ public class SuspenseItemEntity {
     @Column(name = "suspense_item_number", nullable = false)
     private Short suspenseItemNumber;
 
-    @Column(name = "suspense_item_type", length = 2, nullable = false)
-    private String suspenseItemType;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "suspense_item_type", length = 2, nullable = false,
+        columnDefinition = "t_suspense_item_type_enum")
+    private SuspenseItemType suspenseItemType;
 
     @Column(name = "created_date", nullable = false)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime createdDate;
 
     @Column(name = "payment_method", length = 2)
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @Column(name = "court_fee_id")
     private Long courtFeeId;
