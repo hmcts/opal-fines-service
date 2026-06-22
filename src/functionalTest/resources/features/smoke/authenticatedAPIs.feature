@@ -5,10 +5,12 @@ Feature: Authenticated APIs Reject Invalid Credentials
     When I call <method> "<path>" without a token
     Then the request is rejected as unauthorized
 
+    @JIRA-TEST-KEY:PO-7870
     Examples:
       | method | path                                   |
       | GET    | /defendant-accounts/500000009          |
 
+    @JIRA-TEST-KEY:PO-7871
     Examples:
       | method | path                                   |
       | GET    | /courts?q=magistrates&business_unit=43 |
@@ -17,10 +19,12 @@ Feature: Authenticated APIs Reject Invalid Credentials
     When I call <method> "<path>" with an invalid token
     Then the request is rejected as unauthorized
 
+    @JIRA-TEST-KEY:PO-7872
     Examples:
       | method | path                                   |
       | GET    | /defendant-accounts/500000009          |
 
+    @JIRA-TEST-KEY:PO-7873
     Examples:
       | method | path                                   |
       | GET    | /courts?q=magistrates&business_unit=43 |

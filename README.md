@@ -335,7 +335,7 @@ Run the matching functional or integration suite first if the report is not alre
 
 | Task | Purpose |
 | --- | --- |
-| `functionalWithZephyrExecution` | Runs the default Opal functional suite, creates an Opal Cucumber report copy, creates an Opal Zephyr execution, then runs the Legacy functional suite and creates a Legacy Zephyr execution. |
+| `functionalWithZephyrExecution` | Runs the default Opal functional suite, creates an Opal Cucumber report copy, and creates the Opal Zephyr execution. |
 | `functionalWithTagsWithZephyrExecution` | Runs the default Opal functional suite and the tagged Opal functional suite selected by `TAGS` or `-Ptags`, then creates Zephyr executions for both reports. |
 | `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `functional-output/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
 | `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `functional-output-demo/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
