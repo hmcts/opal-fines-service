@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.repository.jpa.ReportSpecs;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
@@ -46,6 +47,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @ParameterizedTest
     @NullAndEmptySource
+    @JiraTestKey("PO-7796")
     void businessUnitSpec_businessUnitIdsNullOrEmpty_returnConjunction(List<Long> buIds) {
         //Arrange
         long total = defendantAccountRepository.count();
@@ -63,6 +65,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7791")
     void businessUnitSpec_businessUnitIdsList_returnAllFromBusinessUnitIds() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -81,6 +84,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7789")
     void accountTypesSpec_includeAdult_returnAllAdultAccounts() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -102,6 +106,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7802")
     void accountTypesSpec_includeYouth_returnAllYouthAccounts() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -123,6 +128,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7798")
     void accountTypesSpec_includeCompany_returnAllCompanyAccounts() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -145,6 +151,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7801")
     void parentGuardianSpec_returnAllAccountsWithParentGuardian() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -164,6 +171,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7793")
     void collectionOrderSpec_withCollectionOrder_returnAllAccountsWithCollectionOrder() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -182,6 +190,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7788")
     void collectionOrderSpec_withoutCollectionOrder_returnAllAccountsWithoutCollectionOrder() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -200,6 +209,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7787")
     void accountStatusSpec_live_returnAllAccountsWithLiveStatus() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -220,6 +230,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7792")
     void accountStatusSpec_closed_returnAllAccountsWithClosedStatus() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -240,6 +251,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7799")
     void balanceRangeSpec_minAndMaxGiven_returnAllAccountsWithinRange() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -261,6 +273,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7785")
     void nameRangeSpec_lowerAndUpperGiven_returnAllAccountsWithinRange() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -284,6 +297,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7800")
     void next7DaysSpec_true_returnsAccountsWhereRelevantDateIsInNext7Days() {
         //Arrange
         PaymentTermsEntity paymentTermsForSeededData = paymentTermsRepository
@@ -317,6 +331,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7790")
     void notUnderEnforcement_returnsAccountsWithoutEnforcements() {
         //Arrange
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -335,6 +350,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7786")
     void defendantAccountIdsIn_account() {
         // Arrange
         Specification<DefendantAccountEntity> spec =
@@ -352,6 +368,7 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @ParameterizedTest
     @MethodSource("emptyAccountIdLists")
+    @JiraTestKey("PO-7794")
     void defendantAccountIdsIn_emptyOrNullList_returnsNoResults(List<Long> accountIds) {
         // Arrange
         Specification<DefendantAccountEntity> spec =

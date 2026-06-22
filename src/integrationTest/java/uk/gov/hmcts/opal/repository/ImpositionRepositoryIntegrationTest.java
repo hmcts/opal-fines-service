@@ -129,6 +129,7 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7807")
     void shouldReturnDefendantAccountImpositionProjectionForMajorCreditor() {
         entityManager.clear();
 
@@ -165,6 +166,7 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7804")
     void shouldReturnDefendantAccountImpositionProjectionForMinorCreditor() {
         entityManager.clear();
 
@@ -194,6 +196,7 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7806")
     void shouldReturnNoImpositionProjectionRowsForExistingAccountWithoutImpositions() {
         entityManager.clear();
 
@@ -206,6 +209,7 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7803")
     void shouldReturnDefendantAccountVersionProjectionForExistingAccount() {
         entityManager.clear();
 
@@ -220,6 +224,7 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7805")
     void shouldReturnEmptyDefendantAccountVersionProjectionForUnknownAccount() {
         entityManager.clear();
 

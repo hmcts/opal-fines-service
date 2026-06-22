@@ -50,7 +50,7 @@ Feature: Defendant Account History
 #    When the "opal-test@dev.platform.hmcts.net" user requests defendant account history for account 99000000000001
 #    Then the defendant account history request succeeds
 
-  @JIRA-STORY:PO-2622 @JIRA-EPIC:PO-812
+  @JIRA-STORY:PO-2622 @JIRA-EPIC:PO-812 @JIRA-TEST-KEY:PO-7854
   Scenario: E2E.04 Not found behaviour
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request defendant account history for account 99999999999999

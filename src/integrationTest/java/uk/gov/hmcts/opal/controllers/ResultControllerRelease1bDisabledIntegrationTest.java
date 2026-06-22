@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -29,6 +30,7 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
     @DisplayName("GET /results remains available without filtering when release-1b is disabled")
     @JiraStory("PO-3765")
     @JiraEpic("PO-3685")
+    @JiraTestKey("PO-7771")
     void getResultsWithoutFilters_returnsOkWhenRelease1bDisabled() throws Exception {
         mockMvc.perform(get("/results"))
             .andExpect(status().isOk())
@@ -39,6 +41,7 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
     @DisplayName("GET /results supports result_ids when release-1b is disabled")
     @JiraStory("PO-3765")
     @JiraEpic("PO-3685")
+    @JiraTestKey("PO-7770")
     void getResultsWithResultIdsOnly_returnsOkWhenRelease1bDisabled() throws Exception {
         mockMvc.perform(get("/results?result_ids=UNKNOWN"))
             .andExpect(status().isOk())
@@ -56,6 +59,7 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
     @DisplayName("GET /results rejects filtering parameters when release-1b is disabled")
     @JiraStory("PO-3765")
     @JiraEpic("PO-3685")
+    @JiraTestKey("PO-7772")
     void getResultsWithFilteringParameter_returnsFeatureDisabledWhenRelease1bDisabled(String parameter)
         throws Exception {
         mockMvc.perform(get("/results?" + parameter + "=true"))
