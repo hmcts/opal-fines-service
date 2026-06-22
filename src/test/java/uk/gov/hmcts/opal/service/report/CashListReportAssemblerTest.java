@@ -14,9 +14,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
 import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
+import uk.gov.hmcts.opal.entity.SuspenseItemType;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
@@ -89,7 +91,7 @@ class CashListReportAssemblerTest {
         CashListReportData.CashListEntry secondEntry = data.getEntries().getLast();
         assertThat(secondEntry.getEntry()).isEqualTo(2);
         assertThat(secondEntry.getType()).isEqualTo("SA");
-        assertThat(secondEntry.getSuspense()).isEqualTo("PA");
+        assertThat(secondEntry.getSuspense()).isEqualTo("FA");
         assertThat(secondEntry.getAccountNumber()).isEqualTo("Suspense Ref");
         assertThat(secondEntry.getName()).isEqualTo("1");
         assertThat(secondEntry.getNameAdditionalInformation()).isEqualTo("Manual - Suspense payment");
@@ -254,9 +256,9 @@ class CashListReportAssemblerTest {
             .suspenseItemId(SUSPENSE_ITEM_ID)
             .suspenseAccount(suspenseAccount)
             .suspenseItemNumber((short) 1)
-            .suspenseItemType("PA")
+            .suspenseItemType(SuspenseItemType.FA)
             .createdDate(LocalDateTime.of(2026, 5, 26, 15, 0))
-            .paymentMethod("CA")
+            .paymentMethod(PaymentMethod.CQ)
             .courtFeeId(99000000032000L)
             .build();
     }

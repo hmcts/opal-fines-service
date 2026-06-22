@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
-import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionPaymentMethod;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionStatus;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionType;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionWriteOffCode;
@@ -28,7 +28,7 @@ class DefendantTransactionEntityHistoryMapperTest {
             .postedByUsername("Opal User")
             .transactionType(DefendantTransactionType.PAYMNT)
             .transactionAmount(BigDecimal.TEN)
-            .paymentMethod(DefendantTransactionPaymentMethod.NC)
+            .paymentMethod(PaymentMethod.NC)
             .status(DefendantTransactionStatus.P)
             .statusDate(LocalDateTime.of(2026, 1, 7, 11, 0))
             .writeOffCode(DefendantTransactionWriteOffCode.TRNOUT)
