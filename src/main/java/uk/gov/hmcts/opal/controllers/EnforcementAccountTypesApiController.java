@@ -23,7 +23,10 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 public class EnforcementAccountTypesApiController implements EnforcementAccountTypesApi {
     private final EnforcementAccountTypeService service;
 
-    @FeatureToggle(feature = RELEASE_1C_AUTO_ENFORCEMENT_CONFIG, defaultValueProperty = RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY)
+    @FeatureToggle(
+        feature = RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+        defaultValueProperty = RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+    )
     @Override
     public ResponseEntity<GetEnforcementAccountTypes200Response> getEnforcementAccountTypes() {
         List<EnforcementAccountTypeCommon> enfAccountTypes = service.getAllEnforcementAccountTypes();
