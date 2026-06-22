@@ -49,17 +49,17 @@ public class EnforcementAccountTypeServiceTest {
 
     @Test
     public void getEnforcementAccountTypes_shouldOrchestrateCallCorrectly() {
-        List<EnforcementAccountTypeEntity> eAccountTypes = List.of(
+        List<EnforcementAccountTypeEntity> enfAccountTypes = List.of(
             mock(EnforcementAccountTypeEntity.class)
         );
         when(repository.findAll(
             Sort.by(Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId)))
-        ).thenReturn(eAccountTypes);
+        ).thenReturn(enfAccountTypes);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(true);
 
         service.getAllEnforcementAccountTypes();
 
-        verify(mapper).toDtos(eAccountTypes);
+        verify(mapper).toDtos(enfAccountTypes);
     }
 
     @Test
