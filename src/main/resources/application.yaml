@@ -110,7 +110,7 @@ azure:
 app-mode: ${DEFAULT_APP_MODE:opal}
 
 legacy-gateway:
-  url: FAIL#${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
+  url: FAIL #${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
   username: FAIL #${OPAL_LEGACY_GATEWAY_USERNAME:username}
   password: FAIL #${OPAL_LEGACY_GATEWAY_PASSWORD:password}
 
