@@ -7,11 +7,6 @@ def type = "java"
 def product = "opal"
 def component = "fines-service"
 
-def archiveZephyrReports = {
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr/**/*.json'
-  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'target/zephyr-reports/**/*.json'
-}
-
 def determineDevEnvironmentDeployment() {
   env.TEST_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}.dev.platform.hmcts.net"
 
@@ -73,6 +68,92 @@ def determineDevEnvironmentDeployment() {
   echo "Deploying Opal logging service (${env.OPAL_LOGGING_SERVICE_API_URL} - ${env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
 }
 
+def ensureFunctionalReportOutputExists() {
+  if (steps.fileExists('functional-output/report/index.html')
+    || steps.fileExists('functional-output/report/htmlReport/test-summary.html')) {
+    return
+  }
+
+  if (steps.fileExists('functional-test-report/index.html')
+    || steps.fileExists('functional-test-report/htmlReport/test-summary.html')) {
+    steps.sh '''
+      mkdir -p functional-output
+      rm -rf functional-output/report
+      cp -R functional-test-report functional-output/report
+    '''
+  }
+}
+
+def ensureIntegrationReportOutputExists() {
+  if (steps.fileExists('integration-output/report/index.html')) {
+    return
+  }
+
+  if (steps.fileExists('build/reports/tests/integration/index.html')) {
+    steps.sh '''
+      mkdir -p integration-output
+      rm -rf integration-output/report
+      cp -R build/reports/tests/integration integration-output/report
+    '''
+  }
+}
+
+def ensureSmokeReportOutputExists() {
+  if (steps.fileExists('smoke-output/report/index.html')
+    || steps.fileExists('smoke-output/report/htmlReport/test-summary.html')) {
+    return
+  }
+
+  if (steps.fileExists('smoke-test-report/index.html')
+    || steps.fileExists('smoke-test-report/htmlReport/test-summary.html')) {
+    steps.sh '''
+      mkdir -p smoke-output
+      rm -rf smoke-output/report
+      cp -R smoke-test-report smoke-output/report
+    '''
+  }
+}
+
+def failBuildOnUnstableResults() {
+  if (currentBuild.result == 'UNSTABLE') {
+    currentBuild.result = 'FAILURE'
+  }
+}
+
+def publishFunctionalResults(String reportNameSuffix = '') {
+  ensureFunctionalReportOutputExists()
+
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/functional/*.xml'
+  failBuildOnUnstableResults()
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : 'functional-output/report',
+      reportFiles          : 'index.html',
+      reportName           : "Serenity Functional Test Report${reportNameSuffix}"
+  ]
+}
+
+def publishSmokeResults(String reportNameSuffix = '') {
+  ensureSmokeReportOutputExists()
+
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/smoke/*.xml'
+  failBuildOnUnstableResults()
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : 'smoke-output/report',
+      reportFiles          : 'index.html',
+      reportName           : "Serenity Smoke Test Report${reportNameSuffix}"
+  ]
+}
+
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.STAGING_DB_SCHEMA = 'public'
@@ -95,8 +176,9 @@ withPipeline(type, product, component) {
 
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
-    archiveZephyrReports()
+    failBuildOnUnstableResults()
+    ensureIntegrationReportOutputExists()
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
 
     publishHTML target: [
         allowMissing         : true,
@@ -147,80 +229,24 @@ withPipeline(type, product, component) {
         allowMissing         : true,
         alwaysLinkToLastBuild: true,
         keepAll              : true,
-        reportDir            : "build/reports/tests/integration",
+        reportDir            : "integration-output/report",
         reportFiles          : "index.html",
         reportName           : "Integration Tests Report"
     ]
   }
 
   afterAlways('functionalTest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
-    archiveZephyrReports()
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-test-report/",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Functional Test Report"
-    ]
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-test-report/htmlReport/",
-        reportFiles          : "test-summary.html",
-        reportName           : "Test Summary Report"
-    ]
+    publishFunctionalResults()
   }
 
   afterAlways('smoketest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
-    archiveZephyrReports()
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "smoke-test-report/",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Smoke Test Report"
-    ]
+    publishSmokeResults()
   }
 
   afterAlways('functionalTest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
-    archiveZephyrReports()
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-test-report/",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Functional Test Report"
-    ]
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "functional-test-report/htmlReport/",
-        reportFiles          : "test-summary.html",
-        reportName           : "Test Summary Report"
-    ]
+    publishFunctionalResults()
   }
   afterAlways('smoketest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
-    archiveZephyrReports()
-
-    publishHTML target: [
-        allowMissing         : true,
-        alwaysLinkToLastBuild: true,
-        keepAll              : true,
-        reportDir            : "smoke-test-report/",
-        reportFiles          : "index.html",
-        reportName           : "Serenity Smoke Test Report"
-    ]
+    publishSmokeResults()
   }
 }

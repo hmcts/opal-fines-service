@@ -28,12 +28,12 @@ class CentralFundControllerFeatureFlagIntegrationTest extends AbstractIntegratio
     private static final String AUTH_HEADER = "Bearer test-token";
 
     @Test
-    @DisplayName("PO-2320: GET central fund returns 405 when release-1b is disabled")
+    @DisplayName("PO-2320: GET central fund returns 404 when release-1b is disabled")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
-    void getCentralFund_whenFeatureDisabled_returnsMethodNotAllowed() throws Exception {
+    void getCentralFund_whenFeatureDisabled_returnsNotFound() throws Exception {
         mockMvc.perform(get("/central-funds/73").header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
-            .andExpect(status().isMethodNotAllowed())
+            .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"))

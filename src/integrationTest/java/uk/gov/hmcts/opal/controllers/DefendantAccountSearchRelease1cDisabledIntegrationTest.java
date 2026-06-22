@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -47,7 +46,7 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .defendantAccounts(List.of())
             .build();
 
-        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class), anyString()))
+        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class)))
             .thenReturn(response);
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
@@ -59,7 +58,7 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
 
-        verify(defendantAccountService).searchDefendantAccounts(any(AccountSearchDto.class), anyString());
+        verify(defendantAccountService).searchDefendantAccounts(any(AccountSearchDto.class));
         verifyNoMoreInteractions(defendantAccountService);
     }
 
@@ -74,7 +73,7 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
                 .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(searchCriteria(true)))
-            .andExpect(status().isMethodNotAllowed())
+            .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"));
 

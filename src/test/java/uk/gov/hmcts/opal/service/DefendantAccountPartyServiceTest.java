@@ -52,24 +52,23 @@ class DefendantAccountPartyServiceTest {
     @Test
     void getDefendantAccountParty_whenUserHasPermission_returnsResponse() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
 
         GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
             .thenReturn(expectedResponse);
 
         // Act
         GetDefendantAccountPartyResponse actual = defendantAccountPartyService
-            .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId, authHeader);
+            .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountPartyServiceProxy).getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
     }
@@ -77,23 +76,22 @@ class DefendantAccountPartyServiceTest {
     @Test
     void getDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // Act & Assert
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class, () ->
                 defendantAccountPartyService
-                    .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId, authHeader)
+                    .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }
@@ -101,7 +99,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void replaceDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 10L;
         Long defendantAccountPartyId = 20L;
         String ifMatch = "W/\"1\"";
@@ -113,7 +110,7 @@ class DefendantAccountPartyServiceTest {
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
         when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
@@ -126,7 +123,7 @@ class DefendantAccountPartyServiceTest {
 
         // Act
         GetDefendantAccountPartyResponse actual = defendantAccountPartyService.replaceDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, businessUnitId, request
+            defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId, request
         );
 
         // Assert
@@ -156,7 +153,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 10L;
         Long defendantAccountPartyId = 20L;
         String ifMatch = "W/\"1\"";
@@ -169,7 +165,7 @@ class DefendantAccountPartyServiceTest {
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
         when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
@@ -182,7 +178,7 @@ class DefendantAccountPartyServiceTest {
 
         // Act
         GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
-            defendantAccountId, authHeader, ifMatch, businessUnitId, request
+            defendantAccountId, ifMatch, businessUnitId, request
         );
 
         // Assert
@@ -212,7 +208,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void replaceDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 11L;
         Long defendantAccountPartyId = 22L;
         String ifMatch = "W/\"2\"";
@@ -223,7 +218,7 @@ class DefendantAccountPartyServiceTest {
         GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
 
         // No BusinessUnitUser present
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.empty());
         when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
@@ -236,7 +231,7 @@ class DefendantAccountPartyServiceTest {
 
         // Act
         GetDefendantAccountPartyResponse actual = defendantAccountPartyService.replaceDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, businessUnitId, request
+            defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId, request
         );
 
         // Assert
@@ -266,7 +261,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 11L;
         Long defendantAccountPartyId = 22L;
         String ifMatch = "W/\"2\"";
@@ -277,7 +271,7 @@ class DefendantAccountPartyServiceTest {
         GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
 
         // No BusinessUnitUser present
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.empty());
         when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
@@ -290,7 +284,7 @@ class DefendantAccountPartyServiceTest {
 
         // Act
         GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
-            defendantAccountId, authHeader, ifMatch, businessUnitId, request
+            defendantAccountId, ifMatch, businessUnitId, request
         );
 
         // Assert
@@ -320,7 +314,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void replaceDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 100L;
         Long defendantAccountPartyId = 200L;
         String ifMatch = "W/\"X\"";
@@ -328,7 +321,7 @@ class DefendantAccountPartyServiceTest {
         String stringBusinessUnitId = String.valueOf(businessUnitId);
         DefendantAccountParty request = new DefendantAccountParty();
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(false);
 
@@ -336,13 +329,13 @@ class DefendantAccountPartyServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountPartyService.replaceDefendantAccountParty(
-                defendantAccountId, defendantAccountPartyId, authHeader, ifMatch, stringBusinessUnitId, request)
+                defendantAccountId, defendantAccountPartyId, ifMatch, stringBusinessUnitId, request)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
         assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }
@@ -350,7 +343,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 100L;
         Long defendantAccountPartyId = 200L;
         String ifMatch = "W/\"X\"";
@@ -358,7 +350,7 @@ class DefendantAccountPartyServiceTest {
         String stringBusinessUnitId = String.valueOf(businessUnitId);
         AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(false);
 
@@ -366,13 +358,13 @@ class DefendantAccountPartyServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
             () -> defendantAccountPartyService.addDefendantAccountParty(
-                defendantAccountId, authHeader, ifMatch, stringBusinessUnitId, request)
+                defendantAccountId, ifMatch, stringBusinessUnitId, request)
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
         assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }
@@ -380,7 +372,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void removeDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 33L;
         Long defendantAccountPartyId = 44L;
         short businessUnitId = 9;
@@ -390,7 +381,7 @@ class DefendantAccountPartyServiceTest {
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
         when(userState.getUserName()).thenReturn("theUserName");
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
@@ -408,7 +399,7 @@ class DefendantAccountPartyServiceTest {
 
         // Act
         RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request);
+            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
@@ -438,7 +429,6 @@ class DefendantAccountPartyServiceTest {
     @Test
     void removeDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameAndEmptyBusinessUnitUserId() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 55L;
         Long defendantAccountPartyId = 66L;
         short businessUnitId = 11;
@@ -447,7 +437,7 @@ class DefendantAccountPartyServiceTest {
         RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
 
         // No BusinessUnitUser present
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.empty());
         when(userState.getUserName()).thenReturn("fallback-user");
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
@@ -465,7 +455,7 @@ class DefendantAccountPartyServiceTest {
 
         // Act
         RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request);
+            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
@@ -494,14 +484,13 @@ class DefendantAccountPartyServiceTest {
     @Test
     void removeDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
-        String authHeader = "Bearer token";
         Long defendantAccountId = 77L;
         Long defendantAccountPartyId = 88L;
         short businessUnitId = 13;
         String ifMatch = "W/\"5\"";
         RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
 
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(
             businessUnitId,
             FinesPermission.ACCOUNT_MAINTENANCE
@@ -510,13 +499,13 @@ class DefendantAccountPartyServiceTest {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class, () ->
                 defendantAccountPartyService.removeDefendantAccountParty(
-                    defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, authHeader, request)
+                    defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request)
         );
 
         // When the user does not have the correct permission, the call is not passed to the proxy
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
         assertThat(ex.getBusinessUnitId()).isNull();
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }

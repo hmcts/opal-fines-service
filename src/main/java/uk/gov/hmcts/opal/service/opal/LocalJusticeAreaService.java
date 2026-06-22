@@ -13,10 +13,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
-import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
 
@@ -42,9 +42,9 @@ public class LocalJusticeAreaService {
 
         Page<LocalJusticeAreaEntity> page = localJusticeAreaRepository
             .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq
-                        .sortBy(nameSort)
-                        .page(Pageable.unpaged()));
+                ffq -> ffq
+                    .sortBy(nameSort)
+                    .page(Pageable.unpaged()));
 
         return page.getContent();
     }
@@ -54,13 +54,23 @@ public class LocalJusticeAreaService {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, LocalJusticeAreaEntity_.NAME);
 
-        Page<LjaReferenceData> page = localJusticeAreaRepository
+        Page<LocalJusticeAreaEntity> page = localJusticeAreaRepository
             .findBy(specs.referenceDataFilter(filter, ljaType, LocalDateTime.now(clock)),
-                    ffq -> ffq
-                        .sortBy(nameSort)
-                        .as(LjaReferenceData.class)
-                        .page(Pageable.unpaged()));
+                ffq -> ffq
+                    .sortBy(nameSort)
+                    .page(Pageable.unpaged()));
 
-        return page.getContent();
+        return page.getContent().stream().map(this::toReferenceData).toList();
+    }
+
+    private LjaReferenceData toReferenceData(LocalJusticeAreaEntity entity) {
+        return new LjaReferenceData(
+            entity.getLocalJusticeAreaId(),
+            entity.getLjaCode(),
+            Optional.ofNullable(entity.getLjaType()).map(Enum::name).orElse(null),
+            entity.getName(),
+            entity.getAddressLine1(),
+            entity.getPostcode()
+        );
     }
 }

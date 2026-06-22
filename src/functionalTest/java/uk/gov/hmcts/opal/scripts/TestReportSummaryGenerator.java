@@ -15,32 +15,17 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class TestReportSummaryGenerator {
     private static final Logger log = LoggerFactory.getLogger(TestReportSummaryGenerator.class);
 
     public static void main(String[] args) throws Exception {
-        List<Path> xmlIntegrationPaths = new ArrayList<>();
-        List<Path> xmlFunctionalPaths = new ArrayList<>();
+        ReportOptions options = ReportOptions.fromArgs(args);
+        List<Path> xmlIntegrationPaths = listXmlFiles(options.integrationDir());
+        List<Path> xmlFunctionalPaths = listXmlFiles(options.functionalDir());
 
         final String reportDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-
-
-        Path integrationDir = Paths.get("build/test-results/integration");
-        Path functionalDir = Paths.get("target/site/serenity");
-
-        if (Files.exists(integrationDir)) {
-            xmlIntegrationPaths.addAll(Files.list(integrationDir)
-                                           .filter(p -> p.toString().endsWith(".xml"))
-                                           .toList());
-        }
-
-        if (Files.exists(functionalDir)) {
-            xmlFunctionalPaths.addAll(Files.list(functionalDir)
-                                          .filter(p -> p.getFileName().toString().startsWith("SERENITY-JUNIT"))
-                                          .filter(p -> p.toString().endsWith(".xml"))
-                                          .toList());
-        }
 
         List<String> integrationRows = new ArrayList<>();
         List<String> functionalRows = new ArrayList<>();
@@ -168,13 +153,14 @@ public class TestReportSummaryGenerator {
         Path sourceScript = Path.of("src/functionalTest/java/uk/gov/hmcts/opal/scripts/script.js");
         String scriptContent = Files.readString(sourceScript, StandardCharsets.UTF_8);
 
-        Path output = Paths.get("functional-test-report/htmlReport/test-summary.html");
+        Path output = options.outputDir().resolve("htmlReport/test-summary.html");
         Files.createDirectories(output.getParent());
         Files.writeString(
             output, String.format(
                 """
                         <html>
                         <head>
+                            <title>%s</title>
                             <style>
                             %s
                             </style>
@@ -183,7 +169,7 @@ public class TestReportSummaryGenerator {
                             </script>
                         </head>
                         <body>
-                        <h1>Test Summary Report</h1>
+                        <h1>%s</h1>
                         <p> Report generated data: %s</p>
                         <div class="summaries">
                         <div class="overall">
@@ -249,8 +235,10 @@ public class TestReportSummaryGenerator {
 
                         </body></html>
                     """,
+                options.title(),
                 cssContent,
                 scriptContent,
+                options.title(),
                 reportDate,
                 totalAll,
                 passedAll,
@@ -273,5 +261,48 @@ public class TestReportSummaryGenerator {
         );
 
         log.info("HTML test summary written to: {}", output.toAbsolutePath());
+    }
+
+    private static List<Path> listXmlFiles(Path directory) throws Exception {
+        if (!Files.exists(directory)) {
+            return List.of();
+        }
+
+        try (Stream<Path> files = Files.list(directory)) {
+            return files
+                .filter(path -> path.toString().endsWith(".xml"))
+                .sorted()
+                .toList();
+        }
+    }
+
+    private record ReportOptions(Path integrationDir, Path functionalDir, Path outputDir, String title) {
+        private static final String DEFAULT_TITLE = "Test Summary Report";
+
+        private static ReportOptions fromArgs(String[] args) {
+            Path integrationDir = Paths.get("build/test-results/integration");
+            Path functionalDir = Paths.get("build/test-results/functional");
+            Path outputDir = Paths.get("functional-test-report");
+            String title = DEFAULT_TITLE;
+
+            for (String arg : args) {
+                String[] parts = arg.split("=", 2);
+                if (parts.length != 2) {
+                    continue;
+                }
+
+                switch (parts[0]) {
+                    case "--integration-dir" -> integrationDir = Paths.get(parts[1]);
+                    case "--functional-dir" -> functionalDir = Paths.get(parts[1]);
+                    case "--output-dir" -> outputDir = Paths.get(parts[1]);
+                    case "--title" -> title = parts[1];
+                    default -> {
+                        // Ignore unknown options to keep the generator backward compatible.
+                    }
+                }
+            }
+
+            return new ReportOptions(integrationDir, functionalDir, outputDir, title);
+        }
     }
 }

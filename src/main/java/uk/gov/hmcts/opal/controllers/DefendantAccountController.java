@@ -80,13 +80,11 @@ public class DefendantAccountController {
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @PathVariable Long defendantAccountId) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
-        return buildResponse(
-            defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+        return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId));
     }
 
     @GetMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
@@ -94,15 +92,13 @@ public class DefendantAccountController {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPartyResponse> getDefendantAccountParty(
         @PathVariable Long defendantAccountId,
-        @PathVariable Long defendantAccountPartyId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @PathVariable Long defendantAccountPartyId) {
 
         log.debug(":GET:getDefendantAccountParty: for accountId={}, partyId={}", defendantAccountId,
             defendantAccountPartyId);
 
         GetDefendantAccountPartyResponse response =
-            defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
-                authHeaderValue);
+            defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
 
         return buildResponse(response);
     }
@@ -113,14 +109,13 @@ public class DefendantAccountController {
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
             @RequestBody
-           AccountSearchDto accountSearchDto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+           AccountSearchDto accountSearchDto) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
         rejectConsolidatedSearchWhenDisabled(accountSearchDto);
 
         DefendantAccountSearchResultsDto response =
-            defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
+            defendantAccountService.searchDefendantAccounts(accountSearchDto);
 
         return buildResponse(response);
     }
@@ -144,7 +139,6 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_ADD_PAYMENT_TERMS)
         @RequestBody AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
@@ -154,7 +148,6 @@ public class DefendantAccountController {
             defendantAccountService.addPaymentTerms(defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                authHeaderValue,
                 addPaymentTermsRequest));
     }
 
@@ -162,13 +155,12 @@ public class DefendantAccountController {
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @PathVariable Long defendantAccountId) {
 
         log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
 
         return buildResponse(
-            defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId, authHeaderValue));
+            defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
     }
 
     @PostMapping("/{defendantAccountId}/payment-card-request")
@@ -176,7 +168,6 @@ public class DefendantAccountController {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AddPaymentCardRequestResponse> addPaymentCardRequest(
         @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
         @RequestHeader(value = "Business-Unit-User-Id", required = false) String businessUnitUserId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch
@@ -187,8 +178,7 @@ public class DefendantAccountController {
             defendantAccountId,
             businessUnitId,
             businessUnitUserId,
-            ifMatch,
-            authHeaderValue
+            ifMatch
         );
 
         return buildResponse(response);
@@ -198,22 +188,20 @@ public class DefendantAccountController {
     @GetMapping(value = "/{defendantAccountId}/at-a-glance")
     @Operation(summary = "Get At A Glance details for a given defendant account")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId) {
 
-        return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId, authHeaderValue));
+        return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId));
     }
 
     @GetMapping("/{defendantAccountId}/fixed-penalty")
     @Operation(summary = "Retrieve Fixed Penalty Offence details for a given Defendant Account")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountFixedPenaltyResponse> getDefendantAccountFixedPenalty(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader("Authorization") String authHeaderValue) {
+        @PathVariable Long defendantAccountId) {
         log.debug(":GET:getDefendantAccountFixedPenalty: for defendantAccountId={}", defendantAccountId);
 
         GetDefendantAccountFixedPenaltyResponse response =
-            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId, authHeaderValue);
+            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId);
 
         return buildResponse(response);
     }
@@ -224,7 +212,6 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_ADD_PARTY)
         @RequestBody AddDefendantAccountPartyRequest request) {
 
@@ -236,7 +223,7 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountPartyService.addDefendantAccountParty(
                 defendantAccountId,
-                authHeaderValue, ifMatch, businessUnitId, request
+                ifMatch, businessUnitId, request
             ));
     }
 
@@ -248,7 +235,6 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountPartyId,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestBody DefendantAccountParty request
     ) {
 
@@ -257,7 +243,7 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountPartyService.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, authHeaderValue, ifMatch, businessUnitId, request));
+                defendantAccountPartyId, ifMatch, businessUnitId, request));
     }
 
     @DeleteMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}",
@@ -270,7 +256,6 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountPartyId,
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestBody RemoveDefendantAccountPartyRequest request
     ) {
         log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
@@ -278,7 +263,7 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, businessUnitId, ifMatch, authHeaderValue, request));
+                defendantAccountPartyId, businessUnitId, ifMatch, request));
     }
 
     @PostMapping("/{defendantAccountId}/enforcements")
@@ -286,7 +271,6 @@ public class DefendantAccountController {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AddEnforcementResponse> addEnforcement(
         @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestBody AddDefendantAccountEnforcementRequest request
@@ -295,7 +279,7 @@ public class DefendantAccountController {
         log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
 
         AddEnforcementResponse response = defendantAccountEnforcementService.addEnforcement(
-            defendantAccountId, businessUnitId, ifMatch, authHeaderValue, request
+            defendantAccountId, businessUnitId, ifMatch, request
         );
 
         return buildResponse(response);
@@ -308,7 +292,6 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestBody RemoveDefendantAccountEnforcementHoldRequest request
     ) {
         log.debug(":PATCH:removeEnforcementHold: for defendantAccountId={}", defendantAccountId);
@@ -318,7 +301,6 @@ public class DefendantAccountController {
                 defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                authHeaderValue,
                 request
             )
         );

@@ -243,17 +243,17 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
-    @DisplayName("FeatureDisabledException -> 405 with feature-disabled problem detail")
+    @DisplayName("FeatureDisabledException -> 404 with feature-disabled problem detail")
     void featureDisabled_ReturnsExistingProblemShape() throws Exception {
         var action = mockMvc.perform(get("/__exc/feature-disabled")
             .header("authorization", userStateStub.getBearerToken())
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
-        action.andExpect(status().isMethodNotAllowed())
+        action.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
-            .andExpect(jsonPath("$.status").value(405))
+            .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"))
             .andExpect(jsonPath("$.retriable").value(false));
     }

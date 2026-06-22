@@ -135,14 +135,14 @@ class OpalDefendantAccountServiceTest02 {
         var mockUserState = mock(UserState.class);
         var mockResponse = new GetDefendantAccountFixedPenaltyResponse();
 
-        when(userStateService.checkForAuthorisedUser("Bearer token")).thenReturn(mockUserState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mockUserState);
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(proxy.getDefendantAccountFixedPenalty(123L)).thenReturn(mockResponse);
 
         var service = new DefendantAccountFixedPenaltyService(proxy, userStateService);
 
         // Act
-        var response = service.getDefendantAccountFixedPenalty(123L, "Bearer token");
+        var response = service.getDefendantAccountFixedPenalty(123L);
 
         // Assert
         verify(proxy).getDefendantAccountFixedPenalty(123L);
@@ -157,7 +157,7 @@ class OpalDefendantAccountServiceTest02 {
         var userStateService = mock(UserStateService.class);
         var mockUserState = mock(UserState.class);
 
-        when(userStateService.checkForAuthorisedUser("auth")).thenReturn(mockUserState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mockUserState);
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
 
@@ -165,7 +165,7 @@ class OpalDefendantAccountServiceTest02 {
 
         // Act + Assert
         assertThrows(PermissionNotAllowedException.class,
-            () -> service.getDefendantAccountFixedPenalty(123L, "auth")
+            () -> service.getDefendantAccountFixedPenalty(123L)
         );
 
         verifyNoInteractions(proxy);

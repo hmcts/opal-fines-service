@@ -89,7 +89,7 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-        url: ${REDIS_CONNECTION_STRING:redis://localhost:6379}
+        url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
@@ -129,7 +129,7 @@ launchdarkly:
 
 opal:
   redis:
-    enabled: ${OPAL_REDIS_ENABLED:false}
+    enabled: ${OPAL_REDIS_ENABLED:true}
     ttl-duration: ${OPAL_REDIS_TTL_DURATION:8H}
   frontend:
     url: ${OPAL_FRONTEND_URL:http://localhost:4200}
@@ -142,6 +142,11 @@ opal:
     password: ${OPAL_TEST_USER_PASSWORD}
   common:
     domain: fines
+    service-bus:
+      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
+      protocol: ${SERVICEBUS_PROTOCOL:amqp}
+      idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
+      send-timeout-ms: ${SERVICEBUS_SEND_TIMEOUT_MS:10000}
     content-digest:
       request:
         enforce: ${OPAL_COMMON_CONTENT_DIGEST_REQUEST_ENFORCE:false}
@@ -156,12 +161,10 @@ opal:
     storage:
       connection-string: ${AZURE_STORAGE_CONNECTION_STRING:UseDevelopmentStorage=true}
       container: ${REPORT_AZURE_STORAGE_CONTAINER:reports}
-    consumer:
-      enabled: ${REPORT_CONSUMER_ENABLED:true}
-      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
+    service-bus:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
-      protocol: ${SERVICEBUS_REPORT_PROTOCOL:amqp}
-      idle-timeout-ms: ${SERVICEBUS_IDLE_TIMEOUT_MS:30000}
+      consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
+      publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}

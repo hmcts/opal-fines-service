@@ -34,8 +34,6 @@ class CreateFineAccountsControllerTest {
             """)
             .build();
 
-        ResponseEntity<OpalS2SResponseWrapper> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
-
         // Act
         ResponseEntity<OpalS2SResponseWrapper> actualResponse = createFineAccountsController
             .createFineAccounts(request);

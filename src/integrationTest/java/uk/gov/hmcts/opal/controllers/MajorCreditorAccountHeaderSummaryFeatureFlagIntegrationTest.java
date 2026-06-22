@@ -30,14 +30,14 @@ class MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest extends Abstra
     private GatewayService gatewayService;
 
     @Test
-    @DisplayName("PO-2136 feature flag disabled returns 405")
+    @DisplayName("PO-2136 feature flag disabled returns 404")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
-    void getHeaderSummary_whenRelease1bDisabledReturns405() throws Exception {
+    @JiraEpic("PO-1286")
+    void getHeaderSummary_whenRelease1bDisabledReturns404() throws Exception {
         mockMvc.perform(get("/major-creditor-accounts/{id}/header-summary", 99000000000800L)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer some_value"))
-            .andExpect(status().isMethodNotAllowed())
+            .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
