@@ -31,7 +31,9 @@ public class EnforcementAccountTypeMapperTest {
 
         assertAll(
             () -> assertEquals(150, dto.getId()),
-            () -> assertEquals(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COH, dto.getEnforcementAccountType()),
+            () -> assertEquals(
+                EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COH, dto.getEnforcementAccountType()
+            ),
             () -> assertEquals(EnforcementAccountTypeCommon.AccountTypeEnum.CO, dto.getAccountType()),
             () -> assertEquals(EnforcementAccountTypeCommon.PathEnum.H, dto.getPath()),
             () -> assertEquals(BigDecimal.valueOf(2.50), dto.getMinimumBalance()),
@@ -52,7 +54,9 @@ public class EnforcementAccountTypeMapperTest {
 
         assertAll(
             () -> assertEquals(1, dto.getId()),
-            () -> assertEquals(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.AH, dto.getEnforcementAccountType()),
+            () -> assertEquals(
+                EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.AH, dto.getEnforcementAccountType()
+            ),
             () -> assertEquals(EnforcementAccountTypeCommon.AccountTypeEnum.A, dto.getAccountType()),
             () -> assertEquals(EnforcementAccountTypeCommon.PathEnum.L, dto.getPath()),
             () -> assertNull(dto.getMinimumBalance()),
