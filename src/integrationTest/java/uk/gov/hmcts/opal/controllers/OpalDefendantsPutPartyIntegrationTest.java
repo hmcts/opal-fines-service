@@ -554,13 +554,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_singleNameChangeCreatesOneAmendment() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.setBearerAuth(userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -592,6 +592,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -620,13 +621,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_companyNameChangeCreatesOneAmendment() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22006L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -650,6 +651,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22006/defendant-account-parties/22006").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -679,13 +681,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_companyNameAddressChangeCreatesManyAmendments() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22006L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -709,6 +711,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22006/defendant-account-parties/22006").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -742,13 +745,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_manyAliasChangesCreatesManyAmendments() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -780,6 +783,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -810,13 +814,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_manyAddressChangesCreatesManyAmendments() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -848,6 +852,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -879,13 +884,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_postcodeChangeCreatesSingleAmendment() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -917,6 +922,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -945,13 +951,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_dobChangeCreatesSingleAmendment() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -983,6 +989,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -1011,13 +1018,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_nameAndDOBChangeCreatesTwoAmendments() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -1049,6 +1056,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -1079,13 +1087,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_nameAndAliasChangeCreatesManyAmendments() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -1117,6 +1125,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -1149,13 +1158,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_nameAddressChangeCreatesManyAmendments() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -1187,6 +1196,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
@@ -1219,13 +1229,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
         void put_noChangeCreatesNoAmendment() throws Exception {
-            authoriseAllPermissions();
+            userStateStub.addPermissions((short) 78, FinesPermission.values());
 
             Integer currentVersion = versionFor(22005L);
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth("good_token");
+            headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -1257,6 +1267,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(body));
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
