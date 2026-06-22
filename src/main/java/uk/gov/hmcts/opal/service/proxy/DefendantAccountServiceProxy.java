@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -42,6 +44,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         return getCurrentModeService().getHeaderSummary(defendantAccountId);
+    }
+
+    @Override
+    public List<ConsolidatedAccountDefendantAccount> getConsolidatedAccounts(Long defendantAccountId) {
+        return getCurrentModeService().getConsolidatedAccounts(defendantAccountId);
     }
 
     @Override
