@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.InterfaceFileSourceEnum;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartyAccountType;
@@ -65,6 +66,7 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
             .businessUnit(businessUnit)
             .tillNumber((short) 17)
             .ownedBy("Jamie")
+            .source(InterfaceFileSourceEnum.NATWEST)
             .createdDate(LocalDateTime.of(2026, 5, 1, 8, 0))
             .build());
         DefendantAccountEntity defendantAccount = defendantAccountRepository.findAll().stream().findFirst()
