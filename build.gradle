@@ -359,7 +359,7 @@ tasks.register('copyDemoFunctionalReport', Copy) {
   logger.quiet("Demo Functional Test Report available at - file://${rootDir}/functional-test-report-demo/index.html")
 }
 tasks.register('packageFunctionalOutput', Copy) {
-  dependsOn 'copyFunctionalReport', 'copyOpalCucumberJson', 'copyLegacyCucumberJson'
+  dependsOn 'copyFunctionalReport', 'copyOpalCucumberJson'
   into("${rootDir}/functional-output")
   from("${rootDir}/functional-test-report") {
     into("report")
@@ -392,9 +392,8 @@ tasks.register('packageIntegrationOutput', Copy) {
   }
 }
 tasks.register('mergeFunctionalResults', Copy) {
-  dependsOn 'functionalOpal', 'functionalLegacy'
+  dependsOn 'functionalOpal'
   from layout.buildDirectory.dir("test-results/functional/opal")
-  from layout.buildDirectory.dir("test-results/functional/legacy")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
@@ -415,11 +414,10 @@ tasks.register('functional') {
   description = "Runs functional tests"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults')
+  dependsOn('clearReports', 'functionalOpal', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults')
   tasks.functionalOpal.mustRunAfter clearReports
-  tasks.functionalLegacy.mustRunAfter functionalOpal
-  tasks.mergeFunctionalResults.mustRunAfter functionalLegacy
-  tasks.aggregate.mustRunAfter functionalLegacy
+  tasks.mergeFunctionalResults.mustRunAfter functionalOpal
+  tasks.aggregate.mustRunAfter functionalOpal
   tasks.copyFunctionalReport.mustRunAfter aggregate
   finalizedBy 'packageFunctionalOutput'
 }
@@ -869,18 +867,14 @@ tasks.register('functionalWithZephyrExecution') {
 
   dependsOn('clearReports',
           'functionalOpal','copyOpalCucumberJson', 'createJiraExecutionFromOpalCucumberReport',
-          'functionalLegacy','copyLegacyCucumberJson', 'createJiraExecutionFromLegacyCucumberReport',
           'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults')
 
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.copyOpalCucumberJson.mustRunAfter functionalOpal
   tasks.createJiraExecutionFromOpalCucumberReport.mustRunAfter copyOpalCucumberJson
 
-  tasks.functionalLegacy.mustRunAfter createJiraExecutionFromOpalCucumberReport
-  tasks.copyLegacyCucumberJson.mustRunAfter functionalLegacy
-  tasks.createJiraExecutionFromLegacyCucumberReport.mustRunAfter copyLegacyCucumberJson
-  tasks.mergeFunctionalResults.mustRunAfter createJiraExecutionFromLegacyCucumberReport
-  tasks.aggregate.mustRunAfter createJiraExecutionFromLegacyCucumberReport
+  tasks.mergeFunctionalResults.mustRunAfter createJiraExecutionFromOpalCucumberReport
+  tasks.aggregate.mustRunAfter createJiraExecutionFromOpalCucumberReport
   tasks.copyFunctionalReport.mustRunAfter aggregate
   finalizedBy 'packageFunctionalOutput'
 }
