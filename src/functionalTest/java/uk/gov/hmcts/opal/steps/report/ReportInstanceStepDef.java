@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ReportInstanceStepDef extends BaseStepDef {
 
@@ -48,6 +49,7 @@ public class ReportInstanceStepDef extends BaseStepDef {
     private static final Set<String> VALID_SUPPORTED_FILE_TYPES = Set.of("CSV", "PDF", "XML");
 
     private TestHttpResponse latestRawReportInstanceResponse;
+    private TestHttpResponse latestRawGetReportInstanceResponse;
 
 
     /**
@@ -79,6 +81,56 @@ public class ReportInstanceStepDef extends BaseStepDef {
             MINIMAL_CREATE_REQUEST
         );
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
+    }
+
+    /**
+     * Calls the get-report-instance endpoint using the requested authentication state.
+     *
+     * @param instanceId report instance id to request.
+     * @param authenticationState whether the request should be sent with no token or an invalid
+     *                            token.
+     */
+    @When("I call GET on the report instance api for id {int} with {string}")
+    public void callGetOnTheReportInstanceApiWithAuthenticationState(int instanceId, String authenticationState) {
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.put("Accept", "*/*");
+
+        switch (authenticationState) {
+            case "no token" -> {
+                // leave Authorization absent
+            }
+            case "invalid token" -> headers.put("Authorization", "Bearer invalidToken");
+            default -> throw new IllegalArgumentException(
+                "Unknown authentication state for get report instance request: " + authenticationState
+            );
+        }
+
+        latestRawGetReportInstanceResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + instanceId,
+            headers,
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceResponse);
+    }
+
+    /**
+     * Requests the supplied report instance id using the current scenario user.
+     *
+     * @param instanceId report instance id to request.
+     */
+    @When("I request report instance with id {int}")
+    public void requestReportInstanceWithId(int instanceId) {
+        latestRawGetReportInstanceResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + instanceId,
+            Map.of(
+                "Accept", "*/*",
+                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
+            ),
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceResponse);
     }
 
     /**
@@ -199,6 +251,32 @@ public class ReportInstanceStepDef extends BaseStepDef {
             )
         );
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
+    }
+
+    /**
+     * Asserts that the get-report-instance response contains the expected field values.
+     *
+     * @param data Cucumber table containing the expected values for the assertion.
+     */
+    @Then("the report instance response contains")
+    public void reportInstanceResponseContains(io.cucumber.datatable.DataTable data) throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+        latestRawGetReportInstanceResponse = null;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertEquals(200, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
+        Map<String, String> expected = data.asMap(String.class, String.class);
+
+        for (Map.Entry<String, String> entry : expected.entrySet()) {
+            String fieldName = entry.getKey();
+            String expectedValue = entry.getValue();
+            JsonNode node = root.path(fieldName);
+
+            assertFalse(node.isMissingNode(), "Missing field in response: " + fieldName);
+            assertEquals(expectedValue, node.asText(), "Unexpected value for field: " + fieldName);
+        }
     }
 
     /**
@@ -343,6 +421,31 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts that the latest no-token get-report-instance response is an unauthorised response,
+     * tolerating both the local plain-text security-layer message and the deployed problem-detail
+     * shape returned in some environments.
+     */
+    @Then("the latest get report instance response is an unauthorized response")
+    public void latestGetReportInstanceResponseIsAnUnauthorizedResponse() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+        latestRawGetReportInstanceResponse = null;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertEquals(401, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        String body = latestHttpResponse.body();
+        if (body != null && body.trim().startsWith("{")) {
+            validateProblemDetailResponse(body, 401);
+            return;
+        }
+
+        assertTrue(
+            body != null && body.contains("Full authentication is required"),
+            "Unexpected no-token response body"
+        );
+    }
+
+    /**
      * Asserts that the latest report-instance create error response matches the shared
      * ProblemDetail top-level contract for the expected status.
      *
@@ -356,6 +459,24 @@ public class ReportInstanceStepDef extends BaseStepDef {
 
         assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report instance request");
         assertEquals(expectedStatus, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+        validateProblemDetailResponse(latestHttpResponse.body(), expectedStatus);
+    }
+
+    /**
+     * Asserts that the latest get-report-instance error response matches the shared ProblemDetail
+     * top-level contract for the expected status.
+     *
+     * @param expectedStatus expected HTTP status code.
+     */
+    @Then("the latest get report instance error response matches the standard problem detail contract for status {int}")
+    public void latestGetReportInstanceErrorResponseMatchesProblemDetailContract(int expectedStatus)
+        throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+        latestRawGetReportInstanceResponse = null;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertEquals(expectedStatus, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
         validateProblemDetailResponse(latestHttpResponse.body(), expectedStatus);
     }
 
