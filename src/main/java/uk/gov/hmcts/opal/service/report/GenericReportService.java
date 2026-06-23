@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.List;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,10 +60,6 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ReportBlobStore blobStore;
     private final Clock clock;
     private final ObjectMapper mapper;
-    private final UserStateService userStateService;
-    private final ReportInstanceMapper reportInstanceMapper;
-    private final ReportQueuePublisherImpl reportQueuePublisher;
-    private final ReportParameterValidator reportParameterValidator;
     private final BusinessUnitRepository businessUnitRepository;
     private final ReportInstanceSearchService reportInstanceSearchService;
 
