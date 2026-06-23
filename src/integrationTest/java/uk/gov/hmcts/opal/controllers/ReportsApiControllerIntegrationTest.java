@@ -233,6 +233,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @ParameterizedTest
         @MethodSource("reportCases")
         @DisplayName("Get report by ID - operational reports return 200 when report permission is set [@PO-7222]")
+        @JiraStory("PO-7222")
+        @JiraEpic("PO-2248")
         void getReportById_whenOperationalReportHasPermission_returns200(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
