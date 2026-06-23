@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.report;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.Mapper;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.mapper.csv.ReportCSVMapper;
@@ -22,7 +21,7 @@ public class ReportCSVService {
      * Creates a Comma Separated Values (CSV) for the given data. The reportDataInterface will have a specific
      * ReportCSVMapper.
      * @param reportDataInterface the report data to be used to generate the CSV, this will likely be retrieved from
-     *                            the (azure) report blob store
+     *                            the (azure) report blob store, so will have been already generated
      * @return the CSV byte array
      * @param <T> The implementation of the reportDataInterface
      * @param reportDataInterface the report data to be used to generate the CSV, this will likely be retrieved from
