@@ -16,10 +16,14 @@ import uk.gov.hmcts.opal.service.report.ReportDataInterface;
  * @param <RDIT> The ReportDataInterface type
  */
 public interface ReportCSVMapper<RDIT extends ReportDataInterface> {
+    String EMPTY_VALUE = "";
+    String NEW_ROW_DELIMITER = "\n";
 
     Class<RDIT> getReportDataType();
 
     String reportToCSVString(RDIT rdi);
+
+    int maxHeaderColumnsSize();
 
     default String dataListToFullCSVRow(List<String> dataRow) {
         return dataRow.stream().map(this::checkAndConvertSpecialCharacters).collect(Collectors.joining(COMMA))
