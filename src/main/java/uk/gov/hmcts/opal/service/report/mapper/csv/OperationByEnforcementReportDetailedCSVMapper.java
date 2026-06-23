@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforc
 @Component
 public class OperationByEnforcementReportDetailedCSVMapper
     implements ReportCSVMapper<OperationByEnforcementDetailedReport> {
-    public List<String> header1Row() {
+    private List<String> header1Row() {
         return new java.util.ArrayList<>(List.of(
             "HEADER1",
             "company",
@@ -58,7 +58,7 @@ public class OperationByEnforcementReportDetailedCSVMapper
         ));
     }
 
-    public List<String> header2Row() {
+    private List<String> header2Row() {
         return List.of(
             "HEADER2",
             "accountno",
@@ -71,7 +71,7 @@ public class OperationByEnforcementReportDetailedCSVMapper
         );
     }
 
-    public List<String> accountRow(OperationByEnforcementDetailedReportAccountRowDto accountRow) {
+    private List<String> accountRow(OperationByEnforcementDetailedReportAccountRowDto accountRow) {
         return List.of(
             getDataValue(accountRow.getHeader1()),
             getDataValue(accountRow.getCompany()),
@@ -110,7 +110,7 @@ public class OperationByEnforcementReportDetailedCSVMapper
         );
     }
 
-    public List<String> transactionRow(OperationByEnforcementDetailedReportTransactionRowDto transactionRow) {
+    private List<String> transactionRow(OperationByEnforcementDetailedReportTransactionRowDto transactionRow) {
         return List.of(
             "TRANSACTION",
             getDataValue(transactionRow.getAccountNo()),
@@ -136,10 +136,5 @@ public class OperationByEnforcementReportDetailedCSVMapper
             }
         }
         return sb.toString();
-    }
-
-    @Override
-    public int maxHeaderColumnsSize() {
-        return 34;
     }
 }
