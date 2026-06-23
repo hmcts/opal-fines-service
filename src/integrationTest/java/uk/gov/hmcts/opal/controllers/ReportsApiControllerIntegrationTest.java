@@ -240,7 +240,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                  WHERE report_id IN (
                            'operational_report_enforcement',
                            'operational_report_payment'
-                       )
+                       );
                 """,
             executionPhase = BEFORE_TEST_METHOD
         )
@@ -262,7 +262,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                  WHERE report_id IN (
                            'operational_report_enforcement',
                            'operational_report_payment'
-                       )
+                       );
                 """,
             executionPhase = BEFORE_TEST_METHOD
         )
@@ -273,7 +273,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                  WHERE report_id IN (
                            'operational_report_enforcement',
                            'operational_report_payment'
-                       )
+                       );
                 """,
             executionPhase = AFTER_TEST_METHOD
         )
