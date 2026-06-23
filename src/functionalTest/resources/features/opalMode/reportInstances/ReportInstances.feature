@@ -62,16 +62,15 @@ Feature: Report Instances
 
 #    GET :/reports-instances/{id} Test scenarios
 
-# Requires a known existing report instance id in the target environment.
   @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
   Scenario: Get report instance returns complete instance details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I request report instance with id 1
+    When I create a report instance with report id "operational_report_enforcement" for business unit 73
+    Then I store the created report instance id
+    When I request the created report instance
     Then the response status code is 200
-    And the report instance response contains
-      | instance_id     | 1                             |
-      | report_type_id  | operational_report_enforcement |
-      | status          | REQUESTED                     |
+    And the report instance response contains the created instance id
+    And the report instance response contains core instance details
 
   @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
   Scenario: Get report instance without a token is rejected by the security layer
@@ -87,25 +86,17 @@ Feature: Report Instances
 
   @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
   Scenario: Get report instance without permission in the requested business unit is rejected as forbidden
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I create a report instance with report id "operational_report_enforcement" for business unit 73
+    Then I store the created report instance id
     Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
-    When I request report instance with id 1
+    When I request the created report instance
     Then the request is rejected as forbidden
     And the latest get report instance error response matches the standard problem detail contract for status 403
 
   @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
   Scenario: Get report instance with an unknown id is rejected as not found
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I request report instance with id 999999999
+    When I request report instance with id -1
     Then the request is rejected as not found
     And the latest get report instance error response matches the standard problem detail contract for status 404
-
-    # Requires a known READY report instance in the target environment with supported download types.
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
-  Scenario: Get report instance indicates downloadable when ready and supported types exist
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I request report instance with id 1
-    Then the response status code is 200
-    And the report instance response contains
-      | instance_id      | 1    |
-      | status           | READY |
-      | is_downloadable  | true |

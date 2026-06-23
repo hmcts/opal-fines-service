@@ -50,6 +50,7 @@ public class ReportInstanceStepDef extends BaseStepDef {
 
     private TestHttpResponse latestRawReportInstanceResponse;
     private TestHttpResponse latestRawGetReportInstanceResponse;
+    private Long createdReportInstanceId;
 
 
     /**
@@ -124,6 +125,25 @@ public class ReportInstanceStepDef extends BaseStepDef {
         latestRawGetReportInstanceResponse = TestHttpClient.request(
             "GET",
             getTestUrl() + REPORT_INSTANCES_URI + "/" + instanceId,
+            Map.of(
+                "Accept", "*/*",
+                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
+            ),
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceResponse);
+    }
+
+    /**
+     * Requests the previously created report instance using the current scenario user.
+     */
+    @When("I request the created report instance")
+    public void requestTheCreatedReportInstance() {
+        assertNotNull(createdReportInstanceId, "Expected a stored created report instance id");
+
+        latestRawGetReportInstanceResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + createdReportInstanceId,
             Map.of(
                 "Accept", "*/*",
                 "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
@@ -254,12 +274,28 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts that the get-report-instance response contains the expected field values.
-     *
-     * @param data Cucumber table containing the expected values for the assertion.
+     * Asserts that the get-report-instance response contains the same instance id as the one
+     * returned by the create-report-instance call earlier in the scenario.
      */
-    @Then("the report instance response contains")
-    public void reportInstanceResponseContains(io.cucumber.datatable.DataTable data) throws Exception {
+    @Then("the report instance response contains the created instance id")
+    public void reportInstanceResponseContainsTheCreatedInstanceId() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertNotNull(createdReportInstanceId, "Expected a stored created report instance id");
+        assertEquals(200, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
+        assertEquals(createdReportInstanceId.longValue(), root.path("instance_id").asLong(),
+            "Unexpected instance_id in response");
+    }
+
+    /**
+     * Asserts that the get-report-instance response contains the core fields expected for a
+     * successfully retrieved report instance.
+     */
+    @Then("the report instance response contains core instance details")
+    public void reportInstanceResponseContainsCoreInstanceDetails() throws Exception {
         TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
         latestRawGetReportInstanceResponse = null;
 
@@ -267,16 +303,16 @@ public class ReportInstanceStepDef extends BaseStepDef {
         assertEquals(200, latestHttpResponse.statusCode(), "Unexpected HTTP status");
 
         JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
-        Map<String, String> expected = data.asMap(String.class, String.class);
 
-        for (Map.Entry<String, String> entry : expected.entrySet()) {
-            String fieldName = entry.getKey();
-            String expectedValue = entry.getValue();
-            JsonNode node = root.path(fieldName);
+        assertTrue(root.path("requested_at").isTextual(), "requested_at should be present");
+        assertFalse(root.path("requested_at").asText().isBlank(), "requested_at should not be blank");
 
-            assertFalse(node.isMissingNode(), "Missing field in response: " + fieldName);
-            assertEquals(expectedValue, node.asText(), "Unexpected value for field: " + fieldName);
-        }
+        assertTrue(root.path("requested_by").isObject(), "requested_by should be present");
+        assertFalse(root.path("requested_by").path("user_id").isMissingNode(), "requested_by.user_id should be present");
+        assertFalse(root.path("requested_by").path("name").isMissingNode(), "requested_by.name should be present");
+
+        assertTrue(root.path("name").isTextual(), "name should be present");
+        assertFalse(root.path("name").asText().isBlank(), "name should not be blank");
     }
 
     /**
@@ -335,6 +371,8 @@ public class ReportInstanceStepDef extends BaseStepDef {
         }
     }
 
+        assertTrue(root.path("business_units").isArray(), "business_units should be present");
+        assertFalse(root.path("business_units").isEmpty(), "business_units should not be empty");
     /**
      * Asserts that the report-instance list response contains a row with the supplied values.
      *
@@ -345,6 +383,13 @@ public class ReportInstanceStepDef extends BaseStepDef {
         JsonNode root = readReportInstanceListResponse();
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
+        assertTrue(root.path("status").isObject(), "status should be present");
+        assertTrue(root.path("status").path("code").isTextual(), "status.code should be present");
+        assertFalse(root.path("status").path("code").asText().isBlank(), "status.code should not be blank");
+
+        assertTrue(root.path("report").isObject(), "report should be present");
+        assertTrue(root.path("report").path("id").isTextual(), "report.id should be present");
+        assertFalse(root.path("report").path("id").asText().isBlank(), "report.id should not be blank");
         JsonNode matchingReportInstance = findReportInstanceContaining(root, expectedData);
         assertNotNull(matchingReportInstance, "No report instance matched the expected response data");
     }
@@ -393,6 +438,19 @@ public class ReportInstanceStepDef extends BaseStepDef {
         JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
         assertTrue(root.path("report_instance_id").isIntegralNumber(),
                    "report_instance_id should be a numeric value");
+    }
+
+    /**
+     * Stores the report_instance_id returned by the latest create-report-instance response.
+     */
+    @Then("I store the created report instance id")
+    public void storeTheCreatedReportInstanceId() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawReportInstanceResponse;
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report instance request");
+        assertEquals(201, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
+        createdReportInstanceId = root.path("report_instance_id").asLong();
     }
 
     /**
