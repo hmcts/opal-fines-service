@@ -8,18 +8,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
 import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.mapper.EnforcementAccountTypeMapper;
 import uk.gov.hmcts.opal.repository.EnforcementAccountTypeRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
 
 @Service
 @RequiredArgsConstructor
 public class EnforcementAccountTypeService {
 
-    private final UserStateService userStateService;
     private final EnforcementAccountTypeRepository repository;
     private final EnforcementAccountTypeMapper mapper;
 
@@ -33,8 +31,8 @@ public class EnforcementAccountTypeService {
     }
 
     private void checkPermissions() {
-        UserState userState = userStateService.checkForAuthorisedUser();
-        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)) {
+        if (!SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser()
+            .hasPermission(FinesPermission.AUTO_ENFORCEMENT)) {
             throw new PermissionNotAllowedException(FinesPermission.AUTO_ENFORCEMENT);
         }
     }
