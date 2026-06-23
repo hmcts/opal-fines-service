@@ -232,6 +232,28 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
         @ParameterizedTest
         @MethodSource("reportCases")
+        @DisplayName("Get report by ID - operational reports return 200 when report permission is set [@PO-7222]")
+        @Sql(
+            statements = """
+                UPDATE public.reports
+                   SET permission = 'SEARCH_AND_VIEW_ACCOUNTS'
+                 WHERE report_id IN (
+                           'operational_report_enforcement',
+                           'operational_report_payment'
+                       )
+                """,
+            executionPhase = BEFORE_TEST_METHOD
+        )
+        void getReportById_whenOperationalReportHasPermission_returns200(String reportId) throws Exception {
+            mockMvc.perform(get(URL_BASE + "/" + reportId)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.report_id").value(reportId))
+                .andExpect(jsonPath("$.permission").value(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()));
+        }
+
+        @ParameterizedTest
+        @MethodSource("reportCases")
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
