@@ -68,7 +68,10 @@
         "birth_date": { "type": ["string", "null"], "format": "date" },
         "national_insurance_number": { "type": ["string", "null"] },
         "parent_guardian_surname": { "type": ["string", "null"] },
-        "parent_guardian_firstnames": { "type": ["string", "null"] }
+        "parent_guardian_firstnames": { "type": ["string", "null"] },
+        "has_collection_order": { "type": "boolean" },
+        "account_version": { "type": "integer" },
+        "checks": { "$ref": "#/$defs/checks" }
       },
       "oneOf": [
         {
@@ -93,6 +96,36 @@
           }
         }
       ],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "warnings",
+        "errors"
+      ],
+      "properties": {
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" }
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "check": {
+      "type": "object",
+      "required": [
+        "reference",
+        "message"
+      ],
+      "properties": {
+        "reference": { "type": "string" },
+        "message": { "type": "string" }
+      },
       "additionalProperties": false
     },
     "alias": {
