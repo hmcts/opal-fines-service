@@ -137,7 +137,10 @@ public class ReportRefDataStepDef {
         validateNullableStringField(root.path("permission"), "permission");
 
         if (!root.path("retention_period").isNull()) {
-            Duration.parse(root.path("retention_period").asString());
+            assertNotNull(
+                Duration.parse(root.path("retention_period").asString()),
+                "retention_period should be an ISO-8601 duration"
+            );
         }
     }
 

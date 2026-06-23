@@ -178,38 +178,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     /**
-     * Creates a report-instance request for the supplied report id with an amendment-date report
-     * parameter using the current scenario user.
-     *
-     * @param reportId report id to send in the create request.
-     * @param amendmentDate amendment-date value to send in report_parameters.
-     */
-    @When("I create a report instance with report id {string} and amendment date {string}")
-    public void createReportInstanceWithReportIdAndAmendmentDate(String reportId, String amendmentDate) {
-        String requestBody = """
-            {
-              "report_id": "%s",
-              "business_unit_ids": [73],
-              "report_parameters": {
-                "amendment_date": "%s"
-              }
-            }
-            """.formatted(reportId, amendmentDate);
-
-        latestRawReportInstanceResponse = TestHttpClient.request(
-            "POST",
-            getTestUrl() + REPORT_INSTANCES_URI,
-            Map.of(
-                "Accept", "*/*",
-                "Content-Type", "application/json",
-                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
-            ),
-            requestBody
-        );
-        ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
-    }
-
-    /**
      * Requests report instances using the supplied GET query filters.
      *
      * @param filtersData Cucumber table containing filter query parameter names and values.
@@ -331,22 +299,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
         }
 
         fail("Expected a READY report instance with valid supported file types");
-    }
-
-    /**
-     * Asserts that the latest report-instance create error response is marked retriable.
-     */
-    @Then("the latest report instance create error response is retriable")
-    public void latestReportInstanceCreateErrorResponseIsRetriable() throws Exception {
-        TestHttpResponse latestHttpResponse = latestRawReportInstanceResponse;
-        latestRawReportInstanceResponse = null;
-
-        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report instance request");
-        assertEquals(422, latestHttpResponse.statusCode(), "Unexpected HTTP status");
-
-        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
-        assertTrue(root.path("retriable").isBoolean(), "retriable should be a boolean");
-        assertTrue(root.path("retriable").asBoolean(), "retriable should be true");
     }
 
     /**
