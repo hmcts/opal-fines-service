@@ -64,8 +64,9 @@ public class SuspenseItemEntity {
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime createdDate;
 
-    @Column(name = "payment_method", length = 2)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "payment_method", length = 2, columnDefinition = "t_payment_method_enum")
     private PaymentMethod paymentMethod;
 
     @Column(name = "court_fee_id")
