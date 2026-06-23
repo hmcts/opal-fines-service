@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ReportInstanceStepDef extends BaseStepDef {
 
@@ -371,8 +370,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
         }
     }
 
-        assertTrue(root.path("business_units").isArray(), "business_units should be present");
-        assertFalse(root.path("business_units").isEmpty(), "business_units should not be empty");
     /**
      * Asserts that the report-instance list response contains a row with the supplied values.
      *
@@ -392,6 +389,8 @@ public class ReportInstanceStepDef extends BaseStepDef {
         assertFalse(root.path("report").path("id").asText().isBlank(), "report.id should not be blank");
         JsonNode matchingReportInstance = findReportInstanceContaining(root, expectedData);
         assertNotNull(matchingReportInstance, "No report instance matched the expected response data");
+        assertTrue(root.path("business_units").isArray(), "business_units should be present");
+        assertFalse(root.path("business_units").isEmpty(), "business_units should not be empty");
     }
 
     /**
