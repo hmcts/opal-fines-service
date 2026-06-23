@@ -27,7 +27,7 @@ public class EnforcementAccountTypeEntity {
 
     @Id
     @Column(nullable = false)
-    private Long enforcementAccountTypeId;
+    private long enforcementAccountTypeId;
 
     @Convert(converter = EnforcementAccountTypeConverter.class)
     @Column(nullable = false)
