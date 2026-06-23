@@ -23,8 +23,6 @@ public interface ReportCSVMapper<RDIT extends ReportDataInterface> {
 
     String reportToCSVString(RDIT rdi);
 
-    int maxHeaderColumnsSize();
-
     default String dataListToFullCSVRow(List<String> dataRow) {
         return dataRow.stream().map(this::checkAndConvertSpecialCharacters).collect(Collectors.joining(COMMA))
             + NEW_LINE;

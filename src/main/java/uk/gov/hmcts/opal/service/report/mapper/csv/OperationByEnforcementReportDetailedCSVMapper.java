@@ -143,9 +143,4 @@ public class OperationByEnforcementReportDetailedCSVMapper
         }
         return sb.toString();
     }
-
-    @Override
-    public int maxHeaderColumnsSize() {
-        return 34;
-    }
 }
