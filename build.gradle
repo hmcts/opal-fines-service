@@ -15,7 +15,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:12.8.1")
+    classpath("org.flywaydb:flyway-database-postgresql:12.9.0")
     // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
     // Maven metadata range lookups on CI when Maven Central is rate limiting.
     classpath("io.cucumber:query:${cucumberQueryVersion}")
@@ -31,7 +31,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.54.0'
   id 'org.sonarqube' version '7.3.1.8318'
   id 'uk.gov.hmcts.java' version '0.12.70'
-  id 'org.flywaydb.flyway' version '12.8.1'
+  id 'org.flywaydb.flyway' version '12.9.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
   id "org.openapi.generator" version "7.23.0"
 }
@@ -674,8 +674,8 @@ dependencies {
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
-  implementation 'org.flywaydb:flyway-core:12.8.1'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.8.1', {
+  implementation 'org.flywaydb:flyway-core:12.9.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.9.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
