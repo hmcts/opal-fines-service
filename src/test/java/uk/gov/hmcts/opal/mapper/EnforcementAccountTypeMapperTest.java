@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
 import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 
 public class EnforcementAccountTypeMapperTest {
+
     private final EnforcementAccountTypeMapper mapper = Mappers.getMapper(EnforcementAccountTypeMapper.class);
 
     @Test
@@ -41,6 +42,7 @@ public class EnforcementAccountTypeMapperTest {
         );
     }
 
+    @Test
     void toDto_allMandatoryFields() {
         var entity = EnforcementAccountTypeEntity.builder()
             .enforcementAccountTypeId(1L)
