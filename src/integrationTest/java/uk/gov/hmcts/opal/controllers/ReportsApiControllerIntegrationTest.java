@@ -255,12 +255,35 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @ParameterizedTest
         @MethodSource("reportCases")
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
+        @Sql(
+            statements = """
+                UPDATE public.reports
+                   SET permission = NULL
+                 WHERE report_id IN (
+                           'operational_report_enforcement',
+                           'operational_report_payment'
+                       )
+                """,
+            executionPhase = BEFORE_TEST_METHOD
+        )
+        @Sql(
+            statements = """
+                UPDATE public.reports
+                   SET permission = 'SEARCH_AND_VIEW_ACCOUNTS'
+                 WHERE report_id IN (
+                           'operational_report_enforcement',
+                           'operational_report_payment'
+                       )
+                """,
+            executionPhase = AFTER_TEST_METHOD
+        )
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         @JiraTestKey(value = "PO-8604", name = "[1] reportId = \"operational_report_enforcement\"")
         @JiraTestKey(value = "PO-8605", name = "[2] reportId = \"operational_report_payment\"")
         void getReportById_whenReportPermissionIsNull_returns403(String reportId) throws Exception {
-            mockMvc.perform(get(URL_BASE + "/" + reportId))
+            mockMvc.perform(get(URL_BASE + "/" + reportId)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.title").value("Forbidden"))
                 .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
