@@ -3,10 +3,14 @@ package uk.gov.hmcts.opal.service.report;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.Mapper;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.mapper.csv.ReportCSVMapper;
 
+/**
+ * Service to convert JSON report data to CSV byte data.
+ * TODO this must be wired up to the endpoint created by PO-2253
+ */
 @Service
 @AllArgsConstructor
 @Slf4j(topic = "opal.ReportCSVService")
@@ -18,11 +22,11 @@ public class ReportCSVService {
      * Creates a Comma Separated Values (CSV) for the given data. The reportDataInterface will have a specific
      * ReportCSVMapper.
      * @param reportDataInterface the report data to be used to generate the CSV, this will likely be retrieved from
-     *                            the (azure) report blob store
+     *                            the (azure) report blob store, so will have been already generated
      * @return the CSV byte array
      * @param <T> The implementation of the reportDataInterface
      */
-    public <T extends ReportDataInterface> byte[] covertReportDtoToCSV(T reportDataInterface) {
+    public <T extends ReportDataInterface> byte[] convertReportDtoToCSV(T reportDataInterface) {
         //do like mapper to string then bytes from string?
 
         //pick from the reportToCSVStringMapperMap using the class of the input reportDataInterface
@@ -31,7 +35,7 @@ public class ReportCSVService {
         ReportCSVMapper<T> reportCSVMapper = (ReportCSVMapper<T>) reportToCSVStringMapperMap
             .get(reportDataInterface.getClass());
         if (reportCSVMapper == null) {
-            throw new IllegalArgumentException("Report cannot be converted to CSV format.");
+            throw new UnprocessableException("Report cannot be converted to CSV format.");
         }
         return reportCSVMapper.reportToCSVString(reportDataInterface).getBytes();
     }

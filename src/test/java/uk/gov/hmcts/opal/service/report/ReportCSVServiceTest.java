@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.mapper.csv.ReportCSVMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,23 +39,23 @@ class ReportCSVServiceTest {
     }
 
     @Test
-    void covertReportDtoToCSV_returnsCsvBytesWhenMapperExists() {
+    void convertReportDtoToCSV_returnsCsvBytesWhenMapperExists() {
         String csv = "HEADER1,HEADER2\n";
         reportToCSVStringMapperMap.put(reportDataInterface.getClass(), reportCSVMapper);
         when(reportCSVMapper.reportToCSVString(reportDataInterface)).thenReturn(csv);
 
-        byte[] result = reportCSVService.covertReportDtoToCSV(reportDataInterface);
+        byte[] result = reportCSVService.convertReportDtoToCSV(reportDataInterface);
 
         assertArrayEquals(csv.getBytes(StandardCharsets.UTF_8), result);
         verify(reportCSVMapper).reportToCSVString(reportDataInterface);
     }
 
     @Test
-    void covertReportDtoToCSV_throwsWhenMapperMissing() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> reportCSVService.covertReportDtoToCSV(reportDataInterface));
+    void convertReportDtoToCSV_throwsWhenMapperMissing() {
+        UnprocessableException exception = assertThrows(UnprocessableException.class,
+            () -> reportCSVService.convertReportDtoToCSV(reportDataInterface));
 
-        assertEquals("Report cannot be converted to CSV format.", exception.getMessage());
+        assertEquals("Report cannot be converted to CSV format.", exception.getDetailedReason());
         verifyNoInteractions(reportCSVMapper);
     }
 }
