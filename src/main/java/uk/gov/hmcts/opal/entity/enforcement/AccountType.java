@@ -1,15 +1,13 @@
 package uk.gov.hmcts.opal.entity.enforcement;
 
+import java.util.stream.Stream;
 import lombok.Getter;
 
-import java.util.stream.Stream;
-
 public enum AccountType {
-    COL("COL"),
-    A("A"),
-    CO("CO"),
-    Y("Y"),
-    CFP("CFP");
+    ADULT_COLLECTION_ORDER("COL"),
+    ADULT_NO_COLLECTION_ORDER("A"),
+    COMPANY("CO"),
+    YOUTH("Y");
 
     @Getter
     private final String code;

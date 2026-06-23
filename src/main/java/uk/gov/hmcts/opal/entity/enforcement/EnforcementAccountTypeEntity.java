@@ -1,9 +1,8 @@
 package uk.gov.hmcts.opal.entity.enforcement;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
@@ -14,6 +13,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import uk.gov.hmcts.opal.entity.LowHighValue;
+import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.EnforcementAccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.LowHighConverter;
 
 @Entity
 @Table(name = "enforcement_account_types")
@@ -27,17 +29,17 @@ public class EnforcementAccountTypeEntity {
     @Column(nullable = false)
     private Long enforcementAccountTypeId;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = EnforcementAccountTypeConverter.class)
     @Column(nullable = false)
     @NonNull
     private EnforcementAccountType enforcementAccountType;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = AccountTypeConverter.class)
     @Column(nullable = false)
     @NonNull
     private AccountType accountType;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = LowHighConverter.class)
     @Column
     @NonNull
     private LowHighValue accountTypePath;

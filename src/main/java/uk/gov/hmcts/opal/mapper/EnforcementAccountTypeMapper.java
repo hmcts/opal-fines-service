@@ -1,18 +1,20 @@
 package uk.gov.hmcts.opal.mapper;
 
+import java.util.Collection;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
 import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 
-import java.util.Collection;
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface EnforcementAccountTypeMapper {
+
     @Mapping(target = "id", source = "enforcementAccountTypeId")
-    @Mapping(target = "path", source = "accountTypePath")
+    @Mapping(target = "path", source = "accountTypePath.value")
     @Mapping(target = "version", source = "versionNumber")
+    @Mapping(target = "enforcementAccountType", source = "enforcementAccountType.code")
+    @Mapping(target = "accountType", source = "accountType.code")
     EnforcementAccountTypeCommon toDto(EnforcementAccountTypeEntity entity);
 
     default List<EnforcementAccountTypeCommon> toDtos(Collection<EnforcementAccountTypeEntity> entities) {

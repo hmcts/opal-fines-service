@@ -21,9 +21,9 @@ public class EnforcementAccountTypeMapperTest {
     void toDto_allFields() {
         var entity = EnforcementAccountTypeEntity.builder()
             .enforcementAccountTypeId(150L)
-            .enforcementAccountType(EnforcementAccountType.COH)
-            .accountType(AccountType.CO)
-            .accountTypePath(LowHighValue.H)
+            .enforcementAccountType(EnforcementAccountType.COMPANY_HIGH)
+            .accountType(AccountType.COMPANY)
+            .accountTypePath(LowHighValue.HIGH)
             .minimumBalance(BigDecimal.valueOf(2.50))
             .versionNumber(2L)
             .build();
@@ -46,9 +46,9 @@ public class EnforcementAccountTypeMapperTest {
     void toDto_allMandatoryFields() {
         var entity = EnforcementAccountTypeEntity.builder()
             .enforcementAccountTypeId(1L)
-            .enforcementAccountType(EnforcementAccountType.AH)
-            .accountType(AccountType.A)
-            .accountTypePath(LowHighValue.L)
+            .enforcementAccountType(EnforcementAccountType.ADULT_NO_COLLECTION_ORDER_HIGH)
+            .accountType(AccountType.ADULT_NO_COLLECTION_ORDER)
+            .accountTypePath(LowHighValue.LOW)
             .versionNumber(3L)
             .build();
 
