@@ -233,17 +233,6 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @ParameterizedTest
         @MethodSource("reportCases")
         @DisplayName("Get report by ID - operational reports return 200 when report permission is set [@PO-7222]")
-        @Sql(
-            statements = """
-                UPDATE public.reports
-                   SET permission = 'SEARCH_AND_VIEW_ACCOUNTS'
-                 WHERE report_id IN (
-                           'operational_report_enforcement',
-                           'operational_report_payment'
-                       );
-                """,
-            executionPhase = BEFORE_TEST_METHOD
-        )
         void getReportById_whenOperationalReportHasPermission_returns200(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -299,7 +288,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraTestKey("PO-7766")
         void getReportById_whenUserLacksPermission_returns403() throws Exception {
             userStateStub.setupWithNoPermissions();
-            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"))
+            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.title").value("Forbidden"))
                 .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
