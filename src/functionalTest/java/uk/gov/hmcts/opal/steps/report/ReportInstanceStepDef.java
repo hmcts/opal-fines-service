@@ -307,7 +307,8 @@ public class ReportInstanceStepDef extends BaseStepDef {
         assertFalse(root.path("requested_at").asText().isBlank(), "requested_at should not be blank");
 
         assertTrue(root.path("requested_by").isObject(), "requested_by should be present");
-        assertFalse(root.path("requested_by").path("user_id").isMissingNode(), "requested_by.user_id should be present");
+        assertFalse(root.path("requested_by").path("user_id").isMissingNode(),
+            "requested_by.user_id should be present");
         assertFalse(root.path("requested_by").path("name").isMissingNode(), "requested_by.name should be present");
 
         assertTrue(root.path("name").isTextual(), "name should be present");
@@ -378,7 +379,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
     @Then("the report instances response contains the following data")
     public void reportInstancesResponseContainsTheFollowingData(DataTable data) throws Exception {
         JsonNode root = readReportInstanceListResponse();
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
 
         assertTrue(root.path("status").isObject(), "status should be present");
         assertTrue(root.path("status").path("code").isTextual(), "status.code should be present");
@@ -387,6 +387,8 @@ public class ReportInstanceStepDef extends BaseStepDef {
         assertTrue(root.path("report").isObject(), "report should be present");
         assertTrue(root.path("report").path("id").isTextual(), "report.id should be present");
         assertFalse(root.path("report").path("id").asText().isBlank(), "report.id should not be blank");
+
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
         JsonNode matchingReportInstance = findReportInstanceContaining(root, expectedData);
         assertNotNull(matchingReportInstance, "No report instance matched the expected response data");
         assertTrue(root.path("business_units").isArray(), "business_units should be present");
