@@ -77,7 +77,7 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
             .organisationFlag(true).organisationDetails(orgDetails).build();
         LegacyGetDefendantAccountHeaderSummaryResponse resp = LegacyGetDefendantAccountHeaderSummaryResponse.builder()
             .partyDetails(party).build();
-        assertNotNull(legacyDefendantAccountService.toHeaderSumaryDto(resp));
+        assertNotNull(legacyDefendantAccountService.toHeaderSummaryDto(resp));
 
         IndividualDetails.IndividualAlias indAlias = IndividualDetails.IndividualAlias.builder()
             .aliasId("I1").sequenceNumber((short) 1).surname("Smith").forenames("John").build();
@@ -89,7 +89,7 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
             .organisationFlag(false).individualDetails(ind).build();
         resp = LegacyGetDefendantAccountHeaderSummaryResponse.builder()
             .partyDetails(party).build();
-        assertNotNull(legacyDefendantAccountService.toHeaderSumaryDto(resp));
+        assertNotNull(legacyDefendantAccountService.toHeaderSummaryDto(resp));
     }
 
     @Test
@@ -105,7 +105,7 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
             .accountType("Fine")
             .build();
 
-        DefendantAccountHeaderSummary result = legacyDefendantAccountService.toHeaderSumaryDto(legacyResponse);
+        DefendantAccountHeaderSummary result = legacyDefendantAccountService.toHeaderSummaryDto(legacyResponse);
 
         assertNotNull(result);
     }
