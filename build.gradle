@@ -15,7 +15,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:12.8.1")
+    classpath("org.flywaydb:flyway-database-postgresql:12.9.0")
     // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
     // Maven metadata range lookups on CI when Maven Central is rate limiting.
     classpath("io.cucumber:query:${cucumberQueryVersion}")
@@ -31,7 +31,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.54.0'
   id 'org.sonarqube' version '7.3.1.8318'
   id 'uk.gov.hmcts.java' version '0.12.70'
-  id 'org.flywaydb.flyway' version '12.8.1'
+  id 'org.flywaydb.flyway' version '12.9.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
   id "org.openapi.generator" version "7.23.0"
 }
@@ -635,7 +635,7 @@ dependencies {
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.51"
   openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
-  implementation 'com.microsoft.azure:applicationinsights-web:3.7.8'
+  implementation 'com.microsoft.azure:applicationinsights-web:3.7.9'
   implementation 'com.azure:azure-storage-blob:12.35.0'
   implementation 'org.springframework.boot:spring-boot-flyway'
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -674,8 +674,8 @@ dependencies {
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
-  implementation 'org.flywaydb:flyway-core:12.8.1'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.8.1', {
+  implementation 'org.flywaydb:flyway-core:12.9.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.9.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -683,7 +683,7 @@ dependencies {
   implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.1.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.2.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.2') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
@@ -754,8 +754,8 @@ dependencies {
 
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.22'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.22'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.23'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.23'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 
