@@ -51,7 +51,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .defendantAccounts(List.of())
             .build();
 
-        when(defendantAccountService.searchDefendantAccounts(any(PostDefendantAccountSearchRequestDefendantAccount.class)))
+        when(defendantAccountService.searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class)))
             .thenReturn(response);
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
@@ -63,7 +64,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
 
-        verify(defendantAccountService).searchDefendantAccounts(any(PostDefendantAccountSearchRequestDefendantAccount.class));
+        verify(defendantAccountService).searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class));
         verifyNoMoreInteractions(defendantAccountService);
     }
 
@@ -74,7 +76,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
     @JiraTestKey("PO-7574")
     void postDefendantAccountsSearch_returnsFeatureDisabledForConsolidatedSearchWhenRelease1cDisabled()
         throws Exception {
-        when(defendantAccountService.searchDefendantAccounts(any(PostDefendantAccountSearchRequestDefendantAccount.class)))
+        when(defendantAccountService.searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class)))
             .thenThrow(new FeatureDisabledException(
                 "Feature release-1c is not enabled for defendant account consolidated search"));
 
@@ -87,7 +90,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"));
 
-        verify(defendantAccountService).searchDefendantAccounts(any(PostDefendantAccountSearchRequestDefendantAccount.class));
+        verify(defendantAccountService).searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class));
         verifyNoMoreInteractions(defendantAccountService);
     }
 
