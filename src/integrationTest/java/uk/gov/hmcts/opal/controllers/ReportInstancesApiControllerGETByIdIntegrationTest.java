@@ -270,7 +270,8 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
                 .header("authorization", "Bearer some_value"));
 
         String body = result.andReturn().getResponse().getContentAsString();
-        log.info(":getReportInstance_success_readyNoTypes_notDownloadable response:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":getReportInstance_success_readyNoTypes_notDownloadable response:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         result.andExpect(status().isOk())
             .andExpect(jsonPath("$.instance_id").value(REPORT_INSTANCE_ID_NO_SUPPORTED_TYPES))

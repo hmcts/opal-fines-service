@@ -1,9 +1,6 @@
 package uk.gov.hmcts.opal.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -15,38 +12,31 @@ import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REA
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQUESTED;
 import static uk.gov.hmcts.opal.entity.report.SupportedFileType.CSV;
 import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.testcontainers.shaded.org.hamcrest.MatcherAssert;
 import org.testcontainers.shaded.org.hamcrest.Matchers;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports.SupportedFileTypesEnum;
 import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
+import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
+import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 import uk.gov.hmcts.opal.service.report.ReportError;
-import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.generated.model.StatusReports;
 import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
@@ -55,6 +45,12 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
 
     @Autowired
     private ReportInstanceMapper mapper;
+
+    @Autowired
+    private BusinessUnitSummaryMapper businessUnitSummaryMapper;
+
+    @Autowired
+    private JsonMapperHelper jsonMapperHelper;
 
     private ReportEntity buildReportEntity() {
         return ReportEntity.builder()
@@ -145,15 +141,6 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         private static final LocalDateTime SCHEDULED_DELETION = LocalDateTime.now().plusDays(1);
         private static final Long NO_OF_RECORDS = 10L;
 
-        @Autowired
-        private ReportInstanceMapper reportInstanceMapper;
-
-        @Autowired
-        private BusinessUnitSummaryMapper businessUnitSummaryMapper;
-
-        @Autowired
-        private JsonMapper jsonMapper;
-
         @Configuration
         @ComponentScan(basePackageClasses = ReportInstanceMapper.class)
         static class TestConfig {
@@ -187,7 +174,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             );
 
             ReportInstanceReports response =
-            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
 
             //asserts
             assertNotNull(response);
@@ -259,7 +246,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             );
 
             ReportInstanceReports response =
-            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
 
             assertNotNull(response);
             assertEquals("Custom Name", response.getName());
@@ -290,7 +277,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         );
 
             ReportInstanceReports response =
-            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
 
             assertNotNull(response);
             assertEquals(CodeEnum.ERROR, response.getStatus().getCode());
@@ -331,7 +318,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             );
 
             ReportInstanceReports response =
-            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
             assertNotNull(response);
             assertEquals(CodeEnum.READY, response.getStatus().getCode());
             assertEquals(CodeEnum.READY.getValue(), response.getStatus().getDisplayName());
@@ -363,7 +350,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             );
 
             ReportInstanceReports response =
-            reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
             assertNotNull(response);
             assertEquals(CodeEnum.READY, response.getStatus().getCode());
             assertEquals(CodeEnum.READY.getValue(), response.getStatus().getDisplayName());

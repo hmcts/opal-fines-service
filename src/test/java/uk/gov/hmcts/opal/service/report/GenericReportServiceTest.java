@@ -67,11 +67,13 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisher;
 
 @ExtendWith(MockitoExtension.class)
 class GenericReportServiceTest {
-
     public static final String LOCATION = "location";
     private final Map<String, Object> reportParameters = Map.of("foo", "bar");
     private final CreateReportInstanceResponseReports reportInstanceResponse =
         CreateReportInstanceResponseReports.builder().reportInstanceId(123L).build();
+    String reportId;
+    Instant now;
+
     @Mock
     ReportInstanceRepository reportInstanceRepository;
     @Mock
@@ -95,8 +97,6 @@ class GenericReportServiceTest {
     ReportInstanceMapper reportInstanceMapper;
     @Mock
     ReportInstanceSearchService reportInstanceSearchService;
-    String reportId;
-    Instant now;
     @Mock
     private UserStateService userStateService;
     @Mock
@@ -108,7 +108,7 @@ class GenericReportServiceTest {
     @Mock
     private BusinessUnitUser businessUnitUser1;
     @Mock
-    ReportParameterValidator reportParameterValidator;
+    private BusinessUnitUser businessUnitUser2;
 
     @Mock
     BusinessUnitRepository businessUnitRepository;
@@ -122,10 +122,6 @@ class GenericReportServiceTest {
     @Mock
     ReportInstanceReports reportInstanceReports;
 
-    String reportId;
-
-    Instant now;
-    private BusinessUnitUser businessUnitUser2;
     private GenericReportService genericReportService;
 
     @BeforeEach
@@ -145,6 +141,7 @@ class GenericReportServiceTest {
             reportBlobStore,
             clock,
             mapper,
+            businessUnitRepository,
             reportInstanceSearchService
         );
     }
