@@ -66,6 +66,16 @@ public class ReportRefDataStepDef {
     }
 
     /**
+     * Retrieves a report definition by report id.
+     *
+     * @param reportId report id to request.
+     */
+    @When("get the report with report_id {string}")
+    public void getReportWithReportId(String reportId) {
+        methods.getRequest(REPORTS_URI + "/" + reportId);
+    }
+
+    /**
      * Calls the seeded report definition endpoint using the requested authentication state.
      *
      * @param authenticationState whether the request should be sent with no token or an invalid
