@@ -58,6 +58,7 @@ Clone the `opal-dev-agent-skills` repository and follow its README to install th
 - Mirror source packages in tests and use `*Test` naming.
 - Functional and smoke suites use the Serenity runners in this repo (`OpalTestRunner`, `LegacyTestRunner`, `SmokeTestRunner`).
 - Run `./gradlew bootTestRun` or `./gradlew integration` before submitting cross-cutting changes.
+- For Java code changes, do not consider the task complete until relevant tests pass and `./gradlew checkstyleMain` passes, unless the user explicitly says not to run it.
 
 ## Commit and Config Notes
 - Follow the existing commit style with a Jira key or concise imperative prefix such as `PO-896`, `fix(deps)`, or `refactor:`.
