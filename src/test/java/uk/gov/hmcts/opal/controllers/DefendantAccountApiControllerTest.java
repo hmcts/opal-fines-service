@@ -23,8 +23,6 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
@@ -33,9 +31,6 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
-import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
-import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
-import uk.gov.hmcts.opal.service.DefendantAccountSearchRequestValidator;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
@@ -50,15 +45,6 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
-
-    @Mock
-    private DefendantAccountSearchRequestMapper defendantAccountSearchRequestMapper;
-
-    @Mock
-    private DefendantAccountSearchResponseMapper defendantAccountSearchResponseMapper;
-
-    @Mock
-    private DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
 
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
@@ -126,22 +112,15 @@ class DefendantAccountApiControllerTest {
                 .count(1)
                 .defendantAccounts(List.of())
                 .build();
-        AccountSearchDto mappedRequest = AccountSearchDto.builder().build();
-        DefendantAccountSearchResultsDto searchResults = DefendantAccountSearchResultsDto.builder().build();
 
-        when(defendantAccountSearchRequestMapper.toAccountSearchDto(request)).thenReturn(mappedRequest);
-        when(defendantAccountService.searchDefendantAccounts(mappedRequest)).thenReturn(searchResults);
-        when(defendantAccountSearchResponseMapper.toResponse(searchResults)).thenReturn(serviceResponse);
+        when(defendantAccountService.searchDefendantAccounts(request)).thenReturn(serviceResponse);
 
         ResponseEntity<PostDefendantAccountSearchResponseDefendantAccount> response =
             defendantAccountApiController.postDefendantAccountSearch(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(serviceResponse, response.getBody());
-        verify(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
-        verify(defendantAccountSearchRequestMapper).toAccountSearchDto(request);
-        verify(defendantAccountService).searchDefendantAccounts(mappedRequest);
-        verify(defendantAccountSearchResponseMapper).toResponse(searchResults);
+        verify(defendantAccountService).searchDefendantAccounts(request);
     }
 
     @Test

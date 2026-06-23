@@ -14,8 +14,6 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
@@ -25,9 +23,6 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
-import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
-import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
-import uk.gov.hmcts.opal.service.DefendantAccountSearchRequestValidator;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -39,9 +34,6 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     private final DefendantAccountService defendantAccountService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
-    private final DefendantAccountSearchRequestMapper defendantAccountSearchRequestMapper;
-    private final DefendantAccountSearchResponseMapper defendantAccountSearchResponseMapper;
-    private final DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
     private final ImpositionService impositionService;
 
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -68,12 +60,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         PostDefendantAccountSearchRequestDefendantAccount request) {
         log.debug(":POST:postDefendantAccountSearch");
 
-        defendantAccountSearchRequestValidator.validateAndCheckFeature(request);
-
-        AccountSearchDto accountSearchDto = defendantAccountSearchRequestMapper.toAccountSearchDto(request);
-        DefendantAccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
-
-        return buildResponse(defendantAccountSearchResponseMapper.toResponse(response));
+        return buildResponse(defendantAccountService.searchDefendantAccounts(request));
     }
 
     @Override
