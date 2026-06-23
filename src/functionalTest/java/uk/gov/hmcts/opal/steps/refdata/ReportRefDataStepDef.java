@@ -110,17 +110,17 @@ public class ReportRefDataStepDef {
      * primitive types.
      */
     @Then("the report definition matches the documented contract")
-    public void reportDefinitionMatchesDocumentedContract() throws Exception {
+    public void reportDefinitionMatchesDocumentedContract() {
         String body = then().extract().body().asString();
         JsonNode root = OBJECT_MAPPER.readTree(body);
 
         then().assertThat().statusCode(200);
         assertEquals(EXPECTED_FIELDS, collectFieldNames(root), "Unexpected report fields returned");
-        assertEquals(resolveReportId(), root.path("report_id").asText(), "Unexpected report_id returned");
+        assertEquals(resolveReportId(), root.path("report_id").asString(), "Unexpected report_id returned");
 
-        assertTrue(root.path("report_id").isTextual(), "report_id should be a string");
-        assertTrue(root.path("report_title").isTextual(), "report_title should be a string");
-        assertTrue(root.path("report_group").isTextual(), "report_group should be a string");
+        assertTrue(root.path("report_id").isString(), "report_id should be a string");
+        assertTrue(root.path("report_title").isString(), "report_title should be a string");
+        assertTrue(root.path("report_group").isString(), "report_group should be a string");
         assertTrue(root.path("supported_file_types").isArray(), "supported_file_types should be an array");
         assertTrue(root.path("audited_report").isBoolean(), "audited_report should be a boolean");
         assertTrue(root.path("report_parameters").isObject(), "report_parameters should be an object");
@@ -137,7 +137,7 @@ public class ReportRefDataStepDef {
         validateNullableStringField(root.path("permission"), "permission");
 
         if (!root.path("retention_period").isNull()) {
-            Duration.parse(root.path("retention_period").asText());
+            Duration.parse(root.path("retention_period").asString());
         }
     }
 
@@ -148,7 +148,7 @@ public class ReportRefDataStepDef {
      * @param expectedStatus expected HTTP status code.
      */
     @Then("the latest report definition error response matches the standard problem detail contract for status {int}")
-    public void latestReportDefinitionErrorResponseMatchesProblemDetailContract(int expectedStatus) throws Exception {
+    public void latestReportDefinitionErrorResponseMatchesProblemDetailContract(int expectedStatus) {
         TestHttpResponse latestHttpResponse = latestRawReportResponse;
         latestRawReportResponse = null;
 
@@ -170,7 +170,7 @@ public class ReportRefDataStepDef {
      * shape returned in some environments.
      */
     @Then("the latest report definition response is an unauthorized response")
-    public void latestReportDefinitionResponseIsAnUnauthorizedResponse() throws Exception {
+    public void latestReportDefinitionResponseIsAnUnauthorizedResponse() {
         TestHttpResponse latestHttpResponse = latestRawReportResponse;
         latestRawReportResponse = null;
 
@@ -189,11 +189,11 @@ public class ReportRefDataStepDef {
         );
     }
 
-    private void validateProblemDetailResponse(String body, int expectedStatus) throws Exception {
+    private void validateProblemDetailResponse(String body, int expectedStatus) {
         JsonNode root = OBJECT_MAPPER.readTree(body);
         assertTrue(root.isObject(), "Problem detail response should be a JSON object");
-        assertTrue(root.path("title").isTextual(), "title should be a string");
-        assertTrue(root.path("detail").isTextual(), "detail should be a string");
+        assertTrue(root.path("title").isString(), "title should be a string");
+        assertTrue(root.path("detail").isString(), "detail should be a string");
         assertTrue(root.path("status").isInt(), "status should be an integer");
         assertEquals(expectedStatus, root.path("status").asInt(), "Unexpected status in response body");
 
@@ -208,10 +208,11 @@ public class ReportRefDataStepDef {
 
     private void validateSupportedFileTypes(JsonNode supportedFileTypes) {
         for (JsonNode fileType : supportedFileTypes) {
-            assertTrue(fileType.isTextual(), "supported_file_types entries should be strings");
+            assertTrue(fileType.isString(), "supported_file_types entries should be strings");
+            String fileTypeValue = fileType.asString();
             assertTrue(
-                VALID_FILE_TYPES.contains(fileType.asText()),
-                "supported_file_types contains an unsupported value: " + fileType.asText()
+                VALID_FILE_TYPES.contains(fileTypeValue),
+                "supported_file_types contains an unsupported value: " + fileTypeValue
             );
         }
     }
@@ -219,13 +220,13 @@ public class ReportRefDataStepDef {
     private void validateNullableStringField(JsonNode field, String fieldName) {
         assertFalse(field.isMissingNode(), fieldName + " should be present");
         if (!field.isNull()) {
-            assertTrue(field.isTextual(), fieldName + " should be a string when present");
+            assertTrue(field.isString(), fieldName + " should be a string when present");
         }
     }
 
     private void validateOptionalTextField(JsonNode field, String fieldName) {
         if (!field.isMissingNode() && !field.isNull()) {
-            assertTrue(field.isTextual(), fieldName + " should be a string when present");
+            assertTrue(field.isString(), fieldName + " should be a string when present");
         }
     }
 

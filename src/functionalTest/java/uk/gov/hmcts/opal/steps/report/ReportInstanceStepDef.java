@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.After;
-import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import static uk.gov.hmcts.opal.config.Constants.REPORT_INSTANCES_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -274,10 +274,10 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     /**
-     * Restores any report permissions changed for this scenario.
+     * Restores any report values changed for this scenario.
      */
     @After
-    public void restoreReportPermissions() throws SQLException {
+    public void restoreReportOverrides() throws SQLException {
         for (Map.Entry<String, String> entry : originalReportPermissions.entrySet()) {
             updateReportPermission(entry.getKey(), entry.getValue());
         }
@@ -311,22 +311,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
             )
         );
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
-    }
-
-    /**
-     * Attempts to retrieve report instances using the current scenario user's bearer token.
-     */
-    @And("I attempt to retrieve the report instances")
-    public void attemptToRetrieveReportInstances() {
-        retrieveForbiddenReportInstancesForCurrentUser();
-    }
-
-    /**
-     * Retrieves report instances using filters that the current user cannot access.
-     */
-    @And("get the report with  user lacks permission in all relevant business units")
-    public void getReportWithUserLacksPermissionInAllRelevantBusinessUnits() {
-        retrieveForbiddenReportInstancesForCurrentUser();
     }
 
     /**
@@ -379,7 +363,7 @@ public class ReportInstanceStepDef extends BaseStepDef {
         JsonNode root = readReportInstanceListResponse();
         Map<String, String> filters = filtersData.asMap(String.class, String.class);
 
-        assertTrue(root.size() > 0, "Expected at least one report instance");
+        assertFalse(root.isEmpty(), "Expected at least one report instance");
         for (JsonNode reportInstance : root) {
             assertReportInstanceMatchesFilters(reportInstance, filters);
         }
@@ -658,21 +642,17 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     private void retrieveReportInstances(Map<String, String> headers) {
-        retrieveReportInstances(SEEDED_REPORT_INSTANCES_QUERY, headers);
+        latestRawReportInstanceResponse = TestHttpClient.get(
+            getTestUrl() + REPORT_INSTANCES_URI + SEEDED_REPORT_INSTANCES_QUERY,
+            headers
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
     }
 
     private void retrieveForbiddenReportInstancesForCurrentUser() {
         authorisedJsonRequest()
             .when()
             .get(getTestUrl() + REPORT_INSTANCES_URI + FORBIDDEN_REPORT_INSTANCES_QUERY);
-    }
-
-    private void retrieveReportInstances(String queryString, Map<String, String> headers) {
-        latestRawReportInstanceResponse = TestHttpClient.get(
-            getTestUrl() + REPORT_INSTANCES_URI + queryString,
-            headers
-        );
-        ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
     }
 
     private JsonNode readReportInstanceListResponse() throws Exception {
@@ -727,13 +707,13 @@ public class ReportInstanceStepDef extends BaseStepDef {
         if (filters.containsKey("from_date")) {
             LocalDate generatedDate = getGeneratedDate(reportInstance);
             LocalDate fromDate = LocalDate.parse(filters.get("from_date"));
-            assertTrue(!generatedDate.isBefore(fromDate), "generated_at is before from_date");
+            assertFalse(generatedDate.isBefore(fromDate), "generated_at is before from_date");
         }
 
         if (filters.containsKey("to_date")) {
             LocalDate generatedDate = getGeneratedDate(reportInstance);
             LocalDate toDate = LocalDate.parse(filters.get("to_date"));
-            assertTrue(!generatedDate.isAfter(toDate), "generated_at is after to_date");
+            assertFalse(generatedDate.isAfter(toDate), "generated_at is after to_date");
         }
     }
 
@@ -826,9 +806,4 @@ public class ReportInstanceStepDef extends BaseStepDef {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
-    @And("a report instances exists with the following details")
-    public void aReportInstancesExistsWithTheFollowingDetails() {
-        // Write code here that turns the phrase above into concrete actions
-        throw new PendingException();
-    }
 }
