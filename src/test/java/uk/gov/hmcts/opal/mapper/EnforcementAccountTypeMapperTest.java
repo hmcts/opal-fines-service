@@ -18,7 +18,7 @@ public class EnforcementAccountTypeMapperTest {
     private final EnforcementAccountTypeMapper mapper = Mappers.getMapper(EnforcementAccountTypeMapper.class);
 
     @Test
-    void toDto_allFields() {
+    void toEnforcementAccountTypeCommon_allFields() {
         var entity = EnforcementAccountTypeEntity.builder()
             .enforcementAccountTypeId(150L)
             .enforcementAccountType(EnforcementAccountType.COMPANY_HIGH)
@@ -28,7 +28,7 @@ public class EnforcementAccountTypeMapperTest {
             .versionNumber(2L)
             .build();
 
-        EnforcementAccountTypeCommon dto = mapper.toDto(entity);
+        EnforcementAccountTypeCommon dto = mapper.toEnforcementAccountTypeCommon(entity);
 
         assertAll(
             () -> assertEquals(150, dto.getId()),
@@ -43,7 +43,7 @@ public class EnforcementAccountTypeMapperTest {
     }
 
     @Test
-    void toDto_allMandatoryFields() {
+    void toEnforcementAccountTypeCommon_allMandatoryFields() {
         var entity = EnforcementAccountTypeEntity.builder()
             .enforcementAccountTypeId(1L)
             .enforcementAccountType(EnforcementAccountType.ADULT_NO_COLLECTION_ORDER_HIGH)
@@ -52,7 +52,7 @@ public class EnforcementAccountTypeMapperTest {
             .versionNumber(3L)
             .build();
 
-        EnforcementAccountTypeCommon dto = mapper.toDto(entity);
+        EnforcementAccountTypeCommon dto = mapper.toEnforcementAccountTypeCommon(entity);
 
         assertAll(
             () -> assertEquals(1, dto.getId()),

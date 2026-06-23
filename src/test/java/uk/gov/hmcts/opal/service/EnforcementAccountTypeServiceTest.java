@@ -53,15 +53,15 @@ public class EnforcementAccountTypeServiceTest {
             mock(EnforcementAccountTypeEntity.class)
         );
         when(repository.findAll(
-            Sort.by(
-                Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId))
+                Sort.by(
+                    Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId))
             )
         ).thenReturn(enfAccountTypes);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(true);
 
         service.getAllEnforcementAccountTypes();
 
-        verify(mapper).toDtos(enfAccountTypes);
+        verify(mapper).toEnforcementAccountTypeCommonList(enfAccountTypes);
     }
 
     @Test

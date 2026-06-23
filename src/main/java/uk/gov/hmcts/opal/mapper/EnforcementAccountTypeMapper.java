@@ -15,11 +15,12 @@ public interface EnforcementAccountTypeMapper {
     @Mapping(target = "version", source = "versionNumber")
     @Mapping(target = "enforcementAccountType", source = "enforcementAccountType.code")
     @Mapping(target = "accountType", source = "accountType.code")
-    EnforcementAccountTypeCommon toDto(EnforcementAccountTypeEntity entity);
+    EnforcementAccountTypeCommon toEnforcementAccountTypeCommon(EnforcementAccountTypeEntity entity);
 
-    default List<EnforcementAccountTypeCommon> toDtos(Collection<EnforcementAccountTypeEntity> entities) {
+    default List<EnforcementAccountTypeCommon> toEnforcementAccountTypeCommonList(
+        Collection<EnforcementAccountTypeEntity> entities) {
         return entities.stream()
-            .map(this::toDto)
+            .map(this::toEnforcementAccountTypeCommon)
             .toList();
     }
 }

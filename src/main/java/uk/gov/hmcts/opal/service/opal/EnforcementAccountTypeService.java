@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.core.TypedPropertyPath;
 import org.springframework.data.domain.Sort;
@@ -14,11 +15,10 @@ import uk.gov.hmcts.opal.mapper.EnforcementAccountTypeMapper;
 import uk.gov.hmcts.opal.repository.EnforcementAccountTypeRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class EnforcementAccountTypeService {
+
     private final UserStateService userStateService;
     private final EnforcementAccountTypeRepository repository;
     private final EnforcementAccountTypeMapper mapper;
@@ -29,7 +29,7 @@ public class EnforcementAccountTypeService {
         List<EnforcementAccountTypeEntity> enforcementAccountTypes = repository.findAll(
             Sort.by(Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId))
         );
-        return mapper.toDtos(enforcementAccountTypes);
+        return mapper.toEnforcementAccountTypeCommonList(enforcementAccountTypes);
     }
 
     private void checkPermissions() {
