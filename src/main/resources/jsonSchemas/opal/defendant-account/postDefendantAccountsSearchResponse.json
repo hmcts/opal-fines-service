@@ -69,8 +69,8 @@
         "national_insurance_number": { "type": ["string", "null"] },
         "parent_guardian_surname": { "type": ["string", "null"] },
         "parent_guardian_firstnames": { "type": ["string", "null"] },
-        "has_collection_order": { "type": "boolean" },
-        "account_version": { "type": "integer" },
+        "has_collection_order": { "type": ["boolean", "null"] },
+        "account_version": { "type": ["integer", "null"]},
         "checks": { "$ref": "#/$defs/checks" }
       },
       "oneOf": [
@@ -99,7 +99,7 @@
       "additionalProperties": false
     },
     "checks": {
-      "type": "object",
+      "type": ["object", "null"],
       "required": [
         "warnings",
         "errors"

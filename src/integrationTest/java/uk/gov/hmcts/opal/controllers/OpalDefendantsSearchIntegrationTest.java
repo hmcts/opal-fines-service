@@ -2010,6 +2010,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             {
               "active_accounts_only": false,
               "business_unit_ids": [78],
+              "consolidation_search": false,
               "reference_number": {
                 "account_number": "%s",
                 "prosecutor_case_reference": null,

@@ -66,7 +66,8 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                        "exact_match_forenames": false,
                        "birth_date": "1985-06-15",
                        "national_insurance_number": "QQ123456C"
-                       }
+                       },
+                   "consolidation_search": false
                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -107,7 +108,8 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                        "exact_match_forenames": false,
                        "birth_date": "1985-06-15",
                        "national_insurance_number": "QQ123456C"
-                       }
+                       },
+                   "consolidation_search": false
                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
