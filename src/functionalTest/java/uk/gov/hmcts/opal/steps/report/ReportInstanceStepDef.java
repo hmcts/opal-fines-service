@@ -3,11 +3,9 @@ package uk.gov.hmcts.opal.steps.report;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
-import io.cucumber.java.After;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.context.ScenarioContextHolder;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
@@ -16,14 +14,7 @@ import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -44,26 +35,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
     private static final Logger log =
             LoggerFactory.getLogger(ReportInstanceStepDef.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final String REPORT_PERMISSION_SELECT_SQL = """
-        SELECT permission
-        FROM public.reports
-        WHERE report_id = ?
-        """;
-    private static final String REPORT_PERMISSION_UPDATE_SQL = """
-        UPDATE public.reports
-        SET permission = ?
-        WHERE report_id = ?
-        """;
-    private static final String REPORT_SUPPORTED_FILE_TYPES_SELECT_SQL = """
-        SELECT supported_file_types::text AS supported_file_types
-        FROM public.reports
-        WHERE report_id = ?
-        """;
-    private static final String REPORT_SUPPORTED_FILE_TYPES_UPDATE_SQL = """
-        UPDATE public.reports
-        SET supported_file_types = ?::public.r_supported_file_type_enum[]
-        WHERE report_id = ?
-        """;
     private static final String MINIMAL_CREATE_REQUEST = """
         {
           "report_id": "test-report-id",
@@ -77,8 +48,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
     private static final Set<String> VALID_SUPPORTED_FILE_TYPES = Set.of("CSV", "PDF", "XML");
 
     private TestHttpResponse latestRawReportInstanceResponse;
-    private final Map<String, String> originalReportPermissions = new LinkedHashMap<>();
-    private final Map<String, String> originalReportSupportedFileTypes = new LinkedHashMap<>();
 
 
     /**
@@ -238,55 +207,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
             requestBody
         );
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
-    }
-
-    /**
-     * Updates a seeded report permission for the current scenario and restores it afterwards.
-     *
-     * @param reportId report id to update.
-     * @param permission permission enum name to set.
-     */
-    @And("the report {string} has permission {string} in the database")
-    public void reportHasPermissionInTheDatabase(String reportId, String permission) throws SQLException {
-        FinesPermission.fromString(permission);
-
-        if (!originalReportPermissions.containsKey(reportId)) {
-            originalReportPermissions.put(reportId, readReportPermission(reportId));
-        }
-
-        updateReportPermission(reportId, permission);
-    }
-
-    /**
-     * Updates a seeded report's supported file types for the current scenario and restores them
-     * afterwards.
-     *
-     * @param reportId report id to update.
-     * @param supportedFileTypes comma-separated supported file type enum names.
-     */
-    @And("the report {string} supports file types {string} in the database")
-    public void reportSupportsFileTypesInTheDatabase(String reportId, String supportedFileTypes) throws SQLException {
-        if (!originalReportSupportedFileTypes.containsKey(reportId)) {
-            originalReportSupportedFileTypes.put(reportId, readReportSupportedFileTypes(reportId));
-        }
-
-        updateReportSupportedFileTypes(reportId, toSupportedFileTypesArrayLiteral(supportedFileTypes));
-    }
-
-    /**
-     * Restores any report values changed for this scenario.
-     */
-    @After
-    public void restoreReportOverrides() throws SQLException {
-        for (Map.Entry<String, String> entry : originalReportPermissions.entrySet()) {
-            updateReportPermission(entry.getKey(), entry.getValue());
-        }
-        originalReportPermissions.clear();
-
-        for (Map.Entry<String, String> entry : originalReportSupportedFileTypes.entrySet()) {
-            updateReportSupportedFileTypes(entry.getKey(), entry.getValue());
-        }
-        originalReportSupportedFileTypes.clear();
     }
 
     /**
@@ -517,122 +437,6 @@ public class ReportInstanceStepDef extends BaseStepDef {
         if (!root.path("retriable").isMissingNode() && !root.path("retriable").isNull()) {
             assertTrue(root.path("retriable").isBoolean(), "retriable should be a boolean when present");
         }
-    }
-
-    private String readReportPermission(String reportId) throws SQLException {
-        try (Connection connection = openDatabaseConnection();
-             PreparedStatement statement = connection.prepareStatement(REPORT_PERMISSION_SELECT_SQL)) {
-            statement.setString(1, reportId);
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getString("permission");
-                }
-            }
-        }
-
-        throw new IllegalArgumentException("No report found with report_id: " + reportId);
-    }
-
-    private String readReportSupportedFileTypes(String reportId) throws SQLException {
-        try (Connection connection = openDatabaseConnection();
-             PreparedStatement statement = connection.prepareStatement(REPORT_SUPPORTED_FILE_TYPES_SELECT_SQL)) {
-            statement.setString(1, reportId);
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getString("supported_file_types");
-                }
-            }
-        }
-
-        throw new IllegalArgumentException("No report found with report_id: " + reportId);
-    }
-
-    private void updateReportPermission(String reportId, String permission) throws SQLException {
-        try (Connection connection = openDatabaseConnection();
-             PreparedStatement statement = connection.prepareStatement(REPORT_PERMISSION_UPDATE_SQL)) {
-            if (permission == null) {
-                statement.setNull(1, Types.VARCHAR);
-            } else {
-                statement.setString(1, permission);
-            }
-            statement.setString(2, reportId);
-
-            int updatedRows = statement.executeUpdate();
-            if (updatedRows != 1) {
-                throw new IllegalArgumentException("Expected to update one report row but updated " + updatedRows);
-            }
-        }
-    }
-
-    private void updateReportSupportedFileTypes(String reportId, String supportedFileTypes) throws SQLException {
-        try (Connection connection = openDatabaseConnection();
-             PreparedStatement statement = connection.prepareStatement(REPORT_SUPPORTED_FILE_TYPES_UPDATE_SQL)) {
-            if (supportedFileTypes == null) {
-                statement.setNull(1, Types.VARCHAR);
-            } else {
-                statement.setString(1, supportedFileTypes);
-            }
-            statement.setString(2, reportId);
-
-            int updatedRows = statement.executeUpdate();
-            if (updatedRows != 1) {
-                throw new IllegalArgumentException("Expected to update one report row but updated " + updatedRows);
-            }
-        }
-    }
-
-    private String toSupportedFileTypesArrayLiteral(String supportedFileTypes) {
-        String fileTypes = Arrays.stream(supportedFileTypes.split(","))
-            .map(String::trim)
-            .filter(fileType -> !fileType.isBlank())
-            .peek(this::validateSupportedFileType)
-            .collect(Collectors.joining(","));
-
-        if (fileTypes.isBlank()) {
-            throw new IllegalArgumentException("At least one supported file type must be supplied");
-        }
-
-        return "{" + fileTypes + "}";
-    }
-
-    private void validateSupportedFileType(String fileType) {
-        if (!VALID_SUPPORTED_FILE_TYPES.contains(fileType)) {
-            throw new IllegalArgumentException("Unsupported report file type: " + fileType);
-        }
-    }
-
-    private Connection openDatabaseConnection() throws SQLException {
-        return DriverManager.getConnection(
-            getFunctionalTestDatabaseUrl(),
-            getEnvironmentValue("OPAL_FUNCTIONAL_TEST_DB_USERNAME",
-                                getEnvironmentValue("OPAL_FINES_DB_USERNAME",
-                                                    getEnvironmentValue("FLYWAY_USER", "opal-db-user"))),
-            getEnvironmentValue("OPAL_FUNCTIONAL_TEST_DB_PASSWORD",
-                                getEnvironmentValue("OPAL_FINES_DB_PASSWORD",
-                                                    getEnvironmentValue("FLYWAY_PASSWORD", "opal-db-password")))
-        );
-    }
-
-    private String getFunctionalTestDatabaseUrl() {
-        String configuredUrl = getEnvironmentValue("OPAL_FUNCTIONAL_TEST_DB_URL",
-                                                   getEnvironmentValue("FLYWAY_URL", null));
-        if (configuredUrl != null) {
-            return configuredUrl;
-        }
-
-        String host = getEnvironmentValue("OPAL_FINES_DB_HOST", "localhost");
-        String port = getEnvironmentValue("OPAL_FINES_DB_PORT", "5432");
-        String databaseName = getEnvironmentValue("OPAL_FINES_DB_NAME", "opal-fines-db");
-        String options = getEnvironmentValue("OPAL_FINES_DB_OPTIONS", "");
-
-        return "jdbc:postgresql://%s:%s/%s%s".formatted(host, port, databaseName, options);
-    }
-
-    private String getEnvironmentValue(String name, String defaultValue) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? defaultValue : value;
     }
 
     private TestHttpResponse requireLatestReportInstanceResponse() {
