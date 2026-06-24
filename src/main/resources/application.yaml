@@ -141,11 +141,6 @@ opal:
   test-user:
     email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
     password: ${OPAL_TEST_USER_PASSWORD}
-  user-service:
-    fmea:
-      enabled: true
-      header-name: X-FMEA
-      header-value: true
   common:
     domain: fines
     service-bus:
