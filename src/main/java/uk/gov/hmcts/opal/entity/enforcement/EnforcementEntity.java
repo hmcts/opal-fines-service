@@ -1,9 +1,8 @@
 package uk.gov.hmcts.opal.entity.enforcement;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +26,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.converter.EnforcementAccountTypeExtendedConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -112,7 +112,7 @@ public class EnforcementEntity {
     @Column(name = "hearing_court_id", insertable = false, updatable = false)
     private Long hearingCourtId;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = EnforcementAccountTypeExtendedConverter.class)
     @Column(name = "enforcement_account_type", length = 20)
     private EnforcementAccountTypeExtended enforcementAccountType;
 

@@ -8,14 +8,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum EnforcementAccountTypeExtended {
 
-    COLL("COLL"),
-    COLH("COLH"),
-    AL("AL"),
-    AH("AH"),
-    COL("COL"),
-    COH("COH"),
-    YL("YL"),
-    YH("YH"),
+    ADULT_COLLECTION_ORDER_LOW("COLL"),
+    ADULT_COLLECTION_ORDER_HIGH("COLH"),
+    ADULT_NO_COLLECTION_ORDER_LOW("AL"),
+    ADULT_NO_COLLECTION_ORDER_HIGH("AH"),
+    COMPANY_LOW("COL"),
+    COMPANY_HIGH("COH"),
+    YOUTH_LOW("YL"),
+    YOUTH_HIGH("YH"),
     CFPL("CFPL"),
     CFPH("CFPH"),
     TFOL("TFOL"),
