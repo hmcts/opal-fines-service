@@ -433,6 +433,8 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.UNPROCESSABLE_CONTENT, r.getStatusCode());
         ProblemDetail pd = r.getBody();
+        assertEquals("Unprocessable Content", pd.getTitle());
+        assertEquals("Too many results", pd.getDetail());
         assertEquals(false, pd.getProperties().get("retriable"));
         assertEquals("Too many results", pd.getProperties().get("unprocessableReason"));
         assertNull(r.getHeaders().getETag());

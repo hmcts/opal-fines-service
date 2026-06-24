@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -46,6 +48,8 @@ class OpalDefendantAccountServicePaymentCardTest {
     PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
     @Mock
     AmendmentRepositoryService amendmentRepositoryService;
+    @Mock
+    DefendantAccountControlValidator defendantAccountControlValidator;
     @Mock AccessTokenService accessTokenService;
     @Mock UserStateService userStateService;
 
@@ -111,6 +115,8 @@ class OpalDefendantAccountServicePaymentCardTest {
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+        doThrow(new EntityNotFoundException("Defendant Account not found in business unit 10"))
+            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, "10");
 
         assertThrows(EntityNotFoundException.class, () ->
             service.addPaymentCardRequest(1L, "10", null, "\"1\"")
@@ -161,6 +167,8 @@ class OpalDefendantAccountServicePaymentCardTest {
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+        doThrow(new EntityNotFoundException("Defendant Account not found in business unit 10"))
+            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, "10");
 
         assertThrows(EntityNotFoundException.class, () ->
             service.addPaymentCardRequest(1L, "10", "BU-USER-123", "\"1\"")
@@ -169,6 +177,26 @@ class OpalDefendantAccountServicePaymentCardTest {
         verify(defendantAccountRepositoryService, never()).save(any());
     }
 
+    @Test
+    void addPaymentCardRequest_whenAccountControlsFail_throwsBeforeMutation() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
+            .versionNumber(1L)
+            .build();
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);
+
+        UnprocessableException result = assertThrows(UnprocessableException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "\"1\""));
+
+        assertEquals(exception, result);
+        verify(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);
+        verify(paymentCardRequestRepositoryService, never()).save(any());
+        verify(defendantAccountRepositoryService, never()).save(any());
+    }
 
     @Test
     void addPaymentCardRequest_newSignature_succeedsWhenBusinessUnitMatches() {
