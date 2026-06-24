@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
@@ -35,6 +37,9 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
     @Mock
     private AmendmentRepositoryService amendmentRepositoryService;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
 
     @InjectMocks
@@ -122,16 +127,35 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
     @Test
     void removeDefendantAccountParty_whenBusinessUnitMismatch_throwsEntityNotFoundException() {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+        doThrow(new EntityNotFoundException("Defendant Account not found in business unit 11"))
+            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, "11");
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(
                 1L, 5L, (short) 11, "businessUser", "posted", "Posted User", "1", null));
 
-        assertEquals("Defendant Account not found in business unit. Defendant Account: 1 Business Unit: 11",
+        assertEquals("Defendant Account not found in business unit 11",
             exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);
         verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenAccountControlsFail_throwsBeforeMutation() {
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
+
+        UnprocessableException result = assertThrows(UnprocessableException.class, () ->
+            service.removeDefendantAccountParty(1L, 5L, (short) 10, "businessUser", "posted", "1", null));
+
+        assertEquals(exception, result);
+        verify(defendantAccountControlValidator).validateCanMutateParty(account);
+        verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
+        assertEquals(1, account.getParties().size());
     }
 
     @Test
