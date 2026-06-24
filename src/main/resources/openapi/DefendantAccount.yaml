@@ -632,6 +632,12 @@ components:
       title: Post Defendant Account Search Request
       type: object
       additionalProperties: false
+      description: |
+        Search request criteria are validated by the JSON Schema used at runtime.
+        Exactly one of reference_number or defendant must be populated.
+        If national_insurance_number is populated, no other defendant search fields may be populated.
+        If forenames or birth_date is populated, surname must also be populated.
+        address_line_1 and postcode can be used without surname or organisation_name.
       required:
         - active_accounts_only
         - business_unit_ids
@@ -640,15 +646,19 @@ components:
           type: boolean
         business_unit_ids:
           type: array
+          nullable: true
           items:
             type: integer
             format: int32
         reference_number:
+          nullable: true
           $ref: '#/components/schemas/defendantAccountSearchReferenceNumber'
         defendant:
+          nullable: true
           $ref: '#/components/schemas/defendantAccountSearchDefendant'
         consolidation_search:
           type: boolean
+          nullable: true
     postDefendantAccountSearchResponse:
       title: Post Defendant Account Search Response
       type: object
@@ -670,6 +680,7 @@ components:
       title: Defendant Account Search Reference Number
       type: object
       additionalProperties: false
+      description: Exactly one of account_number or prosecutor_case_reference must be populated.
       required:
         - organisation
       properties:
@@ -677,12 +688,18 @@ components:
           type: boolean
         account_number:
           type: string
+          nullable: true
         prosecutor_case_reference:
           type: string
+          nullable: true
     defendantAccountSearchDefendant:
       title: Defendant Account Search Defendant
       type: object
       additionalProperties: false
+      description: |
+        If national_insurance_number is populated, no other defendant search fields may be populated.
+        If forenames or birth_date is populated, surname must also be populated.
+        address_line_1 and postcode can be used without surname or organisation_name.
       required:
         - include_aliases
         - organisation
@@ -693,25 +710,35 @@ components:
           type: boolean
         address_line_1:
           type: string
+          nullable: true
         postcode:
           type: string
+          nullable: true
         organisation_name:
           type: string
+          nullable: true
         exact_match_organisation_name:
           type: boolean
+          nullable: true
         surname:
           type: string
+          nullable: true
         exact_match_surname:
           type: boolean
+          nullable: true
         forenames:
           type: string
+          nullable: true
         exact_match_forenames:
           type: boolean
+          nullable: true
         birth_date:
           type: string
           format: date
+          nullable: true
         national_insurance_number:
           type: string
+          nullable: true
     defendantAccountSearchResult:
       title: Defendant Account Search Result
       type: object
