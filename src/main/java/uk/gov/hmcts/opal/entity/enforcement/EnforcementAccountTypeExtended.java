@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.dto;
+package uk.gov.hmcts.opal.entity.enforcement;
 
 
 import lombok.Getter;
