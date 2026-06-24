@@ -27,6 +27,9 @@
         { "type": "null" },
         { "$ref": "#/$defs/defendant" }
       ]
+    },
+    "consolidation_search": {
+      "type": "boolean"
     }
   },
   "oneOf": [
