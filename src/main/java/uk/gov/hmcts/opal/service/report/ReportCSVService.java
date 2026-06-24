@@ -20,6 +20,7 @@ public class ReportCSVService {
     /**
      * Creates a Comma Separated Values (CSV) for the given data. The reportDataInterface will have a specific
      * ReportCSVMapper.
+     * @param <T> The implementation of the reportDataInterface
      * @param reportDataInterface the report data to be used to generate the CSV, this will likely be retrieved from
      *                            the (azure) report blob store, so will have been already generated
      * @return the CSV byte array
