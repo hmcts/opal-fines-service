@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +36,8 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private final UserStateService userStateService;
 
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -61,6 +62,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
+        defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
 
         amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -78,16 +80,8 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
-        validateBusinessUnitPresent(account, buId);
+        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, buId);
         return account;
-    }
-
-    private void validateBusinessUnitPresent(DefendantAccountEntity account, String buId) {
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(buId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + buId);
-        }
     }
 
     private void ensureNoExistingPaymentCardRequest(Long accountId) {

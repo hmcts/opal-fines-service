@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityManager;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
@@ -8,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,7 +41,6 @@ import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
-import java.util.Objects;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
@@ -77,7 +79,12 @@ public class OpalDefendantAccountEnforcementService
 
     private final ObjectMapper objectMapper;
 
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
+
+    private final EntityManager entityManager;
+
     @Override
+    @Transactional
     public AddEnforcementResponse addEnforcement(
         Long defendantAccountId,
         Short businessUnitId,
@@ -130,6 +137,8 @@ public class OpalDefendantAccountEnforcementService
             VersionUtils.extractBigInteger(ifMatch).longValue()
         );
 
+        clearPersistenceContext();
+
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
             opalDefendantAccountService.addPaymentTermsPreservingLastEnforcement(
@@ -171,6 +180,10 @@ public class OpalDefendantAccountEnforcementService
         return resultResponsesMap;
     }
 
+    private void clearPersistenceContext() {
+        Optional.ofNullable(entityManager).ifPresent(EntityManager::clear);
+    }
+
     @Override
     @Transactional
     public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
@@ -196,6 +209,7 @@ public class OpalDefendantAccountEnforcementService
         }
 
         VersionUtils.verifyIfMatch(defendantEntity, ifMatch, defendantAccountId, "removeEnforcementHold");
+        defendantAccountControlValidator.validateCanRemoveEnforcementHold(defendantEntity);
 
         if (defendantEntity.getLastEnforcement() == null) {
             throw new ResourceConflictException(

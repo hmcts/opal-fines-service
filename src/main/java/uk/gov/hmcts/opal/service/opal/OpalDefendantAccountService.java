@@ -91,9 +91,11 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.DefendantAccountHeaderSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
@@ -188,6 +190,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final PaymentTermsMapper paymentTermsMapper;
 
     private final Clock clock;
+
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
 
     //TODO - Remove once repository service is in use
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
@@ -437,6 +441,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         VersionUtils.verifyIfMatch(entity, request.getVersion(), defendantAccountId, "updateDefendantAccount");
 
+        if (isProtectedUpdate(request, entity)) {
+            defendantAccountControlValidator.validateCanUpdateProtectedFields(entity);
+        }
+
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
         if (request.getPayload().getCommentAndNotes() != null) {
@@ -488,6 +496,55 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    private boolean isProtectedUpdate(UpdateDefendantAccountRequest request, DefendantAccountEntity entity) {
+        UpdateDefendantAccountRequestPayload payload = request.getPayload();
+        return isEnforcementCourtChange(payload.getEnforcementCourt(), entity)
+            || isCollectionOrderChange(payload.getCollectionOrder(), entity)
+            || isEnforcementOverrideChange(payload.getEnforcementOverride(), entity);
+    }
+
+    private boolean isEnforcementCourtChange(EnforcementCourtDefendantAccount enforcementCourt,
+                                             DefendantAccountEntity entity) {
+        if (enforcementCourt == null) {
+            return false;
+        }
+        Long currentCourtId = Optional.ofNullable(entity.getEnforcingCourt())
+            .map(CourtEntity::getCourtId)
+            .orElse(null);
+        return !Objects.equals(enforcementCourt.getCourtId(), currentCourtId);
+    }
+
+    private boolean isCollectionOrderChange(CollectionOrderCommon collectionOrder, DefendantAccountEntity entity) {
+        if (collectionOrder == null) {
+            return false;
+        }
+        return !Objects.equals(collectionOrder.getCollectionOrderFlag(), entity.getCollectionOrder())
+            || !Objects.equals(collectionOrder.getCollectionOrderDate(), entity.getCollectionOrderEffectiveDate());
+    }
+
+    private boolean isEnforcementOverrideChange(EnforcementOverrideDefendantAccount enforcementOverride,
+                                                DefendantAccountEntity entity) {
+        if (enforcementOverride == null) {
+            return false;
+        }
+        String requestedResultId = enforcementOverride.getEnforcementOverrideResult() == null
+            ? null
+            : enforcementOverride.getEnforcementOverrideResult().getEnforcementOverrideResultId();
+        Long requestedEnforcerId = enforcementOverride.getEnforcer() == null
+            ? null
+            : enforcementOverride.getEnforcer().getEnforcerId();
+        Integer requestedLjaId = enforcementOverride.getLja() == null
+            ? null
+            : enforcementOverride.getLja().getLjaId();
+        Integer currentLjaId = Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
+            .map(Short::intValue)
+            .orElse(null);
+
+        return !Objects.equals(requestedResultId, entity.getEnforcementOverrideResultId())
+            || !Objects.equals(requestedEnforcerId, entity.getEnforcementOverrideEnforcerId())
+            || !Objects.equals(requestedLjaId, currentLjaId);
+    }
+
     /**
      * This method adds a payment card request to a defendant account.
      *
@@ -501,12 +558,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String displayName) {
+        String displayName,
+        boolean validatePaymentCardControls) {
 
         log.debug(":addPaymentCard (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
         DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCard");
+        if (validatePaymentCardControls) {
+            defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
+        }
 
         ensureNoExistingPaymentCardRequest(defendantAccountId);
 
@@ -554,13 +615,18 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
-        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
         DefendantAccountPartiesEntity dap = account.getParties().stream()
             .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
+
+        if (AssociationType.PARENT_GUARDIAN.equals(dap.getAssociationType())) {
+            defendantAccountControlValidator.validateCanMutateParty(account);
+        }
+
+        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
         PartyEntity party = dap.getParty();
 
@@ -976,7 +1042,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            userStateService.getUserStateV1FromSecurityContext().getDisplayName()
+            userStateService.getUserStateV1FromSecurityContext().getDisplayName(),
+            true
         );
 
         auditComplete(defendantAccountId, account, businessUnitUserId,
@@ -1075,6 +1142,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -1108,7 +1176,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
             addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
-                userStateService.getUserStateV1FromSecurityContext().getDisplayName());
+                userStateService.getUserStateV1FromSecurityContext().getDisplayName(), false);
         }
 
         // if generate_payment_terms_change_letter is true
