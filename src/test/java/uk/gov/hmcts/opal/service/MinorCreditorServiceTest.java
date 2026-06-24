@@ -165,20 +165,20 @@ class MinorCreditorServiceTest {
             .version(BigInteger.ONE)
             .build();
 
-        when(userStateService.checkForAuthorisedUser("authHeaderValue"))
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         when(minorCreditorSearchProxy.getMinorCreditorHistory(eq(id), any(MinorCreditorHistoryFilters.class)))
             .thenReturn(response);
 
         // Act
         GetMinorCreditorHistoryResponse result =
-            minorCreditorService.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes, "authHeaderValue");
+            minorCreditorService.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes);
 
         // Assert
         assertEquals(response, result);
         ArgumentCaptor<MinorCreditorHistoryFilters> filtersCaptor =
             ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
-        verify(userStateService).checkForAuthorisedUser("authHeaderValue");
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
         assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0), filtersCaptor.getValue().postedFromInclusive());
         assertEquals(LocalDateTime.of(2026, 2, 1, 0, 0), filtersCaptor.getValue().postedToExclusive());
@@ -194,13 +194,13 @@ class MinorCreditorServiceTest {
         UserState noPermissionUser = mock(UserState.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.checkForAuthorisedUser("authHeaderValue")).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
             () -> minorCreditorService.getMinorCreditorHistory(
-                123L, LocalDate.of(2026, 1, 1), null, List.of("note"), "authHeaderValue")
+                123L, LocalDate.of(2026, 1, 1), null, List.of("note"))
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(minorCreditorSearchProxy);
@@ -210,12 +210,12 @@ class MinorCreditorServiceTest {
     void getMinorCreditorHistory_authFailure_propagatesAndDoesNotDelegate() {
         // Arrange
         RuntimeException expected = new RuntimeException("auth failed");
-        when(userStateService.checkForAuthorisedUser("authHeaderValue")).thenThrow(expected);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenThrow(expected);
 
         // Act
         RuntimeException result = assertThrows(
             RuntimeException.class,
-            () -> minorCreditorService.getMinorCreditorHistory(123L, null, null, null, "authHeaderValue")
+            () -> minorCreditorService.getMinorCreditorHistory(123L, null, null, null)
         );
 
         // Assert
@@ -226,14 +226,14 @@ class MinorCreditorServiceTest {
     @Test
     void getMinorCreditorHistory_invalidItemType_throwsIllegalArgumentException() {
         // Arrange
-        when(userStateService.checkForAuthorisedUser("authHeaderValue"))
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         // Act & Assert
         IllegalArgumentException result = assertThrows(
             IllegalArgumentException.class,
             () -> minorCreditorService.getMinorCreditorHistory(
-                123L, null, null, List.of("payment"), "authHeaderValue")
+                123L, null, null, List.of("payment"))
         );
         assertEquals("itemTypes must contain only amendment, financial, note", result.getMessage());
         verifyNoInteractions(minorCreditorSearchProxy);
@@ -242,7 +242,7 @@ class MinorCreditorServiceTest {
     @Test
     void getMinorCreditorHistory_dateFromAfterDateTo_throwsIllegalArgumentException() {
         // Arrange
-        when(userStateService.checkForAuthorisedUser("authHeaderValue"))
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         // Act & Assert
@@ -252,8 +252,7 @@ class MinorCreditorServiceTest {
                 123L,
                 LocalDate.of(2026, 2, 1),
                 LocalDate.of(2026, 1, 31),
-                null,
-                "authHeaderValue")
+                null)
         );
         assertEquals("dateFrom must be on or before dateTo", result.getMessage());
         verifyNoInteractions(minorCreditorSearchProxy);

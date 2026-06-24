@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -65,7 +64,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUpAuthorisedUser() {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(permissionUser(
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
         ));
@@ -240,7 +239,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2642 common response returns 401 when the user is unauthorised")
     void getMinorCreditorHistory_whenUnauthorised_returns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         getHistory()
             .andExpect(status().isUnauthorized())
@@ -253,7 +252,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2653")
     @DisplayName("PO-2642 common response returns 403 when the user lacks permission")
     void getMinorCreditorHistory_whenUserLacksPermission_returns403() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
 
         getHistory()
             .andExpect(status().isForbidden())
@@ -286,7 +285,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2642 common response returns 408 for a timeout")
     void getMinorCreditorHistory_whenTimeoutOccurs_returns408() throws Exception {
         doThrow(new QueryTimeoutException("timeout"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         getHistory()
             .andExpect(status().isRequestTimeout())
@@ -300,7 +299,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2642 common response returns 503 for a database connectivity failure")
     void getMinorCreditorHistory_whenDatabaseUnavailable_returns503() throws Exception {
         doThrow(new DataAccessResourceFailureException("db unavailable"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         getHistory()
             .andExpect(status().isServiceUnavailable())
@@ -314,7 +313,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2642 common response returns 500 for an unexpected failure")
     void getMinorCreditorHistory_whenUnexpectedFailureOccurs_returns500() throws Exception {
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
-            .when(userStateService).checkForAuthorisedUser(any());
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         getHistory()
             .andExpect(status().isInternalServerError())

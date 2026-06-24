@@ -44,12 +44,11 @@ public class MinorCreditorApiController implements MinorCreditorApi {
         Long id,
         LocalDate dateFrom,
         LocalDate dateTo,
-        List<String> itemTypes,
-        String authorization) {
+        List<String> itemTypes) {
         log.debug(":GET:getMinorCreditorHistory: id={}", id);
 
         GetMinorCreditorHistoryResponse response =
-            minorCreditorService.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes, authorization);
+            minorCreditorService.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes);
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
     }

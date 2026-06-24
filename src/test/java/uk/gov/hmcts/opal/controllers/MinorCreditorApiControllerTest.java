@@ -54,7 +54,6 @@ class MinorCreditorApiControllerTest {
         LocalDate dateFrom = LocalDate.of(2026, 1, 1);
         LocalDate dateTo = LocalDate.of(2026, 1, 31);
         List<String> itemTypes = List.of("amendment", "note");
-        String authorization = "Bearer token";
         GetMinorCreditorHistory200Response payload = new GetMinorCreditorHistory200Response()
             .historyItems(List.of());
         GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder()
@@ -63,19 +62,19 @@ class MinorCreditorApiControllerTest {
             .build();
 
         when(minorCreditorService.getMinorCreditorHistory(
-            minorCreditorAccountId, dateFrom, dateTo, itemTypes, authorization)).thenReturn(response);
+            minorCreditorAccountId, dateFrom, dateTo, itemTypes)).thenReturn(response);
 
         // Act
         ResponseEntity<GetMinorCreditorHistory200Response> result =
             minorCreditorApiController.getMinorCreditorHistory(
-                minorCreditorAccountId, dateFrom, dateTo, itemTypes, authorization);
+                minorCreditorAccountId, dateFrom, dateTo, itemTypes);
 
         // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("\"3\"", result.getHeaders().getETag());
         assertSame(payload, result.getBody());
         verify(minorCreditorService).getMinorCreditorHistory(
-            minorCreditorAccountId, dateFrom, dateTo, itemTypes, authorization);
+            minorCreditorAccountId, dateFrom, dateTo, itemTypes);
     }
 
     @Test
@@ -84,19 +83,19 @@ class MinorCreditorApiControllerTest {
         Long minorCreditorAccountId = 1L;
         RuntimeException expected = new RuntimeException("history failed");
         when(minorCreditorService.getMinorCreditorHistory(
-            minorCreditorAccountId, null, null, null, "Bearer token")).thenThrow(expected);
+            minorCreditorAccountId, null, null, null)).thenThrow(expected);
 
         // Act
         RuntimeException result = assertThrows(
             RuntimeException.class,
             () -> minorCreditorApiController.getMinorCreditorHistory(
-                minorCreditorAccountId, null, null, null, "Bearer token")
+                minorCreditorAccountId, null, null, null)
         );
 
         // Assert
         assertSame(expected, result);
         verify(minorCreditorService).getMinorCreditorHistory(
-            minorCreditorAccountId, null, null, null, "Bearer token");
+            minorCreditorAccountId, null, null, null);
     }
 
     @Test

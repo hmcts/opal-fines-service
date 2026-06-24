@@ -60,11 +60,10 @@ public class MinorCreditorService {
         Long minorCreditorAccountId,
         LocalDate dateFrom,
         LocalDate dateTo,
-        List<String> itemTypes,
-        String authHeaderValue) {
+        List<String> itemTypes) {
         log.debug(":getMinorCreditorHistory: id={}", minorCreditorAccountId);
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(dateFrom, dateTo, itemTypes);
