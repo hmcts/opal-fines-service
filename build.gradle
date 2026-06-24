@@ -312,8 +312,12 @@ tasks.register('integration', Test) {
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
+  systemProperty 'logging.level.org.springframework.test.context.cache', 'DEBUG'
+  jvmArgs '-XX:+HeapDumpOnOutOfMemoryError',
+    "-XX:HeapDumpPath=${layout.buildDirectory.dir('heap-dumps/integration').get().asFile.absolutePath}"
   exclude '**/ReportQueueConnectivityIntegrationTest.class'
   doFirst {
+    layout.buildDirectory.dir('heap-dumps/integration').get().asFile.mkdirs()
     pullLatestLegacyStubImageIfLocal()
   }
   finalizedBy 'packageIntegrationOutput'
@@ -452,6 +456,12 @@ tasks.register('packageIntegrationOutput', Copy) {
   into("${rootDir}/integration-output")
   from(layout.buildDirectory.dir("reports/tests/integration")) {
     into("report")
+  }
+  from(layout.buildDirectory.dir("test-results/integration")) {
+    into("test-results")
+  }
+  from(layout.buildDirectory.dir("heap-dumps/integration")) {
+    into("heap-dumps")
   }
 }
 tasks.register('mergeFunctionalResults', Copy) {
