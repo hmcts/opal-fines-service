@@ -53,7 +53,7 @@ public class MinorCreditorController {
         @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
-        Thread.sleep(60000);
+        Thread.sleep(90000);
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
 
