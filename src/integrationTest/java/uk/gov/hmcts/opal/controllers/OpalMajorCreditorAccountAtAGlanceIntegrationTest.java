@@ -49,6 +49,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import org.yaml.snakeyaml.Yaml;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -95,8 +96,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal valid MJ request returns mapped body and ETag")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7647")
     void getAtAGlance_majorCreditorSuccessReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
 
         Map<String, Object> account = getAtAGlanceRow(MJ_ACCOUNT_ID);
@@ -140,8 +142,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal valid CF request returns mapped body and ETag")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7643")
     void getAtAGlance_centralFundSuccessReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
 
         Map<String, Object> account = getAtAGlanceRow(CF_ACCOUNT_ID);
@@ -178,8 +181,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal repeated GET returns identical body and ETag")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7649")
     void getAtAGlance_repeatedGetReturnsSamePayloadAndHeaders() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions first = mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
@@ -197,8 +201,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal same BU permission returns 200")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7641")
     void getAtAGlance_sameBusinessUnitPermissionReturns200() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
 
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
@@ -209,8 +214,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal different BU permission returns 200")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7644")
     void getAtAGlance_differentBusinessUnitPermissionReturns200() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 73, SEARCH_AND_VIEW_ACCOUNTS));
 
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
@@ -221,8 +227,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal unknown account returns 404 problem response")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7646")
     void getAtAGlance_notFoundReturns404() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions actions = mockMvc.perform(get(URL, 999999L)
@@ -251,9 +258,10 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal missing auth returns 401")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7639")
     void getAtAGlance_missingAuthReturns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).checkForAuthorisedUser();
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID))
             .andExpect(status().isUnauthorized())
@@ -266,8 +274,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal missing permission returns 403")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7640")
     void getAtAGlance_missingPermissionReturns403() throws Exception {
-        when(userStateService.checkForAuthorisedUser()).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isForbidden())
@@ -280,11 +289,12 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal query timeout returns 408 retriable problem response")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7648")
     void getAtAGlance_queryTimeoutReturns408() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(new QueryTimeoutException("timeout", null, null))
-            .when(userStateService).checkForAuthorisedUser();
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isRequestTimeout())
@@ -296,8 +306,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal data access failure returns 503 retriable problem response")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7645")
     void getAtAGlance_dataAccessFailureReturns503() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(new DataAccessResourceFailureException("db unavailable"))
             .when(majorCreditorAccountAtAGlanceRepository).findById(MJ_ACCOUNT_ID);
@@ -312,8 +323,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
     @DisplayName("PO-2132 Opal internal server error returns 500 problem response")
     @JiraStory("PO-2132")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7642")
     void getAtAGlance_internalServerErrorReturns500() throws Exception {
-        when(userStateService.checkForAuthorisedUser())
+        when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(HttpServerErrorException.create(
             org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,

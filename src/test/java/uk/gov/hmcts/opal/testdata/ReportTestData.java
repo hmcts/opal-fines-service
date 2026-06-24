@@ -7,6 +7,8 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
+import uk.gov.hmcts.opal.service.report.ReportParameterData;
+import uk.gov.hmcts.opal.service.report.ReportParameterType;
 
 /**
  * Test data factory for creating Report-related test objects. Provides reusable test data builders for ReportEntity and
@@ -45,7 +47,8 @@ public class ReportTestData {
             .reportGroup("Test Reports")
             .supportedFileTypes(Arrays.asList(SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.XML))
             .auditedReport(true)
-            .reportParameters("{\"fromDate\":\"2026-01-01\",\"toDate\":\"2026-04-24\"}")
+            .reportParameters(List.of(parameter("date-param", ReportParameterType.DATE.getTypeName(), false,
+                "2026-01-01", "2026-04-24", null)))
             .supportsMultiBu(true)
             .isBespokeJourney(true)
             .shownAsWorklist(true)
@@ -82,26 +85,29 @@ public class ReportTestData {
      * Creates a ReportEntity with complex report parameters.
      */
     public static ReportEntity createReportEntityWithComplexParameters() {
-        String complexJson = """
-            {
-                "filters": {
-                    "dateRange": {
-                        "from": "2026-01-01",
-                        "to": "2026-12-31"
-                    },
-                    "status": ["ACTIVE", "PENDING"]
-                },
-                "options": {
-                    "includeArchived": false
-                }
-            }""";
-
         return defaultReportEntityBuilder()
             .reportId("complex_params_report")
             .reportTitle("Complex Parameters Report")
             .reportGroup("Test Group")
-            .reportParameters(complexJson)
+            .reportParameters(createComplexReportParameters())
             .build();
+    }
+
+    public static List<ReportParameterData> createComplexReportParameters() {
+        return List.of(
+            parameter("date-param", ReportParameterType.DATE.getTypeName(), true, null, null, null),
+            parameter("decimal-param", ReportParameterType.DECIMAL.getTypeName(), true, 1.0, 10.0, null),
+            parameter("integer-param", ReportParameterType.INTEGER.getTypeName(), true, 1L, 10L, null),
+            parameter("radio-param", ReportParameterType.MENU_RADIO.getTypeName(), true, 1, 1,
+                List.of("one", "two")),
+            parameter("checkbox-param", ReportParameterType.MENU_CHECKBOX.getTypeName(), true, 1, 2,
+                List.of("one", "two")),
+            parameter("autocomplete-param", ReportParameterType.MENU_AUTOCOMPLETE.getTypeName(), true, null, null,
+                null),
+            parameter("text-60-param", ReportParameterType.TEXT_MAX_60.getTypeName(), true, 1, 60, null),
+            parameter("text-100-param", ReportParameterType.TEXT_MAX_100.getTypeName(), true, 1, 100, null),
+            parameter("text-1000-param", ReportParameterType.TEXT_MAX_1000.getTypeName(), true, 1, 1000, null)
+        );
     }
 
     /**
@@ -171,7 +177,11 @@ public class ReportTestData {
             .permission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)
             .canManuallyCreate(true);
     }
-}
 
+    private static ReportParameterData parameter(String name, String type, boolean mandatory, Object min, Object max,
+                                                 List<String> options) {
+        return new ReportParameterData(name, null, type, mandatory, min, max, null, null, options, null);
+    }
+}
 
 

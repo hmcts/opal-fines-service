@@ -22,11 +22,11 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 /**
- * Verifies that all Release 1A endpoints guarded by @FeatureToggle return 405 when the release-1a flag is disabled.
+ * Verifies that all Release 1A endpoints guarded by @FeatureToggle return 404 when the release-1a flag is disabled.
  */
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.Release1AFeatureToggleIntegrationTest")
-@DisplayName("Release 1A - returns 405 when release-1a flag is disabled")
+@DisplayName("Release 1A - returns 404 when release-1a flag is disabled")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1a=false"
@@ -86,7 +86,7 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
     @JiraStory("PO-2833")
     @JiraEpic("PO-2352")
     @JiraTestKey("PO-6232")
-    void shouldReturn405WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
+    void shouldReturn404WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)

@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -42,6 +43,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.01 to INT.04 - Opal valid request returns mapped body and ETag")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7651")
     void getHeaderSummary_successReturnsMappedResponseAndEtag() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, SEARCH_AND_VIEW_ACCOUNTS);
@@ -140,6 +142,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.09 - Opal missing major creditor account returns 404")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7650")
     void getHeaderSummary_notFoundReturns404() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, SEARCH_AND_VIEW_ACCOUNTS);

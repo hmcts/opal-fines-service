@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -57,6 +58,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2320: GET central fund returns 200 with payload and ETag")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7566")
     void getCentralFund_returnsPayloadWithEtag() throws Exception {
         Map<String, Object> centralFund = getCentralFundRow(73);
 
@@ -81,6 +83,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2320: GET central fund returns 404 when central fund does not exist")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7565")
     void getCentralFund_whenCentralFundDoesNotExist_returnsNotFound() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/999")
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -109,6 +112,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2320: GET central fund returns 403 when auth header is missing")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7569")
     void getCentralFund_whenAuthHeaderMissing_returnsUnauthorized() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -124,6 +128,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2320: GET central fund returns 403 when token is invalid")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7568")
     void getCentralFund_whenTokenInvalid_returnsUnauthorized() throws Exception {
         mockMvc.perform(get(URL_BASE + "/73")
                 .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
@@ -138,6 +143,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2320: GET central fund returns 403 when user lacks Search and View Accounts")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7567")
     void getCentralFund_whenUserLacksPermission_returnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -151,6 +157,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2320: GET central fund returns identical payload and headers for consecutive requests")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7570")
     void getCentralFund_whenDataUnchanged_returnsIdenticalPayloadAndHeaders() throws Exception {
         ResultActions first = mockMvc.perform(get(URL_BASE + "/73")
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())

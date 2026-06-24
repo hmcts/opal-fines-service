@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -31,7 +32,8 @@ class CentralFundControllerFeatureFlagIntegrationTest extends AbstractIntegratio
     @DisplayName("PO-2320: GET central fund returns 404 when release-1b is disabled")
     @JiraStory("PO-2320")
     @JiraEpic("PO-1286")
-    void getCentralFund_whenFeatureDisabled_returnsMethodNotAllowed() throws Exception {
+    @JiraTestKey("PO-7564")
+    void getCentralFund_whenFeatureDisabled_returnsNotFound() throws Exception {
         mockMvc.perform(get("/central-funds/73").header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))

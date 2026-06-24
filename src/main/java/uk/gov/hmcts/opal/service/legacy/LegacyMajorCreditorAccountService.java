@@ -10,13 +10,16 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
+import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 
@@ -25,17 +28,33 @@ import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 @Slf4j(topic = "opal.LegacyMajorCreditorAccountService")
 public class LegacyMajorCreditorAccountService implements MajorCreditorAccountServiceInterface {
 
+    public static final String GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE =
+        "LIBRA.get_major_creditor_account_at_a_glance";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
         "LIBRA.get_major_creditor_account_header_summary";
 
     private final GatewayService gatewayService;
+    private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
-        throw new UnsupportedOperationException(
-            "Legacy major creditor account at a glance is not implemented in this branch"
-        );
+        Response<GetMajorCreditorAccountAtAGlanceLegacyResponse> response =
+            gatewayService.postToGateway(
+                GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE,
+                GetMajorCreditorAccountAtAGlanceLegacyResponse.class,
+                GetMajorCreditorAccountAtAGlanceLegacyRequest.builder()
+                    .creditorAccountId(String.valueOf(majorCreditorAccountId))
+                    .build(),
+                null
+            );
+
+        checkResponseForError(response, "getAtAGlance");
+
+        GetMajorCreditorAccountAtAGlanceResponse mapped = atAGlanceResponseMapper.toOpal(response.responseEntity);
+        mapped.setVersion(response.responseEntity.getMajorCreditor().getCreditorAccountVersion());
+
+        return mapped;
     }
 
     @Override

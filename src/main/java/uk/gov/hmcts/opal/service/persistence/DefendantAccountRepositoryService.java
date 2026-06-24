@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.persistence;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,16 @@ public class DefendantAccountRepositoryService {
         return defendantAccountRepository.findById(defendantAccountId)
             .orElseThrow(
                 () -> new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<DefendantAccountEntity> findByDefendantAccountId(long defendantAccountId) {
+        return defendantAccountRepository.findByDefendantAccountId(defendantAccountId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DefendantAccountEntity> findAllById(Iterable<Long> defendantAccountIds) {
+        return defendantAccountRepository.findAllById(defendantAccountIds);
     }
 
     @Transactional

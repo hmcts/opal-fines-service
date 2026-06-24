@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,14 +8,22 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(
@@ -30,6 +39,7 @@ import static org.mockito.Mockito.when;
     }
 )
 @Isolated
+@SuppressWarnings("java:S1874")
 class TestingSupportControllerTest {
 
     @Autowired
@@ -44,10 +54,14 @@ class TestingSupportControllerTest {
     @MockitoBean
     private AccessTokenService accessTokenService;
 
-    @MockitoBean DefendantAccountDeletionService defendantAccountDeletionService;
+    @MockitoBean
+    private DefendantAccountDeletionService defendantAccountDeletionService;
 
     @MockitoBean
     private UserStateClientService userStateClientService;
+
+    @MockitoBean
+    private UserStateMapper userStateMapper;
 
     @Test
     void getAppMode() {
@@ -89,5 +103,26 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("my@email.com", response.getBody());
+    }
+
+    @Test
+    void getUserState_shouldReturnResponse() {
+        UserState userState = UserStateUtil.permissionUser((short) 1, FinesPermission.ACCOUNT_ENQUIRY);
+        UserStateV2 userStateV2 = mock(UserStateV2.class);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userStateV2));
+        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(userState);
+
+        ResponseEntity<UserState> response = controller.getUserState(0L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(userState, response.getBody());
+    }
+
+    @Test
+    void getUserState_shouldReturnNotFound() {
+        ResponseEntity<UserState> response = controller.getUserState(99L);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertFalse(response.hasBody());
     }
 }

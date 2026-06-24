@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -38,6 +39,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get report by ID - report does not exist [@PO-2250]")
     @JiraStory("PO-2250")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7755")
     void getReportById_whenReportDoesNotExist_returns404() throws Exception {
 
         mockMvc.perform(get(URL_BASE + "/non_existent_report")
@@ -49,6 +51,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get report by ID - no token present returns 403 [@PO-2250]")
     @JiraStory("PO-2250")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7756")
     void getReportById_whenNoTokenPresent_returns403() throws Exception {
         userStateStub.setupWithNoPermissions();
         mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"))
@@ -59,6 +62,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get report by ID - not acceptable for invalid format request [@PO-2250]")
     @JiraStory("PO-2250")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7757")
     void getReportById_whenRequestNotAcceptable_returns406() throws Exception {
         mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -76,6 +80,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - all fields populated [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7759")
         void getReportById_whenAllFieldsPopulated_returns200AndMapsAllFields() throws Exception {
             mockMvc.perform(get(URL_BASE + "/it_report_full")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -100,6 +105,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - optional fields null or empty [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7763")
         void getReportById_whenOptionalFieldsNullOrEmpty_returns200() throws Exception {
             mockMvc.perform(get(URL_BASE + "/it_report_optional")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -116,6 +122,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - retention period is ISO-8601 [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7762")
         void getReportById_whenRetentionPeriodPresent_returnsIso8601String() throws Exception {
             mockMvc.perform(get(URL_BASE + "/it_report_full")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -127,20 +134,24 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - report parameters as JSON object [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7758")
         void getReportById_whenReportParametersPresent_returnsJsonObject() throws Exception {
             mockMvc.perform(get(URL_BASE + "/it_report_full")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_parameters").isMap())
-                .andExpect(jsonPath("$.report_parameters.filters.status[0]").value("ACTIVE"))
-                .andExpect(jsonPath("$.report_parameters.filters.status[1]").value("PENDING"))
-                .andExpect(jsonPath("$.report_parameters.options.includeArchived").value(false));
+                .andExpect(jsonPath("$.report_parameters.filters.name").value("filters"))
+                .andExpect(jsonPath("$.report_parameters.filters.options[0]").value("ACTIVE"))
+                .andExpect(jsonPath("$.report_parameters.filters.options[1]").value("PENDING"))
+                .andExpect(jsonPath("$.report_parameters.filters.type").value("menu-radio"))
+                .andExpect(jsonPath("$.report_parameters.filters.mandatory").value(false));
         }
 
         @Test
         @DisplayName("Get report by ID - supported file types preserve order and enums [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7764")
         void getReportById_whenSupportedFileTypesPresent_preservesOrderAndEnums() throws Exception {
             mockMvc.perform(get(URL_BASE + "/it_report_order")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -155,6 +166,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - only documented fields returned [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7760")
         void getReportById_whenSuccessful_returnsOnlyDocumentedFields() throws Exception {
             ResultActions actions = mockMvc.perform(get(URL_BASE + "/it_report_full")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor()));
@@ -187,6 +199,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - response is idempotent [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7761")
         void getReportById_whenCalledRepeatedly_returnsIdenticalOutput() throws Exception {
             ResultActions first = mockMvc.perform(get(URL_BASE + "/it_report_full")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor()));
@@ -222,6 +235,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7767")
         void getReportById_whenReportPermissionIsNull_returns403(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId))
                 .andExpect(status().isForbidden())
@@ -236,6 +250,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - user lacks permission [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7766")
         void getReportById_whenUserLacksPermission_returns403() throws Exception {
             userStateStub.setupWithNoPermissions();
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"))
@@ -253,6 +268,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_METHOD)
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-7765")
         void getReportById_whenUserLacksRequiredReportPermission_returns403() throws Exception {
             userStateStub.setupWithNoPermissions();
 

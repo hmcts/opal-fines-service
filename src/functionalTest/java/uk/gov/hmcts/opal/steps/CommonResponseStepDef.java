@@ -57,6 +57,22 @@ public class CommonResponseStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts that authentication failures caused by a missing or invalid token return HTTP 401.
+     */
+    @Then("I get 401 when token missing or invalid")
+    public void tokenMissingOrInvalidReturnsUnauthorized() {
+        assertLatestResponseStatus(401);
+    }
+
+    /**
+     * Asserts that permission failures return HTTP 403.
+     */
+    @Then("I get 403 when token missing or invalid")
+    public void permissionFailureReturnsForbidden() {
+        assertLatestResponseStatus(403);
+    }
+
+    /**
      * Asserts that the latest request failed with HTTP 403.
      */
     @Then("the request is rejected as forbidden")

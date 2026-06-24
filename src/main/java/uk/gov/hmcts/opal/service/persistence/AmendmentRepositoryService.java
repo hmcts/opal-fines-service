@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.service.persistence;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -27,6 +29,11 @@ public class AmendmentRepositoryService {
     public AmendmentEntity findById(long amendmentId) {
         return amendmentRepository.findById(amendmentId)
             .orElseThrow(() -> new EntityNotFoundException("Amendment not found with id: " + amendmentId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<AmendmentEntity> findAll(Specification<AmendmentEntity> specification) {
+        return amendmentRepository.findAll(specification);
     }
 
     public Page<AmendmentEntity> getAmendmentsByCriteriaAsPage(AmendmentSearchDto criteria, Sort dateSort) {

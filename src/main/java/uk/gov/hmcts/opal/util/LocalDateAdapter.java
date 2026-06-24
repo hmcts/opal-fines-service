@@ -7,6 +7,10 @@ public class LocalDateAdapter extends XmlAdapter<String, LocalDate> {
 
     @Override
     public LocalDate unmarshal(String v) throws Exception {
+        if (v == null || v.isBlank()) {
+            return null;
+        }
+
         return LocalDate.parse(v);
     }
 

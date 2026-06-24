@@ -25,12 +25,6 @@ paths:
           schema:
             type: integer
           required: true
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: OK
@@ -315,12 +309,6 @@ paths:
                 - note
             style: form
             explode: false
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: OK

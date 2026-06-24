@@ -36,14 +36,12 @@ java:
           alias: OPAL_LEGACY_GATEWAY_USERNAME
         - name: OpalLegacyGatewayPassword
           alias: OPAL_LEGACY_GATEWAY_PASSWORD
-        - name: servicebus-report-queue-name
-          alias: SERVICEBUS_REPORT_QUEUE_NAME
         - name: storage-connection-string
           alias: AZURE_STORAGE_CONNECTION_STRING
         - name: reports-storage-container-name
           alias: REPORTS_AZURE_STORAGE_CONTAINER
   environment:
-    OPAL_REDIS_ENABLED: false
+    OPAL_REDIS_ENABLED: true
     REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-hmcts-redis-master:6379
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "opal-fines-db"
@@ -61,8 +59,9 @@ java:
     APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}"
     DEFAULT_APP_MODE: ${APP_MODE}
     SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
+    SERVICEBUS_REPORT_QUEUE_NAME: "{{ .Release.Name}}-servicebus-report"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
-    SERVICEBUS_REPORT_PROTOCOL: amqps
+    SERVICEBUS_PROTOCOL: amqps
   postgresql:
     enabled: true
     primary:
@@ -181,6 +180,7 @@ servicebus:
   setup:
     queues:
       - name: "logging-pdpl"
+      - name: "report"
 hmcts-redis:
   enabled: true
   master:

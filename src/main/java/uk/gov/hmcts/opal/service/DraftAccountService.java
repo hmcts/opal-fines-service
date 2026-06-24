@@ -70,9 +70,9 @@ public class DraftAccountService {
     private final SecurityEventLoggingService securityEventLoggingService;
     private final Clock clock;
 
-    public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
+    public DraftAccountResponseDto getDraftAccount(long draftAccountId) {
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
@@ -96,10 +96,9 @@ public class DraftAccountService {
     public DraftAccountsResponseDto getDraftAccounts(
         Optional<List<Short>> optionalBusinessUnitIds, Optional<List<DraftAccountStatus>> optionalStatus,
         Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
-        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo,
-        String authHeaderValue) {
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
@@ -143,9 +142,7 @@ public class DraftAccountService {
         }
     }
 
-    public String deleteDraftAccount(long draftAccountId, boolean checkExisted, String authHeaderValue) {
-        userStateService.checkForAuthorisedUser(authHeaderValue);
-
+    public String deleteDraftAccount(long draftAccountId, boolean checkExisted) {
         try {
             boolean deleted =  draftAccountTransactional.deleteDraftAccount(draftAccountId, draftAccountTransactional);
             if (deleted) {
@@ -159,18 +156,16 @@ public class DraftAccountService {
         return String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId);
     }
 
-    public List<DraftAccountResponseDto> searchDraftAccounts(DraftAccountSearchDto criteria, String authHeaderValue) {
-        userStateService.checkForAuthorisedUser(authHeaderValue);
-
+    public List<DraftAccountResponseDto> searchDraftAccounts(DraftAccountSearchDto criteria) {
         return draftAccountTransactional.searchDraftAccounts(criteria)
             .stream()
             .map(draftAccountMapper::toResponseDto)
             .toList();
     }
 
-    public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto, String authHeaderValue) {
+    public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto) {
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
@@ -195,9 +190,9 @@ public class DraftAccountService {
     }
 
     public DraftAccountResponseDto replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
-                                                       String authHeaderValue, String ifMatch) {
+                                                       String ifMatch) {
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
@@ -222,9 +217,9 @@ public class DraftAccountService {
     }
 
     public DraftAccountResponseDto updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
-        String authHeaderValue, String ifMatch) {
+        String ifMatch) {
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
