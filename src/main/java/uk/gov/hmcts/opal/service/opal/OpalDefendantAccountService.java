@@ -1228,6 +1228,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -1250,7 +1251,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTermsPreservingLastEnforcement: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader);
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader, false);
         }
 
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter())) {
