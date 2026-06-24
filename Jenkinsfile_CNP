@@ -6,7 +6,7 @@ properties([
                 booleanParam(name: 'SKIP_SONAR', defaultValue: false, description: 'Skip sonar'),
         ])
 ])
-@Library("Infrastructure")
+@Library("Infrastructure@2.0.0")
 
 def type = "java"
 def product = "opal"
