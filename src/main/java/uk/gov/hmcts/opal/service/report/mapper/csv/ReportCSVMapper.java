@@ -4,6 +4,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 
+/**
+ * Interface to allow different reports to be generated into CSV data. Add the implementation to the configuration
+ * class here {@link uk.gov.hmcts.opal.config.ReportConversionConfiguration#reportToCSVStringMapperMap}.
+ *
+ * @param <RDIT> The ReportDataInterface type
+ */
 public interface ReportCSVMapper<RDIT extends ReportDataInterface> {
     String EMPTY_VALUE = "";
     String NEW_ROW_DELIMITER = "\n";

@@ -12,6 +12,14 @@ import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforc
 @Configuration
 public class ReportConversionConfiguration {
 
+    /**
+     * Configuration for CSV report conversion. The Map Key will be the class/type of the report data, and value is the
+     * ReportCSVMapper that
+     * Note: The generics for each map entry should be the same concrete type
+     *
+     * @param operationByEnforcementReportDetailedCSVMapper
+     * @return Map of
+     */
     @Bean
     public Map<Class<? extends ReportDataInterface>, ReportCSVMapper<? extends ReportDataInterface>>
         reportToCSVStringMapperMap(
