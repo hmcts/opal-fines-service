@@ -66,6 +66,51 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
     }
 
     @Test
+    @DisplayName("POST Add DAP - account controls return 422 for blocked account status")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void post_addParty_returns422_whenBlockedByAccountControls() throws Exception {
+        // Arrange
+        long defendantAccountId = 9077L;
+        Integer currentVersion = versionFor(defendantAccountId);
+
+        HttpHeaders headers = buildHttpHeaders("78", "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+                "defendant_account_party": {
+                    "defendant_account_party_type": "Parent/Guardian",
+                    "is_debtor": false,
+                    %s,
+                    %s
+                }
+            }
+            """.formatted(validIndividualDetails("BlockedStatus"), validCommonFields());
+
+        // Act
+        ResultActions res = mockMvc.perform(
+            post(URL_BASE + "/" + defendantAccountId + "/defendant-account-parties")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("POST DAP account controls resp:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        // Assert
+        res.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Account Status Check failed because account_status is CS."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
+
+    @Test
     @DisplayName("POST Add DAP - 404 when account not in header BU")
     @JiraStory("PO-1896")
     @JiraEpic("PO-1970")

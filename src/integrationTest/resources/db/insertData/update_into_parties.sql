@@ -131,3 +131,7 @@ ON CONFLICT (defendant_account_party_id) DO UPDATE
         party_id = EXCLUDED.party_id,
         association_type = EXCLUDED.association_type,
         debtor = EXCLUDED.debtor;
+
+UPDATE defendant_accounts
+SET account_status = 'CS'
+WHERE defendant_account_id = 20010;
