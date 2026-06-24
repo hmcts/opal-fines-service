@@ -55,9 +55,9 @@ public class MinorCreditorController {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
         @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
-
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
+        Thread.sleep(60000);
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
 
