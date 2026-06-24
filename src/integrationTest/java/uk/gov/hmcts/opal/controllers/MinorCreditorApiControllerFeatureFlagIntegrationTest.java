@@ -85,14 +85,14 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
     @JiraStory("PO-2642")
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-2642")
-    void getMinorCreditorHistory_whenLocalDefaultDisabled_returns405AndDoesNotCallService() throws Exception {
+    void getMinorCreditorHistory_whenRelease1bDisabled_returns404AndDoesNotCallService() throws Exception {
         ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
                                                    .header("Authorization", "Bearer some_value"));
 
         String body = result.andReturn().getResponse().getContentAsString();
-        log.info(":getMinorCreditorHistory_whenLocalDefaultDisabled_returns405AndDoesNotCallService body:\n{}",
+        log.info(":getMinorCreditorHistory_whenRelease1bDisabled_returns404AndDoesNotCallService body:\n{}",
             ToJsonString.toPrettyJson(body));
-        result.andExpect(status().isMethodNotAllowed())
+        result.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
