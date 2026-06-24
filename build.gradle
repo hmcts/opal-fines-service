@@ -806,7 +806,12 @@ static String[] jacocoExclusionArray(ArrayList<String> exclusions) {
 }
 
 tasks.named("sonarqube") {
-  dependsOn(tasks.named("jacocoTestReport"))
+  if (!skipSonar) {
+    dependsOn(tasks.named("jacocoTestReport"))
+  }
+  onlyIf {
+    !skipSonar
+  }
 }
 tasks.named("check") {
   if (!skipTests) {
