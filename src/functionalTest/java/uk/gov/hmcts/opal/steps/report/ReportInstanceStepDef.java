@@ -2,23 +2,33 @@ package uk.gov.hmcts.opal.steps.report;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import uk.gov.hmcts.opal.context.ScenarioContextHolder;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
+import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 import uk.gov.hmcts.opal.utils.TestHttpClient;
 import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static uk.gov.hmcts.opal.config.Constants.REPORT_INSTANCES_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ReportInstanceStepDef extends BaseStepDef {
 
@@ -31,6 +41,11 @@ public class ReportInstanceStepDef extends BaseStepDef {
           "business_unit_ids": [73]
         }
         """;
+    private static final String SEEDED_REPORT_INSTANCES_QUERY =
+        "?report_id=fp_register&business_units=77&from_date=2026-05-10&to_date=2026-05-30&user_id=12345678";
+    private static final String FORBIDDEN_REPORT_INSTANCES_QUERY =
+        "?report_id=fp_register&business_units=999&from_date=2026-05-10&to_date=2026-05-30&user_id=12345678";
+    private static final Set<String> VALID_SUPPORTED_FILE_TYPES = Set.of("CSV", "PDF", "XML");
 
     private TestHttpResponse latestRawReportInstanceResponse;
 
@@ -163,51 +178,127 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     /**
-     * Creates a report-instance request for the supplied report id with an amendment-date report
-     * parameter using the current scenario user.
+     * Requests report instances using the supplied GET query filters.
      *
-     * @param reportId report id to send in the create request.
-     * @param amendmentDate amendment-date value to send in report_parameters.
+     * @param filtersData Cucumber table containing filter query parameter names and values.
      */
-    @When("I create a report instance with report id {string} and amendment date {string}")
-    public void createReportInstanceWithReportIdAndAmendmentDate(String reportId, String amendmentDate) {
-        String requestBody = """
-            {
-              "report_id": "%s",
-              "business_unit_ids": [73],
-              "report_parameters": {
-                "amendment_date": "%s"
-              }
-            }
-            """.formatted(reportId, amendmentDate);
+    @When("I request report instances with the following filters")
+    public void requestReportInstancesWithFilters(DataTable filtersData) {
+        Map<String, String> filters = filtersData.asMap(String.class, String.class);
+        String queryString = filters.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank())
+            .map(entry -> encodeQueryParameter(entry.getKey()) + "=" + encodeQueryParameter(entry.getValue()))
+            .collect(Collectors.joining("&"));
+        String requestUrl = getTestUrl() + REPORT_INSTANCES_URI + "?" + queryString;
 
-        latestRawReportInstanceResponse = TestHttpClient.request(
-            "POST",
-            getTestUrl() + REPORT_INSTANCES_URI,
+        latestRawReportInstanceResponse = TestHttpClient.get(
+            requestUrl,
             Map.of(
-                "Accept", "*/*",
-                "Content-Type", "application/json",
-                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
-            ),
-            requestBody
+                "Accept", "application/json",
+                "Authorization", "Bearer " + BearerTokenStepDef.getToken()
+            )
         );
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
     }
 
     /**
-     * Asserts that the latest report-instance create error response is marked retriable.
+     * Sends a report-instances request containing business-unit data the current user cannot
+     * access.
      */
-    @Then("the latest report instance create error response is retriable")
-    public void latestReportInstanceCreateErrorResponseIsRetriable() throws Exception {
-        TestHttpResponse latestHttpResponse = latestRawReportInstanceResponse;
-        latestRawReportInstanceResponse = null;
+    @When("send request to api with data which has lack of permissions")
+    public void sendRequestToApiWithDataWhichHasLackOfPermissions() {
+        retrieveForbiddenReportInstancesForCurrentUser();
+    }
 
-        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report instance request");
-        assertEquals(422, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+    /**
+     * Attempts to retrieve report instances without an Authorization header.
+     */
+    @And("I attempt to retrieve the report instances without a token")
+    public void attemptToRetrieveReportInstancesWithoutToken() {
+        retrieveReportInstances(Map.of("Accept", "application/json"));
+    }
 
-        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
-        assertTrue(root.path("retriable").isBoolean(), "retriable should be a boolean");
-        assertTrue(root.path("retriable").asBoolean(), "retriable should be true");
+    /**
+     * Attempts to retrieve report instances with an invalid bearer token.
+     */
+    @And("I attempt to retrieve the report instances with an invalid token")
+    public void attemptToRetrieveReportInstancesWithInvalidToken() {
+        retrieveReportInstances(
+            Map.of(
+                "Accept", "application/json",
+                "Authorization", "Bearer invalidToken"
+            )
+        );
+    }
+
+    /**
+     * Asserts that the latest report-instance list response returned 200 OK.
+     */
+    @Then("the report instances response status is 200 OK")
+    public void reportInstancesResponseStatusIsOk() {
+        TestHttpResponse latestHttpResponse = requireLatestReportInstanceResponse();
+
+        assertEquals(200, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+    }
+
+    /**
+     * Asserts that each returned report instance matches the requested filters.
+     *
+     * @param filtersData Cucumber table containing the filters that should match every row.
+     */
+    @Then("only report instances matching the following filters are returned")
+    public void onlyReportInstancesMatchingFiltersAreReturned(DataTable filtersData) throws Exception {
+        JsonNode root = readReportInstanceListResponse();
+        Map<String, String> filters = filtersData.asMap(String.class, String.class);
+
+        assertFalse(root.isEmpty(), "Expected at least one report instance");
+        for (JsonNode reportInstance : root) {
+            assertReportInstanceMatchesFilters(reportInstance, filters);
+        }
+    }
+
+    /**
+     * Asserts that the report-instance list response contains a row with the supplied values.
+     *
+     * @param data Cucumber table containing expected JSON paths and values.
+     */
+    @Then("the report instances response contains the following data")
+    public void reportInstancesResponseContainsTheFollowingData(DataTable data) throws Exception {
+        JsonNode root = readReportInstanceListResponse();
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+
+        JsonNode matchingReportInstance = findReportInstanceContaining(root, expectedData);
+        assertNotNull(matchingReportInstance, "No report instance matched the expected response data");
+    }
+
+    /**
+     * Asserts that no matching report instances returns HTTP 200 and an empty JSON array.
+     */
+    @Then("200 for no matching report instances with an empty array.")
+    public void noMatchingReportInstancesReturnsEmptyArray() throws Exception {
+        JsonNode root = readReportInstanceListResponse();
+
+        assertEquals(0, root.size(), "Expected no report instances to be returned");
+    }
+
+    /**
+     * Asserts that a READY report instance with valid supported file types is downloadable.
+     */
+    @And("instance with status READY and valid supported file types is marked downloadable")
+    public void instanceWithStatusReadyAndValidSupportedFileTypesIsMarkedDownloadable() throws Exception {
+        JsonNode root = readReportInstanceListResponse();
+
+        for (JsonNode reportInstance : root) {
+            if (isReadyWithValidSupportedFileTypes(reportInstance)) {
+                JsonNode isDownloadable = reportInstance.path("is_downloadable");
+                assertTrue(isDownloadable.isBoolean(), "is_downloadable should be a boolean");
+                assertTrue(isDownloadable.asBoolean(),
+                           "READY report instance with supported file types should be downloadable");
+                return;
+            }
+        }
+
+        fail("Expected a READY report instance with valid supported file types");
     }
 
     /**
@@ -299,4 +390,176 @@ public class ReportInstanceStepDef extends BaseStepDef {
             assertTrue(root.path("retriable").isBoolean(), "retriable should be a boolean when present");
         }
     }
+
+    private TestHttpResponse requireLatestReportInstanceResponse() {
+        assertNotNull(latestRawReportInstanceResponse,
+                      "Expected a raw HTTP response for the latest report instance request");
+        return latestRawReportInstanceResponse;
+    }
+
+    private void retrieveReportInstances(Map<String, String> headers) {
+        latestRawReportInstanceResponse = TestHttpClient.get(
+            getTestUrl() + REPORT_INSTANCES_URI + SEEDED_REPORT_INSTANCES_QUERY,
+            headers
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
+    }
+
+    private void retrieveForbiddenReportInstancesForCurrentUser() {
+        authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + REPORT_INSTANCES_URI + FORBIDDEN_REPORT_INSTANCES_QUERY);
+    }
+
+    private JsonNode readReportInstanceListResponse() throws Exception {
+        TestHttpResponse latestHttpResponse = requireLatestReportInstanceResponse();
+
+        assertEquals(200, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
+        assertTrue(root.isArray(), "Report instances response should be a JSON array");
+        return root;
+    }
+
+    private boolean isReadyWithValidSupportedFileTypes(JsonNode reportInstance) {
+        if (!"READY".equals(reportInstance.path("status").path("code").asText())) {
+            return false;
+        }
+
+        JsonNode supportedFileTypes = reportInstance.path("supported_file_types");
+        assertTrue(supportedFileTypes.isArray(), "supported_file_types should be an array");
+
+        if (supportedFileTypes.isEmpty()) {
+            return false;
+        }
+
+        for (JsonNode supportedFileType : supportedFileTypes) {
+            assertTrue(supportedFileType.isTextual(), "supported_file_types entries should be strings");
+            assertTrue(
+                VALID_SUPPORTED_FILE_TYPES.contains(supportedFileType.asText()),
+                "supported_file_types contains an unsupported value: " + supportedFileType.asText()
+            );
+        }
+
+        return true;
+    }
+
+    private void assertReportInstanceMatchesFilters(JsonNode reportInstance, Map<String, String> filters) {
+        if (filters.containsKey("report_id")) {
+            assertEquals(filters.get("report_id"), getRequiredText(reportInstance, "report_id"),
+                         "Unexpected report_id");
+        }
+
+        if (filters.containsKey("user_id")) {
+            assertEquals(filters.get("user_id"), getRequiredText(reportInstance, "requested_by.user_id"),
+                         "Unexpected requested_by.user_id");
+        }
+
+        if (filters.containsKey("business_units")) {
+            for (String businessUnitId : filters.get("business_units").split(",")) {
+                assertBusinessUnitsContain(reportInstance, businessUnitId.trim());
+            }
+        }
+
+        if (filters.containsKey("from_date")) {
+            LocalDate generatedDate = getGeneratedDate(reportInstance);
+            LocalDate fromDate = LocalDate.parse(filters.get("from_date"));
+            assertFalse(generatedDate.isBefore(fromDate), "generated_at is before from_date");
+        }
+
+        if (filters.containsKey("to_date")) {
+            LocalDate generatedDate = getGeneratedDate(reportInstance);
+            LocalDate toDate = LocalDate.parse(filters.get("to_date"));
+            assertFalse(generatedDate.isAfter(toDate), "generated_at is after to_date");
+        }
+    }
+
+    private void assertBusinessUnitsContain(JsonNode reportInstance, String expectedBusinessUnitId) {
+        JsonNode businessUnits = readPath(reportInstance, "business_units");
+        assertTrue(businessUnits.isArray(), "business_units should be a JSON array");
+
+        boolean businessUnitFound = false;
+        for (JsonNode businessUnit : businessUnits) {
+            if (expectedBusinessUnitId.equals(businessUnit.path("business_unit_id").asText())) {
+                businessUnitFound = true;
+                break;
+            }
+        }
+
+        assertTrue(businessUnitFound, "Expected business_units to contain " + expectedBusinessUnitId);
+    }
+
+    private LocalDate getGeneratedDate(JsonNode reportInstance) {
+        String generatedAt = getRequiredText(reportInstance, "generated_at");
+
+        assertTrue(generatedAt.length() >= 10, "generated_at should include a date");
+        return LocalDate.parse(generatedAt.substring(0, 10));
+    }
+
+    private JsonNode findReportInstanceContaining(JsonNode root, Map<String, String> expectedData) {
+        for (JsonNode reportInstance : root) {
+            boolean reportInstanceMatches = true;
+
+            for (Map.Entry<String, String> entry : expectedData.entrySet()) {
+                JsonNode actualNode = readPath(reportInstance, entry.getKey());
+                if (actualNode.isMissingNode() || actualNode.isNull()
+                    || !entry.getValue().equals(actualNode.asText())) {
+                    reportInstanceMatches = false;
+                    break;
+                }
+            }
+
+            if (reportInstanceMatches) {
+                return reportInstance;
+            }
+        }
+
+        return null;
+    }
+
+    private String getRequiredText(JsonNode root, String path) {
+        JsonNode node = readPath(root, path);
+
+        assertTrue(!node.isMissingNode() && !node.isNull(), "Missing response field: " + path);
+        return node.asText();
+    }
+
+    private JsonNode readPath(JsonNode root, String path) {
+        JsonNode current = root;
+
+        for (String segment : path.split("\\.")) {
+            current = readPathSegment(current, segment);
+            if (current.isMissingNode() || current.isNull()) {
+                return current;
+            }
+        }
+
+        return current;
+    }
+
+    private JsonNode readPathSegment(JsonNode root, String segment) {
+        int firstArrayIndex = segment.indexOf('[');
+        if (firstArrayIndex == -1) {
+            return root.path(segment);
+        }
+
+        String fieldName = segment.substring(0, firstArrayIndex);
+        JsonNode current = fieldName.isBlank() ? root : root.path(fieldName);
+        int arrayIndexStart = firstArrayIndex;
+
+        while (arrayIndexStart != -1) {
+            int arrayIndexEnd = segment.indexOf(']', arrayIndexStart);
+            assertTrue(arrayIndexEnd > arrayIndexStart + 1, "Invalid JSON path segment: " + segment);
+
+            int arrayIndex = Integer.parseInt(segment.substring(arrayIndexStart + 1, arrayIndexEnd));
+            current = current.path(arrayIndex);
+            arrayIndexStart = segment.indexOf('[', arrayIndexEnd + 1);
+        }
+
+        return current;
+    }
+
+    private String encodeQueryParameter(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
 }

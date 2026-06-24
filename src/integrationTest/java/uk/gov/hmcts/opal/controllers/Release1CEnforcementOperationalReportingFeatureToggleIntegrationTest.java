@@ -35,6 +35,8 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
         return Stream.of(
             // ReportsApiController
             args("GET /reports/{id}", withAuth(get("/reports/1"))),
+            // ReportInstancesApiController
+            args("GET /report-instances", withAuth(get("/report-instances"))),
             args("POST /report-instances", withAuthAndJson(post("/report-instances")
                 .content("{\"business_unit_ids\":[1],\"report_id\":\"report-id\",\"report_parameters\":{}}")))
         );
