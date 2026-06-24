@@ -251,8 +251,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleUnprocessableException(UnprocessableException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.UNPROCESSABLE_CONTENT,
-            "Unprocessable Entity",
-            "The request could not be processed",
+            "Unprocessable Content",
+            ex.getDetailedReason(),
             "unprocessable-entity",
             ex.isRetriable(),
             ex
