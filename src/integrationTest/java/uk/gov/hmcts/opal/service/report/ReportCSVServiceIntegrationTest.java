@@ -16,8 +16,9 @@ import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcemen
 import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportTransactionRowDto;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementDetailedReport;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
 
@@ -69,6 +70,8 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
     private ReportCSVService reportCSVService;
 
     @Test
+    @JiraStory("PO-2283")
+    @JiraEpic("PO-2248")
     void convertReportDtoToCSV_happyPath_usesOperationByEnforcementDetailedReportMapper() {
         OperationByEnforcementDetailedReport report = report();
 
@@ -78,6 +81,8 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2283")
+    @JiraEpic("PO-2248")
     void convertReportDtoToCSV_unmappedReportType_throwsUnprocessableException() {
         UnprocessableException exception = assertThrows(UnprocessableException.class,
             () -> reportCSVService.convertReportDtoToCSV(new MissingReportData()));
