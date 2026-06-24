@@ -51,6 +51,7 @@ import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @DisplayName("Legacy Defendant Account Impositions Integration Tests")
@@ -79,6 +80,7 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @BeforeEach
+    @SuppressWarnings("deprecation")
     void setupUserState() {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
     }
@@ -87,6 +89,7 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
     @DisplayName("LEGACY: Get Defendant Account Impositions returns schema-valid imposition response")
     @JiraStory("PO-2078")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-8049")
     void getImpositions_returnsLegacyImpositionResponse() throws Exception {
         ArgumentCaptor<LegacyGetImpositionsRequest> requestCaptor =
             ArgumentCaptor.forClass(LegacyGetImpositionsRequest.class);
@@ -138,6 +141,8 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
     @DisplayName("LEGACY: Get Defendant Account Impositions returns 403 when user lacks permission")
     @JiraStory("PO-2078")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-8048")
+    @SuppressWarnings("deprecation")
     void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
@@ -154,6 +159,7 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
     @DisplayName("LEGACY: Get Defendant Account Impositions returns 404 when legacy gateway returns not found")
     @JiraStory("PO-2078")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-8050")
     void getImpositions_whenGatewayReturnsNotFound_returnsNotFound() throws Exception {
         when(gatewayService.postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),

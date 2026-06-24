@@ -54,12 +54,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     private AccessTokenService accessTokenService;
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Search defendant accounts – POST with valid criteria (seed id=77)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6092")
+    void testPostDefendantAccountsSearch_Opal_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Search defendant accounts – POST with valid criteria (seed id=77)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8082")
     void testPostDefendantAccountsSearch_Opal(boolean consolidated) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -87,12 +96,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Search defendant accounts – POST no matches (different BU)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6084")
+    void testPostDefendantAccountsSearch_Opal_NoResults_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_NoResults(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Search defendant accounts – POST no matches (different BU)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8078")
     void testPostDefendantAccountsSearch_Opal_NoResults(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -128,12 +146,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(0));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Search by exact name + BU = 1 match (seed id=77)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6157")
+    void testPostDefendantAccountsSearch_Opal_ByNameAndBU_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_ByNameAndBU(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Search by exact name + BU = 1 match (seed id=77)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8112")
     void testPostDefendantAccountsSearch_Opal_ByNameAndBU(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -173,12 +200,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Postcode match ignores spaces/hyphens (MA4 1AL vs MA41AL)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6105")
+    void testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Postcode match ignores spaces/hyphens (MA4 1AL vs MA41AL)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8088")
     void testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -216,15 +252,23 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
     }
 
+    @Test
+    @DisplayName("OPAL: Account number 'starts with' (177*) — consolidated search excludes zero-balance matches")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6148")
+    void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith_ConsolidatedExcludesZeroBalance_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith_ConsolidatedExcludesZeroBalance(false, 2);
+    }
+
     @ParameterizedTest(name = "consolidated={0}, count={1}")
     @CsvSource({
-        "false, 2",
         "true, 1"
     })
     @DisplayName("OPAL: Account number 'starts with' (177*) — consolidated search excludes zero-balance matches")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
-    @JiraTestKey("PO-6148")
+    @JiraTestKey("PO-8108")
     void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith_ConsolidatedExcludesZeroBalance(
         boolean consolidation,
         int count)
@@ -263,12 +307,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: PCR exact (090A)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6142")
+    void testPostDefendantAccountsSearch_Opal_PcrExact_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_PcrExact(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: PCR exact (090A)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8105")
     void testPostDefendantAccountsSearch_Opal_PcrExact(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -298,12 +351,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: PCR no match -> 0 records")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6113")
+    void testPostDefendantAccountsSearch_Opal_PcrNoMatch_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_PcrNoMatch(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: PCR no match -> 0 records")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8091")
     void testPostDefendantAccountsSearch_Opal_PcrNoMatch(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -331,12 +393,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(0));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6152")
+    void testPostDefendantAccountsSearch_Opal_NiStartsWith_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_NiStartsWith(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8110")
     void testPostDefendantAccountsSearch_Opal_NiStartsWith(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -376,12 +447,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Address line 1 starts-with (\"Lumber\") -> 1 record")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6090")
+    void testPostDefendantAccountsSearch_Opal_AddressStartsWith_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_AddressStartsWith(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Address line 1 starts-with (\"Lumber\") -> 1 record")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8081")
     void testPostDefendantAccountsSearch_Opal_AddressStartsWith(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -423,12 +503,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("MA4 1AL"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: DOB exact (1980-02-03) -> 1 record")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6099")
+    void testPostDefendantAccountsSearch_Opal_DobExact_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_DobExact(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: DOB exact (1980-02-03) -> 1 record")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8085")
     void testPostDefendantAccountsSearch_Opal_DobExact(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -471,12 +560,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].birth_date").value("1980-02-03"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Include aliases = true still returns match on main name (no alias in DB)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6128")
+    void testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Include aliases = true still returns match on main name (no alias in DB)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8098")
     void testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -515,15 +613,23 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"));
     }
 
+    @Test
+    @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6097")
+    void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(false, 2);
+    }
+
     @ParameterizedTest(name = "consolidated={0}")
     @CsvSource({
-        "false, 2",
         "true, 1"
     })
     @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
-    @JiraTestKey("PO-6097")
+    @JiraTestKey("PO-8084")
     void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
         ResultActions actions = mockMvc.perform(
@@ -571,12 +677,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6088")
+    void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8080")
     void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -607,12 +722,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: No defendant object in payload → party still resolved")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6168")
+    void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: No defendant object in payload → party still resolved")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8117")
     void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(boolean consolidation)
         throws Exception {
         ResultActions actions = mockMvc.perform(
@@ -644,12 +768,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("MA4 1AL"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Search without business_unit_ids → still returns results")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6126")
+    void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Search without business_unit_ids → still returns results")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8097")
     void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -679,12 +812,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Personal party (Anna Graham) includes title, forenames, and surname")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6140")
+    void testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Personal party (Anna Graham) includes title, forenames, and surname")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8104")
     void testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -724,12 +866,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Organisation returns no personal fields (awaiting seeded org data)")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6115")
+    void testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Organisation returns no personal fields (awaiting seeded org data)")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8092")
     void testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -773,12 +924,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Alias search fallback → matches on main name when no alias exists")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6132")
+    void testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Alias search fallback → matches on main name when no alias exists")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8100")
     void testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -817,12 +977,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Optional fields correctly mapped or excluded when null")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6170")
+    void testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Optional fields correctly mapped or excluded when null")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8118")
     void testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -863,12 +1032,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].parent_guardian_firstnames").doesNotExist());
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6118")
+    void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8093")
     void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -902,12 +1080,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC1: Multi-parameter search tests - ALL search parameters must match
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Search defendant accounts - business unit fallback when business unit row is missing")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6138")
+    void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Search defendant accounts - business unit fallback when business unit row is missing")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8103")
     void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(boolean consolidation) throws Exception {
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
@@ -931,12 +1118,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("9999"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6082")
+    void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8077")
     void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -973,12 +1169,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("OPAL: Match on alias when both alias and main name exist")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey("PO-6146")
+    void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("OPAL: Match on alias when both alias and main name exist")
+    @JiraStory("PO-2296")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-8107")
     void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -1015,12 +1220,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname1"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC1: Multi-parameter search - surname + postcode (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6130")
+    void testPostDefendantAccountsSearch_AC1_SurnameAndPostcode_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC1: Multi-parameter search - surname + postcode (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8099")
     void testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(boolean consolidation) throws Exception {
         // Search with surname "Graham" AND postcode "MA4 1AL" - should match account 77
         ResultActions actions = mockMvc.perform(
@@ -1058,12 +1272,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC1: Multi-parameter search - surname + wrong postcode (no matches expected) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6109")
+    void testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC1: Multi-parameter search - surname + wrong postcode (no matches expected) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8090")
     void testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode(boolean consolidation) throws Exception {
         // Search with surname "Graham" AND wrong postcode - should return 0 results
         ResultActions actions = mockMvc.perform(
@@ -1102,12 +1325,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC2: Business unit filtering test
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC1: Multi-parameter search - forenames + surname + DOB + NI (all must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6136")
+    void testPostDefendantAccountsSearch_AC1_CompletePersonalDetails_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC1_CompletePersonalDetails(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC1: Multi-parameter search - forenames + surname + DOB + NI (all must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8102")
     void testPostDefendantAccountsSearch_AC1_CompletePersonalDetails(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -1146,12 +1378,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC3a: Active accounts only filtering tests
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC1: Multi-parameter search - address + NI number (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6166")
+    void testPostDefendantAccountsSearch_AC1_AddressAndNI_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC1_AddressAndNI(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC1: Multi-parameter search - address + NI number (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8116")
     void testPostDefendantAccountsSearch_AC1_AddressAndNI(boolean consolidation) throws Exception {
         // Search with address line 1 starting "Lumber" AND NI starting "A111" - should match account 77
         ResultActions actions = mockMvc.perform(
@@ -1191,12 +1432,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC5a: Forenames match filtering tests
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC1: Multi-parameter search - wrong business unit excludes otherwise matching records [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6150")
+    void testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC1: Multi-parameter search - wrong business unit excludes otherwise matching records [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8109")
     void testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes(boolean consolidation) throws Exception {
         // Search with correct surname but wrong business unit - should return 0 results
         ResultActions actions = mockMvc.perform(
@@ -1235,12 +1485,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC9: Multi-parameter search tests for organisations - ALL search parameters must match
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC2: Only accounts within specified business units are returned [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6086")
+    void testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC2: Only accounts within specified business units are returned [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8079")
     void testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering(boolean consolidation) throws Exception {
         // Should find accounts 77, 88, 901, 333 but filter to only return those in business unit 78
         ResultActions actions = mockMvc.perform(
@@ -1280,15 +1539,23 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
+    @Test
+    @DisplayName("AC3a: Active accounts only filtering - false includes both active and completed accounts [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6164")
+    void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(false, 3);
+    }
+
     @ParameterizedTest(name = "consolidated={0}")
     @CsvSource({
-        "false, 3",
         "true, 1"
     })
     @DisplayName("AC3a: Active accounts only filtering - false includes both active and completed accounts [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
-    @JiraTestKey("PO-6164")
+    @JiraTestKey("PO-8115")
     void testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(boolean consolidation, int count)
         throws Exception {
         // Test AC3a: active_accounts_only = false should include both active and completed accounts
@@ -1334,12 +1601,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6124")
+    void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8096")
     void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
@@ -1377,12 +1653,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9: Company multi-parameter search - company name + address line 1 (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6162")
+    void testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9: Company multi-parameter search - company name + address line 1 (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8114")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress(boolean consolidation) throws Exception {
         // Search with company name "TechCorp Solutions Ltd" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(
@@ -1423,12 +1708,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Business Park"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9: Company multi-parameter search - company name + postcode (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6134")
+    void testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9: Company multi-parameter search - company name + postcode (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8101")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode(boolean consolidation) throws Exception {
         // Search with company name "TechCorp Solutions Ltd" AND postcode "B15 3TG" - should match account 555
         ResultActions actions = mockMvc.perform(
@@ -1470,12 +1764,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC9a: Business unit filtering for company accounts
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9: Company multi-parameter search - partial company name + address (both must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6172")
+    void testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9: Company multi-parameter search - partial company name + address (both must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8119")
     void testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress(boolean consolidation) throws Exception {
         // Search with partial company name "TechCorp" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(
@@ -1516,12 +1819,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     // AC9b: Active accounts only filtering for company accounts
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9: Company multi-parameter search - correct name + wrong address (no matches expected) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6107")
+    void testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9: Company multi-parameter search - correct name + wrong address (no matches expected) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8089")
     void testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress(boolean consolidation) throws Exception {
         // Search with correct company name "TechCorp Solutions Ltd" BUT wrong address "Office Tower"
         ResultActions actions = mockMvc.perform(
@@ -1558,12 +1870,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(0));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9: Company multi-parameter search - multiple address fields (all must match) [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6155")
+    void testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9: Company multi-parameter search - multiple address fields (all must match) [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8111")
     void testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields(boolean consolidation) throws Exception {
         // Search with company name AND multiple address fields - all must match
         ResultActions actions = mockMvc.perform(
@@ -1604,12 +1925,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9a: Only company accounts within specified business units are returned [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6122")
+    void testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9a: Only company accounts within specified business units are returned [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8095")
     void testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering(boolean consolidation) throws Exception {
         // Apply business unit filter to only BU 78 - should return only TechCorp Solutions Ltd
         ResultActions actions = mockMvc.perform(
@@ -1649,15 +1979,23 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Solutions Ltd"));
     }
 
+    @Test
+    @DisplayName("AC9b: Active accounts only filtering for company accounts - excludes completed accounts [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-6144")
+    void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(false, 2);
+    }
+
     @ParameterizedTest(name = "consolidated={0}")
     @CsvSource({
-        "false, 2",
         "true, 1"
     })
     @DisplayName("AC9b: Active accounts only filtering for company accounts - excludes completed accounts [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
-    @JiraTestKey("PO-6144")
+    @JiraTestKey("PO-8106")
     void testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(boolean consolidation, int count)
         throws Exception {
         // active_accounts_only = false should include both active and completed company accounts
@@ -1700,12 +2038,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9d: Where company name or alias starts with input [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6120")
+    void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9d: Where company name or alias starts with input [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8094")
     void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(boolean consolidation) throws Exception {
         // Search with partial alias "TC Global" - should match "TC Global Ltd" alias (starts with)
         ResultActions actions = mockMvc.perform(
@@ -1745,12 +2092,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Global Ltd"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9di: Where company name or alias results exactly matches input [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6094")
+    void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9di: Where company name or alias results exactly matches input [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8083")
     void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(boolean consolidation) throws Exception {
         // Search with exact alias "TechCorp Ltd" - should match exactly
         ResultActions actions = mockMvc.perform(
@@ -1790,12 +2146,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Solutions Ltd"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9e: Company address partial match - Address Line 1 starts with input value [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6159")
+    void testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9e: Company address partial match - Address Line 1 starts with input value [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8113")
     void testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch(boolean consolidation) throws Exception {
         // Search with partial address "Business" - should match "Business Park"
         ResultActions actions = mockMvc.perform(
@@ -1835,12 +2200,21 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Business Park"));
     }
 
-    @ParameterizedTest(name = "consolidated={0}")
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("AC9ei: Company postcode partial match - Postcode starts with input value [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6103")
+    void testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(false);
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {true})
+    @DisplayName("AC9ei: Company postcode partial match - Postcode starts with input value [@PO-710]")
+    @JiraStory("PO-710")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-8087")
     void testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(boolean consolidation) throws Exception {
         // Search with partial postcode "B15" - should match "B15 3TG"
         ResultActions actions = mockMvc.perform(
@@ -1880,15 +2254,23 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
     }
 
+    @Test
+    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; consolidated search returns only non-zero-balance matches")
+    @JiraStory("PO-2241")
+    @JiraEpic("PO-2294")
+    @JiraTestKey("PO-6101")
+    void testPostDefendantAccountsSearch_PO2241_Core177_ConsolidatedExcludesZeroBalance_firstCase() throws Exception {
+        testPostDefendantAccountsSearch_PO2241_Core177_ConsolidatedExcludesZeroBalance(false, 2);
+    }
+
     @ParameterizedTest(name = "consolidated={0}, count={1}")
     @CsvSource({
-        "false, 2",
         "true, 1"
     })
     @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; consolidated search returns only non-zero-balance matches")
     @JiraStory("PO-2241")
     @JiraEpic("PO-2294")
-    @JiraTestKey("PO-6101")
+    @JiraTestKey("PO-8086")
     void testPostDefendantAccountsSearch_PO2241_Core177_ConsolidatedExcludesZeroBalance(
         boolean consolidation,
         int count)

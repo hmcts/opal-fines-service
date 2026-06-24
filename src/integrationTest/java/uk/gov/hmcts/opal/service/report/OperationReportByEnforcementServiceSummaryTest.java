@@ -21,8 +21,6 @@ import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -633,13 +631,19 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
 
     @JiraStory("PO-2286")
     @JiraEpic("PO-2248")
-    @ParameterizedTest
-    @CsvSource({
-        "WITH, true",
-        "WITHOUT, false"
-    })
+    @Test
     @JiraTestKey("PO-7833")
-    void generateReportData_filterByCollectionOrderChoice_returnResults(
+    void generateReportData_filterByCollectionOrderChoice_returnResults_with() {
+        assertCollectionOrderChoiceReturnsResults("WITH", true);
+    }
+
+    @Test
+    @JiraTestKey("PO-8225")
+    void generateReportData_filterByCollectionOrderChoice_returnResults_without() {
+        assertCollectionOrderChoiceReturnsResults("WITHOUT", false);
+    }
+
+    private void assertCollectionOrderChoiceReturnsResults(
         String collectionOrderChoice,
         boolean expectedValue
     ) {
@@ -842,5 +846,3 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         verifyMetadata(result, transactions);
     }
 }
-
-

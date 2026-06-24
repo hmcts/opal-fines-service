@@ -7,14 +7,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Set;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -174,7 +170,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
             String body = actions.andReturn().getResponse().getContentAsString();
             Set<String> actualFields = objectMapper.readTree(body).properties()
                 .stream()
-                .map(entry -> entry.getKey())
+                .map(java.util.Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toSet());
 
             actions.andExpect(status().isOk());
@@ -223,20 +219,23 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     @Nested
     class GetReportByIdPermissionCases {
 
-        static Stream<Arguments> reportCases() {
-            return Stream.of(
-                Arguments.of("operational_report_enforcement"),
-                Arguments.of("operational_report_payment")
-            );
-        }
-
-        @ParameterizedTest
-        @MethodSource("reportCases")
+        @Test
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-7767")
-        void getReportById_whenReportPermissionIsNull_returns403(String reportId) throws Exception {
+        void getReportById_whenReportPermissionIsNull_returns403_firstCase() throws Exception {
+            assertReportPermissionIsNullReturns403("operational_report_enforcement");
+        }
+
+        @Test
+        @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
+        @JiraTestKey("PO-8216")
+        void getReportById_whenReportPermissionIsNull_returns403_secondCase() throws Exception {
+            assertReportPermissionIsNullReturns403("operational_report_payment");
+        }
+
+        private void assertReportPermissionIsNullReturns403(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.title").value("Forbidden"))
