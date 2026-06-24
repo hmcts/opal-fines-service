@@ -35,6 +35,60 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
+    @Sql(
+        scripts = "classpath:db/insertData/update_into_parties.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @DisplayName("OPAL: PUT Replace DAP - account controls return 422 for P/G replacement")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void put_replaceParentGuardian_returns422_whenBlockedByAccountControls() throws Exception {
+        long defendantAccountId = 20010L;
+        Integer currentVersion = versionFor(defendantAccountId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+                "defendant_account_party_type": "Parent/Guardian",
+                "is_debtor": true,
+                "party_details": {
+                    "party_id": "920010",
+                    "organisation_flag": false,
+                    "individual_details": {
+                        "title": "Mr",
+                        "forenames": "Blocked",
+                        "surname": "Guardian"
+                    }
+                }
+            }
+            """;
+
+        ResultActions res = mockMvc.perform(
+            put("/defendant-accounts/20010/defendant-account-parties/920011")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("PUT DAP account controls resp:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Account Status Check failed because account_status is CS."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
+
+    @Test
     @DisplayName("OPAL: PUT Replace DAP – Not Found (account not in BU)")
     @JiraStory("PO-1963")
     @JiraEpic("PO-1970")
