@@ -523,12 +523,7 @@ static String[] jacocoExclusionArray(ArrayList<String> exclusions) {
 }
 
 tasks.named("sonarqube") {
-  if (!skipSonar) {
-    dependsOn(tasks.named("jacocoTestReport"))
-  }
-  onlyIf {
-    !skipSonar
-  }
+  dependsOn(tasks.named("jacocoTestReport"))
 }
 tasks.named("check") {
   if (!skipTests) {
@@ -548,6 +543,9 @@ sonarqube {
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
     property 'sonar.cpd.exclusions', "**/entity/**,**/opal/dto/**,**/service/DefendantAccountService.java,**/service/legacy/LegacyDefendantAccountService.java,**/service/opal/OpalDefendantAccountService.java"
+    if (skipSonar) {
+      property 'sonar.exclusions', "**/**"
+    }
   }
 }
 
