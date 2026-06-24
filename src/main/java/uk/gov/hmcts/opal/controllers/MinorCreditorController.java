@@ -4,10 +4,10 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import java.util.Optional;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -22,11 +22,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 
 @RestController
@@ -39,11 +41,14 @@ public class MinorCreditorController {
 
     // Only used for the 'DELETE' endpoint, used in testing
     private final OpalCreditorAccountService opalCreditorAccountService;
+    private final UserStateService userStateService;
 
     public MinorCreditorController(MinorCreditorService minorCreditorService,
-                                   OpalCreditorAccountService opalCreditorAccountService) {
+                                   OpalCreditorAccountService opalCreditorAccountService,
+        UserStateService userStateService) {
         this.minorCreditorService = minorCreditorService;
         this.opalCreditorAccountService = opalCreditorAccountService;
+        this.userStateService = userStateService;
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -53,7 +58,10 @@ public class MinorCreditorController {
         @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
-        //Thread.sleep(90000);
+        UserState user = userStateService.checkForAuthorisedUser();
+
+        log.info(user.toString());
+
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
 
