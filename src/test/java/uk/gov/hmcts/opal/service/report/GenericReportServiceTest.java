@@ -42,9 +42,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JacksonException;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.exc.StreamConstraintsException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -210,7 +209,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() throws JsonProcessingException {
+    void generateReportInstanceContent_unableToSaveToBlobStore_throwsException() {
         //Arrange
         when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
@@ -305,7 +304,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_success_singleBU() throws JacksonException {
+    public void addReportInstance_success_singleBU() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -334,7 +333,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_success_multiBU() throws JacksonException {
+    public void addReportInstance_success_multiBU() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
@@ -450,7 +449,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_genReportAsyncFalse_throwsException() throws JacksonException {
+    public void addReportInstance_genReportAsyncFalse_throwsException() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -474,6 +473,32 @@ class GenericReportServiceTest {
                     .reportParameters(reportParameters)
                     .build(), false));
         assertEquals("generateReportContentAsync cannot be false", exception.getDetailedReason());
+    }
+
+    @Test
+    public void addReportInstance_invalidJson_throwsException() {
+        //setup
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
+        when(reportEntity.isSupportsMultiBu()).thenReturn(false);
+        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
+        when(mapper.writeValueAsString(any())).thenThrow(new StreamConstraintsException("unit test"));
+        when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
+            .thenReturn(true);
+
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+        reportInstance.setReportInstanceId(123L);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> genericReportService.addReportInstance(
+                CreateReportInstanceRequestReports.builder()
+                    .reportId(reportId)
+                    .reportName(null)
+                    .businessUnitIds(List.of(1))
+                    .reportParameters(reportParameters)
+                    .build(), false));
+        assertEquals("Report parameters badly formatted", exception.getMessage());
     }
 
     static class TestData implements ReportDataInterface {
