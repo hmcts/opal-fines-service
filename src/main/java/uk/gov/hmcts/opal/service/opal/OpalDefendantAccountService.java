@@ -822,6 +822,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
