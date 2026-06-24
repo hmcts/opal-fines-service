@@ -178,3 +178,108 @@ Run the full Jenkins-equivalent `integration` task with cache DEBUG logging and
 heap-dump-on-OOM enabled. The key number to capture is the final or peak
 `missCount`, because that approximates how many distinct context keys the full
 suite creates in one forked test JVM.
+
+## Investigation log
+
+### 2026-06-24: Added diagnostics and split-task baseline
+
+Code changes started:
+
+- Added integration-test JVM diagnostics:
+  - Spring test context cache DEBUG logs.
+  - Heap dumps on OOM under `build/heap-dumps/<task>`.
+  - GC/safepoint logs under `build/logs/<task>-gc.log`.
+  - Diagnostic artifacts copied into `integration-output`.
+- Added opt-in split tasks without changing the existing CI `integration` task:
+  - `integrationBase`
+  - `integrationOpal`
+  - `integrationLegacy`
+  - `integrationSecurity`
+
+Local Docker/Testcontainers validation:
+
+| Task | Classes selected | Result | Max cache size | Context misses | Hits | Failures |
+| --- | ---: | --- | ---: | ---: | ---: | ---: |
+| `integrationBase` | 52 | Passed | 4 | 30 | 5608 | 0 |
+| `integrationOpal` | 26 | Passed | 4 | 15 | 4926 | 0 |
+| `integrationLegacy` | 17 | Passed | 4 | 11 | 1301 | 0 |
+| `integrationSecurity` | 3 selected / 2 XML suites | Passed | 2 | 2 | 76 | 0 |
+
+Notes:
+
+- The split tasks are useful for measurement and isolation, but they do not by
+  themselves remove context churn. Base, Opal, and Legacy still create many
+  distinct contexts inside each broad profile family.
+- LaunchDarkly clients closing at JVM shutdown are a useful proxy for how many
+  contexts were created over the run. The base, Opal, and Legacy runs each closed
+  more clients than the cache can retain at once.
+- `ReportQueueConnectivityIntegrationTest` remains excluded from the split tasks
+  to match the existing `integration` task.
+
+Current evidence for proposed fixes:
+
+- 33 integration classes use `@TestPropertySource`.
+- Many of those are feature-toggle tests with small inline property differences.
+  These are strong candidates for shared composed annotations or shared test
+  profiles.
+- 18 concrete classes use `@MockitoBean`, `@MockBean`, `@SpyBean`, or
+  `@MockitoSpyBean`; abstract superclass mock/spy declarations also affect their
+  subclasses. Repeated mock customizers should be consolidated or moved to
+  narrower tests where possible.
+- `GenericReportServiceTest` is still the only class with `@DirtiesContext`;
+  this remains a specific cleanup target.
+
+Proposed next code fixes:
+
+1. Create shared composed integration-test annotations for common context shapes,
+   starting with feature-toggle-enabled/disabled cases.
+2. Move repeated `@MockitoBean` or `@MockitoSpyBean` declarations from individual
+   classes into shared test configuration where the same replacements are used.
+3. Review and remove `@DirtiesContext` from `GenericReportServiceTest` if direct
+   cleanup/reset is enough.
+4. Consider disabling LaunchDarkly in the base integration profile by default and
+   enabling it only for tests that explicitly validate LaunchDarkly behaviour.
+
+### 2026-06-24: First proposed fixes validated
+
+Build/test changes:
+
+- Added `ReportQueueConnectivityIntegrationTest` exclusion to the new split
+  tasks so they match the existing `integration` task.
+- Removed `@DirtiesContext` from `GenericReportServiceTest`.
+
+Validation:
+
+- `./gradlew integration --no-daemon --tests 'uk.gov.hmcts.opal.service.GenericReportServiceTest'`
+  passed.
+- `./gradlew integrationBase --no-daemon` passed after the cleanup.
+- Base-family cache stats after the cleanup stayed at `missCount = 30`,
+  `maxSize = 4`, `hitCount = 5608`, `failureCount = 0`.
+
+Conclusion:
+
+- Removing `@DirtiesContext` is safe and removes one explicit context
+  invalidation, but it does not materially lower context count because
+  `GenericReportServiceTest` still has a unique context from `@Import` plus
+  `@MockitoBean` customizers.
+- A trial change to disable LaunchDarkly by default in
+  `application-integration.yaml` was validated and then reverted. It did not
+  reduce context misses and did not clearly reduce LaunchDarkly client shutdowns,
+  so it is not currently a justified fix.
+- The next high-value fix remains consolidating repeated `@TestPropertySource`
+  and mock customizer combinations.
+
+Concrete high-churn candidates:
+
+- Base family: feature-toggle tests and controller tests with inline
+  LaunchDarkly properties, plus `ReportInstancesControllerIntegrationTest`,
+  `TestingSupportControllerIntegrationTest`, `CommonDraftAccountControllerIntegrationTest`,
+  and `GenericReportServiceTest` due to multiple mock/import customizers.
+- Opal family: `Release1bFeatureToggleLaunchDarklyEnabledFlagTrueIntegrationTest`
+  and `Release1bFeatureToggleLaunchDarklyEnabledFlagFalseIntegrationTest` each
+  create LaunchDarkly-enabled contexts with mocked `LDClientInterface`; several
+  Opal controller tests repeat `launchdarkly.enabled=false` with only flag-value
+  differences.
+- Legacy family: many tests repeat `launchdarkly.enabled=false` and
+  `release-1b=true`; these should be a shared profile or composed annotation
+  instead of per-class inline properties.

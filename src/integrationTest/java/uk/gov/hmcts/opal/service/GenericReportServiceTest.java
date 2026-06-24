@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -42,7 +41,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
-@DirtiesContext
 @Import(GenericReportServiceTest.TestBeans.class)
 class GenericReportServiceTest extends AbstractIntegrationTest {
 
