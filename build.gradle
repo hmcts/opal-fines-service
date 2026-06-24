@@ -307,23 +307,120 @@ tasks.withType(Test).configureEach {
   failFast = false
 }
 
+def integrationSourceFiles = fileTree('src/integrationTest/java') {
+  include '**/*Test.java'
+  include '**/*IT.java'
+}
+
+def integrationClassNameFor = { File file ->
+  rootDir.toPath()
+    .relativize(file.toPath())
+    .toString()
+    .replace("src${File.separator}integrationTest${File.separator}java${File.separator}", "")
+    .replace(File.separator, ".")
+    .replaceAll(/\.java$/, "")
+}
+
+def integrationTestClassesMatching = { Closure<Boolean> matcher ->
+  integrationSourceFiles.files.collectMany { File file ->
+    def source = file.getText('UTF-8')
+    def className = integrationClassNameFor(file)
+    if (source.contains('abstract class')) {
+      return []
+    }
+    matcher(source, className) ? [className] : []
+  }.sort()
+}
+
+def integrationSecurityTestClasses = integrationTestClassesMatching { String source, String className ->
+  source.contains('integration-with-spring-security') ||
+    source.contains('extends AbstractIntegrationWithSecurityTest')
+}
+
+def integrationLegacyTestClasses = integrationTestClassesMatching { String source, String className ->
+  source.contains('@ActiveProfiles({"integration", "legacy"})') ||
+    source.contains('@ActiveProfiles({"legacy"})') ||
+    source.contains('extends AbstractLegacyDefendantsIntegrationTest') ||
+    className.tokenize('.').last().startsWith('Legacy')
+}
+
+def integrationOpalTestClasses = integrationTestClassesMatching { String source, String className ->
+  source.contains('@ActiveProfiles({"integration", "opal"})') ||
+    source.contains('extends AbstractOpalDefendantsIntegrationTest') ||
+    className.tokenize('.').last().startsWith('Opal')
+}
+
+def integrationBaseTestClasses = integrationTestClassesMatching { String source, String className ->
+  !(integrationSecurityTestClasses.contains(className) ||
+    integrationLegacyTestClasses.contains(className) ||
+    integrationOpalTestClasses.contains(className))
+}
+
+def configureIntegrationDiagnostics = { Test task, String outputName ->
+  task.systemProperty 'logging.level.org.springframework.test.context.cache', 'DEBUG'
+  task.jvmArgs '-XX:+HeapDumpOnOutOfMemoryError',
+    "-XX:HeapDumpPath=${layout.buildDirectory.dir("heap-dumps/${outputName}").get().asFile.absolutePath}",
+    "-Xlog:gc*,safepoint:file=${layout.buildDirectory.file("logs/${outputName}-gc.log").get().asFile.absolutePath}:time,uptime,level,tags:filecount=3,filesize=20M"
+  task.doFirst {
+    layout.buildDirectory.dir("heap-dumps/${outputName}").get().asFile.mkdirs()
+    layout.buildDirectory.dir('logs').get().asFile.mkdirs()
+    pullLatestLegacyStubImageIfLocal()
+  }
+}
+
+def registerIntegrationFamilyTask = { String taskName, String descriptionText, List<String> testClasses ->
+  tasks.register(taskName, Test) {
+    description = descriptionText
+    group = "Verification"
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    reports.html.getOutputLocation().set(layout.buildDirectory.dir("reports/tests/${taskName}"))
+    reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/${taskName}"))
+    configureIntegrationDiagnostics(delegate as Test, taskName)
+    exclude '**/ReportQueueConnectivityIntegrationTest.class'
+    filter {
+      testClasses.each { includeTestsMatching it }
+    }
+    doFirst {
+      logger.lifecycle("Running ${testClasses.size()} ${taskName} test classes.")
+    }
+    finalizedBy 'packageIntegrationOutput'
+  }
+}
+
 tasks.register('integration', Test) {
   description = "Runs integration tests"
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
-  systemProperty 'logging.level.org.springframework.test.context.cache', 'DEBUG'
-  jvmArgs '-XX:+HeapDumpOnOutOfMemoryError',
-    "-XX:HeapDumpPath=${layout.buildDirectory.dir('heap-dumps/integration').get().asFile.absolutePath}",
-    "-Xlog:gc*,safepoint:file=${layout.buildDirectory.file('logs/integration-gc.log').get().asFile.absolutePath}:time,uptime,level,tags:filecount=3,filesize=20M"
+  configureIntegrationDiagnostics(delegate as Test, 'integration')
   exclude '**/ReportQueueConnectivityIntegrationTest.class'
-  doFirst {
-    layout.buildDirectory.dir('heap-dumps/integration').get().asFile.mkdirs()
-    layout.buildDirectory.dir('logs').get().asFile.mkdirs()
-    pullLatestLegacyStubImageIfLocal()
-  }
   finalizedBy 'packageIntegrationOutput'
 }
+
+registerIntegrationFamilyTask(
+  'integrationBase',
+  'Runs integration tests that use the base integration Spring profile.',
+  integrationBaseTestClasses
+)
+
+registerIntegrationFamilyTask(
+  'integrationOpal',
+  'Runs integration tests that use the Opal Spring profile.',
+  integrationOpalTestClasses
+)
+
+registerIntegrationFamilyTask(
+  'integrationLegacy',
+  'Runs integration tests that use the Legacy Spring profile.',
+  integrationLegacyTestClasses
+)
+
+registerIntegrationFamilyTask(
+  'integrationSecurity',
+  'Runs integration tests that use the Spring Security integration profile.',
+  integrationSecurityTestClasses
+)
 
 tasks.register('checkTestJiraAnnotations', JavaExec) {
   description = "Checks runnable integration and functional tests have Jira story and epic annotations"
@@ -462,12 +559,24 @@ tasks.register('packageIntegrationOutput', Copy) {
   from(layout.buildDirectory.dir("test-results/integration")) {
     into("test-results")
   }
+  from(layout.buildDirectory.dir("reports/tests")) {
+    into("reports")
+    include("integrationBase/**", "integrationOpal/**", "integrationLegacy/**", "integrationSecurity/**")
+  }
+  from(layout.buildDirectory.dir("test-results")) {
+    into("test-results")
+    include("integrationBase/**", "integrationOpal/**", "integrationLegacy/**", "integrationSecurity/**")
+  }
   from(layout.buildDirectory.dir("heap-dumps/integration")) {
     into("heap-dumps")
   }
+  from(layout.buildDirectory.dir("heap-dumps")) {
+    into("heap-dumps")
+    include("integrationBase/**", "integrationOpal/**", "integrationLegacy/**", "integrationSecurity/**")
+  }
   from(layout.buildDirectory.dir("logs")) {
     into("logs")
-    include("integration-gc.log*")
+    include("integration*-gc.log*")
   }
 }
 tasks.register('mergeFunctionalResults', Copy) {
