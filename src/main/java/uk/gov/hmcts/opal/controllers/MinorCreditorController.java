@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -57,7 +58,10 @@ public class MinorCreditorController {
         @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
-        //Thread.sleep(90000);
+        UserState user = userStateService.checkForAuthorisedUser();
+
+        log.info(user.toString());
+
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
 
