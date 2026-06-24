@@ -34,5 +34,12 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     public void testAddEnforcement_whenGivenInvalidDefendant_Fails() throws Exception {
         super.postEnforcementImpl_invalidDefendant_Failure(log);
     }
-}
 
+    @Test
+    @JiraStory("PO-7193")
+    @JiraEpic("PO-1675")
+    public void testAddEnforcement_whenGivenColloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses()
+        throws Exception {
+        super.postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses(log);
+    }
+}
