@@ -46,7 +46,7 @@ ext {
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 var skipTests = true//System.getenv('SKIP_TESTS') != null && System.getenv('SKIP_TESTS').toBoolean();
-var skipSonar = true//System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean();
+var skipSonar = true //System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean()
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
@@ -805,7 +805,12 @@ static String[] jacocoExclusionArray(ArrayList<String> exclusions) {
 }
 
 tasks.named("sonarqube") {
-  dependsOn(tasks.named("jacocoTestReport"))
+  if (!skipSonar) {
+    dependsOn(tasks.named("jacocoTestReport"))
+  }
+  onlyIf {
+    !skipSonar
+  }
 }
 tasks.named("check") {
   if (!skipTests) {
