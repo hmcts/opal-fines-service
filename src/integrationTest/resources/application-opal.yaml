@@ -3,3 +3,4 @@ launchdarkly:
   enabled: false
   default-flag-values:
     release-1b: true
+    release-1c: true
