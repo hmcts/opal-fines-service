@@ -90,8 +90,8 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType_detailed() {
         assertDetailedReportTypeReturnsSortedResults(
             "{\"reportType\": \"DETAILED\"}",
-            LocalDate.of(2026, 7, 1),
-            "01/07/2026",
+            LocalDate.of(2026, 7, 2),
+            "02/07/2026",
             BigDecimal.ZERO
         );
     }
