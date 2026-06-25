@@ -487,3 +487,57 @@ Conclusion:
 - `CentralFundControllerIntegrationTest` now reuses the next standard
   integration context; `ResultControllerIntegrationTest` still creates a unique
   context because it has a `JsonSchemaValidationService` spy.
+
+### 2026-06-25: Removed JWT non-feature LaunchDarkly override
+
+Code changes:
+
+- Removed `launchdarkly.enabled=false` from `JwtControllerIntegrationTest`.
+- The test's feature-disabled scenario is driven by a mocked downstream
+  user-service response, not by the LaunchDarkly bean path.
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationSecurity` | 2 | 2 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This is safe cleanup, but it does not reduce `integrationSecurity` context
+  misses because `JwtControllerIntegrationTest` and `UserStateClientServiceIT`
+  still require separate security contexts.
+
+### 2026-06-25: Replaced schema validation spies with autowired services
+
+Code changes:
+
+- Replaced `@MockitoSpyBean JsonSchemaValidationService` with `@Autowired`
+  `JsonSchemaValidationService` where the tests only call `validateOrError`
+  directly and do not use Mockito spy behaviour.
+
+Files changed:
+
+- `ResultControllerIntegrationTest`
+- `OpalDefendantsSearchIntegrationTest`
+- `LegacyDefendantAccountImpositionsIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationBase` | 29 | 27 | Passed |
+| `integrationOpal` | 9 | 9 | Passed |
+| `integrationLegacy` | 10 | 10 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This produced a measurable base-suite improvement by removing unnecessary spy
+  bean override customizers from `ResultControllerIntegrationTest`.
+- The Opal and Legacy changes are behaviour-safe cleanup but do not reduce
+  misses because those classes still have other unique context-key inputs:
+  feature-flag properties or gateway/user-state mock combinations.
