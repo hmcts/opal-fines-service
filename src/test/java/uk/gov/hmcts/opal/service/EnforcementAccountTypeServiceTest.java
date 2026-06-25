@@ -49,9 +49,10 @@ public class EnforcementAccountTypeServiceTest {
             List<EnforcementAccountTypeEntity> enfAccountTypes = List.of(
                 mock(EnforcementAccountTypeEntity.class)
             );
-            when(repository.findAll(
-                    Sort.by(
-                        Sort.Direction.ASC, TypedPropertyPath.of(EnforcementAccountTypeEntity::getEnforcementAccountTypeId))
+            when(repository.findAll(Sort.by(
+                        Sort.Direction.ASC, TypedPropertyPath.of(
+                            EnforcementAccountTypeEntity::getEnforcementAccountTypeId)
+                    )
                 )
             ).thenReturn(enfAccountTypes);
 
