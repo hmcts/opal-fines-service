@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityManager;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -134,9 +133,6 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     @Mock
     private DefendantAccountControlValidator defendantAccountControlValidator;
-
-    @Mock
-    private EntityManager entityManager;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -1023,7 +1019,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
         assertEquals(0, response.getVersion());
         assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
-        verify(entityManager).refresh(ArgumentMatchers.any(DefendantAccountEntity.class));
+        verify(defendantAccountRepositoryService).refresh(ArgumentMatchers.any(DefendantAccountEntity.class));
     }
 
     private void mockAuthorisedUser() {

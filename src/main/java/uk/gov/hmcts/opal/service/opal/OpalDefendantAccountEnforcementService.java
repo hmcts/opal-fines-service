@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityManager;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
@@ -82,8 +81,6 @@ public class OpalDefendantAccountEnforcementService
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
 
-    private final EntityManager entityManager;
-
     @Override
     @Transactional
     public AddEnforcementResponse addEnforcement(
@@ -140,7 +137,7 @@ public class OpalDefendantAccountEnforcementService
 
         // The stored procedure updates defendant_accounts outside Hibernate. Refresh the managed account so chained
         // payment terms and the response use the latest version and enforcement state.
-        entityManager.refresh(defendant);
+        defendantAccountRepositoryService.refresh(defendant);
 
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
