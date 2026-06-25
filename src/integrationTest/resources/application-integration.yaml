@@ -4,6 +4,10 @@ spring:
     locations: classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
+  datasource:
+    hikari:
+      minimum-idle: 0
+      maximum-pool-size: 4
   main:
     allow-bean-definition-overriding: true
   security:
