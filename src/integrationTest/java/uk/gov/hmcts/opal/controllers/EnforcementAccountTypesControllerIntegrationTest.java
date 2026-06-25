@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,103 +28,133 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.EnforcementAccountTypesControllerIntegrationTest")
 @DisplayName("Enforcement Account Types Integration Test")
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1c-auto-enforcement-config=true"
-})
 public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL = "/enforcement-accounts-types/";
 
-    @Test
-    @JiraStory("PO-2434")
-    @JiraEpic("PO-2433")
-    @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
-        defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
-    )
-    void returnsAllEnforcementAccountTypes_200() throws Exception {
-        setupAuthorisedUser();
-        ResultActions result = mockMvc.perform(
-            get(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-        );
+    @TestPropertySource(properties = {
+        "launchdarkly.enabled=false",
+        "launchdarkly.default-flag-values.release-1c-auto-enforcement-config=true"
+    })
+    @Nested
+    class FeatureOn {
 
-        String body = result.andReturn().getResponse().getContentAsString();
-        result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        @Test
+        @JiraStory("PO-2434")
+        @JiraEpic("PO-2433")
+        @FeatureToggle(
+            feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+            defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+        )
+        void returnsAllEnforcementAccountTypes_200() throws Exception {
+            setupAuthorisedUser();
+            ResultActions result = mockMvc.perform(
+                get(URL)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+            );
 
-        GetEnforcementAccountTypes200Response response = objectMapper.readValue(
-            body, new TypeReference<GetEnforcementAccountTypes200Response>() {
-            }
-        );
-        List<EnforcementAccountTypeCommon.EnforcementAccountTypeEnum> eats = response.getEnforcementAccountTypes()
-            .stream()
-            .map(eat -> eat.getEnforcementAccountType())
-            .toList();
-        assertAll(
-            () -> assertEquals(8, eats.size()),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.AL)),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.AH)),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COL)),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COH)),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COLL)),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COLH)),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.YL)),
-            () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.YH))
-        );
+            String body = result.andReturn().getResponse().getContentAsString();
+            result.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+            GetEnforcementAccountTypes200Response response = objectMapper.readValue(
+                body, new TypeReference<GetEnforcementAccountTypes200Response>() {
+                }
+            );
+            List<EnforcementAccountTypeCommon.EnforcementAccountTypeEnum> eats = response.getEnforcementAccountTypes()
+                .stream()
+                .map(eat -> eat.getEnforcementAccountType())
+                .toList();
+            assertAll(
+                () -> assertEquals(8, eats.size()),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.AL)),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.AH)),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COL)),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COH)),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COLL)),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.COLH)),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.YL)),
+                () -> assertTrue(eats.contains(EnforcementAccountTypeCommon.EnforcementAccountTypeEnum.YH))
+            );
+        }
+
+        @Test
+        @JiraStory("PO-2434")
+        @JiraEpic("PO-2433")
+        @FeatureToggle(
+            feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+            defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+        )
+        void forbiddenWithoutAutoEnforcementPermission() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            ResultActions result = mockMvc.perform(
+                get(URL)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+            );
+
+            result.andExpect(status().isForbidden());
+        }
+
+
+        @Test
+        @JiraStory("PO-2434")
+        @JiraEpic("PO-2433")
+        @FeatureToggle(
+            feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+            defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+        )
+        void deterministicAndIdempotentGET() throws Exception {
+            setupAuthorisedUser();
+            String responseBody1 = callGetAndReturnContentAsString();
+            String responseBody2 = callGetAndReturnContentAsString();
+            String responseBody3 = callGetAndReturnContentAsString();
+
+            assertAll(
+                () -> assertEquals(responseBody1, responseBody2),
+                () -> assertEquals(responseBody2, responseBody3)
+            );
+        }
+
+        private String callGetAndReturnContentAsString() throws Exception {
+            return mockMvc.perform(
+                    get(URL)
+                        .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                        .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                ).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        }
+    }
+
+    @TestPropertySource(properties = {
+        "launchdarkly.enabled=false",
+        "launchdarkly.default-flag-values.release-1c-auto-enforcement-config=false"
+    })
+    @Nested
+    class FeatureOff {
+
+        @Test
+        @JiraStory("PO-2434")
+        @JiraEpic("PO-2433")
+        @FeatureToggle(
+            feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
+            defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
+        )
+        void getAllEnforcementAccountTypes_FeatureOff_404() throws Exception {
+            setupAuthorisedUser();
+            ResultActions result = mockMvc.perform(
+                get(URL)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+            );
+
+            result.andExpect(status().isNotFound());
+        }
     }
 
     private void setupAuthorisedUser() {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 1, FinesPermission.AUTO_ENFORCEMENT);
-    }
-
-    @Test
-    @JiraStory("PO-2434")
-    @JiraEpic("PO-2433")
-    @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
-        defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
-    )
-    void forbiddenWithoutAutoEnforcementPermission() throws Exception {
-        userStateStub.setupWithNoPermissions();
-        ResultActions result = mockMvc.perform(
-            get(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-        );
-
-        result.andExpect(status().isForbidden());
-    }
-
-
-    @Test
-    @JiraStory("PO-2434")
-    @JiraEpic("PO-2433")
-    @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG,
-        defaultValueProperty = FeatureFlags.RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY
-    )
-    void deterministicAndIdempotentGET() throws Exception {
-        setupAuthorisedUser();
-        String responseBody1 = callGetAndReturnContentAsString();
-        String responseBody2 = callGetAndReturnContentAsString();
-        String responseBody3 = callGetAndReturnContentAsString();
-
-        assertAll(
-            () -> assertEquals(responseBody1, responseBody2),
-            () -> assertEquals(responseBody2, responseBody3)
-        );
-    }
-
-    private String callGetAndReturnContentAsString() throws Exception {
-        return mockMvc.perform(
-                get(URL)
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-            ).andExpect(status().isOk())
-            .andReturn().getResponse().getContentAsString();
     }
 }
