@@ -743,3 +743,35 @@ Conclusion:
   heavy retained resources per context, especially datasource pools.
 - Sustainable fixes should continue reducing unique context keys and should
   also consider explicit integration-test datasource pool limits.
+
+### 2026-06-25: Added explicit integration-test Hikari pool limits
+
+Code changes:
+
+- Added integration-test datasource pool limits in:
+  - `src/integrationTest/resources/application-integration.yaml`
+  - `src/integrationTest/resources/application-integration-with-spring-security.yaml`
+- Set `spring.datasource.hikari.minimum-idle=0`.
+- Set `spring.datasource.hikari.maximum-pool-size=4`.
+
+Validation:
+
+| Task | Result | Notes |
+| --- | --- | --- |
+| `processIntegrationTestResources` | Passed | YAML processed successfully |
+| `integration` | Passed | 2m 20s |
+| `checkstyleIntegrationTest` | Passed | n/a |
+
+Observed cache stats after the change:
+
+- Maximum `missCount`: 44
+- Maximum `hitCount`: 11764
+- Cache `maxSize`: 4
+
+Conclusion:
+
+- This does not reduce the number of distinct Spring context keys.
+- It reduces the retained database connection footprint of each cached
+  integration-test context compared with production datasource defaults.
+- This directly addresses the resource-retention side of the OOM/root-cause
+  investigation while keeping the full integration suite green.
