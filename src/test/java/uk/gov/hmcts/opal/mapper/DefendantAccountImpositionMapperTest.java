@@ -354,36 +354,14 @@ class DefendantAccountImpositionMapperTest {
 
     @Test
     void toImposition_shouldCalculateBalanceCorrectlyWhenImposedAmountIsNegative() {
-        DefendantAccountImpositionData impositionData = new DefendantAccountImpositionData(
-            551002L,
-            7L,
-            DefendantAccountType.FINES,
-            551005L,
-            null,
-            null,
-            null,
-            551004L,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            new BigDecimal("-50.00"),
-            new BigDecimal("10.00"),
-            5510L,
-            " ",
-            null,
-            "\t",
-            null,
-            null,
-            null,
-            null
-        );
+        DefendantAccountImpositionData impositionData =
+            new DefendantAccountImpositionData(551002L, 7L, DefendantAccountType.FINES,
+                551005L, null, null, null, 551004L,
+                null, null, null, null,
+                null, null, null,
+                null, null, null, new BigDecimal("-50.00"),
+                new BigDecimal("10.00"), 5510L, " ", null,
+                "\t", null, null, null, null);
 
         DefendantAccountImpositionCommon result = mapper.toImposition(impositionData);
         assertEquals(new BigDecimal("-40.00"), result.getBalance());
@@ -391,36 +369,14 @@ class DefendantAccountImpositionMapperTest {
 
     @Test
     void toImposition_shouldCalculateBalanceCorrectlyWhenImposedAmountIsPositive() {
-        DefendantAccountImpositionData impositionData = new DefendantAccountImpositionData(
-            551002L,
-            7L,
-            DefendantAccountType.FINES,
-            551005L,
-            null,
-            null,
-            null,
-            551004L,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            new BigDecimal("50.00"),
-            new BigDecimal("10.00"),
-            5510L,
-            " ",
-            null,
-            "\t",
-            null,
-            null,
-            null,
-            null
-        );
+        DefendantAccountImpositionData impositionData =
+            new DefendantAccountImpositionData(551002L, 7L, DefendantAccountType.FINES,
+                551005L, null, null, null, 551004L,
+                null, null, null, null,
+                null, null, null,
+                null, null, null, new BigDecimal("50.00"),
+                new BigDecimal("10.00"), 5510L, " ", null,
+                "\t", null, null, null, null);
 
         DefendantAccountImpositionCommon result = mapper.toImposition(impositionData);
         assertEquals(new BigDecimal("40.00"), result.getBalance());
