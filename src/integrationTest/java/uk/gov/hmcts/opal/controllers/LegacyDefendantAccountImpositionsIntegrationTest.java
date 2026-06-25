@@ -26,7 +26,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MvcResult;
@@ -54,10 +53,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "legacy"})
 @DisplayName("Legacy Defendant Account Impositions Integration Tests")
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";

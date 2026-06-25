@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -21,10 +20,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 @DisplayName("Major Creditor Account Header Summary Opal Integration Tests")
 @Slf4j(topic = "opal.OpalMajorCreditorAccountHeaderSummaryIntegrationTest")
 class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractIntegrationTest {

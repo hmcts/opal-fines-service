@@ -283,3 +283,52 @@ Concrete high-churn candidates:
 - Legacy family: many tests repeat `launchdarkly.enabled=false` and
   `release-1b=true`; these should be a shared profile or composed annotation
   instead of per-class inline properties.
+
+### 2026-06-25: Removed redundant LaunchDarkly property overrides
+
+Code changes:
+
+- Removed redundant `@TestPropertySource` declarations from Opal tests where
+  `application-opal.yaml` already provides:
+  - `launchdarkly.enabled=false`
+  - `launchdarkly.default-flag-values.release-1b=true`
+- Removed redundant `@TestPropertySource` declarations from Legacy tests where
+  `application-legacy.yaml` plus `application-integration.yaml` already provide:
+  - `launchdarkly.enabled=false`
+  - `launchdarkly.default-flag-values.release-1b=true`
+
+Files changed:
+
+- `OpalMinorCreditorIntegrationTest`
+- `MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest`
+- `OpalDefendantAccountHistoryIntegrationTest`
+- `OpalMajorCreditorAccountAtAGlanceIntegrationTest`
+- `OpalMajorCreditorAccountHeaderSummaryIntegrationTest`
+- `LegacyMinorCreditorPatchStubIntegrationTest`
+- `LegacyDefendantAccountImpositionsIntegrationTest`
+- `LegacyMinorCreditorIntegrationTest`
+- `LegacyMinorCreditorPatchIntegrationTest`
+- `LegacyMajorCreditorAccountHeaderSummaryIntegrationTest`
+- `LegacyMajorCreditorAccountAtAGlanceIntegrationTest`
+- `LegacyDefendantsSearchIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationOpal` | 15 | 10 | Passed |
+| `integrationLegacy` | 11 | 10 | Passed |
+| `integration` | not previously captured | 55 | Passed |
+
+Conclusion:
+
+- Removing redundant inline properties measurably reduced context churn in the
+  Opal group and modestly reduced it in the Legacy group.
+- This confirms that per-class `@TestPropertySource` entries were contributing
+  to distinct Spring Test context keys even when they repeated profile defaults.
+- Remaining churn is now more likely from genuinely different feature-flag
+  values and per-class mock/spy bean customizers.
+- The full integration task now has a local Docker/Testcontainers baseline:
+  `missCount = 55`, `maxSize = 4`, `hitCount = 11915`, `failureCount = 0`,
+  99 XML suites, and no heap failure.
