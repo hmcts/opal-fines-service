@@ -36,9 +36,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import uk.gov.hmcts.opal.dto.print.PrintJobDto;
 import uk.gov.hmcts.opal.entity.print.PrintDefinitionEntity;
 import uk.gov.hmcts.opal.entity.print.PrintJobEntity;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
+import uk.gov.hmcts.opal.mapper.print.PrintJobMapper;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 
@@ -51,6 +53,9 @@ class PrintServiceTest {
     @Mock
     private PrintJobRepository printJobRepository;
 
+    @Mock
+    private PrintJobMapper printJobMapper;
+
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
@@ -60,22 +65,28 @@ class PrintServiceTest {
     private PrintJobEntity printJobEntity1;
     private PrintJobEntity printJobEntity2;
     private PrintJobEntity printJobEntity;
+    private PrintJobDto printJobDto1;
+    private PrintJobDto printJobDto2;
+    private PrintJobDto printJobDto;
     private PrintDefinitionEntity printDefinitionEntity;
 
     @BeforeEach
     void setUp() {
         // Setup for savePrintJobs test
+        printJobDto1 = new PrintJobDto();
         printJobEntity1 = new PrintJobEntity();
         printJobEntity1.setXmlData("<xml>Data1</xml>");
         printJobEntity1.setDocType("docType1");
         printJobEntity1.setDocVersion("1.0");
 
+        printJobDto2 = new PrintJobDto();
         printJobEntity2 = new PrintJobEntity();
         printJobEntity2.setXmlData("<xml>Data2</xml>");
         printJobEntity2.setDocType("docType2");
         printJobEntity2.setDocVersion("1.0");
 
         // Setup for generatePdf test
+        printJobDto = new PrintJobDto();
         printJobEntity = new PrintJobEntity();
         printJobEntity.setDocType("docType1");
         printJobEntity.setDocVersion("1.0");
@@ -108,10 +119,12 @@ class PrintServiceTest {
     @Test
     void testSavePrintJobs() {
         // Arrange
+        List<PrintJobDto> printJobDtos = Arrays.asList(printJobDto1, printJobDto2);
         List<PrintJobEntity> printJobEntities = Arrays.asList(printJobEntity1, printJobEntity2);
+        when(printJobMapper.toEntities(printJobDtos)).thenReturn(printJobEntities);
 
         // Act
-        UUID batchId = printService.savePrintJobs(printJobEntities);
+        UUID batchId = printService.savePrintJobs(printJobDtos);
 
         // Assert
         assertEquals(printJobEntity1.getBatchId(), batchId);
@@ -123,6 +136,7 @@ class PrintServiceTest {
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity2.getCreatedAt());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity2.getUpdatedAt());
 
+        verify(printJobMapper, times(1)).toEntities(printJobDtos);
         verify(printJobRepository, times(2)).save(any(PrintJobEntity.class));
     }
 
@@ -130,15 +144,17 @@ class PrintServiceTest {
     void testGeneratePdf() throws Exception {
 
         // Arrange
+        when(printJobMapper.toEntity(printJobDto)).thenReturn(printJobEntity);
         when(printDefinitionRepository.findByDocTypeAndTemplateId("docType1", "1.0"))
             .thenReturn(printDefinitionEntity);
 
         // Act
-        byte[] pdfBytes = printService.generatePdf(printJobEntity);
+        byte[] pdfBytes = printService.generatePdf(printJobDto);
 
         // Assert
         assertNotNull(pdfBytes);
         assertTrue(pdfBytes.length > 0);
+        verify(printJobMapper, times(1)).toEntity(printJobDto);
 
         // Validate the content of the PDF using PDFBox
         try (PDDocument document = Loader.loadPDF(pdfBytes)) {
