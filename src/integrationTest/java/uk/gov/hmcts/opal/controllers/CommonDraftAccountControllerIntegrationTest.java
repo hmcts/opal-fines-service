@@ -11,9 +11,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
@@ -50,7 +50,7 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     @MockitoBean
     SecurityEventLoggingService securityEventLoggingService;
 
-    @MockitoSpyBean
+    @Autowired
     JsonSchemaValidationService jsonSchemaValidationService;
 
     @MockitoBean

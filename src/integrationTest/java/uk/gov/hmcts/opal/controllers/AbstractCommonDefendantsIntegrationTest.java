@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -39,7 +38,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
     @Autowired
     JdbcTemplate jdbcTemplate;
 
-    @MockitoSpyBean
+    @Autowired
     JsonSchemaValidationService jsonSchemaValidationService;
 
 

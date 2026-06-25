@@ -601,3 +601,33 @@ Conclusion:
 - The base suite improved by one additional context miss.
 - The shared minor-creditor cleanup also reduced Legacy context churn by two
   misses while remaining neutral for Opal.
+
+### 2026-06-25: Converted shared draft and defendant schema validators
+
+Code changes:
+
+- Replaced direct-use `@MockitoSpyBean JsonSchemaValidationService` with
+  `@Autowired` in shared test base classes.
+
+Files changed:
+
+- `CommonDraftAccountControllerIntegrationTest`
+- `AbstractCommonDefendantsIntegrationTest`
+- `AbstractOpalDefendantsIntegrationTest`
+- `AbstractLegacyDefendantsIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationBase` | 23 | 23 | Passed |
+| `integrationOpal` | 9 | 9 | Passed |
+| `integrationLegacy` | 8 | 7 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This is safe cleanup for the draft and defendant test hierarchy.
+- It reduced Legacy context churn by one additional miss, while Base and Opal
+  remained unchanged because other context-key differences still dominate there.
