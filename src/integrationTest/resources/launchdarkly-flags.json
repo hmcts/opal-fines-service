@@ -36,18 +36,6 @@
         "variation": 0
       },
       "offVariation": 1
-    },
-    "release-1c-auto-enforcement-config": {
-      "key": "release-1c-auto-enforcement-config",
-      "on": true,
-      "variations": [
-        true,
-        false
-      ],
-      "fallthrough": {
-        "variation": 0
-      },
-      "offVariation": 1
     }
   }
 }

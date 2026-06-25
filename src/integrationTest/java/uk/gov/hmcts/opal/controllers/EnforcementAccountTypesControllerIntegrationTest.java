@@ -1,10 +1,19 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.core.type.TypeReference;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -16,18 +25,14 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @Slf4j(topic = "opal.EnforcementAccountTypesControllerIntegrationTest")
 @DisplayName("Enforcement Account Types Integration Test")
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1c-auto-enforcement-config=true"
+})
 public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIntegrationTest {
+
     private static final String URL = "/enforcement-accounts-types/";
 
     @Test
@@ -50,7 +55,8 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         GetEnforcementAccountTypes200Response response = objectMapper.readValue(
-            body, new TypeReference<GetEnforcementAccountTypes200Response>(){}
+            body, new TypeReference<GetEnforcementAccountTypes200Response>() {
+            }
         );
         List<EnforcementAccountTypeCommon.EnforcementAccountTypeEnum> eats = response.getEnforcementAccountTypes()
             .stream()
