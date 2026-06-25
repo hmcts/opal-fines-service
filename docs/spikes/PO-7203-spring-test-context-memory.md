@@ -195,6 +195,8 @@ Ticket questions answered:
 - After bounding datasource pools, a moderate cache size of 8 was validated
   locally and reduced full-suite context misses further from 44 to 41 without
   reproducing the connection exhaustion seen at cache size 32.
+- Further release-1b feature-toggle cleanup reduced the full-suite miss count
+  to 40 and the Base split to 19.
 
 Remaining work before removing the Jenkins mitigations:
 
@@ -205,6 +207,18 @@ Remaining work before removing the Jenkins mitigations:
   `@SpringBootTest` coverage is not needed.
 - Re-test cache size after context-key reduction; do not simply restore Spring's
   default cache size while contexts remain this heavy.
+
+Team context:
+
+- Initial write-up was shared with Marc as a likely Spring test context
+  fragmentation issue.
+- Marc agreed the direction looked right from a brief review and asked for the
+  findings to be written up on the ticket/Confluence.
+- The requested next step is a branch that starts to fix the issue and shows
+  considerable measurable improvement, not just investigation notes.
+- Current branch now includes both evidence and first remediation steps:
+  context miss reduction, integration-test datasource pool limits, split test
+  tasks, diagnostics, and a validated moderate cache-size increase.
 
 ## Next validation step
 
@@ -839,3 +853,65 @@ Conclusion:
   at cache size 32.
 - This is still not a reason to restore Spring's default cache size; further
   context-key consolidation is needed before trying larger values.
+
+### 2026-06-25: Removed unnecessary release-1b disabled search mock
+
+Code changes:
+
+- Removed the `@MockitoBean DefendantAccountService` from
+  `DefendantAccountSearchRelease1bDisabledIntegrationTest`.
+- Removed the `verifyNoInteractions` assertion from that test; the feature
+  disabled 404 remains the behaviour under test.
+- Removed the redundant `release-1c=true` inline override from the same test.
+- Aligned `ResultControllerRelease1bDisabledIntegrationTest` property ordering
+  with the other release-1b-disabled tests.
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| Focused affected tests | n/a | n/a | Passed |
+| `integrationBase` | 24 | 19 | Passed |
+| `integration` | 41 | 40 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Observed full-suite cache stats after the change:
+
+- Maximum `missCount`: 40
+- Maximum `hitCount`: 11768
+- Cache `maxSize`: 8
+
+Conclusion:
+
+- The release-1b disabled search test no longer creates its own Spring context
+  just to verify that a downstream service was not called.
+- This is a higher-value fix than the earlier direct-use spy removals because
+  it eliminates a Spring-level bean override from a feature-toggle path and
+  allows more release-1b disabled tests to reuse existing contexts.
+- Full-suite context misses are now down from 55 to 40 while the integration
+  suite remains green.
+
+### 2026-06-25: Removed legacy feature-disabled gateway mock
+
+Code changes:
+
+- Removed `@MockitoBean GatewayService` from
+  `MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest`.
+- Removed the corresponding `verifyNoInteractions` assertion.
+- The test still verifies the feature-disabled 404 response.
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| Focused affected test | n/a | n/a | Passed |
+| `integrationLegacy` | 7 | 7 | Passed |
+| `integration` | 40 | 40 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This did not reduce the measured miss count because the legacy
+  release-1b-disabled profile/property combination is still a distinct context.
+- It still removes an unnecessary Spring-level bean override from a
+  feature-disabled path and reduces retained mock/test customizer complexity.
