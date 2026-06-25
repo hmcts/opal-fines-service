@@ -1,15 +1,14 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
 
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 import static uk.gov.hmcts.opal.service.DraftAccountService.EVENT_ACCOUNT_APPROVAL;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.Clock;
@@ -29,6 +28,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -237,6 +239,20 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         dbDraftAccount.setTimelineData(entity.getTimelineData());
 
         return draftAccountRepository.save(dbDraftAccount);
+    }
+
+    @Transactional
+    public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity) {
+        Map<String, Object> outputs = publishAccountStoredProc(publishEntity);
+
+        String accountNumber = outputs.getOrDefault(DEF_ACC_NO, "<null>").toString();
+        Long accountId = Long.parseLong(outputs.getOrDefault(DEF_ACC_ID, "0").toString());
+        log.debug(":publishDefendantAccount: \n\nPublished,  account number: {}, account id: {}\n\n",
+            accountNumber, accountId);
+
+        publishEntity.setAccountId(accountId);
+        publishEntity.setAccountNumber(accountNumber);
+        return updateStatus(publishEntity, DraftAccountStatus.PUBLISHED, this);
     }
 
     @Transactional

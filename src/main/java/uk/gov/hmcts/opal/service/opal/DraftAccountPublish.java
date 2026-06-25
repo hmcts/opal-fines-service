@@ -1,11 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
-import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
-
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -33,18 +29,7 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
         log.debug(":publishDefendantAccount: About to call Out to Opal PostgreSQL Stored Procedure");
 
         try {
-            Map<String, Object> outputs = draftAccountTransactional.publishAccountStoredProc(publishEntity);
-
-            String accountNumber = outputs.getOrDefault(DEF_ACC_NO, "<null>").toString();
-            Long accountId = Long.parseLong(outputs.getOrDefault(DEF_ACC_ID, "0").toString());
-            log.debug(":publishDefendantAccount: \n\nPublished,  account number: {}, account id: {}\n\n",
-                     accountNumber, accountId);
-
-            publishEntity.setAccountId(accountId);
-            publishEntity.setAccountNumber(accountNumber);
-            return draftAccountTransactional.updateStatus(publishEntity, DraftAccountStatus.PUBLISHED,
-                                                          draftAccountTransactional
-            );
+            return draftAccountTransactional.publishDefendantAccount(publishEntity);
         } catch (JpaSystemException | InvalidDataAccessApiUsageException e) {
             log.error(":publishDefendantAccount: Error Class: {}", e.getClass().getName());
             log.error(":publishDefendantAccount: ", e);
@@ -57,11 +42,18 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
                 LocalDate.now(clock), reason
             );
 
-            publishEntity.setTimelineData(timelineData.toJson());
-            publishEntity.setStatusMessage(LogUtil.ERRMSG_STORED_PROC_FAILURE);
-            return draftAccountTransactional.updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED,
-                                                          draftAccountTransactional
+            DraftAccountEntity failedUpdate = new DraftAccountEntity();
+            failedUpdate.setDraftAccountId(publishEntity.getDraftAccountId());
+            failedUpdate.setTimelineData(timelineData.toJson());
+            failedUpdate.setStatusMessage(LogUtil.ERRMSG_STORED_PROC_FAILURE);
+            failedUpdate.setVersionNumber(publishEntity.getVersionNumber());
+
+            draftAccountTransactional.updateStatus(
+                failedUpdate,
+                DraftAccountStatus.PUBLISHING_FAILED,
+                draftAccountTransactional
             );
+            throw e;
         }
     }
 }
