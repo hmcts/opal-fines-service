@@ -679,3 +679,26 @@ Conclusion:
   churn by one additional miss.
 - Remaining spies now appear to be deliberate test doubles for gateway/service
   verification or forced error paths.
+
+### 2026-06-25: Re-ran full integration suite after cleanup
+
+Validation:
+
+| Task | Earlier full-run misses | Current full-run misses | Result |
+| --- | ---: | ---: | --- |
+| `integration` | 55 | 44 | Passed |
+
+Observed cache stats:
+
+- Maximum `missCount`: 44
+- Maximum `hitCount`: 11764
+- Cache `maxSize`: 4
+- Failure count: 0
+
+Conclusion:
+
+- The accumulated context-key cleanup reduced the full integration suite from
+  55 to 44 context misses while keeping the suite green.
+- The remaining cache churn is no longer obviously caused by direct-use spies;
+  the remaining spies are tied to stubbing, verification, or forced error
+  paths and would need deliberate test redesign rather than mechanical removal.
