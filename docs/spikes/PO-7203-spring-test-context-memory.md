@@ -541,3 +541,34 @@ Conclusion:
 - The Opal and Legacy changes are behaviour-safe cleanup but do not reduce
   misses because those classes still have other unique context-key inputs:
   feature-flag properties or gateway/user-state mock combinations.
+
+### 2026-06-25: Removed additional base controller spy customizers
+
+Code changes:
+
+- Replaced direct-use `@MockitoSpyBean` dependencies with `@Autowired`
+  dependencies in base controller integration tests.
+- The converted dependencies are called directly by the tests and are not
+  stubbed or verified through Mockito.
+
+Files changed:
+
+- `BusinessUnitControllerIntegrationTest`
+- `CourtControllerIntegrationTest`
+- `LocalJusticeAreaControllerIntegrationTest`
+- `MajorCreditorControllerIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationBase` | 27 | 24 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- Removing unnecessary spy bean override customizers is now the highest-value
+  fix pattern for the base suite.
+- `integrationBase` has reduced from the original measured baseline of 30 misses
+  to 24 misses across the LaunchDarkly and spy-cleanup changes.
