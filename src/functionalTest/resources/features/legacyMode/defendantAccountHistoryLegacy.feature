@@ -1,9 +1,9 @@
-@Opal @JIRA-LABEL:account-enquiry
-Feature: Defendant Account History
+@Legacy @JIRA-LABEL:account-enquiry
+Feature: Defendant Account History API In Legacy Mode
 
-  @cleanUpData @JIRA-STORY:PO-2622 @JIRA-EPIC:PO-2621
+  @cleanUpData @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621
   Scenario: E2E.01 Happy path history retrieval
-    Given a defendant account with history exists for submitted by "DEFHST001"
+    Given a defendant account with history exists for submitted by "DEFHST101"
     When I request defendant account history for the created defendant account
     Then the defendant account history response is returned as documented
     And the defendant account history contains at least the following item counts
@@ -16,9 +16,9 @@ Feature: Defendant Account History
     And the defendant account history contains seeded enforcement history
     And the defendant account history is ordered newest first
 
-  @cleanUpData @JIRA-STORY:PO-2622 @JIRA-EPIC:PO-2621
+  @cleanUpData @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621
   Scenario: E2E.02 Filter contract and idempotence
-    Given a defendant account with history exists for submitted by "DEFHST002"
+    Given a defendant account with history exists for submitted by "DEFHST102"
     When I request defendant account history for the created defendant account
     Then the defendant account history response is returned as documented
     And I remember the returned defendant account history date range
@@ -47,9 +47,9 @@ Feature: Defendant Account History
     When I request defendant account history for the created defendant account using the remembered date range and itemTypes "enforcement,note,paymentTerms" twice
     Then the repeated defendant account history responses are identical
 
-  @cleanUpData @JIRA-STORY:PO-2622 @JIRA-EPIC:PO-2621 @JIRA-NFR:PO-2507
+  @cleanUpData @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621 @JIRA-NFR:PO-2507
   Scenario: E2E.03 Authentication and authorization
-    Given a defendant account with history exists for submitted by "DEFHST003"
+    Given a defendant account with history exists for submitted by "DEFHST103"
     When I request defendant account history for the created defendant account without a token
     Then the defendant account history error response matches the standard problem detail contract for status 401
     When the "opal-test-2@dev.platform.hmcts.net" user requests defendant account history for the created defendant account
@@ -57,7 +57,7 @@ Feature: Defendant Account History
     When the "opal-test@dev.platform.hmcts.net" user requests defendant account history for the created defendant account
     Then the defendant account history request succeeds
 
-  @JIRA-STORY:PO-2622 @JIRA-EPIC:PO-2621
+  @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621
   Scenario: E2E.04 Not found behaviour
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request defendant account history for a non-existent defendant account
