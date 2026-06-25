@@ -17,8 +17,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -50,7 +50,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
 
 
-    @MockitoSpyBean
+    @Autowired
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {

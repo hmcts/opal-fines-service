@@ -572,3 +572,32 @@ Conclusion:
   fix pattern for the base suite.
 - `integrationBase` has reduced from the original measured baseline of 30 misses
   to 24 misses across the LaunchDarkly and spy-cleanup changes.
+
+### 2026-06-25: Converted further direct-use schema validation spies
+
+Code changes:
+
+- Replaced `@MockitoSpyBean JsonSchemaValidationService` with `@Autowired`
+  where the tests only call the real validation service directly.
+
+Files changed:
+
+- `ProsecutorControllerIntegrationTest`
+- `OffenceControllerIntegrationTest`
+- `MinorCreditorControllerIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationBase` | 24 | 23 | Passed |
+| `integrationOpal` | 9 | 9 | Passed |
+| `integrationLegacy` | 10 | 8 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- The base suite improved by one additional context miss.
+- The shared minor-creditor cleanup also reduced Legacy context churn by two
+  misses while remaining neutral for Opal.
