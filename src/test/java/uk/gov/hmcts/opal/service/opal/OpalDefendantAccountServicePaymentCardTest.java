@@ -114,8 +114,6 @@ class OpalDefendantAccountServicePaymentCardTest {
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
-        doThrow(new EntityNotFoundException("Defendant Account not found in business unit 10"))
-            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, "10");
 
         assertThrows(EntityNotFoundException.class, () ->
             service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"1\"")
@@ -163,8 +161,6 @@ class OpalDefendantAccountServicePaymentCardTest {
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
-        doThrow(new EntityNotFoundException("Defendant Account not found in business unit 10"))
-            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, "10");
 
         assertThrows(EntityNotFoundException.class, () ->
             service.addPaymentCardRequest(1L, "10", "BU-USER-123", "John Smith", "\"1\"")

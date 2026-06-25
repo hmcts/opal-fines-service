@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -132,5 +133,32 @@ public class DefendantAccountEntityTest {
 
         // Test toString method
         assertNotNull(defendantAccount1.toString());
+    }
+
+    @Test
+    void isInBusinessUnit_returnsTrueWhenBusinessUnitMatches() {
+        DefendantAccountEntity defendantAccount = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 78).build())
+            .build();
+
+        assertTrue(defendantAccount.isInBusinessUnit("78"));
+    }
+
+    @Test
+    void isInBusinessUnit_returnsFalseWhenBusinessUnitDoesNotMatch() {
+        DefendantAccountEntity defendantAccount = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 77).build())
+            .build();
+
+        assertFalse(defendantAccount.isInBusinessUnit("78"));
+    }
+
+    @Test
+    void isInBusinessUnit_returnsFalseWhenBusinessUnitIsMissing() {
+        DefendantAccountEntity defendantAccount = DefendantAccountEntity.builder()
+            .businessUnit(null)
+            .build();
+
+        assertFalse(defendantAccount.isInBusinessUnit("78"));
     }
 }

@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -132,6 +133,12 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     void postEnforcementImpl_fullRequest_blockedByAccountControls(Logger log) throws Exception {
+        final Integer versionBeforeRequest = getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer enforcementCountBeforeRequest =
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer paymentTermCountBeforeRequest =
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)
             .enforcementResultResponses(scriptedFullResponses)
@@ -153,9 +160,20 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             ))
             .andExpect(jsonPath("retriable").value(false));
 
+        assertEquals(versionBeforeRequest, getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(enforcementCountBeforeRequest,
+                     countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(paymentTermCountBeforeRequest,
+                     countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
     }
 
     void postEnforcementImpl_minimumRequest_blockedByAccountControls(Logger log) throws Exception {
+        final Integer versionBeforeRequest = getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer enforcementCountBeforeRequest =
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer paymentTermCountBeforeRequest =
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+
         AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
             .resultId(ResultId.ABDC)
             .enforcementResultResponses(Collections.emptyList())
@@ -177,6 +195,11 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             ))
             .andExpect(jsonPath("retriable").value(false));
 
+        assertEquals(versionBeforeRequest, getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(enforcementCountBeforeRequest,
+                     countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(paymentTermCountBeforeRequest,
+                     countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
     }
 
     void postEnforcementImpl_invalidDefendant_Failure(Logger log) throws Exception {
@@ -270,6 +293,22 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
     private Integer getCurrentDefendantAccountVersion(Long defendantAccountId) {
         return defendantAccountVersionFor(defendantAccountId);
+    }
+
+    private Integer countEnforcementsForDefendantAccount(Long defendantAccountId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM enforcements WHERE defendant_account_id = ?",
+            Integer.class,
+            defendantAccountId
+        );
+    }
+
+    private Integer countPaymentTermsForDefendantAccount(Long defendantAccountId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM payment_terms WHERE defendant_account_id = ?",
+            Integer.class,
+            defendantAccountId
+        );
     }
 
     private ResultActions postScriptedEnforcement(AddDefendantAccountEnforcementRequest request) throws Exception {

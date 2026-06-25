@@ -127,8 +127,6 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
     @Test
     void removeDefendantAccountParty_whenBusinessUnitMismatch_throwsEntityNotFoundException() {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
-        doThrow(new EntityNotFoundException("Defendant Account not found in business unit 11"))
-            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, "11");
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(

@@ -1313,3 +1313,15 @@ INSERT INTO defendant_transactions
 VALUES (990001, 990001, 'CONSOL',
         'defendant_accounts', '2023-11-03 16:05:10', '01000000A');
 -- END TEST DATA: PO-1896 - Seed data for DefendantAccountHeaderSummary
+
+-- PO-5757 account controls multi-failure seed data
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number,
+  amount_paid, account_balance, amount_imposed, account_status, last_enforcement,
+  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+  collection_order, payment_card_requested )
+VALUES (575700, 0, 78, '575700A',
+        0.00, 0.00, 0.00, 'CS', 'MPSO',
+        '575700PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+ON CONFLICT (defendant_account_id) DO NOTHING;

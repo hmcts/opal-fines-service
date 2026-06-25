@@ -158,8 +158,6 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
-        doThrow(new EntityNotFoundException("Defendant Account not found in business unit 10"))
-            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, "10");
 
         assertThrows(EntityNotFoundException.class, () ->
             service.replaceDefendantAccountParty(accountId, 1L,
