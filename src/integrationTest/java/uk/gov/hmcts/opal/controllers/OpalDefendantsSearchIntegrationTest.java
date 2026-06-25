@@ -117,7 +117,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "forenames": "Anna",
                             "exact_match_forenames": true,
                             "birth_date": "1980-02-03",
-                            "national_insurance_number": "A11111A"
+                            "national_insurance_number": null
                           },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -160,7 +160,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                            "forenames": "Anna",
                            "exact_match_forenames": true,
                            "birth_date": "1980-02-03",
-                           "national_insurance_number": "A11111A"
+                           "national_insurance_number": null
                          },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -206,7 +206,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                                     "forenames": "Anna",
                                     "exact_match_forenames": true,
                                     "birth_date": "1980-02-03",
-                                    "national_insurance_number": "A11111A"
+                                    "national_insurance_number": null
                                      },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -340,7 +340,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = {false, true})
-    @DisplayName("OPAL: NI starts-with (A111) -> 1 record")
+    @DisplayName("OPAL: NI starts-with (A111) includes matching account")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
     @JiraTestKey(value = "PO-8478", name = "consolidated=false")
@@ -359,15 +359,15 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                       "defendant": {
                         "include_aliases": true,
                         "organisation": false,
-                        "address_line_1": "Lumber House",
-                        "postcode": "MA4 1AL",
+                        "address_line_1": null,
+                        "postcode": null,
                         "organisation_name": null,
                         "exact_match_organisation_name": null,
-                        "surname": "Graham",
-                        "exact_match_surname": true,
-                        "forenames": "Anna",
-                        "exact_match_forenames": true,
-                        "birth_date": "1980-02-03",
+                        "surname": null,
+                        "exact_match_surname": null,
+                        "forenames": null,
+                        "exact_match_forenames": null,
+                        "birth_date": null,
                         "national_insurance_number": "A111"
                      },
                          "consolidation_search": %s
@@ -378,10 +378,12 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
-            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.count").value(6))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].account_number")
+                .value("177A"))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].business_unit_id")
+                .value("78"));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -414,7 +416,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "forenames": "Anna",
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                      },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -462,7 +464,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "forenames": "Anna",
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                       },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -511,7 +513,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "forenames": "Anna",
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                       },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -560,7 +562,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "forenames": "Anna",
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                      },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -724,7 +726,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "address_line_1": "Lumber House",
                         "postcode": "MA4 1AL",
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                       },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -820,7 +822,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "address_line_1": "Lumber House",
                         "postcode": "MA4 1AL",
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                       },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -865,7 +867,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "address_line_1": "Lumber House",
                         "postcode": "MA4 1AL",
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                       },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -982,7 +984,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                              "address_line_1": "Lumber House",
                              "postcode": "MA4 1AL",
                              "birth_date": "1980-02-03",
-                             "national_insurance_number": "A11111A"
+                             "national_insurance_number": null
                           },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -1025,7 +1027,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                             "organisation_name": null,
                             "exact_match_organisation_name": null,
                             "birth_date": "1980-01-01",
-                            "national_insurance_number": "XX999999X"
+                            "national_insurance_number": null
                          },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -1079,7 +1081,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists());
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -1157,7 +1159,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                         "forenames": "Anna",
                         "exact_match_forenames": true,
                         "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
+                        "national_insurance_number": null
                      },
                          "consolidation_search": %s
                     }""".formatted(consolidation)));
@@ -1167,20 +1169,20 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists());
     }
 
     // AC3a: Active accounts only filtering tests
 
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = {false, true})
-    @DisplayName("AC1: Multi-parameter search - address + NI number (both must match) [@PO-710]")
+    @DisplayName("AC1: NI number search matches account [@PO-710]")
     @JiraStory("PO-710")
     @JiraEpic("PO-704")
     @JiraTestKey(value = "PO-8490", name = "consolidated=false")
     @JiraTestKey(value = "PO-8491", name = "consolidated=true")
     void testPostDefendantAccountsSearch_AC1_AddressAndNI(boolean consolidation) throws Exception {
-        // Search with address line 1 starting "Lumber" AND NI starting "A111" - should match account 77
+        // NI searches are exclusive, so only the national insurance number is populated.
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
 
@@ -1194,15 +1196,15 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                       "defendant": {
                         "include_aliases": false,
                         "organisation": false,
-                        "address_line_1": "Lumber",
-                        "postcode": "MA4 1AL",
+                        "address_line_1": null,
+                        "postcode": null,
                         "organisation_name": null,
                         "exact_match_organisation_name": null,
-                        "surname": "Graham",
-                        "exact_match_surname": true,
-                        "forenames": "Anna",
-                        "exact_match_forenames": true,
-                        "birth_date": "1980-02-03",
+                        "surname": null,
+                        "exact_match_surname": null,
+                        "forenames": null,
+                        "exact_match_forenames": null,
+                        "birth_date": null,
                         "national_insurance_number": "A111"
                      },
                          "consolidation_search": %s
@@ -1212,8 +1214,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         log.info(":testPostDefendantAccountsSearch_AC1_AddressAndNI: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
-        actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
+        actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(6))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists());
     }
 
     // AC5a: Forenames match filtering tests
@@ -2083,7 +2085,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                 "forenames": "Anna",
                 "exact_match_forenames": true,
                 "birth_date": "1980-02-03",
-                "national_insurance_number": "A11111A"
+                "national_insurance_number": null
               },
               "consolidation_search": %s
             }""".formatted(consolidation);
