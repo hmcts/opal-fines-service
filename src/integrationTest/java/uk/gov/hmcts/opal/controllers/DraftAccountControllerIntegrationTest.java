@@ -62,6 +62,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
 
     @ParameterizedTest(name = "Invalid payload returns 400 [{index}]")
     @MethodSource("remainingEndpointsWithInvalidBodiesProvider")
+    @JiraStory("PO-2719")
+    @JiraEpic("PO-2219")
     @JiraTestKey("PO-8065")
     void methodsShouldReturn400_whenRequestPayloadIsInvalid(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
@@ -104,6 +106,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
 
     @ParameterizedTest(name = "Unauthorised request returns 403 [{index}]")
     @MethodSource("remainingTestCasesRequiringAuthorizationProvider")
+    @JiraStory("PO-2719")
+    @JiraEpic("PO-2219")
     @JiraTestKey("PO-8070")
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
@@ -155,6 +159,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
 
     @ParameterizedTest(name = "Missing draft account returns 404 [{index}]")
     @MethodSource("remainingTestCasesForResourceNotFoundProvider")
+    @JiraStory("PO-2719")
+    @JiraEpic("PO-2219")
     @JiraTestKey("PO-8073")
     void methodsShouldReturn404_whenResourceNotFound(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
@@ -198,6 +204,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
 
     @ParameterizedTest(name = "Unsupported accept header returns 406 [{index}]")
     @MethodSource("remainingTestCasesWithValidBodiesProvider")
+    @JiraStory("PO-2719")
+    @JiraEpic("PO-2219")
     @JiraTestKey("PO-8067")
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {

@@ -48,6 +48,8 @@ class Release1bFeatureToggleLaunchDarklyEnabledFlagTrueIntegrationTest extends A
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("uk.gov.hmcts.opal.controllers.util.Release1bFeatureToggleRequestUtil#remainingGatedRequests")
+    @JiraStory("PO-3762")
+    @JiraEpic("PO-3685")
     @JiraTestKey("PO-8191")
     void shouldNotReturnFeatureDisabledProblemWhenLaunchDarklyFlagIsTrue(String endpointName, RequestBuilder request)
         throws Exception {

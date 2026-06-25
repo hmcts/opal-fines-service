@@ -98,6 +98,8 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("remainingRelease1aEndpoints")
+    @JiraStory("PO-2833")
+    @JiraEpic("PO-2352")
     @JiraTestKey("PO-8120")
     void shouldReturn404WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {

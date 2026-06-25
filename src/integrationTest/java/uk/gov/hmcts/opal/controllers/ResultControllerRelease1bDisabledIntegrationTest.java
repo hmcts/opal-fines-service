@@ -66,6 +66,8 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
         "enforcement_override"
     })
     @DisplayName("GET /results rejects filtering parameters when release-1b is disabled")
+    @JiraStory("PO-3765")
+    @JiraEpic("PO-3685")
     @JiraTestKey("PO-8217")
     void getResultsWithFilteringParameter_returnsFeatureDisabledWhenRelease1bDisabled(String parameter)
         throws Exception {

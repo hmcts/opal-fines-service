@@ -230,6 +230,8 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @ParameterizedTest
     @MethodSource("remainingTestCasesForQueryParameterInput")
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request multiple lja_type [@PO-2757]")
+    @JiraStory("PO-2757")
+    @JiraEpic("PO-2750")
     @JiraTestKey("PO-8075")
     public void testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes(MockHttpServletRequestBuilder requestBuilder)
         throws Exception {

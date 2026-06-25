@@ -48,6 +48,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @JiraTestKey("PO-8221")
     void businessUnitSpec_businessUnitIdsEmpty_returnConjunction() {
         assertBusinessUnitIdsNullOrEmptyReturnConjunction(List.of());
@@ -378,6 +381,9 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-2286")
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @JiraTestKey("PO-8222")
     void defendantAccountIdsIn_emptyList_returnsNoResults() {
         assertDefendantAccountIdsInReturnsNoResults(List.of());

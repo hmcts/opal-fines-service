@@ -63,6 +63,9 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("remainingRelease1cEnforcementOperationalReportingEndpoints")
+    @JiraStory("PO-2250")
+    @JiraStory("PO-2252")
+    @JiraEpic("PO-2248")
     @JiraTestKey("PO-8139")
     void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)

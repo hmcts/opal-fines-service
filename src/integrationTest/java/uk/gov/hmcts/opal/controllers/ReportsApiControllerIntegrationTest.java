@@ -230,6 +230,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
         @Test
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
+        @JiraStory("PO-2250")
+        @JiraEpic("PO-2248")
         @JiraTestKey("PO-8216")
         void getReportById_whenReportPermissionIsNull_returns403_secondCase() throws Exception {
             assertReportPermissionIsNullReturns403("operational_report_payment");

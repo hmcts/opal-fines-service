@@ -36,6 +36,8 @@ class Release1bFeatureToggleDisabledIntegrationTest extends AbstractIntegrationT
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("uk.gov.hmcts.opal.controllers.util.Release1bFeatureToggleRequestUtil#remainingGatedRequests")
+    @JiraStory("PO-3762")
+    @JiraEpic("PO-3685")
     @JiraTestKey("PO-8141")
     void shouldReturnFeatureDisabledProblemWhenRelease1bIsDisabled(String endpointName, RequestBuilder request)
         throws Exception {

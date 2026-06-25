@@ -97,6 +97,8 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     }
 
     @Test
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @JiraTestKey("PO-8223")
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType_default() {
         assertDetailedReportTypeReturnsSortedResults(
@@ -534,6 +536,8 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     }
 
     @Test
+    @JiraStory("PO-2255")
+    @JiraEpic("PO-2248")
     @JiraTestKey("PO-8224")
     void generateReportData_filterByCollectionOrderChoice_returnResults_without() {
         assertCollectionOrderChoiceReturnsResults("WITHOUT", false);

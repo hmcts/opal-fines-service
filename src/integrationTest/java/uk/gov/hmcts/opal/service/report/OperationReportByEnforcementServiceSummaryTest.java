@@ -638,6 +638,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     }
 
     @Test
+    @JiraStory("PO-2286")
+    @JiraEpic("PO-2248")
     @JiraTestKey("PO-8225")
     void generateReportData_filterByCollectionOrderChoice_returnResults_without() {
         assertCollectionOrderChoiceReturnsResults("WITHOUT", false);
