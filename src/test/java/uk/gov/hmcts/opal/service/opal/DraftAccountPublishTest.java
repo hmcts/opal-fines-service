@@ -88,17 +88,14 @@ class DraftAccountPublishTest {
             logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(operationId);
 
             DraftAccountEntity result = draftAccountPublish.publishDefendantAccount(pending, unitUser);
-
             ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
-
             verify(draftAccountTransactional).updateStatus(
                 captor.capture(),
                 eq(DraftAccountStatus.PUBLISHING_FAILED),
                 same(draftAccountTransactional)
             );
-
             DraftAccountEntity failedUpdate = captor.getValue();
-
+            assertEquals(failedUpdate, result);
             assertEquals(pending.getDraftAccountId(), failedUpdate.getDraftAccountId());
             assertEquals(pending.getVersionNumber(), failedUpdate.getVersionNumber());
             assertEquals(LogUtil.ERRMSG_STORED_PROC_FAILURE, failedUpdate.getStatusMessage());
@@ -110,9 +107,7 @@ class DraftAccountPublishTest {
                 LocalDate.now(clock),
                 LogUtil.ERRMSG_STORED_PROC_FAILURE + " Error code: [" + operationId + "]"
             );
-
             assertEquals(expectedTimeline.toJson(), failedUpdate.getTimelineData());
-            assertEquals(failedUpdate, result);
         }
     }
 
