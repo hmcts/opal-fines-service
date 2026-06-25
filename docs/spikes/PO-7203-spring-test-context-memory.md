@@ -890,28 +890,3 @@ Conclusion:
   allows more release-1b disabled tests to reuse existing contexts.
 - Full-suite context misses are now down from 55 to 40 while the integration
   suite remains green.
-
-### 2026-06-25: Removed legacy feature-disabled gateway mock
-
-Code changes:
-
-- Removed `@MockitoBean GatewayService` from
-  `MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest`.
-- Removed the corresponding `verifyNoInteractions` assertion.
-- The test still verifies the feature-disabled 404 response.
-
-Validation:
-
-| Task | Before misses | After misses | Result |
-| --- | ---: | ---: | --- |
-| Focused affected test | n/a | n/a | Passed |
-| `integrationLegacy` | 7 | 7 | Passed |
-| `integration` | 40 | 40 | Passed |
-| `checkstyleIntegrationTest` | n/a | n/a | Passed |
-
-Conclusion:
-
-- This did not reduce the measured miss count because the legacy
-  release-1b-disabled profile/property combination is still a distinct context.
-- It still removes an unnecessary Spring-level bean override from a
-  feature-disabled path and reduces retained mock/test customizer complexity.
