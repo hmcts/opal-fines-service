@@ -172,6 +172,40 @@ Prioritize reducing distinct full Spring contexts before changing heap again:
    not be the long-term fix if it causes repeated rebuilding of the same heavy
    contexts.
 
+## Ticket status review
+
+PO-7203 is complete as a spike investigation if the expected outcome is root
+cause identification plus a sustainable-fix direction.
+
+Ticket questions answered:
+
+- Spring Test Context caching contributes to the problem. The cache is not
+  malfunctioning, but the suite creates more distinct full contexts than the
+  configured cache can retain.
+- No single abnormal bean graph was identified. The problem is context-key
+  fragmentation across full `@SpringBootTest` classes combined with heavy
+  resources retained by each context.
+- The exact Jenkins `Java heap space` failure was not reproduced locally, but
+  the same resource-retention failure mode was reproduced by increasing the
+  cache size: the suite exhausted Postgres connections while retaining many
+  contexts.
+- The current fixes show measurable improvement: full-suite context misses were
+  reduced from 55 to 44, and integration-test datasource pools are now bounded
+  so each retained context has a lower DB connection footprint.
+- After bounding datasource pools, a moderate cache size of 8 was validated
+  locally and reduced full-suite context misses further from 44 to 41 without
+  reproducing the connection exhaustion seen at cache size 32.
+
+Remaining work before removing the Jenkins mitigations:
+
+- Continue consolidating inline feature-flag properties.
+- Reduce remaining unique Mockito override sets where tests do not actually
+  need Spring-level bean replacement.
+- Move controller/error-path tests to narrower slices where full
+  `@SpringBootTest` coverage is not needed.
+- Re-test cache size after context-key reduction; do not simply restore Spring's
+  default cache size while contexts remain this heavy.
+
 ## Next validation step
 
 Run the full Jenkins-equivalent `integration` task with cache DEBUG logging and
@@ -775,3 +809,33 @@ Conclusion:
   integration-test context compared with production datasource defaults.
 - This directly addresses the resource-retention side of the OOM/root-cause
   investigation while keeping the full integration suite green.
+
+### 2026-06-25: Scoped `release-1c` default and raised cache size to 8
+
+Code changes:
+
+- Added `launchdarkly.default-flag-values.release-1c=true` to
+  `application-opal.yaml`.
+- Removed the redundant inline `release-1c=true` property from
+  `OpalDefendantsSearchIntegrationTest`.
+- Kept the base-profile search-disabled test override explicit so the Base
+  split does not inherit Opal-only defaults.
+- Changed `spring.test.context.cache.maxSize` from 4 to 8 in `build.gradle`.
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| Focused affected tests | n/a | n/a | Passed |
+| `integrationOpal` | 7 | 6 | Passed |
+| `integration` with temporary cache size 8 | 44 | 41 | Passed |
+
+Conclusion:
+
+- The Opal profile no longer needs a one-off inline `release-1c=true` property
+  for the standard Opal defendant search tests.
+- With Hikari pools capped for integration tests, cache size 8 is a measured
+  improvement over 4 and did not reproduce the `too many clients` failure seen
+  at cache size 32.
+- This is still not a reason to restore Spring's default cache size; further
+  context-key consolidation is needed before trying larger values.
