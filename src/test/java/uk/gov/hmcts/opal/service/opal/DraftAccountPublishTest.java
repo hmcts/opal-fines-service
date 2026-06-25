@@ -75,36 +75,44 @@ class DraftAccountPublishTest {
         when(unitUser.getBusinessUnitUserId()).thenReturn(expectedUserId);
         when(draftAccountTransactional.publishDefendantAccount(any(DraftAccountEntity.class)))
             .thenThrow(thrown);
+
         when(draftAccountTransactional.updateStatus(
             any(DraftAccountEntity.class),
             eq(DraftAccountStatus.PUBLISHING_FAILED),
             same(draftAccountTransactional)
         )).thenAnswer(invocation -> invocation.getArgument(0));
+
         DraftAccountEntity pending = createPendingDraft();
+
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(operationId);
 
             DraftAccountEntity result = draftAccountPublish.publishDefendantAccount(pending, unitUser);
 
             ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+
             verify(draftAccountTransactional).updateStatus(
                 captor.capture(),
                 eq(DraftAccountStatus.PUBLISHING_FAILED),
                 same(draftAccountTransactional)
             );
+
             DraftAccountEntity failedUpdate = captor.getValue();
-            assertEquals(failedUpdate, result);
+
             assertEquals(pending.getDraftAccountId(), failedUpdate.getDraftAccountId());
             assertEquals(pending.getVersionNumber(), failedUpdate.getVersionNumber());
             assertEquals(LogUtil.ERRMSG_STORED_PROC_FAILURE, failedUpdate.getStatusMessage());
+
             TimelineData expectedTimeline = new TimelineData(pending.getTimelineData());
-            assertEquals(expectedTimeline.toJson(), failedUpdate.getTimelineData());
             expectedTimeline.insertEntry(
                 expectedUserId,
                 DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
                 LocalDate.now(clock),
                 LogUtil.ERRMSG_STORED_PROC_FAILURE + " Error code: [" + operationId + "]"
             );
+
+            assertEquals(expectedTimeline.toJson(), failedUpdate.getTimelineData());
+            assertEquals(failedUpdate, result);
         }
     }
 
