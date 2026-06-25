@@ -655,3 +655,27 @@ Conclusion:
   Opal context churn by one more miss.
 - Remaining Opal spies are more likely intentional test doubles and should not
   be removed without deeper test redesign.
+
+### 2026-06-25: Replaced Opal minor-creditor repository spies
+
+Code changes:
+
+- Replaced repository `@MockitoSpyBean` declarations with `@Autowired`
+  repositories in `OpalMinorCreditorIntegrationTest`.
+- The repositories are only used for direct database state assertions before
+  and after delete behaviour; they are not stubbed or verified with Mockito.
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationOpal` | 8 | 7 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This removed four more bean override customizers and reduced Opal context
+  churn by one additional miss.
+- Remaining spies now appear to be deliberate test doubles for gateway/service
+  verification or forced error paths.

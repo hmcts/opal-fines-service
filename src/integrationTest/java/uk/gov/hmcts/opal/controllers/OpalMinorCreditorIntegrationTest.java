@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -40,16 +40,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
-    @MockitoSpyBean
+    @Autowired
     private ImpositionRepository impositionRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private CreditorTransactionRepository creditorTransactionRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private PartyRepository partyRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private CreditorAccountRepository creditorAccountRepository;
 
     @Test
