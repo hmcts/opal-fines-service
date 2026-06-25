@@ -28,8 +28,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
     "launchdarkly.enabled=true",
-    "launchdarkly.sdk-key=test-sdk-key",
-    "launchdarkly.default-flag-values.release-1b=true"
+    "launchdarkly.sdk-key=test-sdk-key"
 })
 class Release1bFeatureToggleLaunchDarklyEnabledFlagFalseIntegrationTest extends AbstractIntegrationTest {
 

@@ -372,3 +372,34 @@ Conclusion:
 - The useful next fix is therefore not more default-value trimming; it should
   target remaining genuinely distinct context keys, especially tests with
   different LaunchDarkly-enabled settings or unique mock/spy bean customizers.
+
+### 2026-06-25: Aligned LaunchDarkly-enabled Release 1B tests
+
+Code changes:
+
+- Removed `launchdarkly.default-flag-values.release-1b` from both
+  LaunchDarkly-enabled Release 1B integration tests.
+- Kept `launchdarkly.enabled=true` and `launchdarkly.sdk-key=test-sdk-key` so
+  the tests still exercise the LaunchDarkly-enabled bean path.
+- The flag result remains controlled by the mocked `LDClientInterface`, so the
+  default fallback value is not part of the asserted behaviour.
+
+Files changed:
+
+- `Release1bFeatureToggleLaunchDarklyEnabledFlagFalseIntegrationTest`
+- `Release1bFeatureToggleLaunchDarklyEnabledFlagTrueIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationOpal` | 10 | 9 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This confirms that equivalent LaunchDarkly-enabled tests can share one Spring
+  context when their inline properties are aligned.
+- The two Release 1B LaunchDarkly-enabled tests now reuse the same context:
+  both XML reports end at `missCount = 9`.
