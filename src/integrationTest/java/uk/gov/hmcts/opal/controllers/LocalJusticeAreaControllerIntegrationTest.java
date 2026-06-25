@@ -215,34 +215,14 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("testCasesForQueryParameterInput")
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request multiple lja_type [@PO-2757]")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5967")
-    public void testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes_firstCase()
-        throws Exception {
-        Arguments firstCase = testCasesForQueryParameterInput().findFirst().orElseThrow();
-        MockHttpServletRequestBuilder requestBuilder = (MockHttpServletRequestBuilder) firstCase.get()[0];
-        assertMultipleLjaTypes(requestBuilder);
-    }
-
-    @ParameterizedTest
-    @MethodSource("remainingTestCasesForQueryParameterInput")
-    @DisplayName("Verify search result for LocalJusticeAreasRefData GET request multiple lja_type [@PO-2757]")
-    @JiraStory("PO-2757")
-    @JiraEpic("PO-2750")
-    @JiraTestKey("PO-8075")
     public void testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes(MockHttpServletRequestBuilder requestBuilder)
         throws Exception {
-        assertMultipleLjaTypes(requestBuilder);
-    }
-
-    private static Stream<Arguments> remainingTestCasesForQueryParameterInput() {
-        return testCasesForQueryParameterInput().skip(1);
-    }
-
-    private void assertMultipleLjaTypes(MockHttpServletRequestBuilder requestBuilder) throws Exception {
         ResultActions actions = mockMvc.perform(requestBuilder);
         String body =
             getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByMultipleLjaTypes:");

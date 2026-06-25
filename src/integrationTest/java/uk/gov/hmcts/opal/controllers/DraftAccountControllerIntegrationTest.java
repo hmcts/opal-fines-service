@@ -50,29 +50,14 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     }
 
     //CEP 1 CEP1 - Invalid Request Payload (400)
-    @Test
+    @ParameterizedTest(name = "Invalid payload returns 400 [{index}]")
+    @MethodSource("endpointsWithInvalidBodiesProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-6331")
-    void methodsShouldReturn400_whenRequestPayloadIsInvalid_firstCase() throws Exception {
-        Arguments firstCase = endpointsWithInvalidBodiesProvider().findFirst().orElseThrow();
-        Object[] values = firstCase.get();
-        assertInvalidPayloadReturns400((MockHttpServletRequestBuilder) values[0], (String) values[1]);
-    }
-
-    @ParameterizedTest(name = "Invalid payload returns 400 [{index}]")
-    @MethodSource("remainingEndpointsWithInvalidBodiesProvider")
-    @JiraStory("PO-2719")
-    @JiraEpic("PO-2219")
-    @JiraTestKey("PO-8065")
     void methodsShouldReturn400_whenRequestPayloadIsInvalid(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
-        assertInvalidPayloadReturns400(requestBuilder, requestBody);
-    }
 
-    private void assertInvalidPayloadReturns400(
-        MockHttpServletRequestBuilder requestBuilder, String requestBody
-    ) throws Exception {
         mockMvc.perform(requestBuilder
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -89,34 +74,15 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         );
     }
 
-    private static Stream<Arguments> remainingEndpointsWithInvalidBodiesProvider() {
-        return endpointsWithInvalidBodiesProvider().skip(1);
-    }
-
     //CEP3 - Not Authorised to perform the requested action (403)
-    @Test
+    @ParameterizedTest(name = "Unauthorised request returns 403 [{index}]")
+    @MethodSource("testCasesRequiringAuthorizationProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5838")
-    void methodsShouldReturn403_whenUserLacksPermission_firstCase() throws Exception {
-        Arguments firstCase = testCasesRequiringAuthorizationProvider().findFirst().orElseThrow();
-        Object[] values = firstCase.get();
-        assertUserLacksPermissionReturns403((MockHttpServletRequestBuilder) values[0], (String) values[1]);
-    }
-
-    @ParameterizedTest(name = "Unauthorised request returns 403 [{index}]")
-    @MethodSource("remainingTestCasesRequiringAuthorizationProvider")
-    @JiraStory("PO-2719")
-    @JiraEpic("PO-2219")
-    @JiraTestKey("PO-8070")
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
-        assertUserLacksPermissionReturns403(requestBuilder, requestBody);
-    }
 
-    private void assertUserLacksPermissionReturns403(
-        MockHttpServletRequestBuilder requestBuilder, String requestBody
-    ) throws Exception {
         ResultActions resultActions = mockMvc.perform(requestBuilder
             .header("authorization", userStateStub.getBearerToken())
             .header("If-Match", "0")
@@ -142,34 +108,15 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         );
     }
 
-    private static Stream<Arguments> remainingTestCasesRequiringAuthorizationProvider() {
-        return testCasesRequiringAuthorizationProvider().skip(1);
-    }
-
     //CEP4 - Resource Not Found (404) - applies to GET PUT PATCH & DELETE
-    @Test
+    @ParameterizedTest(name = "Missing draft account returns 404 [{index}]")
+    @MethodSource("testCasesForResourceNotFoundProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5839")
-    void methodsShouldReturn404_whenResourceNotFound_firstCase() throws Exception {
-        Arguments firstCase = testCasesForResourceNotFoundProvider().findFirst().orElseThrow();
-        Object[] values = firstCase.get();
-        assertResourceNotFoundReturns404((MockHttpServletRequestBuilder) values[0], (String) values[1]);
-    }
-
-    @ParameterizedTest(name = "Missing draft account returns 404 [{index}]")
-    @MethodSource("remainingTestCasesForResourceNotFoundProvider")
-    @JiraStory("PO-2719")
-    @JiraEpic("PO-2219")
-    @JiraTestKey("PO-8073")
     void methodsShouldReturn404_whenResourceNotFound(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
-        assertResourceNotFoundReturns404(requestBuilder, requestBody);
-    }
 
-    private void assertResourceNotFoundReturns404(
-        MockHttpServletRequestBuilder requestBuilder, String requestBody
-    ) throws Exception {
         mockMvc.perform(requestBuilder
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -187,34 +134,15 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         );
     }
 
-    private static Stream<Arguments> remainingTestCasesForResourceNotFoundProvider() {
-        return testCasesForResourceNotFoundProvider().skip(1);
-    }
-
     //CEP5 - Unsupported Content Type for Response (406)
-    @Test
+    @ParameterizedTest(name = "Unsupported accept header returns 406 [{index}]")
+    @MethodSource("testCasesWithValidBodiesProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5834")
-    void methodsShouldReturn406_whenAcceptHeaderIsNotSupported_firstCase() throws Exception {
-        Arguments firstCase = testCasesWithValidBodiesProvider().findFirst().orElseThrow();
-        Object[] values = firstCase.get();
-        assertUnsupportedAcceptHeaderReturns406((MockHttpServletRequestBuilder) values[0], (String) values[1]);
-    }
-
-    @ParameterizedTest(name = "Unsupported accept header returns 406 [{index}]")
-    @MethodSource("remainingTestCasesWithValidBodiesProvider")
-    @JiraStory("PO-2719")
-    @JiraEpic("PO-2219")
-    @JiraTestKey("PO-8067")
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
-        assertUnsupportedAcceptHeaderReturns406(requestBuilder, requestBody);
-    }
 
-    private void assertUnsupportedAcceptHeaderReturns406(
-        MockHttpServletRequestBuilder requestBuilder, String requestBody
-    ) throws Exception {
         mockMvc.perform(requestBuilder
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -232,10 +160,6 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
             Arguments.of(patch(URL_BASE + "/1"), "{}"),
             Arguments.of(get(URL_BASE + "/1"), "{}")
         );
-    }
-
-    private static Stream<Arguments> remainingTestCasesWithValidBodiesProvider() {
-        return testCasesWithValidBodiesProvider().skip(1);
     }
 
     private static String validCreateRequestBody() {

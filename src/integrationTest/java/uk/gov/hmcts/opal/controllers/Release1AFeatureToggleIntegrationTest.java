@@ -6,11 +6,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,8 +35,8 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
 
     private static final String DRAFT_ACCOUNT_ID = "/draft-accounts/100000";
 
-    private static List<Arguments> release1aEndpointArguments() {
-        return List.of(
+    static Stream<Arguments> release1aEndpoints() {
+        return Stream.of(
             // BusinessUnitController
             args("GET /business-units/{id}", withAuth(get("/business-units/1"))),
             args("GET /business-units", withAuth(get("/business-units").param("q", ""))),
@@ -82,31 +80,14 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
         );
     }
 
-    static Stream<Arguments> remainingRelease1aEndpoints() {
-        return release1aEndpointArguments().stream().skip(1);
-    }
-
-    @Test
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("release1aEndpoints")
     @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2833")
     @JiraEpic("PO-2352")
     @JiraTestKey("PO-6232")
-    void shouldReturn404WhenRelease1aIsDisabled_firstEndpoint() throws Exception {
-        Object[] values = release1aEndpointArguments().getFirst().get();
-        assertRelease1aDisabled((String) values[0], (MockHttpServletRequestBuilder) values[1]);
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("remainingRelease1aEndpoints")
-    @JiraStory("PO-2833")
-    @JiraEpic("PO-2352")
-    @JiraTestKey("PO-8120")
     void shouldReturn404WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
-        assertRelease1aDisabled(description, request);
-    }
-
-    private void assertRelease1aDisabled(String description, MockHttpServletRequestBuilder request) throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)
             .andExpect(status().isNotFound());

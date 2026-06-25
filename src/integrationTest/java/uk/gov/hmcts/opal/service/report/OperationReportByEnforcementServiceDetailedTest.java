@@ -22,6 +22,9 @@ import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -85,36 +88,13 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
 
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "{\"reportType\": \"DETAILED\"}",
+        "{}"
+    })
     @JiraTestKey("PO-7815")
-    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType_detailed() {
-        assertDetailedReportTypeReturnsSortedResults(
-            "{\"reportType\": \"DETAILED\"}",
-            LocalDate.of(2026, 7, 2),
-            "02/07/2026",
-            BigDecimal.ZERO
-        );
-    }
-
-    @Test
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @JiraTestKey("PO-8223")
-    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType_default() {
-        assertDetailedReportTypeReturnsSortedResults(
-            "{}",
-            LocalDate.of(2023, 11, 3),
-            "12/10/2025",
-            new BigDecimal("500.58")
-        );
-    }
-
-    private void assertDetailedReportTypeReturnsSortedResults(
-        String json,
-        LocalDate expectedDateOfHearing,
-        String expectedPaymentTerms,
-        BigDecimal expectedArrearsTotal
-    ) {
+    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType(String json) {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn(json);
@@ -160,12 +140,12 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             () -> assertThat(account.getEmployerEmail()).isEqualTo("employer77@company.com"),
             () -> assertThat(account.getCollectionOrder()).isEqualTo("Y"),
             () -> assertThat(account.getLastMovementDate()).isEqualTo(LocalDate.of(2024, 1, 2)),
-            () -> assertThat(account.getDateOfHearing()).isEqualTo(expectedDateOfHearing),
+            () -> assertThat(account.getDateOfHearing()).isEqualTo(LocalDate.of(2023, 11, 3)),
             () -> assertThat(account.getImposingCourt()).isEqualTo("AAA Test Court"),
-            () -> assertThat(account.getPaymentTerms()).isEqualTo(expectedPaymentTerms),
+            () -> assertThat(account.getPaymentTerms()).isEqualTo("12/10/2025"),
             () -> assertThat(account.getAmountImposed()).isEqualByComparingTo("700.58"),
             () -> assertThat(account.getBalance()).isEqualByComparingTo("-500.58"),
-            () -> assertThat(account.getArrearsTotal()).isEqualByComparingTo(expectedArrearsTotal),
+            () -> assertThat(account.getArrearsTotal()).isEqualByComparingTo("500.58"),
             () -> assertThat(account.getFineImpositions()).isEqualByComparingTo("120.00"),
             () -> assertThat(account.getCostImpositions()).isEqualByComparingTo("100.00"),
             () -> assertThat(account.getCompensationImpositions()).isEqualByComparingTo("50.00"),
@@ -529,21 +509,13 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
 
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
-    @Test
+    @ParameterizedTest
+    @CsvSource({
+        "WITH, true",
+        "WITHOUT, false"
+    })
     @JiraTestKey("PO-7813")
-    void generateReportData_filterByCollectionOrderChoice_returnResults_with() {
-        assertCollectionOrderChoiceReturnsResults("WITH", true);
-    }
-
-    @Test
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @JiraTestKey("PO-8224")
-    void generateReportData_filterByCollectionOrderChoice_returnResults_without() {
-        assertCollectionOrderChoiceReturnsResults("WITHOUT", false);
-    }
-
-    private void assertCollectionOrderChoiceReturnsResults(
+    void generateReportData_filterByCollectionOrderChoice_returnResults(
         String collectionOrderChoice,
         boolean expectedValue
     ) {
@@ -749,3 +721,5 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 }
+
+

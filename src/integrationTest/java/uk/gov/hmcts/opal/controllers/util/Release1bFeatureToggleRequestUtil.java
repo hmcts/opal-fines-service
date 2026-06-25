@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
-import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.MediaType;
@@ -26,8 +25,8 @@ public final class Release1bFeatureToggleRequestUtil {
     private Release1bFeatureToggleRequestUtil() {
     }
 
-    private static List<Arguments> gatedRequestArguments() {
-        return List.of(
+    public static Stream<Arguments> gatedRequests() {
+        return Stream.of(
             Arguments.of(
                 "Search Defendant Accounts",
                 postJson("/defendant-accounts/search", """
@@ -318,14 +317,6 @@ public final class Release1bFeatureToggleRequestUtil {
         );
     }
 
-    public static Arguments firstGatedRequest() {
-        return gatedRequestArguments().getFirst();
-    }
-
-    public static Stream<Arguments> remainingGatedRequests() {
-        return gatedRequestArguments().stream().skip(1);
-    }
-
     private static RequestBuilder getWithAuthorization(String path) {
         return get(path).header("Authorization", AUTHORIZATION);
     }
@@ -355,7 +346,6 @@ public final class Release1bFeatureToggleRequestUtil {
             .content(body);
     }
 
-    @SuppressWarnings("SameParameterValue")
     private static RequestBuilder putJsonWithBusinessHeaders(String path, String body) {
         return put(path)
             .contentType(MediaType.APPLICATION_JSON)
@@ -365,7 +355,6 @@ public final class Release1bFeatureToggleRequestUtil {
             .content(body);
     }
 
-    @SuppressWarnings("SameParameterValue")
     private static RequestBuilder deleteJsonWithBusinessHeaders(String path, String body) {
         return delete(path)
             .contentType(MediaType.APPLICATION_JSON)

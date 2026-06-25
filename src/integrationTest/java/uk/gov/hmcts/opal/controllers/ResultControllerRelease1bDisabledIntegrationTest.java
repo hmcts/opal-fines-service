@@ -48,18 +48,9 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
-    @Test
-    @DisplayName("GET /results rejects filtering parameters when release-1b is disabled")
-    @JiraStory("PO-3765")
-    @JiraEpic("PO-3685")
-    @JiraTestKey("PO-7772")
-    void getResultsWithFilteringParameter_returnsFeatureDisabledWhenRelease1bDisabled_active()
-        throws Exception {
-        assertFilteringParameterReturnsFeatureDisabled("active");
-    }
-
     @ParameterizedTest
     @ValueSource(strings = {
+        "active",
         "manual_enforcement_only",
         "generates_hearing",
         "enforcement",
@@ -68,13 +59,9 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
     @DisplayName("GET /results rejects filtering parameters when release-1b is disabled")
     @JiraStory("PO-3765")
     @JiraEpic("PO-3685")
-    @JiraTestKey("PO-8217")
+    @JiraTestKey("PO-7772")
     void getResultsWithFilteringParameter_returnsFeatureDisabledWhenRelease1bDisabled(String parameter)
         throws Exception {
-        assertFilteringParameterReturnsFeatureDisabled(parameter);
-    }
-
-    private void assertFilteringParameterReturnsFeatureDisabled(String parameter) throws Exception {
         mockMvc.perform(get("/results?" + parameter + "=true"))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))

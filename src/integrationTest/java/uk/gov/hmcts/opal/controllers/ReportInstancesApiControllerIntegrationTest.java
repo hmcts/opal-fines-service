@@ -25,7 +25,6 @@ import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_report_instances.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_report_instances.sql", executionPhase = AFTER_TEST_METHOD)
@@ -102,7 +101,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8062")
         void whenNoTokenPresent_unauthorizedIsReturned_sadPath() {
             ServletException exception = assertThrows(
                 ServletException.class,
@@ -117,7 +115,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8063")
         void whenRequestNotAcceptable_notAcceptableIsReturned_sadPath() throws Exception {
             mockMvc.perform(get(URL_BASE)
                     .param("report_id", REPORT_ID)
@@ -128,7 +125,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8061")
         void whenUserLacksReportPermission_forbiddenIsReturned_sadPath() throws Exception {
             userStateStub.setupWithNoPermissions();
             doThrow(new org.springframework.security.access.AccessDeniedException(
@@ -150,7 +146,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8064")
         void whenUserLacksBusinessUnitPermission_forbiddenIsReturned_sadPath() throws Exception {
             doThrow(new org.springframework.security.access.AccessDeniedException(
                 "User does not have permission for one or more specified business units"
@@ -176,7 +171,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8056")
         void whenNoFilters_allInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), inProgressDto(), readyDto()))
                 .when(genericReportService).searchReportInstances(null, null, null, null, REPORT_ID);
@@ -194,7 +188,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8060")
         void whenFilteredByReportId_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), inProgressDto(), readyDto()))
                 .when(genericReportService).searchReportInstances(null, null, null, null, REPORT_ID);
@@ -212,7 +205,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8052")
         void whenFilteredByDateRange_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 1, 1),
@@ -237,7 +229,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8059")
         void whenFilteredByUserId_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), readyDto())).when(genericReportService).searchReportInstances(
                 null,
@@ -261,7 +252,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8057")
         void whenFilteredByBusinessUnit_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), readyDto())).when(genericReportService).searchReportInstances(
                 null,
@@ -285,7 +275,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8058")
         void whenReadyInstanceReturned_allFieldsAreMapped_happyPath() throws Exception {
             doReturn(List.of(readyDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 1, 1),
@@ -321,7 +310,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8053")
         void whenInProgressInstanceReturned_isNotDownloadable_happyPath() throws Exception {
             doReturn(List.of(inProgressDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 2, 1),
@@ -347,7 +335,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8055")
         void whenInstanceNameNull_reportTitleIsUsed_happyPath() throws Exception {
             doReturn(List.of(inProgressDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 2, 1),
@@ -371,7 +358,6 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-8054")
         void whenNoMatchingInstances_emptyArrayReturned_happyPath() throws Exception {
             doReturn(List.of()).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2020, 2, 1),

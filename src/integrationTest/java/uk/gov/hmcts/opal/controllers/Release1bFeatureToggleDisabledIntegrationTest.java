@@ -4,8 +4,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
@@ -24,27 +22,13 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 class Release1bFeatureToggleDisabledIntegrationTest extends AbstractIntegrationTest {
 
-    @Test
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("uk.gov.hmcts.opal.controllers.util.Release1bFeatureToggleRequestUtil#gatedRequests")
     @JiraStory("PO-3762")
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-7663")
-    void shouldReturnFeatureDisabledProblemWhenRelease1bIsDisabled_firstEndpoint() throws Exception {
-        Arguments firstRequest = uk.gov.hmcts.opal.controllers.util.Release1bFeatureToggleRequestUtil.firstGatedRequest();
-        Object[] values = firstRequest.get();
-        assertFeatureDisabled((RequestBuilder) values[1]);
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("uk.gov.hmcts.opal.controllers.util.Release1bFeatureToggleRequestUtil#remainingGatedRequests")
-    @JiraStory("PO-3762")
-    @JiraEpic("PO-3685")
-    @JiraTestKey("PO-8141")
     void shouldReturnFeatureDisabledProblemWhenRelease1bIsDisabled(String endpointName, RequestBuilder request)
         throws Exception {
-        assertFeatureDisabled(request);
-    }
-
-    private void assertFeatureDisabled(RequestBuilder request) throws Exception {
         mockMvc.perform(request)
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))

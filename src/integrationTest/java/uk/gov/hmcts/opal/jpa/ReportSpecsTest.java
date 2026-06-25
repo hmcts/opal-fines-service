@@ -12,7 +12,11 @@ import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_G
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.jdbc.Sql;
@@ -41,22 +45,10 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2286")
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
-    @Test
+    @ParameterizedTest
+    @NullAndEmptySource
     @JiraTestKey("PO-7796")
-    void businessUnitSpec_businessUnitIdsNull_returnConjunction() {
-        assertBusinessUnitIdsNullOrEmptyReturnConjunction(null);
-    }
-
-    @Test
-    @JiraStory("PO-2286")
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @JiraTestKey("PO-8221")
-    void businessUnitSpec_businessUnitIdsEmpty_returnConjunction() {
-        assertBusinessUnitIdsNullOrEmptyReturnConjunction(List.of());
-    }
-
-    private void assertBusinessUnitIdsNullOrEmptyReturnConjunction(List<Long> buIds) {
+    void businessUnitSpec_businessUnitIdsNullOrEmpty_returnConjunction(List<Long> buIds) {
         //Arrange
         long total = defendantAccountRepository.count();
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
@@ -374,22 +366,10 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2286")
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
-    @Test
+    @ParameterizedTest
+    @MethodSource("emptyAccountIdLists")
     @JiraTestKey("PO-7794")
-    void defendantAccountIdsIn_nullList_returnsNoResults() {
-        assertDefendantAccountIdsInReturnsNoResults(null);
-    }
-
-    @Test
-    @JiraStory("PO-2286")
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @JiraTestKey("PO-8222")
-    void defendantAccountIdsIn_emptyList_returnsNoResults() {
-        assertDefendantAccountIdsInReturnsNoResults(List.of());
-    }
-
-    private void assertDefendantAccountIdsInReturnsNoResults(List<Long> accountIds) {
+    void defendantAccountIdsIn_emptyOrNullList_returnsNoResults(List<Long> accountIds) {
         // Arrange
         Specification<DefendantAccountEntity> spec =
             ReportSpecs.defendantAccountIdsIn(accountIds);
@@ -399,6 +379,13 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
         assertThat(results).isEmpty();
     }
 
+    private static Stream<List<Long>> emptyAccountIdLists() {
+        return Stream.of(
+            null,
+            List.of()
+        );
+    }
+
     private static String displayName(PartyEntity party) {
         return party.getSurname() != null
             ? party.getSurname()
@@ -406,3 +393,4 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     }
 
 }
+

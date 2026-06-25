@@ -4,11 +4,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -33,8 +31,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
     extends AbstractFeatureToggleIntegrationTest {
 
-    private static List<Arguments> release1cEndpointArguments() {
-        return List.of(
+    static Stream<Arguments> release1cEnforcementOperationalReportingEndpoints() {
+        return Stream.of(
             // ReportsApiController
             args("GET /reports/{id}", withAuth(get("/reports/1"))),
             // ReportInstancesApiController
@@ -45,35 +43,17 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
         );
     }
 
-    static Stream<Arguments> remainingRelease1cEnforcementOperationalReportingEndpoints() {
-        return release1cEndpointArguments().stream().skip(1);
-    }
-
-    @Test
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("release1cEnforcementOperationalReportingEndpoints")
     @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2250")
     @JiraStory("PO-2252")
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7661")
-    void shouldReturn404When1cEnforcementOperationalReportingIsDisabled_firstEndpoint() throws Exception {
-        Object[] values = release1cEndpointArguments().getFirst().get();
-        assertFeatureDisabled((String) values[0], (MockHttpServletRequestBuilder) values[1]);
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("remainingRelease1cEnforcementOperationalReportingEndpoints")
-    @JiraStory("PO-2250")
-    @JiraStory("PO-2252")
-    @JiraEpic("PO-2248")
-    @JiraTestKey("PO-8139")
     void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
-        assertFeatureDisabled(description, request);
-    }
-
-    private void assertFeatureDisabled(String description, MockHttpServletRequestBuilder request) throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)
             .andExpect(status().isNotFound());
