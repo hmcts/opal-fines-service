@@ -33,7 +33,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
@@ -61,9 +60,6 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
 
     @MockitoBean
     private UserStateService userStateService;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
 
     @MockitoBean
     private UserStateClientService userStateClientService;

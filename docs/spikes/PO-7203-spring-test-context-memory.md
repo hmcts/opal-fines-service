@@ -403,3 +403,35 @@ Conclusion:
   context when their inline properties are aligned.
 - The two Release 1B LaunchDarkly-enabled tests now reuse the same context:
   both XML reports end at `missCount = 9`.
+
+### 2026-06-25: Removed unused `AccessTokenService` mock beans
+
+Code changes:
+
+- Removed unused `@MockitoBean AccessTokenService` declarations from search and
+  impositions integration tests.
+- These mocks were not referenced by the tests; requests already use the shared
+  `userStateStub` or explicit `UserStateService` stubbing.
+
+Files changed:
+
+- `OpalDefendantsSearchIntegrationTest`
+- `LegacyDefendantsSearchIntegrationTest`
+- `LegacyDefendantAccountImpositionsIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationOpal` | 9 | 9 | Passed |
+| `integrationLegacy` | 10 | 10 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- The cleanup is safe and removes unnecessary bean override customizers, but it
+  does not merge contexts in the measured slices.
+- Remaining unique contexts are now more likely caused by still-required spies,
+  gateway/user-state mock combinations, SQL setup differences, or explicit
+  feature-flag properties.
