@@ -65,10 +65,15 @@ def isPortAvailable = { int port ->
   }
 }
 
-def runLegacyStubCommand = { List<String> command ->
-  def process = new ProcessBuilder(command)
+def runLegacyStubCommand = { List<String> command, Map<String, String> extraEnv = [:] ->
+  def processBuilder = new ProcessBuilder(command)
     .redirectErrorStream(true)
-    .start()
+
+  if (!extraEnv.isEmpty()) {
+    processBuilder.environment().putAll(extraEnv)
+  }
+
+  def process = processBuilder.start()
 
   def finished = process.waitFor(2, TimeUnit.MINUTES)
   if (!finished) {
@@ -96,7 +101,10 @@ def pullLatestLegacyStubImageIfLocal = {
   }
 
   try {
-    def loginResult = runLegacyStubCommand(['az', 'acr', 'login', '--name', 'hmctsprod', '--subscription', 'DCD-CNP-Prod'])
+    def loginResult = runLegacyStubCommand(
+      ['az', 'acr', 'login', '--name', 'hmctsprod', '--subscription', 'DCD-CNP-Prod'],
+      [AZURE_CONFIG_DIR: '/opt/jenkins/.azure-prod']
+    )
     if (loginResult.exitValue != 0) {
       logger.warn(
         "Could not log in to hmctsprod ACR before integration tests. Continuing with any locally cached image. Azure CLI output: {}",
