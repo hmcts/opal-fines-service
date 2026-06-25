@@ -38,7 +38,8 @@ public final class Release1bFeatureToggleRequestUtil {
                         "account_number": "12345678",
                         "prosecutor_case_reference": null
                       },
-                      "defendant": null
+                      "defendant": null,
+                      "consolidation_search": false
                     }
                     """)
             ),
