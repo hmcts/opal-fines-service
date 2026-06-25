@@ -31,9 +31,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.dto.print.PrintJobDto;
 import uk.gov.hmcts.opal.entity.print.PrintDefinitionEntity;
 import uk.gov.hmcts.opal.entity.print.PrintJobEntity;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
+import uk.gov.hmcts.opal.mapper.print.PrintJobMapper;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 
@@ -52,6 +54,8 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
+    private final PrintJobMapper printJobMapper;
+
     private final Clock clock;
 
     @Value("${printservice.maxRetries:3}")
@@ -61,7 +65,12 @@ public class PrintService {
     private int pageSize;
 
 
-    public byte[] generatePdf(PrintJobEntity printJobEntity) {
+    public byte[] generatePdf(PrintJobDto printJobDto) {
+        return generatePdf(printJobMapper.toEntity(printJobDto));
+    }
+
+
+    private byte[] generatePdf(PrintJobEntity printJobEntity) {
         // Get print definition from database
         final PrintDefinitionEntity printDef = getPrintDefinition(
             printJobEntity.getDocType(),
@@ -104,7 +113,12 @@ public class PrintService {
     }
 
 
-    public UUID savePrintJobs(List<PrintJobEntity> printJobEntities) {
+    public UUID savePrintJobs(List<PrintJobDto> printJobDtos) {
+        return savePrintJobEntities(printJobMapper.toEntities(printJobDtos));
+    }
+
+
+    private UUID savePrintJobEntities(List<PrintJobEntity> printJobEntities) {
         UUID batchId = UUID.randomUUID();
 
         log.debug("Saving print jobs for batch {}", batchId);
