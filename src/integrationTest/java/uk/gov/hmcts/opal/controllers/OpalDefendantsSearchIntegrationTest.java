@@ -37,7 +37,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
     "launchdarkly.default-flag-values.release-1b=true",
-    "launchdarkly.default-flag-values.release-1c=true"
+    "launchdarkly.default-flag-values.release-1c-write-off=true"
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
