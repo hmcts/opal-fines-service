@@ -700,7 +700,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.createDefendantAccount(any(), any(), any(), any()))
             .thenReturn(mockOutputs);
         when(draftAccountRepository.findById(7L)).thenReturn(Optional.ofNullable(draftAccountEntity));
-        when(draftAccountRepository.save(any())).thenReturn(draftAccountEntity);
+        when(draftAccountRepository.saveAndFlush(any())).thenReturn(draftAccountEntity);
 
         // Act
         DraftAccountEntity output = draftAccountTransactional.publishDefendantAccount(draftAccountEntity);

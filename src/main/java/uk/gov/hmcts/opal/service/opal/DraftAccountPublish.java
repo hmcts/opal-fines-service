@@ -48,12 +48,11 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
             failedUpdate.setStatusMessage(LogUtil.ERRMSG_STORED_PROC_FAILURE);
             failedUpdate.setVersionNumber(publishEntity.getVersionNumber());
 
-            draftAccountTransactional.updateStatus(
+            return draftAccountTransactional.updateStatus(
                 failedUpdate,
                 DraftAccountStatus.PUBLISHING_FAILED,
                 draftAccountTransactional
             );
-            throw e;
         }
     }
 }

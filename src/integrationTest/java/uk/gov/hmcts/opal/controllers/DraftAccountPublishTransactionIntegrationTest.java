@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
+import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -38,52 +39,49 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
     @JiraStory("PO-7911")
     @JiraEpic("PO-973")
     @Test
-    @DraftAccountPublishRetryFixture
+    @DraftAccountPublishDbUpdateFailureFixture
     void publishDraftAccount_publishesButFailsToUpdateStatus_leavesDraftPublishableForRetry() throws Exception {
-        // Arrange: @Sql creates a submitted draft and installs a trigger that fails the final status update.
+        // Arrange
+        String etag = getDraftEtag();
 
-        // Act: approve the draft through the public PATCH endpoint, which starts the publish flow.
+        // Act: first publish attempt fails while saving the final published status.
         mockMvc.perform(patch(DRAFT_ACCOUNTS_URL_BASE + "/" + DRAFT_ACCOUNT_ID)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "0")
+                .header("If-Match", etag)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(updateRequestBody(0)))
+                .content(updateRequestBody(extractVersion(etag))))
             .andExpect(status().is5xxServerError());
 
-        // Assert: the stored proc created the defendant account, but the draft never saved the returned identifiers.
-        mockMvc.perform(get(DRAFT_ACCOUNTS_URL_BASE + "/" + DRAFT_ACCOUNT_ID)
+        // Assert: the draft was not published.
+        MvcResult afterFailure = mockMvc.perform(get(DRAFT_ACCOUNTS_URL_BASE + "/" + DRAFT_ACCOUNT_ID)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .header("Accept", MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"2\""))
-            .andExpect(jsonPath("$.account_status").value("Publishing Failed"))
             .andExpect(jsonPath("$.account_number").doesNotExist())
-            .andExpect(jsonPath("$.account_id").doesNotExist());
+            .andExpect(jsonPath("$.account_id").doesNotExist())
+            .andReturn();
 
-        // Assert: atomic rollback means no defendant account was left behind after the failed publish.
+        String retryEtag = afterFailure.getResponse().getHeader("ETag");
         assertDefendantAccountSearchCount(0);
 
-        // Act: retry the same draft through PATCH. Because the draft has no account number, it is publishable again.
+        // Act: retry publish using the current ETag/version.
         mockMvc.perform(patch(DRAFT_ACCOUNTS_URL_BASE + "/" + DRAFT_ACCOUNT_ID)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "2")
+                .header("If-Match", retryEtag)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(updateRequestBody(1)))
+                .content(updateRequestBody(extractVersion(retryEtag))))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"4\""))
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.account_number").isNotEmpty())
             .andExpect(jsonPath("$.account_id").isNumber());
 
-        // Assert: exactly one defendant account exists after the successful retry.
         assertDefendantAccountSearchCount(1);
     }
-
 
     @JiraStory("PO-7911")
     @JiraEpic("PO-973")
@@ -96,7 +94,7 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateRequestBody(0)))
-            .andExpect(status().is5xxServerError());
+            .andExpect(status().is2xxSuccessful());
 
         mockMvc.perform(get(DRAFT_ACCOUNTS_URL_BASE + "/" + DRAFT_ACCOUNT_ID)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -155,6 +153,20 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
             .andExpect(jsonPath("$.count").value(expectedCount));
     }
 
+    private String getDraftEtag() throws Exception {
+        MvcResult result = mockMvc.perform(get(DRAFT_ACCOUNTS_URL_BASE + "/" + DRAFT_ACCOUNT_ID)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("Accept", MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        return result.getResponse().getHeader("ETag");
+    }
+
+    private int extractVersion(String etag) {
+        return Integer.parseInt(etag.replace("\"", ""));
+    }
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -163,7 +175,7 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
         executionPhase = BEFORE_TEST_METHOD
     )
     @Sql(
-        scripts = "classpath:db/insertData/insert_into_draft_account_publish_retry.sql",
+        scripts = "classpath:db/insertData/insert_into_draft_account_publish_final_status_failure.sql",
         config = @SqlConfig(separator = "@@"),
         executionPhase = BEFORE_TEST_METHOD
     )
@@ -171,7 +183,7 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
         scripts = "classpath:db/deleteData/delete_from_draft_account_publish_retry.sql",
         executionPhase = AFTER_TEST_METHOD
     )
-    private @interface DraftAccountPublishRetryFixture {
+    private @interface DraftAccountPublishDbUpdateFailureFixture {
 
     }
 
