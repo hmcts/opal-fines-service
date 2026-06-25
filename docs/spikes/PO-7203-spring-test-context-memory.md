@@ -631,3 +631,27 @@ Conclusion:
 - This is safe cleanup for the draft and defendant test hierarchy.
 - It reduced Legacy context churn by one additional miss, while Base and Opal
   remained unchanged because other context-key differences still dominate there.
+
+### 2026-06-25: Converted Opal impositions schema validator
+
+Code changes:
+
+- Replaced direct-use `@MockitoSpyBean JsonSchemaValidationService` with
+  `@Autowired` in `OpalDefendantAccountImpositionsIntegrationTest`.
+- Left remaining repository and service spies unchanged where tests use Mockito
+  stubbing, verification, or forced error paths.
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationOpal` | 9 | 8 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- Removing the final direct-use schema validator spy in this Opal path reduced
+  Opal context churn by one more miss.
+- Remaining Opal spies are more likely intentional test doubles and should not
+  be removed without deeper test redesign.
