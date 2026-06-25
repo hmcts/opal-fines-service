@@ -18,7 +18,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
     "launchdarkly.default-flag-values.release-1a=false",
-    "launchdarkly.default-flag-values.release-1b=true",
     "launchdarkly.enabled=false"
 })
 @DisplayName("ResultController release-1a disabled Integration Test")

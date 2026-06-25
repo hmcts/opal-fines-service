@@ -19,7 +19,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1a=true",
     "launchdarkly.default-flag-values.release-1b=false",
     "launchdarkly.enabled=false"
 })

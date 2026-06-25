@@ -32,7 +32,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=false"
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
