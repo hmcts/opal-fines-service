@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,9 @@ class DefendantAccountRepositoryServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
+
+    @Mock
+    private EntityManager entityManager;
 
     @InjectMocks
     private DefendantAccountRepositoryService service;
@@ -108,4 +112,17 @@ class DefendantAccountRepositoryServiceTest {
         verify(defendantAccountRepository).save(account);
     }
 
+    @Test
+    void refresh_refreshesEntityManagerState() {
+        // arrange
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(5L)
+            .build();
+
+        // act
+        service.refresh(account);
+
+        // assert
+        verify(entityManager).refresh(account);
+    }
 }
