@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -15,6 +16,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalNotesIntegrationTest")
+@TestPropertySource(properties = {
+    "launchdarkly.default-flag-values.release-1b=true"
+})
 public class OpalNotesIntegrationTest extends NotesIntegrationTest {
 
     @Test
